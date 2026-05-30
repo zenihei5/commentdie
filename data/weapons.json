@@ -1,0 +1,41 @@
+[
+  {
+    "id": "ban_hammer",
+    "displayName": "BANハンマー",
+    "description": "近くの敵を扇形に攻撃する標準武器",
+    "attackType": "melee_arc",
+    "damage": 12.0,
+    "attackInterval": 0.85,
+    "range": 2.0,
+    "arcAngle": 100,
+    "knockback": 1.0,
+    "magnetRange": 95.0
+  },
+  {
+    "id": "superchat_shot",
+    "displayName": "スパチャ弾",
+    "description": "近い敵に自動で弾を撃つ遠距離武器",
+    "attackType": "projectile",
+    "damage": 7.0,
+    "attackInterval": 0.8,
+    "range": 8.0,
+    "projectileSpeed": 7.0,
+    "pierce": 0,
+    "knockback": 0.3,
+    "magnetRange": 105.0
+  },
+  {
+    "id": "comment_boomerang",
+    "displayName": "コメントブーメラン",
+    "description": "プレイヤーの周囲を回転して敵を攻撃する武器",
+    "attackType": "orbit",
+    "damage": 6.0,
+    "orbitRadius": 1.8,
+    "hitInterval": 0.6,
+    "hitRadius": 34.0,
+    "orbitSpeed": 180.0,
+    "boomerangCount": 1,
+    "knockback": 0.5,
+    "magnetRange": 125.0
+  }
+]

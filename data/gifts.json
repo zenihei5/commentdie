@@ -1,0 +1,351 @@
+[
+  {
+    "id": "ban_hammer_damage",
+    "displayName": "メイン武器強化",
+    "description": "現在のメイン武器の威力 +15%",
+    "rarity": "common",
+    "maxLevel": 5,
+    "effectType": "hammer_damage",
+    "weight": 20
+  },
+  {
+    "id": "hammer_size",
+    "displayName": "メイン武器範囲強化",
+    "description": "現在のメイン武器の範囲・射程 +12%",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "hammer_size",
+    "weight": 14
+  },
+  {
+    "id": "rapid_ban",
+    "displayName": "メイン武器連射強化",
+    "description": "現在のメイン武器の攻撃間隔 -8%",
+    "rarity": "common",
+    "maxLevel": 5,
+    "effectType": "hammer_rate",
+    "weight": 18
+  },
+  {
+    "id": "move_speed",
+    "displayName": "足回り強化",
+    "description": "移動速度 +7%",
+    "rarity": "common",
+    "maxLevel": 4,
+    "effectType": "move_speed",
+    "weight": 16
+  },
+  {
+    "id": "mental",
+    "displayName": "メンタル強化",
+    "description": "最大HP +1、HP +1",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "max_hp",
+    "weight": 12
+  },
+  {
+    "id": "rest",
+    "displayName": "休憩",
+    "description": "HPを2回復",
+    "rarity": "common",
+    "maxLevel": 0,
+    "effectType": "heal",
+    "weight": 10
+  },
+  {
+    "id": "exp_magnet",
+    "displayName": "コメント吸引",
+    "description": "EXP回収範囲 +30%",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "magnet",
+    "weight": 14
+  },
+  {
+    "id": "ng_right",
+    "displayName": "NG権",
+    "description": "コメント候補を1枚消せる",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "ng_stock",
+    "weight": 12
+  },
+  {
+    "id": "superchat_shot",
+    "displayName": "スパチャ弾",
+    "description": "近い敵に追加弾を撃つ",
+    "rarity": "rare",
+    "maxLevel": 5,
+    "effectType": "superchat",
+    "weight": 12
+  },
+  {
+    "id": "comment_boomerang",
+    "displayName": "コメントブーメラン",
+    "description": "周囲を回る攻撃を追加",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "boomerang",
+    "weight": 10
+  },
+  {
+    "id": "burn_resist",
+    "displayName": "炎上耐性",
+    "description": "被弾時の炎上コンボ低下を防ぐ",
+    "rarity": "rare",
+    "maxLevel": 2,
+    "effectType": "burn_resist",
+    "weight": 10
+  },
+  {
+    "id": "clip_bonus",
+    "displayName": "切り抜き映え",
+    "description": "倍率x3以上でスコア +15%",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "clip_bonus",
+    "weight": 10
+  },
+  {
+    "id": "like_score",
+    "displayName": "いいね回収",
+    "description": "EXP回収時に追加スコア",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "like_score",
+    "weight": 12
+  },
+  {
+    "id": "dash_cooldown",
+    "displayName": "ダッシュ短縮",
+    "description": "ダッシュCT短縮",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "dash_cooldown",
+    "weight": 12
+  },
+  {
+    "id": "knockback",
+    "displayName": "ノックバック強化",
+    "description": "BANの押し返し強化",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "knockback",
+    "weight": 12
+  },
+  {
+    "id": "moderator",
+    "displayName": "モデレーター",
+    "description": "指示コメ効果時間を1秒短縮",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "moderator",
+    "weight": 10
+  },
+  {
+    "id": "reentry_barrier",
+    "displayName": "再開バリア",
+    "description": "指示コメ選択後に短時間無敵",
+    "rarity": "rare",
+    "maxLevel": 2,
+    "effectType": "reentry_barrier",
+    "weight": 10
+  },
+  {
+    "id": "golden_ban_hammer",
+    "displayName": "金のBANハンマー",
+    "description": "ダメージ+40%、範囲+25%",
+    "rarity": "god",
+    "maxLevel": 1,
+    "effectType": "golden_hammer",
+    "weight": 10
+  },
+  {
+    "id": "god_moderator",
+    "displayName": "神モデレーター",
+    "description": "NG権+1、指示コメ選択時間+1秒",
+    "rarity": "god",
+    "maxLevel": 1,
+    "effectType": "god_moderator",
+    "weight": 8
+  },
+  {
+    "id": "low_rating_guard",
+    "displayName": "低評価回避",
+    "description": "死亡時に一度だけHP1で復活",
+    "rarity": "god",
+    "maxLevel": 1,
+    "effectType": "revive",
+    "weight": 8
+  },
+  {
+    "id": "flame_marketing",
+    "displayName": "炎上商法",
+    "description": "スコア+30%、デメリット: 敵出現数+20%",
+    "rarity": "flame",
+    "maxLevel": 1,
+    "effectType": "flame_marketing",
+    "weight": 10
+  },
+  {
+    "id": "all_positive_listener",
+    "displayName": "全肯定リスナー",
+    "description": "期待度上昇+30%、デメリット: 危険コメ増",
+    "rarity": "flame",
+    "maxLevel": 1,
+    "effectType": "yes_listener",
+    "weight": 8
+  },
+  {
+    "id": "cant_stop_now",
+    "displayName": "もう止まれない",
+    "description": "速度+20%、攻撃速度+20%、デメリット: 慣性上昇",
+    "rarity": "flame",
+    "maxLevel": 1,
+    "effectType": "cant_stop",
+    "weight": 8
+  },
+  {
+    "id": "clip_confirmed",
+    "displayName": "切り抜き確定",
+    "description": "倍率x3以上のスコア +40%",
+    "rarity": "god",
+    "maxLevel": 1,
+    "effectType": "clip_confirmed",
+    "weight": 8
+  },
+  {
+    "id": "exp_vacuum_extreme",
+    "displayName": "コメント吸引・極",
+    "description": "一定間隔で画面内EXPを自動回収",
+    "rarity": "god",
+    "maxLevel": 1,
+    "effectType": "exp_vacuum_extreme",
+    "weight": 8
+  },
+  {
+    "id": "zero_taunt_resist",
+    "displayName": "煽り耐性ゼロ",
+    "description": "高倍率中スコア+60%、デメリット: 被ダメージ+1",
+    "rarity": "flame",
+    "maxLevel": 1,
+    "effectType": "zero_taunt_resist",
+    "weight": 8
+  },
+  {
+    "id": "comment_boost",
+    "displayName": "コメント欄ブースト",
+    "description": "指示コメ倍率+20%、デメリット: 選択時間-0.5秒",
+    "rarity": "flame",
+    "maxLevel": 1,
+    "effectType": "comment_boost",
+    "weight": 8
+  },
+  {
+    "id": "sweet_tooth",
+    "displayName": "甘党",
+    "description": "マシュマロのメリット効果 +15%",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "sweet_tooth",
+    "weight": 10
+  },
+  {
+    "id": "maro_magnet",
+    "displayName": "マロ吸引",
+    "description": "マシュマロの回収範囲が広がる",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "maro_magnet",
+    "weight": 10
+  },
+  {
+    "id": "read_manager",
+    "displayName": "既読管理",
+    "description": "マシュマロ未読化まで +5秒",
+    "rarity": "rare",
+    "maxLevel": 2,
+    "effectType": "read_manager",
+    "weight": 8
+  },
+  {
+    "id": "maro_appraisal",
+    "displayName": "マロ鑑定",
+    "description": "クソマロの見た目がより分かりやすい",
+    "rarity": "rare",
+    "maxLevel": 1,
+    "effectType": "maro_appraisal",
+    "weight": 6
+  },
+  {
+    "id": "block_function",
+    "displayName": "ブロック機能",
+    "description": "次に引いたクソマロを1回無効化",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "block_function",
+    "weight": 8
+  },
+  {
+    "id": "steel_mental",
+    "displayName": "鋼のメンタル",
+    "description": "クソマロの効果時間 -30%",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "steel_mental",
+    "weight": 8
+  },
+  {
+    "id": "heart_mark",
+    "displayName": "♡",
+    "description": "指示コメの語尾を甘くして、圧を少し下げる",
+    "rarity": "rare",
+    "maxLevel": 3,
+    "effectType": "add_heart_stock",
+    "weight": 8
+  },
+  {
+    "id": "streaming_skill",
+    "displayName": "実況慣れ",
+    "description": "ジャンルイベント中のスコア +10%",
+    "rarity": "common",
+    "maxLevel": 3,
+    "effectType": "streaming_skill",
+    "tags": ["gameplay"],
+    "weight": 12
+  },
+  {
+    "id": "strategy_wiki",
+    "displayName": "攻略wiki",
+    "description": "次のゲーム変化が事前に分かる",
+    "rarity": "rare",
+    "maxLevel": 1,
+    "effectType": "strategy_wiki",
+    "tags": ["gameplay"],
+    "minTime": 30,
+    "weight": 8
+  },
+  {
+    "id": "first_play_adapt",
+    "displayName": "初見対応力",
+    "description": "ゲーム変化開始直後、1.5秒だけ無敵",
+    "rarity": "rare",
+    "maxLevel": 1,
+    "effectType": "first_play_adapt",
+    "tags": ["gameplay"],
+    "minTime": 30,
+    "weight": 8
+  },
+  {
+    "id": "kusoge_resist",
+    "displayName": "クソゲー耐性",
+    "description": "ジャンルイベント中のデメリットを少し軽減",
+    "rarity": "rare",
+    "maxLevel": 2,
+    "effectType": "kusoge_resist",
+    "tags": ["gameplay"],
+    "minTime": 60,
+    "weight": 7
+  }
+]

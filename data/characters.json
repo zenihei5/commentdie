@@ -1,0 +1,102 @@
+[
+  {
+    "id": "ban_chan",
+    "displayName": "バンちゃん",
+    "roleName": "バランス型",
+    "description": "扱いやすい標準配信者。BANハンマーで近づく敵をまとめて処理できる。",
+    "sprite": "res://assets/characters/ban_chan.png",
+    "spriteScale": 0.095,
+    "spriteOffset": {
+      "x": 0,
+      "y": -34
+    },
+    "initialWeapon": "ban_hammer",
+    "baseStats": {
+      "hp": 5,
+      "moveSpeed": 5.0,
+      "dashCooldown": 1.2,
+      "pickupRange": 1.0,
+      "invincibleTime": 0.7
+    },
+    "initialResources": {
+      "ngTickets": 0,
+      "heartStock": 0,
+      "giftHype": 0
+    },
+    "passiveSkill": {
+      "id": "beginner_safe",
+      "displayName": "初配信補正",
+      "description": "被弾後の無敵時間が少し長い",
+      "params": {
+        "invincibleTimeBonus": 0.2
+      }
+    }
+  },
+  {
+    "id": "superchat_chan",
+    "displayName": "スパチャちゃん",
+    "roleName": "遠距離型",
+    "description": "遠距離から敵を処理するスコア型。打たれ弱いが、得点を伸ばしやすい。",
+    "sprite": "res://assets/characters/superchat_chan.png",
+    "spriteScale": 0.095,
+    "spriteOffset": {
+      "x": 0,
+      "y": -34
+    },
+    "initialWeapon": "superchat_shot",
+    "baseStats": {
+      "hp": 4,
+      "moveSpeed": 5.1,
+      "dashCooldown": 1.2,
+      "pickupRange": 1.0,
+      "invincibleTime": 0.7
+    },
+    "initialResources": {
+      "ngTickets": 0,
+      "heartStock": 0,
+      "giftHype": 0
+    },
+    "passiveSkill": {
+      "id": "superchat_bonus",
+      "displayName": "スパチャ体質",
+      "description": "獲得スコアが少し上がる",
+      "params": {
+        "scoreRate": 1.1
+      }
+    }
+  },
+  {
+    "id": "maro_chan",
+    "displayName": "マロちゃん",
+    "roleName": "回収型",
+    "description": "マシュマロとEXP回収が得意な成長型。序盤火力は控えめだが、拾って伸びる。",
+    "sprite": "res://assets/characters/maro_chan.png",
+    "spriteScale": 0.095,
+    "spriteOffset": {
+      "x": 0,
+      "y": -34
+    },
+    "initialWeapon": "comment_boomerang",
+    "baseStats": {
+      "hp": 5,
+      "moveSpeed": 4.8,
+      "dashCooldown": 1.25,
+      "pickupRange": 1.25,
+      "invincibleTime": 0.7
+    },
+    "initialResources": {
+      "ngTickets": 0,
+      "heartStock": 0,
+      "giftHype": 0
+    },
+    "passiveSkill": {
+      "id": "sweet_tooth_passive",
+      "displayName": "甘党",
+      "description": "マシュマロのメリット効果と回収範囲が少し上がる",
+      "params": {
+        "marshmallowGoodEffectRate": 1.1,
+        "marshmallowPickupRangeRate": 1.2
+      }
+    }
+  }
+]

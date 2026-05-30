@@ -1,0 +1,426 @@
+extends RefCounted
+class_name GiftSystem
+
+static func arrival_text(gift_hype: int) -> String:
+	if gift_hype >= 90:
+		return "神ギフトの予感……！"
+	if gift_hype >= 70:
+		return "豪華ギフトが届いた！"
+	if gift_hype >= 40:
+		return "いいギフトが届いた！"
+	return "ギフトが届いた！"
+
+static func build_offer(context: Dictionary) -> Array:
+	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
+	var gift_hype: int = int(context["giftHype"])
+	var gift_time: float = float(context["giftTime"])
+	var rarities: Array[String] = []
+	for i in range(3):
+		rarities.append(roll_rarity(gift_hype, gift_time, rng))
+	if gift_time >= 60.0 and gift_hype >= 90 and not (rarities.has("god") or rarities.has("flame")):
+		rarities[2] = "god" if rng.randf() < 0.65 else "flame"
+	elif gift_hype >= 70 and not (rarities.has("rare") or rarities.has("god") or rarities.has("flame")):
+		rarities[2] = "rare"
+	elif gift_hype >= 40 and not rarities.has("rare"):
+		rarities[2] = "rare"
+	var result: Array = []
+	for rarity in rarities:
+		result.append(pick_gift(context, rarity, result))
+	return result
+
+static func build_forced_offer(context: Dictionary, rarity: String, count: int = 3) -> Array:
+	var result: Array = []
+	for i in range(count):
+		result.append(pick_gift(context, rarity, result))
+	return result
+
+static func build_offer_context_for_target(target: Node, gifts: Array, gift_time: float, rng: RandomNumberGenerator) -> Dictionary:
+	return {
+		"gifts": gifts,
+		"streamFrame": target.get("current_stream_frame"),
+		"giftHype": target.get("gift_hype"),
+		"giftTime": gift_time,
+		"availableIds": available_gift_ids_for_target(target, gifts, gift_time),
+		"rng": rng
+	}
+
+static func roll_rarity(gift_hype: int, gift_time: float, rng: RandomNumberGenerator) -> String:
+	var roll: float = rng.randf()
+	if gift_hype < 40:
+		return "rare" if roll < 0.15 else "common"
+	if gift_hype < 70 or gift_time < 60.0:
+		return "rare" if roll < 0.35 else "common"
+	if gift_hype < 90:
+		if roll < 0.35:
+			return "common"
+		if roll < 0.80:
+			return "rare"
+		if roll < 0.95:
+			return "god"
+		return "flame"
+	if roll < 0.20:
+		return "common"
+	if roll < 0.60:
+		return "rare"
+	if roll < 0.85:
+		return "god"
+	return "flame"
+
+static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dictionary:
+	var pool: Array = []
+	var gifts: Array = context["gifts"] as Array
+	var available_ids: Array = context["availableIds"] as Array
+	var frame: Dictionary = context["streamFrame"] as Dictionary
+	for item in gifts:
+		var gift: Dictionary = item as Dictionary
+		if String(gift["rarity"]) != rarity:
+			continue
+		if not _data_allowed_for_frame(frame, gift, "giftPoolTags"):
+			continue
+		if used.has(gift):
+			continue
+		if not available_ids.has(String(gift["id"])):
+			continue
+		for i in range(int(gift["weight"])):
+			pool.append(gift)
+	if pool.is_empty():
+		for item in gifts:
+			var fallback: Dictionary = item as Dictionary
+			if _data_allowed_for_frame(frame, fallback, "giftPoolTags") and available_ids.has(String(fallback["id"])):
+				pool.append(fallback)
+	if pool.is_empty():
+		return {"id": "rest", "displayName": "休憩", "description": "HPを回復", "rarity": "common", "maxLevel": 0, "effectType": "heal", "weight": 1}
+	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
+	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+
+static func consume_for_rarity(rarity: String) -> int:
+	if rarity == "rare":
+		return 40
+	if rarity == "god" or rarity == "flame":
+		return 70
+	return 20
+
+static func available_gift_ids_for_target(target: Node, gifts: Array, gift_time: float) -> Array:
+	var result: Array = []
+	for item in gifts:
+		var gift: Dictionary = item as Dictionary
+		if gift_available_for_target(target, gift, gift_time):
+			result.append(String(gift["id"]))
+	return result
+
+static func gift_available_for_target(target: Node, gift: Dictionary, gift_time: float) -> bool:
+	if gift_time < float(gift.get("minTime", 0.0)):
+		return false
+	if String(gift["id"]) == "rest":
+		return int(target.get("player_hp")) < int(target.get("player_max_hp"))
+	var max_level: int = int(gift["maxLevel"])
+	if max_level <= 0:
+		return true
+	return gift_level_for_target(target, String(gift["id"])) < max_level
+
+static func choose_gift_for_target(target: Node, gift: Dictionary) -> Dictionary:
+	var result: Dictionary = apply_gift_to_target(target, gift)
+	var names: Array = target.get("taken_gift_names") as Array
+	names.append(String(gift["displayName"]))
+	target.set("gifts_taken", int(target.get("gifts_taken")) + 1)
+	var consume: int = consume_for_rarity(String(gift["rarity"]))
+	target.set("gift_hype", maxi(0, int(target.get("gift_hype")) - consume))
+	return result
+
+static func apply_gift_to_target(target: Node, gift: Dictionary) -> Dictionary:
+	var effect: String = String(gift["effectType"])
+	var result: Dictionary = apply_effect(effect, build_effect_context_from_target(target))
+	apply_effect_result_to_target(target, result)
+	return result
+
+static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
+	var result: Dictionary = context.duplicate()
+	result["rollGenreEvent"] = false
+	if effect == "hammer_damage":
+		result["hammerDamage"] = float(result.get("hammerDamage", 0.0)) * 1.15
+	elif effect == "hammer_size":
+		result["hammerRange"] = float(result.get("hammerRange", 0.0)) * 1.12
+	elif effect == "hammer_rate":
+		result["hammerInterval"] = maxf(0.35, float(result.get("hammerInterval", 0.85)) * 0.92)
+	elif effect == "move_speed":
+		result["playerSpeed"] = float(result.get("playerSpeed", 0.0)) * 1.07
+	elif effect == "max_hp":
+		result["playerMaxHp"] = int(result.get("playerMaxHp", 5)) + 1
+		result["playerHp"] = mini(int(result["playerMaxHp"]), int(result.get("playerHp", 5)) + 1)
+	elif effect == "heal":
+		result["playerHp"] = mini(int(result.get("playerMaxHp", 5)), int(result.get("playerHp", 5)) + 2)
+	elif effect == "magnet":
+		result["magnetRange"] = float(result.get("magnetRange", 95.0)) * 1.3
+	elif effect == "ng_stock":
+		result["ngStock"] = mini(3, int(result.get("ngStock", 0)) + 1)
+	elif effect == "add_heart_stock":
+		if int(result.get("heartStock", 0)) >= 3:
+			result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 10, 0, 100)
+			result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
+		else:
+			result["heartStock"] = int(result.get("heartStock", 0)) + 1
+	elif effect == "superchat":
+		result["superchatLevel"] = int(result.get("superchatLevel", 0)) + 1
+	elif effect == "boomerang":
+		result["boomerangLevel"] = int(result.get("boomerangLevel", 0)) + 1
+	elif effect == "burn_resist":
+		result["burnResistCharges"] = int(result.get("burnResistCharges", 0)) + 1
+	elif effect == "clip_bonus":
+		result["clipBonusLevel"] = int(result.get("clipBonusLevel", 0)) + 1
+	elif effect == "clip_confirmed":
+		result["clipConfirmed"] = true
+	elif effect == "exp_vacuum_extreme":
+		result["expVacuumExtreme"] = true
+	elif effect == "zero_taunt_resist":
+		result["zeroTauntResist"] = true
+	elif effect == "comment_boost":
+		result["commentBoost"] = true
+		result["choiceTimePenalty"] = float(result.get("choiceTimePenalty", 0.0)) + 0.5
+	elif effect == "sweet_tooth":
+		result["sweetToothLevel"] = int(result.get("sweetToothLevel", 0)) + 1
+	elif effect == "maro_magnet":
+		result["maroMagnetRange"] = float(result.get("maroMagnetRange", 0.0)) + 42.0
+	elif effect == "read_manager":
+		result["readManagerLevel"] = int(result.get("readManagerLevel", 0)) + 1
+	elif effect == "maro_appraisal":
+		result["maroAppraisal"] = true
+	elif effect == "block_function":
+		result["blockFunctionStock"] = mini(3, int(result.get("blockFunctionStock", 0)) + 1)
+	elif effect == "steel_mental":
+		result["steelMentalLevel"] = int(result.get("steelMentalLevel", 0)) + 1
+	elif effect == "like_score":
+		result["likeScoreLevel"] = int(result.get("likeScoreLevel", 0)) + 1
+	elif effect == "dash_cooldown":
+		result["dashCooldown"] = maxf(0.55, float(result.get("dashCooldown", 1.2)) * 0.88)
+	elif effect == "knockback":
+		result["knockbackPower"] = float(result.get("knockbackPower", 18.0)) * 1.2
+	elif effect == "moderator":
+		result["moderatorLevel"] = int(result.get("moderatorLevel", 0)) + 1
+	elif effect == "reentry_barrier":
+		result["reentryBarrierLevel"] = int(result.get("reentryBarrierLevel", 0)) + 1
+	elif effect == "golden_hammer":
+		result["hammerDamage"] = float(result.get("hammerDamage", 0.0)) * 1.4
+		result["hammerRange"] = float(result.get("hammerRange", 0.0)) * 1.25
+	elif effect == "god_moderator":
+		result["ngStock"] = mini(3, int(result.get("ngStock", 0)) + 1)
+		result["moderatorLevel"] = int(result.get("moderatorLevel", 0)) + 5
+		result["choiceTimeBonus"] = float(result.get("choiceTimeBonus", 0.0)) + 1.0
+	elif effect == "revive":
+		result["reviveAvailable"] = true
+	elif effect == "flame_marketing":
+		result["flameMarketing"] = true
+	elif effect == "yes_listener":
+		result["yesListener"] = true
+	elif effect == "cant_stop":
+		result["playerSpeed"] = float(result.get("playerSpeed", 0.0)) * 1.2
+		result["hammerInterval"] = float(result.get("hammerInterval", 0.85)) * 0.8
+	elif effect == "strategy_wiki":
+		result["strategyWiki"] = true
+		result["rollGenreEvent"] = true
+	elif effect == "first_play_adapt":
+		result["firstPlayAdapt"] = true
+	elif effect == "streaming_skill":
+		result["streamingSkillLevel"] = int(result.get("streamingSkillLevel", 0)) + 1
+	elif effect == "kusoge_resist":
+		result["kusogeResistLevel"] = int(result.get("kusogeResistLevel", 0)) + 1
+	return result
+
+static func build_effect_context_from_target(target: Node) -> Dictionary:
+	return {
+		"hammerDamage": target.get("hammer_damage"),
+		"hammerRange": target.get("hammer_range"),
+		"hammerInterval": target.get("hammer_interval"),
+		"playerSpeed": target.get("player_speed"),
+		"playerMaxHp": target.get("player_max_hp"),
+		"playerHp": target.get("player_hp"),
+		"magnetRange": target.get("magnet_range"),
+		"ngStock": target.get("ng_stock"),
+		"heartStock": target.get("heart_stock"),
+		"giftHype": target.get("gift_hype"),
+		"maxGiftHype": target.get("max_gift_hype"),
+		"superchatLevel": target.get("superchat_level"),
+		"boomerangLevel": target.get("boomerang_level"),
+		"burnResistCharges": target.get("burn_resist_charges"),
+		"clipBonusLevel": target.get("clip_bonus_level"),
+		"clipConfirmed": target.get("clip_confirmed"),
+		"expVacuumExtreme": target.get("exp_vacuum_extreme"),
+		"zeroTauntResist": target.get("zero_taunt_resist"),
+		"commentBoost": target.get("comment_boost"),
+		"choiceTimePenalty": target.get("choice_time_penalty"),
+		"sweetToothLevel": target.get("sweet_tooth_level"),
+		"maroMagnetRange": target.get("maro_magnet_range"),
+		"readManagerLevel": target.get("read_manager_level"),
+		"maroAppraisal": target.get("maro_appraisal"),
+		"blockFunctionStock": target.get("block_function_stock"),
+		"steelMentalLevel": target.get("steel_mental_level"),
+		"likeScoreLevel": target.get("like_score_level"),
+		"dashCooldown": target.get("dash_cooldown"),
+		"knockbackPower": target.get("knockback_power"),
+		"moderatorLevel": target.get("moderator_level"),
+		"reentryBarrierLevel": target.get("reentry_barrier_level"),
+		"choiceTimeBonus": target.get("choice_time_bonus"),
+		"reviveAvailable": target.get("revive_available"),
+		"flameMarketing": target.get("flame_marketing"),
+		"yesListener": target.get("yes_listener"),
+		"strategyWiki": target.get("strategy_wiki"),
+		"firstPlayAdapt": target.get("first_play_adapt"),
+		"streamingSkillLevel": target.get("streaming_skill_level"),
+		"kusogeResistLevel": target.get("kusoge_resist_level")
+	}
+
+static func apply_effect_result_to_target(target: Node, result: Dictionary) -> void:
+	target.set("hammer_damage", float(result["hammerDamage"]))
+	target.set("hammer_range", float(result["hammerRange"]))
+	target.set("hammer_interval", float(result["hammerInterval"]))
+	target.set("player_speed", float(result["playerSpeed"]))
+	target.set("player_max_hp", int(result["playerMaxHp"]))
+	target.set("player_hp", int(result["playerHp"]))
+	target.set("magnet_range", float(result["magnetRange"]))
+	target.set("ng_stock", int(result["ngStock"]))
+	target.set("heart_stock", int(result["heartStock"]))
+	target.set("gift_hype", int(result["giftHype"]))
+	target.set("max_gift_hype", int(result["maxGiftHype"]))
+	target.set("superchat_level", int(result["superchatLevel"]))
+	target.set("boomerang_level", int(result["boomerangLevel"]))
+	target.set("burn_resist_charges", int(result["burnResistCharges"]))
+	target.set("clip_bonus_level", int(result["clipBonusLevel"]))
+	target.set("clip_confirmed", bool(result["clipConfirmed"]))
+	target.set("exp_vacuum_extreme", bool(result["expVacuumExtreme"]))
+	target.set("zero_taunt_resist", bool(result["zeroTauntResist"]))
+	target.set("comment_boost", bool(result["commentBoost"]))
+	target.set("choice_time_penalty", float(result["choiceTimePenalty"]))
+	target.set("sweet_tooth_level", int(result["sweetToothLevel"]))
+	target.set("maro_magnet_range", float(result["maroMagnetRange"]))
+	target.set("read_manager_level", int(result["readManagerLevel"]))
+	target.set("maro_appraisal", bool(result["maroAppraisal"]))
+	target.set("block_function_stock", int(result["blockFunctionStock"]))
+	target.set("steel_mental_level", int(result["steelMentalLevel"]))
+	target.set("like_score_level", int(result["likeScoreLevel"]))
+	target.set("dash_cooldown", float(result["dashCooldown"]))
+	target.set("knockback_power", float(result["knockbackPower"]))
+	target.set("moderator_level", int(result["moderatorLevel"]))
+	target.set("reentry_barrier_level", int(result["reentryBarrierLevel"]))
+	target.set("choice_time_bonus", float(result["choiceTimeBonus"]))
+	target.set("revive_available", bool(result["reviveAvailable"]))
+	target.set("flame_marketing", bool(result["flameMarketing"]))
+	target.set("yes_listener", bool(result["yesListener"]))
+	target.set("strategy_wiki", bool(result["strategyWiki"]))
+	target.set("first_play_adapt", bool(result["firstPlayAdapt"]))
+	target.set("streaming_skill_level", int(result["streamingSkillLevel"]))
+	target.set("kusoge_resist_level", int(result["kusogeResistLevel"]))
+
+static func gift_level_for_target(target: Node, id: String) -> int:
+	return gift_level(id, build_level_context_from_target(target))
+
+static func build_level_context_from_target(target: Node) -> Dictionary:
+	var character: Dictionary = target.get("current_character") as Dictionary
+	var weapon: Dictionary = target.get("current_weapon") as Dictionary
+	var stats: Dictionary = CharacterSystem.base_stats(character)
+	var context: Dictionary = build_effect_context_from_target(target)
+	context["baseWeaponDamage"] = float(weapon.get("damage", 12.0))
+	context["baseWeaponRange"] = WeaponSystem.range_base(weapon)
+	context["baseWeaponInterval"] = WeaponSystem.attack_interval(weapon, 0.85)
+	context["basePlayerSpeed"] = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0)))
+	context["baseHp"] = int(stats.get("hp", character.get("initialHp", 5)))
+	context["baseDashCooldown"] = float(stats.get("dashCooldown", character.get("dashCooldown", 1.2)))
+	context["baseKnockback"] = float(weapon.get("knockback", 18.0))
+	context["heartUsedCount"] = int(target.get("heart_used_count"))
+	return context
+
+static func gift_level(id: String, context: Dictionary) -> int:
+	if id == "ban_hammer_damage":
+		var base_damage: float = float(context.get("baseWeaponDamage", 12.0))
+		return int(round((float(context.get("hammerDamage", base_damage)) / base_damage - 1.0) / 0.15))
+	if id == "hammer_size":
+		var base_range: float = float(context.get("baseWeaponRange", 1.0))
+		return int(round((float(context.get("hammerRange", base_range)) / base_range - 1.0) / 0.12))
+	if id == "rapid_ban":
+		var base_interval: float = float(context.get("baseWeaponInterval", 0.85))
+		return int(round((1.0 - float(context.get("hammerInterval", base_interval)) / base_interval) / 0.08))
+	if id == "move_speed":
+		var base_speed: float = float(context.get("basePlayerSpeed", 1.0))
+		return int(round((float(context.get("playerSpeed", base_speed)) / base_speed - 1.0) / 0.07))
+	if id == "mental":
+		return int(context.get("playerMaxHp", 5)) - int(context.get("baseHp", 5))
+	if id == "exp_magnet":
+		return int(round((float(context.get("magnetRange", 95.0)) / 95.0 - 1.0) / 0.30))
+	if id == "ng_right":
+		return int(context.get("ngStock", 0))
+	if id == "heart_mark":
+		return int(context.get("heartUsedCount", 0)) + int(context.get("heartStock", 0))
+	if id == "superchat_shot":
+		return int(context.get("superchatLevel", 0))
+	if id == "comment_boomerang":
+		return int(context.get("boomerangLevel", 0))
+	if id == "burn_resist":
+		return int(context.get("burnResistCharges", 0))
+	if id == "clip_bonus":
+		return int(context.get("clipBonusLevel", 0))
+	if id == "clip_confirmed":
+		return 1 if bool(context.get("clipConfirmed", false)) else 0
+	if id == "exp_vacuum_extreme":
+		return 1 if bool(context.get("expVacuumExtreme", false)) else 0
+	if id == "zero_taunt_resist":
+		return 1 if bool(context.get("zeroTauntResist", false)) else 0
+	if id == "comment_boost":
+		return 1 if bool(context.get("commentBoost", false)) else 0
+	if id == "sweet_tooth":
+		return int(context.get("sweetToothLevel", 0))
+	if id == "maro_magnet":
+		return int(round(float(context.get("maroMagnetRange", 0.0)) / 42.0))
+	if id == "read_manager":
+		return int(context.get("readManagerLevel", 0))
+	if id == "maro_appraisal":
+		return 1 if bool(context.get("maroAppraisal", false)) else 0
+	if id == "block_function":
+		return int(context.get("blockFunctionStock", 0))
+	if id == "steel_mental":
+		return int(context.get("steelMentalLevel", 0))
+	if id == "like_score":
+		return int(context.get("likeScoreLevel", 0))
+	if id == "dash_cooldown":
+		var base_dash: float = float(context.get("baseDashCooldown", 1.2))
+		return int(round((base_dash - float(context.get("dashCooldown", base_dash))) / 0.12))
+	if id == "knockback":
+		var base_knockback: float = float(context.get("baseKnockback", 18.0))
+		return int(round((float(context.get("knockbackPower", base_knockback)) / base_knockback - 1.0) / 0.20))
+	if id == "moderator":
+		return int(context.get("moderatorLevel", 0))
+	if id == "reentry_barrier":
+		return int(context.get("reentryBarrierLevel", 0))
+	if id == "golden_hammer" or id == "golden_ban_hammer":
+		return 1 if float(context.get("hammerDamage", 0.0)) > 16.0 else 0
+	if id == "god_moderator":
+		return 1 if int(context.get("moderatorLevel", 0)) >= 5 else 0
+	if id == "low_rating_escape" or id == "low_rating_guard":
+		return 1 if bool(context.get("reviveAvailable", false)) else 0
+	if id == "flame_marketing":
+		return 1 if bool(context.get("flameMarketing", false)) else 0
+	if id == "yes_listener" or id == "all_positive_listener":
+		return 1 if bool(context.get("yesListener", false)) else 0
+	if id == "cant_stop" or id == "cant_stop_now":
+		return 1 if float(context.get("playerSpeed", 0.0)) > 300.0 and float(context.get("hammerInterval", 1.0)) < 0.72 else 0
+	if id == "strategy_wiki":
+		return 1 if bool(context.get("strategyWiki", false)) else 0
+	if id == "first_play_adapt":
+		return 1 if bool(context.get("firstPlayAdapt", false)) else 0
+	if id == "streaming_skill":
+		return int(context.get("streamingSkillLevel", 0))
+	if id == "kusoge_resist":
+		return int(context.get("kusogeResistLevel", 0))
+	return 0
+
+static func _data_allowed_for_frame(frame: Dictionary, data: Dictionary, tag_key: String) -> bool:
+	var item_tags: Array = []
+	if data.has("tags") and data["tags"] is Array:
+		item_tags = data["tags"] as Array
+	elif data.has(tag_key) and data[tag_key] is Array:
+		item_tags = data[tag_key] as Array
+	if item_tags.is_empty():
+		item_tags = ["default"]
+	var frame_tags: Array = frame.get(tag_key, []) as Array
+	for tag in item_tags:
+		if frame_tags.has(tag):
+			return true
+	return false
+

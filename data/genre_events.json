@@ -1,0 +1,26 @@
+[
+  {
+    "id": "race",
+    "displayName": "レースゲーム風",
+    "description": "移動が速くなり、走り続けるとスコアが入る",
+    "duration": 12.0,
+    "effectType": "race",
+    "weight": 10
+  },
+  {
+    "id": "bullet_hell",
+    "displayName": "弾幕シューティング風",
+    "description": "弾が増えるが、当たり判定が少し小さくなる",
+    "duration": 12.0,
+    "effectType": "bullet_hell",
+    "weight": 10
+  },
+  {
+    "id": "horror",
+    "displayName": "ホラーゲーム風",
+    "description": "画面が暗くなり、幽霊コメントが現れる",
+    "duration": 12.0,
+    "effectType": "horror",
+    "weight": 8
+  }
+]

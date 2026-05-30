@@ -1,0 +1,24 @@
+[
+  {
+    "id": "zatsudan",
+    "displayName": "雑談枠",
+    "description": "マシュマロが届く基本配信枠。コメント欄とのやり取りを中心にした標準モード。",
+    "difficultyText": "標準",
+    "features": ["マシュマロ", "クソマロ", "未読マロ"],
+    "events": ["marshmallow"],
+    "commentPoolTags": ["default", "zatsudan"],
+    "giftPoolTags": ["default", "zatsudan"],
+    "resultStats": ["marshmallow"]
+  },
+  {
+    "id": "gameplay",
+    "displayName": "ゲーム実況枠",
+    "description": "色々なゲームっぽいルールが混ざる配信枠。急に別ジャンルのゲームが始まる。",
+    "difficultyText": "変化多め",
+    "features": ["ジャンルイベント", "実況枠専用指示コメ"],
+    "events": ["game_genre_event"],
+    "commentPoolTags": ["default", "gameplay"],
+    "giftPoolTags": ["default", "gameplay"],
+    "resultStats": ["genre_event"]
+  }
+]
