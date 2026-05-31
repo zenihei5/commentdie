@@ -12,6 +12,59 @@ static func status_text(stats: Dictionary) -> String:
 		String(stats.get("weaponName", "BANハンマー"))
 	]
 
+static func texts_for_target(target: Node, comment_barrage_label: String, gift_arrival_text: String, active_genre_label: String, next_known_genre_label: String) -> Dictionary:
+	var effect_text: String = "%02d" % int(ceil(maxf(0.0, float(target.get("effect_timer")))))
+	var current_character: Dictionary = target.get("current_character") as Dictionary
+	var current_stream_frame: Dictionary = target.get("current_stream_frame") as Dictionary
+	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+	return {
+		"status": status_text({
+			"score": int(target.get("score")),
+			"expValue": int(target.get("exp_value")),
+			"expNeed": ExpSystem.current_need(int(target.get("exp_level"))),
+			"effectText": effect_text,
+			"characterName": String(current_character.get("displayName", "バンちゃん")),
+			"streamFrameName": String(current_stream_frame.get("displayName", "雑談枠")),
+			"weaponName": String(current_weapon.get("displayName", "BANハンマー"))
+		}),
+		"banner": banner_text({
+			"state": String(target.get("state")),
+			"quickTestMode": bool(target.get("quick_test_mode")),
+			"commentBarrageLabel": comment_barrage_label,
+			"screenShakeEnabled": bool(target.get("screen_shake_enabled")),
+			"choiceTimer": float(target.get("choice_timer")),
+			"ngStock": int(target.get("ng_stock")),
+			"heartStock": int(target.get("heart_stock")),
+			"giftArrivalText": gift_arrival_text,
+			"activeGenreEvent": String(target.get("active_genre_event")),
+			"activeGenreLabel": active_genre_label,
+			"genreEventTimer": float(target.get("genre_event_timer")),
+			"strategyWiki": bool(target.get("strategy_wiki")),
+			"nextKnownGenreEvent": String(target.get("next_known_genre_event")),
+			"nextKnownGenreLabel": next_known_genre_label,
+			"commentTimer": float(target.get("comment_timer"))
+		})
+	}
+
+static func update_labels_for_target(
+	target: Node,
+	status_label: Label,
+	banner_label: Label,
+	comment_barrage_label: String,
+	gift_arrival_text: String,
+	active_genre_label: String,
+	next_known_genre_label: String
+) -> void:
+	var texts: Dictionary = texts_for_target(
+		target,
+		comment_barrage_label,
+		gift_arrival_text,
+		active_genre_label,
+		next_known_genre_label
+	)
+	status_label.text = String(texts["status"])
+	banner_label.text = String(texts["banner"])
+
 static func banner_text(context: Dictionary) -> String:
 	var state: String = String(context.get("state", "title"))
 	if state == "title":

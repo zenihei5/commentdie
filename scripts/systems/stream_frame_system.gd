@@ -27,6 +27,11 @@ static func selected_frame_state(frames: Array, id: String) -> Dictionary:
 		"frameId": String(frame.get("id", "zatsudan"))
 	}
 
+static func apply_selected_frame_for_target(target: Node, frames: Array, id: String) -> void:
+	var selected: Dictionary = selected_frame_state(frames, id)
+	target.set("current_stream_frame", selected["frame"] as Dictionary)
+	target.set("current_stream_frame_id", String(selected["frameId"]))
+
 static func selected_frame_state_by_index(frames: Array, index: int) -> Dictionary:
 	if index < 0 or index >= frames.size():
 		return {}
@@ -35,6 +40,48 @@ static func selected_frame_state_by_index(frames: Array, index: int) -> Dictiona
 		"frame": frame,
 		"frameId": String(frame.get("id", "zatsudan"))
 	}
+
+static func update_selection_action(latch: Dictionary, frames: Array, current_index: int) -> Dictionary:
+	var action: Dictionary = ChoiceCardSystem.menu_selection_action(latch, current_index, frames.size(), 2)
+	if ChoiceCardSystem.is_escape(action):
+		return {"kind": "escape", "index": current_index}
+	if ChoiceCardSystem.is_move(action):
+		return {"kind": "move", "index": int(action["index"])}
+	if ChoiceCardSystem.is_select(action):
+		var selected: Dictionary = selected_frame_state_by_index(frames, int(action["index"]))
+		if selected.is_empty():
+			return {"kind": "", "index": current_index}
+		return {
+			"kind": "select",
+			"index": int(action["index"]),
+			"frame": selected["frame"] as Dictionary,
+			"frameId": String(selected["frameId"])
+		}
+	return {"kind": "", "index": current_index}
+
+static func update_selection_for_target(target: Node, latch: Dictionary, frames: Array) -> Dictionary:
+	var action: Dictionary = update_selection_action(latch, frames, int(target.get("selected_stream_frame_index")))
+	var kind: String = String(action["kind"])
+	if kind == "escape":
+		return {"backToCharacterSelect": true, "restart": false}
+	if kind == "move":
+		target.set("selected_stream_frame_index", int(action["index"]))
+	elif kind == "select":
+		target.set("current_stream_frame", action["frame"] as Dictionary)
+		target.set("current_stream_frame_id", String(action["frameId"]))
+		return {"backToCharacterSelect": false, "restart": true}
+	return {"backToCharacterSelect": false, "restart": false}
+
+static func start_selection_for_target(target: Node, choice_box: Control, result_panel: Control, frames: Array) -> Dictionary:
+	StateFlowSystem.open_pre_run_select_for_target(target, "stream_frame_select", choice_box, result_panel)
+	var current_id: String = String(target.get("current_stream_frame_id"))
+	if frames.is_empty():
+		var fallback: Dictionary = selected_frame_state(frames, current_id)
+		target.set("current_stream_frame", fallback["frame"] as Dictionary)
+		target.set("current_stream_frame_id", String(fallback["frameId"]))
+		return {"restart": true, "chat": "今日の配信枠を選べ"}
+	target.set("selected_stream_frame_index", selected_index(frames, current_id))
+	return {"restart": false, "chat": "今日の配信枠を選べ"}
 
 static func feature_labels(frame: Dictionary) -> Array[String]:
 	var labels: Array[String] = []
@@ -53,6 +100,12 @@ static func selection_card_view(frame: Dictionary) -> Dictionary:
 static func has_event(frame: Dictionary, event_id: String) -> bool:
 	var events: Array = frame.get("events", []) as Array
 	return events.has(event_id)
+
+static func event_flags(frame: Dictionary) -> Dictionary:
+	return {
+		"marshmallow": has_event(frame, "marshmallow"),
+		"gameGenreEvent": has_event(frame, "game_genre_event")
+	}
 
 static func data_allowed(frame: Dictionary, data: Dictionary, tag_key: String) -> bool:
 	var item_tags: Array = []

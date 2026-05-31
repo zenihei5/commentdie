@@ -47,6 +47,150 @@ static func orbit_speed(weapon: Dictionary) -> float:
 	var speed: float = float(weapon.get("orbitSpeed", 4.0)) if attack_type(weapon) == "orbit" else 4.0
 	return deg_to_rad(speed) if speed > 20.0 else speed
 
+static func update_weapons(context: Dictionary) -> Dictionary:
+	var result: Dictionary = {
+		"attackTimer": float(context["attackTimer"]),
+		"muteTimer": float(context["muteTimer"]),
+		"superchatTimer": float(context["superchatTimer"]),
+		"lastDir": Vector2(context["lastDir"]),
+		"playerBullets": context["playerBullets"],
+		"boomerangHits": context["boomerangHits"],
+		"hitFx": [],
+		"killed": [],
+		"chat": []
+	}
+	var projectile_result: Dictionary = update_projectiles({
+		"delta": context["delta"],
+		"weapon": context["weapon"],
+		"weaponType": context["weaponType"],
+		"superchatLevel": context["superchatLevel"],
+		"superchatTimer": context["superchatTimer"],
+		"interval": context["interval"],
+		"range": context["range"],
+		"damage": context["damage"],
+		"playerPos": context["playerPos"],
+		"enemies": context["enemies"],
+		"bullets": context["playerBullets"],
+		"arena": context["arena"]
+	})
+	result["superchatTimer"] = projectile_result["superchatTimer"]
+	result["playerBullets"] = projectile_result["bullets"]
+	_merge_weapon_result(result, projectile_result)
+
+	var hammer_result: Dictionary = update_hammer({
+		"delta": context["delta"],
+		"rng": context["rng"],
+		"weaponType": context["weaponType"],
+		"attackTimer": context["attackTimer"],
+		"muteTimer": context["muteTimer"],
+		"lastDir": context["lastDir"],
+		"supportAttack": context["supportAttack"],
+		"weaponMute": context["weaponMute"],
+		"weaponMuteRate": context["weaponMuteRate"],
+		"takeback": context["takeback"],
+		"attackRightOnly": context["attackRightOnly"],
+		"attackRightOnlyRate": context["attackRightOnlyRate"],
+		"attackJitter": context["attackJitter"],
+		"shortRange": context["shortRange"],
+		"playerPos": context["playerPos"],
+		"enemies": context["enemies"],
+		"damage": context["damage"],
+		"range": context["range"],
+		"interval": context["interval"],
+		"knockback": context["knockback"]
+	})
+	result["attackTimer"] = hammer_result["attackTimer"]
+	result["muteTimer"] = hammer_result["muteTimer"]
+	result["lastDir"] = hammer_result["lastDir"]
+	_merge_weapon_result(result, hammer_result)
+
+	var boomerang_result: Dictionary = update_boomerang({
+		"weapon": context["weapon"],
+		"weaponType": context["weaponType"],
+		"boomerangLevel": context["boomerangLevel"],
+		"elapsed": context["elapsed"],
+		"playerPos": context["playerPos"],
+		"enemies": context["enemies"],
+		"boomerangHits": context["boomerangHits"],
+		"range": context["range"],
+		"damage": context["damage"],
+		"knockback": context["knockback"]
+	})
+	result["boomerangHits"] = boomerang_result["boomerangHits"]
+	_merge_weapon_result(result, boomerang_result)
+	return result
+
+static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+	var result: Dictionary = update_weapons({
+		"delta": delta,
+		"rng": rng,
+		"weapon": current_weapon,
+		"weaponType": attack_type(current_weapon),
+		"attackTimer": target.get("attack_timer"),
+		"muteTimer": target.get("mute_timer"),
+		"superchatTimer": target.get("superchat_timer"),
+		"lastDir": target.get("last_hammer_dir"),
+		"supportAttack": float(target.get("support_attack_timer")) > 0.0,
+		"weaponMute": ModifierSystem.has_effect_for_target(target, "weapon_mute"),
+		"weaponMuteRate": ModifierSystem.effect_rate_for_target(target, "weapon_mute"),
+		"takeback": ModifierSystem.has_effect_for_target(target, "takeback"),
+		"attackRightOnly": ModifierSystem.has_effect_for_target(target, "attack_right_only"),
+		"attackRightOnlyRate": ModifierSystem.effect_rate_for_target(target, "attack_right_only"),
+		"attackJitter": float(target.get("attack_jitter_timer")) > 0.0,
+		"shortRange": ModifierSystem.has_effect_for_target(target, "short_range"),
+		"superchatLevel": target.get("superchat_level"),
+		"boomerangLevel": target.get("boomerang_level"),
+		"elapsed": target.get("elapsed"),
+		"playerPos": target.get("player_pos"),
+		"enemies": target.get("enemies"),
+		"playerBullets": target.get("player_bullets"),
+		"boomerangHits": target.get("boomerang_hits"),
+		"damage": target.get("hammer_damage"),
+		"range": target.get("hammer_range"),
+		"interval": target.get("hammer_interval"),
+		"knockback": target.get("knockback_power"),
+		"arena": arena
+	})
+	target.set("attack_timer", float(result["attackTimer"]))
+	target.set("mute_timer", float(result["muteTimer"]))
+	target.set("superchat_timer", float(result["superchatTimer"]))
+	target.set("last_hammer_dir", Vector2(result["lastDir"]))
+	target.set("player_bullets", result["playerBullets"])
+	target.set("boomerang_hits", result["boomerangHits"])
+	return result
+
+static func apply_update_result_for_target(target: Node, result: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var chats: Array = []
+	var killed: Array = result.get("killed", []) as Array
+	for item in killed:
+		var enemy: Dictionary = item
+		var kill_result: Dictionary = EnemySystem.apply_kill_for_target(target, enemy, arena, rng)
+		var kill_chat: String = String(kill_result["chat"])
+		if kill_chat != "":
+			chats.append(kill_chat)
+
+	var hit_fx: Array = target.get("hit_fx") as Array
+	var effects: Array = result.get("hitFx", []) as Array
+	for item in effects:
+		hit_fx.append(item)
+	target.set("hit_fx", hit_fx)
+
+	var weapon_chats: Array = result.get("chat", []) as Array
+	for item in weapon_chats:
+		chats.append(String(item))
+
+	var enemies: Array = target.get("enemies") as Array
+	target.set("enemies", enemies.filter(func(e): return float(e["hp"]) > 0.0))
+	return {"chats": chats}
+
+static func _merge_weapon_result(target: Dictionary, source: Dictionary) -> void:
+	for key in ["hitFx", "killed", "chat"]:
+		var target_items: Array = target.get(key, []) as Array
+		var source_items: Array = source.get(key, []) as Array
+		for item in source_items:
+			target_items.append(item)
+
 static func update_hammer(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
 		"attackTimer": float(context["attackTimer"]),
@@ -216,6 +360,9 @@ static func update_hit_fx(hit_fx: Array, delta: float) -> Array:
 		var fx: Dictionary = fx_item
 		fx["life"] = float(fx["life"]) - delta
 	return hit_fx.filter(func(f): return float(f["life"]) > 0.0)
+
+static func update_hit_fx_for_target(target: Node, delta: float) -> void:
+	target.set("hit_fx", update_hit_fx(target.get("hit_fx") as Array, delta))
 
 static func nearest_enemy(enemies: Array, player_pos: Vector2) -> Variant:
 	var best: Variant = null

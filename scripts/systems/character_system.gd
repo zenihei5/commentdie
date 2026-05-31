@@ -22,13 +22,75 @@ static func selected_character_state(characters: Array, weapons: Array, id: Stri
 	var weapon_id: String = String(character.get("initialWeapon", "ban_hammer"))
 	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, fallback_weapon())
 	var sprite_path: String = String(character.get("sprite", ""))
+	var character_id: String = String(character.get("id", "ban_chan"))
+	var idle_sprite_path: String = String(character.get("idleSprite", ""))
+	if idle_sprite_path == "" and character_id == "ban_chan":
+		idle_sprite_path = "res://assets/generated/ban_chan_idle_3x3/sheet-transparent.png"
 	return {
 		"character": character,
-		"characterId": String(character.get("id", "ban_chan")),
+		"characterId": character_id,
 		"weapon": weapon,
 		"weaponId": weapon_id,
-		"sprite": texture_from_cache(cache, sprite_path)
+		"sprite": texture_from_cache(cache, sprite_path),
+		"idleSprite": texture_from_cache(cache, idle_sprite_path)
 	}
+
+static func apply_selected_character_for_target(target: Node, characters: Array, weapons: Array, id: String, cache: Dictionary) -> void:
+	var selected: Dictionary = selected_character_state(characters, weapons, id, cache)
+	target.set("current_character", selected["character"] as Dictionary)
+	target.set("current_character_id", String(selected["characterId"]))
+	target.set("current_weapon_id", String(selected["weaponId"]))
+	target.set("current_weapon", selected["weapon"] as Dictionary)
+	target.set("player_sprite", selected["sprite"] as Texture2D)
+	target.set("player_idle_sprite", selected["idleSprite"] as Texture2D)
+
+static func selected_character_state_by_index(characters: Array, index: int) -> Dictionary:
+	if index < 0 or index >= characters.size():
+		return {}
+	var character: Dictionary = characters[index] as Dictionary
+	return {
+		"character": character,
+		"characterId": String(character.get("id", "ban_chan"))
+	}
+
+static func update_selection_action(latch: Dictionary, characters: Array, current_index: int) -> Dictionary:
+	var action: Dictionary = ChoiceCardSystem.menu_selection_action(latch, current_index, characters.size(), 3)
+	if ChoiceCardSystem.is_escape(action):
+		return {"kind": "escape", "index": current_index}
+	if ChoiceCardSystem.is_move(action):
+		return {"kind": "move", "index": int(action["index"])}
+	if ChoiceCardSystem.is_select(action):
+		var selected: Dictionary = selected_character_state_by_index(characters, int(action["index"]))
+		if selected.is_empty():
+			return {"kind": "", "index": current_index}
+		return {
+			"kind": "select",
+			"index": int(action["index"]),
+			"characterId": String(selected["characterId"])
+		}
+	return {"kind": "", "index": current_index}
+
+static func update_selection_for_target(target: Node, latch: Dictionary, characters: Array) -> Dictionary:
+	var action: Dictionary = update_selection_action(latch, characters, int(target.get("selected_character_index")))
+	var kind: String = String(action["kind"])
+	if kind == "escape":
+		target.set("state", "title")
+		return {"startStreamFrameSelect": false}
+	if kind == "move":
+		target.set("selected_character_index", int(action["index"]))
+	elif kind == "select":
+		target.set("current_character_id", String(action["characterId"]))
+		return {"startStreamFrameSelect": true}
+	return {"startStreamFrameSelect": false}
+
+static func start_selection_for_target(target: Node, choice_box: Control, result_panel: Control, characters: Array) -> Dictionary:
+	StateFlowSystem.open_pre_run_select_for_target(target, "character_select", choice_box, result_panel)
+	if characters.is_empty():
+		target.set("current_character_id", "ban_chan")
+		return {"restart": true, "chat": "今日の配信者を選べ"}
+	var current_id: String = String(target.get("current_character_id"))
+	target.set("selected_character_index", selected_index(characters, current_id))
+	return {"restart": false, "chat": "今日の配信者を選べ"}
 
 static func selection_card_view(character: Dictionary, weapons: Array) -> Dictionary:
 	var weapon_id: String = String(character.get("initialWeapon", "ban_hammer"))
@@ -104,6 +166,18 @@ static func apply_passive_values(character: Dictionary, values: Dictionary) -> D
 		result["passiveMaroGoodRate"] = float(result.get("passiveMaroGoodRate", 1.0)) * float(params.get("marshmallowGoodEffectRate", 1.1))
 		result["passiveMaroPickupRate"] = float(result.get("passiveMaroPickupRate", 1.0)) * float(params.get("marshmallowPickupRangeRate", 1.2))
 	return result
+
+static func apply_passive_for_target(target: Node, character: Dictionary) -> void:
+	var values: Dictionary = apply_passive_values(character, {
+		"playerBaseInvincibleTime": target.get("player_base_invincible_time"),
+		"passiveScoreRate": target.get("passive_score_rate"),
+		"passiveMaroGoodRate": target.get("passive_maro_good_rate"),
+		"passiveMaroPickupRate": target.get("passive_maro_pickup_rate")
+	})
+	target.set("player_base_invincible_time", float(values["playerBaseInvincibleTime"]))
+	target.set("passive_score_rate", float(values["passiveScoreRate"]))
+	target.set("passive_maro_good_rate", float(values["passiveMaroGoodRate"]))
+	target.set("passive_maro_pickup_rate", float(values["passiveMaroPickupRate"]))
 
 static func role_name(character: Dictionary) -> String:
 	return String(character.get("roleName", character.get("archetype", "配信者")))

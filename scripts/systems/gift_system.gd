@@ -44,6 +44,21 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"rng": rng
 	}
 
+static func start_offer_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator) -> Dictionary:
+	target.set("state", "gift_choice")
+	target.set("selected_card", 0)
+	var elapsed: float = float(target.get("elapsed"))
+	var quick_test: bool = bool(target.get("quick_test_mode"))
+	var gift_time: float = elapsed * (3.0 if quick_test else 1.0)
+	var context: Dictionary = build_offer_context_for_target(target, gifts, gift_time, rng)
+	target.set("offered_gifts", build_offer(context))
+	return {"arrivalText": arrival_text(int(target.get("gift_hype")))}
+
+static func start_offer_ui_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator, choice_box: Control) -> Dictionary:
+	var result: Dictionary = start_offer_for_target(target, gifts, rng)
+	choice_box.visible = true
+	return result
+
 static func roll_rarity(gift_hype: int, gift_time: float, rng: RandomNumberGenerator) -> String:
 	var roll: float = rng.randf()
 	if gift_hype < 40:
@@ -126,6 +141,51 @@ static func choose_gift_for_target(target: Node, gift: Dictionary) -> Dictionary
 	var consume: int = consume_for_rarity(String(gift["rarity"]))
 	target.set("gift_hype", maxi(0, int(target.get("gift_hype")) - consume))
 	return result
+
+static func choose_offer_index_for_target(target: Node, index: int) -> Dictionary:
+	var offered_gifts: Array = target.get("offered_gifts") as Array
+	if index < 0 or index >= offered_gifts.size():
+		return {"selected": false, "giftName": "", "rollGenreEvent": false}
+	var gift: Dictionary = offered_gifts[index] as Dictionary
+	var result: Dictionary = choose_gift_for_target(target, gift)
+	target.set("state", "playing")
+	return {
+		"selected": true,
+		"giftName": String(gift["displayName"]),
+		"rollGenreEvent": bool(result.get("rollGenreEvent", false))
+	}
+
+static func choose_offer_index_ui_for_target(target: Node, index: int, choice_box: Control) -> Dictionary:
+	var result: Dictionary = choose_offer_index_for_target(target, index)
+	if bool(result["selected"]):
+		choice_box.visible = false
+	return result
+
+static func choose_offer_index_with_feedback_for_target(
+	target: Node,
+	index: int,
+	choice_box: Control,
+	genre_events: Array,
+	rng: RandomNumberGenerator
+) -> Dictionary:
+	var result: Dictionary = choose_offer_index_ui_for_target(target, index, choice_box)
+	if not bool(result["selected"]):
+		return {"selected": false, "chats": []}
+	if bool(result.get("rollGenreEvent", false)):
+		GenreEventSystem.set_next_known_event_for_target(target, genre_events, rng)
+	return {
+		"selected": true,
+		"chats": [String(result["giftName"]) + " を取得"]
+	}
+
+static func update_choice_input_for_target(target: Node, latch: Dictionary) -> Dictionary:
+	var action: Dictionary = ChoiceCardSystem.selection_action(latch, int(target.get("selected_card")), 3)
+	if ChoiceCardSystem.is_move(action):
+		target.set("selected_card", int(action["index"]))
+		return {"refresh": true, "chooseIndex": -1}
+	if ChoiceCardSystem.is_select(action):
+		return {"refresh": false, "chooseIndex": int(action["index"])}
+	return {"refresh": false, "chooseIndex": -1}
 
 static func apply_gift_to_target(target: Node, gift: Dictionary) -> Dictionary:
 	var effect: String = String(gift["effectType"])

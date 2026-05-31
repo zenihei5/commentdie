@@ -104,6 +104,20 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"shoot": shoot
 	}
 
+static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2 = Vector2.INF) -> void:
+	var spawn_pos: Vector2 = pos
+	if spawn_pos == Vector2.INF:
+		spawn_pos = spawn_position(arena, rng)
+	var giant_power: float = 0.0
+	if ModifierSystem.has_effect_for_target(target, "giant_enemies"):
+		giant_power = ModifierSystem.effect_rate_for_target(target, "giant_enemies")
+	var shoot_seed: float = rng.randf_range(0.6, 1.4) if pos == Vector2.INF else 1.0
+	var enemies: Array = target.get("enemies") as Array
+	var next_uid: int = int(target.get("next_enemy_uid"))
+	enemies.append(build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power))
+	target.set("enemies", enemies)
+	target.set("next_enemy_uid", next_uid + 1)
+
 static func kill_events(enemy: Dictionary, split_enemy: bool, rng: RandomNumberGenerator) -> Dictionary:
 	var pos: Vector2 = Vector2(enemy["pos"])
 	var splits: Array = []
@@ -114,6 +128,60 @@ static func kill_events(enemy: Dictionary, split_enemy: bool, rng: RandomNumberG
 		"splits": splits,
 		"chat": "今のBANうまい" if rng.randf() < 0.16 else ""
 	}
+
+static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	target.set("kills", int(target.get("kills")) + 1)
+	target.set("score", int(target.get("score")) + ScoreSystem.enemy_score_for_target(target, enemy))
+	ExpSystem.drop_from_enemy_for_target(target, enemy)
+	var split_enemy: bool = ModifierSystem.has_effect_for_target(target, "split_enemy")
+	var events: Dictionary = kill_events(enemy, split_enemy, rng)
+	var splits: Array = events["splits"] as Array
+	for item in splits:
+		spawn_enemy_for_target(target, "troll", arena, rng, Vector2(item))
+	return {
+		"chat": String(events["chat"])
+	}
+
+static func update_enemy_world(context: Dictionary) -> Dictionary:
+	var result: Dictionary = {
+		"bullets": context["bullets"],
+		"damageEvents": []
+	}
+	var enemy_result: Dictionary = update_enemies(context)
+	result["bullets"] = enemy_result["bullets"]
+	_merge_damage_events(result, enemy_result)
+	var bullet_result: Dictionary = update_enemy_bullets({
+		"delta": context["delta"],
+		"bullets": result["bullets"],
+		"playerPos": context["playerPos"],
+		"arena": context["arena"],
+		"bulletHell": context["bulletHell"]
+	})
+	result["bullets"] = bullet_result["bullets"]
+	_merge_damage_events(result, bullet_result)
+	return result
+
+static func update_world_for_target(target: Node, delta: float, rng: RandomNumberGenerator, arena: Rect2) -> Dictionary:
+	var result: Dictionary = update_enemy_world({
+		"delta": delta,
+		"rng": rng,
+		"enemies": target.get("enemies"),
+		"bullets": target.get("enemy_bullets"),
+		"playerPos": target.get("player_pos"),
+		"arena": arena,
+		"enemySpeedRate": ModifierSystem.effect_rate_for_target(target, "enemy_speed"),
+		"godReservation": ModifierSystem.has_effect_for_target(target, "god_reservation"),
+		"godReservationRate": ModifierSystem.effect_rate_for_target(target, "god_reservation"),
+		"bulletHell": String(target.get("active_genre_event")) == "bullet_hell"
+	})
+	target.set("enemy_bullets", result["bullets"])
+	return result
+
+static func _merge_damage_events(target: Dictionary, source: Dictionary) -> void:
+	var target_items: Array = target.get("damageEvents", []) as Array
+	var source_items: Array = source.get("damageEvents", []) as Array
+	for item in source_items:
+		target_items.append(item)
 
 static func update_enemies(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {

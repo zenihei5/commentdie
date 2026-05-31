@@ -29,6 +29,22 @@ static func build_save_data(tutorial_seen: bool, comment_barrage: int, screen_sh
 		"screenShake": screen_shake
 	}
 
+static func load_for_target(target: Node) -> void:
+	var data: Dictionary = load_settings()
+	if data.is_empty():
+		return
+	var settings: Dictionary = normalized_settings(data)
+	target.set("tutorial_seen", bool(settings["tutorialSeen"]))
+	target.set("comment_barrage_setting", int(settings["commentBarrage"]))
+	target.set("screen_shake_enabled", bool(settings["screenShake"]))
+
+static func save_for_target(target: Node) -> void:
+	save_settings(build_save_data(
+		bool(target.get("tutorial_seen")),
+		int(target.get("comment_barrage_setting")),
+		bool(target.get("screen_shake_enabled"))
+	))
+
 static func normalized_comment_barrage(value: int) -> int:
 	return clampi(value, 0, 2)
 
@@ -40,3 +56,34 @@ static func toggled_screen_shake(current: bool) -> bool:
 
 static func reset_tutorial_seen() -> bool:
 	return false
+
+static func apply_title_action(current: Dictionary, action: String) -> Dictionary:
+	var result: Dictionary = {
+		"tutorialSeen": bool(current.get("tutorialSeen", false)),
+		"commentBarrage": normalized_comment_barrage(int(current.get("commentBarrage", 1))),
+		"screenShake": bool(current.get("screenShake", true)),
+		"changed": false
+	}
+	if action == "comment_barrage":
+		result["commentBarrage"] = next_comment_barrage(int(result["commentBarrage"]))
+		result["changed"] = true
+	elif action == "screen_shake":
+		result["screenShake"] = toggled_screen_shake(bool(result["screenShake"]))
+		result["changed"] = true
+	elif action == "reset_tutorial":
+		result["tutorialSeen"] = reset_tutorial_seen()
+		result["changed"] = true
+	return result
+
+static func apply_title_action_for_target(target: Node, action: String) -> Dictionary:
+	var result: Dictionary = apply_title_action({
+		"tutorialSeen": target.get("tutorial_seen"),
+		"commentBarrage": target.get("comment_barrage_setting"),
+		"screenShake": target.get("screen_shake_enabled")
+	}, action)
+	if bool(result["changed"]):
+		target.set("tutorial_seen", bool(result["tutorialSeen"]))
+		target.set("comment_barrage_setting", int(result["commentBarrage"]))
+		target.set("screen_shake_enabled", bool(result["screenShake"]))
+		save_for_target(target)
+	return result

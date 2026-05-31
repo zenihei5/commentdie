@@ -22,7 +22,7 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"rng": rng
 	})
 
-static func start_choice_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float) -> void:
+static func start_choice_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float) -> Dictionary:
 	target.set("state", "comment_choice")
 	target.set("previous_state", "playing")
 	target.set("choice_timer", maxf(1.0, base_choice_time + float(target.get("choice_time_bonus")) - float(target.get("choice_time_penalty"))))
@@ -31,6 +31,76 @@ static func start_choice_for_target(target: Node, comments: Array, rng: RandomNu
 	target.set("offered_comments", build_offer_for_target(target, comments, rng))
 	target.set("ng_cards", _bool_cards(false, 3))
 	target.set("heart_cards", _bool_cards(false, 3))
+	return {"chat": "指示コメが来た！"}
+
+static func start_choice_ui_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float, choice_box: Control) -> Dictionary:
+	var result: Dictionary = start_choice_for_target(target, comments, rng, base_choice_time)
+	choice_box.visible = true
+	return result
+
+static func finish_choice_for_target(target: Node, interval: float) -> String:
+	target.set("comment_timer", interval)
+	target.set("comment_warning_step", 0)
+	target.set("state", "playing")
+	(target.get("heart_cards") as Array).clear()
+	return String(target.get("current_comment")) + " を選択"
+
+static func finish_choice_ui_for_target(target: Node, interval: float, choice_box: Control) -> String:
+	var chat: String = finish_choice_for_target(target, interval)
+	choice_box.visible = false
+	return chat
+
+static func choose_comment_for_target(target: Node, index: int, rng: RandomNumberGenerator) -> Dictionary:
+	var offered_comments: Array = target.get("offered_comments") as Array
+	var ng_cards: Array = target.get("ng_cards") as Array
+	var heart_cards: Array = target.get("heart_cards") as Array
+	if index < 0 or index >= offered_comments.size():
+		return {"selected": false, "commentId": ""}
+	if index < ng_cards.size() and bool(ng_cards[index]):
+		return {"selected": false, "commentId": ""}
+	var comment: Dictionary = offered_comments[index] as Dictionary
+	var has_heart: bool = index < heart_cards.size() and bool(heart_cards[index])
+	var view: Dictionary = comment_view(comment, has_heart)
+	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng)
+	return {
+		"selected": true,
+		"commentId": String(result["commentId"])
+	}
+
+static func choose_comment_with_feedback_for_target(
+	target: Node,
+	index: int,
+	rng: RandomNumberGenerator,
+	arena: Rect2,
+	interval: float,
+	choice_box: Control,
+	genre_events: Array
+) -> Dictionary:
+	var result: Dictionary = choose_comment_for_target(target, index, rng)
+	if not bool(result["selected"]):
+		return {"selected": false, "toasts": [], "chats": []}
+	var feedback: Dictionary = GenreEventSystem.start_comment_event_if_enabled_for_target(
+		target,
+		target.get("current_stream_frame") as Dictionary,
+		String(result["commentId"]),
+		genre_events,
+		arena,
+		rng
+	)
+	ModifierSystem.setup_stage_effects_for_target(target, arena, rng)
+	var chats: Array = feedback.get("chats", []) as Array
+	chats.append(finish_choice_ui_for_target(target, interval, choice_box))
+	feedback["chats"] = chats
+	feedback["selected"] = true
+	return feedback
+
+static func apply_forced_offer_to_target(target: Node, offer: Dictionary) -> bool:
+	if offer.is_empty():
+		return false
+	target.set("offered_comments", offer["comments"] as Array)
+	target.set("ng_cards", _bool_cards(bool(offer["ngCard"]), 1))
+	target.set("heart_cards", _bool_cards(bool(offer["heartCard"]), 1))
+	return true
 
 static func _bool_cards(value: bool, count: int) -> Array[bool]:
 	var cards: Array[bool] = []
@@ -122,6 +192,40 @@ static func update_choice_timer_for_target(target: Node, delta: float) -> Dictio
 	return {
 		"chats": chats,
 		"timedOut": timer <= 0.0
+	}
+
+static func update_choice_input_for_target(target: Node, delta: float, latch: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+	var timer_result: Dictionary = update_choice_timer_for_target(target, delta)
+	var chats: Array = timer_result["chats"] as Array
+	var refresh: bool = false
+	var choose_index: int = -1
+	var action: Dictionary = ChoiceCardSystem.selection_action(latch, int(target.get("selected_card")), 3)
+	if ChoiceCardSystem.is_move(action):
+		target.set("selected_card", int(action["index"]))
+		refresh = true
+	elif Input.is_key_pressed(KEY_Q):
+		var ng_result: Dictionary = use_ng_for_target(target)
+		if bool(ng_result["changed"]):
+			chats.append(String(ng_result["chat"]))
+			refresh = true
+	elif Input.is_key_pressed(KEY_H):
+		var heart_result: Dictionary = use_heart_for_target(target, rng)
+		if bool(heart_result["changed"]):
+			chats.append(String(heart_result["chat"]))
+			refresh = true
+	elif ChoiceCardSystem.is_select(action):
+		choose_index = int(action["index"])
+	elif bool(timer_result["timedOut"]):
+		chats.append("指示コメに押し切られた！")
+		choose_index = highest_multiplier_card(
+			target.get("offered_comments") as Array,
+			target.get("ng_cards") as Array,
+			target.get("heart_cards") as Array
+		)
+	return {
+		"chats": chats,
+		"refresh": refresh,
+		"chooseIndex": choose_index
 	}
 
 static func update_spawn_timer_for_target(target: Node, delta: float) -> Dictionary:

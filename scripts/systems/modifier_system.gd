@@ -34,6 +34,22 @@ static func effect_rate(active_effects: Array[String], active_effect_rates: Dict
 			return float(active_effect_rates[String(alias_id)])
 	return 1.0 if has_effect(active_effects, id) else 0.0
 
+static func active_effects_for_target(target: Node) -> Array[String]:
+	var result: Array[String] = []
+	for item in target.get("active_effects") as Array:
+		result.append(String(item))
+	return result
+
+static func has_effect_for_target(target: Node, id: String) -> bool:
+	return has_effect(active_effects_for_target(target), id)
+
+static func effect_rate_for_target(target: Node, id: String) -> float:
+	return effect_rate(
+		active_effects_for_target(target),
+		target.get("active_effect_rates") as Dictionary,
+		id
+	)
+
 static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNumberGenerator) -> Dictionary:
 	var effects: Array[String] = []
 	var rates: Dictionary = {}
@@ -124,6 +140,57 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 		var barrier_time: float = 0.8 + 0.3 * float(target.get("reentry_barrier_level"))
 		target.set("invincible", maxf(float(target.get("invincible")), barrier_time))
 	return {"commentId": String(comment["id"])}
+
+static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
+	var walls: Array = target.get("effect_walls") as Array
+	var pits: Array = target.get("effect_pits") as Array
+	var active: Array[String] = target.get("active_effects") as Array[String]
+	walls.clear()
+	pits.clear()
+	if has_effect(active, "random_walls"):
+		for i in range(4):
+			var p := Vector2(rng.randf_range(arena.position.x + 120, arena.end.x - 180), rng.randf_range(arena.position.y + 110, arena.end.y - 120))
+			walls.append(Rect2(p, Vector2(rng.randf_range(70, 140), 28)))
+	if has_effect(active, "damage_pits"):
+		for i in range(7):
+			var p := Vector2(rng.randf_range(arena.position.x + 80, arena.end.x - 80), rng.randf_range(arena.position.y + 80, arena.end.y - 80))
+			pits.append({"pos": p, "radius": rng.randf_range(24, 42)})
+
+static func update_stage_hazards_for_target(target: Node, arena: Rect2) -> Dictionary:
+	var player_pos: Vector2 = Vector2(target.get("player_pos"))
+	var walls: Array = target.get("effect_walls") as Array
+	var pits: Array = target.get("effect_pits") as Array
+	for wall in walls:
+		var rect: Rect2 = wall
+		if rect.has_point(player_pos):
+			player_pos = player_pos.move_toward(arena.get_center(), -8.0)
+	var hit_pit: bool = false
+	for pit in pits:
+		if player_pos.distance_to(Vector2(pit["pos"])) < float(pit["radius"]) + 16.0:
+			hit_pit = true
+			break
+	target.set("player_pos", player_pos)
+	return {"hitPit": hit_pit}
+
+static func update_stage_hazard_damage_for_target(target: Node, arena: Rect2) -> Dictionary:
+	var result: Dictionary = update_stage_hazards_for_target(target, arena)
+	if bool(result["hitPit"]):
+		return DamageSystem.apply_damage_sources_for_target(target, ["ダメージ床"])
+	return {"chats": [], "dead": false, "deathReason": ""}
+
+static func update_effect_timer_for_target(target: Node, delta: float) -> Dictionary:
+	var timer: float = float(target.get("effect_timer"))
+	if timer <= 0.0:
+		return {"cleared": false, "clearBonus": false}
+	timer -= delta
+	target.set("effect_timer", timer)
+	if timer > 0.0:
+		return {"cleared": false, "clearBonus": false}
+	var clear_result: Dictionary = clear_state_for_target(target)
+	return {
+		"cleared": true,
+		"clearBonus": bool(clear_result["clearBonus"])
+	}
 
 static func clear_state(context: Dictionary) -> Dictionary:
 	var gift_hype: int = int(context.get("giftHype", 0))

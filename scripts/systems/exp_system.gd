@@ -70,6 +70,11 @@ static func update_vacuum_for_target(target: Node, delta: float) -> bool:
 		orb["pos"] = player_pos
 	return true
 
+static func update_world_for_target(target: Node, delta: float) -> Dictionary:
+	var result: Dictionary = update_orbs_for_target(target, delta)
+	result["vacuumTriggered"] = update_vacuum_for_target(target, delta)
+	return result
+
 static func add_exp_to_target(target: Node, amount: int) -> bool:
 	target.set("exp_value", int(target.get("exp_value")) + amount)
 	var need: int = current_need(int(target.get("exp_level")))

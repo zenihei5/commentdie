@@ -39,7 +39,7 @@ static func comment_countdown_title(alert: bool) -> String:
 	return "指示コメ襲来" if alert else "次の指示コメ"
 
 static func comment_countdown_warning() -> String:
-	return "WARNING"
+	return "指示コメ接近"
 
 static func title_tagline() -> String:
 	return "15秒ごとに指示コメが世界を壊す。"

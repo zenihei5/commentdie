@@ -67,6 +67,32 @@ static func spawn_pickup_for_target(target: Node, data: Dictionary, rng: RandomN
 	target.set("next_mallow_time", float(target.get("elapsed")) + rng.randf_range(35.0, 45.0))
 	return true
 
+static func spawn_random_for_target(target: Node, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> bool:
+	var data: Dictionary = pick_data_for_target(target, data_list, rng)
+	return spawn_pickup_for_target(target, data, rng, arena, effect_walls)
+
+static func update_auto_spawn_for_target(target: Node, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
+	if float(target.get("elapsed")) < float(target.get("next_mallow_time")):
+		return {"spawned": false, "chat": ""}
+	var pickups: Array = target.get("marshmallows") as Array
+	if pickups.size() >= 2:
+		return {"spawned": false, "chat": ""}
+	if spawn_random_for_target(target, data_list, rng, arena, effect_walls):
+		return {"spawned": true, "chat": "マシュマロが届いた！"}
+	return {"spawned": false, "chat": ""}
+
+static func update_auto_spawn_if_enabled_for_target(target: Node, frame: Dictionary, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
+	if not StreamFrameSystem.has_event(frame, "marshmallow"):
+		return {"chats": []}
+	var result: Dictionary = update_auto_spawn_for_target(target, data_list, rng, arena, effect_walls)
+	if bool(result["spawned"]):
+		return {"chats": [String(result["chat"])]}
+	return {"chats": []}
+
+static func spawn_debug_for_target(target: Node, data_list: Array, kind: String, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> bool:
+	var data: Dictionary = pick_debug_data(data_list, kind, rng)
+	return spawn_pickup_for_target(target, data, rng, arena, effect_walls)
+
 static func find_position(context: Dictionary) -> Vector2:
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	var arena: Rect2 = context["arena"] as Rect2
@@ -153,6 +179,51 @@ static func update_pickups_for_target(target: Node, delta: float) -> Dictionary:
 	target.set("marshmallows", result["marshmallows"] as Array)
 	target.set("marshmallow_unread", int(result["unread"]))
 	return result
+
+static func update_world_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var result: Dictionary = {
+		"messages": [],
+		"maroChatLines": [],
+		"toasts": [],
+		"levelUp": false
+	}
+	var messages: Array = result["messages"] as Array
+	var maro_chat_lines: Array = result["maroChatLines"] as Array
+	var toasts: Array = result["toasts"] as Array
+	var pickup_result: Dictionary = update_pickups_for_target(target, delta)
+	var picked: Array = pickup_result["picked"] as Array
+	for item in picked:
+		var marshmallow: Dictionary = item as Dictionary
+		var data: Dictionary = marshmallow["data"] as Dictionary
+		if data.is_empty():
+			continue
+		var feedback: Dictionary = apply_pickup_feedback_for_target(target, data, arena, rng)
+		if String(feedback["maroChatKind"]) != "":
+			maro_chat_lines.append(ChatSystem.random_marshmallow_line(String(feedback["maroChatKind"]), rng))
+		toasts.append(String(feedback["toast"]))
+		messages.append(String(feedback["chat"]))
+		if bool(feedback["levelUp"]):
+			result["levelUp"] = true
+	var expired: Array = pickup_result["expired"] as Array
+	var expired_feedback: Dictionary = expire_pickups_for_target(target, expired, arena, rng)
+	for message in (expired_feedback["messages"] as Array):
+		messages.append(String(message))
+	for kind in (expired_feedback["maroChatKinds"] as Array):
+		maro_chat_lines.append(ChatSystem.random_marshmallow_line(String(kind), rng))
+	return result
+
+static func expire_pickups_for_target(target: Node, expired: Array, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var messages: Array = []
+	var maro_chat_kinds: Array = []
+	for item in expired:
+		var marshmallow: Dictionary = item as Dictionary
+		EnemySystem.spawn_enemy_for_target(target, "unread_maro", arena, rng, Vector2(marshmallow["pos"]))
+		messages.append("未読マロが荒らし化！")
+		maro_chat_kinds.append("unread")
+	return {
+		"messages": messages,
+		"maroChatKinds": maro_chat_kinds
+	}
 
 static func pickup_range_for_target(target: Node) -> float:
 	var magnet_range: float = float(target.get("maro_magnet_range"))
@@ -303,6 +374,17 @@ static func apply_pickup_to_target(target: Node, data: Dictionary) -> Dictionary
 	var result: Dictionary = apply_pickup(data, build_effect_context_from_target(target))
 	apply_effect_result_to_target(target, result)
 	return result
+
+static func apply_pickup_feedback_for_target(target: Node, data: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var result: Dictionary = apply_pickup_to_target(target, data)
+	var feedback: Dictionary = pickup_feedback(data, result)
+	for i in range(int(feedback["spawnTrolls"])):
+		EnemySystem.spawn_enemy_for_target(target, "troll", arena, rng)
+	var level_up: bool = false
+	if int(feedback["expAdd"]) > 0:
+		level_up = ExpSystem.add_exp_to_target(target, int(feedback["expAdd"]))
+	feedback["levelUp"] = level_up
+	return feedback
 
 static func pickup_feedback(data: Dictionary, result: Dictionary) -> Dictionary:
 	if bool(result.get("blocked", false)):

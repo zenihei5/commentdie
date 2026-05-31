@@ -1,6 +1,27 @@
 class_name RunStateSystem
 extends RefCounted
 
+static func run_length(quick_test_mode: bool, quick_length: float, normal_length: float) -> float:
+	return quick_length if quick_test_mode else normal_length
+
+static func load_boot_data_for_target(target: Node, sprite_cache: Dictionary) -> DataRepository:
+	var repository: DataRepository = DataRepository.loaded()
+	repository.apply_to_target(target)
+	StreamFrameSystem.apply_selected_frame_for_target(
+		target,
+		target.get("stream_frames") as Array,
+		String(target.get("current_stream_frame_id"))
+	)
+	CharacterSystem.apply_selected_character_for_target(
+		target,
+		target.get("characters") as Array,
+		target.get("weapons") as Array,
+		String(target.get("current_character_id")),
+		sprite_cache
+	)
+	SettingsSystem.load_for_target(target)
+	return repository
+
 static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary) -> Dictionary:
 	var max_hp: int = int(stats.get("hp", character.get("initialHp", 5)))
 	var move_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", character.get("moveSpeed", 5.0))))
@@ -128,6 +149,43 @@ static func genre_state() -> Dictionary:
 		"streamingSkillLevel": 0,
 		"kusogeResistLevel": 0
 	}
+
+static func start_run_for_target(target: Node, character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary) -> Dictionary:
+	var initial: Dictionary = initial_values(character, weapon, stats, resources)
+	apply_initial_values(target, initial)
+	apply_gift_flags(target, gift_flags())
+	clear_run_collections(target)
+	apply_timers(target, timers())
+	(target.get("marshmallows") as Array).clear()
+	apply_score_state(target, score_state(int(initial["giftHype"])))
+	apply_marshmallow_state(target, marshmallow_state())
+	target.set("last_death_source", "接触")
+	target.set("last_hammer_dir", Vector2.RIGHT)
+	clear_stage_effect_collections(target)
+	apply_genre_state(target, genre_state())
+	return initial
+
+static func restart_run_for_target(
+	target: Node,
+	characters: Array,
+	weapons: Array,
+	sprite_cache: Dictionary,
+	tutorial_seen: bool
+) -> Dictionary:
+	CharacterSystem.apply_selected_character_for_target(
+		target,
+		characters,
+		weapons,
+		String(target.get("current_character_id")),
+		sprite_cache
+	)
+	var character: Dictionary = target.get("current_character") as Dictionary
+	var weapon: Dictionary = target.get("current_weapon") as Dictionary
+	var stats: Dictionary = CharacterSystem.base_stats(character)
+	var resources: Dictionary = CharacterSystem.initial_resources(character)
+	start_run_for_target(target, character, weapon, stats, resources)
+	CharacterSystem.apply_passive_for_target(target, character)
+	return StateFlowSystem.apply_post_restart_state_for_target(target, tutorial_seen)
 
 static func apply_initial_values(target: Node, initial: Dictionary) -> void:
 	target.set("player_pos", initial["playerPos"] as Vector2)
@@ -263,3 +321,7 @@ static func reset_run_ui(result_panel: Control, choice_box: Control, heart_cards
 	choice_box.visible = false
 	heart_cards.clear()
 	chat_lines.clear()
+
+static func reset_run_ui_and_seed_chat(result_panel: Control, choice_box: Control, heart_cards: Array, chat_lines: Array, chat_box: Control) -> Array[String]:
+	reset_run_ui(result_panel, choice_box, heart_cards, chat_lines)
+	return ChatSystem.seed_box(chat_box, "normal")

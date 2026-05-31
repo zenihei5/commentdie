@@ -9,6 +9,11 @@ var genre_events: Array = []
 var characters: Array = []
 var weapons: Array = []
 
+static func loaded() -> DataRepository:
+	var repository: DataRepository = DataRepository.new()
+	repository.load_all()
+	return repository
+
 func load_all() -> void:
 	comments = _load_array("res://data/comments.json")
 	gifts = _load_array("res://data/gifts.json")
@@ -17,6 +22,15 @@ func load_all() -> void:
 	genre_events = _load_array("res://data/genre_events.json", true)
 	characters = _load_array("res://data/characters.json")
 	weapons = _load_array("res://data/weapons.json")
+
+func apply_to_target(target: Node) -> void:
+	target.set("comments", comments)
+	target.set("gifts", gifts)
+	target.set("marshmallow_data", marshmallows)
+	target.set("stream_frames", stream_frames)
+	target.set("genre_events", genre_events)
+	target.set("characters", characters)
+	target.set("weapons", weapons)
 
 func find_by_id(list: Array, id: String) -> Dictionary:
 	for item in list:

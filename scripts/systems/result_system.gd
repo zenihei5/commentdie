@@ -101,6 +101,38 @@ static func complete_run_stats(stats: Dictionary) -> Dictionary:
 	result["timeText"] = format_time(float(result.get("elapsed", 0.0)))
 	return result
 
+static func complete_run_for_target(reason: String, target: Node, quick_test_mode: bool) -> Dictionary:
+	var result: Dictionary = complete_run_stats(build_run_stats_from_target(reason, target))
+	result["rankingText"] = RankingSystem.save_and_format_ranking(build_ranking_entry(result), quick_test_mode)
+	result["resultText"] = build_result_text(result)
+	return result
+
+static func open_result_for_target(reason: String, target: Node, quick_test_mode: bool, choice_box: Control, result_panel: Control, heart_cards: Array) -> Dictionary:
+	target.set("state", "result")
+	choice_box.visible = false
+	heart_cards.clear()
+	result_panel.visible = true
+	return complete_run_for_target(reason, target, quick_test_mode)
+
+static func open_result_ui_for_target(
+	reason: String,
+	target: Node,
+	quick_test_mode: bool,
+	choice_box: Control,
+	result_panel: PanelContainer,
+	result_label: Label,
+	heart_cards: Array,
+	chat_box: Control
+) -> Dictionary:
+	var stats: Dictionary = open_result_for_target(reason, target, quick_test_mode, choice_box, result_panel, heart_cards)
+	var rank: String = String(stats["rank"])
+	target.set("run_rank", rank)
+	result_panel.add_theme_stylebox_override("panel", UiStyleSystem.result_panel_style(rank))
+	result_label.text = String(stats["resultText"])
+	var lines: Array[String] = ChatSystem.seed_box(chat_box, "death")
+	target.set("chat_lines", lines)
+	return stats
+
 static func build_result_text(stats: Dictionary) -> String:
 	var stream_result: String = String(stats.get("streamFrameResultText", "")).strip_edges()
 	var ranking_text: String = String(stats.get("rankingText", "")).strip_edges()

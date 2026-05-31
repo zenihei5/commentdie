@@ -39,20 +39,18 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_BACKSPACE, "reset_ranking")
 	return actions
 
-static func selection_action(latch: Dictionary, current: int, count: int, max_number_key: int) -> Dictionary:
-	if _pressed(latch, KEY_ESCAPE):
-		return {"kind": "escape", "index": current}
-	if _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_UP):
-		return {"kind": "move", "index": posmod(current - 1, maxi(1, count))}
-	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_DOWN):
-		return {"kind": "move", "index": posmod(current + 1, maxi(1, count))}
-	var keys: Array = [KEY_1, KEY_2, KEY_3]
-	for i in range(mini(max_number_key, keys.size())):
-		if _pressed(latch, keys[i]):
-			return {"kind": "select", "index": i if i < count else -1}
+static func title_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_T):
+		return "toggle_mode"
+	if _pressed(latch, KEY_B):
+		return "comment_barrage"
+	if _pressed(latch, KEY_N):
+		return "screen_shake"
+	if _pressed(latch, KEY_U):
+		return "reset_tutorial"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
-		return {"kind": "select", "index": current}
-	return {"kind": "", "index": current}
+		return "start"
+	return ""
 
 static func jump_time(action: String, quick_test_mode: bool) -> float:
 	if action == "jump_30":
@@ -146,6 +144,96 @@ static func should_clear_effects(action: String) -> bool:
 
 static func should_reset_ranking(action: String) -> bool:
 	return action == "reset_ranking"
+
+static func apply_resource_action_for_target(target: Node, action: String) -> Dictionary:
+	var chats: Array[String] = []
+	var heart_value: int = heart_stock_value(action, int(target.get("heart_stock")))
+	if action == "heart" and heart_value >= 0:
+		target.set("heart_stock", heart_value)
+		chats.append("♡ +1")
+	var hype: int = hype_value(action)
+	if hype >= 0:
+		target.set("gift_hype", hype)
+		target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), hype))
+	if action == "heart_max" and heart_value >= 0:
+		target.set("heart_stock", heart_value)
+		chats.append("♡ MAX")
+	return {"chats": chats}
+
+static func apply_world_action_for_target(target: Node, action: String) -> Dictionary:
+	if should_clear_enemies(action):
+		(target.get("enemies") as Array).clear()
+	if should_toggle_invincible(action):
+		target.set("debug_invincible", not bool(target.get("debug_invincible")))
+	return {}
+
+static func apply_cleanup_action_for_target(target: Node, action: String) -> Dictionary:
+	var chats: Array[String] = []
+	if should_clear_effects(action):
+		(target.get("active_effects") as Array).clear()
+		(target.get("active_effect_rates") as Dictionary).clear()
+		(target.get("effect_walls") as Array).clear()
+		(target.get("effect_pits") as Array).clear()
+	if should_reset_ranking(action):
+		RankingSystem.save_rankings([])
+		chats.append("ランキングをリセットしました")
+	return {"chats": chats}
+
+static func apply_general_action_for_target(target: Node, action: String, quick_test_mode: bool, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var chats: Array = []
+	var resource_result: Dictionary = apply_resource_action_for_target(target, action)
+	for line in (resource_result["chats"] as Array):
+		chats.append(String(line))
+	apply_world_action_for_target(target, action)
+	if String(target.get("state")) == "playing":
+		apply_playing_action_for_target(target, action, quick_test_mode, arena, rng)
+	var cleanup_result: Dictionary = apply_cleanup_action_for_target(target, action)
+	for line in (cleanup_result["chats"] as Array):
+		chats.append(String(line))
+	return {"chats": chats}
+
+static func apply_playing_action_for_target(target: Node, action: String, quick_test_mode: bool, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	var jump: float = jump_time(action, quick_test_mode)
+	if jump >= 0.0:
+		target.set("elapsed", jump)
+	if should_expire_marshmallows(action):
+		for item in (target.get("marshmallows") as Array):
+			var marshmallow: Dictionary = item as Dictionary
+			marshmallow["time"] = 0.0
+	var enemy_kind: String = spawn_enemy_kind(action)
+	if enemy_kind != "":
+		EnemySystem.spawn_enemy_for_target(target, enemy_kind, arena, rng)
+	return {}
+
+static func force_gift_choice_for_target(target: Node, gifts: Array, rarity: String, rng: RandomNumberGenerator) -> Dictionary:
+	target.set("state", "gift_choice")
+	target.set("selected_card", 0)
+	var elapsed: float = float(target.get("elapsed"))
+	var quick_test: bool = bool(target.get("quick_test_mode"))
+	var gift_time: float = elapsed * (3.0 if quick_test else 1.0)
+	var context: Dictionary = GiftSystem.build_offer_context_for_target(target, gifts, gift_time, rng)
+	target.set("offered_gifts", GiftSystem.build_forced_offer(context, rarity))
+	return {"chat": DisplayTextSystem.rarity_label(rarity) + "ギフトを強制抽選"}
+
+static func force_gift_choice_ui_for_target(target: Node, gifts: Array, rarity: String, rng: RandomNumberGenerator, choice_box: Control) -> Dictionary:
+	var result: Dictionary = force_gift_choice_for_target(target, gifts, rarity, rng)
+	choice_box.visible = true
+	return result
+
+static func force_comment_offer_for_target(target: Node, comments: Array, id: String, has_heart: bool) -> Dictionary:
+	var offer: Dictionary = CommentSystem.build_forced_offer(comments, id, has_heart)
+	if not CommentSystem.apply_forced_offer_to_target(target, offer):
+		return {"applied": false, "chooseIndex": -1}
+	return {"applied": true, "chooseIndex": 0}
+
+static func force_marshmallow_for_target(target: Node, data_list: Array, kind: String, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
+	if kind == "":
+		return {"spawned": false, "chat": ""}
+	var spawned: bool = MarshmallowSystem.spawn_debug_for_target(target, data_list, kind, rng, arena, effect_walls)
+	return {
+		"spawned": spawned,
+		"chat": "マシュマロが届いた！" if spawned else ""
+	}
 
 static func _add_if_pressed(actions: Array[String], latch: Dictionary, keycode: Key, action: String) -> void:
 	if _pressed(latch, keycode):
