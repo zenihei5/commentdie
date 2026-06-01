@@ -1,0 +1,130 @@
+{
+  "source": "C:\\Users\\zenih\\AppData\\Local\\Temp\\ban_chan_siderun_3q-1_front_run_run.png",
+  "sourceSize": [
+    1040,
+    104
+  ],
+  "sourceFrameCount": 10,
+  "selectedSourceFrames1Based": [
+    1,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "cellSize": 128,
+  "sheetCols": 2,
+  "sheetRows": 3,
+  "durationMs": 90,
+  "frames": [
+    {
+      "outputFrame": 1,
+      "sourceFrameIndex": 1,
+      "sourceBox": [
+        0,
+        0,
+        104,
+        104
+      ],
+      "subjectSize": [
+        56,
+        93
+      ],
+      "pastePosition": [
+        36,
+        29
+      ]
+    },
+    {
+      "outputFrame": 2,
+      "sourceFrameIndex": 3,
+      "sourceBox": [
+        208,
+        0,
+        312,
+        104
+      ],
+      "subjectSize": [
+        52,
+        94
+      ],
+      "pastePosition": [
+        38,
+        28
+      ]
+    },
+    {
+      "outputFrame": 3,
+      "sourceFrameIndex": 4,
+      "sourceBox": [
+        312,
+        0,
+        416,
+        104
+      ],
+      "subjectSize": [
+        58,
+        93
+      ],
+      "pastePosition": [
+        35,
+        29
+      ]
+    },
+    {
+      "outputFrame": 4,
+      "sourceFrameIndex": 5,
+      "sourceBox": [
+        416,
+        0,
+        520,
+        104
+      ],
+      "subjectSize": [
+        55,
+        94
+      ],
+      "pastePosition": [
+        36,
+        28
+      ]
+    },
+    {
+      "outputFrame": 5,
+      "sourceFrameIndex": 6,
+      "sourceBox": [
+        520,
+        0,
+        624,
+        104
+      ],
+      "subjectSize": [
+        53,
+        92
+      ],
+      "pastePosition": [
+        37,
+        30
+      ]
+    },
+    {
+      "outputFrame": 6,
+      "sourceFrameIndex": 7,
+      "sourceBox": [
+        624,
+        0,
+        728,
+        104
+      ],
+      "subjectSize": [
+        52,
+        95
+      ],
+      "pastePosition": [
+        38,
+        27
+      ]
+    }
+  ]
+}

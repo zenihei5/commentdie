@@ -2,7 +2,7 @@
   {
     "id": "race",
     "displayName": "レースゲーム風",
-    "description": "移動が速くなり、走り続けるとスコアが入る",
+    "description": "移動が速くなり、走り続けると視聴者数が増える",
     "duration": 12.0,
     "effectType": "race",
     "weight": 10

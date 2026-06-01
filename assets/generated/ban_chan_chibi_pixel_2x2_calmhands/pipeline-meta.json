@@ -1,0 +1,175 @@
+{
+  "target": "player",
+  "mode": "idle",
+  "prompt": "Ban-chan two-heads-tall small chibi pixel-art 2x2 idle sprite sheet. Keep blink and vertical bob. Calm both hands with similarly small movement. Solid magenta background.",
+  "role": "",
+  "input": "C:\\Users\\zenih\\.codex\\generated_images\\019e7277-64fc-72a3-978e-644838679d79\\ig_0c1659c48125dcca016a1d14e42bd081919786478bd7071d22.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 180,
+  "rows": 2,
+  "cols": 2,
+  "cell_size": 128,
+  "fit_scale": 0.92,
+  "trim_border": 4,
+  "edge_clean_depth": 3,
+  "align": "feet",
+  "shared_scale": true,
+  "component_mode": "largest",
+  "component_padding": 8,
+  "min_component_area": 1,
+  "edge_touch_margin": 2,
+  "frame_labels": [
+    "ban_chan_chibi_idle_calm-1",
+    "ban_chan_chibi_idle_calm-2",
+    "ban_chan_chibi_idle_calm-3",
+    "ban_chan_chibi_idle_calm-4"
+  ],
+  "frames": [
+    {
+      "grid": [
+        0,
+        0
+      ],
+      "source_box": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 86088,
+      "selected_component_bbox": [
+        225,
+        99,
+        518,
+        574
+      ],
+      "crop_bbox": [
+        217,
+        91,
+        526,
+        582
+      ],
+      "edge_touch": false,
+      "output_size": [
+        74,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    },
+    {
+      "grid": [
+        0,
+        1
+      ],
+      "source_box": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 84551,
+      "selected_component_bbox": [
+        90,
+        101,
+        381,
+        573
+      ],
+      "crop_bbox": [
+        82,
+        93,
+        389,
+        581
+      ],
+      "edge_touch": false,
+      "output_size": [
+        73,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    },
+    {
+      "grid": [
+        1,
+        0
+      ],
+      "source_box": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 85515,
+      "selected_component_bbox": [
+        221,
+        39,
+        513,
+        511
+      ],
+      "crop_bbox": [
+        213,
+        31,
+        521,
+        519
+      ],
+      "edge_touch": false,
+      "output_size": [
+        73,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    },
+    {
+      "grid": [
+        1,
+        1
+      ],
+      "source_box": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 85480,
+      "selected_component_bbox": [
+        90,
+        39,
+        381,
+        511
+      ],
+      "crop_bbox": [
+        82,
+        31,
+        389,
+        519
+      ],
+      "edge_touch": false,
+      "output_size": [
+        73,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    }
+  ],
+  "edge_touch_frames": []
+}

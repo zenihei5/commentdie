@@ -11,6 +11,7 @@ const DisplayTextSystemScript := preload("res://scripts/systems/display_text_sys
 const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 const CharacterSystemScript := preload("res://scripts/systems/character_system.gd")
 const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
+const RankingSystemScript := preload("res://scripts/systems/ranking_system.gd")
 const UiStyleSystemScript := preload("res://scripts/systems/ui_style_system.gd")
 const HudTextSystemScript := preload("res://scripts/systems/hud_text_system.gd")
 const DebugSystemScript := preload("res://scripts/systems/debug_system.gd")
@@ -50,6 +51,7 @@ var current_character_id := "ban_chan"
 var current_weapon_id := "ban_hammer"
 var player_sprite: Texture2D
 var player_idle_sprite: Texture2D
+var player_run_sprite: Texture2D
 var selected_character_index := 0
 var selected_stream_frame_index := 0
 var character_sprite_cache: Dictionary = {}
@@ -64,7 +66,10 @@ var enemy_bullets: Array = []
 var exp_orbs: Array = []
 var player_bullets: Array = []
 var boomerang_hits: Dictionary = {}
+var equipment_weapon_timers: Dictionary = {}
 var hit_fx: Array = []
+var player_weapons: Array = []
+var player_accessories: Array = []
 var chat_lines: Array[String] = []
 var active_effects: Array[String] = []
 var active_effect_rates: Dictionary = {}
@@ -91,6 +96,7 @@ var next_mallow_time := 30.0
 
 var player_pos := Vector2(580, 570)
 var player_vel := Vector2.ZERO
+var player_facing_x := 1.0
 var player_hp := 5
 var player_max_hp := 5
 var player_speed := 255.0
@@ -108,6 +114,10 @@ var hammer_interval := 0.85
 var magnet_range := 95.0
 var dash_cooldown := 1.2
 var knockback_power := 18.0
+var equipment_damage_rate := 1.0
+var equipment_range_rate := 1.0
+var equipment_interval_rate := 1.0
+var equipment_bullet_support_level := 0
 var like_score_level := 0
 var moderator_level := 0
 var reentry_barrier_level := 0
@@ -132,7 +142,9 @@ var boomerang_level := 0
 var burn_resist_charges := 0
 var clip_bonus_level := 0
 var ng_stock := 0
+var ng_used_count := 0
 var heart_stock := 0
+var heart_pending := false
 var heart_used_count := 0
 
 var score := 0
@@ -167,7 +179,11 @@ var effect_pits: Array = []
 var danger_comments_chosen := 0
 var max_gift_hype := 0
 var run_rank := "D"
+var last_result_data: Dictionary = {}
+var last_result_text := ""
+var result_showing_ranking := false
 var debug_key_latch: Dictionary = {}
+var pause_escape_down := false
 var toast_text := ""
 var toast_timer := 0.0
 var kuso_chat_timer := 0.0
@@ -199,9 +215,11 @@ var choice_buttons: Array[Button] = []
 var chat_box: VBoxContainer
 var result_panel: PanelContainer
 var result_label: Label
+var ban_hammer_weapon_sprite: Texture2D
 
 func _ready() -> void:
 	rng.randomize()
+	ban_hammer_weapon_sprite = _load_texture_from_png("res://assets/generated/ban_hammer_weapon_sprite_v1/clean.png")
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
 	_build_ui()
 	ChatSystemScript.seed_box_for_target(self, chat_box, "normal")
@@ -226,7 +244,8 @@ func _update_active_state(delta: float) -> void:
 
 func _update_front_state(delta: float) -> bool:
 	var title_action: String = DebugSystemScript.title_action(debug_key_latch) if state == "title" else ""
-	var result: Dictionary = StateFlowSystemScript.front_state_action_for_target(self, delta, title_action)
+	var result_action: String = DebugSystemScript.result_action(debug_key_latch) if state == "result" else ""
+	var result: Dictionary = StateFlowSystemScript.front_state_action_for_target(self, delta, title_action, result_action)
 	if not bool(result["handled"]):
 		return false
 	var action: String = String(result["action"])
@@ -234,6 +253,8 @@ func _update_front_state(delta: float) -> bool:
 		"start_character_select": Callable(self, "_start_character_select"),
 		"update_character_select": Callable(self, "_update_character_select"),
 		"update_stream_frame_select": Callable(self, "_update_stream_frame_select"),
+		"copy_result": Callable(self, "_copy_result"),
+		"toggle_ranking": Callable(self, "_toggle_result_ranking"),
 		"restart": Callable(self, "_restart")
 	})
 	_update_ui()
@@ -465,7 +486,22 @@ func _update_ui() -> void:
 func _finish_run(reason: String) -> void:
 	if state == "result":
 		return
+	result_showing_ranking = false
 	ResultSystemScript.open_result_ui_for_target(reason, self, quick_test_mode, choice_box, result_panel, result_label, heart_cards, chat_box)
+
+func _copy_result() -> void:
+	var result: Dictionary = ResultSystemScript.copy_share_text_for_target(self)
+	if bool(result["copied"]):
+		var text: String = String(result_label.text)
+		if not text.contains("結果をコピーしました！"):
+			result_label.text = text + "\n結果をコピーしました！"
+
+func _toggle_result_ranking() -> void:
+	result_showing_ranking = not result_showing_ranking
+	if result_showing_ranking:
+		result_label.text = RankingSystemScript.format_ranking_screen() + "\n\nR：リザルトへ戻る    Enter / Space：もう一回"
+	else:
+		result_label.text = last_result_text
 
 func _restart() -> void:
 	var restart_state: Dictionary = RunStateSystemScript.restart_run_for_target(
@@ -493,12 +529,6 @@ func _apply_debug_action(action: String) -> void:
 		var gift_result: Dictionary = DebugSystemScript.force_gift_choice_ui_for_target(self, gifts, forced_gift_rarity, rng, choice_box)
 		_refresh_choice_cards()
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(gift_result["chat"])]}, chat_box)
-	if action == "heart" and state == "comment_choice":
-		var heart_result: Dictionary = CommentSystemScript.use_heart_for_target(self, rng)
-		if bool(heart_result["changed"]):
-			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(heart_result["chat"])]}, chat_box)
-			_refresh_choice_cards()
-		return
 	var forced_comment_id: String = DebugSystemScript.forced_comment_id(action)
 	if forced_comment_id != "" and state == "playing":
 		_apply_forced_comment_debug(forced_comment_id, false)
@@ -575,9 +605,11 @@ func _draw_player() -> void:
 	if player_sprite != null:
 		_draw_player_sprite()
 		_draw_invincible_label()
+		_draw_player_hp_bar()
 		return
 	_draw_player_fallback()
 	_draw_invincible_label()
+	_draw_player_hp_bar()
 
 func _draw_player_fallback() -> void:
 	var fallback: Dictionary = DrawDataSystemScript.fallback_player_draw_data(player_pos, current_character_id, invincible > 0.0)
@@ -585,10 +617,11 @@ func _draw_player_fallback() -> void:
 		_draw_simple_draw_part(fallback, part as Dictionary)
 
 func _draw_player_sprite() -> void:
-	var sprite_draw: Dictionary = DrawDataSystemScript.player_sprite_state(player_pos, player_vel, player_sprite, player_idle_sprite, current_character, elapsed, attack_timer, hammer_interval, last_hammer_dir, invincible)
+	var sprite_draw: Dictionary = DrawDataSystemScript.player_sprite_state(player_pos, player_vel, player_facing_x, player_sprite, player_idle_sprite, player_run_sprite, current_character, elapsed, attack_timer, hammer_interval, last_hammer_dir, invincible)
 	_draw_shadow(sprite_draw["shadowPos"] as Vector2, sprite_draw["shadowSize"] as Vector2, float(sprite_draw["shadowAlpha"]))
 	var size: Vector2 = sprite_draw["size"] as Vector2
-	draw_set_transform(sprite_draw["center"] as Vector2, float(sprite_draw["tilt"]), Vector2.ONE)
+	var transform_scale: Vector2 = Vector2(-1, 1) if bool(sprite_draw.get("flipX", false)) else Vector2.ONE
+	draw_set_transform(sprite_draw["center"] as Vector2, float(sprite_draw["tilt"]), transform_scale)
 	draw_texture_rect_region(sprite_draw["texture"] as Texture2D, Rect2(-size * 0.5, size), sprite_draw["sourceRect"] as Rect2, Color(1, 1, 1, float(sprite_draw["alpha"])))
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -596,6 +629,12 @@ func _draw_invincible_label() -> void:
 	if debug_invincible:
 		var label: Dictionary = DrawDataSystemScript.invincible_label_data(player_pos)
 		_draw_text_item(label)
+
+func _draw_player_hp_bar() -> void:
+	var hide_hp: bool = ModifierSystemScript.has_effect_for_target(self, "hide_hp")
+	var bar: Dictionary = DrawDataSystemScript.player_hp_bar_data(player_pos, player_hp, player_max_hp, hide_hp, elapsed)
+	for part in DrawDataSystemScript.player_hp_bar_parts():
+		_draw_simple_draw_part(bar, part as Dictionary)
 
 func _draw_enemies() -> void:
 	for enemy in enemies:
@@ -670,6 +709,8 @@ func _draw_hit_fx() -> void:
 func _draw_hit_fx_item(data: Dictionary) -> void:
 	for part in DrawDataSystemScript.hit_fx_parts(data):
 		_draw_simple_draw_part(data, part as Dictionary)
+	if bool(data.get("showHammer", false)):
+		_draw_rotated_texture(ban_hammer_weapon_sprite, data["hammerPos"] as Vector2, data["hammerSize"] as Vector2, float(data["hammerAngle"]), float(data["hammerAlpha"]))
 
 func _draw_simple_draw_part(data: Dictionary, part: Dictionary) -> void:
 	var kind: String = String(part["kind"])
@@ -727,11 +768,12 @@ func _draw_frames() -> void:
 		"hideHp": ModifierSystemScript.has_effect_for_target(self,"hide_hp"),
 		"playerHp": player_hp,
 		"playerMaxHp": player_max_hp,
+		"score": score,
 		"multiplier": multiplier,
 		"burnCombo": burn_combo,
 		"giftHype": gift_hype,
 		"ngStock": ng_stock,
-		"heartStock": heart_stock,
+		"heartPending": heart_pending,
 		"commentTimer": comment_timer,
 		"currentComment": current_comment,
 		"expValue": exp_value
@@ -937,6 +979,19 @@ func _draw_arc_item(item: Dictionary, prefix: String) -> void:
 
 func _draw_fixed_arc(pos: Vector2, radius: float, start_angle: float, end_angle: float, points: int, color: Color, width: float) -> void:
 	draw_arc(pos, radius, start_angle, end_angle, points, color, width)
+
+func _load_texture_from_png(path: String) -> Texture2D:
+	var image := Image.new()
+	if image.load(path) != OK:
+		return null
+	return ImageTexture.create_from_image(image)
+
+func _draw_rotated_texture(texture: Texture2D, center: Vector2, size: Vector2, angle: float, alpha: float = 1.0) -> void:
+	if texture == null:
+		return
+	draw_set_transform(center, angle, Vector2.ONE)
+	draw_texture_rect(texture, Rect2(-size * 0.5, size), false, Color(1, 1, 1, alpha))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 func _draw_text_item(item: Dictionary, prefix: String = "", alignment = HORIZONTAL_ALIGNMENT_LEFT, override_color: Variant = null, override_text: String = "") -> void:
 	var key_prefix: String = prefix

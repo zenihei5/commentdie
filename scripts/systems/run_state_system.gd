@@ -70,11 +70,17 @@ static func gift_flags() -> Dictionary:
 		"maroAppraisal": false,
 		"blockFunctionStock": 0,
 		"steelMentalLevel": 0,
+		"equipmentDamageRate": 1.0,
+		"equipmentRangeRate": 1.0,
+		"equipmentIntervalRate": 1.0,
+		"equipmentBulletSupportLevel": 0,
 		"superchatLevel": 0,
 		"boomerangLevel": 0,
 		"burnResistCharges": 0,
 		"clipBonusLevel": 0,
-		"heartUsedCount": 0
+		"heartPending": false,
+		"heartUsedCount": 0,
+		"ngUsedCount": 0
 	}
 
 static func timers() -> Dictionary:
@@ -159,8 +165,11 @@ static func start_run_for_target(target: Node, character: Dictionary, weapon: Di
 	(target.get("marshmallows") as Array).clear()
 	apply_score_state(target, score_state(int(initial["giftHype"])))
 	apply_marshmallow_state(target, marshmallow_state())
+	target.set("player_weapons", EquipmentSystem.initial_weapons(String(weapon.get("id", "ban_hammer"))))
+	target.set("player_accessories", EquipmentSystem.empty_accessories())
 	target.set("last_death_source", "接触")
 	target.set("last_hammer_dir", Vector2.RIGHT)
+	target.set("player_facing_x", 1.0)
 	clear_stage_effect_collections(target)
 	apply_genre_state(target, genre_state())
 	return initial
@@ -229,11 +238,17 @@ static func apply_gift_flags(target: Node, defaults: Dictionary) -> void:
 	target.set("maro_appraisal", bool(defaults["maroAppraisal"]))
 	target.set("block_function_stock", int(defaults["blockFunctionStock"]))
 	target.set("steel_mental_level", int(defaults["steelMentalLevel"]))
+	target.set("equipment_damage_rate", float(defaults["equipmentDamageRate"]))
+	target.set("equipment_range_rate", float(defaults["equipmentRangeRate"]))
+	target.set("equipment_interval_rate", float(defaults["equipmentIntervalRate"]))
+	target.set("equipment_bullet_support_level", int(defaults["equipmentBulletSupportLevel"]))
 	target.set("superchat_level", int(defaults["superchatLevel"]))
 	target.set("boomerang_level", int(defaults["boomerangLevel"]))
 	target.set("burn_resist_charges", int(defaults["burnResistCharges"]))
 	target.set("clip_bonus_level", int(defaults["clipBonusLevel"]))
+	target.set("heart_pending", bool(defaults["heartPending"]))
 	target.set("heart_used_count", int(defaults["heartUsedCount"]))
+	target.set("ng_used_count", int(defaults["ngUsedCount"]))
 
 static func apply_timers(target: Node, defaults: Dictionary) -> void:
 	target.set("elapsed", float(defaults["elapsed"]))
@@ -302,12 +317,15 @@ static func apply_genre_state(target: Node, defaults: Dictionary) -> void:
 
 static func clear_run_collections(target: Node) -> void:
 	(target.get("taken_gift_names") as Array).clear()
+	(target.get("player_weapons") as Array).clear()
+	(target.get("player_accessories") as Array).clear()
 	(target.get("enemies") as Array).clear()
 	target.set("next_enemy_uid", 1)
 	(target.get("enemy_bullets") as Array).clear()
 	(target.get("exp_orbs") as Array).clear()
 	(target.get("player_bullets") as Array).clear()
 	(target.get("boomerang_hits") as Dictionary).clear()
+	(target.get("equipment_weapon_timers") as Dictionary).clear()
 	(target.get("hit_fx") as Array).clear()
 	(target.get("active_effects") as Array).clear()
 	(target.get("active_effect_rates") as Dictionary).clear()

@@ -1,0 +1,83 @@
+{
+  "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_front_run_original_post_v2",
+  "frames": [
+    {
+      "frame": 1,
+      "mouthCenter": [
+        64,
+        54
+      ],
+      "skinFill": [
+        226,
+        174,
+        157,
+        255
+      ]
+    },
+    {
+      "frame": 2,
+      "mouthCenter": [
+        66,
+        56
+      ],
+      "skinFill": [
+        251,
+        240,
+        220,
+        255
+      ]
+    },
+    {
+      "frame": 3,
+      "mouthCenter": [
+        64,
+        54
+      ],
+      "skinFill": [
+        226,
+        174,
+        144,
+        255
+      ]
+    },
+    {
+      "frame": 4,
+      "mouthCenter": [
+        66,
+        57
+      ],
+      "skinFill": [
+        248,
+        233,
+        220,
+        255
+      ]
+    },
+    {
+      "frame": 5,
+      "mouthCenter": [
+        66,
+        57
+      ],
+      "skinFill": [
+        235,
+        218,
+        208,
+        255
+      ]
+    },
+    {
+      "frame": 6,
+      "mouthCenter": [
+        64,
+        54
+      ],
+      "skinFill": [
+        247,
+        225,
+        202,
+        255
+      ]
+    }
+  ]
+}

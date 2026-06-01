@@ -1,0 +1,18 @@
+{
+  "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_siderun_3q_2x3_safe",
+  "sourceFrames": [
+    "ban_chan_siderun_3q-1.png",
+    "ban_chan_siderun_3q-2.png",
+    "ban_chan_siderun_3q-4.png",
+    "ban_chan_siderun_3q-5.png"
+  ],
+  "outputFrames": [
+    "ban_chan_siderun_4f-1.png",
+    "ban_chan_siderun_4f-2.png",
+    "ban_chan_siderun_4f-3.png",
+    "ban_chan_siderun_4f-4.png"
+  ],
+  "durationMs": 105,
+  "order": "1 -> 2 -> 3 -> 4 -> loop",
+  "sourceOrder": "1 -> 2 -> 4 -> 5 -> loop"
+}

@@ -1,0 +1,89 @@
+{
+  "source": "C:\\Users\\zenih\\Desktop\\sheet-transparent.png",
+  "sourceSize": [
+    259,
+    248
+  ],
+  "frames": [
+    {
+      "sourceBox": [
+        0,
+        0,
+        129,
+        124
+      ],
+      "contentBox": [
+        34,
+        15,
+        93,
+        115
+      ],
+      "placed": [
+        34,
+        20,
+        59,
+        100
+      ]
+    },
+    {
+      "sourceBox": [
+        129,
+        0,
+        259,
+        124
+      ],
+      "contentBox": [
+        34,
+        16,
+        93,
+        115
+      ],
+      "placed": [
+        34,
+        21,
+        59,
+        99
+      ]
+    },
+    {
+      "sourceBox": [
+        0,
+        124,
+        129,
+        248
+      ],
+      "contentBox": [
+        24,
+        19,
+        85,
+        117
+      ],
+      "placed": [
+        33,
+        22,
+        61,
+        98
+      ]
+    },
+    {
+      "sourceBox": [
+        129,
+        124,
+        259,
+        248
+      ],
+      "contentBox": [
+        33,
+        21,
+        92,
+        122
+      ],
+      "placed": [
+        34,
+        19,
+        59,
+        101
+      ]
+    }
+  ]
+}

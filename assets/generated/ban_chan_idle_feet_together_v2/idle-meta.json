@@ -1,0 +1,38 @@
+{
+  "source": "C:\\Users\\zenih\\AppData\\Local\\Temp\\ban_chan_siderun_3q-1_front_run_run.png",
+  "sourceFrameIndex1Based": 10,
+  "cellSize": 128,
+  "sheetCols": 2,
+  "sheetRows": 2,
+  "durationMs": 240,
+  "basePastePosition": [
+    37,
+    26
+  ],
+  "subjectSize": [
+    53,
+    95
+  ],
+  "frames": [
+    {
+      "frame": 1,
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "frame": 2,
+      "dx": 0,
+      "dy": -1
+    },
+    {
+      "frame": 3,
+      "dx": 0,
+      "dy": 0
+    },
+    {
+      "frame": 4,
+      "dx": 0,
+      "dy": 1
+    }
+  ]
+}

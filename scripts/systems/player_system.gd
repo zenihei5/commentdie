@@ -116,6 +116,9 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	})
 	target.set("player_pos", Vector2(result["playerPos"]))
 	target.set("player_vel", Vector2(result["playerVel"]))
+	var new_velocity: Vector2 = Vector2(result["playerVel"])
+	if absf(new_velocity.x) > 18.0:
+		target.set("player_facing_x", -1.0 if new_velocity.x < 0.0 else 1.0)
 	target.set("dash_cd", float(result["dashCd"]))
 	target.set("invincible", float(result["invincible"]))
 	target.set("stop_timer", float(result["stopTimer"]))

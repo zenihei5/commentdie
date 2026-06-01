@@ -1,0 +1,28 @@
+{
+  "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_chibi_pixel_2x2_calmhands\\sheet-transparent.png",
+  "method": "postprocess only, no image generation",
+  "frame_size": [
+    128,
+    128
+  ],
+  "source_frames": [
+    "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_chibi_pixel_2x2_calmhands\\ban_chan_chibi_idle_calm-1.png",
+    "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_chibi_pixel_2x2_calmhands\\ban_chan_chibi_idle_calm-2.png",
+    "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_chibi_pixel_2x2_calmhands\\ban_chan_chibi_idle_calm-3.png",
+    "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_chibi_pixel_2x2_calmhands\\ban_chan_chibi_idle_calm-4.png"
+  ],
+  "loop_order_source_frame_numbers": [
+    1,
+    2,
+    3,
+    4,
+    3,
+    2
+  ],
+  "outputs": [
+    "ban_chan_chibi_idle_loop_strip.png",
+    "ban_chan_chibi_idle_loop_sheet_3x2.png",
+    "animation_postprocessed.gif",
+    "preview_strip_2x.png"
+  ]
+}

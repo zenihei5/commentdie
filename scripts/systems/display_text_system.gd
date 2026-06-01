@@ -10,7 +10,7 @@ static func tutorial_lines() -> Array[String]:
 		"攻撃は自動",
 		"15秒ごとに指示コメが来ます",
 		"10秒以内にひとつ選びます",
-		"危険な指示コメほど倍率とギフト期待度が上がります",
+		"危険な指示コメほどボルテージとギフト期待度が上がります",
 		"EXPを集めるとギフトが届きます",
 		"マシュマロは拾うと効果が出ます",
 		"死んだらコメントのせいです"
@@ -39,7 +39,7 @@ static func comment_countdown_title(alert: bool) -> String:
 	return "指示コメ襲来" if alert else "次の指示コメ"
 
 static func comment_countdown_warning() -> String:
-	return "指示コメ接近"
+	return "WARNING"
 
 static func title_tagline() -> String:
 	return "15秒ごとに指示コメが世界を壊す。"

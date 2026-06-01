@@ -1,0 +1,65 @@
+{
+  "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_sidewalk_3q_2x2\\ban_chan_sidewalk_3q-1.png",
+  "parts": {
+    "head": {
+      "bbox": [
+        30,
+        7,
+        97,
+        74
+      ],
+      "aligned": "head_aligned.png",
+      "tight": "head.png"
+    },
+    "body": {
+      "bbox": [
+        39,
+        56,
+        86,
+        97
+      ],
+      "aligned": "body_aligned.png",
+      "tight": "body.png"
+    },
+    "left_arm": {
+      "bbox": [
+        36,
+        60,
+        53,
+        92
+      ],
+      "aligned": "left_arm_aligned.png",
+      "tight": "left_arm.png"
+    },
+    "right_arm": {
+      "bbox": [
+        73,
+        58,
+        95,
+        93
+      ],
+      "aligned": "right_arm_aligned.png",
+      "tight": "right_arm.png"
+    },
+    "left_leg": {
+      "bbox": [
+        41,
+        86,
+        63,
+        122
+      ],
+      "aligned": "left_leg_aligned.png",
+      "tight": "left_leg.png"
+    },
+    "right_leg": {
+      "bbox": [
+        61,
+        85,
+        90,
+        122
+      ],
+      "aligned": "right_leg_aligned.png",
+      "tight": "right_leg.png"
+    }
+  }
+}

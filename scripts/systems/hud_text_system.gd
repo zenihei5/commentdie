@@ -2,14 +2,12 @@ class_name HudTextSystem
 extends RefCounted
 
 static func status_text(stats: Dictionary) -> String:
-	return "スコア %d   EXP %d/%d   効果 %ss   配信者:%s   配信枠:%s   武器:%s" % [
-		int(stats.get("score", 0)),
+	return "EXP %d/%d   効果 %ss   武器:%s   アクセ:%s" % [
 		int(stats.get("expValue", 0)),
 		int(stats.get("expNeed", 0)),
 		String(stats.get("effectText", "00")),
-		String(stats.get("characterName", "バンちゃん")),
-		String(stats.get("streamFrameName", "雑談枠")),
-		String(stats.get("weaponName", "BANハンマー"))
+		String(stats.get("weaponSlots", "空き")),
+		String(stats.get("accessorySlots", "空き"))
 	]
 
 static func texts_for_target(target: Node, comment_barrage_label: String, gift_arrival_text: String, active_genre_label: String, next_known_genre_label: String) -> Dictionary:
@@ -17,6 +15,8 @@ static func texts_for_target(target: Node, comment_barrage_label: String, gift_a
 	var current_character: Dictionary = target.get("current_character") as Dictionary
 	var current_stream_frame: Dictionary = target.get("current_stream_frame") as Dictionary
 	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+	var weapons: Array[String] = EquipmentSystem.weapon_names(target.get("player_weapons") as Array, target.get("weapons") as Array)
+	var accessories: Array[String] = EquipmentSystem.accessory_names(target.get("player_accessories") as Array, target.get("gifts") as Array)
 	return {
 		"status": status_text({
 			"score": int(target.get("score")),
@@ -25,7 +25,9 @@ static func texts_for_target(target: Node, comment_barrage_label: String, gift_a
 			"effectText": effect_text,
 			"characterName": String(current_character.get("displayName", "バンちゃん")),
 			"streamFrameName": String(current_stream_frame.get("displayName", "雑談枠")),
-			"weaponName": String(current_weapon.get("displayName", "BANハンマー"))
+			"weaponName": String(current_weapon.get("displayName", "BANハンマー")),
+			"weaponSlots": EquipmentSystem.slot_summary(weapons, EquipmentSystem.MAX_WEAPONS),
+			"accessorySlots": EquipmentSystem.slot_summary(accessories, EquipmentSystem.MAX_ACCESSORIES)
 		}),
 		"banner": banner_text({
 			"state": String(target.get("state")),
@@ -34,7 +36,7 @@ static func texts_for_target(target: Node, comment_barrage_label: String, gift_a
 			"screenShakeEnabled": bool(target.get("screen_shake_enabled")),
 			"choiceTimer": float(target.get("choice_timer")),
 			"ngStock": int(target.get("ng_stock")),
-			"heartStock": int(target.get("heart_stock")),
+			"heartPending": bool(target.get("heart_pending")),
 			"giftArrivalText": gift_arrival_text,
 			"activeGenreEvent": String(target.get("active_genre_event")),
 			"activeGenreLabel": active_genre_label,
@@ -81,15 +83,16 @@ static func banner_text(context: Dictionary) -> String:
 	if state == "tutorial":
 		return "チュートリアル  Enter / Spaceで開始"
 	if state == "comment_choice":
-		return "指示コメが来た！ %.1fs  Q:NG x%d  H:♡ x%d" % [
+		return "指示コメが来た！ %.1fs  Q:NG x%d" % [
 			float(context.get("choiceTimer", 0.0)),
-			int(context.get("ngStock", 0)),
-			int(context.get("heartStock", 0))
+			int(context.get("ngStock", 0))
 		]
 	if state == "gift_choice":
 		return String(context.get("giftArrivalText", "ギフトが届いた！")) + " ひとつ選べ！"
 	if state == "pause":
 		return "ポーズ"
+	if bool(context.get("heartPending", false)):
+		return "♡待機中：次の指示コメが全部ちょっと甘くなる"
 	if String(context.get("activeGenreEvent", "")) != "":
 		return "%s  %.1fs" % [
 			String(context.get("activeGenreLabel", "")),

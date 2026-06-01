@@ -15,7 +15,10 @@ static func toggle_pause_for_target(target: Node) -> Dictionary:
 	return result
 
 static func update_pause_input_for_target(target: Node) -> void:
-	if Input.is_key_pressed(KEY_ESCAPE):
+	var down: bool = Input.is_key_pressed(KEY_ESCAPE)
+	var was_down: bool = bool(target.get("pause_escape_down"))
+	target.set("pause_escape_down", down)
+	if was_down and not down:
 		toggle_pause_for_target(target)
 
 static func apply_title_action_for_target(target: Node, action: String) -> Dictionary:
@@ -26,7 +29,7 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 		"startCharacterSelect": action == "start"
 	}
 
-static func front_state_action_for_target(target: Node, delta: float, title_action: String) -> Dictionary:
+static func front_state_action_for_target(target: Node, delta: float, title_action: String, result_action: String = "") -> Dictionary:
 	var state: String = String(target.get("state"))
 	if state == "title":
 		var title_result: Dictionary = apply_title_action_for_target(target, title_action)
@@ -39,7 +42,7 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 		update_tutorial_for_target(target, delta)
 		return {"handled": true, "action": ""}
 	if state == "result":
-		return {"handled": true, "action": "restart" if result_restart_pressed() else ""}
+		return {"handled": true, "action": result_action}
 	if state == "pause":
 		return {"handled": true, "action": ""}
 	return {"handled": false, "action": ""}

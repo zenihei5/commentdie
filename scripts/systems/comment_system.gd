@@ -30,7 +30,12 @@ static func start_choice_for_target(target: Node, comments: Array, rng: RandomNu
 	target.set("comment_warning_step", 0)
 	target.set("offered_comments", build_offer_for_target(target, comments, rng))
 	target.set("ng_cards", _bool_cards(false, 3))
-	target.set("heart_cards", _bool_cards(false, 3))
+	var pending_heart: bool = bool(target.get("heart_pending"))
+	target.set("heart_cards", _bool_cards(pending_heart, 3))
+	if pending_heart:
+		target.set("heart_pending", false)
+		target.set("heart_used_count", int(target.get("heart_used_count")) + 1)
+		return {"chat": "♡発動！ 指示コメが全部ちょっと甘くなった"}
 	return {"chat": "指示コメが来た！"}
 
 static func start_choice_ui_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float, choice_box: Control) -> Dictionary:
@@ -158,24 +163,9 @@ static func use_ng_for_target(target: Node) -> Dictionary:
 	if int(target.get("ng_stock")) <= 0 or selected_card >= ng_cards.size() or bool(ng_cards[selected_card]):
 		return {"changed": false, "chat": ""}
 	target.set("ng_stock", int(target.get("ng_stock")) - 1)
+	target.set("ng_used_count", int(target.get("ng_used_count")) + 1)
 	ng_cards[selected_card] = true
 	return {"changed": true, "chat": "その指示コメ、NGで"}
-
-static func use_heart_for_target(target: Node, rng: RandomNumberGenerator) -> Dictionary:
-	var selected_card: int = int(target.get("selected_card"))
-	var heart_cards: Array = target.get("heart_cards") as Array
-	var ng_cards: Array = target.get("ng_cards") as Array
-	if int(target.get("heart_stock")) <= 0 or selected_card >= heart_cards.size():
-		return {"changed": false, "chat": ""}
-	if selected_card < ng_cards.size() and bool(ng_cards[selected_card]):
-		return {"changed": false, "chat": ""}
-	if bool(heart_cards[selected_card]):
-		return {"changed": false, "chat": ""}
-	target.set("heart_stock", int(target.get("heart_stock")) - 1)
-	target.set("heart_used_count", int(target.get("heart_used_count")) + 1)
-	heart_cards[selected_card] = true
-	var heart_lines: Array[String] = ["語尾かわいい", "圧が抜けたｗ", "それならいけるか？", "♡つければ許されると思うな"]
-	return {"changed": true, "chat": heart_lines[rng.randi_range(0, heart_lines.size() - 1)]}
 
 static func update_choice_timer_for_target(target: Node, delta: float) -> Dictionary:
 	var timer: float = float(target.get("choice_timer")) - delta
@@ -194,7 +184,7 @@ static func update_choice_timer_for_target(target: Node, delta: float) -> Dictio
 		"timedOut": timer <= 0.0
 	}
 
-static func update_choice_input_for_target(target: Node, delta: float, latch: Dictionary, rng: RandomNumberGenerator) -> Dictionary:
+static func update_choice_input_for_target(target: Node, delta: float, latch: Dictionary, _rng: RandomNumberGenerator) -> Dictionary:
 	var timer_result: Dictionary = update_choice_timer_for_target(target, delta)
 	var chats: Array = timer_result["chats"] as Array
 	var refresh: bool = false
@@ -207,11 +197,6 @@ static func update_choice_input_for_target(target: Node, delta: float, latch: Di
 		var ng_result: Dictionary = use_ng_for_target(target)
 		if bool(ng_result["changed"]):
 			chats.append(String(ng_result["chat"]))
-			refresh = true
-	elif Input.is_key_pressed(KEY_H):
-		var heart_result: Dictionary = use_heart_for_target(target, rng)
-		if bool(heart_result["changed"]):
-			chats.append(String(heart_result["chat"]))
 			refresh = true
 	elif ChoiceCardSystem.is_select(action):
 		choose_index = int(action["index"])

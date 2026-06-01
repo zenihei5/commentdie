@@ -15,24 +15,60 @@ static func save_rankings(entries: Array) -> void:
 	if file != null:
 		file.store_string(JSON.stringify(entries))
 
-static func save_and_format_ranking(entry: Dictionary, quick_test_mode: bool) -> String:
-	if quick_test_mode:
+static func save_and_format_ranking(entry: Dictionary, is_ranking_eligible: bool) -> String:
+	if not is_ranking_eligible:
 		return "ランキング：60秒テストは対象外"
 	var entries: Array = load_rankings()
 	entries.append(entry)
-	entries.sort_custom(func(a, b): return int(a["score"]) > int(b["score"]))
+	entries.sort_custom(func(a: Variant, b: Variant) -> bool:
+		var entry_a: Dictionary = a as Dictionary
+		var entry_b: Dictionary = b as Dictionary
+		return _entry_is_higher(entry_a, entry_b)
+	)
 	while entries.size() > 10:
 		entries.pop_back()
 	save_rankings(entries)
-	var lines: Array[String] = ["神回ランキング TOP3"]
-	for i in range(mini(3, entries.size())):
-		var e: Dictionary = entries[i]
-		lines.append("%d. %d  %s  %s  %s  x%.1f" % [
+	var lines: Array[String] = ["神回ランキング TOP5"]
+	for i in range(mini(5, entries.size())):
+		var e: Dictionary = entries[i] as Dictionary
+		lines.append("%d. %d人  %s  %s  %s  %s" % [
 			i + 1,
 			int(e["score"]),
 			String(e.get("characterName", "配信者")),
 			String(e.get("streamFrameName", "配信枠")),
-			String(e["rank"]),
-			float(e["maxMultiplier"])
+			String(e.get("kamiRank", e.get("rank", "D"))),
+			_format_time(float(e.get("survivalTime", e.get("time", 0))))
 		])
 	return "\n".join(lines)
+
+static func _format_time(seconds: float) -> String:
+	return "%02d:%02d" % [int(seconds) / 60, int(seconds) % 60]
+
+static func format_ranking_screen() -> String:
+	var entries: Array = load_rankings()
+	if entries.is_empty():
+		return "神回ランキング\n\nまだ記録がありません。"
+	var lines: Array[String] = ["神回ランキング"]
+	for i in range(mini(10, entries.size())):
+		var e: Dictionary = entries[i] as Dictionary
+		lines.append("%d. %d人  %s  %s  %s  最大ボルテージ x%.1f  %s" % [
+			i + 1,
+			int(e.get("score", 0)),
+			String(e.get("kamiRank", e.get("rank", "D"))),
+			String(e.get("characterName", "配信者")),
+			String(e.get("streamFrameName", "配信枠")),
+			float(e.get("maxMultiplier", 1.0)),
+			_format_time(float(e.get("survivalTime", e.get("time", 0))))
+		])
+	return "\n".join(lines)
+
+static func _entry_is_higher(a: Dictionary, b: Dictionary) -> bool:
+	var score_a: int = int(a.get("score", 0))
+	var score_b: int = int(b.get("score", 0))
+	if score_a != score_b:
+		return score_a > score_b
+	var time_a: float = float(a.get("survivalTime", a.get("time", 0.0)))
+	var time_b: float = float(b.get("survivalTime", b.get("time", 0.0)))
+	if not is_equal_approx(time_a, time_b):
+		return time_a > time_b
+	return String(a.get("playedAt", a.get("date", ""))) > String(b.get("playedAt", b.get("date", "")))

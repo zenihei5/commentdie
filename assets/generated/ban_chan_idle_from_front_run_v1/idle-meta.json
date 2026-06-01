@@ -1,0 +1,65 @@
+{
+  "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\ban_chan_front_run_original_post_v2\\ban_chan_original_post_6f-2.png",
+  "cellSize": 128,
+  "sheetCols": 2,
+  "sheetRows": 2,
+  "durationMs": 220,
+  "frames": [
+    {
+      "frame": 1,
+      "dy": 0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "pastePosition": [
+        38,
+        27
+      ],
+      "subjectSize": [
+        52,
+        94
+      ]
+    },
+    {
+      "frame": 2,
+      "dy": -1,
+      "scaleX": 1.005,
+      "scaleY": 0.995,
+      "pastePosition": [
+        38,
+        26
+      ],
+      "subjectSize": [
+        52,
+        94
+      ]
+    },
+    {
+      "frame": 3,
+      "dy": 0,
+      "scaleX": 1.0,
+      "scaleY": 1.0,
+      "pastePosition": [
+        38,
+        27
+      ],
+      "subjectSize": [
+        52,
+        94
+      ]
+    },
+    {
+      "frame": 4,
+      "dy": 1,
+      "scaleX": 0.998,
+      "scaleY": 1.004,
+      "pastePosition": [
+        38,
+        28
+      ],
+      "subjectSize": [
+        52,
+        94
+      ]
+    }
+  ]
+}

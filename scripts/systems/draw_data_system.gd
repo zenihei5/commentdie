@@ -535,7 +535,15 @@ static func metric_panel_draw_data(rect: Rect2, label: String, value: String, ac
 	style["value"] = value
 	return style
 
-static func hud_frame_data(side: Rect2, hud: Rect2) -> Dictionary:
+static func format_viewer_count(value: int) -> String:
+	var text: String = str(maxi(0, value))
+	var result: String = ""
+	while text.length() > 3:
+		result = "," + text.substr(text.length() - 3, 3) + result
+		text = text.substr(0, text.length() - 3)
+	return text + result
+
+static func hud_frame_data(side: Rect2, hud: Rect2, viewer_count: int) -> Dictionary:
 	return {
 		"sideRect": side,
 		"sideFill": Color("#080910"),
@@ -545,8 +553,8 @@ static func hud_frame_data(side: Rect2, hud: Rect2) -> Dictionary:
 		"sideDividerEnd": Vector2(side.end.x - 20, side.position.y + 48),
 		"sideDividerColor": Color("#6f627e"),
 		"sideDividerWidth": 2,
-		"viewerPos": Vector2(1450, 143),
-		"viewerText": "8,888",
+		"viewerPos": Vector2(1382, 143),
+		"viewerText": format_viewer_count(viewer_count) + "人",
 		"viewerSize": 24,
 		"viewerColor": Color.WHITE,
 		"hudRect": hud,
@@ -560,7 +568,7 @@ static func hud_metric_specs(comment_alert: bool) -> Array:
 	return [
 		{"key": "hp", "rect": Rect2(34, 806, 154, 58), "label": "HP", "accent": Color("#ff4b68")},
 		{"key": "time", "rect": Rect2(200, 806, 160, 58), "label": "残り", "accent": Color("#fff45c")},
-		{"key": "multiplier", "rect": Rect2(372, 806, 156, 58), "label": "倍率", "accent": Color("#b768ff")},
+		{"key": "multiplier", "rect": Rect2(372, 806, 156, 58), "label": "ボルテージ", "accent": Color("#b768ff")},
 		{"key": "burn", "rect": Rect2(540, 806, 156, 58), "label": "炎上", "accent": Color("#ff8a31")},
 		{"key": "hype", "rect": Rect2(708, 806, 210, 58), "label": "期待度", "accent": Color("#ff5a78")},
 		{"key": "ng", "rect": Rect2(930, 806, 70, 58), "label": "NG", "accent": Color("#8df7ff")},
@@ -577,10 +585,25 @@ static func hud_metric_draw_data(metric_values: Dictionary, comment_alert: bool)
 		items.append(metric_panel_draw_data(item["rect"] as Rect2, String(item["label"]), String(metric_values[key]), item["accent"] as Color))
 	return items
 
+static func hp_ratio(hp: int, max_hp: int) -> float:
+	if max_hp <= 0:
+		return 0.0
+	return clampf(float(hp) / float(max_hp), 0.0, 1.0)
+
+static func fake_hp_ratio(elapsed: float) -> float:
+	var step: float = floor(elapsed * 5.0)
+	var noise: float = fposmod(sin(step * 12.9898 + 78.233) * 43758.5453, 1.0)
+	return clampf(lerpf(0.12, 1.0, noise), 0.05, 1.0)
+
+static func visual_hp_ratio(hp: int, max_hp: int, hide_hp: bool, elapsed: float) -> float:
+	if hide_hp:
+		return fake_hp_ratio(elapsed)
+	return hp_ratio(hp, max_hp)
+
 static func hud_value_data(context: Dictionary) -> Dictionary:
 	var remaining: int = maxi(0, int(ceil(float(context["runLength"]) - float(context["elapsed"]))))
 	var exp_need: int = maxi(1, int(context["expNeed"]))
-	var hp_text: String = "??/??" if bool(context["hideHp"]) else "%d/%d" % [int(context["playerHp"]), int(context["playerMaxHp"])]
+	var hp_text: String = "??" if bool(context["hideHp"]) else ""
 	return {
 		"metrics": {
 			"hp": hp_text,
@@ -589,16 +612,30 @@ static func hud_value_data(context: Dictionary) -> Dictionary:
 			"burn": str(int(context["burnCombo"])),
 			"hype": "%d%%" % int(context["giftHype"]),
 			"ng": "x%d" % int(context["ngStock"]),
-			"heart": "x%d" % int(context["heartStock"]),
+			"heart": "待機" if bool(context["heartPending"]) else "-",
 			"nextComment": "%.1fs" % maxf(0.0, float(context["commentTimer"])),
 			"currentComment": String(context["currentComment"])
 		},
 		"expRatio": float(context["expValue"]) / float(exp_need),
-		"hypeRatio": float(context["giftHype"]) / 100.0
+		"hypeRatio": float(context["giftHype"]) / 100.0,
+		"hpRatio": visual_hp_ratio(int(context["playerHp"]), int(context["playerMaxHp"]), bool(context["hideHp"]), float(context["elapsed"])),
+		"hideHp": bool(context["hideHp"])
 	}
 
-static func hud_gauge_data(exp_ratio: float, hype_ratio: float) -> Array:
-	return [
+static func hud_gauge_data(exp_ratio: float, hype_ratio: float, hp_value_ratio: float) -> Array:
+	var gauges: Array = []
+	gauges.append({
+		"label": "",
+		"backRect": Rect2(Vector2(54, 842), Vector2(112, 11)),
+		"fillRect": Rect2(Vector2(54, 842), Vector2(112 * hp_value_ratio, 11)),
+		"backColor": Color("#10261a"),
+		"fillColor": Color("#4ade80"),
+		"labelPos": Vector2(54, 858),
+		"labelColor": Color("#a7f3c4"),
+		"labelWidth": -1,
+		"labelSize": 12
+	})
+	gauges.append_array([
 		{
 			"label": "EXP",
 			"backRect": Rect2(Vector2(34, 872), Vector2(360, 6)),
@@ -621,10 +658,11 @@ static func hud_gauge_data(exp_ratio: float, hype_ratio: float) -> Array:
 			"labelWidth": -1,
 			"labelSize": 14
 		}
-	]
+	])
+	return gauges
 
 static func hud_gauge_draw_data(hud_values: Dictionary) -> Array:
-	return hud_gauge_data(float(hud_values["expRatio"]), float(hud_values["hypeRatio"]))
+	return hud_gauge_data(float(hud_values["expRatio"]), float(hud_values["hypeRatio"]), float(hud_values["hpRatio"]))
 
 static func hud_metric_parts() -> Array:
 	return [
@@ -644,7 +682,7 @@ static func hud_draw_data(side: Rect2, hud: Rect2, context: Dictionary) -> Dicti
 	var values: Dictionary = hud_value_data(context)
 	var metric_values: Dictionary = values["metrics"] as Dictionary
 	return {
-		"frame": hud_frame_data(side, hud),
+		"frame": hud_frame_data(side, hud, int(context.get("score", 0))),
 		"metrics": hud_metric_draw_data(metric_values, float(context["commentTimer"]) <= 5.0),
 		"gauges": hud_gauge_draw_data(values)
 	}
@@ -653,6 +691,12 @@ static func comment_countdown_data(left: float, interval: float, elapsed_time: f
 	var ratio: float = clampf(left / interval, 0.0, 1.0)
 	var alert: bool = left <= 5.0
 	var rect: Rect2 = Rect2(Vector2(450, 118), Vector2(520, 54))
+	if alert:
+		var shake: Vector2 = Vector2(
+			sin(elapsed_time * 58.0) * 2.2,
+			cos(elapsed_time * 47.0) * 1.4
+		)
+		rect.position += shake
 	var pulse: float = 0.5 + sin(elapsed_time * 12.0) * 0.5
 	var border: Color = Color("#ff4b68") if alert else Color("#8df7ff")
 	var progress_color: Color = Color("#ff4b68") if alert else Color("#8df7ff")
@@ -748,17 +792,24 @@ static func toast_parts(data: Dictionary, text: String) -> Array:
 		{"kind": "text", "data": text_item(data["textPos"] as Vector2, text, int(data["textWidth"]), int(data["fontSize"]), data["textColor"] as Color)}
 	]
 
-static func idle_sprite_frame_data(sprite: Texture2D, character: Dictionary, elapsed_time: float) -> Dictionary:
-	var cols: int = int(character.get("idleSpriteCols", 3))
-	var rows: int = int(character.get("idleSpriteRows", 3))
+static func animated_sprite_frame_data(sprite: Texture2D, character: Dictionary, prefix: String, elapsed_time: float) -> Dictionary:
+	var cols: int = int(character.get(prefix + "SpriteCols", 3))
+	var rows: int = int(character.get(prefix + "SpriteRows", 3))
 	var frames: int = max(1, cols * rows)
-	var frame: int = int(floor(elapsed_time * float(character.get("idleSpriteFps", 8.0)))) % frames
+	var frame: int = int(floor(elapsed_time * float(character.get(prefix + "SpriteFps", 8.0)))) % frames
 	var cell: Vector2 = Vector2(sprite.get_width() / cols, sprite.get_height() / rows)
+	var frame_row: int = int(frame / cols)
 	return {
-		"sourceRect": Rect2(Vector2(float(frame % cols) * cell.x, float(frame / cols) * cell.y), cell),
-		"scale": float(character.get("idleSpriteScale", 0.82)),
-		"offset": character.get("idleSpriteOffset", {"x": 0, "y": -12})
+		"sourceRect": Rect2(Vector2(float(frame % cols) * cell.x, float(frame_row) * cell.y), cell),
+		"scale": float(character.get(prefix + "SpriteScale", 0.82)),
+		"offset": character.get(prefix + "SpriteOffset", {"x": 0, "y": -12})
 	}
+
+static func idle_sprite_frame_data(sprite: Texture2D, character: Dictionary, elapsed_time: float) -> Dictionary:
+	return animated_sprite_frame_data(sprite, character, "idle", elapsed_time)
+
+static func run_sprite_frame_data(sprite: Texture2D, character: Dictionary, elapsed_time: float) -> Dictionary:
+	return animated_sprite_frame_data(sprite, character, "run", elapsed_time)
 
 static func player_sprite_draw_data(
 	player_pos: Vector2,
@@ -792,8 +843,10 @@ static func player_sprite_draw_data(
 static func player_sprite_state(
 	player_pos: Vector2,
 	player_vel: Vector2,
+	player_facing_x: float,
 	player_sprite: Texture2D,
 	player_idle_sprite: Texture2D,
+	player_run_sprite: Texture2D,
 	character: Dictionary,
 	elapsed_time: float,
 	attack_timer: float,
@@ -819,8 +872,16 @@ static func player_sprite_state(
 	var source_rect: Rect2 = Rect2(Vector2.ZERO, Vector2(player_sprite.get_size()))
 	var sprite_scale: float = float(character.get("spriteScale", 0.095))
 	var uses_idle_sheet: bool = player_idle_sprite != null
+	var is_moving: bool = player_vel.length() > 18.0
+	var uses_run_sheet: bool = is_moving and player_run_sprite != null
 	var idle_frame_data: Dictionary = {}
-	if player_idle_sprite != null:
+	if uses_run_sheet:
+		draw_sprite = player_run_sprite
+		idle_frame_data = run_sprite_frame_data(player_run_sprite, character, elapsed_time)
+		source_rect = idle_frame_data["sourceRect"] as Rect2
+		sprite_scale = float(idle_frame_data["scale"])
+		uses_idle_sheet = true
+	elif player_idle_sprite != null:
 		draw_sprite = player_idle_sprite
 		idle_frame_data = idle_sprite_frame_data(player_idle_sprite, character, elapsed_time)
 		source_rect = idle_frame_data["sourceRect"] as Rect2
@@ -832,6 +893,7 @@ static func player_sprite_state(
 	draw_data["texture"] = draw_sprite
 	draw_data["sourceRect"] = source_rect
 	draw_data["tilt"] = tilt
+	draw_data["flipX"] = (player_vel.x < -18.0) if uses_run_sheet else player_facing_x < -0.1
 	return draw_data
 
 static func fallback_player_color(character_id: String, invincible: bool) -> Color:
@@ -1041,6 +1103,27 @@ static func enemy_hp_bar_parts() -> Array:
 	return [
 		{"kind": "bar"},
 		{"kind": "text", "prefix": "label"}
+	]
+
+static func player_hp_bar_data(pos: Vector2, hp: int, max_hp: int, hide_hp: bool, elapsed: float) -> Dictionary:
+	var width: float = 96.0
+	var origin: Vector2 = pos + Vector2(-width * 0.5, 48.0)
+	var ratio: float = visual_hp_ratio(hp, max_hp, hide_hp, elapsed)
+	return {
+		"backRect": Rect2(origin, Vector2(width, 8.0)),
+		"fillRect": Rect2(origin, Vector2(width * ratio, 8.0)),
+		"backColor": Color("#10261a"),
+		"fillColor": Color("#4ade80"),
+		"label": "",
+		"labelPos": origin + Vector2(0, -2),
+		"labelWidth": -1,
+		"labelSize": 10,
+		"labelColor": Color("#a7f3c4")
+	}
+
+static func player_hp_bar_parts() -> Array:
+	return [
+		{"kind": "bar"}
 	]
 
 static func enemy_body_parts(body: Dictionary) -> Array:
@@ -1317,37 +1400,100 @@ static func boomerang_parts() -> Array:
 		{"kind": "arc", "prefix": "inner"}
 	]
 
-static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: float, life: float) -> Dictionary:
-	var width: float = 12.0 + life * 46.0
+static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: float, life: float, arc_angle: float) -> Dictionary:
+	var width: float = 9.0 + life * 36.0
+	var angle: float = dir.angle()
+	var half_arc: float = deg_to_rad(arc_angle * 0.5)
+	var inner_radius: float = maxf(34.0, range * 0.42)
+	var swing_progress: float = clampf(1.0 - life / 0.22, 0.0, 1.0)
+	var swing_angle: float = angle + lerpf(-half_arc, half_arc, swing_progress)
+	var hammer_pos: Vector2 = pos + Vector2.RIGHT.rotated(swing_angle) * range * 0.62
 	return {
+		"pos": pos,
 		"start": pos + dir * 20.0,
 		"end": pos + dir * range,
 		"width": width,
-		"mainColor": Color("#ffd34d"),
-		"coreColor": Color.WHITE,
-		"coreWidth": maxf(4.0, width * 0.28),
+		"mainRadius": range,
+		"mainStart": angle - half_arc,
+		"mainEnd": angle + half_arc,
+		"mainPoints": 28,
+		"mainColor": Color(1.0, 0.82, 0.20, 0.78),
+		"mainWidth": width,
+		"coreRadius": inner_radius,
+		"coreStart": angle - half_arc * 0.86,
+		"coreEnd": angle + half_arc * 0.86,
+		"corePoints": 24,
+		"coreColor": Color(1.0, 1.0, 1.0, 0.70),
+		"coreWidth": maxf(3.0, width * 0.34),
 		"burstPos": hit_pos,
 		"burstRadius": 24.0 + life * 30.0,
 		"burstColor": Color(1.0, 0.95, 0.22, 0.35),
+		"hammerPos": hammer_pos,
+		"hammerSize": Vector2(82, 82) * (0.92 + 0.08 * sin(swing_progress * PI)),
+		"hammerAngle": swing_angle + deg_to_rad(38.0),
+		"hammerAlpha": clampf(life / 0.16, 0.0, 1.0),
 		"label": "BAN!",
 		"labelPos": hit_pos + Vector2(-22, -28),
 		"labelColor": Color("#fff45c"),
 		"labelSize": 20
 	}
 
+static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float) -> Dictionary:
+	var alpha: float = clampf(life / 0.48, 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / 0.48, 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
+	var chars: int = clampi(1 + int(progress * 6.0), 1, 7)
+	var wave_text: String = ""
+	for i in range(chars):
+		wave_text += "W"
+	var wobble: Vector2 = side * sin(life * 28.0) * 7.0
+	var text_pos: Vector2 = pos + wobble - normalized_dir * (8.0 * float(chars)) + Vector2(-10, 14)
+	return {
+		"kind": "kusa_wave",
+		"trailStart": pos - normalized_dir * (48.0 + 11.0 * float(chars)),
+		"trailEnd": pos,
+		"trailColor": Color(0.0, 0.95, 0.12, 0.62 * alpha),
+		"trailWidth": 13.0,
+		"label": wave_text,
+		"labelPos": text_pos,
+		"labelColor": Color(0.0, 1.0, 0.10, alpha),
+		"labelSize": 34 + int(progress * 8.0),
+		"shadowText": wave_text,
+		"shadowPos": text_pos + Vector2(3, 3),
+		"shadowColor": Color(0.0, 0.12, 0.02, 0.90 * alpha),
+		"shadowSize": 36 + int(progress * 8.0),
+		"burstPos": pos + wobble,
+		"burstRadius": 24.0 + alpha * 18.0,
+		"burstColor": Color(0.0, 0.95, 0.10, 0.34 * alpha),
+		"showBurst": true,
+		"showHammer": false
+	}
+
 static func hit_fx_draw_data(hit_fx: Array) -> Array:
 	var items: Array = []
 	for fx in hit_fx:
 		var fx_item: Dictionary = fx as Dictionary
-		var data: Dictionary = hit_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), Vector2(fx_item["hit"]), float(fx_item["range"]), float(fx_item["life"]))
+		if String(fx_item.get("kind", "")) == "kusa_wave":
+			items.append(kusa_wave_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), float(fx_item["life"])))
+			continue
+		var data: Dictionary = hit_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), Vector2(fx_item["hit"]), float(fx_item["range"]), float(fx_item["life"]), float(fx_item.get("arcAngle", 120.0)))
 		data["showBurst"] = int(fx_item["count"]) > 0
+		data["showHammer"] = bool(fx_item.get("hammer", false))
 		items.append(data)
 	return items
 
 static func hit_fx_parts(data: Dictionary) -> Array:
+	if String(data.get("kind", "")) == "kusa_wave":
+		return [
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "burst"},
+			{"kind": "text", "prefix": "shadow"},
+			{"kind": "text", "prefix": "label"}
+		]
 	var parts: Array = [
-		{"kind": "line", "prefix": "", "widthKey": "width", "colorKey": "mainColor"},
-		{"kind": "line", "prefix": "core", "widthKey": "coreWidth"}
+		{"kind": "arc", "prefix": "main"},
+		{"kind": "arc", "prefix": "core"}
 	]
 	if bool(data["showBurst"]):
 		parts.append({"kind": "circle", "prefix": "burst"})

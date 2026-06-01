@@ -7,7 +7,6 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_G, "gift_now")
 	_add_if_pressed(actions, latch, KEY_F, "gift_god")
 	_add_if_pressed(actions, latch, KEY_R, "gift_flame")
-	_add_if_pressed(actions, latch, KEY_H, "heart")
 	_add_if_pressed(actions, latch, KEY_F1, "hype_0")
 	_add_if_pressed(actions, latch, KEY_F2, "hype_40")
 	_add_if_pressed(actions, latch, KEY_F3, "hype_70")
@@ -16,7 +15,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_Y, "hype_0")
 	_add_if_pressed(actions, latch, KEY_O, "hype_90")
 	_add_if_pressed(actions, latch, KEY_P, "hype_100")
-	_add_if_pressed(actions, latch, KEY_F6, "heart_max")
+	_add_if_pressed(actions, latch, KEY_F6, "heart_pending_on")
 	_add_if_pressed(actions, latch, KEY_K, "clear_enemies")
 	_add_if_pressed(actions, latch, KEY_I, "toggle_invincible")
 	_add_if_pressed(actions, latch, KEY_1, "comment_no_stop")
@@ -50,6 +49,15 @@ static func title_action(latch: Dictionary) -> String:
 		return "reset_tutorial"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
 		return "start"
+	return ""
+
+static func result_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_C):
+		return "copy_result"
+	if _pressed(latch, KEY_R):
+		return "toggle_ranking"
+	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
+		return "restart"
 	return ""
 
 static func jump_time(action: String, quick_test_mode: bool) -> float:
@@ -123,13 +131,6 @@ static func spawn_enemy_kind(action: String) -> String:
 		return "clipper"
 	return ""
 
-static func heart_stock_value(action: String, current: int) -> int:
-	if action == "heart":
-		return mini(3, current + 1)
-	if action == "heart_max":
-		return 3
-	return -1
-
 static func should_clear_enemies(action: String) -> bool:
 	return action == "clear_enemies"
 
@@ -147,17 +148,13 @@ static func should_reset_ranking(action: String) -> bool:
 
 static func apply_resource_action_for_target(target: Node, action: String) -> Dictionary:
 	var chats: Array[String] = []
-	var heart_value: int = heart_stock_value(action, int(target.get("heart_stock")))
-	if action == "heart" and heart_value >= 0:
-		target.set("heart_stock", heart_value)
-		chats.append("♡ +1")
+	if action == "heart_pending_on":
+		target.set("heart_pending", true)
+		chats.append("♡待機ON")
 	var hype: int = hype_value(action)
 	if hype >= 0:
 		target.set("gift_hype", hype)
 		target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), hype))
-	if action == "heart_max" and heart_value >= 0:
-		target.set("heart_stock", heart_value)
-		chats.append("♡ MAX")
 	return {"chats": chats}
 
 static func apply_world_action_for_target(target: Node, action: String) -> Dictionary:

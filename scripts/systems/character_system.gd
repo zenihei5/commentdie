@@ -26,13 +26,15 @@ static func selected_character_state(characters: Array, weapons: Array, id: Stri
 	var idle_sprite_path: String = String(character.get("idleSprite", ""))
 	if idle_sprite_path == "" and character_id == "ban_chan":
 		idle_sprite_path = "res://assets/generated/ban_chan_idle_3x3/sheet-transparent.png"
+	var run_sprite_path: String = String(character.get("runSprite", ""))
 	return {
 		"character": character,
 		"characterId": character_id,
 		"weapon": weapon,
 		"weaponId": weapon_id,
 		"sprite": texture_from_cache(cache, sprite_path),
-		"idleSprite": texture_from_cache(cache, idle_sprite_path)
+		"idleSprite": texture_from_cache(cache, idle_sprite_path),
+		"runSprite": texture_from_cache(cache, run_sprite_path)
 	}
 
 static func apply_selected_character_for_target(target: Node, characters: Array, weapons: Array, id: String, cache: Dictionary) -> void:
@@ -43,6 +45,7 @@ static func apply_selected_character_for_target(target: Node, characters: Array,
 	target.set("current_weapon", selected["weapon"] as Dictionary)
 	target.set("player_sprite", selected["sprite"] as Texture2D)
 	target.set("player_idle_sprite", selected["idleSprite"] as Texture2D)
+	target.set("player_run_sprite", selected["runSprite"] as Texture2D)
 
 static func selected_character_state_by_index(characters: Array, index: int) -> Dictionary:
 	if index < 0 or index >= characters.size():
@@ -127,6 +130,7 @@ static func fallback_weapon() -> Dictionary:
 		"attackType": "melee_arc",
 		"damage": 12.0,
 		"range": 165.0,
+		"arcAngle": 120.0,
 		"attackInterval": 0.85,
 		"knockback": 18.0,
 		"magnetRange": 95.0

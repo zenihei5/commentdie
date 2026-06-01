@@ -126,6 +126,8 @@ static func available_gift_ids_for_target(target: Node, gifts: Array, gift_time:
 static func gift_available_for_target(target: Node, gift: Dictionary, gift_time: float) -> bool:
 	if gift_time < float(gift.get("minTime", 0.0)):
 		return false
+	if not EquipmentSystem.is_instant(gift):
+		return EquipmentSystem.can_offer(target, gift, gift_time)
 	if String(gift["id"]) == "rest":
 		return int(target.get("player_hp")) < int(target.get("player_max_hp"))
 	var max_level: int = int(gift["maxLevel"])
@@ -136,10 +138,14 @@ static func gift_available_for_target(target: Node, gift: Dictionary, gift_time:
 static func choose_gift_for_target(target: Node, gift: Dictionary) -> Dictionary:
 	var result: Dictionary = apply_gift_to_target(target, gift)
 	var names: Array = target.get("taken_gift_names") as Array
-	names.append(String(gift["displayName"]))
+	names.append(_taken_name_for_target(target, gift))
 	target.set("gifts_taken", int(target.get("gifts_taken")) + 1)
 	var consume: int = consume_for_rarity(String(gift["rarity"]))
 	target.set("gift_hype", maxi(0, int(target.get("gift_hype")) - consume))
+	if bool(result.get("heartPendingDuplicate", false)):
+		var bonus_hype: int = clampi(int(target.get("gift_hype")) + 15, 0, 100)
+		target.set("gift_hype", bonus_hype)
+		target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), bonus_hype))
 	return result
 
 static func choose_offer_index_for_target(target: Node, index: int) -> Dictionary:
@@ -152,7 +158,9 @@ static func choose_offer_index_for_target(target: Node, index: int) -> Dictionar
 	return {
 		"selected": true,
 		"giftName": String(gift["displayName"]),
-		"rollGenreEvent": bool(result.get("rollGenreEvent", false))
+		"rollGenreEvent": bool(result.get("rollGenreEvent", false)),
+		"heartPendingActivated": bool(result.get("heartPendingActivated", false)),
+		"heartPendingDuplicate": bool(result.get("heartPendingDuplicate", false))
 	}
 
 static func choose_offer_index_ui_for_target(target: Node, index: int, choice_box: Control) -> Dictionary:
@@ -173,9 +181,15 @@ static func choose_offer_index_with_feedback_for_target(
 		return {"selected": false, "chats": []}
 	if bool(result.get("rollGenreEvent", false)):
 		GenreEventSystem.set_next_known_event_for_target(target, genre_events, rng)
+	var chats: Array[String] = []
+	chats.append(String(result["giftName"]) + " を取得")
+	if bool(result.get("heartPendingActivated", false)):
+		chats.append("♡を受け取った！ 次の指示コメが全部ちょっと甘くなる")
+	if bool(result.get("heartPendingDuplicate", false)):
+		chats.append("♡はすでに待機中！ ギフト期待度 +15")
 	return {
 		"selected": true,
-		"chats": [String(result["giftName"]) + " を取得"]
+		"chats": chats
 	}
 
 static func update_choice_input_for_target(target: Node, latch: Dictionary) -> Dictionary:
@@ -188,14 +202,80 @@ static func update_choice_input_for_target(target: Node, latch: Dictionary) -> D
 	return {"refresh": false, "chooseIndex": -1}
 
 static func apply_gift_to_target(target: Node, gift: Dictionary) -> Dictionary:
+	if not EquipmentSystem.is_instant(gift):
+		return apply_equipment_to_target(target, gift)
 	var effect: String = String(gift["effectType"])
 	var result: Dictionary = apply_effect(effect, build_effect_context_from_target(target))
 	apply_effect_result_to_target(target, result)
 	return result
 
+static func apply_equipment_to_target(target: Node, gift: Dictionary) -> Dictionary:
+	var equipment_type: String = EquipmentSystem.equipment_type(gift)
+	var items: Array = target.get("player_accessories") as Array
+	if equipment_type == "weapon":
+		items = target.get("player_weapons") as Array
+	EquipmentSystem.add_or_level(items, String(gift["id"]), int(gift.get("maxLevel", 1)))
+	if equipment_type == "weapon":
+		target.set("player_weapons", items)
+	else:
+		target.set("player_accessories", items)
+	_apply_equipment_stats_to_target(target)
+	return {"rollGenreEvent": false, "heartPendingActivated": false, "heartPendingDuplicate": false}
+
+static func _taken_name_for_target(target: Node, gift: Dictionary) -> String:
+	if EquipmentSystem.is_instant(gift):
+		return String(gift["displayName"])
+	var level_value: int = EquipmentSystem.level_for_target(target, String(gift["id"]))
+	return "%s Lv%d" % [String(gift["displayName"]), level_value]
+
+static func _apply_equipment_stats_to_target(target: Node) -> void:
+	var weapons: Array = target.get("player_weapons") as Array
+	var accessories: Array = target.get("player_accessories") as Array
+	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+	var current_character: Dictionary = target.get("current_character") as Dictionary
+	var stats: Dictionary = CharacterSystem.base_stats(current_character)
+	var main_weapon_id: String = String(current_weapon.get("id", "ban_hammer"))
+	var main_weapon_level: int = maxi(1, EquipmentSystem.level(weapons, main_weapon_id))
+	var stream_power_level: int = EquipmentSystem.level(accessories, "stream_power")
+	var high_speed_level: int = EquipmentSystem.level(accessories, "high_speed_connection")
+	var wide_angle_level: int = EquipmentSystem.level(accessories, "wide_angle")
+	var sneaker_level: int = EquipmentSystem.level(accessories, "light_sneakers")
+	var bullet_support_level: int = EquipmentSystem.level(accessories, "bullet_support")
+	var sweet_level: int = EquipmentSystem.level(accessories, "sweet_tooth")
+	var main_damage_rate: float = 1.0 + 0.10 * float(stream_power_level) + 0.10 * float(main_weapon_level - 1)
+	var main_range_rate: float = 1.0 + 0.10 * float(wide_angle_level) + 0.08 * float(main_weapon_level - 1)
+	var main_interval_rate: float = pow(0.92, float(high_speed_level)) * pow(0.94, float(main_weapon_level - 1))
+	target.set("equipment_damage_rate", 1.0 + 0.10 * float(stream_power_level))
+	target.set("equipment_range_rate", 1.0 + 0.10 * float(wide_angle_level))
+	target.set("equipment_interval_rate", pow(0.92, float(high_speed_level)))
+	target.set("equipment_bullet_support_level", bullet_support_level)
+	target.set("hammer_damage", float(current_weapon.get("damage", 12.0)) * main_damage_rate)
+	target.set("hammer_range", WeaponSystem.range_base(current_weapon) * main_range_rate)
+	target.set("hammer_interval", maxf(0.28, WeaponSystem.attack_interval(current_weapon, 0.85) * main_interval_rate))
+	target.set("knockback_power", WeaponSystem.scaled_knockback(float(current_weapon.get("knockback", 1.0))) * (1.0 + 0.10 * float(main_weapon_level - 1)))
+	target.set("player_speed", WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * (1.0 + 0.05 * float(sneaker_level)))
+	target.set("dash_cooldown", float(stats.get("dashCooldown", current_character.get("dashCooldown", 1.2))) * pow(0.95, float(sneaker_level)))
+	target.set("sweet_tooth_level", sweet_level)
+	var superchat_weapon_level: int = EquipmentSystem.level(weapons, "superchat_shot")
+	var boomerang_weapon_level: int = EquipmentSystem.level(weapons, "comment_boomerang")
+	var superchat_level: int = maxi(0, superchat_weapon_level)
+	var boomerang_level: int = maxi(0, boomerang_weapon_level)
+	if main_weapon_id == "superchat_shot":
+		superchat_level = maxi(0, superchat_weapon_level - 1)
+	if main_weapon_id == "comment_boomerang":
+		boomerang_level = maxi(0, boomerang_weapon_level - 1)
+	if superchat_weapon_level > 0:
+		superchat_level += bullet_support_level
+	if boomerang_weapon_level > 0:
+		boomerang_level += bullet_support_level
+	target.set("superchat_level", superchat_level)
+	target.set("boomerang_level", boomerang_level)
+
 static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 	var result: Dictionary = context.duplicate()
 	result["rollGenreEvent"] = false
+	result["heartPendingActivated"] = false
+	result["heartPendingDuplicate"] = false
 	if effect == "hammer_damage":
 		result["hammerDamage"] = float(result.get("hammerDamage", 0.0)) * 1.15
 	elif effect == "hammer_size":
@@ -209,16 +289,21 @@ static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 		result["playerHp"] = mini(int(result["playerMaxHp"]), int(result.get("playerHp", 5)) + 1)
 	elif effect == "heal":
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 5)), int(result.get("playerHp", 5)) + 2)
+	elif effect == "gift_hype_boost":
+		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 25, 0, 100)
+		result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
+	elif effect == "viewer_burst":
+		result["score"] = int(result.get("score", 0)) + 800
 	elif effect == "magnet":
 		result["magnetRange"] = float(result.get("magnetRange", 95.0)) * 1.3
 	elif effect == "ng_stock":
 		result["ngStock"] = mini(3, int(result.get("ngStock", 0)) + 1)
 	elif effect == "add_heart_stock":
-		if int(result.get("heartStock", 0)) >= 3:
-			result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 10, 0, 100)
-			result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
+		if bool(result.get("heartPending", false)):
+			result["heartPendingDuplicate"] = true
 		else:
-			result["heartStock"] = int(result.get("heartStock", 0)) + 1
+			result["heartPending"] = true
+			result["heartPendingActivated"] = true
 	elif effect == "superchat":
 		result["superchatLevel"] = int(result.get("superchatLevel", 0)) + 1
 	elif effect == "boomerang":
@@ -296,8 +381,10 @@ static func build_effect_context_from_target(target: Node) -> Dictionary:
 		"magnetRange": target.get("magnet_range"),
 		"ngStock": target.get("ng_stock"),
 		"heartStock": target.get("heart_stock"),
+		"heartPending": target.get("heart_pending"),
 		"giftHype": target.get("gift_hype"),
 		"maxGiftHype": target.get("max_gift_hype"),
+		"score": target.get("score"),
 		"superchatLevel": target.get("superchat_level"),
 		"boomerangLevel": target.get("boomerang_level"),
 		"burnResistCharges": target.get("burn_resist_charges"),
@@ -338,8 +425,10 @@ static func apply_effect_result_to_target(target: Node, result: Dictionary) -> v
 	target.set("magnet_range", float(result["magnetRange"]))
 	target.set("ng_stock", int(result["ngStock"]))
 	target.set("heart_stock", int(result["heartStock"]))
+	target.set("heart_pending", bool(result["heartPending"]))
 	target.set("gift_hype", int(result["giftHype"]))
 	target.set("max_gift_hype", int(result["maxGiftHype"]))
+	target.set("score", int(result["score"]))
 	target.set("superchat_level", int(result["superchatLevel"]))
 	target.set("boomerang_level", int(result["boomerangLevel"]))
 	target.set("burn_resist_charges", int(result["burnResistCharges"]))
@@ -370,6 +459,9 @@ static func apply_effect_result_to_target(target: Node, result: Dictionary) -> v
 	target.set("kusoge_resist_level", int(result["kusogeResistLevel"]))
 
 static func gift_level_for_target(target: Node, id: String) -> int:
+	var equipment_level: int = EquipmentSystem.level_for_target(target, id)
+	if equipment_level > 0:
+		return equipment_level
 	return gift_level(id, build_level_context_from_target(target))
 
 static func build_level_context_from_target(target: Node) -> Dictionary:
@@ -385,6 +477,7 @@ static func build_level_context_from_target(target: Node) -> Dictionary:
 	context["baseDashCooldown"] = float(stats.get("dashCooldown", character.get("dashCooldown", 1.2)))
 	context["baseKnockback"] = float(weapon.get("knockback", 18.0))
 	context["heartUsedCount"] = int(target.get("heart_used_count"))
+	context["heartPending"] = bool(target.get("heart_pending"))
 	return context
 
 static func gift_level(id: String, context: Dictionary) -> int:
@@ -407,7 +500,7 @@ static func gift_level(id: String, context: Dictionary) -> int:
 	if id == "ng_right":
 		return int(context.get("ngStock", 0))
 	if id == "heart_mark":
-		return int(context.get("heartUsedCount", 0)) + int(context.get("heartStock", 0))
+		return int(context.get("heartUsedCount", 0)) + (1 if bool(context.get("heartPending", false)) else 0)
 	if id == "superchat_shot":
 		return int(context.get("superchatLevel", 0))
 	if id == "comment_boomerang":

@@ -10,6 +10,24 @@
       "x": 0,
       "y": -34
     },
+    "idleSprite": "res://assets/generated/ban_chan_idle_generated_feet_together_v1/sheet-transparent.png",
+    "idleSpriteCols": 2,
+    "idleSpriteRows": 2,
+    "idleSpriteFps": 4.0,
+    "idleSpriteScale": 0.76,
+    "idleSpriteOffset": {
+      "x": 0,
+      "y": -6
+    },
+    "runSprite": "res://assets/generated/ban_chan_front_run_original_post_v2/sheet-transparent.png",
+    "runSpriteCols": 2,
+    "runSpriteRows": 3,
+    "runSpriteFps": 11.0,
+    "runSpriteScale": 0.82,
+    "runSpriteOffset": {
+      "x": 0,
+      "y": -12
+    },
     "initialWeapon": "ban_hammer",
     "baseStats": {
       "hp": 5,
@@ -36,7 +54,7 @@
     "id": "superchat_chan",
     "displayName": "スパチャちゃん",
     "roleName": "遠距離型",
-    "description": "遠距離から敵を処理するスコア型。打たれ弱いが、得点を伸ばしやすい。",
+    "description": "遠距離から敵を処理する視聴者数特化型。打たれ弱いが、同時視聴者数を伸ばしやすい。",
     "sprite": "res://assets/characters/superchat_chan.png",
     "spriteScale": 0.095,
     "spriteOffset": {
@@ -59,7 +77,7 @@
     "passiveSkill": {
       "id": "superchat_bonus",
       "displayName": "スパチャ体質",
-      "description": "獲得スコアが少し上がる",
+      "description": "視聴者数増加量が少し上がる",
       "params": {
         "scoreRate": 1.1
       }

@@ -1,0 +1,175 @@
+{
+  "target": "player",
+  "mode": "idle",
+  "prompt": "Ban-chan two-heads-tall small chibi pixel-art 2x2 idle sprite sheet, red black white streamer moderator outfit, solid magenta background.",
+  "role": "",
+  "input": "C:\\Users\\zenih\\.codex\\generated_images\\019e7277-64fc-72a3-978e-644838679d79\\ig_0c1659c48125dcca016a1d12f37c9c8191b0fb073afb373e53.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 180,
+  "rows": 2,
+  "cols": 2,
+  "cell_size": 128,
+  "fit_scale": 0.92,
+  "trim_border": 4,
+  "edge_clean_depth": 3,
+  "align": "feet",
+  "shared_scale": true,
+  "component_mode": "largest",
+  "component_padding": 8,
+  "min_component_area": 1,
+  "edge_touch_margin": 2,
+  "frame_labels": [
+    "ban_chan_chibi_idle-1",
+    "ban_chan_chibi_idle-2",
+    "ban_chan_chibi_idle-3",
+    "ban_chan_chibi_idle-4"
+  ],
+  "frames": [
+    {
+      "grid": [
+        0,
+        0
+      ],
+      "source_box": [
+        0,
+        0,
+        627,
+        627
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 86523,
+      "selected_component_bbox": [
+        225,
+        98,
+        518,
+        573
+      ],
+      "crop_bbox": [
+        217,
+        90,
+        526,
+        581
+      ],
+      "edge_touch": false,
+      "output_size": [
+        74,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    },
+    {
+      "grid": [
+        0,
+        1
+      ],
+      "source_box": [
+        627,
+        0,
+        1254,
+        627
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 84825,
+      "selected_component_bbox": [
+        89,
+        102,
+        382,
+        573
+      ],
+      "crop_bbox": [
+        81,
+        94,
+        390,
+        581
+      ],
+      "edge_touch": false,
+      "output_size": [
+        74,
+        116
+      ],
+      "paste_position": [
+        27,
+        7
+      ]
+    },
+    {
+      "grid": [
+        1,
+        0
+      ],
+      "source_box": [
+        0,
+        627,
+        627,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 85837,
+      "selected_component_bbox": [
+        220,
+        39,
+        513,
+        511
+      ],
+      "crop_bbox": [
+        212,
+        31,
+        521,
+        519
+      ],
+      "edge_touch": false,
+      "output_size": [
+        74,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    },
+    {
+      "grid": [
+        1,
+        1
+      ],
+      "source_box": [
+        627,
+        627,
+        1254,
+        1254
+      ],
+      "component_mode": "largest",
+      "component_count": 1,
+      "selected_component_area": 85787,
+      "selected_component_bbox": [
+        89,
+        39,
+        382,
+        511
+      ],
+      "crop_bbox": [
+        81,
+        31,
+        390,
+        519
+      ],
+      "edge_touch": false,
+      "output_size": [
+        74,
+        117
+      ],
+      "paste_position": [
+        27,
+        6
+      ]
+    }
+  ],
+  "edge_touch_frames": []
+}

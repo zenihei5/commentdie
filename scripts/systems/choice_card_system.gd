@@ -60,7 +60,7 @@ static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_t
 	if has_heart:
 		border = border.lightened(0.35)
 	return {
-		"text": "[%d]\n%s\n\n%s\n\nx%.1f\n期待度 +%d\n危険度 %d" % [
+		"text": "[%d]\n%s\n\n%s\n\nボルテージ x%.1f\n期待度 +%d\n危険度 %d" % [
 			index + 1,
 			String(view["displayName"]),
 			String(view["description"]),
@@ -74,14 +74,19 @@ static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_t
 
 static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictionary:
 	var rarity: String = String(gift["rarity"])
+	var category: String = EquipmentSystem.category_label_for_card(gift, gift_level)
+	var display_name: String = EquipmentSystem.display_name_for_card(gift, gift_level)
+	var level_text: String = ""
+	if not EquipmentSystem.is_instant(gift):
+		level_text = "\nLv %d/%d" % [gift_level, int(gift["maxLevel"])]
 	return {
-		"text": "[%d]\n%s\n%s\n\n%s\nLv %d/%d" % [
+		"text": "[%d]\n[%s]\n%s\n%s\n\n%s%s" % [
 			index + 1,
+			category,
 			DisplayTextSystem.rarity_label(rarity),
-			String(gift["displayName"]),
+			display_name,
 			String(gift["description"]),
-			gift_level,
-			int(gift["maxLevel"])
+			level_text
 		],
 		"fill": Color("#101720"),
 		"border": DisplayTextSystem.rarity_color(rarity)

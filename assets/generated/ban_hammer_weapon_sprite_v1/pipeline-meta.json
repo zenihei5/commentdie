@@ -1,0 +1,11 @@
+{
+  "target": "asset",
+  "mode": "single",
+  "prompt": "",
+  "role": "",
+  "input": "C:\\Users\\zenih\\.codex\\generated_images\\019e7277-64fc-72a3-978e-644838679d79\\ig_0cae1814b93bed61016a1d41235fcc819198ae5c35f07acd03.png",
+  "threshold": 100,
+  "edge_threshold": 150,
+  "duration": 200,
+  "single_size": 128
+}
