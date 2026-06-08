@@ -1,0 +1,257 @@
+{
+  "character": "superchat_chan",
+  "cellSize": 128,
+  "idle": {
+    "source": "assets\\generated\\supana_gameplay_sprites_v1\\supana_idle_source_v4.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceBBox": [
+      265,
+      100,
+      922,
+      1133
+    ],
+    "sheet": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\supana_gameplay_sprites_v1\\idle-sheet-transparent.png",
+    "cols": 2,
+    "rows": 2,
+    "fps": 4,
+    "frames": [
+      {
+        "sourceSize": [
+          657,
+          1033
+        ],
+        "outputSize": [
+          74,
+          116
+        ],
+        "pastePosition": [
+          27,
+          5
+        ],
+        "scale": 0.1122942884801549,
+        "frame": 1,
+        "yOffset": 0
+      },
+      {
+        "sourceSize": [
+          657,
+          1033
+        ],
+        "outputSize": [
+          74,
+          116
+        ],
+        "pastePosition": [
+          27,
+          4
+        ],
+        "scale": 0.1122942884801549,
+        "frame": 2,
+        "yOffset": -1
+      },
+      {
+        "sourceSize": [
+          657,
+          1033
+        ],
+        "outputSize": [
+          74,
+          116
+        ],
+        "pastePosition": [
+          27,
+          5
+        ],
+        "scale": 0.1122942884801549,
+        "frame": 3,
+        "yOffset": 0
+      },
+      {
+        "sourceSize": [
+          657,
+          1033
+        ],
+        "outputSize": [
+          74,
+          116
+        ],
+        "pastePosition": [
+          27,
+          6
+        ],
+        "scale": 0.1122942884801549,
+        "frame": 4,
+        "yOffset": 1
+      }
+    ]
+  },
+  "run": {
+    "source": "assets\\generated\\supana_gameplay_sprites_v1\\supana_run_source_v4.png",
+    "sourceSize": [
+      6400,
+      640
+    ],
+    "sourceFrameCount": 10,
+    "selectedSourceFrames": [
+      1,
+      3,
+      5,
+      7,
+      9
+    ],
+    "sheet": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\supana_gameplay_sprites_v1\\run-sheet-transparent.png",
+    "cols": 5,
+    "rows": 1,
+    "fps": 9,
+    "frames": [
+      {
+        "sourceSize": [
+          255,
+          403
+        ],
+        "outputSize": [
+          66,
+          104
+        ],
+        "pastePosition": [
+          31,
+          17
+        ],
+        "scale": 0.25806451612903225,
+        "frame": 1,
+        "sourceFrame": 1,
+        "sourceBox": [
+          0,
+          0,
+          640,
+          640
+        ],
+        "sourceBBox": [
+          193,
+          237,
+          448,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          217,
+          405
+        ],
+        "outputSize": [
+          56,
+          104
+        ],
+        "pastePosition": [
+          36,
+          17
+        ],
+        "scale": 0.25679012345679014,
+        "frame": 2,
+        "sourceFrame": 3,
+        "sourceBox": [
+          1280,
+          0,
+          1920,
+          640
+        ],
+        "sourceBBox": [
+          220,
+          235,
+          437,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          255,
+          404
+        ],
+        "outputSize": [
+          66,
+          104
+        ],
+        "pastePosition": [
+          31,
+          17
+        ],
+        "scale": 0.25742574257425743,
+        "frame": 3,
+        "sourceFrame": 5,
+        "sourceBox": [
+          2560,
+          0,
+          3200,
+          640
+        ],
+        "sourceBBox": [
+          192,
+          231,
+          447,
+          635
+        ]
+      },
+      {
+        "sourceSize": [
+          222,
+          393
+        ],
+        "outputSize": [
+          59,
+          104
+        ],
+        "pastePosition": [
+          34,
+          17
+        ],
+        "scale": 0.26463104325699743,
+        "frame": 4,
+        "sourceFrame": 7,
+        "sourceBox": [
+          3840,
+          0,
+          4480,
+          640
+        ],
+        "sourceBBox": [
+          218,
+          244,
+          440,
+          637
+        ]
+      },
+      {
+        "sourceSize": [
+          232,
+          408
+        ],
+        "outputSize": [
+          59,
+          104
+        ],
+        "pastePosition": [
+          34,
+          17
+        ],
+        "scale": 0.2549019607843137,
+        "frame": 5,
+        "sourceFrame": 9,
+        "sourceBox": [
+          5120,
+          0,
+          5760,
+          640
+        ],
+        "sourceBBox": [
+          210,
+          225,
+          442,
+          633
+        ]
+      }
+    ]
+  }
+}

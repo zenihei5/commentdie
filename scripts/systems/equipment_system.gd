@@ -93,6 +93,19 @@ static func weapon_names(weapons: Array, weapon_data: Array) -> Array[String]:
 		names.append("%s Lv%d" % [String(weapon.get("displayName", entry.get("id", ""))), int(entry.get("level", 1))])
 	return names
 
+static func weapon_entries_for_ranking(weapons: Array, weapon_data: Array) -> Array:
+	var entries: Array = []
+	for entry_item in weapons:
+		var entry: Dictionary = entry_item as Dictionary
+		var id: String = String(entry.get("id", ""))
+		var weapon: Dictionary = WeaponSystem.find_weapon(weapon_data, id, {})
+		entries.append({
+			"id": id,
+			"displayName": String(weapon.get("displayName", id)),
+			"level": int(entry.get("level", 1))
+		})
+	return entries
+
 static func accessory_names(accessories: Array, gift_data: Array) -> Array[String]:
 	var names: Array[String] = []
 	for entry_item in accessories:
@@ -100,6 +113,19 @@ static func accessory_names(accessories: Array, gift_data: Array) -> Array[Strin
 		var data: Dictionary = _find_data(gift_data, String(entry.get("id", "")))
 		names.append("%s Lv%d" % [String(data.get("displayName", entry.get("id", ""))), int(entry.get("level", 1))])
 	return names
+
+static func accessory_entries_for_ranking(accessories: Array, gift_data: Array) -> Array:
+	var entries: Array = []
+	for entry_item in accessories:
+		var entry: Dictionary = entry_item as Dictionary
+		var id: String = String(entry.get("id", ""))
+		var data: Dictionary = _find_data(gift_data, id)
+		entries.append({
+			"id": id,
+			"displayName": String(data.get("displayName", id)),
+			"level": int(entry.get("level", 1))
+		})
+	return entries
 
 static func _find_data(data: Array, id: String) -> Dictionary:
 	for item in data:

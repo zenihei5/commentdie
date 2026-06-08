@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ぜんぶコメントのせいだ - マップ小物エディタ</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #11121b;
+      --panel: #181a27;
+      --panel-2: #202437;
+      --line: #39415d;
+      --text: #f6f7ff;
+      --muted: #aeb8d2;
+      --accent: #58e7ff;
+      --pink: #ff5ca8;
+      --warn: #ffcf4c;
+      --danger: #ff536d;
+      font-family: "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 20% 0%, #242947 0, var(--bg) 38%, #090a11 100%);
+      color: var(--text);
+    }
+    button, input, select, textarea {
+      font: inherit;
+    }
+    button {
+      border: 1px solid #52607f;
+      border-radius: 8px;
+      background: #25304a;
+      color: var(--text);
+      padding: 8px 10px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); }
+    label {
+      display: grid;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input[type="number"], input[type="text"], select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #0d101b;
+      color: var(--text);
+      padding: 7px 8px;
+    }
+    input[type="checkbox"] { transform: translateY(1px); }
+    textarea {
+      min-height: 190px;
+      resize: vertical;
+      line-height: 1.35;
+      white-space: pre;
+      overflow: auto;
+      font-family: "Cascadia Mono", Consolas, monospace;
+      font-size: 12px;
+    }
+    .app {
+      display: grid;
+      grid-template-columns: minmax(760px, 1fr) 360px;
+      gap: 12px;
+      height: 100vh;
+      padding: 12px;
+    }
+    .stage, .side {
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(20, 23, 35, 0.9);
+      box-shadow: 0 14px 42px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+    .stage {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: linear-gradient(90deg, #1b2032, #171a28);
+      border-bottom: 1px solid var(--line);
+    }
+    .toolbar h1 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+    .toolbar .hint {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .toolbar .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .canvas-wrap {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background: #05070d;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    canvas.dragging { cursor: grabbing; }
+    .side {
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    .side-header {
+      padding: 12px;
+      background: linear-gradient(135deg, #252c45, #171a28);
+      border-bottom: 1px solid var(--line);
+    }
+    .side-header h2 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+    .side-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .side-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .section {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: rgba(10, 12, 22, 0.58);
+      padding: 10px;
+      display: grid;
+      gap: 10px;
+    }
+    .section h3 {
+      margin: 0;
+      font-size: 13px;
+      color: #ffffff;
+    }
+    .prop-list {
+      display: grid;
+      gap: 5px;
+      max-height: 210px;
+      overflow: auto;
+    }
+    .prop-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      padding: 7px 8px;
+      background: #151928;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .prop-row:hover { border-color: #536481; }
+    .prop-row.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(88, 231, 255, 0.4) inset;
+    }
+    .prop-row small { color: var(--muted); }
+    .badge {
+      border-radius: 999px;
+      padding: 2px 7px;
+      background: #29334e;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .badge.off { background: #35202b; color: #ff9dbd; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text);
+      font-size: 13px;
+    }
+    .mode-button {
+      padding: 7px 9px;
+    }
+    .mode-button.active {
+      border-color: var(--pink);
+      background: #40223a;
+    }
+    .status {
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .status strong { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="stage">
+      <div class="toolbar">
+        <div>
+          <h1>マップ小物エディタ</h1>
+          <div class="hint">ドラッグで移動、右下ハンドルでサイズ変更。矢印キーで1px、Shift+矢印で10px移動。</div>
+        </div>
+        <div class="actions">
+          <button id="fit-btn">全体表示</button>
+          <button id="zoom-out-btn">-</button>
+          <button id="zoom-in-btn">+</button>
+          <button id="toggle-ref-btn">小物レイヤー表示</button>
+          <button id="toggle-collision-btn">当たり判定表示</button>
+        </div>
+      </div>
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="map-canvas" width="1100" height="750"></canvas>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div class="side-header">
+        <h2>配置と当たり判定</h2>
+        <p>この版は安全のため直接上書きしません。調整後にJSONを書き出して、Codexに反映させる流れです。</p>
+      </div>
+      <div class="side-scroll">
+        <section class="section">
+          <h3>編集モード</h3>
+          <div class="row">
+            <button class="mode-button active" data-mode="dst">小物配置</button>
+            <button class="mode-button" data-mode="collision">当たり判定</button>
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="snap-check"> 10pxに吸着</label>
+            <label class="check"><input type="checkbox" id="show-labels-check" checked> 名前表示</label>
+          </div>
+          <div class="status" id="status-text">データ読み込み中...</div>
+        </section>
+
+        <section class="section">
+          <h3>小物一覧</h3>
+          <div class="prop-list" id="prop-list"></div>
+          <div class="row">
+            <button id="duplicate-prop-btn">選択小物を複製</button>
+            <button id="delete-prop-btn">選択小物を削除</button>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>新規小物</h3>
+          <label>新規ID<input id="new-prop-id" type="text" placeholder="例: neon_panel_extra"></label>
+          <div class="grid-2">
+            <label>source
+              <select id="new-prop-source">
+                <option value="desk">desk</option>
+                <option value="komono">komono</option>
+                <option value="komono2">komono2</option>
+              </select>
+            </label>
+            <label>配置サイズ倍率<input id="new-prop-scale" type="number" min="0.05" step="0.05" value="0.35"></label>
+          </div>
+          <h3>切り抜き src_rect</h3>
+          <div class="grid-4">
+            <label>X<input id="new-src-x" type="number" value="0"></label>
+            <label>Y<input id="new-src-y" type="number" value="0"></label>
+            <label>W<input id="new-src-w" type="number" value="120"></label>
+            <label>H<input id="new-src-h" type="number" value="120"></label>
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="new-no-collision-check"> 判定なし</label>
+            <label class="check"><input type="checkbox" id="new-decorative-check"> decorative</label>
+          </div>
+          <button id="add-prop-btn">画面中央に追加</button>
+        </section>
+
+        <section class="section">
+          <h3>選択中</h3>
+          <label>ID<input id="prop-id" type="text" readonly></label>
+          <div class="grid-2">
+            <label>source<input id="prop-source" type="text" readonly></label>
+            <label>状態<input id="prop-state" type="text" readonly></label>
+          </div>
+          <h3>配置 dst_rect</h3>
+          <div class="grid-4">
+            <label>X<input id="dst-x" type="number"></label>
+            <label>Y<input id="dst-y" type="number"></label>
+            <label>W<input id="dst-w" type="number"></label>
+            <label>H<input id="dst-h" type="number"></label>
+          </div>
+          <h3>当たり判定 collision_rect</h3>
+          <div class="grid-4">
+            <label>X<input id="col-x" type="number"></label>
+            <label>Y<input id="col-y" type="number"></label>
+            <label>W<input id="col-w" type="number"></label>
+            <label>H<input id="col-h" type="number"></label>
+          </div>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="decorative-check"> decorative</label>
+            <label class="check"><input type="checkbox" id="no-collision-check"> no_collision</label>
+          </div>
+          <div class="row">
+            <button id="apply-form-btn">数値を反映</button>
+            <button id="zero-collision-btn">当たり判定なし</button>
+          </div>
+        </section>
+
+        <section class="section">
+          <h3>書き出し</h3>
+          <div class="row">
+            <button id="refresh-export-btn">JSON更新</button>
+            <button id="copy-json-btn">コピー</button>
+            <button id="download-json-btn">ダウンロード</button>
+          </div>
+          <textarea id="export-json" spellcheck="false"></textarea>
+        </section>
+      </div>
+    </aside>
+  </main>
+
+  <script>
+    const DATA_URL = "map_prop_editor_data.json";
+    const canvas = document.getElementById("map-canvas");
+    const wrap = document.getElementById("canvas-wrap");
+    const ctx = canvas.getContext("2d");
+
+    let data = null;
+    let floorImage = new Image();
+    let propsImage = new Image();
+    let selectedIndex = 0;
+    let editMode = "dst";
+    let showPropsRef = true;
+    let showCollision = true;
+    let view = { scale: 1, offsetX: 0, offsetY: 0 };
+    let dragging = null;
+
+    const els = {
+      status: document.getElementById("status-text"),
+      propList: document.getElementById("prop-list"),
+      propId: document.getElementById("prop-id"),
+      propSource: document.getElementById("prop-source"),
+      propState: document.getElementById("prop-state"),
+      dstX: document.getElementById("dst-x"),
+      dstY: document.getElementById("dst-y"),
+      dstW: document.getElementById("dst-w"),
+      dstH: document.getElementById("dst-h"),
+      colX: document.getElementById("col-x"),
+      colY: document.getElementById("col-y"),
+      colW: document.getElementById("col-w"),
+      colH: document.getElementById("col-h"),
+      decorative: document.getElementById("decorative-check"),
+      noCollision: document.getElementById("no-collision-check"),
+      exportJson: document.getElementById("export-json"),
+      snap: document.getElementById("snap-check"),
+      showLabels: document.getElementById("show-labels-check"),
+      newPropId: document.getElementById("new-prop-id"),
+      newPropSource: document.getElementById("new-prop-source"),
+      newPropScale: document.getElementById("new-prop-scale"),
+      newSrcX: document.getElementById("new-src-x"),
+      newSrcY: document.getElementById("new-src-y"),
+      newSrcW: document.getElementById("new-src-w"),
+      newSrcH: document.getElementById("new-src-h"),
+      newNoCollision: document.getElementById("new-no-collision-check"),
+      newDecorative: document.getElementById("new-decorative-check"),
+    };
+
+    function setStatus(text) {
+      els.status.innerHTML = text;
+    }
+
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(src));
+        img.src = src;
+      });
+    }
+
+    async function loadData() {
+      const res = await fetch(DATA_URL, { cache: "no-store" });
+      if (!res.ok) throw new Error("map_prop_editor_data.json を読み込めません");
+      data = await res.json();
+      const [floor, props] = await Promise.all([
+        loadImage(data.floorPath),
+        loadImage(data.propsLayerPath),
+      ]);
+      floorImage = floor;
+      propsImage = props;
+      selectedIndex = 0;
+      resizeCanvas();
+      renderPropList();
+      syncFormFromSelection();
+      updateExport();
+      setStatus(`<strong>${data.props.length}</strong>個の小物を読み込みました`);
+      draw();
+    }
+
+    function resizeCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+      const rect = wrap.getBoundingClientRect();
+      canvas.width = Math.max(320, Math.floor(rect.width * ratio));
+      canvas.height = Math.max(240, Math.floor(rect.height * ratio));
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      fitView(false);
+      draw();
+    }
+
+    function fitView(redraw = true) {
+      if (!data) return;
+      const rect = wrap.getBoundingClientRect();
+      const scaleX = rect.width / data.canvasSize[0];
+      const scaleY = rect.height / data.canvasSize[1];
+      view.scale = Math.min(scaleX, scaleY) * 0.98;
+      view.offsetX = (rect.width - data.canvasSize[0] * view.scale) / 2;
+      view.offsetY = (rect.height - data.canvasSize[1] * view.scale) / 2;
+      if (redraw) draw();
+    }
+
+    function zoomAt(factor) {
+      const rect = wrap.getBoundingClientRect();
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const before = screenToMap(cx, cy);
+      view.scale = Math.max(0.15, Math.min(2.5, view.scale * factor));
+      view.offsetX = cx - before.x * view.scale;
+      view.offsetY = cy - before.y * view.scale;
+      draw();
+    }
+
+    function mapToScreen(x, y) {
+      return { x: x * view.scale + view.offsetX, y: y * view.scale + view.offsetY };
+    }
+
+    function screenToMap(x, y) {
+      return { x: (x - view.offsetX) / view.scale, y: (y - view.offsetY) / view.scale };
+    }
+
+    function activeProp() {
+      return data.props[selectedIndex];
+    }
+
+    function rectFor(prop, mode = editMode) {
+      return mode === "collision" ? prop.collision_rect : prop.dst_rect;
+    }
+
+    function normalizeRect(rect) {
+      rect[0] = Math.round(Number(rect[0]) || 0);
+      rect[1] = Math.round(Number(rect[1]) || 0);
+      rect[2] = Math.max(0, Math.round(Number(rect[2]) || 0));
+      rect[3] = Math.max(0, Math.round(Number(rect[3]) || 0));
+    }
+
+    function uniquePropId(baseId) {
+      const taken = new Set(data.props.map((prop) => prop.id));
+      const cleanBase = String(baseId || "new_prop").trim().replace(/[^a-zA-Z0-9_]/g, "_") || "new_prop";
+      if (!taken.has(cleanBase)) return cleanBase;
+      let index = 2;
+      while (taken.has(`${cleanBase}_${index}`)) index += 1;
+      return `${cleanBase}_${index}`;
+    }
+
+    function viewportCenterMapPoint() {
+      const rect = wrap.getBoundingClientRect();
+      return screenToMap(rect.width / 2, rect.height / 2);
+    }
+
+    function applySnap(value) {
+      return els.snap.checked ? Math.round(value / 10) * 10 : Math.round(value);
+    }
+
+    function drawRect(rect, color, fill, lineWidth = 2) {
+      if (rect[2] <= 0 || rect[3] <= 0) return;
+      const p = mapToScreen(rect[0], rect[1]);
+      const w = rect[2] * view.scale;
+      const h = rect[3] * view.scale;
+      ctx.save();
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = color;
+      if (fill) {
+        ctx.fillStyle = fill;
+        ctx.fillRect(p.x, p.y, w, h);
+      }
+      ctx.strokeRect(p.x, p.y, w, h);
+      ctx.restore();
+    }
+
+    function draw() {
+      if (!data) return;
+      const rect = wrap.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      ctx.save();
+      ctx.imageSmoothingEnabled = true;
+      const origin = mapToScreen(0, 0);
+      const w = data.canvasSize[0] * view.scale;
+      const h = data.canvasSize[1] * view.scale;
+      ctx.drawImage(floorImage, origin.x, origin.y, w, h);
+      if (showPropsRef) {
+        ctx.globalAlpha = 0.82;
+        ctx.drawImage(propsImage, origin.x, origin.y, w, h);
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+
+      data.props.forEach((prop, index) => {
+        const isSelected = index === selectedIndex;
+        const dstColor = isSelected && editMode === "dst" ? "#58e7ff" : "rgba(88,231,255,0.55)";
+        drawRect(prop.dst_rect, dstColor, isSelected && editMode === "dst" ? "rgba(88,231,255,0.08)" : null, isSelected ? 3 : 1);
+        if (showCollision && !prop.no_collision) {
+          const colColor = isSelected && editMode === "collision" ? "#ff536d" : "rgba(255,83,109,0.72)";
+          const fill = prop.decorative ? "rgba(255,190,90,0.16)" : "rgba(255,83,109,0.18)";
+          drawRect(prop.collision_rect, colColor, fill, isSelected && editMode === "collision" ? 3 : 1);
+        }
+        if (els.showLabels.checked) {
+          const label = mapToScreen(prop.dst_rect[0], prop.dst_rect[1] - 6);
+          ctx.save();
+          ctx.font = "12px Meiryo, sans-serif";
+          ctx.fillStyle = isSelected ? "#ffffff" : "rgba(246,247,255,0.72)";
+          ctx.fillText(prop.id, label.x, label.y);
+          ctx.restore();
+        }
+      });
+
+      const prop = activeProp();
+      const selectedRect = rectFor(prop);
+      if (selectedRect[2] > 0 && selectedRect[3] > 0) {
+        const p = mapToScreen(selectedRect[0] + selectedRect[2], selectedRect[1] + selectedRect[3]);
+        ctx.save();
+        ctx.fillStyle = editMode === "collision" ? "#ff536d" : "#58e7ff";
+        ctx.fillRect(p.x - 6, p.y - 6, 12, 12);
+        ctx.restore();
+      }
+    }
+
+    function renderPropList() {
+      els.propList.innerHTML = "";
+      data.props.forEach((prop, index) => {
+        const row = document.createElement("div");
+        row.className = "prop-row" + (index === selectedIndex ? " selected" : "");
+        row.innerHTML = `
+          <span>${prop.id}<br><small>${prop.source}</small></span>
+          <span class="badge ${prop.no_collision ? "off" : ""}">${prop.no_collision ? "判定なし" : "判定あり"}</span>
+        `;
+        row.addEventListener("click", () => {
+          selectedIndex = index;
+          renderPropList();
+          syncFormFromSelection();
+          draw();
+        });
+        els.propList.appendChild(row);
+      });
+    }
+
+    function syncFormFromSelection() {
+      const prop = activeProp();
+      if (!prop) {
+        els.propId.value = "";
+        els.propSource.value = "";
+        els.propState.value = "";
+        [els.dstX.value, els.dstY.value, els.dstW.value, els.dstH.value] = [0, 0, 0, 0];
+        [els.colX.value, els.colY.value, els.colW.value, els.colH.value] = [0, 0, 0, 0];
+        els.decorative.checked = false;
+        els.noCollision.checked = false;
+        return;
+      }
+      els.propId.value = prop.id;
+      els.propSource.value = prop.source;
+      els.propState.value = prop.no_collision ? "判定なし" : (prop.decorative ? "装飾判定" : "通常判定");
+      [els.dstX.value, els.dstY.value, els.dstW.value, els.dstH.value] = prop.dst_rect;
+      [els.colX.value, els.colY.value, els.colW.value, els.colH.value] = prop.collision_rect;
+      els.decorative.checked = !!prop.decorative;
+      els.noCollision.checked = !!prop.no_collision;
+    }
+
+    function syncSelectionFromForm() {
+      const prop = activeProp();
+      if (!prop) return;
+      prop.dst_rect = [els.dstX.value, els.dstY.value, els.dstW.value, els.dstH.value].map(Number);
+      prop.collision_rect = [els.colX.value, els.colY.value, els.colW.value, els.colH.value].map(Number);
+      normalizeRect(prop.dst_rect);
+      normalizeRect(prop.collision_rect);
+      prop.decorative = !!els.decorative.checked;
+      prop.no_collision = !!els.noCollision.checked;
+      renderPropList();
+      syncFormFromSelection();
+      updateExport();
+      draw();
+    }
+
+    function exportPropsObject() {
+      return data.props.map((prop) => {
+        const out = {
+          id: prop.id,
+          source: prop.source,
+          src_rect: prop.src_rect,
+          dst_rect: prop.dst_rect,
+          collision_rect: prop.collision_rect,
+        };
+        if (prop.decorative) out.decorative = true;
+        if (prop.no_collision) out.no_collision = true;
+        return out;
+      });
+    }
+
+    function selectLastProp() {
+      selectedIndex = Math.max(0, data.props.length - 1);
+      renderPropList();
+      syncFormFromSelection();
+      updateExport();
+      draw();
+    }
+
+    function addPropFromForm() {
+      const srcRect = [
+        Number(els.newSrcX.value),
+        Number(els.newSrcY.value),
+        Number(els.newSrcW.value),
+        Number(els.newSrcH.value),
+      ];
+      normalizeRect(srcRect);
+      if (srcRect[2] <= 0 || srcRect[3] <= 0) {
+        setStatus("src_rect のW/Hは1以上にしてください");
+        return;
+      }
+
+      const scale = Math.max(0.05, Number(els.newPropScale.value) || 0.35);
+      const dstW = Math.max(8, Math.round(srcRect[2] * scale));
+      const dstH = Math.max(8, Math.round(srcRect[3] * scale));
+      const center = viewportCenterMapPoint();
+      const dstRect = [
+        applySnap(center.x - dstW / 2),
+        applySnap(center.y - dstH / 2),
+        dstW,
+        dstH,
+      ];
+      const noCollision = !!els.newNoCollision.checked;
+      const collisionRect = noCollision
+        ? [0, 0, 0, 0]
+        : [
+            Math.round(dstRect[0] + dstRect[2] * 0.16),
+            Math.round(dstRect[1] + dstRect[3] * 0.62),
+            Math.round(dstRect[2] * 0.68),
+            Math.round(dstRect[3] * 0.28),
+          ];
+
+      const prop = {
+        id: uniquePropId(els.newPropId.value),
+        source: els.newPropSource.value,
+        src_rect: srcRect,
+        dst_rect: dstRect,
+        collision_rect: collisionRect,
+        decorative: !!els.newDecorative.checked,
+        no_collision: noCollision,
+      };
+      data.props.push(prop);
+      els.newPropId.value = "";
+      selectLastProp();
+      setStatus(`<strong>${prop.id}</strong> を追加しました`);
+    }
+
+    function duplicateSelectedProp() {
+      const source = activeProp();
+      if (!source) return;
+      const prop = JSON.parse(JSON.stringify(source));
+      prop.id = uniquePropId(`${source.id}_copy`);
+      prop.dst_rect[0] += 30;
+      prop.dst_rect[1] += 30;
+      if (!prop.no_collision) {
+        prop.collision_rect[0] += 30;
+        prop.collision_rect[1] += 30;
+      }
+      data.props.push(prop);
+      selectLastProp();
+      setStatus(`<strong>${source.id}</strong> を複製しました`);
+    }
+
+    function deleteSelectedProp() {
+      if (!data.props.length) return;
+      const removed = data.props.splice(selectedIndex, 1)[0];
+      selectedIndex = Math.min(selectedIndex, data.props.length - 1);
+      if (selectedIndex < 0) selectedIndex = 0;
+      renderPropList();
+      syncFormFromSelection();
+      updateExport();
+      draw();
+      setStatus(`<strong>${removed.id}</strong> をエディタ上から削除しました`);
+    }
+
+    function updateExport() {
+      if (!data) return;
+      const payload = {
+        canvasSize: data.canvasSize,
+        props: exportPropsObject(),
+      };
+      els.exportJson.value = JSON.stringify(payload, null, 2);
+    }
+
+    function downloadJson() {
+      updateExport();
+      const blob = new Blob([els.exportJson.value], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "map_prop_editor_export.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function copyJson() {
+      updateExport();
+      navigator.clipboard?.writeText(els.exportJson.value);
+      setStatus("JSONをクリップボードへコピーしました");
+    }
+
+    function hitTestProp(mapPoint) {
+      for (let i = data.props.length - 1; i >= 0; i--) {
+        const r = rectFor(data.props[i]);
+        if (r[2] <= 0 || r[3] <= 0) continue;
+        if (mapPoint.x >= r[0] && mapPoint.y >= r[1] && mapPoint.x <= r[0] + r[2] && mapPoint.y <= r[1] + r[3]) {
+          return i;
+        }
+      }
+      return -1;
+    }
+
+    function pointerMapPoint(ev) {
+      const rect = canvas.getBoundingClientRect();
+      return screenToMap(ev.clientX - rect.left, ev.clientY - rect.top);
+    }
+
+    canvas.addEventListener("pointerdown", (ev) => {
+      if (!data) return;
+      const p = pointerMapPoint(ev);
+      const hit = hitTestProp(p);
+      if (hit >= 0) {
+        selectedIndex = hit;
+        renderPropList();
+        syncFormFromSelection();
+      }
+      const prop = activeProp();
+      const r = rectFor(prop);
+      const nearCorner = Math.abs(p.x - (r[0] + r[2])) < 22 && Math.abs(p.y - (r[1] + r[3])) < 22;
+      dragging = {
+        type: nearCorner ? "resize" : "move",
+        start: p,
+        rectStart: [...r],
+      };
+      canvas.setPointerCapture(ev.pointerId);
+      canvas.classList.add("dragging");
+    });
+
+    canvas.addEventListener("pointermove", (ev) => {
+      if (!dragging || !data) return;
+      const p = pointerMapPoint(ev);
+      const prop = activeProp();
+      const r = rectFor(prop);
+      const dx = p.x - dragging.start.x;
+      const dy = p.y - dragging.start.y;
+      if (dragging.type === "resize") {
+        r[2] = applySnap(dragging.rectStart[2] + dx);
+        r[3] = applySnap(dragging.rectStart[3] + dy);
+      } else {
+        r[0] = applySnap(dragging.rectStart[0] + dx);
+        r[1] = applySnap(dragging.rectStart[1] + dy);
+      }
+      normalizeRect(r);
+      syncFormFromSelection();
+      updateExport();
+      draw();
+    });
+
+    canvas.addEventListener("pointerup", (ev) => {
+      dragging = null;
+      canvas.releasePointerCapture(ev.pointerId);
+      canvas.classList.remove("dragging");
+    });
+
+    window.addEventListener("keydown", (ev) => {
+      if (!data || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(ev.key)) return;
+      ev.preventDefault();
+      const r = rectFor(activeProp());
+      const nudge = ev.shiftKey ? 10 : 1;
+      if (ev.key === "ArrowLeft") r[0] -= nudge;
+      if (ev.key === "ArrowRight") r[0] += nudge;
+      if (ev.key === "ArrowUp") r[1] -= nudge;
+      if (ev.key === "ArrowDown") r[1] += nudge;
+      normalizeRect(r);
+      syncFormFromSelection();
+      updateExport();
+      draw();
+    });
+
+    document.querySelectorAll(".mode-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        editMode = button.dataset.mode;
+        document.querySelectorAll(".mode-button").forEach((b) => b.classList.toggle("active", b === button));
+        draw();
+      });
+    });
+    document.getElementById("fit-btn").addEventListener("click", () => fitView());
+    document.getElementById("zoom-in-btn").addEventListener("click", () => zoomAt(1.18));
+    document.getElementById("zoom-out-btn").addEventListener("click", () => zoomAt(1 / 1.18));
+    document.getElementById("toggle-ref-btn").addEventListener("click", () => {
+      showPropsRef = !showPropsRef;
+      draw();
+    });
+    document.getElementById("toggle-collision-btn").addEventListener("click", () => {
+      showCollision = !showCollision;
+      draw();
+    });
+    document.getElementById("apply-form-btn").addEventListener("click", syncSelectionFromForm);
+    document.getElementById("zero-collision-btn").addEventListener("click", () => {
+      const prop = activeProp();
+      prop.collision_rect = [0, 0, 0, 0];
+      prop.no_collision = true;
+      syncFormFromSelection();
+      renderPropList();
+      updateExport();
+      draw();
+    });
+    document.getElementById("add-prop-btn").addEventListener("click", addPropFromForm);
+    document.getElementById("duplicate-prop-btn").addEventListener("click", duplicateSelectedProp);
+    document.getElementById("delete-prop-btn").addEventListener("click", deleteSelectedProp);
+    document.getElementById("refresh-export-btn").addEventListener("click", updateExport);
+    document.getElementById("copy-json-btn").addEventListener("click", copyJson);
+    document.getElementById("download-json-btn").addEventListener("click", downloadJson);
+    els.showLabels.addEventListener("change", draw);
+    window.addEventListener("resize", resizeCanvas);
+
+    loadData().catch((error) => {
+      console.error(error);
+      setStatus("読み込み失敗: ローカルサーバー経由で開いてください");
+    });
+  </script>
+</body>
+</html>

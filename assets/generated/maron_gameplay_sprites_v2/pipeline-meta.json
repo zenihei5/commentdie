@@ -1,0 +1,317 @@
+{
+  "character": "maro_chan",
+  "version": "maron_gameplay_sprites_v2",
+  "cellSize": 128,
+  "idle": {
+    "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\maron3_idle_source_tmp.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceBBox": [
+      318,
+      237,
+      918,
+      1037
+    ],
+    "chromaKey": {
+      "removed": 1264037,
+      "softened": 1,
+      "despill": 1484
+    },
+    "sheet": "assets\\generated\\maron_gameplay_sprites_v2\\idle-sheet-transparent.png",
+    "cols": 2,
+    "rows": 2,
+    "fps": 4,
+    "frames": [
+      {
+        "sourceSize": [
+          600,
+          800
+        ],
+        "sourceBBox": [
+          318,
+          237,
+          918,
+          1037
+        ],
+        "outputSize": [
+          87,
+          116
+        ],
+        "pastePosition": [
+          20,
+          5
+        ],
+        "scale": 0.145,
+        "yOffset": 0,
+        "frame": 1,
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_idle-1.png"
+      },
+      {
+        "sourceSize": [
+          600,
+          800
+        ],
+        "sourceBBox": [
+          318,
+          237,
+          918,
+          1037
+        ],
+        "outputSize": [
+          87,
+          116
+        ],
+        "pastePosition": [
+          20,
+          4
+        ],
+        "scale": 0.145,
+        "yOffset": -1,
+        "frame": 2,
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_idle-2.png"
+      },
+      {
+        "sourceSize": [
+          600,
+          800
+        ],
+        "sourceBBox": [
+          318,
+          237,
+          918,
+          1037
+        ],
+        "outputSize": [
+          87,
+          116
+        ],
+        "pastePosition": [
+          20,
+          5
+        ],
+        "scale": 0.145,
+        "yOffset": 0,
+        "frame": 3,
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_idle-3.png"
+      },
+      {
+        "sourceSize": [
+          600,
+          800
+        ],
+        "sourceBBox": [
+          318,
+          237,
+          918,
+          1037
+        ],
+        "outputSize": [
+          87,
+          116
+        ],
+        "pastePosition": [
+          20,
+          6
+        ],
+        "scale": 0.145,
+        "yOffset": 1,
+        "frame": 4,
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_idle-4.png"
+      }
+    ]
+  },
+  "run": {
+    "source": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\maron3_run_source_tmp.png",
+    "sourceSize": [
+      6400,
+      640
+    ],
+    "sourceFrameCount": 10,
+    "selectedSourceFrames": [
+      1,
+      3,
+      5,
+      7,
+      9
+    ],
+    "sheet": "assets\\generated\\maron_gameplay_sprites_v2\\run-sheet-transparent.png",
+    "cols": 5,
+    "rows": 1,
+    "fps": 9,
+    "frames": [
+      {
+        "sourceSize": [
+          470,
+          589
+        ],
+        "sourceBBox": [
+          84,
+          32,
+          554,
+          621
+        ],
+        "outputSize": [
+          83,
+          104
+        ],
+        "pastePosition": [
+          22,
+          17
+        ],
+        "scale": 0.1765704584040747,
+        "yOffset": 0,
+        "frame": 1,
+        "sourceFrame": 1,
+        "sourceBox": [
+          0,
+          0,
+          640,
+          640
+        ],
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_run-1.png"
+      },
+      {
+        "sourceSize": [
+          444,
+          604
+        ],
+        "sourceBBox": [
+          110,
+          18,
+          554,
+          622
+        ],
+        "outputSize": [
+          76,
+          104
+        ],
+        "pastePosition": [
+          26,
+          17
+        ],
+        "scale": 0.17218543046357615,
+        "yOffset": 0,
+        "frame": 2,
+        "sourceFrame": 3,
+        "sourceBox": [
+          1280,
+          0,
+          1920,
+          640
+        ],
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_run-2.png"
+      },
+      {
+        "sourceSize": [
+          409,
+          582
+        ],
+        "sourceBBox": [
+          145,
+          41,
+          554,
+          623
+        ],
+        "outputSize": [
+          73,
+          104
+        ],
+        "pastePosition": [
+          28,
+          17
+        ],
+        "scale": 0.17869415807560138,
+        "yOffset": 0,
+        "frame": 3,
+        "sourceFrame": 5,
+        "sourceBox": [
+          2560,
+          0,
+          3200,
+          640
+        ],
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_run-3.png"
+      },
+      {
+        "sourceSize": [
+          469,
+          578
+        ],
+        "sourceBBox": [
+          85,
+          18,
+          554,
+          596
+        ],
+        "outputSize": [
+          84,
+          104
+        ],
+        "pastePosition": [
+          22,
+          17
+        ],
+        "scale": 0.17993079584775087,
+        "yOffset": 0,
+        "frame": 4,
+        "sourceFrame": 7,
+        "sourceBox": [
+          3840,
+          0,
+          4480,
+          640
+        ],
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_run-4.png"
+      },
+      {
+        "sourceSize": [
+          447,
+          589
+        ],
+        "sourceBBox": [
+          107,
+          33,
+          554,
+          622
+        ],
+        "outputSize": [
+          79,
+          104
+        ],
+        "pastePosition": [
+          24,
+          17
+        ],
+        "scale": 0.1765704584040747,
+        "yOffset": 0,
+        "frame": 5,
+        "sourceFrame": 9,
+        "sourceBox": [
+          5120,
+          0,
+          5760,
+          640
+        ],
+        "path": "assets\\generated\\maron_gameplay_sprites_v2\\maron_run-5.png"
+      }
+    ]
+  },
+  "qc": {
+    "idleStrongGreenPixels": 52,
+    "runStrongGreenPixels": 21,
+    "idleSheetBBox": [
+      20,
+      4,
+      235,
+      250
+    ],
+    "runSheetBBox": [
+      22,
+      17,
+      615,
+      121
+    ]
+  }
+}

@@ -1,6 +1,8 @@
 class_name ModifierSystem
 extends RefCounted
 
+const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
+
 static func aliases() -> Dictionary:
 	return {
 		"no_stop": "keep_moving",
@@ -139,7 +141,10 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 	if int(target.get("reentry_barrier_level")) > 0:
 		var barrier_time: float = 0.8 + 0.3 * float(target.get("reentry_barrier_level"))
 		target.set("invincible", maxf(float(target.get("invincible")), barrier_time))
-	return {"commentId": String(comment["id"])}
+	var feedback: Dictionary = {"chats": [], "toasts": []}
+	if String(comment.get("effectType", "")) == "summon_boss" or String(comment.get("id", "")) == "summon_boss":
+		feedback = BossSystemScript.request_summon_for_target(target, view, has_heart)
+	return {"commentId": String(comment["id"]), "feedback": feedback}
 
 static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var walls: Array = target.get("effect_walls") as Array
@@ -148,9 +153,24 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 	walls.clear()
 	pits.clear()
 	if has_effect(active, "random_walls"):
-		for i in range(4):
-			var p := Vector2(rng.randf_range(arena.position.x + 120, arena.end.x - 180), rng.randf_range(arena.position.y + 110, arena.end.y - 120))
-			walls.append(Rect2(p, Vector2(rng.randf_range(70, 140), 28)))
+		var player_pos: Vector2 = Vector2(target.get("player_pos"))
+		var wall_count: int = rng.randi_range(7, 9)
+		var min_player_distance: float = 150.0
+		for i in range(wall_count):
+			var wall_size: Vector2 = Vector2.ZERO
+			if rng.randf() < 0.72:
+				wall_size = Vector2(rng.randf_range(190.0, 420.0), rng.randf_range(34.0, 46.0))
+			else:
+				wall_size = Vector2(rng.randf_range(38.0, 52.0), rng.randf_range(150.0, 300.0))
+			var wall_pos: Vector2 = Vector2.ZERO
+			for attempt in range(18):
+				wall_pos = Vector2(
+					rng.randf_range(arena.position.x + 90.0, arena.end.x - wall_size.x - 90.0),
+					rng.randf_range(arena.position.y + 90.0, arena.end.y - wall_size.y - 90.0)
+				)
+				if Rect2(wall_pos, wall_size).get_center().distance_to(player_pos) >= min_player_distance:
+					break
+			walls.append(Rect2(wall_pos, wall_size))
 	if has_effect(active, "damage_pits"):
 		for i in range(7):
 			var p := Vector2(rng.randf_range(arena.position.x + 80, arena.end.x - 80), rng.randf_range(arena.position.y + 80, arena.end.y - 80))

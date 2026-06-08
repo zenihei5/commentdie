@@ -42,28 +42,56 @@ static func comment_countdown_warning() -> String:
 	return "WARNING"
 
 static func title_tagline() -> String:
-	return "15秒ごとに指示コメが世界を壊す。"
+	return "指示コメが配信を壊しにくる"
 
-static func title_start_text() -> String:
-	return "Enter / Space：配信者を選択"
+static func title_menu_items() -> Array[String]:
+	return ["ニューゲーム", "ランキング", "オプション"]
 
 static func title_controls_text() -> String:
-	return "WASD移動 / Spaceダッシュ / 1-3選択 / 指示コメは10秒以内"
+	return "↑↓ / W/S：選択    Enter / Space：決定    1/2/3：直接選択"
 
 static func title_settings_text(comment_barrage: String, screen_shake_enabled: bool) -> String:
 	return "B: 弾幕量 %s    N: 画面揺れ %s" % [comment_barrage, "ON" if screen_shake_enabled else "OFF"]
 
 static func title_tutorial_text() -> String:
-	return "U: チュートリアル再表示"
+	return "U: 全配信枠解放"
 
-static func title_lines(comment_barrage: String, screen_shake_enabled: bool) -> Array[Dictionary]:
-	return [
-		{"offset": Vector2(-255, -72), "text": title_tagline(), "size": 32, "color": Color.WHITE},
-		{"offset": Vector2(-230, 0), "text": title_start_text(), "size": 30, "color": Color("#fff45c")},
-		{"offset": Vector2(-245, 58), "text": title_controls_text(), "size": 22, "color": Color("#cfc7ff")},
-		{"offset": Vector2(-245, 104), "text": title_settings_text(comment_barrage, screen_shake_enabled), "size": 20, "color": Color("#8df7ff")},
-		{"offset": Vector2(-245, 140), "text": title_tutorial_text(), "size": 18, "color": Color("#cfc7ff")}
+static func title_lines(comment_barrage: String, screen_shake_enabled: bool, selected_index: int) -> Array[Dictionary]:
+	var result: Array[Dictionary] = [
+		{"offset": Vector2(-255, -118), "text": title_tagline(), "size": 32, "color": Color("#101420")},
 	]
+	var items: Array[String] = title_menu_items()
+	for i in range(items.size()):
+		var selected: bool = i == selected_index
+		result.append({
+			"offset": Vector2(-160, -16 + i * 54),
+			"text": ("▶ " if selected else "   ") + items[i],
+			"size": 34,
+			"color": Color("#e73763") if selected else Color("#101420")
+		})
+	result.append({"offset": Vector2(-255, 180), "text": title_controls_text(), "size": 20, "color": Color("#36445c")})
+	result.append({"offset": Vector2(-255, 222), "text": title_settings_text(comment_barrage, screen_shake_enabled), "size": 18, "color": Color("#1576bc")})
+	result.append({"offset": Vector2(-255, 254), "text": title_tutorial_text(), "size": 17, "color": Color("#36445c")})
+	result.append({"offset": Vector2(250, 254), "text": "v0.2", "size": 17, "color": Color("#6b7280")})
+	return result
+
+static func options_screen_text(selected_index: int, window_size: String, comment_barrage: String, screen_shake_enabled: bool, tutorial_seen: bool, window_size_status: String = "") -> String:
+	var labels: Array[String] = [
+		"画面サイズ　%s" % window_size,
+		"コメント弾幕量　%s" % comment_barrage,
+		"画面揺れ　　　%s" % ("ON" if screen_shake_enabled else "OFF"),
+		"チュートリアル再表示",
+		"戻る"
+	]
+	var lines: Array[String] = ["オプション", ""]
+	for i in range(labels.size()):
+		lines.append(("%s [%d] %s" % ["▶" if i == selected_index else " ", i + 1, labels[i]]))
+	lines.append("")
+	if window_size_status != "":
+		lines.append(window_size_status)
+	lines.append("Esc / Backspace：タイトルへ戻る")
+	lines.append("チュートリアル：%s" % ("表示済み" if tutorial_seen else "次回表示"))
+	return "\n".join(lines)
 
 static func character_select_title() -> String:
 	return "配信者を選択"
@@ -105,11 +133,15 @@ static func enemy_display_name(kind: String) -> String:
 	if kind == "long_comment_guy":
 		return "長文ニキ"
 	if kind == "clipper":
-		return "切り抜き師"
+		return "悪質切り抜き師"
 	if kind == "unread_maro":
 		return "未読マロ"
 	if kind == "ghost_comment":
 		return "幽霊コメント"
+	if kind == "boss_super_long_comment":
+		return "超長文ニキ"
+	if kind == "boss_kuso_maro_king":
+		return "クソマロキング"
 	if kind == "troll":
 		return "荒らし"
 	return kind
@@ -117,6 +149,8 @@ static func enemy_display_name(kind: String) -> String:
 static func damage_source_display(source: String) -> String:
 	if source.ends_with(" contact"):
 		return enemy_display_name(source.replace(" contact", "")) + "に接触"
+	if source == "clipper charge":
+		return "悪質切り抜き師の突進"
 	if source == "enemy":
 		return "敵"
 	if source == "enemy bullet":

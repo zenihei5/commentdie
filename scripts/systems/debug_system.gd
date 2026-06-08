@@ -1,6 +1,8 @@
 class_name DebugSystem
 extends RefCounted
 
+const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
+
 static func pressed_actions(latch: Dictionary) -> Array[String]:
 	var actions: Array[String] = []
 	_add_if_pressed(actions, latch, KEY_C, "comment_now")
@@ -16,6 +18,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_O, "hype_90")
 	_add_if_pressed(actions, latch, KEY_P, "hype_100")
 	_add_if_pressed(actions, latch, KEY_F6, "heart_pending_on")
+	_add_if_pressed(actions, latch, KEY_U, "unlock_stream_frames")
 	_add_if_pressed(actions, latch, KEY_K, "clear_enemies")
 	_add_if_pressed(actions, latch, KEY_I, "toggle_invincible")
 	_add_if_pressed(actions, latch, KEY_1, "comment_no_stop")
@@ -24,6 +27,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_4, "jump_30")
 	_add_if_pressed(actions, latch, KEY_5, "jump_60")
 	_add_if_pressed(actions, latch, KEY_6, "comment_do_everything")
+	_add_if_pressed(actions, latch, KEY_Q, "comment_boss")
 	_add_if_pressed(actions, latch, KEY_0, "heart_comment_giant")
 	_add_if_pressed(actions, latch, KEY_7, "jump_90")
 	_add_if_pressed(actions, latch, KEY_8, "jump_120")
@@ -32,6 +36,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_X, "maro_bad")
 	_add_if_pressed(actions, latch, KEY_Z, "maro_god")
 	_add_if_pressed(actions, latch, KEY_V, "maro_expire")
+	_add_if_pressed(actions, latch, KEY_B, "spawn_care_package")
 	_add_if_pressed(actions, latch, KEY_L, "spawn_long")
 	_add_if_pressed(actions, latch, KEY_J, "spawn_clipper")
 	_add_if_pressed(actions, latch, KEY_E, "clear_effects")
@@ -39,6 +44,18 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	return actions
 
 static func title_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
+		return "title_up"
+	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
+		return "title_down"
+	if _pressed(latch, KEY_1):
+		return "title_new_game"
+	if _pressed(latch, KEY_2):
+		return "title_ranking"
+	if _pressed(latch, KEY_3):
+		return "title_options"
+	if _pressed(latch, KEY_R):
+		return "toggle_relay"
 	if _pressed(latch, KEY_T):
 		return "toggle_mode"
 	if _pressed(latch, KEY_B):
@@ -46,18 +63,91 @@ static func title_action(latch: Dictionary) -> String:
 	if _pressed(latch, KEY_N):
 		return "screen_shake"
 	if _pressed(latch, KEY_U):
-		return "reset_tutorial"
+		return "unlock_stream_frames"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
-		return "start"
+		return "title_select"
+	return ""
+
+static func ranking_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_ESCAPE) or _pressed(latch, KEY_BACKSPACE):
+		return "back_to_title"
+	if _pressed(latch, KEY_R):
+		return "reset_ranking"
+	if _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_A):
+		return "ranking_tab_left"
+	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_D):
+		return "ranking_tab_right"
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
+		return "ranking_up"
+	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
+		return "ranking_down"
+	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
+		return "ranking_select"
+	return ""
+
+static func options_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_ESCAPE) or _pressed(latch, KEY_BACKSPACE):
+		return "back_to_title"
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
+		return "option_up"
+	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
+		return "option_down"
+	if _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_A):
+		return "option_left"
+	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_D):
+		return "option_right"
+	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
+		return "option_select"
+	if _pressed(latch, KEY_1):
+		return "option_bgm_volume"
+	if _pressed(latch, KEY_2):
+		return "option_se_volume"
+	if _pressed(latch, KEY_3):
+		return "option_fullscreen"
+	if _pressed(latch, KEY_4):
+		return "option_window_size"
+	if _pressed(latch, KEY_5):
+		return "option_comment_barrage"
+	if _pressed(latch, KEY_6):
+		return "option_screen_shake"
+	if _pressed(latch, KEY_7):
+		return "option_tutorial"
+	if _pressed(latch, KEY_8):
+		return "option_reset"
+	if _pressed(latch, KEY_9):
+		return "back_to_title"
 	return ""
 
 static func result_action(latch: Dictionary) -> String:
-	if _pressed(latch, KEY_C):
-		return "copy_result"
 	if _pressed(latch, KEY_R):
 		return "toggle_ranking"
+	if _pressed(latch, KEY_ESCAPE):
+		return "back_to_title"
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_W) or _pressed(latch, KEY_A):
+		return "result_prev_button"
+	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_S) or _pressed(latch, KEY_D):
+		return "result_next_button"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
-		return "restart"
+		return "result_select_button"
+	return ""
+
+static func pause_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
+		return "pause_up"
+	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
+		return "pause_down"
+	if _pressed(latch, KEY_1):
+		return "pause_continue"
+	if _pressed(latch, KEY_2):
+		return "pause_retry"
+	if _pressed(latch, KEY_3):
+		return "pause_title"
+	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
+		return "pause_select"
+	if _pressed(latch, KEY_Y):
+		return "pause_confirm"
+	if _pressed(latch, KEY_N) or _pressed(latch, KEY_BACKSPACE):
+		return "pause_cancel"
 	return ""
 
 static func jump_time(action: String, quick_test_mode: bool) -> float:
@@ -108,6 +198,8 @@ static func forced_comment_id(action: String) -> String:
 		return "comment_barrage"
 	if action == "comment_do_everything":
 		return "do_everything"
+	if action == "comment_boss":
+		return "summon_boss"
 	return ""
 
 static func forced_heart_comment_id(action: String) -> String:
@@ -172,8 +264,11 @@ static func apply_cleanup_action_for_target(target: Node, action: String) -> Dic
 		(target.get("effect_walls") as Array).clear()
 		(target.get("effect_pits") as Array).clear()
 	if should_reset_ranking(action):
-		RankingSystem.save_rankings([])
+		RankingSystem.reset_rankings()
 		chats.append("ランキングをリセットしました")
+	if action == "unlock_stream_frames":
+		StreamFrameSystem.unlock_all_for_target(target)
+		chats.append("全配信枠と配信リレーを解放しました")
 	return {"chats": chats}
 
 static func apply_general_action_for_target(target: Node, action: String, quick_test_mode: bool, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
@@ -197,6 +292,8 @@ static func apply_playing_action_for_target(target: Node, action: String, quick_
 		for item in (target.get("marshmallows") as Array):
 			var marshmallow: Dictionary = item as Dictionary
 			marshmallow["time"] = 0.0
+	if action == "spawn_care_package":
+		DestructibleSystemScript.spawn_box_for_target(target, arena, rng, target.get("effect_walls") as Array)
 	var enemy_kind: String = spawn_enemy_kind(action)
 	if enemy_kind != "":
 		EnemySystem.spawn_enemy_for_target(target, enemy_kind, arena, rng)

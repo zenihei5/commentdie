@@ -1,0 +1,385 @@
+{
+  "character": "maro_chan",
+  "cellSize": 128,
+  "idle": {
+    "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\maron.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "sourceBBox": [
+      295,
+      116,
+      927,
+      1132
+    ],
+    "sheet": "assets\\generated\\maron_gameplay_sprites_v1\\idle-sheet-transparent.png",
+    "cols": 2,
+    "rows": 2,
+    "fps": 4,
+    "frames": [
+      {
+        "sourceSize": [
+          632,
+          1016
+        ],
+        "outputSize": [
+          72,
+          116
+        ],
+        "pastePosition": [
+          28,
+          5
+        ],
+        "scale": 0.1141732283464567,
+        "frame": 1,
+        "yOffset": 0
+      },
+      {
+        "sourceSize": [
+          632,
+          1016
+        ],
+        "outputSize": [
+          72,
+          116
+        ],
+        "pastePosition": [
+          28,
+          4
+        ],
+        "scale": 0.1141732283464567,
+        "frame": 2,
+        "yOffset": -1
+      },
+      {
+        "sourceSize": [
+          632,
+          1016
+        ],
+        "outputSize": [
+          72,
+          116
+        ],
+        "pastePosition": [
+          28,
+          5
+        ],
+        "scale": 0.1141732283464567,
+        "frame": 3,
+        "yOffset": 0
+      },
+      {
+        "sourceSize": [
+          632,
+          1016
+        ],
+        "outputSize": [
+          72,
+          116
+        ],
+        "pastePosition": [
+          28,
+          6
+        ],
+        "scale": 0.1141732283464567,
+        "frame": 4,
+        "yOffset": 1
+      }
+    ]
+  },
+  "run": {
+    "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\maron_front_run_run.png",
+    "sourceSize": [
+      6400,
+      640
+    ],
+    "sourceFrameCount": 10,
+    "sheet": "assets\\generated\\maron_gameplay_sprites_v1\\run-sheet-transparent.png",
+    "cols": 5,
+    "rows": 2,
+    "fps": 12,
+    "frames": [
+      {
+        "sourceSize": [
+          265,
+          354
+        ],
+        "outputSize": [
+          78,
+          104
+        ],
+        "pastePosition": [
+          25,
+          17
+        ],
+        "scale": 0.2937853107344633,
+        "frame": 1,
+        "sourceBox": [
+          0,
+          0,
+          640,
+          640
+        ],
+        "sourceBBox": [
+          187,
+          286,
+          452,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          261,
+          339
+        ],
+        "outputSize": [
+          80,
+          104
+        ],
+        "pastePosition": [
+          24,
+          17
+        ],
+        "scale": 0.30678466076696165,
+        "frame": 2,
+        "sourceBox": [
+          640,
+          0,
+          1280,
+          640
+        ],
+        "sourceBBox": [
+          191,
+          301,
+          452,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          229,
+          352
+        ],
+        "outputSize": [
+          68,
+          104
+        ],
+        "pastePosition": [
+          30,
+          17
+        ],
+        "scale": 0.29545454545454547,
+        "frame": 3,
+        "sourceBox": [
+          1280,
+          0,
+          1920,
+          640
+        ],
+        "sourceBBox": [
+          205,
+          288,
+          434,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          237,
+          338
+        ],
+        "outputSize": [
+          73,
+          104
+        ],
+        "pastePosition": [
+          27,
+          17
+        ],
+        "scale": 0.3076923076923077,
+        "frame": 4,
+        "sourceBox": [
+          1920,
+          0,
+          2560,
+          640
+        ],
+        "sourceBBox": [
+          211,
+          279,
+          448,
+          617
+        ]
+      },
+      {
+        "sourceSize": [
+          214,
+          342
+        ],
+        "outputSize": [
+          65,
+          104
+        ],
+        "pastePosition": [
+          31,
+          17
+        ],
+        "scale": 0.30409356725146197,
+        "frame": 5,
+        "sourceBox": [
+          2560,
+          0,
+          3200,
+          640
+        ],
+        "sourceBBox": [
+          225,
+          298,
+          439,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          223,
+          355
+        ],
+        "outputSize": [
+          65,
+          104
+        ],
+        "pastePosition": [
+          31,
+          17
+        ],
+        "scale": 0.29295774647887324,
+        "frame": 6,
+        "sourceBox": [
+          3200,
+          0,
+          3840,
+          640
+        ],
+        "sourceBBox": [
+          210,
+          285,
+          433,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          248,
+          349
+        ],
+        "outputSize": [
+          74,
+          104
+        ],
+        "pastePosition": [
+          27,
+          17
+        ],
+        "scale": 0.2979942693409742,
+        "frame": 7,
+        "sourceBox": [
+          3840,
+          0,
+          4480,
+          640
+        ],
+        "sourceBBox": [
+          196,
+          278,
+          444,
+          627
+        ]
+      },
+      {
+        "sourceSize": [
+          261,
+          341
+        ],
+        "outputSize": [
+          80,
+          104
+        ],
+        "pastePosition": [
+          24,
+          17
+        ],
+        "scale": 0.30498533724340177,
+        "frame": 8,
+        "sourceBox": [
+          4480,
+          0,
+          5120,
+          640
+        ],
+        "sourceBBox": [
+          181,
+          299,
+          442,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          255,
+          342
+        ],
+        "outputSize": [
+          78,
+          104
+        ],
+        "pastePosition": [
+          25,
+          17
+        ],
+        "scale": 0.30409356725146197,
+        "frame": 9,
+        "sourceBox": [
+          5120,
+          0,
+          5760,
+          640
+        ],
+        "sourceBBox": [
+          185,
+          298,
+          440,
+          640
+        ]
+      },
+      {
+        "sourceSize": [
+          237,
+          336
+        ],
+        "outputSize": [
+          73,
+          104
+        ],
+        "pastePosition": [
+          27,
+          17
+        ],
+        "scale": 0.30952380952380953,
+        "frame": 10,
+        "sourceBox": [
+          5760,
+          0,
+          6400,
+          640
+        ],
+        "sourceBBox": [
+          202,
+          279,
+          439,
+          615
+        ]
+      }
+    ]
+  }
+}

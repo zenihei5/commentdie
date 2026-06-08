@@ -1,6 +1,11 @@
 class_name CharacterSystem
 extends RefCounted
 
+const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_system.gd")
+
+const SELECT_PAGE_SIZE := 6
+const SELECT_COLUMNS := 3
+
 static func find_character(characters: Array, id: String) -> Dictionary:
 	for item in characters:
 		var character: Dictionary = item as Dictionary
@@ -57,7 +62,7 @@ static func selected_character_state_by_index(characters: Array, index: int) -> 
 	}
 
 static func update_selection_action(latch: Dictionary, characters: Array, current_index: int) -> Dictionary:
-	var action: Dictionary = ChoiceCardSystem.menu_selection_action(latch, current_index, characters.size(), 3)
+	var action: Dictionary = ChoiceCardSystem.character_grid_selection_action(latch, current_index, characters.size(), SELECT_PAGE_SIZE, SELECT_COLUMNS, 3)
 	if ChoiceCardSystem.is_escape(action):
 		return {"kind": "escape", "index": current_index}
 	if ChoiceCardSystem.is_move(action):
@@ -66,6 +71,8 @@ static func update_selection_action(latch: Dictionary, characters: Array, curren
 		var selected: Dictionary = selected_character_state_by_index(characters, int(action["index"]))
 		if selected.is_empty():
 			return {"kind": "", "index": current_index}
+		if not is_unlocked(selected["character"] as Dictionary):
+			return {"kind": "locked", "index": int(action["index"])}
 		return {
 			"kind": "select",
 			"index": int(action["index"]),
@@ -81,6 +88,8 @@ static func update_selection_for_target(target: Node, latch: Dictionary, charact
 		return {"startStreamFrameSelect": false}
 	if kind == "move":
 		target.set("selected_character_index", int(action["index"]))
+	elif kind == "locked":
+		target.set("selected_character_index", int(action["index"]))
 	elif kind == "select":
 		target.set("current_character_id", String(action["characterId"]))
 		return {"startStreamFrameSelect": true}
@@ -95,23 +104,49 @@ static func start_selection_for_target(target: Node, choice_box: Control, result
 	target.set("selected_character_index", selected_index(characters, current_id))
 	return {"restart": false, "chat": "今日の配信者を選べ"}
 
+static func selection_page_count(character_count: int) -> int:
+	return maxi(1, int(ceil(float(maxi(1, character_count)) / float(SELECT_PAGE_SIZE))))
+
+static func selection_page_for_index(index: int, character_count: int) -> int:
+	var page_count: int = selection_page_count(character_count)
+	if character_count <= 0:
+		return 0
+	return clampi(int(clampi(index, 0, character_count - 1) / SELECT_PAGE_SIZE), 0, page_count - 1)
+
+static func selection_index_for_page(characters: Array, page: int, local_index: int = 0) -> int:
+	if characters.is_empty():
+		return 0
+	var page_count: int = selection_page_count(characters.size())
+	var clamped_page: int = clampi(page, 0, page_count - 1)
+	var start: int = clamped_page * SELECT_PAGE_SIZE
+	var end: int = mini(start + SELECT_PAGE_SIZE, characters.size())
+	return clampi(start + local_index, start, end - 1)
+
+static func is_unlocked(character: Dictionary) -> bool:
+	return bool(character.get("isUnlocked", true))
+
 static func selection_card_view(character: Dictionary, weapons: Array) -> Dictionary:
 	var weapon_id: String = String(character.get("initialWeapon", "ban_hammer"))
 	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, fallback_weapon())
 	var passive_data: Dictionary = passive(character)
 	return {
 		"displayName": String(character.get("displayName", "配信者")),
+		"nickname": String(character.get("nickname", "")),
 		"roleName": String(character.get("roleName", "")),
 		"weaponName": String(weapon.get("displayName", "未設定")),
+		"weaponIconPath": String(weapon.get("iconPath", "")),
 		"passiveName": String(passive_data.get("displayName", "なし")),
+		"passiveDescription": String(passive_data.get("description", "")),
 		"description": String(character.get("description", "")),
-		"spritePath": String(character.get("sprite", ""))
+		"spritePath": String(character.get("sprite", "")),
+		"isUnlocked": is_unlocked(character),
+		"unlockConditionText": String(character.get("unlockConditionText", "？？？"))
 	}
 
 static func fallback_character() -> Dictionary:
 	return {
 		"id": "ban_chan",
-		"displayName": "バンちゃん",
+		"displayName": "赤羽ばんり",
 		"roleName": "バランス型",
 		"description": "扱いやすい標準配信者。BANハンマーで近づく敵をまとめて処理できる。",
 		"sprite": "res://assets/characters/ban_chan.png",
@@ -129,8 +164,8 @@ static func fallback_weapon() -> Dictionary:
 		"displayName": "BANハンマー",
 		"attackType": "melee_arc",
 		"damage": 12.0,
-		"range": 165.0,
-		"arcAngle": 120.0,
+		"range": 186.0,
+		"arcAngle": 135.0,
 		"attackInterval": 0.85,
 		"knockback": 18.0,
 		"magnetRange": 95.0
@@ -189,6 +224,4 @@ static func role_name(character: Dictionary) -> String:
 static func texture_from_cache(cache: Dictionary, sprite_path: String) -> Texture2D:
 	if sprite_path == "":
 		return null
-	if not cache.has(sprite_path):
-		cache[sprite_path] = load(sprite_path) as Texture2D
-	return cache[sprite_path] as Texture2D
+	return TextureCacheSystemScript.load_png_texture(cache, sprite_path)

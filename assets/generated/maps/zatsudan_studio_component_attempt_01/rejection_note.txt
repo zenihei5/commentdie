@@ -1,0 +1,7 @@
+Result:
+The image generation attempt for a floor-only component did not follow the requested no-text 2D map background.
+It was rejected and not integrated.
+
+Fallback:
+A deterministic layer-assembled background was generated instead at:
+../zatsudan_studio_layered_v1/zatsudan_studio_assembled_2200x1500.png

@@ -1,6 +1,8 @@
 class_name ChatSystem
 extends RefCounted
 
+const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+
 static func next_interval(state: String, kuso_chat_timer: float, rng: RandomNumberGenerator) -> float:
 	var fast: bool = state == "comment_choice" or kuso_chat_timer > 0.0
 	return rng.randf_range(0.15, 0.35) if fast else rng.randf_range(0.5, 1.0)
@@ -9,7 +11,7 @@ static func pool_for_state(state: String) -> Array[String]:
 	if state == "comment_choice":
 		return ["x10いけ", "全部やれ", "日和るな", "コメント欄を信じろ", "早く選べ"]
 	if state == "gift_choice":
-		return ["NG権取っとけ", "火力足りない", "回復しろｗ", "いいギフト"]
+		return ["♡取っとけ", "火力足りない", "回復しろｗ", "いいギフト"]
 	if state == "result":
 		return ["草", "これはコメントのせい", "切り抜き確定", "もう一回"]
 	return ["草", "逃げろ", "今のうまい", "右いけ右", "ギフト欲しい"]
@@ -54,14 +56,14 @@ static func prefix(line: String) -> String:
 
 static func color(line: String) -> Color:
 	if line.contains("x10") or line.contains("全部"):
-		return Color("#ff6a6a")
+		return Color("#d81b3c")
 	if line.contains("ギフト") or line.contains("回復"):
-		return Color("#8df7ff")
+		return Color("#0097b8")
 	if line.contains("草"):
-		return Color("#b6ff62")
-	return Color("#f3f0ff")
+		return Color("#42a800")
+	return Color("#526174")
 
-static func append_line(lines: Array[String], text: String, limit: int = 15) -> Array[String]:
+static func append_line(lines: Array[String], text: String, limit: int = 14) -> Array[String]:
 	var result: Array[String] = lines.duplicate()
 	result.append(text)
 	while result.size() > limit:
@@ -70,7 +72,10 @@ static func append_line(lines: Array[String], text: String, limit: int = 15) -> 
 
 static func display_items(lines: Array[String]) -> Array:
 	var items: Array = []
-	for line in lines:
+	var visible_lines: Array[String] = lines
+	if visible_lines.size() > 11:
+		visible_lines = visible_lines.slice(visible_lines.size() - 11, visible_lines.size())
+	for line in visible_lines:
 		items.append({
 			"text": prefix(line) + " " + line,
 			"color": color(line),
@@ -87,8 +92,12 @@ static func refresh_box(chat_box: Control, lines: Array[String]) -> void:
 		var view: Dictionary = item as Dictionary
 		var label := Label.new()
 		label.text = String(view["text"])
+		GameFontSystemScript.apply_regular_font(label)
 		label.add_theme_font_size_override("font_size", int(view["fontSize"]))
 		label.add_theme_color_override("font_color", view["color"] as Color)
+		label.custom_minimum_size = Vector2(280, 27)
+		label.size = Vector2(280, 27)
+		label.clip_text = true
 		chat_box.add_child(label)
 
 static func seed_box(chat_box: Control, mode: String) -> Array[String]:

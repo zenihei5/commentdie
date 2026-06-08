@@ -1,12 +1,15 @@
 class_name RunStateSystem
 extends RefCounted
 
+const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
+
 static func run_length(quick_test_mode: bool, quick_length: float, normal_length: float) -> float:
 	return quick_length if quick_test_mode else normal_length
 
 static func load_boot_data_for_target(target: Node, sprite_cache: Dictionary) -> DataRepository:
 	var repository: DataRepository = DataRepository.loaded()
 	repository.apply_to_target(target)
+	StreamFrameSystem.load_progress_for_target(target)
 	StreamFrameSystem.apply_selected_frame_for_target(
 		target,
 		target.get("stream_frames") as Array,
@@ -28,8 +31,9 @@ static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dic
 	var weapon_range: float = WeaponSystem.range_base(weapon)
 	var weapon_interval: float = WeaponSystem.attack_interval(weapon, 0.85)
 	var pickup_rate: float = float(stats.get("pickupRange", 1.0))
+	var start_pos: Vector2 = MapBackgroundSystemScript.zatsudan_world_rect().get_center()
 	return {
-		"playerPos": Vector2(580, 570),
+		"playerPos": start_pos,
 		"playerVel": Vector2.ZERO,
 		"playerMaxHp": max_hp,
 		"playerHp": max_hp,
@@ -41,7 +45,7 @@ static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dic
 		"dashCooldown": float(stats.get("dashCooldown", character.get("dashCooldown", 1.2))),
 		"knockbackPower": WeaponSystem.scaled_knockback(float(weapon.get("knockback", 18.0))),
 		"invincibleTime": float(stats.get("invincibleTime", 0.7)),
-		"ngStock": clampi(int(resources.get("ngTickets", character.get("initialNgStock", 0))), 0, 3),
+		"ngStock": 0,
 		"heartStock": clampi(int(resources.get("heartStock", character.get("initialHeartStock", 0))), 0, 3),
 		"giftHype": clampi(int(resources.get("giftHype", 0)), 0, 100)
 	}
@@ -164,6 +168,7 @@ static func start_run_for_target(target: Node, character: Dictionary, weapon: Di
 	apply_timers(target, timers())
 	(target.get("marshmallows") as Array).clear()
 	apply_score_state(target, score_state(int(initial["giftHype"])))
+	target.set("pending_gift_choices", 0)
 	apply_marshmallow_state(target, marshmallow_state())
 	target.set("player_weapons", EquipmentSystem.initial_weapons(String(weapon.get("id", "ban_hammer"))))
 	target.set("player_accessories", EquipmentSystem.empty_accessories())
@@ -203,6 +208,13 @@ static func apply_initial_values(target: Node, initial: Dictionary) -> void:
 	target.set("player_hp", int(initial["playerHp"]))
 	target.set("player_speed", float(initial["playerSpeed"]))
 	target.set("dash_cd", 0.0)
+	target.set("dash_tap_timer", 0.0)
+	target.set("dash_tap_last_dir", Vector2.ZERO)
+	target.set("dash_left_down", false)
+	target.set("dash_right_down", false)
+	target.set("dash_up_down", false)
+	target.set("dash_down_down", false)
+	target.set("dash_enter_down", false)
 	target.set("invincible", 0.0)
 	target.set("debug_invincible", false)
 	target.set("hammer_damage", float(initial["hammerDamage"]))
@@ -329,6 +341,12 @@ static func clear_run_collections(target: Node) -> void:
 	(target.get("hit_fx") as Array).clear()
 	(target.get("active_effects") as Array).clear()
 	(target.get("active_effect_rates") as Dictionary).clear()
+	if target.get("destructibles") != null:
+		(target.get("destructibles") as Array).clear()
+	if target.get("drop_items") != null:
+		(target.get("drop_items") as Array).clear()
+	target.set("next_destructible_uid", 1)
+	target.set("next_care_package_time", 15.0)
 
 static func clear_stage_effect_collections(target: Node) -> void:
 	(target.get("effect_walls") as Array).clear()

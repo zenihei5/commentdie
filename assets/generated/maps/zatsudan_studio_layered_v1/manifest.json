@@ -1,0 +1,196 @@
+{
+  "id": "zatsudan_studio_layered_v1",
+  "displayName": "Zatsudan Studio Layered v1",
+  "source": {
+    "desk": "C:\\Users\\zenih\\Desktop\\desk2.png",
+    "komono": "C:\\Users\\zenih\\Desktop\\komono.png",
+    "komono2": "C:\\Users\\zenih\\Desktop\\komono2.png"
+  },
+  "size": [
+    2200,
+    1500
+  ],
+  "layers": [
+    {
+      "id": "floor",
+      "type": "floor",
+      "path": "zatsudan_studio_floor_only_chatgpt_2200x1500.png"
+    },
+    {
+      "id": "props",
+      "type": "separate_props",
+      "path": "zatsudan_studio_desk_props_2200x1500.png"
+    }
+  ],
+  "collision_rects": [
+    {
+      "id": "bench_left_top",
+      "rect": [
+        619,
+        413,
+        970,
+        468
+      ],
+      "decorative": false
+    },
+    {
+      "id": "bench_right_mid",
+      "rect": [
+        1388,
+        717,
+        1700,
+        761
+      ],
+      "decorative": false
+    },
+    {
+      "id": "bench_bottom_left",
+      "rect": [
+        742,
+        1075,
+        1091,
+        1125
+      ],
+      "decorative": false
+    },
+    {
+      "id": "streaming_desk_bottom",
+      "rect": [
+        860,
+        1402,
+        1360,
+        1474
+      ],
+      "decorative": true
+    },
+    {
+      "id": "camera_left_edge",
+      "rect": [
+        122,
+        296,
+        214,
+        350
+      ],
+      "decorative": false
+    },
+    {
+      "id": "camera_right_edge",
+      "rect": [
+        103,
+        690,
+        201,
+        746
+      ],
+      "decorative": false
+    },
+    {
+      "id": "hanging_plant_left",
+      "rect": [
+        384,
+        194,
+        483,
+        244
+      ],
+      "decorative": false
+    },
+    {
+      "id": "hanging_plant_right",
+      "rect": [
+        1784,
+        192,
+        1887,
+        249
+      ],
+      "decorative": false
+    },
+    {
+      "id": "speaker_top",
+      "rect": [
+        953,
+        109,
+        1028,
+        187
+      ],
+      "decorative": false
+    },
+    {
+      "id": "ring_light_left",
+      "rect": [
+        72,
+        1022,
+        186,
+        1078
+      ],
+      "decorative": false
+    },
+    {
+      "id": "boom_mic_left_bottom",
+      "rect": [
+        218,
+        1230,
+        294,
+        1276
+      ],
+      "decorative": false
+    },
+    {
+      "id": "gift_box_right",
+      "rect": [
+        1871,
+        1062,
+        1953,
+        1132
+      ],
+      "decorative": false
+    },
+    {
+      "id": "potted_plant_left_bottom",
+      "rect": [
+        110,
+        1350,
+        194,
+        1392
+      ],
+      "decorative": false
+    },
+    {
+      "id": "led_bar_bottom",
+      "rect": [
+        1532,
+        1434,
+        1849,
+        1475
+      ],
+      "decorative": true
+    },
+    {
+      "id": "speaker_top_copy",
+      "rect": [
+        1533,
+        119,
+        1608,
+        197
+      ],
+      "decorative": false
+    },
+    {
+      "id": "led_bar_bottom_copy",
+      "rect": [
+        437,
+        1416,
+        754,
+        1457
+      ],
+      "decorative": true
+    }
+  ],
+  "prop_collision_rects": [],
+  "assembledPreview": "zatsudan_studio_floor_with_desk_props_assembled_2200x1500.png",
+  "collisionPreview": "zatsudan_studio_floor_with_desk_props_collision_preview_2200x1500.png",
+  "notes": [
+    "desk2.png had a green-screen background; connected green background was removed in postprocess.",
+    "komono.png props were chroma-keyed and placed near map edges.",
+    "komono2.png props were added as smaller edge decorations.",
+    "The bottom streaming desk is included as a decorative boundary prop."
+  ]
+}

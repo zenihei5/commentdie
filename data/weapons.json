@@ -2,17 +2,18 @@
   {
     "id": "ban_hammer",
     "displayName": "BANハンマー",
-    "description": "向いている方向へ約120度の範囲を振り回す標準武器",
+    "description": "向いている方向へ広めの範囲を振り回す標準武器",
     "equipmentType": "weapon",
     "attribute": "physical",
     "maxLevel": 5,
     "attackType": "melee_arc",
     "damage": 12.0,
     "attackInterval": 0.85,
-    "range": 2.0,
-    "arcAngle": 120,
+    "range": 2.25,
+    "arcAngle": 135,
     "knockback": 1.0,
-    "magnetRange": 95.0
+    "magnetRange": 95.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ban_hammer.png"
   },
   {
     "id": "superchat_shot",
@@ -28,7 +29,8 @@
     "projectileSpeed": 7.0,
     "pierce": 0,
     "knockback": 0.3,
-    "magnetRange": 105.0
+    "magnetRange": 105.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png"
   },
   {
     "id": "comment_boomerang",
@@ -45,7 +47,8 @@
     "orbitSpeed": 180.0,
     "boomerangCount": 1,
     "knockback": 0.5,
-    "magnetRange": 125.0
+    "magnetRange": 125.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_boomerang.png"
   },
   {
     "id": "mic_barrier",
@@ -59,7 +62,8 @@
     "attackInterval": 0.45,
     "range": 1.35,
     "knockback": 0.2,
-    "magnetRange": 95.0
+    "magnetRange": 95.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mic_barrier.png"
   },
   {
     "id": "spotlight",
@@ -74,7 +78,8 @@
     "range": 2.4,
     "duration": 3.2,
     "knockback": 0.1,
-    "magnetRange": 95.0
+    "magnetRange": 95.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/spotlight.png"
   },
   {
     "id": "kusa_wave",
@@ -89,6 +94,99 @@
     "range": 2.1,
     "arcAngle": 80,
     "knockback": 0.45,
-    "magnetRange": 95.0
+    "magnetRange": 95.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/kusa_wave.png"
+  },
+  {
+    "id": "comment_pin",
+    "displayName": "コメントピン留め",
+    "description": "近くの敵にピンを飛ばし、命中した敵の移動速度を下げる。",
+    "equipmentType": "weapon",
+    "attribute": "bullet",
+    "maxLevel": 5,
+    "attackType": "comment_pin",
+    "weaponType": "projectile",
+    "damageType": "bullet",
+    "damage": 4.0,
+    "baseDamage": 4,
+    "attackInterval": 3.0,
+    "cooldown": 3.0,
+    "projectileCount": 1,
+    "projectileSpeed": 7.2,
+    "range": 6.0,
+    "slowRate": 0.4,
+    "slowDuration": 2.0,
+    "knockback": 0.15,
+    "magnetRange": 95.0,
+    "iconPath": ""
+  },
+  {
+    "id": "emote_mine",
+    "displayName": "エモート地雷",
+    "description": "足元にエモート地雷を置き、敵が踏むと爆発する。",
+    "equipmentType": "weapon",
+    "attribute": "area",
+    "maxLevel": 5,
+    "attackType": "emote_mine",
+    "weaponType": "trap",
+    "damageType": "area",
+    "damage": 10.0,
+    "baseDamage": 10,
+    "attackInterval": 4.0,
+    "cooldown": 4.0,
+    "mineCount": 1,
+    "duration": 8.0,
+    "explosionRadius": 1.5,
+    "range": 1.5,
+    "maxActiveCount": 3,
+    "knockback": 0.2,
+    "magnetRange": 95.0,
+    "iconPath": ""
+  },
+  {
+    "id": "ng_word_laser",
+    "displayName": "NGワードレーザー",
+    "description": "前方に一直線の貫通レーザーを撃つ。",
+    "equipmentType": "weapon",
+    "attribute": "bullet",
+    "maxLevel": 5,
+    "attackType": "ng_word_laser",
+    "weaponType": "laser",
+    "damageType": "pierce",
+    "damage": 14.0,
+    "baseDamage": 14,
+    "attackInterval": 5.0,
+    "cooldown": 5.0,
+    "laserCount": 1,
+    "duration": 0.25,
+    "range": 10.0,
+    "width": 0.6,
+    "knockback": 0.1,
+    "magnetRange": 95.0,
+    "iconPath": ""
+  },
+  {
+    "id": "listener_summon",
+    "displayName": "リスナー召喚",
+    "description": "味方リスナーを召喚し、近くの敵を追尾攻撃させる。",
+    "equipmentType": "weapon",
+    "attribute": "summon",
+    "maxLevel": 5,
+    "attackType": "listener_summon",
+    "weaponType": "summon",
+    "damageType": "summon",
+    "damage": 8.0,
+    "baseDamage": 8,
+    "attackInterval": 6.0,
+    "cooldown": 6.0,
+    "summonCount": 1,
+    "duration": 6.0,
+    "moveSpeed": 3.5,
+    "searchRange": 7.0,
+    "range": 7.0,
+    "maxActiveCount": 3,
+    "knockback": 0.25,
+    "magnetRange": 95.0,
+    "iconPath": ""
   }
 ]

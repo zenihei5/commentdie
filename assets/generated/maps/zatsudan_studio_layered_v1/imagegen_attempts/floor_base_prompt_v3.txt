@@ -1,0 +1,38 @@
+Orthographic top-down 2D video game room floor texture, exact 2200x1500 pixels.
+
+Create an empty indoor livestream studio arena foundation for a top-down survivors game.
+The image must be a playable floor/background foundation only.
+
+Visual direction:
+- clean HD hand-painted 2D game map style
+- lavender and soft gray vinyl floor tiles
+- subtle pink and cyan studio lighting
+- dark outer edge border
+- wide open central combat space
+- gentle floor scuffs, tile seams, small light reflections
+- no tall props and no objects that need collision
+
+Hard exclusions:
+- no text
+- no letters
+- no readable symbols
+- no logos
+- no UI
+- no icons
+- no signs
+- no posters
+- no monitors
+- no charts
+- no diagrams
+- no labels
+- no characters
+- no enemies
+- no pickups
+- no tables
+- no cameras
+- no speakers
+- no furniture
+- no explanatory overlay
+
+This is not a poster, not an infographic, not a diagram, not a chart, and not an educational image.
+It is only an empty top-down game floor layer.

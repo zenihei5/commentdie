@@ -1,7 +1,7 @@
 [
   {
     "id": "ban_chan",
-    "displayName": "バンちゃん",
+    "displayName": "赤羽ばんり",
     "roleName": "バランス型",
     "description": "扱いやすい標準配信者。BANハンマーで近づく敵をまとめて処理できる。",
     "sprite": "res://assets/characters/ban_chan.png",
@@ -13,7 +13,7 @@
     "idleSprite": "res://assets/generated/ban_chan_idle_generated_feet_together_v1/sheet-transparent.png",
     "idleSpriteCols": 2,
     "idleSpriteRows": 2,
-    "idleSpriteFps": 4.0,
+    "idleSpriteFps": 4,
     "idleSpriteScale": 0.76,
     "idleSpriteOffset": {
       "x": 0,
@@ -22,7 +22,7 @@
     "runSprite": "res://assets/generated/ban_chan_front_run_original_post_v2/sheet-transparent.png",
     "runSpriteCols": 2,
     "runSpriteRows": 3,
-    "runSpriteFps": 11.0,
+    "runSpriteFps": 11,
     "runSpriteScale": 0.82,
     "runSpriteOffset": {
       "x": 0,
@@ -31,9 +31,9 @@
     "initialWeapon": "ban_hammer",
     "baseStats": {
       "hp": 5,
-      "moveSpeed": 5.0,
+      "moveSpeed": 5,
       "dashCooldown": 1.2,
-      "pickupRange": 1.0,
+      "pickupRange": 1,
       "invincibleTime": 0.7
     },
     "initialResources": {
@@ -52,7 +52,7 @@
   },
   {
     "id": "superchat_chan",
-    "displayName": "スパチャちゃん",
+    "displayName": "星投すぱな",
     "roleName": "遠距離型",
     "description": "遠距離から敵を処理する視聴者数特化型。打たれ弱いが、同時視聴者数を伸ばしやすい。",
     "sprite": "res://assets/characters/superchat_chan.png",
@@ -61,12 +61,30 @@
       "x": 0,
       "y": -34
     },
+    "idleSprite": "res://assets/generated/supana_gameplay_sprites_v1/idle-sheet-transparent.png",
+    "idleSpriteCols": 2,
+    "idleSpriteRows": 2,
+    "idleSpriteFps": 4,
+    "idleSpriteScale": 0.72,
+    "idleSpriteOffset": {
+      "x": 0,
+      "y": -6
+    },
+    "runSprite": "res://assets/generated/supana_gameplay_sprites_v1/run-sheet-transparent.png",
+    "runSpriteCols": 5,
+    "runSpriteRows": 1,
+    "runSpriteFps": 9,
+    "runSpriteScale": 0.82,
+    "runSpriteOffset": {
+      "x": 0,
+      "y": -12
+    },
     "initialWeapon": "superchat_shot",
     "baseStats": {
       "hp": 4,
       "moveSpeed": 5.1,
       "dashCooldown": 1.2,
-      "pickupRange": 1.0,
+      "pickupRange": 1,
       "invincibleTime": 0.7
     },
     "initialResources": {
@@ -85,7 +103,7 @@
   },
   {
     "id": "maro_chan",
-    "displayName": "マロちゃん",
+    "displayName": "白綿まろん",
     "roleName": "回収型",
     "description": "マシュマロとEXP回収が得意な成長型。序盤火力は控えめだが、拾って伸びる。",
     "sprite": "res://assets/characters/maro_chan.png",
@@ -93,6 +111,24 @@
     "spriteOffset": {
       "x": 0,
       "y": -34
+    },
+    "idleSprite": "res://assets/generated/maron_gameplay_sprites_v2/idle-sheet-transparent.png",
+    "idleSpriteCols": 2,
+    "idleSpriteRows": 2,
+    "idleSpriteFps": 4,
+    "idleSpriteScale": 0.76,
+    "idleSpriteOffset": {
+      "x": 0,
+      "y": -6
+    },
+    "runSprite": "res://assets/generated/maron_gameplay_sprites_v2/run-sheet-transparent.png",
+    "runSpriteCols": 5,
+    "runSpriteRows": 1,
+    "runSpriteFps": 9,
+    "runSpriteScale": 0.82,
+    "runSpriteOffset": {
+      "x": 0,
+      "y": -12
     },
     "initialWeapon": "comment_boomerang",
     "baseStats": {

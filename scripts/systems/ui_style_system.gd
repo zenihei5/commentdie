@@ -27,7 +27,11 @@ static func initial_result_panel_style() -> StyleBoxFlat:
 	style.set_border_width_all(5)
 	return style
 
-static func apply_choice_button(button: Button, fill: Color, border: Color, selected: bool) -> void:
+static func apply_choice_button(button: Button, fill: Color, border: Color, selected: bool, style_key: String = "") -> void:
+	if style_key.begins_with("gift_") or style_key == "comment_image":
+		_apply_image_choice_button(button, fill, border, selected, style_key)
+		return
+
 	var style: StyleBoxFlat = StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
@@ -35,7 +39,7 @@ static func apply_choice_button(button: Button, fill: Color, border: Color, sele
 	style.set_corner_radius_all(8)
 	style.content_margin_left = 14
 	style.content_margin_right = 14
-	style.content_margin_top = 14
+	style.content_margin_top = 18
 	style.content_margin_bottom = 14
 
 	var hover: StyleBoxFlat = style.duplicate() as StyleBoxFlat
@@ -47,6 +51,53 @@ static func apply_choice_button(button: Button, fill: Color, border: Color, sele
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
 	button.add_theme_stylebox_override("focus", style)
-	button.add_theme_color_override("font_color", Color.WHITE)
-	button.add_theme_color_override("font_hover_color", Color.WHITE)
-	button.add_theme_color_override("font_pressed_color", Color("#fff45c"))
+	button.add_theme_color_override("font_color", Color("#101420"))
+	button.add_theme_color_override("font_hover_color", Color("#101420"))
+	button.add_theme_color_override("font_pressed_color", Color("#e73763"))
+
+static func _apply_image_choice_button(button: Button, fill: Color, border: Color, selected: bool, style_key: String) -> void:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(1.0, 1.0, 1.0, 0.0)
+	style.border_color = Color(1.0, 1.0, 1.0, 0.0)
+	style.set_border_width_all(0)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 18
+	style.content_margin_bottom = 14
+
+	var hover: StyleBoxFlat = style.duplicate() as StyleBoxFlat
+	hover.bg_color = Color(1.0, 1.0, 1.0, 0.08)
+	var pressed: StyleBoxFlat = style.duplicate() as StyleBoxFlat
+	pressed.bg_color = Color(1.0, 0.92, 0.98, 0.14)
+	button.add_theme_stylebox_override("normal", style)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("focus", style)
+	button.add_theme_color_override("font_color", Color("#101420"))
+	button.add_theme_color_override("font_hover_color", Color("#101420"))
+	button.add_theme_color_override("font_pressed_color", Color("#e73763"))
+
+static func _apply_flat_choice_button(button: Button, fill: Color, border: Color, selected: bool) -> void:
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.set_border_width_all(5 if selected else 3)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 14
+	style.content_margin_right = 14
+	style.content_margin_top = 18
+	style.content_margin_bottom = 14
+
+	var hover: StyleBoxFlat = style.duplicate() as StyleBoxFlat
+	hover.bg_color = fill.lightened(0.08)
+	var pressed: StyleBoxFlat = style.duplicate() as StyleBoxFlat
+	pressed.bg_color = fill.darkened(0.08)
+
+	button.add_theme_stylebox_override("normal", style)
+	button.add_theme_stylebox_override("hover", hover)
+	button.add_theme_stylebox_override("pressed", pressed)
+	button.add_theme_stylebox_override("focus", style)
+	button.add_theme_color_override("font_color", Color("#101420"))
+	button.add_theme_color_override("font_hover_color", Color("#101420"))
+	button.add_theme_color_override("font_pressed_color", Color("#e73763"))

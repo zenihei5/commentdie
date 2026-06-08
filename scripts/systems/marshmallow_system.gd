@@ -1,6 +1,8 @@
 extends RefCounted
 class_name MarshmallowSystem
 
+const PICKUP_BASE_RANGE := 40.0
+
 static func pick_data(context: Dictionary) -> Dictionary:
 	var pool: Array = []
 	var data_list: Array = context["data"] as Array
@@ -52,6 +54,26 @@ static func pick_data_for_target(target: Node, data_list: Array, rng: RandomNumb
 		"lastWasBad": target.get("last_maro_was_kuso")
 	})
 
+static func speech_lines(data: Dictionary) -> Array[String]:
+	if String(data.get("type", "")) == "bad":
+		return ["開ける？", "一言いい？", "変な味する", "読まない方がいい"]
+	if String(data.get("rarity", "")) == "god":
+		return ["神マロです", "これは当たり", "救援物資", "読んで！"]
+	var effect_type: String = String(data.get("effectType", ""))
+	if effect_type == "heal":
+		return ["がんばれ", "休んで", "回復どうぞ", "無理しないで"]
+	if effect_type == "exp":
+		return ["これ使えるかも", "成長チャンス", "拾って〜", "助かるやつ"]
+	if effect_type == "score":
+		return ["切り抜きたい", "今の良い", "拡散しとく", "伸びろ〜"]
+	return ["差し入れです", "読んで〜", "いいマロ", "助かる"]
+
+static func random_speech(data: Dictionary, rng: RandomNumberGenerator) -> String:
+	var lines: Array[String] = speech_lines(data)
+	if lines.is_empty():
+		return ""
+	return lines[rng.randi_range(0, lines.size() - 1)]
+
 static func spawn_pickup_for_target(target: Node, data: Dictionary, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> bool:
 	if data.is_empty():
 		return false
@@ -59,11 +81,13 @@ static func spawn_pickup_for_target(target: Node, data: Dictionary, rng: RandomN
 		"rng": rng,
 		"arena": arena,
 		"playerPos": target.get("player_pos"),
-		"effectWalls": effect_walls
+		"effectWalls": effect_walls,
+		"streamFrameId": target.get("current_stream_frame_id")
 	})
 	var pickups: Array = target.get("marshmallows") as Array
 	var read_bonus: float = float(target.get("read_manager_level")) * 5.0
-	pickups.append({"pos": pos, "time": 12.0 + read_bonus, "data": data})
+	var speech_text: String = random_speech(data, rng)
+	pickups.append({"pos": pos, "time": 12.0 + read_bonus, "data": data, "speechText": speech_text})
 	target.set("next_mallow_time", float(target.get("elapsed")) + rng.randf_range(35.0, 45.0))
 	return true
 
@@ -98,24 +122,22 @@ static func find_position(context: Dictionary) -> Vector2:
 	var arena: Rect2 = context["arena"] as Rect2
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var effect_walls: Array = context["effectWalls"] as Array
+	var stream_frame_id: String = String(context["streamFrameId"])
 	for i in range(20):
 		var angle: float = rng.randf_range(0.0, TAU)
 		var dist: float = rng.randf_range(135.0, 430.0)
 		var p: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * dist
 		p.x = clampf(p.x, arena.position.x + 70.0, arena.end.x - 70.0)
 		p.y = clampf(p.y, arena.position.y + 70.0, arena.end.y - 70.0)
-		if p.distance_to(player_pos) > 110.0 and not point_in_wall(p, effect_walls):
+		if p.distance_to(player_pos) > 110.0 and not point_in_wall(p, effect_walls, stream_frame_id):
 			return p
 	return arena.get_center() + Vector2(rng.randf_range(-160.0, 160.0), rng.randf_range(-120.0, 120.0))
 
-static func point_in_wall(p: Vector2, effect_walls: Array) -> bool:
-	var static_walls: Array[Rect2] = [
-		Rect2(310, 310, 210, 32),
-		Rect2(320, 700, 260, 28),
-		Rect2(840, 480, 210, 32)
-	]
+static func point_in_wall(p: Vector2, effect_walls: Array, stream_frame_id: String = "zatsudan") -> bool:
+	var static_walls: Array = DrawDataSystem.static_wall_rects(stream_frame_id)
 	for wall in static_walls:
-		if wall.grow(28).has_point(p):
+		var static_rect: Rect2 = wall as Rect2
+		if static_rect.grow(28).has_point(p):
 			return true
 	for item in effect_walls:
 		var rect: Rect2 = item
@@ -144,7 +166,7 @@ static func update_pickups(context: Dictionary) -> Dictionary:
 	var picked: Array = []
 	var expired: Array = []
 	var player_pos: Vector2 = Vector2(context["playerPos"])
-	var pickup_range: float = float(context.get("pickupRange", 32.0))
+	var pickup_range: float = float(context.get("pickupRange", PICKUP_BASE_RANGE))
 	var delta: float = float(context.get("delta", 0.0))
 	var unread_count: int = int(context.get("unread", 0))
 	var marshmallows: Array = context["marshmallows"] as Array
@@ -185,7 +207,10 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 		"messages": [],
 		"maroChatLines": [],
 		"toasts": [],
-		"levelUp": false
+		"levelUp": false,
+		"levelUps": 0,
+		"goodPickupSe": false,
+		"kusoPickupSe": false
 	}
 	var messages: Array = result["messages"] as Array
 	var maro_chat_lines: Array = result["maroChatLines"] as Array
@@ -202,8 +227,14 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 			maro_chat_lines.append(ChatSystem.random_marshmallow_line(String(feedback["maroChatKind"]), rng))
 		toasts.append(String(feedback["toast"]))
 		messages.append(String(feedback["chat"]))
+		var rarity: String = String(data.get("rarity", "normal"))
+		if String(data.get("type", "")) == "good" and (rarity == "normal" or rarity == "good"):
+			result["goodPickupSe"] = true
+		if String(data.get("type", "")) == "bad":
+			result["kusoPickupSe"] = true
 		if bool(feedback["levelUp"]):
 			result["levelUp"] = true
+			result["levelUps"] = int(result["levelUps"]) + int(feedback.get("levelUps", 1))
 	var expired: Array = pickup_result["expired"] as Array
 	var expired_feedback: Dictionary = expire_pickups_for_target(target, expired, arena, rng)
 	for message in (expired_feedback["messages"] as Array):
@@ -228,7 +259,7 @@ static func expire_pickups_for_target(target: Node, expired: Array, arena: Rect2
 static func pickup_range_for_target(target: Node) -> float:
 	var magnet_range: float = float(target.get("maro_magnet_range"))
 	var passive_rate: float = float(target.get("passive_maro_pickup_rate"))
-	return (32.0 + magnet_range) * passive_rate
+	return (PICKUP_BASE_RANGE + magnet_range) * passive_rate
 
 static func update_effect_timers(context: Dictionary) -> Dictionary:
 	var delta: float = float(context.get("delta", 0.0))
@@ -306,8 +337,8 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 	elif effect == "invincible_heal":
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 5)), int(result.get("playerHp", 5)) + int(params["amount"]))
 		result["invincible"] = maxf(float(result.get("invincible", 0.0)), float(params["invincible"]))
-	elif effect == "add_ng_ticket":
-		result["ngStock"] = mini(3, int(result.get("ngStock", 0)) + int(params["amount"]))
+	elif effect == "add_heart_pending":
+		result["heartPending"] = true
 		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 30, 0, 100)
 		result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
 	elif effect == "hype_down":
@@ -340,7 +371,7 @@ static func build_effect_context_from_target(target: Node) -> Dictionary:
 		"score": target.get("score"),
 		"supportAttackTimer": target.get("support_attack_timer"),
 		"invincible": target.get("invincible"),
-		"ngStock": target.get("ng_stock"),
+		"heartPending": target.get("heart_pending"),
 		"kusoChatTimer": target.get("kuso_chat_timer"),
 		"attackJitterTimer": target.get("attack_jitter_timer"),
 		"moveSlowTimer": target.get("move_slow_timer"),
@@ -364,7 +395,7 @@ static func apply_effect_result_to_target(target: Node, result: Dictionary) -> v
 	target.set("score", int(result["score"]))
 	target.set("support_attack_timer", float(result["supportAttackTimer"]))
 	target.set("invincible", float(result["invincible"]))
-	target.set("ng_stock", int(result["ngStock"]))
+	target.set("heart_pending", bool(result["heartPending"]))
 	target.set("kuso_chat_timer", float(result["kusoChatTimer"]))
 	target.set("attack_jitter_timer", float(result["attackJitterTimer"]))
 	target.set("move_slow_timer", float(result["moveSlowTimer"]))
@@ -380,10 +411,11 @@ static func apply_pickup_feedback_for_target(target: Node, data: Dictionary, are
 	var feedback: Dictionary = pickup_feedback(data, result)
 	for i in range(int(feedback["spawnTrolls"])):
 		EnemySystem.spawn_enemy_for_target(target, "troll", arena, rng)
-	var level_up: bool = false
+	var level_ups := 0
 	if int(feedback["expAdd"]) > 0:
-		level_up = ExpSystem.add_exp_to_target(target, int(feedback["expAdd"]))
-	feedback["levelUp"] = level_up
+		level_ups = ExpSystem.add_exp_to_target(target, int(feedback["expAdd"]))
+	feedback["levelUps"] = level_ups
+	feedback["levelUp"] = level_ups > 0
 	return feedback
 
 static func pickup_feedback(data: Dictionary, result: Dictionary) -> Dictionary:

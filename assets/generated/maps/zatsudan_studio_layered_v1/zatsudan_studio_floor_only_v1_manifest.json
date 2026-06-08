@@ -1,0 +1,42 @@
+{
+  "id": "zatsudan_studio_floor_only_v1",
+  "source": "C:\\Users\\zenih\\Desktop\\bg2.png",
+  "sourceSize": [
+    1519,
+    1036
+  ],
+  "size": [
+    2200,
+    1500
+  ],
+  "layers": [
+    {
+      "id": "floor",
+      "path": "zatsudan_studio_floor_only_chatgpt_2200x1500.png",
+      "type": "base_floor_only"
+    },
+    {
+      "id": "props",
+      "path": "zatsudan_studio_floor_only_props_2200x1500.png",
+      "type": "transparent_placeholder"
+    },
+    {
+      "id": "assembled",
+      "path": "zatsudan_studio_floor_only_assembled_2200x1500.png",
+      "type": "runtime_background"
+    },
+    {
+      "id": "collision_preview",
+      "path": "zatsudan_studio_floor_only_collision_preview_2200x1500.png",
+      "type": "debug_preview"
+    }
+  ],
+  "collision_rects": [],
+  "prop_collision_rects": [],
+  "notes": [
+    "User supplied ChatGPT-generated floor-only neon studio background.",
+    "Resized to the existing 2200x1500 arena contract.",
+    "No obstacle collision is registered in this pass to avoid invisible walls.",
+    "Props and collision should be added later as separate layers."
+  ]
+}

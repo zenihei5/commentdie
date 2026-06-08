@@ -1,0 +1,188 @@
+{
+  "id": "zatsudan_studio_chatgpt_bg_v1",
+  "source": "C:\\Users\\zenih\\Desktop\\bg.jpg",
+  "sourceSize": [
+    1024,
+    698
+  ],
+  "size": [
+    2200,
+    1500
+  ],
+  "layers": [
+    {
+      "id": "floor",
+      "path": "zatsudan_studio_chatgpt_floor_2200x1500.png",
+      "type": "base_with_baked_visual_props"
+    },
+    {
+      "id": "props",
+      "path": "zatsudan_studio_chatgpt_props_2200x1500.png",
+      "type": "transparent_placeholder"
+    },
+    {
+      "id": "assembled",
+      "path": "zatsudan_studio_chatgpt_assembled_2200x1500.png",
+      "type": "runtime_background"
+    },
+    {
+      "id": "collision_preview",
+      "path": "zatsudan_studio_chatgpt_collision_preview_2200x1500.png",
+      "type": "debug_preview"
+    }
+  ],
+  "collision_rects": [
+    {
+      "id": "bench_left_top",
+      "rect": [
+        584,
+        400,
+        954,
+        477
+      ]
+    },
+    {
+      "id": "bench_right_mid",
+      "rect": [
+        1358,
+        703,
+        1676,
+        778
+      ]
+    },
+    {
+      "id": "bench_bottom_left",
+      "rect": [
+        692,
+        1059,
+        1100,
+        1139
+      ]
+    }
+  ],
+  "prop_collision_rects": [
+    {
+      "id": "top_left_monitor",
+      "rect": [
+        116,
+        75,
+        481,
+        198
+      ]
+    },
+    {
+      "id": "top_center_monitor",
+      "rect": [
+        821,
+        54,
+        1358,
+        204
+      ]
+    },
+    {
+      "id": "top_right_monitor",
+      "rect": [
+        1620,
+        84,
+        2075,
+        208
+      ]
+    },
+    {
+      "id": "top_left_speaker",
+      "rect": [
+        511,
+        49,
+        627,
+        221
+      ]
+    },
+    {
+      "id": "top_right_speaker",
+      "rect": [
+        1394,
+        43,
+        1515,
+        223
+      ]
+    },
+    {
+      "id": "left_camera",
+      "rect": [
+        64,
+        279,
+        202,
+        522
+      ]
+    },
+    {
+      "id": "left_bottom_camera",
+      "rect": [
+        47,
+        1025,
+        202,
+        1268
+      ]
+    },
+    {
+      "id": "right_bottom_camera",
+      "rect": [
+        1981,
+        1010,
+        2127,
+        1257
+      ]
+    },
+    {
+      "id": "bottom_console",
+      "rect": [
+        773,
+        1289,
+        1375,
+        1500
+      ]
+    },
+    {
+      "id": "bottom_left_plant",
+      "rect": [
+        43,
+        1225,
+        204,
+        1472
+      ]
+    },
+    {
+      "id": "bottom_right_plant",
+      "rect": [
+        1886,
+        1225,
+        2052,
+        1472
+      ]
+    },
+    {
+      "id": "top_left_plant",
+      "rect": [
+        473,
+        0,
+        606,
+        161
+      ]
+    },
+    {
+      "id": "top_right_plant",
+      "rect": [
+        1510,
+        0,
+        1644,
+        159
+      ]
+    }
+  ],
+  "notes": [
+    "User supplied ChatGPT-generated neon studio background resized for the 2200x1500 arena contract.",
+    "Visual props are baked into the floor image for this test pass.",
+    "The props layer is intentionally transparent until separate props are produced.",
+    "Collision rectangles are first-pass estimates and should be tuned from play screenshots."
+  ]
+}

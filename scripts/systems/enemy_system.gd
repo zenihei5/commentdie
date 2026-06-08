@@ -1,6 +1,8 @@
 extends RefCounted
 class_name EnemySystem
 
+const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
+
 static func spawn_interval(context: Dictionary) -> float:
 	var elapsed: float = float(context["elapsed"])
 	if bool(context["quickTestMode"]):
@@ -62,18 +64,20 @@ static func pick_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNu
 
 static func enemy_data(kind: String) -> Dictionary:
 	if kind == "fast":
-		return {"hp": 8.0, "speed": 175.0, "radius": 20.0, "score": 25, "exp": 2, "behavior": "chase_fast"}
+		return {"displayName": "連投マン", "description": "高速で距離を詰める連投コメント敵", "hp": 8.0, "speed": 155.0, "radius": 20.0, "score": 40, "exp": 2, "behavior": "chase_fast"}
 	if kind == "shooter":
-		return {"hp": 15.0, "speed": 95.0, "radius": 24.0, "score": 40, "exp": 3, "behavior": "shooter"}
+		return {"displayName": "指示厨", "description": "距離を取りながら指示弾を撃つ敵", "hp": 14.0, "speed": 95.0, "radius": 24.0, "score": 60, "exp": 3, "behavior": "shooter"}
 	if kind == "long_comment_guy":
-		return {"hp": 40.0, "speed": 62.0, "radius": 34.0, "score": 80, "exp": 5, "behavior": "tank"}
+		return {"displayName": "長文ニキ", "description": "遅いがしぶとく進路をふさぐ長文コメント敵", "hp": 40.0, "speed": 62.0, "radius": 34.0, "score": 80, "exp": 5, "behavior": "tank"}
 	if kind == "clipper":
-		return {"hp": 18.0, "speed": 120.0, "radius": 23.0, "score": 100, "exp": 4, "behavior": "charger"}
+		return {"displayName": "悪質切り抜き師", "description": "予告後に突進して事故シーンを狙う敵", "hp": 18.0, "speed": 120.0, "radius": 23.0, "score": 100, "exp": 4, "behavior": "charger"}
 	if kind == "unread_maro":
-		return {"hp": 8.0, "speed": 130.0, "radius": 19.0, "score": 20, "exp": 1, "behavior": "chase"}
+		return {"displayName": "未読マロ", "description": "放置されたマシュマロが荒らし化した敵", "hp": 8.0, "speed": 130.0, "radius": 19.0, "score": 20, "exp": 1, "behavior": "chase"}
 	if kind == "ghost_comment":
-		return {"hp": 20.0, "speed": 122.0, "radius": 23.0, "score": 120, "exp": 3, "behavior": "ghost"}
-	return {"hp": 10.0, "speed": 105.0, "radius": 21.0, "score": 10, "exp": 1, "behavior": "chase"}
+		return {"displayName": "幽霊コメント", "description": "ホラー風イベント中に現れる透明気味のコメント敵", "hp": 20.0, "speed": 122.0, "radius": 23.0, "score": 120, "exp": 3, "behavior": "ghost"}
+	if kind == "boss_super_long_comment":
+		return {"displayName": "超長文ニキ", "description": "長文ニキの巨大版。大きなコメント塊でプレイヤーを追い詰める。", "hp": 400.0, "speed": 58.0, "radius": 78.0, "score": 3000, "exp": 20, "behavior": "tank"}
+	return {"displayName": "荒らし", "description": "まっすぐ近づいてくる基本コメント敵", "hp": 10.0, "speed": 92.0, "radius": 21.0, "score": 20, "exp": 1, "behavior": "chase"}
 
 static func spawn_position(arena: Rect2, rng: RandomNumberGenerator) -> Vector2:
 	var edge := rng.randi_range(0, 3)
@@ -85,7 +89,28 @@ static func spawn_position(arena: Rect2, rng: RandomNumberGenerator) -> Vector2:
 		return Vector2(arena.position.x + 20, rng.randf_range(arena.position.y, arena.end.y))
 	return Vector2(arena.end.x - 20, rng.randf_range(arena.position.y, arena.end.y))
 
-static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, giant_power: float = 0.0) -> Dictionary:
+static func speech_lines(kind: String) -> Array[String]:
+	if kind == "fast":
+		return ["連投失礼", "追いついた", "逃がさない", "連投マン参上"]
+	if kind == "shooter":
+		return ["指示します", "そこ避けて", "こう動いて", "弾幕いくぞ"]
+	if kind == "long_comment_guy":
+		return ["長文失礼します", "結論から言うと", "読んでください", "要約すると無理"]
+	if kind == "clipper":
+		return ["悪質切り抜き中", "今の切り取る", "サムネにする", "そこだけ使う"]
+	if kind == "unread_maro":
+		return ["未読です", "読んで", "マロ溜めるな", "返事まだ？"]
+	if kind == "ghost_comment":
+		return ["見てるよ", "うしろ", "消えないよ", "既読つけて"]
+	return ["草", "それな〜", "逃げろ", "BANできる？", "右いけ右"]
+
+static func random_speech(kind: String, rng: RandomNumberGenerator) -> String:
+	var lines: Array[String] = speech_lines(kind)
+	if lines.is_empty():
+		return ""
+	return lines[rng.randi_range(0, lines.size() - 1)]
+
+static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, giant_power: float = 0.0, speech_text: String = "") -> Dictionary:
 	var data: Dictionary = enemy_data(kind)
 	if giant_power > 0.0:
 		data["hp"] = float(data["hp"]) * lerpf(1.25, 1.5, giant_power)
@@ -100,8 +125,10 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"radius": data["radius"],
 		"score": data["score"],
 		"exp": data["exp"],
+		"expValue": data["exp"],
 		"behavior": data["behavior"],
-		"shoot": shoot
+		"shoot": shoot,
+		"speechText": speech_text
 	}
 
 static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2 = Vector2.INF) -> void:
@@ -114,7 +141,10 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 	var shoot_seed: float = rng.randf_range(0.6, 1.4) if pos == Vector2.INF else 1.0
 	var enemies: Array = target.get("enemies") as Array
 	var next_uid: int = int(target.get("next_enemy_uid"))
-	enemies.append(build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power))
+	var speech_text: String = ""
+	if rng.randf() < 0.33:
+		speech_text = random_speech(kind, rng)
+	enemies.append(build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power, speech_text))
 	target.set("enemies", enemies)
 	target.set("next_enemy_uid", next_uid + 1)
 
@@ -131,6 +161,8 @@ static func kill_events(enemy: Dictionary, split_enemy: bool, rng: RandomNumberG
 
 static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("kills", int(target.get("kills")) + 1)
+	if bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")) == "boss_super_long_comment":
+		return BossSystemScript.apply_defeat_for_target(target, enemy)
 	target.set("score", int(target.get("score")) + ScoreSystem.enemy_score_for_target(target, enemy))
 	ExpSystem.drop_from_enemy_for_target(target, enemy)
 	var split_enemy: bool = ModifierSystem.has_effect_for_target(target, "split_enemy")
@@ -172,7 +204,9 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 		"enemySpeedRate": ModifierSystem.effect_rate_for_target(target, "enemy_speed"),
 		"godReservation": ModifierSystem.has_effect_for_target(target, "god_reservation"),
 		"godReservationRate": ModifierSystem.effect_rate_for_target(target, "god_reservation"),
-		"bulletHell": String(target.get("active_genre_event")) == "bullet_hell"
+		"bulletHell": String(target.get("active_genre_event")) == "bullet_hell",
+		"effectWalls": target.get("effect_walls"),
+		"streamFrameId": target.get("current_stream_frame_id")
 	})
 	target.set("enemy_bullets", result["bullets"])
 	return result
@@ -195,17 +229,26 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 	var delta: float = float(context["delta"])
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var arena: Rect2 = context["arena"] as Rect2
+	var effect_walls: Array = context["effectWalls"] as Array
+	var stream_frame_id: String = String(context["streamFrameId"])
 	var speed_rate: float = 1.0 + 0.45 * float(context["enemySpeedRate"])
 	if bool(context["godReservation"]):
 		speed_rate += 0.10 * float(context["godReservationRate"])
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
+		var previous_enemy_pos: Vector2 = enemy_pos
 		var behavior: String = String(enemy["behavior"])
 		var to_player: Vector2 = player_pos - enemy_pos
 		var dist: float = to_player.length()
 		var dir: Vector2 = to_player.normalized()
-		var speed: float = float(enemy["speed"]) * speed_rate
+		var local_speed_rate: float = 1.0 if bool(enemy.get("isBoss", false)) else speed_rate
+		var speed: float = float(enemy["speed"]) * local_speed_rate
+		var slow_timer: float = float(enemy.get("slowTimer", 0.0))
+		if slow_timer > 0.0:
+			var slow_rate: float = clampf(float(enemy.get("slowRate", 0.0)), 0.0, 0.85)
+			speed *= 1.0 - slow_rate
+			enemy["slowTimer"] = maxf(0.0, slow_timer - delta)
 		if behavior == "shooter":
 			if dist < 250.0:
 				dir *= -1.0
@@ -224,6 +267,9 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			else:
 				dir *= 0.55
 		enemy_pos += dir * speed * delta
+		enemy_pos.x = clampf(enemy_pos.x, arena.position.x + 15.0, arena.end.x - 15.0)
+		enemy_pos.y = clampf(enemy_pos.y, arena.position.y + 15.0, arena.end.y - 15.0)
+		enemy_pos = PlayerSystem.resolve_wall_collision(enemy_pos, previous_enemy_pos, float(enemy["radius"]), effect_walls, stream_frame_id)
 		enemy_pos.x = clampf(enemy_pos.x, arena.position.x + 15.0, arena.end.x - 15.0)
 		enemy_pos.y = clampf(enemy_pos.y, arena.position.y + 15.0, arena.end.y - 15.0)
 		enemy["pos"] = enemy_pos

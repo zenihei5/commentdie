@@ -205,7 +205,10 @@ static func spawn_horror_ghosts_for_target(target: Node, arena: Rect2, rng: Rand
 	var next_uid: int = int(target.get("next_enemy_uid"))
 	for item in positions:
 		var pos: Vector2 = item
-		enemies.append(EnemySystem.build_enemy("ghost_comment", pos, next_uid, 1.0))
+		var speech_text: String = ""
+		if rng.randf() < 0.33:
+			speech_text = EnemySystem.random_speech("ghost_comment", rng)
+		enemies.append(EnemySystem.build_enemy("ghost_comment", pos, next_uid, 1.0, 0.0, speech_text))
 		next_uid += 1
 	target.set("enemies", enemies)
 	target.set("next_enemy_uid", next_uid)

@@ -1,0 +1,65 @@
+{
+  "id": "zatsudan_studio_floor_with_benches_v1",
+  "size": [
+    2200,
+    1500
+  ],
+  "source": "C:\\Users\\zenih\\Desktop\\bg.jpg",
+  "layers": [
+    {
+      "id": "floor",
+      "path": "zatsudan_studio_floor_only_chatgpt_2200x1500.png",
+      "type": "base_floor_only"
+    },
+    {
+      "id": "props",
+      "path": "zatsudan_studio_bench_props_2200x1500.png",
+      "type": "separate_bench_props"
+    },
+    {
+      "id": "assembled",
+      "path": "zatsudan_studio_floor_with_benches_assembled_2200x1500.png",
+      "type": "runtime_background"
+    },
+    {
+      "id": "collision_preview",
+      "path": "zatsudan_studio_floor_with_benches_collision_preview_2200x1500.png",
+      "type": "debug_preview"
+    }
+  ],
+  "collision_rects": [
+    {
+      "id": "bench_left_top",
+      "rect": [
+        584,
+        400,
+        954,
+        477
+      ]
+    },
+    {
+      "id": "bench_right_mid",
+      "rect": [
+        1358,
+        703,
+        1676,
+        778
+      ]
+    },
+    {
+      "id": "bench_bottom_left",
+      "rect": [
+        692,
+        1059,
+        1100,
+        1139
+      ]
+    }
+  ],
+  "prop_collision_rects": [],
+  "notes": [
+    "Bench props were extracted from the user's full ChatGPT background as a first separate-prop pass.",
+    "This is a rough alpha extraction intended for gameplay/collision validation.",
+    "Replace these crops with clean generated/painted transparent props later if the layout feels good."
+  ]
+}

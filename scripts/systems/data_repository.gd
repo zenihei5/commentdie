@@ -8,6 +8,7 @@ var stream_frames: Array = []
 var genre_events: Array = []
 var characters: Array = []
 var weapons: Array = []
+var bosses: Array = []
 
 static func loaded() -> DataRepository:
 	var repository: DataRepository = DataRepository.new()
@@ -22,6 +23,7 @@ func load_all() -> void:
 	genre_events = _load_array("res://data/genre_events.json", true)
 	characters = _load_array("res://data/characters.json")
 	weapons = _load_array("res://data/weapons.json")
+	bosses = _load_array("res://data/bosses.json", true)
 
 func apply_to_target(target: Node) -> void:
 	target.set("comments", comments)
@@ -31,6 +33,7 @@ func apply_to_target(target: Node) -> void:
 	target.set("genre_events", genre_events)
 	target.set("characters", characters)
 	target.set("weapons", weapons)
+	target.set("bosses", bosses)
 
 func find_by_id(list: Array, id: String) -> Dictionary:
 	for item in list:

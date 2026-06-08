@@ -23,7 +23,7 @@ static func texts_for_target(target: Node, comment_barrage_label: String, gift_a
 			"expValue": int(target.get("exp_value")),
 			"expNeed": ExpSystem.current_need(int(target.get("exp_level"))),
 			"effectText": effect_text,
-			"characterName": String(current_character.get("displayName", "バンちゃん")),
+			"characterName": String(current_character.get("displayName", "赤羽ばんり")),
 			"streamFrameName": String(current_stream_frame.get("displayName", "雑談枠")),
 			"weaponName": String(current_weapon.get("displayName", "BANハンマー")),
 			"weaponSlots": EquipmentSystem.slot_summary(weapons, EquipmentSystem.MAX_WEAPONS),
@@ -32,10 +32,11 @@ static func texts_for_target(target: Node, comment_barrage_label: String, gift_a
 		"banner": banner_text({
 			"state": String(target.get("state")),
 			"quickTestMode": bool(target.get("quick_test_mode")),
+			"relayMode": bool(target.get("relay_mode")),
+			"relayModeUnlocked": bool(target.get("relay_mode_unlocked")),
 			"commentBarrageLabel": comment_barrage_label,
 			"screenShakeEnabled": bool(target.get("screen_shake_enabled")),
 			"choiceTimer": float(target.get("choice_timer")),
-			"ngStock": int(target.get("ng_stock")),
 			"heartPending": bool(target.get("heart_pending")),
 			"giftArrivalText": gift_arrival_text,
 			"activeGenreEvent": String(target.get("active_genre_event")),
@@ -66,33 +67,37 @@ static func update_labels_for_target(
 	)
 	status_label.text = String(texts["status"])
 	banner_label.text = String(texts["banner"])
+	var banner_parent: Control = banner_label.get_parent() as Control
+	if banner_parent != null:
+		banner_parent.visible = banner_label.text.strip_edges() != ""
 
 static func banner_text(context: Dictionary) -> String:
 	var state: String = String(context.get("state", "title"))
 	if state == "title":
-		var mode_text: String = "60秒テスト" if bool(context.get("quickTestMode", false)) else "180秒通常"
-		return "Enter：配信者を選択 / T:%s / B:%s / 画面揺れ:%s" % [
+		var mode_text: String = "配信リレー" if bool(context.get("relayMode", false)) else ("60秒テスト" if bool(context.get("quickTestMode", false)) else "180秒通常")
+		var relay_text: String = "ON" if bool(context.get("relayModeUnlocked", false)) else "LOCKED"
+		return "タイトル  T:%s / R:リレー %s / U:解放 / B:%s / 画面揺れ:%s" % [
 			mode_text,
+			relay_text,
 			String(context.get("commentBarrageLabel", "通常")),
 			"ON" if bool(context.get("screenShakeEnabled", true)) else "OFF"
 		]
+	if state == "ranking":
+		return "ランキング  Esc：タイトルへ戻る / R：リセット"
+	if state == "options":
+		return ""
 	if state == "character_select":
-		return "配信者を選択  1/2/3 または方向キー + Enter"
+		return ""
 	if state == "stream_frame_select":
-		return "配信枠を選択  1/2 または方向キー + Enter"
+		return ""
 	if state == "tutorial":
 		return "チュートリアル  Enter / Spaceで開始"
 	if state == "comment_choice":
-		return "指示コメが来た！ %.1fs  Q:NG x%d" % [
-			float(context.get("choiceTimer", 0.0)),
-			int(context.get("ngStock", 0))
-		]
+		return ""
 	if state == "gift_choice":
-		return String(context.get("giftArrivalText", "ギフトが届いた！")) + " ひとつ選べ！"
+		return ""
 	if state == "pause":
 		return "ポーズ"
-	if bool(context.get("heartPending", false)):
-		return "♡待機中：次の指示コメが全部ちょっと甘くなる"
 	if String(context.get("activeGenreEvent", "")) != "":
 		return "%s  %.1fs" % [
 			String(context.get("activeGenreLabel", "")),
@@ -100,7 +105,4 @@ static func banner_text(context: Dictionary) -> String:
 		]
 	if bool(context.get("strategyWiki", false)) and String(context.get("nextKnownGenreEvent", "")) != "":
 		return "次のゲーム変化：%s" % String(context.get("nextKnownGenreLabel", ""))
-	var comment_timer: float = float(context.get("commentTimer", 0.0))
-	if comment_timer <= 5.0:
-		return "指示コメ襲来まで %.1fs" % maxf(0.0, comment_timer)
-	return "15秒ごとに指示コメがルールを変える。"
+	return ""

@@ -104,7 +104,7 @@ static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dicti
 			if _data_allowed_for_frame(frame, fallback, "giftPoolTags") and available_ids.has(String(fallback["id"])):
 				pool.append(fallback)
 	if pool.is_empty():
-		return {"id": "rest", "displayName": "休憩", "description": "HPを回復", "rarity": "common", "maxLevel": 0, "effectType": "heal", "weight": 1}
+		return {"id": "rest", "displayName": "休憩", "description": "メンタルを回復", "rarity": "common", "maxLevel": 0, "effectType": "heal", "weight": 1}
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
 
@@ -296,8 +296,6 @@ static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 		result["score"] = int(result.get("score", 0)) + 800
 	elif effect == "magnet":
 		result["magnetRange"] = float(result.get("magnetRange", 95.0)) * 1.3
-	elif effect == "ng_stock":
-		result["ngStock"] = mini(3, int(result.get("ngStock", 0)) + 1)
 	elif effect == "add_heart_stock":
 		if bool(result.get("heartPending", false)):
 			result["heartPendingDuplicate"] = true
@@ -347,7 +345,6 @@ static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 		result["hammerDamage"] = float(result.get("hammerDamage", 0.0)) * 1.4
 		result["hammerRange"] = float(result.get("hammerRange", 0.0)) * 1.25
 	elif effect == "god_moderator":
-		result["ngStock"] = mini(3, int(result.get("ngStock", 0)) + 1)
 		result["moderatorLevel"] = int(result.get("moderatorLevel", 0)) + 5
 		result["choiceTimeBonus"] = float(result.get("choiceTimeBonus", 0.0)) + 1.0
 	elif effect == "revive":
@@ -379,7 +376,6 @@ static func build_effect_context_from_target(target: Node) -> Dictionary:
 		"playerMaxHp": target.get("player_max_hp"),
 		"playerHp": target.get("player_hp"),
 		"magnetRange": target.get("magnet_range"),
-		"ngStock": target.get("ng_stock"),
 		"heartStock": target.get("heart_stock"),
 		"heartPending": target.get("heart_pending"),
 		"giftHype": target.get("gift_hype"),
@@ -423,7 +419,6 @@ static func apply_effect_result_to_target(target: Node, result: Dictionary) -> v
 	target.set("player_max_hp", int(result["playerMaxHp"]))
 	target.set("player_hp", int(result["playerHp"]))
 	target.set("magnet_range", float(result["magnetRange"]))
-	target.set("ng_stock", int(result["ngStock"]))
 	target.set("heart_stock", int(result["heartStock"]))
 	target.set("heart_pending", bool(result["heartPending"]))
 	target.set("gift_hype", int(result["giftHype"]))
@@ -497,8 +492,6 @@ static func gift_level(id: String, context: Dictionary) -> int:
 		return int(context.get("playerMaxHp", 5)) - int(context.get("baseHp", 5))
 	if id == "exp_magnet":
 		return int(round((float(context.get("magnetRange", 95.0)) / 95.0 - 1.0) / 0.30))
-	if id == "ng_right":
-		return int(context.get("ngStock", 0))
 	if id == "heart_mark":
 		return int(context.get("heartUsedCount", 0)) + (1 if bool(context.get("heartPending", false)) else 0)
 	if id == "superchat_shot":

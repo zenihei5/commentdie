@@ -73,7 +73,7 @@ static func apply_damage_for_target(target: Node, source_text: String) -> Dictio
 		"ignored": false,
 		"revived": bool(result["revived"]),
 		"dead": dead,
-		"chat": "低評価回避！HP1で復帰" if bool(result["revived"]) else "",
+		"chat": "低評価回避！メンタル1で復帰" if bool(result["revived"]) else "",
 		"deathReason": death_text
 	}
 

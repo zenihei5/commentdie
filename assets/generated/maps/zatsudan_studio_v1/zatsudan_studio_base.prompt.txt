@@ -1,0 +1,1 @@
+Procedural fallback after image generation drifted into infographics. Prompt target: top-down 2D livestream studio arena, pastel tile floor, large LIVE monitor top wall, streaming desk bottom edge, side props, open combat center, no UI/characters/enemies/pickups. Runtime collidable tables are aligned with DrawDataSystem.static_wall_rects.

@@ -1,0 +1,5 @@
+generate2dmap trial result: rejected.
+
+The image generation model ignored the visible zatsudan studio map reference and produced an unrelated North Carolina aquarium infographic/poster. The output is archived as rejected_imagegen_output.png for traceability and was not integrated into the game.
+
+Recommended next pass: use the existing procedural zatsudan studio map as the runtime base, then generate only separate map props with generate2dsprite/generate2dmap prop-pack style: low tables, streamer desk, LIVE monitor, speaker set, ring light, camera tripod, shelf/plush set, rolled mats. This is more likely to preserve game-map layout and avoids the model drifting into poster/infographic composition.

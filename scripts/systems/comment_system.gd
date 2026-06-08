@@ -19,6 +19,10 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"lastCommentId": target.get("last_comment_id"),
 		"recentCategories": target.get("recent_comment_categories"),
 		"yesListener": target.get("yes_listener"),
+		"expLevel": target.get("exp_level"),
+		"bossRequested": target.get("boss_requested"),
+		"bossActive": target.get("boss_active"),
+		"bossSummonCount": target.get("boss_summon_count"),
 		"rng": rng
 	})
 
@@ -57,19 +61,18 @@ static func finish_choice_ui_for_target(target: Node, interval: float, choice_bo
 
 static func choose_comment_for_target(target: Node, index: int, rng: RandomNumberGenerator) -> Dictionary:
 	var offered_comments: Array = target.get("offered_comments") as Array
-	var ng_cards: Array = target.get("ng_cards") as Array
 	var heart_cards: Array = target.get("heart_cards") as Array
 	if index < 0 or index >= offered_comments.size():
-		return {"selected": false, "commentId": ""}
-	if index < ng_cards.size() and bool(ng_cards[index]):
 		return {"selected": false, "commentId": ""}
 	var comment: Dictionary = offered_comments[index] as Dictionary
 	var has_heart: bool = index < heart_cards.size() and bool(heart_cards[index])
 	var view: Dictionary = comment_view(comment, has_heart)
 	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng)
+	var modifier_feedback: Dictionary = result.get("feedback", {"chats": [], "toasts": []}) as Dictionary
 	return {
 		"selected": true,
-		"commentId": String(result["commentId"])
+		"commentId": String(result["commentId"]),
+		"feedback": modifier_feedback
 	}
 
 static func choose_comment_with_feedback_for_target(
@@ -94,8 +97,15 @@ static func choose_comment_with_feedback_for_target(
 	)
 	ModifierSystem.setup_stage_effects_for_target(target, arena, rng)
 	var chats: Array = feedback.get("chats", []) as Array
+	var modifier_feedback: Dictionary = result.get("feedback", {"chats": [], "toasts": []}) as Dictionary
+	for item in (modifier_feedback.get("chats", []) as Array):
+		chats.append(String(item))
 	chats.append(finish_choice_ui_for_target(target, interval, choice_box))
 	feedback["chats"] = chats
+	var toasts: Array = feedback.get("toasts", []) as Array
+	for item in (modifier_feedback.get("toasts", []) as Array):
+		toasts.append(String(item))
+	feedback["toasts"] = toasts
 	feedback["selected"] = true
 	return feedback
 
@@ -103,7 +113,7 @@ static func apply_forced_offer_to_target(target: Node, offer: Dictionary) -> boo
 	if offer.is_empty():
 		return false
 	target.set("offered_comments", offer["comments"] as Array)
-	target.set("ng_cards", _bool_cards(bool(offer["ngCard"]), 1))
+	target.set("ng_cards", _bool_cards(false, 1))
 	target.set("heart_cards", _bool_cards(bool(offer["heartCard"]), 1))
 	return true
 
@@ -119,7 +129,6 @@ static func build_forced_offer(comments: Array, id: String, has_heart: bool) -> 
 		if String(comment["id"]) == id:
 			return {
 				"comments": [comment],
-				"ngCard": false,
 				"heartCard": has_heart
 			}
 	return {}
@@ -142,12 +151,10 @@ static func comment_view(comment: Dictionary, has_heart: bool) -> Dictionary:
 		view["deathText"] = String(comment["deathText"]).replace(String(comment["displayName"]), display_name)
 	return view
 
-static func highest_multiplier_card(offered_comments: Array, ng_cards: Array, heart_cards: Array) -> int:
+static func highest_multiplier_card(offered_comments: Array, heart_cards: Array) -> int:
 	var best_index: int = 0
 	var best_multiplier: float = -1.0
 	for i in range(offered_comments.size()):
-		if i < ng_cards.size() and bool(ng_cards[i]):
-			continue
 		var comment: Dictionary = offered_comments[i] as Dictionary
 		var has_heart: bool = i < heart_cards.size() and bool(heart_cards[i])
 		var view: Dictionary = comment_view(comment, has_heart)
@@ -157,15 +164,8 @@ static func highest_multiplier_card(offered_comments: Array, ng_cards: Array, he
 			best_multiplier = multiplier
 	return best_index
 
-static func use_ng_for_target(target: Node) -> Dictionary:
-	var selected_card: int = int(target.get("selected_card"))
-	var ng_cards: Array = target.get("ng_cards") as Array
-	if int(target.get("ng_stock")) <= 0 or selected_card >= ng_cards.size() or bool(ng_cards[selected_card]):
-		return {"changed": false, "chat": ""}
-	target.set("ng_stock", int(target.get("ng_stock")) - 1)
-	target.set("ng_used_count", int(target.get("ng_used_count")) + 1)
-	ng_cards[selected_card] = true
-	return {"changed": true, "chat": "その指示コメ、NGで"}
+static func use_ng_for_target(_target: Node) -> Dictionary:
+	return {"changed": false, "chat": ""}
 
 static func update_choice_timer_for_target(target: Node, delta: float) -> Dictionary:
 	var timer: float = float(target.get("choice_timer")) - delta
@@ -193,18 +193,12 @@ static func update_choice_input_for_target(target: Node, delta: float, latch: Di
 	if ChoiceCardSystem.is_move(action):
 		target.set("selected_card", int(action["index"]))
 		refresh = true
-	elif Input.is_key_pressed(KEY_Q):
-		var ng_result: Dictionary = use_ng_for_target(target)
-		if bool(ng_result["changed"]):
-			chats.append(String(ng_result["chat"]))
-			refresh = true
 	elif ChoiceCardSystem.is_select(action):
 		choose_index = int(action["index"])
 	elif bool(timer_result["timedOut"]):
 		chats.append("指示コメに押し切られた！")
 		choose_index = highest_multiplier_card(
 			target.get("offered_comments") as Array,
-			target.get("ng_cards") as Array,
 			target.get("heart_cards") as Array
 		)
 	return {
@@ -243,6 +237,8 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 		var comment: Dictionary = item as Dictionary
 		if not _data_allowed_for_frame(frame, comment, "commentPoolTags"):
 			continue
+		if not _comment_allowed_for_context(comment, context, comment_time):
+			continue
 		if comment_time < float(comment["minTime"]):
 			continue
 		var risk: int = int(comment["riskLevel"])
@@ -267,12 +263,25 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 	if pool.is_empty():
 		for item in comments:
 			var fallback: Dictionary = item as Dictionary
-			if _data_allowed_for_frame(frame, fallback, "commentPoolTags") and comment_time >= float(fallback["minTime"]) and not used.has(fallback):
+			if _data_allowed_for_frame(frame, fallback, "commentPoolTags") and _comment_allowed_for_context(fallback, context, comment_time) and comment_time >= float(fallback["minTime"]) and not used.has(fallback):
 				pool.append(fallback)
 	if pool.is_empty():
 		return comments[0] as Dictionary
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+
+static func _comment_allowed_for_context(comment: Dictionary, context: Dictionary, comment_time: float) -> bool:
+	if String(comment.get("effectType", "")) != "summon_boss" and String(comment.get("id", "")) != "summon_boss":
+		return true
+	if comment_time < float(comment.get("minTime", 60.0)):
+		return false
+	if int(context.get("expLevel", 1)) < int(comment.get("requiredPlayerLevel", 3)):
+		return false
+	if int(context.get("bossSummonCount", 0)) >= int(comment.get("maxSelectCountPerRun", 1)):
+		return false
+	if bool(context.get("bossRequested", false)) or bool(context.get("bossActive", false)):
+		return false
+	return true
 
 static func _data_allowed_for_frame(frame: Dictionary, data: Dictionary, tag_key: String) -> bool:
 	var item_tags: Array = []

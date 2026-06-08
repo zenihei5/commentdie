@@ -1,6 +1,8 @@
 class_name DrawDataSystem
 extends RefCounted
 
+const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
+
 static func title_center() -> Vector2:
 	return Vector2(600, 390)
 
@@ -27,13 +29,13 @@ static func special_overlay_views(target: Node) -> Array[String]:
 	return views
 
 static func title_panel_rect() -> Rect2:
-	return Rect2(Vector2(245, 225), Vector2(710, 330))
+	return Rect2(Vector2(230, 150), Vector2(740, 560))
 
 static func character_select_panel_rect() -> Rect2:
 	return Rect2(Vector2(92, 96), Vector2(1040, 660))
 
 static func stream_frame_select_panel_rect() -> Rect2:
-	return Rect2(Vector2(165, 145), Vector2(890, 530))
+	return Rect2(Vector2(70, 88), Vector2(1130, 705))
 
 static func character_card_rect(panel: Rect2, index: int) -> Rect2:
 	var card_w := 300.0
@@ -41,19 +43,24 @@ static func character_card_rect(panel: Rect2, index: int) -> Rect2:
 	return Rect2(panel.position + Vector2(34 + index * (card_w + gap), 92), Vector2(card_w, 520))
 
 static func stream_frame_card_rect(panel: Rect2, index: int) -> Rect2:
-	return Rect2(panel.position + Vector2(42 + index * 420, 112), Vector2(380, 340))
+	var card_w := 340.0
+	var card_h := 250.0
+	var gap := 24.0
+	var col: int = index % 3
+	var row: int = int(index / 3)
+	return Rect2(panel.position + Vector2(36 + col * (card_w + gap), 98 + row * (card_h + gap)), Vector2(card_w, card_h))
 
 static func selection_panel_fill() -> Color:
-	return Color(0.025, 0.023, 0.04, 0.92)
+	return Color(0.985, 0.99, 1.0, 0.94)
 
 static func selection_panel_border() -> Color:
-	return Color("#8e36e8")
+	return Color("#ff79ad")
 
 static func selection_card_fill() -> Color:
-	return Color("#11131c")
+	return Color(1.0, 1.0, 1.0, 0.94)
 
 static func selection_card_border(selected: bool) -> Color:
-	return Color("#fff45c") if selected else Color("#49305f")
+	return Color("#ff4f92") if selected else Color("#b8d9ff")
 
 static func text_item(pos: Vector2, text: String, width: int, size: int, color: Color) -> Dictionary:
 	return {
@@ -93,16 +100,16 @@ static func selection_card_frame_data(card: Rect2, selected: bool) -> Dictionary
 static func title_panel_data() -> Dictionary:
 	return {
 		"rect": title_panel_rect(),
-		"fill": Color(0.03, 0.03, 0.06, 0.84),
+		"fill": Color(0.985, 0.99, 1.0, 0.92),
 		"border": selection_panel_border(),
 		"borderWidth": 5
 	}
 
-static func title_overlay_data(comment_barrage: String, screen_shake_enabled: bool) -> Dictionary:
+static func title_overlay_data(comment_barrage: String, screen_shake_enabled: bool, selected_index: int) -> Dictionary:
 	return {
 		"center": title_center(),
 		"panel": title_panel_data(),
-		"lines": DisplayTextSystem.title_lines(comment_barrage, screen_shake_enabled)
+		"lines": DisplayTextSystem.title_lines(comment_barrage, screen_shake_enabled, selected_index)
 	}
 
 static func title_overlay_parts(data: Dictionary) -> Array:
@@ -125,10 +132,10 @@ static func title_overlay_parts(data: Dictionary) -> Array:
 static func selection_header_data(panel: Rect2, help_offset: Vector2) -> Dictionary:
 	return {
 		"titlePos": panel.position + Vector2(38, 58),
-		"titleColor": Color("#fff45c"),
+		"titleColor": Color("#101420"),
 		"titleSize": 36,
 		"helpPos": panel.position + help_offset,
-		"helpColor": Color("#cfc7ff"),
+		"helpColor": Color("#e73763"),
 		"helpSize": 20
 	}
 
@@ -166,15 +173,15 @@ static func character_card_layout(card: Rect2, tex_size: Vector2) -> Dictionary:
 		"roleSize": 18,
 		"weaponPos": Vector2(text_x, card.position.y + 362),
 		"weaponSize": 18,
-		"weaponColor": Color.WHITE,
+		"weaponColor": Color("#1f2a3a"),
 		"passivePos": Vector2(text_x, card.position.y + 392),
 		"passiveSize": 18,
-		"passiveColor": Color.WHITE,
+		"passiveColor": Color("#1f2a3a"),
 		"descriptionPos": Vector2(text_x, card.position.y + 428),
 		"descriptionSize": 16,
 		"textWidth": text_w,
-		"roleColor": Color("#8df7ff"),
-		"descriptionColor": Color("#dcd7ff")
+		"roleColor": Color("#1576bc"),
+		"descriptionColor": Color("#36445c")
 	}
 
 static func character_card_text_items(view: Dictionary, layout: Dictionary) -> Array:
@@ -206,15 +213,15 @@ static func stream_frame_select_overlay_data(stream_frames: Array) -> Dictionary
 static func stream_frame_card_layout(card: Rect2) -> Dictionary:
 	var text_w: int = int(card.size.x - 48)
 	return {
-		"titlePos": card.position + Vector2(24, 50),
+		"titlePos": card.position + Vector2(24, 42),
 		"titleWidth": text_w,
-		"titleSize": 30,
-		"descriptionPos": card.position + Vector2(24, 105),
-		"descriptionSize": 19,
-		"difficultyPos": card.position + Vector2(24, 178),
-		"difficultySize": 22,
-		"featuresPos": card.position + Vector2(24, 222),
-		"featuresSize": 18,
+		"titleSize": 25,
+		"descriptionPos": card.position + Vector2(24, 88),
+		"descriptionSize": 16,
+		"difficultyPos": card.position + Vector2(24, 154),
+		"difficultySize": 19,
+		"featuresPos": card.position + Vector2(24, 194),
+		"featuresSize": 15,
 		"textWidth": text_w,
 		"descriptionColor": Color("#f3f0ff"),
 		"difficultyColor": Color("#fff45c"),
@@ -290,24 +297,80 @@ static func arena_background_parts(background: Dictionary) -> Array:
 	})
 	return parts
 
-static func banana_floor_data(arena: Rect2) -> Dictionary:
+static func banana_floor_data(arena: Rect2, rollback_progress: float = 0.0, appear_progress: float = 1.0) -> Dictionary:
+	var rollback := clampf(rollback_progress, 0.0, 1.0)
+	var appear := clampf(appear_progress, 0.0, 1.0)
+	if rollback >= 0.995:
+		return {}
+	var visible_start_x := arena.position.x
+	var visible_end_x := arena.end.x
+	var transition_mode := ""
+	var transition_progress := 1.0
+	var edge_x := arena.position.x
+	if rollback > 0.0:
+		visible_start_x = arena.position.x + arena.size.x * rollback
+		transition_mode = "rollback"
+		transition_progress = rollback
+		edge_x = visible_start_x
+	elif appear < 0.995:
+		visible_end_x = arena.position.x + arena.size.x * appear
+		transition_mode = "appear"
+		transition_progress = appear
+		edge_x = visible_end_x
+	var visible_width := maxf(0.0, visible_end_x - visible_start_x)
+	if visible_width <= 1.0:
+		return {}
 	var bananas: Array = []
-	for i in range(28):
-		bananas.append({"pos": Vector2(80 + fmod(float(i * 97), 1050.0), 80 + fmod(float(i * 59), 640.0))})
+	var banana_count: int = clampi(int(arena.size.x * arena.size.y / 26000.0), 48, 120)
+	var edge_fade_width := 150.0
+	for i in range(banana_count):
+		var fx: float = fmod(float(i * 173 + 41), 997.0) / 997.0
+		var fy: float = fmod(float(i * 251 + 83), 991.0) / 991.0
+		var pos := Vector2(
+			arena.position.x + 70.0 + fx * maxf(1.0, arena.size.x - 140.0),
+			arena.position.y + 70.0 + fy * maxf(1.0, arena.size.y - 140.0)
+		)
+		if pos.x < visible_start_x or pos.x > visible_end_x:
+			continue
+		var alpha := 1.0
+		if transition_mode == "rollback":
+			alpha = clampf((pos.x - visible_start_x) / edge_fade_width, 0.24, 1.0)
+		elif transition_mode == "appear":
+			alpha = clampf((visible_end_x - pos.x) / edge_fade_width, 0.24, 1.0)
+		bananas.append({
+			"pos": pos,
+			"size": 30.0 + fmod(float(i * 37), 18.0),
+			"rotation": fmod(float(i * 29), 628.0) / 100.0,
+			"alpha": alpha
+		})
 	return {
-		"overlayRect": arena,
-		"overlayColor": Color(1.0, 0.83, 0.08, 0.18),
+		"arenaRect": arena,
+		"overlayRect": Rect2(Vector2(visible_start_x, arena.position.y), Vector2(visible_width, arena.size.y)),
+		"overlayColor": Color(1.0, 0.78, 0.04, 0.26),
+		"rollbackProgress": rollback,
+		"appearProgress": appear,
+		"transitionMode": transition_mode,
+		"transitionProgress": transition_progress,
+		"edgeX": edge_x,
+		"rollX": edge_x,
 		"bananas": bananas,
-		"bananaColor": Color("#ffe24c")
+		"bananaTexturePath": "res://assets/generated/banana_floor_sprite_v1/banana.png",
+		"bananaColor": Color("#ffe03a"),
+		"bananaOutlineColor": Color(1.0, 0.53, 0.03, 0.62)
 	}
 
-static func arena_effect_data(arena: Rect2, has_banana_floor: bool, effect_pits: Array) -> Dictionary:
+static func arena_effect_data(arena: Rect2, has_banana_floor: bool, effect_pits: Array, banana_rollback_progress: float = 1.0, banana_appear_progress: float = 1.0) -> Dictionary:
 	var pits: Array = []
 	for pit in effect_pits:
 		var pit_item: Dictionary = pit as Dictionary
 		pits.append(pit_draw_data(Vector2(pit_item["pos"]), float(pit_item["radius"])))
+	var banana_data: Dictionary = {}
+	if has_banana_floor:
+		banana_data = banana_floor_data(arena, 0.0, banana_appear_progress)
+	elif banana_rollback_progress < 1.0:
+		banana_data = banana_floor_data(arena, banana_rollback_progress, 1.0)
 	return {
-		"bananaFloor": banana_floor_data(arena) if has_banana_floor else {},
+		"bananaFloor": banana_data,
 		"pits": pits
 	}
 
@@ -320,20 +383,25 @@ static func arena_effect_parts(arena_effects: Dictionary) -> Array:
 			parts.append({
 				"kind": "banana",
 				"data": banana as Dictionary,
-				"color": banana_data["bananaColor"] as Color
+				"texturePath": String(banana_data["bananaTexturePath"]),
+				"color": banana_data["bananaColor"] as Color,
+				"outlineColor": banana_data["bananaOutlineColor"] as Color
 			})
+		if String(banana_data.get("transitionMode", "")) != "":
+			parts.append({"kind": "banana_roll_edge", "data": banana_data})
 	for pit in (arena_effects["pits"] as Array):
-		parts.append({"kind": "circle_prefix", "data": pit as Dictionary, "prefix": "outer"})
-		parts.append({"kind": "circle_prefix", "data": pit as Dictionary, "prefix": "inner"})
+		parts.append({"kind": "pit_image", "data": pit as Dictionary})
 	return parts
 
-static func static_wall_rects() -> Array:
-	return [Rect2(310, 310, 210, 32), Rect2(320, 700, 260, 28), Rect2(840, 480, 210, 32)]
+static func static_wall_rects(frame_id: String = "zatsudan") -> Array:
+	var map_data: Dictionary = MapBackgroundSystemScript.background_data_for_stream_frame(frame_id)
+	return MapBackgroundSystemScript.static_wall_rects_for_data(map_data)
 
-static func arena_wall_draw_list(effect_walls: Array) -> Array:
+static func arena_wall_draw_list(effect_walls: Array, include_static_walls: bool = true) -> Array:
 	var walls: Array = []
-	for wall in static_wall_rects():
-		walls.append({"rect": wall, "temporary": false})
+	if include_static_walls:
+		for wall in static_wall_rects():
+			walls.append({"rect": wall, "temporary": false})
 	for wall in effect_walls:
 		walls.append({"rect": wall as Rect2, "temporary": true})
 	return walls
@@ -354,10 +422,10 @@ static func arena_wall_data(rect: Rect2, temporary: bool) -> Dictionary:
 		"shadowPos": rect.get_center() + (Vector2(7, 14) if temporary else Vector2(8, 16)),
 		"shadowSize": Vector2(rect.size.x, 22 if temporary else 24),
 		"shadowAlpha": 0.2 if temporary else 0.18,
-		"fillColor": Color("#7b6f7f") if temporary else Color("#746d75"),
+		"fillColor": Color("#7b6f7f") if temporary else Color("#d5c2b0"),
 		"topRect": Rect2(rect.position, Vector2(rect.size.x, top_height)),
-		"topColor": Color("#c0a5d8") if temporary else Color("#aaa1ad"),
-		"borderColor": Color("#241b2f") if temporary else Color("#2a2730"),
+		"topColor": Color("#c0a5d8") if temporary else Color("#f0deca"),
+		"borderColor": Color("#241b2f") if temporary else Color("#282437"),
 		"borderWidth": 4 if temporary else 3,
 		"seams": seams
 	}
@@ -394,6 +462,9 @@ static func pit_draw_data(pos: Vector2, radius: float) -> Dictionary:
 	return {
 		"pos": pos,
 		"radius": radius,
+		"texturePath": "res://assets/generated/damage_floor_sprite_v1/damage_floor.png",
+		"textureSize": Vector2(radius * 3.25, radius * 2.65),
+		"textureAlpha": 0.98,
 		"outerColor": Color("#241019"),
 		"innerRadius": radius * 0.65,
 		"innerColor": Color(1.0, 0.25, 0.37, 0.34)
@@ -514,19 +585,45 @@ static func horror_mask_parts(data: Dictionary, arena: Rect2) -> Array:
 	]
 
 static func metric_panel_style(rect: Rect2, accent: Color) -> Dictionary:
+	var label_pos: Vector2 = rect.position + Vector2(14, 18)
+	var value_pos: Vector2 = rect.position + Vector2(14, 42)
+	var value_width: int = int(rect.size.x - 22)
+	var label_size: int = 15
+	var value_size: int = 26
+	if rect.position.y >= 790.0:
+		label_pos = rect.position + Vector2(48, 17)
+		value_pos = rect.position + Vector2(48, 37)
+		value_width = int(rect.size.x - 58)
+		label_size = 14
+		value_size = 24
+		if rect.position.x >= 900.0:
+			label_pos = rect.position + Vector2(14, 17)
+			value_pos = rect.position + Vector2(14, 37)
+			value_width = int(rect.size.x - 22)
+		elif rect.position.x >= 780.0:
+			value_pos = rect.position + Vector2(48, 33)
+	elif rect.position.y < 120.0 and rect.position.x < 620.0:
+		label_pos = rect.position + Vector2(48, 17)
+		value_pos = rect.position + Vector2(48, 38)
+		value_width = int(rect.size.x - 58)
+		if rect.position.y >= 70.0:
+			label_pos = rect.position + Vector2(58, 17)
+			value_pos = rect.position + Vector2(58, 36)
+			value_width = int(rect.size.x - 68)
 	return {
 		"rect": rect,
-		"fill": Color("#11131c"),
-		"border": Color("#49305f"),
+		"fill": Color(0.98, 0.985, 1.0, 0.94),
+		"border": Color("#b8d9ff"),
 		"borderWidth": 3,
-		"accentRect": Rect2(rect.position, Vector2(5, rect.size.y)),
+		"accentRect": Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)),
 		"accent": accent,
-		"labelPos": rect.position + Vector2(14, 20),
-		"labelColor": Color("#cfc7ff"),
-		"labelSize": 15,
-		"valuePos": rect.position + Vector2(14, 48),
-		"valueWidth": int(rect.size.x - 22),
-		"valueSize": 26
+		"labelPos": label_pos,
+		"labelColor": Color("#1e2a3a"),
+		"labelSize": label_size,
+		"valuePos": value_pos,
+		"valueWidth": value_width,
+		"valueSize": value_size,
+		"valueColor": Color("#101420")
 	}
 
 static func metric_panel_draw_data(rect: Rect2, label: String, value: String, accent: Color) -> Dictionary:
@@ -546,43 +643,59 @@ static func format_viewer_count(value: int) -> String:
 static func hud_frame_data(side: Rect2, hud: Rect2, viewer_count: int) -> Dictionary:
 	return {
 		"sideRect": side,
-		"sideFill": Color("#080910"),
-		"sideBorder": Color("#8e36e8"),
+		"sideFill": Color(0.985, 0.99, 1.0, 0.94),
+		"sideBorder": Color("#ff6fa8"),
 		"sideBorderWidth": 4,
 		"sideDividerStart": Vector2(side.position.x + 20, side.position.y + 48),
 		"sideDividerEnd": Vector2(side.end.x - 20, side.position.y + 48),
-		"sideDividerColor": Color("#6f627e"),
+		"sideDividerColor": Color("#d5e6ff"),
 		"sideDividerWidth": 2,
 		"viewerPos": Vector2(1382, 143),
-		"viewerText": format_viewer_count(viewer_count) + "人",
+		"viewerText": "",
 		"viewerSize": 24,
-		"viewerColor": Color.WHITE,
+		"viewerColor": Color("#ff4f92"),
 		"hudRect": hud,
-		"hudFill": Color("#080910"),
-		"hudBorder": Color("#49305f"),
+		"hudFill": Color(0.985, 0.99, 1.0, 0.94),
+		"hudBorder": Color("#b8d9ff"),
 		"hudBorderWidth": 4
 	}
 
-static func hud_metric_specs(comment_alert: bool) -> Array:
-	var comment_color: Color = Color("#ff4b68") if comment_alert else Color("#8df7ff")
-	return [
-		{"key": "hp", "rect": Rect2(34, 806, 154, 58), "label": "HP", "accent": Color("#ff4b68")},
-		{"key": "time", "rect": Rect2(200, 806, 160, 58), "label": "残り", "accent": Color("#fff45c")},
-		{"key": "multiplier", "rect": Rect2(372, 806, 156, 58), "label": "ボルテージ", "accent": Color("#b768ff")},
-		{"key": "burn", "rect": Rect2(540, 806, 156, 58), "label": "炎上", "accent": Color("#ff8a31")},
-		{"key": "hype", "rect": Rect2(708, 806, 210, 58), "label": "期待度", "accent": Color("#ff5a78")},
-		{"key": "ng", "rect": Rect2(930, 806, 70, 58), "label": "NG", "accent": Color("#8df7ff")},
-		{"key": "heart", "rect": Rect2(1008, 806, 66, 58), "label": "♡", "accent": Color("#ff91c8")},
-		{"key": "nextComment", "rect": Rect2(1086, 806, 150, 58), "label": "次コメ", "accent": comment_color},
-		{"key": "currentComment", "rect": Rect2(1248, 806, 308, 58), "label": "現在", "accent": Color("#f3f0ff")}
+static func hud_metric_specs(comment_alert: bool, _burn_combo: int, _heart_pending: bool) -> Array:
+	var items: Array = [
+		{"key": "time", "rect": Rect2(34, 22, 170, 46), "label": "残り", "accent": Color("#fff45c")},
+		{"key": "streamFrame", "rect": Rect2(214, 22, 185, 46), "label": "配信枠", "accent": Color("#8df7ff")},
+		{"key": "multiplier", "rect": Rect2(410, 22, 210, 46), "label": "ボルテージ", "accent": Color("#ff8a31")}
 	]
+	items.append({"key": "burn", "rect": Rect2(630, 22, 168, 46), "label": "炎上コンボ", "accent": Color("#ff4b68")})
+	var next_rect := Rect2(808, 22, 322, 46)
+	items.append({
+		"key": "nextInstruction",
+		"rect": next_rect,
+		"label": "WARNING" if comment_alert else "次の指示コメ",
+		"accent": Color("#ff4b68") if comment_alert else Color("#8df7ff")
+	})
+	items.append({"key": "currentComment", "rect": Rect2(34, 74, 764, 42), "label": "現在の指示コメ", "accent": Color("#f3f0ff")})
+	items.append_array([
+		{"key": "hp", "rect": Rect2(34, 804, 166, 46), "label": "メンタル", "accent": Color("#4ade80")},
+		{"key": "viewer", "rect": Rect2(212, 804, 276, 46), "label": "同時視聴者数", "accent": Color("#8df7ff")},
+		{"key": "hype", "rect": Rect2(500, 804, 168, 46), "label": "ギフト期待度", "accent": Color("#ff5a78")}
+	])
+	items.append({"key": "heart", "rect": Rect2(680, 804, 230, 46), "label": "", "accent": Color("#ff91c8")})
+	return items
 
-static func hud_metric_draw_data(metric_values: Dictionary, comment_alert: bool) -> Array:
+static func hud_metric_draw_data(metric_values: Dictionary, comment_alert: bool, burn_combo: int, heart_pending: bool) -> Array:
 	var items: Array = []
-	for spec in hud_metric_specs(comment_alert):
+	for spec in hud_metric_specs(comment_alert, burn_combo, heart_pending):
 		var item: Dictionary = spec as Dictionary
 		var key: String = String(item["key"])
-		items.append(metric_panel_draw_data(item["rect"] as Rect2, String(item["label"]), String(metric_values[key]), item["accent"] as Color))
+		var metric: Dictionary = metric_panel_draw_data(item["rect"] as Rect2, String(item["label"]), String(metric_values[key]), item["accent"] as Color)
+		if (metric["rect"] as Rect2).position.y >= 790.0:
+			metric["valueColor"] = Color("#101420")
+			if key == "hp":
+				metric["labelPos"] = (metric["rect"] as Rect2).position + Vector2(16, 17)
+				metric["valuePos"] = (metric["rect"] as Rect2).position + Vector2(16, 37)
+				metric["valueWidth"] = int((metric["rect"] as Rect2).size.x - 28)
+		items.append(metric)
 	return items
 
 static func hp_ratio(hp: int, max_hp: int) -> float:
@@ -603,18 +716,24 @@ static func visual_hp_ratio(hp: int, max_hp: int, hide_hp: bool, elapsed: float)
 static func hud_value_data(context: Dictionary) -> Dictionary:
 	var remaining: int = maxi(0, int(ceil(float(context["runLength"]) - float(context["elapsed"]))))
 	var exp_need: int = maxi(1, int(context["expNeed"]))
-	var hp_text: String = "??" if bool(context["hideHp"]) else ""
+	var hp_text: String = "？？/？？" if bool(context["hideHp"]) else "%d/%d" % [int(context["playerHp"]), int(context["playerMaxHp"])]
+	var current_comment_text: String = String(context["currentComment"])
+	if current_comment_text.strip_edges() == "" or current_comment_text == "なし":
+		current_comment_text = "なし"
+	else:
+		current_comment_text += "　%02d秒" % maxi(0, int(ceil(float(context.get("effectTimer", 0.0)))))
 	return {
 		"metrics": {
 			"hp": hp_text,
 			"time": "%02d:%02d" % [remaining / 60, remaining % 60],
+			"streamFrame": String(context.get("streamFrameName", "雑談枠")),
 			"multiplier": "x%.1f" % float(context["multiplier"]),
-			"burn": str(int(context["burnCombo"])),
+			"burn": "%d" % int(context["burnCombo"]),
 			"hype": "%d%%" % int(context["giftHype"]),
-			"ng": "x%d" % int(context["ngStock"]),
-			"heart": "待機" if bool(context["heartPending"]) else "-",
-			"nextComment": "%.1fs" % maxf(0.0, float(context["commentTimer"])),
-			"currentComment": String(context["currentComment"])
+			"heart": "待機中" if bool(context["heartPending"]) else "なし",
+			"viewer": "%s人が視聴中" % format_viewer_count(int(context.get("score", 0))),
+			"currentComment": current_comment_text,
+			"nextInstruction": "あと %.1fs" % maxf(0.0, float(context.get("commentTimer", 0.0)))
 		},
 		"expRatio": float(context["expValue"]) / float(exp_need),
 		"hypeRatio": float(context["giftHype"]) / 100.0,
@@ -622,44 +741,81 @@ static func hud_value_data(context: Dictionary) -> Dictionary:
 		"hideHp": bool(context["hideHp"])
 	}
 
-static func hud_gauge_data(exp_ratio: float, hype_ratio: float, hp_value_ratio: float) -> Array:
+static func hud_gauge_data(exp_ratio: float, hype_ratio: float, _hp_value_ratio: float) -> Array:
 	var gauges: Array = []
-	gauges.append({
-		"label": "",
-		"backRect": Rect2(Vector2(54, 842), Vector2(112, 11)),
-		"fillRect": Rect2(Vector2(54, 842), Vector2(112 * hp_value_ratio, 11)),
-		"backColor": Color("#10261a"),
-		"fillColor": Color("#4ade80"),
-		"labelPos": Vector2(54, 858),
-		"labelColor": Color("#a7f3c4"),
-		"labelWidth": -1,
-		"labelSize": 12
-	})
 	gauges.append_array([
 		{
 			"label": "EXP",
-			"backRect": Rect2(Vector2(34, 872), Vector2(360, 6)),
-			"fillRect": Rect2(Vector2(34, 872), Vector2(360 * exp_ratio, 6)),
-			"backColor": Color("#203047"),
+			"backRect": Rect2(Vector2(34, 862), Vector2(360, 8)),
+			"fillRect": Rect2(Vector2(34, 862), Vector2(360 * exp_ratio, 8)),
+			"backColor": Color("#d8ecff"),
 			"fillColor": Color("#24a8ff"),
-			"labelPos": Vector2(34, 888),
-			"labelColor": Color("#7cdcff"),
+			"labelPos": Vector2(34, 884),
+			"labelColor": Color("#1576bc"),
 			"labelWidth": -1,
 			"labelSize": 14
 		},
 		{
 			"label": "ギフト期待度",
-			"backRect": Rect2(Vector2(430, 872), Vector2(260, 6)),
-			"fillRect": Rect2(Vector2(430, 872), Vector2(260 * hype_ratio, 6)),
-			"backColor": Color("#40202a"),
-			"fillColor": Color("#ff5a78"),
-			"labelPos": Vector2(430, 888),
-			"labelColor": Color("#ff91aa"),
+			"backRect": Rect2(Vector2(430, 862), Vector2(280, 8)),
+			"fillRect": Rect2(Vector2(430, 862), Vector2(280 * hype_ratio, 8)),
+			"backColor": Color("#ffe1eb"),
+			"fillColor": gift_hype_color(hype_ratio),
+			"labelPos": Vector2(430, 884),
+			"labelColor": Color("#e33e78"),
 			"labelWidth": -1,
 			"labelSize": 14
 		}
 	])
 	return gauges
+
+static func gift_hype_color(hype_ratio: float) -> Color:
+	if hype_ratio >= 0.9:
+		return Color("#fff45c")
+	if hype_ratio >= 0.7:
+		return Color("#ffcf5a")
+	if hype_ratio >= 0.4:
+		return Color("#ff91aa")
+	return Color("#ff5a78")
+
+static func equipment_icon(id: String, is_weapon: bool) -> String:
+	var icons: Dictionary = {
+		"ban_hammer": "鎚",
+		"superchat_shot": "弾",
+		"comment_boomerang": "ブ",
+		"mic_barrier": "マ",
+		"spotlight": "光",
+		"kusa_wave": "草",
+		"comment_pin": "ピ",
+		"emote_mine": "雷",
+		"ng_word_laser": "NG",
+		"listener_summon": "聴",
+		"stream_power": "力",
+		"bullet_support": "援",
+		"high_speed_connection": "速",
+		"wide_angle": "広",
+		"light_sneakers": "靴",
+		"sweet_tooth": "甘"
+	}
+	return String(icons.get(id, "武" if is_weapon else "ア"))
+
+static func equipment_slot_text(items: Array, max_slots: int, is_weapon: bool) -> String:
+	var chunks: Array[String] = []
+	for i in range(max_slots):
+		if i >= items.size():
+			chunks.append("[空]")
+			continue
+		var entry: Dictionary = items[i] as Dictionary
+		var id: String = String(entry.get("id", ""))
+		chunks.append("[%s%d]" % [equipment_icon(id, is_weapon), int(entry.get("level", 1))])
+	return "".join(chunks)
+
+static func hud_equipment_draw_data(context: Dictionary) -> Array:
+	var weapon_panel: Dictionary = metric_panel_draw_data(Rect2(920, 804, 266, 46), "武器", "", Color("#fff45c"))
+	var accessory_panel: Dictionary = metric_panel_draw_data(Rect2(1198, 804, 332, 46), "アクセ", "", Color("#8df7ff"))
+	weapon_panel["valueSize"] = 19
+	accessory_panel["valueSize"] = 19
+	return [weapon_panel, accessory_panel]
 
 static func hud_gauge_draw_data(hud_values: Dictionary) -> Array:
 	return hud_gauge_data(float(hud_values["expRatio"]), float(hud_values["hypeRatio"]), float(hud_values["hpRatio"]))
@@ -670,6 +826,12 @@ static func hud_metric_parts() -> Array:
 		{"kind": "rect_keys", "rectKey": "accentRect", "colorKey": "accent"},
 		{"kind": "text", "prefix": "label"},
 		{"kind": "text", "prefix": "value", "colorKey": "accent"}
+	]
+
+static func hud_metric_text_parts() -> Array:
+	return [
+		{"kind": "text", "prefix": "label"},
+		{"kind": "text", "prefix": "value"}
 	]
 
 static func hud_gauge_parts() -> Array:
@@ -683,8 +845,9 @@ static func hud_draw_data(side: Rect2, hud: Rect2, context: Dictionary) -> Dicti
 	var metric_values: Dictionary = values["metrics"] as Dictionary
 	return {
 		"frame": hud_frame_data(side, hud, int(context.get("score", 0))),
-		"metrics": hud_metric_draw_data(metric_values, float(context["commentTimer"]) <= 5.0),
-		"gauges": hud_gauge_draw_data(values)
+		"metrics": hud_metric_draw_data(metric_values, float(context["commentTimer"]) <= 5.0, int(context["burnCombo"]), bool(context["heartPending"])),
+		"gauges": hud_gauge_draw_data(values),
+		"equipment": hud_equipment_draw_data(context)
 	}
 
 static func comment_countdown_data(left: float, interval: float, elapsed_time: float) -> Dictionary:
@@ -736,7 +899,41 @@ static func comment_countdown_parts(data: Dictionary) -> Array:
 		parts.append({"kind": "text", "prefix": "warning", "alignment": HORIZONTAL_ALIGNMENT_LEFT})
 	return parts
 
-static func choice_backplate_data() -> Dictionary:
+static func choice_backplate_data(state: String = "") -> Dictionary:
+	if state == "gift_choice":
+		var gift_rect: Rect2 = Rect2(Vector2(270, 160), Vector2(890, 500))
+		return {
+			"rect": gift_rect,
+			"imagePath": "res://assets/generated/ui_parts_v1/gift_choice_panel.png",
+			"textBaked": true,
+			"fill": Color(1.0, 0.985, 0.995, 0.94),
+			"border": Color("#ff5a9a"),
+			"borderWidth": 5,
+			"title": "ギフトが届いた！",
+			"subtitle": "どれを受け取る？",
+			"titlePos": gift_rect.position + Vector2(200, 58),
+			"titleWidth": 500,
+			"titleSize": 40,
+			"titleColor": Color("#e73763"),
+			"subtitlePos": gift_rect.position + Vector2(332, 108),
+			"subtitleWidth": 260,
+			"subtitleSize": 24,
+			"subtitleColor": Color("#101420"),
+			"help": "1 / 2 / 3 で選択",
+			"helpPos": gift_rect.position + Vector2(352, 490),
+			"helpWidth": 260,
+			"helpSize": 16,
+			"helpColor": Color("#36445c")
+		}
+	if state == "comment_choice":
+		return {
+			"rect": Rect2(Vector2(270, 145), Vector2(930, 560)),
+			"imagePath": "res://assets/generated/ui_parts_v1/comment_choice_panel.png",
+			"textBaked": true,
+			"fill": Color(0.02, 0.0, 0.0, 0.76),
+			"border": Color("#ff2a2a"),
+			"borderWidth": 4
+		}
 	var rect: Rect2 = Rect2(Vector2(430, 126), Vector2(790, 365))
 	return {
 		"rect": rect,
@@ -744,6 +941,15 @@ static func choice_backplate_data() -> Dictionary:
 		"border": Color("#5b2b88"),
 		"borderWidth": 4
 	}
+
+static func choice_backplate_text_parts(data: Dictionary) -> Array:
+	var parts: Array = []
+	if bool(data.get("textBaked", false)):
+		return parts
+	for prefix in ["title", "subtitle", "help"]:
+		if data.has(prefix):
+			parts.append({"kind": "text", "prefix": prefix, "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+	return parts
 
 static func tutorial_overlay_data() -> Dictionary:
 	return {
@@ -893,7 +1099,15 @@ static func player_sprite_state(
 	draw_data["texture"] = draw_sprite
 	draw_data["sourceRect"] = source_rect
 	draw_data["tilt"] = tilt
-	draw_data["flipX"] = (player_vel.x < -18.0) if uses_run_sheet else player_facing_x < -0.1
+	if uses_run_sheet:
+		if player_vel.x < -18.0:
+			draw_data["flipX"] = true
+		elif player_vel.x > 18.0:
+			draw_data["flipX"] = false
+		else:
+			draw_data["flipX"] = player_facing_x < -0.1
+	else:
+		draw_data["flipX"] = player_facing_x < -0.1
 	return draw_data
 
 static func fallback_player_color(character_id: String, invincible: bool) -> Color:
@@ -1005,6 +1219,10 @@ static func enemy_color(kind: String) -> Color:
 		return Color("#f8f1ff")
 	if kind == "ghost_comment":
 		return Color(0.72, 0.88, 1.0, 0.68)
+	if kind == "boss_super_long_comment":
+		return Color("#332255")
+	if kind == "boss_kuso_maro_king":
+		return Color("#5b294f")
 	return Color("#7650bd")
 
 static func enemy_shadow_data(pos: Vector2, radius: float) -> Dictionary:
@@ -1014,7 +1232,37 @@ static func enemy_shadow_data(pos: Vector2, radius: float) -> Dictionary:
 		"alpha": 0.25
 	}
 
+static func enemy_sprite_path(kind: String) -> String:
+	if kind == "troll":
+		return "res://assets/generated/enemy_sprites_v1/troll.png"
+	if kind == "fast":
+		return "res://assets/generated/enemy_sprites_v1/rapid_poster.png"
+	if kind == "shooter":
+		return "res://assets/generated/enemy_sprites_v1/backseat_commenter.png"
+	if kind == "long_comment_guy":
+		return "res://assets/generated/enemy_sprites_v1/long_comment_guy.png"
+	if kind == "clipper":
+		return "res://assets/generated/enemy_sprites_v1/clipper.png"
+	if kind == "unread_maro":
+		return "res://assets/generated/enemy_sprites_v1/unread_maro.png"
+	if kind == "ghost_comment":
+		return "res://assets/generated/enemy_sprites_v1/ghost_comment.png"
+	if kind == "boss_super_long_comment":
+		return "res://assets/generated/enemy_sprites_v1/super_long_comment_boss.png"
+	if kind == "boss_kuso_maro_king":
+		return "res://assets/generated/enemy_sprites_v1/kuso_maro_king.png"
+	return ""
+
 static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color) -> Dictionary:
+	var sprite_path: String = enemy_sprite_path(kind)
+	if sprite_path != "":
+		var size: Vector2 = Vector2(radius * 4.35, radius * 4.35)
+		return {
+			"kind": "sprite",
+			"texturePath": sprite_path,
+			"rect": Rect2(pos - size * 0.5 + Vector2(0, -radius * 0.08), size),
+			"modulate": Color.WHITE
+		}
 	if kind == "long_comment_guy":
 		var body: Rect2 = Rect2(pos - Vector2(radius * 1.35, radius * 0.65), Vector2(radius * 2.7, radius * 1.3))
 		return {
@@ -1025,6 +1273,25 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 			"color": color,
 			"topRect": Rect2(body.position, Vector2(body.size.x, 8)),
 			"topColor": Color("#a29273")
+		}
+	if kind == "boss_super_long_comment":
+		var boss_body: Rect2 = Rect2(pos - Vector2(radius * 1.55, radius * 0.90), Vector2(radius * 3.10, radius * 1.80))
+		return {
+			"kind": "boss_long",
+			"rect": boss_body,
+			"shadowRect": boss_body.grow(8),
+			"shadowColor": Color("#100916"),
+			"color": color,
+			"topRect": Rect2(boss_body.position, Vector2(boss_body.size.x, 13)),
+			"topColor": Color("#5f3da0"),
+			"motif1Rect": Rect2(boss_body.position + Vector2(radius * 0.24, radius * 0.42), Vector2(radius * 0.88, 7)),
+			"motif1Color": Color("#8b6be0"),
+			"motif2Rect": Rect2(boss_body.position + Vector2(radius * 1.30, radius * 0.68), Vector2(radius * 1.10, 7)),
+			"motif2Color": Color("#b08cff"),
+			"motif3Rect": Rect2(boss_body.position + Vector2(radius * 0.50, radius * 1.04), Vector2(radius * 0.72, 7)),
+			"motif3Color": Color("#7250c0"),
+			"motif4Rect": Rect2(boss_body.position + Vector2(radius * 1.58, radius * 1.20), Vector2(radius * 0.82, 7)),
+			"motif4Color": Color("#c1adff")
 		}
 	if kind == "clipper":
 		var cam: Rect2 = Rect2(pos - Vector2(radius * 1.0, radius * 0.72), Vector2(radius * 2.0, radius * 1.44))
@@ -1077,19 +1344,48 @@ static func enemy_hp_bar_data(pos: Vector2, radius: float, hp: float, max_hp: fl
 		"labelColor": Color.WHITE
 	}
 
+static func speech_bubble_data(pos: Vector2, text: String, y_offset: float, width: float = 118.0) -> Dictionary:
+	var clean_text: String = text.strip_edges()
+	if clean_text == "":
+		return {}
+	if clean_text.length() > 12:
+		clean_text = clean_text.substr(0, 12)
+	var height: float = 30.0
+	var rect := Rect2(pos + Vector2(-width * 0.5, y_offset), Vector2(width, height))
+	var tail_tip: Vector2 = pos + Vector2(0.0, y_offset + height + 9.0)
+	var tail := PackedVector2Array([
+		rect.position + Vector2(width * 0.43, height - 1.0),
+		rect.position + Vector2(width * 0.57, height - 1.0),
+		tail_tip
+	])
+	return {
+		"rect": rect,
+		"tail": tail,
+		"fill": Color(1.0, 1.0, 0.96, 0.92),
+		"border": Color("#4b5563"),
+		"borderWidth": 2,
+		"text": clean_text,
+		"pos": rect.position + Vector2(9.0, 21.0),
+		"width": int(width - 18.0),
+		"size": 14,
+		"color": Color("#1f2937")
+	}
+
 static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var kind: String = String(enemy["kind"])
 	var pos: Vector2 = Vector2(enemy["pos"])
 	var radius: float = float(enemy["radius"])
 	var color: Color = enemy_color(kind)
+	var speech_text: String = String(enemy.get("speechText", ""))
 	return {
 		"kind": kind,
 		"pos": pos,
 		"radius": radius,
 		"shadow": enemy_shadow_data(pos, radius),
 		"body": enemy_body_data(kind, pos, radius, color),
-		"face": {} if kind == "long_comment_guy" else enemy_face_data(pos),
-		"bar": enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"]))
+		"face": {} if kind == "long_comment_guy" or kind == "boss_super_long_comment" or enemy_sprite_path(kind) != "" else enemy_face_data(pos),
+		"bar": enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"])),
+		"speech": speech_bubble_data(pos, speech_text, -radius - 54.0)
 	}
 
 static func enemy_face_parts() -> Array:
@@ -1128,11 +1424,25 @@ static func player_hp_bar_parts() -> Array:
 
 static func enemy_body_parts(body: Dictionary) -> Array:
 	var body_kind: String = String(body["kind"])
+	if body_kind == "sprite":
+		return [
+			{"kind": "sprite"}
+		]
 	if body_kind == "long":
 		return [
 			{"kind": "rect", "prefix": "shadow"},
 			{"kind": "rect", "prefix": ""},
 			{"kind": "rect", "prefix": "top"}
+		]
+	if body_kind == "boss_long":
+		return [
+			{"kind": "rect", "prefix": "shadow"},
+			{"kind": "rect", "prefix": ""},
+			{"kind": "rect", "prefix": "top"},
+			{"kind": "rect", "prefix": "motif1"},
+			{"kind": "rect", "prefix": "motif2"},
+			{"kind": "rect", "prefix": "motif3"},
+			{"kind": "rect", "prefix": "motif4"}
 		]
 	if body_kind == "clipper":
 		return [
@@ -1155,74 +1465,102 @@ static func enemy_draw_parts(enemy_draw: Dictionary) -> Array:
 	var bar: Dictionary = enemy_draw["bar"] as Dictionary
 	bar["label"] = DisplayTextSystem.enemy_display_name(String(enemy_draw["kind"]))
 	parts.append({"kind": "bar", "data": bar})
+	if not (enemy_draw["speech"] as Dictionary).is_empty():
+		parts.append({"kind": "speech", "data": enemy_draw["speech"] as Dictionary})
 	return parts
 
-static func exp_orb_data(base_pos: Vector2, elapsed_time: float) -> Dictionary:
+static func exp_orb_data(base_pos: Vector2, elapsed_time: float, value: int = 1, visual_type: String = "small_blue") -> Dictionary:
 	var pos: Vector2 = base_pos
 	pos.y += sin(elapsed_time * 8.0 + pos.x * 0.05) * 2.0
+	var radius_x := 11.0
+	var radius_y := 13.0
+	var shadow_size := Vector2(22, 7)
+	var colors := PackedColorArray([Color("#5ad7ff"), Color("#24a8ff"), Color("#116bce"), Color("#82f0ff")])
+	if value >= 10 or visual_type == "gold_rainbow":
+		radius_x = 18.0
+		radius_y = 21.0
+		shadow_size = Vector2(34, 10)
+		colors = PackedColorArray([Color("#fff36b"), Color("#ffbc2e"), Color("#ff6fd8"), Color("#8ef7ff")])
+	elif value >= 4 or visual_type == "large_blue" or visual_type == "large_red":
+		radius_x = 16.0
+		radius_y = 18.0
+		shadow_size = Vector2(30, 9)
+		colors = PackedColorArray([Color("#ff9a86"), Color("#ff3f4f"), Color("#b8142a"), Color("#ffd0bf")])
+	elif value >= 2 or visual_type == "medium_blue" or visual_type == "medium_green":
+		radius_x = 13.5
+		radius_y = 16.0
+		shadow_size = Vector2(26, 8)
+		colors = PackedColorArray([Color("#b7ff8a"), Color("#4fe35f"), Color("#159b39"), Color("#e2ffd0")])
 	var diamond := PackedVector2Array([
-		pos + Vector2(0, -13),
-		pos + Vector2(11, 0),
-		pos + Vector2(0, 13),
-		pos + Vector2(-11, 0)
+		pos + Vector2(0, -radius_y),
+		pos + Vector2(radius_x, 0),
+		pos + Vector2(0, radius_y),
+		pos + Vector2(-radius_x, 0)
 	])
 	return {
 		"pos": pos,
 		"shadowPos": pos + Vector2(0, 12),
-		"shadowSize": Vector2(22, 7),
+		"shadowSize": shadow_size,
 		"shadowAlpha": 0.16,
 		"diamond": diamond,
-		"colors": PackedColorArray([Color("#5ad7ff"), Color("#24a8ff"), Color("#116bce"), Color("#82f0ff")]),
+		"colors": colors,
 		"outline": PackedVector2Array([diamond[0], diamond[1], diamond[2], diamond[3], diamond[0]]),
 		"outlineColor": Color.WHITE,
-		"outlineWidth": 2.0,
-		"label": "EXP",
-		"labelPos": pos + Vector2(-13, 4),
-		"labelWidth": -1,
-		"labelSize": 8,
-		"labelColor": Color.WHITE
+		"outlineWidth": 2.0
 	}
 
 static func exp_orbs_draw_data(exp_orbs: Array, elapsed_time: float) -> Array:
 	var items: Array = []
 	for orb in exp_orbs:
 		var orb_item: Dictionary = orb as Dictionary
-		items.append(exp_orb_data(Vector2(orb_item["pos"]), elapsed_time))
+		items.append(exp_orb_data(
+			Vector2(orb_item["pos"]),
+			elapsed_time,
+			int(orb_item.get("value", 1)),
+			String(orb_item.get("visualType", "small_blue"))
+		))
 	return items
 
 static func exp_orb_parts() -> Array:
 	return [
 		{"kind": "shadow"},
 		{"kind": "polygon", "pointsKey": "diamond", "colorsKey": "colors"},
-		{"kind": "polyline", "pointsKey": "outline", "colorKey": "outlineColor", "widthKey": "outlineWidth"},
-		{"kind": "text", "prefix": "label"}
+		{"kind": "polyline", "pointsKey": "outline", "colorKey": "outlineColor", "widthKey": "outlineWidth"}
 	]
 
 static func marshmallow_visual(visual_type: String) -> Dictionary:
 	var radius: float = 20.0
 	var color: Color = Color("#fff7ef")
+	var image_path: String = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_normal_white.png"
 	if visual_type == "pink_heart":
 		color = Color("#ffd4e6")
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_pink_heart.png"
 	elif visual_type == "cream_star":
 		color = Color("#fff0b8")
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_cream_star.png"
 	elif visual_type == "gold_rainbow":
 		color = Color("#ffe66d")
 		radius = 24.0
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_gold_rainbow.png"
 	elif visual_type == "gray_bad":
 		color = Color("#8a8488")
 		radius = 19.0
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_gray_bad.png"
 	elif visual_type == "purple_smoke":
 		color = Color("#7750a0")
 		radius = 19.0
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_purple_smoke.png"
 	elif visual_type == "green_bad":
 		color = Color("#7ba66a")
 		radius = 19.0
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_green_bad.png"
 	elif visual_type == "burnt_bad":
 		color = Color("#332025")
 		radius = 20.0
-	return {"color": color, "radius": radius}
+		image_path = "res://assets/generated/field_pickup_icons_v1/icons/marshmallow_burnt_bad.png"
+	return {"color": color, "radius": radius, "imagePath": image_path}
 
-static func marshmallow_draw_data(base_pos: Vector2, item_data: Dictionary, time_left: float, elapsed_time: float, appraisal: bool) -> Dictionary:
+static func marshmallow_draw_data(base_pos: Vector2, item_data: Dictionary, time_left: float, elapsed_time: float, appraisal: bool, speech_text: String = "") -> Dictionary:
 	var visual_type: String = String(item_data.get("visualType", "normal_white"))
 	var visual: Dictionary = marshmallow_visual(visual_type)
 	var radius: float = float(visual["radius"])
@@ -1235,6 +1573,8 @@ static func marshmallow_draw_data(base_pos: Vector2, item_data: Dictionary, time
 		"pos": pos,
 		"radius": radius,
 		"color": visual["color"] as Color,
+		"imagePath": String(visual.get("imagePath", "")),
+		"imageSize": Vector2((radius + 12.0) * 2.0, (radius + 12.0) * 2.0),
 		"isBad": is_bad,
 		"isGod": is_god,
 		"badAuraPos": pos + Vector2(4, -4),
@@ -1272,7 +1612,8 @@ static func marshmallow_draw_data(base_pos: Vector2, item_data: Dictionary, time
 		"timePos": pos + Vector2(-18, 38),
 		"timeColor": Color("#cfc7ff"),
 		"timeSize": 14,
-		"timeWidth": -1
+		"timeWidth": -1,
+		"speech": speech_bubble_data(pos, speech_text, -72.0, 112.0)
 	}
 
 static func marshmallow_draw_list(marshmallows: Array, elapsed_time: float, appraisal: bool) -> Array:
@@ -1280,7 +1621,7 @@ static func marshmallow_draw_list(marshmallows: Array, elapsed_time: float, appr
 	for item in marshmallows:
 		var mallow: Dictionary = item as Dictionary
 		var data: Dictionary = mallow["data"] as Dictionary
-		items.append(marshmallow_draw_data(Vector2(mallow["pos"]), data, float(mallow["time"]), elapsed_time, appraisal))
+		items.append(marshmallow_draw_data(Vector2(mallow["pos"]), data, float(mallow["time"]), elapsed_time, appraisal, String(mallow.get("speechText", ""))))
 	return items
 
 static func marshmallow_parts(visual: Dictionary) -> Array:
@@ -1301,6 +1642,8 @@ static func marshmallow_parts(visual: Dictionary) -> Array:
 		parts.append({"kind": "text", "prefix": "warning"})
 	parts.append({"kind": "text", "prefix": "label"})
 	parts.append({"kind": "time"})
+	if not (visual["speech"] as Dictionary).is_empty():
+		parts.append({"kind": "speech", "data": visual["speech"] as Dictionary})
 	return parts
 
 static func bullet_visual(player_owned: bool) -> Dictionary:
@@ -1325,10 +1668,20 @@ static func bullet_visual(player_owned: bool) -> Dictionary:
 	}
 
 static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
-	var visual: Dictionary = bullet_visual(player_owned)
 	var items: Array = []
 	for bullet in bullets:
 		var bullet_item: Dictionary = bullet as Dictionary
+		var visual: Dictionary = bullet_visual(player_owned)
+		if not player_owned and String(bullet_item.get("visualKind", "")) == "kuso_maro":
+			visual = {
+				"trailLength": 16.0,
+				"trailColor": Color(0.34, 0.04, 0.48, 0.34),
+				"trailWidth": 9.0,
+				"outerRadius": 13.0,
+				"outerColor": Color("#4c2c4f"),
+				"innerRadius": 8.0,
+				"innerColor": Color("#f094bd")
+			}
 		var pos: Vector2 = Vector2(bullet_item["pos"])
 		var vel: Vector2 = Vector2(bullet_item["vel"]).normalized()
 		items.append({
@@ -1360,7 +1713,8 @@ static func boomerang_visual() -> Dictionary:
 		"innerRadius": 9.0,
 		"innerPoints": 14,
 		"innerColor": Color("#fff45c"),
-		"innerWidth": 3.0
+		"innerWidth": 3.0,
+		"textureSize": Vector2(42.0, 64.0)
 	}
 
 static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float) -> Array:
@@ -1383,7 +1737,9 @@ static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, 
 			"innerEnd": angle + TAU * 1.2,
 			"innerPoints": visual["innerPoints"],
 			"innerColor": visual["innerColor"] as Color,
-			"innerWidth": visual["innerWidth"]
+			"innerWidth": visual["innerWidth"],
+			"textureSize": visual["textureSize"] as Vector2,
+			"textureAngle": angle + PI * 0.15
 		})
 	return items
 
@@ -1401,13 +1757,13 @@ static func boomerang_parts() -> Array:
 	]
 
 static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: float, life: float, arc_angle: float) -> Dictionary:
-	var width: float = 9.0 + life * 36.0
+	var width: float = 7.0 + life * 24.0
 	var angle: float = dir.angle()
 	var half_arc: float = deg_to_rad(arc_angle * 0.5)
 	var inner_radius: float = maxf(34.0, range * 0.42)
 	var swing_progress: float = clampf(1.0 - life / 0.22, 0.0, 1.0)
 	var swing_angle: float = angle + lerpf(-half_arc, half_arc, swing_progress)
-	var hammer_pos: Vector2 = pos + Vector2.RIGHT.rotated(swing_angle) * range * 0.62
+	var hammer_pos: Vector2 = pos + Vector2.RIGHT.rotated(swing_angle) * range * 0.66
 	return {
 		"pos": pos,
 		"start": pos + dir * 20.0,
@@ -1429,7 +1785,7 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 		"burstRadius": 24.0 + life * 30.0,
 		"burstColor": Color(1.0, 0.95, 0.22, 0.35),
 		"hammerPos": hammer_pos,
-		"hammerSize": Vector2(82, 82) * (0.92 + 0.08 * sin(swing_progress * PI)),
+		"hammerSize": Vector2(70, 70) * (0.94 + 0.06 * sin(swing_progress * PI)),
 		"hammerAngle": swing_angle + deg_to_rad(38.0),
 		"hammerAlpha": clampf(life / 0.16, 0.0, 1.0),
 		"label": "BAN!",
@@ -1439,8 +1795,9 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 	}
 
 static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float) -> Dictionary:
-	var alpha: float = clampf(life / 0.48, 0.0, 1.0)
-	var progress: float = clampf(1.0 - life / 0.48, 0.0, 1.0)
+	var max_life: float = 0.48
+	var alpha: float = clampf(life / max_life, 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / max_life, 0.0, 1.0)
 	var normalized_dir: Vector2 = dir.normalized()
 	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
 	var chars: int = clampi(1 + int(progress * 6.0), 1, 7)
@@ -1470,12 +1827,237 @@ static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float) -> Dictio
 		"showHammer": false
 	}
 
+static func damage_number_fx_data(pos: Vector2, life: float, max_life: float, damage: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var value_text: String = str(int(round(damage)))
+	var text_pos: Vector2 = pos + Vector2(-8.0 * float(value_text.length()), -progress * 18.0)
+	var size: int = 20 + int((1.0 - progress) * 4.0)
+	return {
+		"kind": "damage_number",
+		"shadowText": value_text,
+		"shadowPos": text_pos + Vector2(2, 2),
+		"shadowColor": Color(0.20, 0.05, 0.02, 0.82 * alpha),
+		"shadowSize": size + 2,
+		"label": value_text,
+		"labelPos": text_pos,
+		"labelColor": Color(1.0, 0.96, 0.34, alpha),
+		"labelSize": size
+	}
+
+static func pickup_text_fx_data(pos: Vector2, life: float, max_life: float, text: String, color: Color) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var text_pos: Vector2 = pos + Vector2(0.0, -progress * 16.0)
+	return {
+		"kind": "pickup_text",
+		"shadowText": text,
+		"shadowPos": text_pos + Vector2(2.0, 2.0),
+		"shadowColor": Color(0.10, 0.03, 0.08, 0.76 * alpha),
+		"shadowSize": 20,
+		"label": text,
+		"labelPos": text_pos,
+		"labelColor": Color(color.r, color.g, color.b, alpha),
+		"labelSize": 19
+	}
+
+static func banana_slip_fx_data(pos: Vector2, dir: Vector2, side: Vector2, life: float, max_life: float, seed: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() <= 0.01:
+		normalized_dir = Vector2.RIGHT
+	var normalized_side: Vector2 = side.normalized()
+	if normalized_side.length() <= 0.01:
+		normalized_side = Vector2.UP
+	var wobble: Vector2 = normalized_side * sin(seed + progress * TAU) * 5.5
+	var trail_end: Vector2 = pos + wobble + normalized_dir * (8.0 + progress * 8.0)
+	var trail_start: Vector2 = trail_end + normalized_dir * (28.0 + progress * 16.0)
+	return {
+		"kind": "banana_slip",
+		"trailStart": trail_start,
+		"trailEnd": trail_end,
+		"trailColor": Color(1.0, 0.88, 0.10, 0.62 * alpha),
+		"trailWidth": 7.0 + 2.0 * alpha,
+		"shineStart": trail_start + normalized_side * 5.0,
+		"shineEnd": trail_end + normalized_side * 3.0,
+		"shineColor": Color(1.0, 1.0, 0.78, 0.48 * alpha),
+		"shineWidth": 2.5,
+		"splashPos": pos - normalized_dir * (4.0 + progress * 10.0) + wobble,
+		"splashRadius": 7.0 + progress * 4.0,
+		"splashColor": Color(1.0, 0.72, 0.04, 0.30 * alpha),
+		"dot1Pos": pos + normalized_side * 9.0 - normalized_dir * 6.0,
+		"dot2Pos": pos - normalized_side * 7.0 - normalized_dir * 12.0,
+		"dotRadius": 2.1 + alpha,
+		"dotColor": Color(1.0, 0.92, 0.18, 0.58 * alpha)
+	}
+
+static func comment_pin_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
+	return {
+		"kind": "comment_pin",
+		"trailStart": pos - normalized_dir * 22.0,
+		"trailEnd": pos,
+		"trailColor": Color(1.0, 0.38, 0.72, 0.60 * alpha),
+		"trailWidth": 5.0,
+		"outerPos": pos,
+		"outerRadius": 8.5,
+		"outerColor": Color(1.0, 0.22, 0.58, 0.92 * alpha),
+		"innerPos": pos,
+		"innerRadius": 4.0,
+		"innerColor": Color(1.0, 0.96, 0.74, alpha)
+	}
+
+static func pin_burst_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	return {
+		"kind": "pin_burst",
+		"outerPos": pos,
+		"outerRadius": 12.0 + progress * 18.0,
+		"outerColor": Color(1.0, 0.28, 0.64, 0.34 * alpha),
+		"innerPos": pos,
+		"innerRadius": 5.0 + progress * 5.0,
+		"innerColor": Color(1.0, 0.88, 0.20, 0.62 * alpha)
+	}
+
+static func emote_mine_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
+	var pulse: float = 0.5 + 0.5 * sin(life * 8.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var image_size: float = 60.0 + pulse * 4.0
+	return {
+		"kind": "emote_mine",
+		"shadowPos": pos + Vector2(0, 5),
+		"shadowSize": Vector2(44, 13),
+		"shadowAlpha": 0.22 * alpha,
+		"outerPos": pos,
+		"outerRadius": 16.0 + pulse * 2.0,
+		"outerColor": Color(0.80, 0.44, 1.0, 0.42 * alpha),
+		"innerPos": pos,
+		"innerRadius": 9.0 + pulse,
+		"innerColor": Color(1.0, 0.64, 0.88, 0.82 * alpha),
+		"imagePath": "res://assets/generated/weapon_fx_v1/emote_mine.png",
+		"imagePos": pos + Vector2(0, -2),
+		"imageSize": Vector2(image_size, image_size),
+		"imageAlpha": alpha,
+		"rangePos": pos,
+		"rangeRadius": radius,
+		"rangeColor": Color(1.0, 0.48, 0.82, 0.10 * alpha)
+	}
+
+static func emote_burst_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	return {
+		"kind": "emote_burst",
+		"outerPos": pos,
+		"outerRadius": lerpf(18.0, radius, progress),
+		"outerColor": Color(1.0, 0.30, 0.74, 0.25 * alpha),
+		"innerPos": pos,
+		"innerRadius": 14.0 + progress * 16.0,
+		"innerColor": Color(0.74, 0.95, 0.92, 0.38 * alpha)
+	}
+
+static func ng_word_laser_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, range_value: float, width: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
+	var end_pos: Vector2 = pos + normalized_dir * range_value
+	return {
+		"kind": "ng_word_laser",
+		"trailStart": pos,
+		"trailEnd": end_pos,
+		"trailColor": Color(0.92, 0.02, 0.22, 0.62 * alpha),
+		"trailWidth": width,
+		"coreStart": pos,
+		"coreEnd": end_pos,
+		"coreColor": Color(1.0, 0.04, 0.50, 0.95 * alpha),
+		"coreWidth": maxf(5.0, width * 0.28)
+	}
+
+static func listener_summon_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
+	var bob: float = sin(life * 10.0) * 2.0
+	var pulse: float = 0.5 + 0.5 * sin(life * 8.0)
+	var image_size: float = 52.0 + pulse * 3.0
+	return {
+		"kind": "listener_summon",
+		"shadowPos": pos + Vector2(0, 15),
+		"shadowSize": Vector2(34, 9),
+		"shadowAlpha": 0.22 * alpha,
+		"imagePath": "res://assets/generated/weapon_fx_v1/listener_summon.png",
+		"imagePos": pos + Vector2(0, bob - 4),
+		"imageSize": Vector2(image_size, image_size),
+		"imageAlpha": alpha,
+		"trailStart": pos + Vector2(0, bob) - normalized_dir * 7.0,
+		"trailEnd": pos + Vector2(0, bob) + normalized_dir * 23.0,
+		"trailColor": Color(0.55, 0.86, 1.0, 0.46 * alpha),
+		"trailWidth": 4.0
+	}
+
+static func listener_burst_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	return {
+		"kind": "listener_burst",
+		"outerPos": pos,
+		"outerRadius": 10.0 + progress * 18.0,
+		"outerColor": Color(0.88, 0.70, 1.0, 0.32 * alpha),
+		"innerPos": pos,
+		"innerRadius": 5.0 + progress * 6.0,
+		"innerColor": Color(1.0, 0.94, 0.28, 0.70 * alpha)
+	}
+
 static func hit_fx_draw_data(hit_fx: Array) -> Array:
 	var items: Array = []
 	for fx in hit_fx:
 		var fx_item: Dictionary = fx as Dictionary
+		if String(fx_item.get("kind", "")) == "comment_pin":
+			items.append(comment_pin_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.45))))
+			continue
+		if String(fx_item.get("kind", "")) == "pin_burst":
+			items.append(pin_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
+			continue
+		if String(fx_item.get("kind", "")) == "emote_mine":
+			items.append(emote_mine_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 8.0)), float(fx_item.get("radius", 120.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "emote_burst":
+			items.append(emote_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.28)), float(fx_item.get("radius", 120.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "ng_word_laser":
+			items.append(ng_word_laser_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.25)), float(fx_item.get("range", 640.0)), float(fx_item.get("width", 44.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "listener_summon":
+			items.append(listener_summon_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 6.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "listener_burst":
+			items.append(listener_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
+			continue
+		if String(fx_item.get("kind", "")) == "pickup_text":
+			items.append(pickup_text_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.72)), String(fx_item.get("text", "")), fx_item.get("color", Color.WHITE) as Color))
+			continue
+		if String(fx_item.get("kind", "")) == "damage_number":
+			items.append(damage_number_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.62)), float(fx_item["damage"])))
+			continue
 		if String(fx_item.get("kind", "")) == "kusa_wave":
 			items.append(kusa_wave_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), float(fx_item["life"])))
+			continue
+		if String(fx_item.get("kind", "")) == "banana_slip":
+			items.append(banana_slip_fx_data(
+				Vector2(fx_item["pos"]),
+				Vector2(fx_item["dir"]),
+				Vector2(fx_item.get("side", Vector2.UP)),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.34)),
+				float(fx_item.get("seed", 0.0))
+			))
 			continue
 		var data: Dictionary = hit_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), Vector2(fx_item["hit"]), float(fx_item["range"]), float(fx_item["life"]), float(fx_item.get("arcAngle", 120.0)))
 		data["showBurst"] = int(fx_item["count"]) > 0
@@ -1484,12 +2066,58 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 	return items
 
 static func hit_fx_parts(data: Dictionary) -> Array:
+	if String(data.get("kind", "")) == "pickup_text":
+		return [
+			{"kind": "text", "prefix": "shadow"},
+			{"kind": "text", "prefix": "label"}
+		]
+	if String(data.get("kind", "")) == "damage_number":
+		return [
+			{"kind": "text", "prefix": "shadow"},
+			{"kind": "text", "prefix": "label"}
+		]
 	if String(data.get("kind", "")) == "kusa_wave":
 		return [
 			{"kind": "line", "prefix": "trail"},
 			{"kind": "circle", "prefix": "burst"},
 			{"kind": "text", "prefix": "shadow"},
 			{"kind": "text", "prefix": "label"}
+		]
+	if String(data.get("kind", "")) == "banana_slip":
+		return [
+			{"kind": "circle", "prefix": "splash"},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "line", "prefix": "shine"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2}
+		]
+	if String(data.get("kind", "")) == "comment_pin":
+		return [
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"}
+		]
+	if String(data.get("kind", "")) == "pin_burst" or String(data.get("kind", "")) == "emote_burst" or String(data.get("kind", "")) == "listener_burst":
+		return [
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"}
+		]
+	if String(data.get("kind", "")) == "emote_mine":
+		return [
+			{"kind": "shadow"},
+			{"kind": "circle", "prefix": "range", "filled": false, "width": 2.0},
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"}
+		]
+	if String(data.get("kind", "")) == "ng_word_laser":
+		return [
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "line", "prefix": "core"}
+		]
+	if String(data.get("kind", "")) == "listener_summon":
+		return [
+			{"kind": "shadow"},
+			{"kind": "line", "prefix": "trail"}
 		]
 	var parts: Array = [
 		{"kind": "arc", "prefix": "main"},

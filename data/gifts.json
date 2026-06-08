@@ -8,7 +8,8 @@
     "attribute": "physical",
     "maxLevel": 5,
     "effectType": "equipment_weapon",
-    "weight": 12
+    "weight": 12,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ban_hammer.png"
   },
   {
     "id": "superchat_shot",
@@ -19,7 +20,8 @@
     "attribute": "bullet",
     "maxLevel": 5,
     "effectType": "equipment_weapon",
-    "weight": 12
+    "weight": 12,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png"
   },
   {
     "id": "comment_boomerang",
@@ -30,7 +32,8 @@
     "attribute": "bullet",
     "maxLevel": 5,
     "effectType": "equipment_weapon",
-    "weight": 10
+    "weight": 10,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_boomerang.png"
   },
   {
     "id": "mic_barrier",
@@ -41,7 +44,8 @@
     "attribute": "area",
     "maxLevel": 5,
     "effectType": "equipment_weapon",
-    "weight": 10
+    "weight": 10,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mic_barrier.png"
   },
   {
     "id": "spotlight",
@@ -52,7 +56,8 @@
     "attribute": "bullet",
     "maxLevel": 5,
     "effectType": "equipment_weapon",
-    "weight": 8
+    "weight": 8,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/spotlight.png"
   },
   {
     "id": "kusa_wave",
@@ -63,7 +68,56 @@
     "attribute": "area",
     "maxLevel": 5,
     "effectType": "equipment_weapon",
-    "weight": 10
+    "weight": 10,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/kusa_wave.png"
+  },
+  {
+    "id": "comment_pin",
+    "displayName": "コメントピン留め",
+    "description": "敵をピン留めして移動速度を下げる",
+    "rarity": "common",
+    "equipmentType": "weapon",
+    "attribute": "bullet",
+    "maxLevel": 5,
+    "effectType": "equipment_weapon",
+    "weight": 10,
+    "iconPath": ""
+  },
+  {
+    "id": "emote_mine",
+    "displayName": "エモート地雷",
+    "description": "足元に地雷を置き、敵が踏むと爆発する",
+    "rarity": "common",
+    "equipmentType": "weapon",
+    "attribute": "area",
+    "maxLevel": 5,
+    "effectType": "equipment_weapon",
+    "weight": 9,
+    "iconPath": ""
+  },
+  {
+    "id": "ng_word_laser",
+    "displayName": "NGワードレーザー",
+    "description": "前方に貫通レーザーを撃つ",
+    "rarity": "rare",
+    "equipmentType": "weapon",
+    "attribute": "bullet",
+    "maxLevel": 5,
+    "effectType": "equipment_weapon",
+    "weight": 8,
+    "iconPath": ""
+  },
+  {
+    "id": "listener_summon",
+    "displayName": "リスナー召喚",
+    "description": "味方リスナーを召喚して敵を追わせる",
+    "rarity": "rare",
+    "equipmentType": "weapon",
+    "attribute": "summon",
+    "maxLevel": 5,
+    "effectType": "equipment_weapon",
+    "weight": 8,
+    "iconPath": ""
   },
   {
     "id": "stream_power",
@@ -73,7 +127,8 @@
     "equipmentType": "accessory",
     "maxLevel": 5,
     "effectType": "equipment_accessory",
-    "weight": 14
+    "weight": 14,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/stream_power.png"
   },
   {
     "id": "bullet_support",
@@ -83,7 +138,8 @@
     "equipmentType": "accessory",
     "maxLevel": 3,
     "effectType": "equipment_accessory",
-    "weight": 10
+    "weight": 10,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/bullet_support.png"
   },
   {
     "id": "high_speed_connection",
@@ -93,7 +149,8 @@
     "equipmentType": "accessory",
     "maxLevel": 5,
     "effectType": "equipment_accessory",
-    "weight": 14
+    "weight": 14,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/high_speed_connection.png"
   },
   {
     "id": "wide_angle",
@@ -103,7 +160,8 @@
     "equipmentType": "accessory",
     "maxLevel": 5,
     "effectType": "equipment_accessory",
-    "weight": 14
+    "weight": 14,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/wide_angle.png"
   },
   {
     "id": "light_sneakers",
@@ -113,7 +171,8 @@
     "equipmentType": "accessory",
     "maxLevel": 5,
     "effectType": "equipment_accessory",
-    "weight": 12
+    "weight": 12,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/light_sneakers.png"
   },
   {
     "id": "sweet_tooth",
@@ -123,27 +182,19 @@
     "equipmentType": "accessory",
     "maxLevel": 3,
     "effectType": "equipment_accessory",
-    "weight": 10
+    "weight": 10,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/sweet_tooth.png"
   },
   {
     "id": "rest",
     "displayName": "休憩",
-    "description": "HPを2回復",
+    "description": "メンタルを2回復",
     "rarity": "common",
     "equipmentType": "instant",
     "maxLevel": 0,
     "effectType": "heal",
-    "weight": 10
-  },
-  {
-    "id": "ng_right",
-    "displayName": "NG権",
-    "description": "指示コメ候補を1枚消せる",
-    "rarity": "rare",
-    "equipmentType": "instant",
-    "maxLevel": 0,
-    "effectType": "ng_stock",
-    "weight": 10
+    "weight": 3,
+    "iconPath": "res://assets/generated/field_pickup_icons_v1/icons/heal_drink.png"
   },
   {
     "id": "heart_mark",
@@ -153,7 +204,8 @@
     "equipmentType": "instant",
     "maxLevel": 0,
     "effectType": "add_heart_stock",
-    "weight": 8
+    "weight": 3,
+    "iconPath": "res://assets/generated/field_pickup_icons_v1/icons/heart_drop.png"
   },
   {
     "id": "gift_hype_boost",
@@ -163,7 +215,8 @@
     "equipmentType": "instant",
     "maxLevel": 0,
     "effectType": "gift_hype_boost",
-    "weight": 8
+    "weight": 3,
+    "iconPath": "res://assets/generated/field_pickup_icons_v1/icons/care_package_box.png"
   },
   {
     "id": "viewer_burst",
@@ -173,6 +226,7 @@
     "equipmentType": "instant",
     "maxLevel": 0,
     "effectType": "viewer_burst",
-    "weight": 8
+    "weight": 3,
+    "iconPath": "res://assets/generated/field_pickup_icons_v1/icons/viewer_boost.png"
   }
 ]
