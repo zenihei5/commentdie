@@ -482,35 +482,62 @@ static func arena_border_color() -> Color:
 	return Color("#34234d")
 
 static func comment_storm_style(setting: int, kuso_active: bool) -> Dictionary:
-	var amount: int = 22
-	var alpha: float = 0.42
+	var amount: int = 24
+	var alpha: float = 0.72
+	var size: int = 31
 	if setting == 0:
-		amount = 11
-		alpha = 0.30
+		amount = 13
+		alpha = 0.62
+		size = 28
 	elif setting == 2:
-		amount = 34
-		alpha = 0.55
+		amount = 38
+		alpha = 0.82
+		size = 34
 	if kuso_active:
 		amount = int(float(amount) * 1.5)
-		alpha = minf(0.72, alpha + 0.18)
-	return {"amount": amount, "alpha": alpha}
+		alpha = minf(0.92, alpha + 0.10)
+		size += 3
+	return {"amount": amount, "alpha": alpha, "size": size}
 
 static func comment_storm_position(arena: Rect2, elapsed: float, index: int) -> Vector2:
-	var x: float = fposmod(elapsed * (55.0 + float(index % 5) * 16.0) + float(index * 127), arena.size.x + 260.0) + arena.position.x - 160.0
-	var y: float = arena.position.y + 42.0 + fposmod(float(index * 53), arena.size.y - 84.0)
+	var travel_width: float = arena.size.x + 520.0
+	var speed: float = 118.0 + float(index % 5) * 22.0
+	var x: float = arena.end.x + 220.0 - fposmod(elapsed * speed + float(index * 181), travel_width)
+	var y: float = arena.position.y + 48.0 + fposmod(float(index * 61), arena.size.y - 96.0)
 	return Vector2(x, y)
+
+static func comment_storm_color(index: int, alpha: float, kuso_active: bool) -> Color:
+	var palette: Array[Color] = [
+		Color("#ff2f8d"),
+		Color("#7b2cff"),
+		Color("#00a3d9"),
+		Color("#ff8a00"),
+		Color("#ffffff")
+	]
+	if kuso_active:
+		palette = [
+			Color("#ff235f"),
+			Color("#a000ff"),
+			Color("#ff4a00"),
+			Color("#00d1ff"),
+			Color("#ffffff")
+		]
+	var color: Color = palette[index % palette.size()]
+	color.a = alpha
+	return color
 
 static func comment_storm_draw_data(arena: Rect2, elapsed: float, setting: int, kuso_active: bool, samples: Array[String]) -> Array:
 	var style: Dictionary = comment_storm_style(setting, kuso_active)
 	var amount: int = int(style["amount"])
 	var alpha: float = float(style["alpha"])
+	var size: int = int(style["size"])
 	var items: Array = []
 	for i in range(amount):
 		items.append({
 			"pos": comment_storm_position(arena, elapsed, i),
 			"text": samples[i % samples.size()],
-			"size": 22,
-			"color": Color(1.0, 1.0, 1.0, alpha)
+			"size": size,
+			"color": comment_storm_color(i, alpha, kuso_active)
 		})
 	return items
 
@@ -781,8 +808,11 @@ static func gift_hype_color(hype_ratio: float) -> Color:
 static func equipment_icon(id: String, is_weapon: bool) -> String:
 	var icons: Dictionary = {
 		"ban_hammer": "鎚",
+		"ban_judgement": "裁",
 		"superchat_shot": "弾",
+		"starlight_superchat": "星",
 		"comment_boomerang": "ブ",
+		"maro_comment_ring": "輪",
 		"mic_barrier": "マ",
 		"spotlight": "光",
 		"kusa_wave": "草",
@@ -807,7 +837,8 @@ static func equipment_slot_text(items: Array, max_slots: int, is_weapon: bool) -
 			continue
 		var entry: Dictionary = items[i] as Dictionary
 		var id: String = String(entry.get("id", ""))
-		chunks.append("[%s%d]" % [equipment_icon(id, is_weapon), int(entry.get("level", 1))])
+		var level_text: String = "進" if EquipmentSystem.is_evolved_entry(entry) else str(EquipmentSystem.entry_level(entry))
+		chunks.append("[%s%s]" % [equipment_icon(id, is_weapon), level_text])
 	return "".join(chunks)
 
 static func hud_equipment_draw_data(context: Dictionary) -> Array:
@@ -1253,7 +1284,8 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/kuso_maro_king.png"
 	return ""
 
-static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color) -> Dictionary:
+static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color, flash_color: Color = Color.TRANSPARENT, flash_strength: float = 0.0) -> Dictionary:
+	var body_color: Color = color.lerp(flash_color, clampf(flash_strength, 0.0, 1.0))
 	var sprite_path: String = enemy_sprite_path(kind)
 	if sprite_path != "":
 		var size: Vector2 = Vector2(radius * 4.35, radius * 4.35)
@@ -1261,7 +1293,7 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 			"kind": "sprite",
 			"texturePath": sprite_path,
 			"rect": Rect2(pos - size * 0.5 + Vector2(0, -radius * 0.08), size),
-			"modulate": Color.WHITE
+			"modulate": Color.WHITE.lerp(flash_color, clampf(flash_strength * 0.72, 0.0, 0.72))
 		}
 	if kind == "long_comment_guy":
 		var body: Rect2 = Rect2(pos - Vector2(radius * 1.35, radius * 0.65), Vector2(radius * 2.7, radius * 1.3))
@@ -1270,9 +1302,9 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 			"rect": body,
 			"shadowRect": body.grow(4),
 			"shadowColor": Color("#241d18"),
-			"color": color,
+			"color": body_color,
 			"topRect": Rect2(body.position, Vector2(body.size.x, 8)),
-			"topColor": Color("#a29273")
+			"topColor": Color("#a29273").lerp(flash_color, clampf(flash_strength * 0.5, 0.0, 0.5))
 		}
 	if kind == "boss_super_long_comment":
 		var boss_body: Rect2 = Rect2(pos - Vector2(radius * 1.55, radius * 0.90), Vector2(radius * 3.10, radius * 1.80))
@@ -1281,9 +1313,9 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 			"rect": boss_body,
 			"shadowRect": boss_body.grow(8),
 			"shadowColor": Color("#100916"),
-			"color": color,
+			"color": body_color,
 			"topRect": Rect2(boss_body.position, Vector2(boss_body.size.x, 13)),
-			"topColor": Color("#5f3da0"),
+			"topColor": Color("#5f3da0").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
 			"motif1Rect": Rect2(boss_body.position + Vector2(radius * 0.24, radius * 0.42), Vector2(radius * 0.88, 7)),
 			"motif1Color": Color("#8b6be0"),
 			"motif2Rect": Rect2(boss_body.position + Vector2(radius * 1.30, radius * 0.68), Vector2(radius * 1.10, 7)),
@@ -1300,7 +1332,7 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 			"rect": cam,
 			"shadowRect": cam.grow(4),
 			"shadowColor": Color("#2a1518"),
-			"color": color,
+			"color": body_color,
 			"lensRect": Rect2(cam.position + Vector2(radius * 1.55, radius * 0.22), Vector2(radius * 0.65, radius * 0.48)),
 			"lensColor": Color("#2a1518")
 		}
@@ -1311,11 +1343,26 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 		"shadowColor": Color("#24192d"),
 		"pos": pos,
 		"radius": radius,
-		"color": color,
+		"color": body_color,
 		"highlightPos": pos + Vector2(-radius * 0.22, -radius * 0.25),
 		"highlightRadius": radius * 0.32,
-		"highlightColor": color.lightened(0.28)
+		"highlightColor": body_color.lightened(0.28)
 	}
+
+static func enemy_hit_flash_color(kind: String) -> Color:
+	if kind.begins_with("boss_"):
+		return Color("#a3262d")
+	if kind == "long_comment_guy":
+		return Color("#ff6348")
+	return Color("#ff3f2d")
+
+static func enemy_hit_flash_strength(enemy: Dictionary) -> float:
+	var duration: float = maxf(0.01, float(enemy.get("hitFlashDuration", 0.10)))
+	var timer: float = clampf(float(enemy.get("hitFlashTimer", 0.0)), 0.0, duration)
+	var strength: float = timer / duration
+	if bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")).begins_with("boss_"):
+		strength *= 0.55
+	return clampf(strength, 0.0, 1.0)
 
 static func enemy_face_data(pos: Vector2) -> Dictionary:
 	return {
@@ -1377,12 +1424,14 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var radius: float = float(enemy["radius"])
 	var color: Color = enemy_color(kind)
 	var speech_text: String = String(enemy.get("speechText", ""))
+	var flash_strength: float = enemy_hit_flash_strength(enemy)
+	var flash_color: Color = enemy_hit_flash_color(kind)
 	return {
 		"kind": kind,
 		"pos": pos,
 		"radius": radius,
 		"shadow": enemy_shadow_data(pos, radius),
-		"body": enemy_body_data(kind, pos, radius, color),
+		"body": enemy_body_data(kind, pos, radius, color, flash_color, flash_strength),
 		"face": {} if kind == "long_comment_guy" or kind == "boss_super_long_comment" or enemy_sprite_path(kind) != "" else enemy_face_data(pos),
 		"bar": enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"])),
 		"speech": speech_bubble_data(pos, speech_text, -radius - 54.0)
@@ -1761,9 +1810,28 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 	var angle: float = dir.angle()
 	var half_arc: float = deg_to_rad(arc_angle * 0.5)
 	var inner_radius: float = maxf(34.0, range * 0.42)
-	var swing_progress: float = clampf(1.0 - life / 0.22, 0.0, 1.0)
+	var fx_duration := 0.24
+	var swing_progress: float = clampf(1.0 - life / fx_duration, 0.0, 1.0)
 	var swing_angle: float = angle + lerpf(-half_arc, half_arc, swing_progress)
 	var hammer_pos: Vector2 = pos + Vector2.RIGHT.rotated(swing_angle) * range * 0.66
+	var trail_alpha: float = clampf(life / 0.20, 0.0, 1.0)
+	var trail_span: float = minf(half_arc * 0.76, deg_to_rad(92.0))
+	var trail_start: float = maxf(angle - half_arc, swing_angle - trail_span)
+	var trail_end: float = minf(angle + half_arc, swing_angle + deg_to_rad(9.0))
+	var trail_hot_start: float = minf(trail_end - deg_to_rad(1.0), trail_start + deg_to_rad(4.0))
+	var trail_core_start: float = minf(trail_end - deg_to_rad(1.0), trail_start + deg_to_rad(8.0))
+	var trail_edge_start: float = maxf(trail_start, trail_end - deg_to_rad(12.0))
+	var trail_radius: float = maxf(44.0, range * 0.72)
+	var hammer_after_images: Array = []
+	for i in range(2):
+		var ghost_progress: float = maxf(0.0, swing_progress - 0.10 * float(i + 1))
+		var ghost_angle: float = angle + lerpf(-half_arc, half_arc, ghost_progress)
+		hammer_after_images.append({
+			"pos": pos + Vector2.RIGHT.rotated(ghost_angle) * range * 0.66,
+			"size": Vector2(70, 70) * (0.88 - 0.05 * float(i)),
+			"angle": ghost_angle + deg_to_rad(38.0),
+			"alpha": trail_alpha * (0.24 - 0.08 * float(i))
+		})
 	return {
 		"pos": pos,
 		"start": pos + dir * 20.0,
@@ -1781,6 +1849,30 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 		"corePoints": 24,
 		"coreColor": Color(1.0, 1.0, 1.0, 0.70),
 		"coreWidth": maxf(3.0, width * 0.34),
+		"trailGlowRadius": trail_radius + 3.0,
+		"trailGlowStart": trail_start,
+		"trailGlowEnd": trail_end,
+		"trailGlowPoints": 18,
+		"trailGlowColor": Color(1.0, 0.15, 0.55, 0.24 * trail_alpha),
+		"trailGlowWidth": clampf(range * 0.18, 22.0, 34.0),
+		"trailHotRadius": trail_radius,
+		"trailHotStart": trail_hot_start,
+		"trailHotEnd": trail_end,
+		"trailHotPoints": 18,
+		"trailHotColor": Color(1.0, 0.62, 0.16, 0.48 * trail_alpha),
+		"trailHotWidth": clampf(range * 0.12, 15.0, 24.0),
+		"trailCoreRadius": trail_radius - 2.0,
+		"trailCoreStart": trail_core_start,
+		"trailCoreEnd": trail_end,
+		"trailCorePoints": 16,
+		"trailCoreColor": Color(1.0, 1.0, 1.0, 0.74 * trail_alpha),
+		"trailCoreWidth": clampf(range * 0.045, 6.0, 10.0),
+		"trailEdgeRadius": trail_radius + 16.0,
+		"trailEdgeStart": trail_edge_start,
+		"trailEdgeEnd": trail_end + deg_to_rad(4.0),
+		"trailEdgePoints": 8,
+		"trailEdgeColor": Color(1.0, 0.96, 0.36, 0.82 * trail_alpha),
+		"trailEdgeWidth": 5.0,
 		"burstPos": hit_pos,
 		"burstRadius": 24.0 + life * 30.0,
 		"burstColor": Color(1.0, 0.95, 0.22, 0.35),
@@ -1788,6 +1880,11 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 		"hammerSize": Vector2(70, 70) * (0.94 + 0.06 * sin(swing_progress * PI)),
 		"hammerAngle": swing_angle + deg_to_rad(38.0),
 		"hammerAlpha": clampf(life / 0.16, 0.0, 1.0),
+		"hammerAfterImages": hammer_after_images,
+		"sparkPos": pos + Vector2.RIGHT.rotated(trail_end) * (trail_radius + 18.0),
+		"sparkDir": Vector2.RIGHT.rotated(trail_end),
+		"sparkSize": 10.0 + 5.0 * sin(swing_progress * PI),
+		"sparkAlpha": trail_alpha,
 		"label": "BAN!",
 		"labelPos": hit_pos + Vector2(-22, -28),
 		"labelColor": Color("#fff45c"),
@@ -1899,16 +1996,15 @@ static func comment_pin_fx_data(pos: Vector2, dir: Vector2, life: float, max_lif
 		normalized_dir = Vector2.RIGHT
 	return {
 		"kind": "comment_pin",
-		"trailStart": pos - normalized_dir * 22.0,
+		"trailStart": pos - normalized_dir * 26.0,
 		"trailEnd": pos,
-		"trailColor": Color(1.0, 0.38, 0.72, 0.60 * alpha),
-		"trailWidth": 5.0,
-		"outerPos": pos,
-		"outerRadius": 8.5,
-		"outerColor": Color(1.0, 0.22, 0.58, 0.92 * alpha),
-		"innerPos": pos,
-		"innerRadius": 4.0,
-		"innerColor": Color(1.0, 0.96, 0.74, alpha)
+		"trailColor": Color(1.0, 0.38, 0.72, 0.42 * alpha),
+		"trailWidth": 4.0,
+		"imagePath": "res://assets/generated/weapon_fx_v1/comment_pin.png",
+		"imagePos": pos,
+		"imageSize": Vector2(46.0, 46.0),
+		"imageAlpha": alpha,
+		"imageRotation": normalized_dir.angle() - PI * 0.75
 	}
 
 static func pin_burst_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
@@ -2015,6 +2111,26 @@ static func listener_burst_fx_data(pos: Vector2, life: float, max_life: float) -
 		"innerColor": Color(1.0, 0.94, 0.28, 0.70 * alpha)
 	}
 
+static func enemy_defeat_fx_data(pos: Vector2, life: float, max_life: float, radius: float, is_boss: bool) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst_radius: float = lerpf(radius * 0.35, radius * (1.65 if is_boss else 1.15), progress)
+	var dot_distance: float = radius * (0.45 + progress * (1.3 if is_boss else 0.9))
+	return {
+		"kind": "enemy_defeat",
+		"outerPos": pos,
+		"outerRadius": burst_radius,
+		"outerColor": Color(1.0, 0.32, 0.74, 0.22 * alpha),
+		"innerPos": pos,
+		"innerRadius": maxf(4.0, radius * (0.32 + progress * 0.22)),
+		"innerColor": Color(0.82, 0.62, 1.0, 0.34 * alpha),
+		"dot1Pos": pos + Vector2.RIGHT.rotated(0.2) * dot_distance,
+		"dot2Pos": pos + Vector2.RIGHT.rotated(2.35) * dot_distance * 0.82,
+		"dot3Pos": pos + Vector2.RIGHT.rotated(4.35) * dot_distance * 0.72,
+		"dotRadius": 2.6 + progress * (3.0 if is_boss else 1.6),
+		"dotColor": Color(1.0, 0.88, 0.32, 0.55 * alpha)
+	}
+
 static func hit_fx_draw_data(hit_fx: Array) -> Array:
 	var items: Array = []
 	for fx in hit_fx:
@@ -2039,6 +2155,9 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 			continue
 		if String(fx_item.get("kind", "")) == "listener_burst":
 			items.append(listener_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
+			continue
+		if String(fx_item.get("kind", "")) == "enemy_defeat":
+			items.append(enemy_defeat_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.28)), float(fx_item.get("radius", 22.0)), bool(fx_item.get("boss", false))))
 			continue
 		if String(fx_item.get("kind", "")) == "pickup_text":
 			items.append(pickup_text_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.72)), String(fx_item.get("text", "")), fx_item.get("color", Color.WHITE) as Color))
@@ -2093,14 +2212,20 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		]
 	if String(data.get("kind", "")) == "comment_pin":
 		return [
-			{"kind": "line", "prefix": "trail"},
-			{"kind": "circle", "prefix": "outer"},
-			{"kind": "circle", "prefix": "inner"}
+			{"kind": "line", "prefix": "trail"}
 		]
 	if String(data.get("kind", "")) == "pin_burst" or String(data.get("kind", "")) == "emote_burst" or String(data.get("kind", "")) == "listener_burst":
 		return [
 			{"kind": "circle", "prefix": "outer"},
 			{"kind": "circle", "prefix": "inner"}
+		]
+	if String(data.get("kind", "")) == "enemy_defeat":
+		return [
+			{"kind": "circle", "prefix": "outer", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "inner"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
 		]
 	if String(data.get("kind", "")) == "emote_mine":
 		return [
@@ -2119,10 +2244,15 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 			{"kind": "shadow"},
 			{"kind": "line", "prefix": "trail"}
 		]
-	var parts: Array = [
-		{"kind": "arc", "prefix": "main"},
-		{"kind": "arc", "prefix": "core"}
-	]
+	var parts: Array = []
+	if bool(data.get("showHammer", false)):
+		parts.append({"kind": "arc", "prefix": "trailGlow"})
+		parts.append({"kind": "arc", "prefix": "trailHot"})
+		parts.append({"kind": "arc", "prefix": "trailCore"})
+		parts.append({"kind": "arc", "prefix": "trailEdge"})
+	else:
+		parts.append({"kind": "arc", "prefix": "main"})
+		parts.append({"kind": "arc", "prefix": "core"})
 	if bool(data["showBurst"]):
 		parts.append({"kind": "circle", "prefix": "burst"})
 		parts.append({"kind": "text", "prefix": "label"})

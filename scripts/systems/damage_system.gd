@@ -81,12 +81,13 @@ static func apply_damage_source_for_target(target: Node, source: String) -> Dict
 	return apply_damage_for_target(target, DisplayTextSystem.damage_source_display(source))
 
 static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dictionary:
-	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": ""}
+	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false}
 	var chats: Array = feedback["chats"] as Array
 	for source_item in sources:
 		var result: Dictionary = apply_damage_source_for_target(target, String(source_item))
 		if bool(result["ignored"]):
 			continue
+		feedback["damaged"] = true
 		if bool(result["revived"]):
 			chats.append(String(result["chat"]))
 			continue

@@ -11,6 +11,9 @@
     "viewerValue": 3000,
     "giftHypeReward": 20,
     "lifetime": 45.0,
+    "hitFlashDuration": 0.06,
+    "knockbackResistance": 1.0,
+    "canBeKnockedBack": false,
     "attacks": [
       "long_comment_press",
       "comment_bullet_burst",
@@ -30,6 +33,9 @@
     "viewerValue": 2800,
     "giftHypeReward": 20,
     "lifetime": 45.0,
+    "hitFlashDuration": 0.06,
+    "knockbackResistance": 1.0,
+    "canBeKnockedBack": false,
     "attacks": [
       "kuso_maro_barrage",
       "summon_unread_maro",

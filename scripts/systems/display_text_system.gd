@@ -158,6 +158,8 @@ static func damage_source_display(source: String) -> String:
 	return source
 
 static func rarity_label(rarity: String) -> String:
+	if rarity == "evolution":
+		return "進化"
 	if rarity == "god":
 		return "神"
 	if rarity == "flame":
@@ -167,6 +169,8 @@ static func rarity_label(rarity: String) -> String:
 	return "通常"
 
 static func rarity_color(rarity: String) -> Color:
+	if rarity == "evolution":
+		return Color("#ff68b3")
 	if rarity == "god":
 		return Color("#ffdf5a")
 	if rarity == "flame":

@@ -81,7 +81,7 @@
     "maxLevel": 5,
     "effectType": "equipment_weapon",
     "weight": 10,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_pin.png"
   },
   {
     "id": "emote_mine",
@@ -93,7 +93,7 @@
     "maxLevel": 5,
     "effectType": "equipment_weapon",
     "weight": 9,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/weapon_fx_v1/emote_mine.png"
   },
   {
     "id": "ng_word_laser",
@@ -105,7 +105,7 @@
     "maxLevel": 5,
     "effectType": "equipment_weapon",
     "weight": 8,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ng_word_laser.png"
   },
   {
     "id": "listener_summon",
@@ -117,7 +117,7 @@
     "maxLevel": 5,
     "effectType": "equipment_weapon",
     "weight": 8,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon.png"
   },
   {
     "id": "stream_power",

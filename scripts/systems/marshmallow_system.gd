@@ -210,6 +210,7 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 		"levelUp": false,
 		"levelUps": 0,
 		"goodPickupSe": false,
+		"godPickupSe": false,
 		"kusoPickupSe": false
 	}
 	var messages: Array = result["messages"] as Array
@@ -230,6 +231,8 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 		var rarity: String = String(data.get("rarity", "normal"))
 		if String(data.get("type", "")) == "good" and (rarity == "normal" or rarity == "good"):
 			result["goodPickupSe"] = true
+		if String(data.get("type", "")) == "good" and rarity == "god":
+			result["godPickupSe"] = true
 		if String(data.get("type", "")) == "bad":
 			result["kusoPickupSe"] = true
 		if bool(feedback["levelUp"]):

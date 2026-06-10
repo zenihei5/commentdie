@@ -22,6 +22,27 @@ static func is_accessory(item: Dictionary) -> bool:
 static func is_instant(item: Dictionary) -> bool:
 	return equipment_type(item) == "instant"
 
+static func is_evolution_gift(item: Dictionary) -> bool:
+	return bool(item.get("isEvolutionGift", false)) or equipment_type(item) == "evolution"
+
+static func is_evolved_entry(entry: Dictionary) -> bool:
+	var level_text: String = str(entry.get("level", ""))
+	return bool(entry.get("isEvolved", false)) or level_text == "evolved" or level_text == "進化"
+
+static func entry_level(entry: Dictionary, fallback: int = 1) -> int:
+	var level_value: Variant = entry.get("level", fallback)
+	var level_text: String = str(level_value)
+	if level_text == "evolved" or level_text == "進化":
+		return 1
+	return int(level_value)
+
+static func has_evolved_from(items: Array, base_id: String) -> bool:
+	for entry_item in items:
+		var entry: Dictionary = entry_item as Dictionary
+		if is_evolved_entry(entry) and String(entry.get("baseWeaponId", "")) == base_id:
+			return true
+	return false
+
 static func find_entry(items: Array, id: String) -> Dictionary:
 	for entry_item in items:
 		var entry: Dictionary = entry_item as Dictionary
@@ -33,7 +54,7 @@ static func level(items: Array, id: String) -> int:
 	var entry: Dictionary = find_entry(items, id)
 	if entry.is_empty():
 		return 0
-	return int(entry.get("level", 0))
+	return entry_level(entry, 0)
 
 static func level_for_target(target: Node, id: String) -> int:
 	var weapons: Array = target.get("player_weapons") as Array
@@ -51,6 +72,8 @@ static func can_offer(target: Node, item: Dictionary, gift_time: float) -> bool:
 	var items: Array = target.get("player_accessories") as Array
 	if item_type == "weapon":
 		items = target.get("player_weapons") as Array
+		if has_evolved_from(items, id):
+			return false
 	var current_level: int = level(items, id)
 	if current_level > 0:
 		return current_level < max_level
@@ -58,6 +81,8 @@ static func can_offer(target: Node, item: Dictionary, gift_time: float) -> bool:
 	return items.size() < max_slots
 
 static func category_label_for_card(item: Dictionary, current_level: int) -> String:
+	if is_evolution_gift(item):
+		return "武器進化"
 	var item_type: String = equipment_type(item)
 	if item_type == "weapon":
 		return "武器強化" if current_level > 0 else "武器"
@@ -66,6 +91,8 @@ static func category_label_for_card(item: Dictionary, current_level: int) -> Str
 	return "即時"
 
 static func display_name_for_card(item: Dictionary, current_level: int) -> String:
+	if is_evolution_gift(item):
+		return String(item.get("evolvedDisplayName", item.get("displayName", "武器進化")))
 	if current_level <= 0 or is_instant(item):
 		return String(item.get("displayName", "ギフト"))
 	return "%s Lv%d → Lv%d" % [
@@ -78,7 +105,7 @@ static func add_or_level(items: Array, id: String, max_level: int) -> Dictionary
 	for i in range(items.size()):
 		var entry: Dictionary = items[i] as Dictionary
 		if String(entry.get("id", "")) == id:
-			entry["level"] = mini(max_level, int(entry.get("level", 1)) + 1)
+			entry["level"] = mini(max_level, entry_level(entry) + 1)
 			items[i] = entry
 			return entry
 	var new_entry: Dictionary = {"id": id, "level": 1}
@@ -90,7 +117,11 @@ static func weapon_names(weapons: Array, weapon_data: Array) -> Array[String]:
 	for entry_item in weapons:
 		var entry: Dictionary = entry_item as Dictionary
 		var weapon: Dictionary = WeaponSystem.find_weapon(weapon_data, String(entry.get("id", "")), {})
-		names.append("%s Lv%d" % [String(weapon.get("displayName", entry.get("id", ""))), int(entry.get("level", 1))])
+		var name: String = String(weapon.get("displayName", entry.get("id", "")))
+		var display_text: String = "%s 進化" % name
+		if not is_evolved_entry(entry):
+			display_text = "%s Lv%d" % [name, entry_level(entry)]
+		names.append(display_text)
 	return names
 
 static func weapon_entries_for_ranking(weapons: Array, weapon_data: Array) -> Array:
@@ -99,11 +130,17 @@ static func weapon_entries_for_ranking(weapons: Array, weapon_data: Array) -> Ar
 		var entry: Dictionary = entry_item as Dictionary
 		var id: String = String(entry.get("id", ""))
 		var weapon: Dictionary = WeaponSystem.find_weapon(weapon_data, id, {})
-		entries.append({
+		var data: Dictionary = {
 			"id": id,
 			"displayName": String(weapon.get("displayName", id)),
-			"level": int(entry.get("level", 1))
-		})
+			"level": entry_level(entry),
+			"levelLabel": "進化" if is_evolved_entry(entry) else "Lv%d" % entry_level(entry),
+			"iconPath": String(weapon.get("iconPath", ""))
+		}
+		if is_evolved_entry(entry):
+			data["isEvolved"] = true
+			data["baseWeaponId"] = String(entry.get("baseWeaponId", ""))
+		entries.append(data)
 	return entries
 
 static func accessory_names(accessories: Array, gift_data: Array) -> Array[String]:
@@ -111,7 +148,7 @@ static func accessory_names(accessories: Array, gift_data: Array) -> Array[Strin
 	for entry_item in accessories:
 		var entry: Dictionary = entry_item as Dictionary
 		var data: Dictionary = _find_data(gift_data, String(entry.get("id", "")))
-		names.append("%s Lv%d" % [String(data.get("displayName", entry.get("id", ""))), int(entry.get("level", 1))])
+		names.append("%s Lv%d" % [String(data.get("displayName", entry.get("id", ""))), entry_level(entry)])
 	return names
 
 static func accessory_entries_for_ranking(accessories: Array, gift_data: Array) -> Array:
@@ -123,7 +160,8 @@ static func accessory_entries_for_ranking(accessories: Array, gift_data: Array) 
 		entries.append({
 			"id": id,
 			"displayName": String(data.get("displayName", id)),
-			"level": int(entry.get("level", 1))
+			"level": entry_level(entry),
+			"levelLabel": "Lv%d" % entry_level(entry)
 		})
 	return entries
 

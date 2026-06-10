@@ -208,6 +208,8 @@ static func update_choice_input_for_target(target: Node, delta: float, latch: Di
 	}
 
 static func update_spawn_timer_for_target(target: Node, delta: float) -> Dictionary:
+	if bool(target.get("boss_requested")) or bool(target.get("boss_active")):
+		return {"chats": [], "shouldStart": false}
 	var previous_timer: float = float(target.get("comment_timer"))
 	var timer: float = previous_timer - delta
 	var warning_step: int = int(target.get("comment_warning_step"))

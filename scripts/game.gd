@@ -46,11 +46,21 @@ const BOSS_BATTLE_BGM_PATH := "res://assets/audio/boss_battle_bgm.mp3"
 const BOSS_BGM_FADE_DURATION := 0.75
 const CURSOR_MOVE_SE_PATH := "res://assets/audio/cursor_move.mp3"
 const CONFIRM_SELECT_SE_PATH := "res://assets/audio/confirm_select.mp3"
+const INSTRUCTION_COMMENT_ARRIVAL_SE_PATH := "res://assets/audio/instruction_comment_arrival.mp3"
 const LASER_SHOT_SE_PATH := "res://assets/audio/laser_shot.mp3"
 const BAN_HAMMER_SWING_SE_PATH := "res://assets/audio/ban_hammer_swing.mp3"
 const SUPERCHAT_SHOT_SE_PATH := "res://assets/audio/superchat_shot.mp3"
+const SPOTLIGHT_ATTACK_SE_PATH := "res://assets/audio/spotlight_attack.mp3"
+const KUSA_WAVE_SHOT_SE_PATH := "res://assets/audio/kusa_wave_shot.mp3"
+const COMMENT_PIN_THROW_SE_PATH := "res://assets/audio/comment_pin_throw.mp3"
 const MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/marshmallow_pickup.mp3"
 const KUSO_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/kuso_marshmallow_pickup.mp3"
+const GOD_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/god_marshmallow_pickup.mp3"
+const EXP_PICKUP_SE_PATH := "res://assets/audio/exp_pickup.mp3"
+const GIFT_BOX_ITEM_PICKUP_SE_PATH := "res://assets/audio/gift_box_item_pickup.mp3"
+const LEVEL_UP_SE_PATH := "res://assets/audio/level_up.mp3"
+const ENEMY_DEFEAT_SE_PATH := "res://assets/audio/enemy_defeat.mp3"
+const EMOTE_MINE_EXPLOSION_SE_PATH := "res://assets/audio/emote_mine_explosion.mp3"
 const COMMENT_BOOMERANG_IMAGE := "res://assets/generated/comment_boomerang_sprite_v1/comment_boomerang.png"
 const STREAM_START_INTRO_DURATION := 1.20
 const GAME_OVER_INTRO_MENTAL_DURATION := 2.0
@@ -66,6 +76,8 @@ const TITLE_BANCHAN_RECT := Rect2(Vector2(125, 285), Vector2(510, 711))
 const TITLE_LOGO_RECT := Rect2(Vector2(390, 4), Vector2(820, 442))
 const TITLE_BUTTON_RECT := Rect2(Vector2(560, 450), Vector2(480, 430))
 const TITLE_BUTTON_SOURCE_SIZE := Vector2(1074, 960)
+const TITLE_LOGO_DROP_DURATION := 0.72
+const TITLE_LOGO_DROP_START_Y_OFFSET := -540.0
 const FIELD_VIEW := Rect2(Vector2(20, 190), Vector2(1160, 590))
 const ARENA := Rect2(Vector2(20, 120), Vector2(2200, 1500))
 const SIDE := Rect2(Vector2(1210, 174), Vector2(370, 606))
@@ -172,6 +184,11 @@ var window_size_index := 1
 var pending_window_resize_lock_frames := 0
 var comment_barrage_setting := 1
 var screen_shake_enabled := true
+var screen_shake_timer := 0.0
+var screen_shake_duration := 0.0
+var screen_shake_strength := 0.0
+var screen_shake_offset := Vector2.ZERO
+var hit_stop_timer := 0.0
 var selected_card := 0
 var choice_timer := 0.0
 var comment_choice_enter_time := 0.0
@@ -190,6 +207,7 @@ var next_care_package_time := 15.0
 
 var player_pos := ARENA.get_center()
 var player_vel := Vector2.ZERO
+var player_no_brake_sliding := false
 var player_facing_x := 1.0
 var world_camera_offset := Vector2.ZERO
 var world_draw_active := false
@@ -340,15 +358,26 @@ var boss_bgm_player: AudioStreamPlayer
 var boss_bgm_mix := 0.0
 var ui_se_player: AudioStreamPlayer
 var confirm_se_player: AudioStreamPlayer
+var instruction_comment_arrival_se_player: AudioStreamPlayer
 var laser_se_player: AudioStreamPlayer
 var ban_hammer_se_player: AudioStreamPlayer
 var superchat_shot_se_player: AudioStreamPlayer
+var spotlight_attack_se_player: AudioStreamPlayer
+var kusa_wave_se_player: AudioStreamPlayer
+var comment_pin_se_player: AudioStreamPlayer
 var marshmallow_pickup_se_player: AudioStreamPlayer
 var kuso_marshmallow_pickup_se_player: AudioStreamPlayer
+var god_marshmallow_pickup_se_player: AudioStreamPlayer
+var exp_pickup_se_player: AudioStreamPlayer
+var gift_box_item_pickup_se_player: AudioStreamPlayer
+var level_up_se_player: AudioStreamPlayer
+var enemy_defeat_se_player: AudioStreamPlayer
+var emote_mine_explosion_se_player: AudioStreamPlayer
 var stream_start_intro_timer := 0.0
 var game_over_intro_timer := 0.0
 var game_over_intro_duration := 0.0
 var result_drop_timer := 0.0
+var title_logo_drop_timer := TITLE_LOGO_DROP_DURATION
 var pending_game_over_reason := ""
 var pending_game_over_end_type := ""
 
@@ -361,11 +390,21 @@ func _ready() -> void:
 	_setup_boss_bgm()
 	_setup_ui_se()
 	_setup_confirm_se()
+	_setup_instruction_comment_arrival_se()
 	_setup_laser_se()
 	_setup_ban_hammer_se()
 	_setup_superchat_shot_se()
+	_setup_spotlight_attack_se()
+	_setup_kusa_wave_se()
+	_setup_comment_pin_se()
 	_setup_marshmallow_pickup_se()
 	_setup_kuso_marshmallow_pickup_se()
+	_setup_god_marshmallow_pickup_se()
+	_setup_exp_pickup_se()
+	_setup_gift_box_item_pickup_se()
+	_setup_level_up_se()
+	_setup_enemy_defeat_se()
+	_setup_emote_mine_explosion_se()
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
 	_build_ui()
 	ChatSystemScript.seed_box_for_target(self, chat_box, "normal")
@@ -377,6 +416,8 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_update_window_resize_lock()
 	_update_world_zoom(delta)
+	_update_screen_shake(delta)
+	_update_title_logo_drop(delta)
 	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro":
 		ChatSystemScript.update_timer_for_target(self, delta, rng, chat_box)
 	if state == "comment_choice":
@@ -434,6 +475,13 @@ func _setup_confirm_se() -> void:
 	confirm_se_player.stream = _load_audio_stream(CONFIRM_SELECT_SE_PATH, false)
 	add_child(confirm_se_player)
 
+func _setup_instruction_comment_arrival_se() -> void:
+	instruction_comment_arrival_se_player = AudioStreamPlayer.new()
+	instruction_comment_arrival_se_player.name = "InstructionCommentArrivalSePlayer"
+	instruction_comment_arrival_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	instruction_comment_arrival_se_player.stream = _load_audio_stream(INSTRUCTION_COMMENT_ARRIVAL_SE_PATH, false)
+	add_child(instruction_comment_arrival_se_player)
+
 func _setup_laser_se() -> void:
 	laser_se_player = AudioStreamPlayer.new()
 	laser_se_player.name = "LaserSePlayer"
@@ -455,6 +503,27 @@ func _setup_superchat_shot_se() -> void:
 	superchat_shot_se_player.stream = _load_audio_stream(SUPERCHAT_SHOT_SE_PATH, false)
 	add_child(superchat_shot_se_player)
 
+func _setup_spotlight_attack_se() -> void:
+	spotlight_attack_se_player = AudioStreamPlayer.new()
+	spotlight_attack_se_player.name = "SpotlightAttackSePlayer"
+	spotlight_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	spotlight_attack_se_player.stream = _load_audio_stream(SPOTLIGHT_ATTACK_SE_PATH, false)
+	add_child(spotlight_attack_se_player)
+
+func _setup_kusa_wave_se() -> void:
+	kusa_wave_se_player = AudioStreamPlayer.new()
+	kusa_wave_se_player.name = "KusaWaveSePlayer"
+	kusa_wave_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	kusa_wave_se_player.stream = _load_audio_stream(KUSA_WAVE_SHOT_SE_PATH, false)
+	add_child(kusa_wave_se_player)
+
+func _setup_comment_pin_se() -> void:
+	comment_pin_se_player = AudioStreamPlayer.new()
+	comment_pin_se_player.name = "CommentPinSePlayer"
+	comment_pin_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	comment_pin_se_player.stream = _load_audio_stream(COMMENT_PIN_THROW_SE_PATH, false)
+	add_child(comment_pin_se_player)
+
 func _setup_marshmallow_pickup_se() -> void:
 	marshmallow_pickup_se_player = AudioStreamPlayer.new()
 	marshmallow_pickup_se_player.name = "MarshmallowPickupSePlayer"
@@ -468,6 +537,48 @@ func _setup_kuso_marshmallow_pickup_se() -> void:
 	kuso_marshmallow_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	kuso_marshmallow_pickup_se_player.stream = _load_audio_stream(KUSO_MARSHMALLOW_PICKUP_SE_PATH, false)
 	add_child(kuso_marshmallow_pickup_se_player)
+
+func _setup_god_marshmallow_pickup_se() -> void:
+	god_marshmallow_pickup_se_player = AudioStreamPlayer.new()
+	god_marshmallow_pickup_se_player.name = "GodMarshmallowPickupSePlayer"
+	god_marshmallow_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	god_marshmallow_pickup_se_player.stream = _load_audio_stream(GOD_MARSHMALLOW_PICKUP_SE_PATH, false)
+	add_child(god_marshmallow_pickup_se_player)
+
+func _setup_exp_pickup_se() -> void:
+	exp_pickup_se_player = AudioStreamPlayer.new()
+	exp_pickup_se_player.name = "ExpPickupSePlayer"
+	exp_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	exp_pickup_se_player.stream = _load_audio_stream(EXP_PICKUP_SE_PATH, false)
+	add_child(exp_pickup_se_player)
+
+func _setup_gift_box_item_pickup_se() -> void:
+	gift_box_item_pickup_se_player = AudioStreamPlayer.new()
+	gift_box_item_pickup_se_player.name = "GiftBoxItemPickupSePlayer"
+	gift_box_item_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	gift_box_item_pickup_se_player.stream = _load_audio_stream(GIFT_BOX_ITEM_PICKUP_SE_PATH, false)
+	add_child(gift_box_item_pickup_se_player)
+
+func _setup_level_up_se() -> void:
+	level_up_se_player = AudioStreamPlayer.new()
+	level_up_se_player.name = "LevelUpSePlayer"
+	level_up_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	level_up_se_player.stream = _load_audio_stream(LEVEL_UP_SE_PATH, false)
+	add_child(level_up_se_player)
+
+func _setup_enemy_defeat_se() -> void:
+	enemy_defeat_se_player = AudioStreamPlayer.new()
+	enemy_defeat_se_player.name = "EnemyDefeatSePlayer"
+	enemy_defeat_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	enemy_defeat_se_player.stream = _load_audio_stream(ENEMY_DEFEAT_SE_PATH, false)
+	add_child(enemy_defeat_se_player)
+
+func _setup_emote_mine_explosion_se() -> void:
+	emote_mine_explosion_se_player = AudioStreamPlayer.new()
+	emote_mine_explosion_se_player.name = "EmoteMineExplosionSePlayer"
+	emote_mine_explosion_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	emote_mine_explosion_se_player.stream = _load_audio_stream(EMOTE_MINE_EXPLOSION_SE_PATH, false)
+	add_child(emote_mine_explosion_se_player)
 
 func _load_audio_stream(path: String, loop: bool = false) -> AudioStream:
 	var loaded: AudioStream = ResourceLoader.load(path) as AudioStream
@@ -612,6 +723,14 @@ func _play_confirm_se() -> void:
 		confirm_se_player.stop()
 	confirm_se_player.play()
 
+func _play_instruction_comment_arrival_se() -> void:
+	if instruction_comment_arrival_se_player == null or instruction_comment_arrival_se_player.stream == null:
+		return
+	instruction_comment_arrival_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if instruction_comment_arrival_se_player.playing:
+		instruction_comment_arrival_se_player.stop()
+	instruction_comment_arrival_se_player.play()
+
 func _play_laser_se() -> void:
 	if laser_se_player == null or laser_se_player.stream == null:
 		return
@@ -636,6 +755,30 @@ func _play_superchat_shot_se() -> void:
 		superchat_shot_se_player.stop()
 	superchat_shot_se_player.play()
 
+func _play_spotlight_attack_se() -> void:
+	if spotlight_attack_se_player == null or spotlight_attack_se_player.stream == null:
+		return
+	spotlight_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if spotlight_attack_se_player.playing:
+		spotlight_attack_se_player.stop()
+	spotlight_attack_se_player.play()
+
+func _play_kusa_wave_se() -> void:
+	if kusa_wave_se_player == null or kusa_wave_se_player.stream == null:
+		return
+	kusa_wave_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if kusa_wave_se_player.playing:
+		kusa_wave_se_player.stop()
+	kusa_wave_se_player.play()
+
+func _play_comment_pin_se() -> void:
+	if comment_pin_se_player == null or comment_pin_se_player.stream == null:
+		return
+	comment_pin_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if comment_pin_se_player.playing:
+		comment_pin_se_player.stop()
+	comment_pin_se_player.play()
+
 func _play_marshmallow_pickup_se() -> void:
 	if marshmallow_pickup_se_player == null or marshmallow_pickup_se_player.stream == null:
 		return
@@ -651,6 +794,54 @@ func _play_kuso_marshmallow_pickup_se() -> void:
 	if kuso_marshmallow_pickup_se_player.playing:
 		kuso_marshmallow_pickup_se_player.stop()
 	kuso_marshmallow_pickup_se_player.play()
+
+func _play_god_marshmallow_pickup_se() -> void:
+	if god_marshmallow_pickup_se_player == null or god_marshmallow_pickup_se_player.stream == null:
+		return
+	god_marshmallow_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if god_marshmallow_pickup_se_player.playing:
+		god_marshmallow_pickup_se_player.stop()
+	god_marshmallow_pickup_se_player.play()
+
+func _play_exp_pickup_se() -> void:
+	if exp_pickup_se_player == null or exp_pickup_se_player.stream == null:
+		return
+	exp_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if exp_pickup_se_player.playing:
+		exp_pickup_se_player.stop()
+	exp_pickup_se_player.play()
+
+func _play_gift_box_item_pickup_se() -> void:
+	if gift_box_item_pickup_se_player == null or gift_box_item_pickup_se_player.stream == null:
+		return
+	gift_box_item_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if gift_box_item_pickup_se_player.playing:
+		gift_box_item_pickup_se_player.stop()
+	gift_box_item_pickup_se_player.play()
+
+func _play_level_up_se() -> void:
+	if level_up_se_player == null or level_up_se_player.stream == null:
+		return
+	level_up_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if level_up_se_player.playing:
+		level_up_se_player.stop()
+	level_up_se_player.play()
+
+func _play_enemy_defeat_se() -> void:
+	if enemy_defeat_se_player == null or enemy_defeat_se_player.stream == null:
+		return
+	enemy_defeat_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if enemy_defeat_se_player.playing:
+		enemy_defeat_se_player.stop()
+	enemy_defeat_se_player.play()
+
+func _play_emote_mine_explosion_se() -> void:
+	if emote_mine_explosion_se_player == null or emote_mine_explosion_se_player.stream == null:
+		return
+	emote_mine_explosion_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if emote_mine_explosion_se_player.playing:
+		emote_mine_explosion_se_player.stop()
+	emote_mine_explosion_se_player.play()
 
 func _cursor_sound_snapshot() -> Dictionary:
 	return {
@@ -931,6 +1122,7 @@ func _start_stream_complete_intro(reason: String) -> void:
 func _start_ending_cutin(reason: String, end_type: String) -> void:
 	if state == "result" or state == "game_over_intro":
 		return
+	_clear_toast()
 	pending_game_over_reason = reason
 	if pending_game_over_reason == "":
 		pending_game_over_reason = current_death_text
@@ -1194,9 +1386,57 @@ func _update_world_zoom(delta: float) -> void:
 	if absf(world_zoom - world_zoom_target) < 0.001:
 		world_zoom = world_zoom_target
 
+func _update_screen_shake(delta: float) -> void:
+	if screen_shake_timer <= 0.0:
+		screen_shake_strength = 0.0
+		screen_shake_duration = 0.0
+		screen_shake_offset = Vector2.ZERO
+		return
+	screen_shake_timer = maxf(0.0, screen_shake_timer - delta)
+	if screen_shake_timer <= 0.0:
+		screen_shake_strength = 0.0
+		screen_shake_duration = 0.0
+		screen_shake_offset = Vector2.ZERO
+		return
+	var t: float = clampf(screen_shake_timer / maxf(0.01, screen_shake_duration), 0.0, 1.0)
+	var amp: float = screen_shake_strength * t * t
+	screen_shake_offset = Vector2(randf_range(-amp, amp), randf_range(-amp, amp)).round()
+
+func _request_screen_shake(power: float, duration: float = 0.10) -> void:
+	if not screen_shake_enabled:
+		return
+	if power <= 0.0:
+		return
+	var safe_duration: float = maxf(0.01, duration)
+	screen_shake_strength = maxf(screen_shake_strength, power * 28.0)
+	screen_shake_duration = maxf(screen_shake_duration, safe_duration)
+	screen_shake_timer = maxf(screen_shake_timer, safe_duration)
+
+func _screen_shake_offset() -> Vector2:
+	return screen_shake_offset
+
+func _request_hit_stop(seconds: float) -> void:
+	if seconds <= 0.0:
+		return
+	hit_stop_timer = maxf(hit_stop_timer, minf(seconds, 0.10))
+
+func _consume_hit_stop(delta: float) -> bool:
+	if hit_stop_timer <= 0.0:
+		return false
+	hit_stop_timer = maxf(0.0, hit_stop_timer - delta)
+	return true
+
+func _apply_hit_reaction_feedback(feedback: Dictionary) -> void:
+	_request_screen_shake(float(feedback.get("screenShakePower", 0.0)), float(feedback.get("screenShakeDuration", 0.10)))
+	_request_hit_stop(float(feedback.get("hitStop", 0.0)))
+	if bool(feedback.get("enemyDefeated", false)):
+		_play_enemy_defeat_se()
+	if bool(feedback.get("emoteMineExploded", false)):
+		_play_emote_mine_explosion_se()
+
 func _world_transform_position() -> Vector2:
 	var center: Vector2 = FIELD_VIEW.get_center()
-	return center - (world_camera_offset + center) * world_zoom
+	return center - (world_camera_offset + center) * world_zoom + _screen_shake_offset()
 
 func _apply_world_transform() -> void:
 	draw_set_transform(_world_transform_position(), 0.0, Vector2(world_zoom, world_zoom))
@@ -1332,6 +1572,10 @@ func _update_world(delta: float) -> void:
 	if _update_comment_timer(delta):
 		return
 
+	if _consume_hit_stop(delta):
+		_update_ui()
+		return
+
 	_update_stream_frame_events(delta)
 	_update_world_systems(delta)
 	_update_ui()
@@ -1341,6 +1585,7 @@ func _update_comment_timer(delta: float) -> bool:
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 	if bool(result["shouldStart"]):
 		comment_choice_enter_time = 0.0
+		_play_instruction_comment_arrival_se()
 		var choice_result: Dictionary = CommentSystemScript.start_choice_ui_for_target(self, comments, rng, CHOICE_TIME, choice_box)
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(choice_result["chat"])]}, chat_box)
 		_refresh_choice_cards()
@@ -1369,6 +1614,10 @@ func _maybe_time_mark_announcement(key: String, previous_remaining: float, remai
 func _push_time_announcement(text: String, toast_seconds: float) -> void:
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [text], "toasts": [text]}, chat_box, toast_seconds)
 
+func _clear_toast() -> void:
+	toast_text = ""
+	toast_timer = 0.0
+
 func _reset_time_announcements() -> void:
 	time_announcement_flags.clear()
 	last_countdown_announcement_second = -1
@@ -1393,17 +1642,21 @@ func _update_world_systems(delta: float) -> void:
 	_update_destructibles(delta)
 	_update_weapons(delta)
 	var exp_result: Dictionary = ExpSystemScript.update_world_for_target(self, delta)
+	if int(exp_result.get("collectedExp", 0)) > 0:
+		_play_exp_pickup_se()
 	if bool(exp_result["levelUp"]):
 		pending_gift_choices += int(exp_result.get("levelUps", 1))
 		_start_gift_choice()
 	_update_marshmallow(delta)
 	var hit_fx_feedback: Dictionary = WeaponSystemScript.update_hit_fx_for_target(self, delta, ARENA, rng)
+	_apply_hit_reaction_feedback(hit_fx_feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, hit_fx_feedback, chat_box)
 	if state == "playing" and pending_gift_choices > 0:
 		_start_gift_choice()
 
 func _update_boss(delta: float) -> void:
 	var feedback: Dictionary = BossSystemScript.update_for_target(self, delta, ARENA, rng)
+	_apply_hit_reaction_feedback(feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
 func _update_genre_event(delta: float) -> void:
@@ -1506,8 +1759,10 @@ func _back_to_title() -> void:
 	game_over_intro_timer = 0.0
 	game_over_intro_duration = 0.0
 	result_drop_timer = 0.0
+	title_logo_drop_timer = TITLE_LOGO_DROP_DURATION
 	pending_game_over_reason = ""
 	pending_game_over_end_type = ""
+	player_no_brake_sliding = false
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
@@ -1584,6 +1839,8 @@ func _update_spawning(delta: float) -> void:
 
 func _update_enemies(delta: float) -> void:
 	var result: Dictionary = EnemySystemScript.update_world_for_target(self, delta, rng, ARENA)
+	_apply_hit_reaction_feedback(result)
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, result.get("damageEvents", []) as Array))
 
 func _update_weapons(delta: float) -> void:
@@ -1594,7 +1851,14 @@ func _update_weapons(delta: float) -> void:
 		_play_ban_hammer_se()
 	if bool(result.get("superchatShotFired", false)):
 		_play_superchat_shot_se()
+	if _weapon_update_has_fx(result, "spotlight"):
+		_play_spotlight_attack_se()
+	if _weapon_update_has_fx(result, "kusa_wave"):
+		_play_kusa_wave_se()
+	if _weapon_update_has_fx(result, "comment_pin"):
+		_play_comment_pin_se()
 	var feedback: Dictionary = WeaponSystemScript.apply_update_result_for_target(self, result, ARENA, rng)
+	_apply_hit_reaction_feedback(feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
 func _weapon_update_has_fx(result: Dictionary, kind: String) -> bool:
@@ -1617,6 +1881,8 @@ func _damage_player(source: String) -> void:
 func _apply_damage_feedback(feedback: Dictionary) -> void:
 	if state == "game_over_intro" or state == "result":
 		return
+	if bool(feedback.get("damaged", false)):
+		_request_screen_shake(0.16, 0.10)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 	if bool(feedback["dead"]):
 		_start_game_over_intro(String(feedback["deathReason"]))
@@ -1646,6 +1912,7 @@ func _start_gift_choice() -> void:
 		pending_gift_choices = 1
 	pending_gift_choices -= 1
 	gift_choice_enter_time = 0.0
+	_play_level_up_se()
 	var result: Dictionary = GiftSystemScript.start_offer_ui_for_target(self, gifts, rng, choice_box)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["arrivalText"])]}, chat_box)
 	_refresh_choice_cards()
@@ -1673,7 +1940,9 @@ func _suppress_dash_button_after_ui_confirm() -> void:
 
 func _update_marshmallow(delta: float) -> void:
 	var feedback: Dictionary = MarshmallowSystemScript.update_world_for_target(self, delta, ARENA, rng)
-	if bool(feedback.get("kusoPickupSe", false)):
+	if bool(feedback.get("godPickupSe", false)):
+		_play_god_marshmallow_pickup_se()
+	elif bool(feedback.get("kusoPickupSe", false)):
 		_play_kuso_marshmallow_pickup_se()
 	elif bool(feedback.get("goodPickupSe", false)):
 		_play_marshmallow_pickup_se()
@@ -1685,6 +1954,8 @@ func _update_marshmallow(delta: float) -> void:
 
 func _update_destructibles(delta: float) -> void:
 	var feedback: Dictionary = DestructibleSystemScript.update_world_for_target(self, delta, ARENA, rng, effect_walls)
+	if bool(feedback.get("dropPickupSe", false)):
+		_play_gift_box_item_pickup_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
 func _choose_index(index: int) -> void:
@@ -1763,6 +2034,7 @@ func _update_title_screen_visibility() -> void:
 func _finish_run(reason: String) -> void:
 	if state == "result":
 		return
+	_clear_toast()
 	if pending_game_over_end_type == "":
 		pending_game_over_end_type = _end_type_for_finish_reason(reason)
 	result_showing_ranking = false
@@ -1940,7 +2212,8 @@ func _pause_equipment_lines(is_weapon: bool) -> Array[String]:
 		var data: Dictionary = WeaponSystemScript.find_weapon(weapons, item_id, {}) if is_weapon else _find_gift_data(item_id)
 		var name: String = String(data.get("displayName", item_id))
 		var desc: String = _short_pause_text(String(data.get("description", "")), 26)
-		result.append("%d. %s Lv%d" % [i + 1, name, int(entry.get("level", 1))])
+		var level_text: String = "進化" if EquipmentSystem.is_evolved_entry(entry) else "Lv%d" % EquipmentSystem.entry_level(entry)
+		result.append("%d. %s %s" % [i + 1, name, level_text])
 		result.append("   %s" % desc)
 	return result
 
@@ -2030,9 +2303,15 @@ func _restart() -> void:
 	result_drop_timer = 0.0
 	pending_game_over_reason = ""
 	pending_game_over_end_type = ""
+	player_no_brake_sliding = false
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
+	screen_shake_timer = 0.0
+	screen_shake_duration = 0.0
+	screen_shake_strength = 0.0
+	screen_shake_offset = Vector2.ZERO
+	hit_stop_timer = 0.0
 	var restart_state: Dictionary = RunStateSystemScript.restart_run_for_target(
 		self,
 		characters,
@@ -2081,14 +2360,19 @@ func _start_next_relay_segment() -> void:
 	attack_timer = 0.25
 	superchat_timer = 0.4
 	banana_slip_fx_timer = 0.0
+	player_no_brake_sliding = false
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
+	screen_shake_timer = 0.0
+	screen_shake_duration = 0.0
+	screen_shake_strength = 0.0
+	screen_shake_offset = Vector2.ZERO
+	hit_stop_timer = 0.0
 	next_mallow_time = 30.0
 	stop_timer = 0.0
 	mute_timer = 0.0
-	toast_text = ""
-	toast_timer = 0.0
+	_clear_toast()
 	_reset_time_announcements()
 	kuso_chat_timer = 0.0
 	attack_jitter_timer = 0.0
@@ -2158,6 +2442,7 @@ func _apply_debug_action(action: String) -> void:
 func _apply_forced_comment_debug(comment_id: String, has_heart: bool) -> void:
 	var result: Dictionary = DebugSystemScript.force_comment_offer_for_target(self, comments, comment_id, has_heart)
 	if bool(result["applied"]):
+		_play_instruction_comment_arrival_se()
 		_choose_comment(int(result["chooseIndex"]))
 
 func _draw_shadow(pos: Vector2, size: Vector2, alpha: float = 0.28) -> void:
@@ -2302,10 +2587,12 @@ func _draw_map_foreground() -> void:
 func _draw_player() -> void:
 	if player_sprite != null:
 		_draw_player_sprite()
+		_draw_player_no_brake_sweat()
 		_draw_invincible_label()
 		_draw_player_hp_bar()
 		return
 	_draw_player_fallback()
+	_draw_player_no_brake_sweat()
 	_draw_invincible_label()
 	_draw_player_hp_bar()
 
@@ -2327,6 +2614,40 @@ func _draw_player_sprite() -> void:
 		_apply_world_transform()
 	else:
 		_reset_world_transform()
+
+func _draw_player_no_brake_sweat() -> void:
+	if not player_no_brake_sliding:
+		return
+	var side_sign := -1.0
+	if player_vel.x < -24.0:
+		side_sign = 1.0
+	elif absf(player_vel.x) <= 24.0 and player_facing_x < 0.0:
+		side_sign = 1.0
+	var base_pos := player_pos + Vector2(24.0 * side_sign, -48.0)
+	for i in range(3):
+		var index := float(i)
+		var pulse := sin(elapsed * 9.5 + index * 1.7)
+		var pos := base_pos + Vector2(8.0 * index * side_sign, 9.0 * index + pulse * 2.0)
+		var radius := 5.2 - index * 0.7
+		var angle := -1.45 + 0.18 * side_sign + index * 0.12
+		var alpha := 0.86 - index * 0.12
+		_draw_player_sweat_drop(pos, radius, angle, alpha)
+
+func _draw_player_sweat_drop(center: Vector2, radius: float, angle: float, alpha: float) -> void:
+	var dir := Vector2(cos(angle), sin(angle))
+	var side := Vector2(-dir.y, dir.x)
+	var outline_color := Color(1.0, 1.0, 1.0, 0.82 * alpha)
+	var fill_color := Color(0.38, 0.86, 1.0, 0.86 * alpha)
+	var shine_color := Color(1.0, 1.0, 1.0, 0.70 * alpha)
+	var outline_tip := center + dir * radius * 1.6
+	var outline_base := center - dir * radius * 0.25
+	draw_colored_polygon(PackedVector2Array([outline_tip, outline_base + side * radius, outline_base - side * radius]), outline_color)
+	draw_circle(center, radius * 1.05, outline_color, true)
+	var tip := center + dir * radius * 1.35
+	var base := center - dir * radius * 0.18
+	draw_colored_polygon(PackedVector2Array([tip, base + side * radius * 0.72, base - side * radius * 0.72]), fill_color)
+	draw_circle(center, radius * 0.78, fill_color, true)
+	draw_circle(center - dir * radius * 0.20 - side * radius * 0.22, radius * 0.18, shine_color, true)
 
 func _draw_invincible_label() -> void:
 	if debug_invincible:
@@ -2507,9 +2828,43 @@ func _draw_hit_fx(field_layer: bool = false) -> void:
 func _draw_hit_fx_item(data: Dictionary) -> void:
 	for part in DrawDataSystemScript.hit_fx_parts(data):
 		_draw_simple_draw_part(data, part as Dictionary)
+	if bool(data.get("showHammer", false)):
+		_draw_ban_hammer_afterimages(data)
 	_draw_hit_fx_texture(data)
 	if bool(data.get("showHammer", false)):
 		_draw_rotated_texture(ban_hammer_weapon_sprite, data["hammerPos"] as Vector2, data["hammerSize"] as Vector2, float(data["hammerAngle"]), float(data["hammerAlpha"]))
+		_draw_ban_hammer_sparks(data)
+
+func _draw_ban_hammer_afterimages(data: Dictionary) -> void:
+	if ban_hammer_weapon_sprite == null:
+		return
+	var after_images: Array = data.get("hammerAfterImages", []) as Array
+	for image_item in after_images:
+		var image_data: Dictionary = image_item as Dictionary
+		_draw_rotated_texture(
+			ban_hammer_weapon_sprite,
+			image_data["pos"] as Vector2,
+			image_data["size"] as Vector2,
+			float(image_data["angle"]),
+			float(image_data["alpha"])
+		)
+
+func _draw_ban_hammer_sparks(data: Dictionary) -> void:
+	var alpha: float = float(data.get("sparkAlpha", 0.0))
+	if alpha <= 0.0:
+		return
+	var pos: Vector2 = data["sparkPos"] as Vector2
+	var dir: Vector2 = data.get("sparkDir", Vector2.RIGHT) as Vector2
+	dir = dir.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	var size: float = float(data.get("sparkSize", 10.0))
+	var warm := Color(1.0, 0.86, 0.18, 0.86 * alpha)
+	var hot := Color(1.0, 1.0, 1.0, 0.92 * alpha)
+	var pink := Color(1.0, 0.18, 0.58, 0.62 * alpha)
+	draw_line(pos - dir * size * 0.55, pos + dir * size * 1.10, hot, 3.0)
+	draw_line(pos - side * size * 0.82, pos + side * size * 0.82, warm, 2.4)
+	draw_line(pos - (dir + side).normalized() * size * 0.58, pos + (dir + side).normalized() * size * 0.72, pink, 2.0)
+	draw_circle(pos, size * 0.22, hot, true)
 
 func _draw_hit_fx_texture(data: Dictionary) -> bool:
 	var path: String = String(data.get("imagePath", ""))
@@ -2521,7 +2876,10 @@ func _draw_hit_fx_texture(data: Dictionary) -> bool:
 	var pos: Vector2 = Vector2(data.get("imagePos", data.get("pos", Vector2.ZERO)))
 	var size: Vector2 = Vector2(data.get("imageSize", texture.get_size()))
 	var alpha: float = float(data.get("imageAlpha", 1.0))
-	draw_texture_rect(texture, Rect2(pos - size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
+	if data.has("imageRotation"):
+		_draw_rotated_texture(texture, pos, size, float(data["imageRotation"]), alpha)
+	else:
+		draw_texture_rect(texture, Rect2(pos - size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
 	return true
 
 func _draw_simple_draw_part(data: Dictionary, part: Dictionary) -> void:
@@ -2767,9 +3125,10 @@ func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, 
 		else:
 			var fallback_text: String = DrawDataSystemScript.equipment_icon(id, is_weapon)
 			_draw_text_item({"pos": slot_rect.position + Vector2(8, 22), "text": fallback_text, "width": 22, "size": 14, "color": Color("#1f2a3a")})
+		var level_text: String = "進" if EquipmentSystem.is_evolved_entry(entry) else str(EquipmentSystem.entry_level(entry))
 		_draw_text_item({
 			"pos": slot_rect.position + Vector2(19, 28),
-			"text": str(int(entry.get("level", 1))),
+			"text": level_text,
 			"width": 20,
 			"size": 11,
 			"color": Color("#e73763")
@@ -2783,7 +3142,7 @@ func _find_equipment_icon_data(source_data: Array, id: String) -> Dictionary:
 	return {}
 
 func _load_equipment_icon(path: String) -> Texture2D:
-	return TextureCacheSystemScript.load_resource_texture(equipment_icon_cache, path)
+	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)
 
 func _draw_comment_countdown() -> void:
 	return
@@ -2802,10 +3161,24 @@ func _draw_title_image_overlay() -> bool:
 	_draw_title_image(TITLE_SUPANA_IMAGE, TITLE_SUPANA_RECT)
 	_draw_title_image(TITLE_MARON_IMAGE, TITLE_MARON_RECT)
 	_draw_title_image(TITLE_BANCHAN_IMAGE, TITLE_BANCHAN_RECT)
-	_draw_title_image(TITLE_LOGO_IMAGE, TITLE_LOGO_RECT)
+	_draw_title_image(TITLE_LOGO_IMAGE, _title_logo_draw_rect())
 	_draw_title_image(TITLE_BUTTON_IMAGE, TITLE_BUTTON_RECT)
 	_draw_title_button_selection()
 	return true
+
+func _update_title_logo_drop(delta: float) -> void:
+	if state != "title":
+		return
+	title_logo_drop_timer = maxf(0.0, title_logo_drop_timer - delta)
+
+func _title_logo_draw_rect() -> Rect2:
+	if title_logo_drop_timer <= 0.0:
+		return TITLE_LOGO_RECT
+	var progress := clampf((TITLE_LOGO_DROP_DURATION - title_logo_drop_timer) / TITLE_LOGO_DROP_DURATION, 0.0, 1.0)
+	var shifted := progress - 1.0
+	var eased := 1.0 + 2.70158 * shifted * shifted * shifted + 1.70158 * shifted * shifted
+	var y := lerpf(TITLE_LOGO_RECT.position.y + TITLE_LOGO_DROP_START_Y_OFFSET, TITLE_LOGO_RECT.position.y, eased)
+	return Rect2(Vector2(TITLE_LOGO_RECT.position.x, y), TITLE_LOGO_RECT.size)
 
 func _draw_title_image(path: String, rect: Rect2) -> void:
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
@@ -3309,8 +3682,14 @@ func _draw_result_summary_row(rect: Rect2, row: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.88), Color("#f4d5e6"), 12, 1, false)
 	draw_circle(rect.position + Vector2(24, 23), 16, Color("#fff0f8"))
 	_draw_ranking_text(String(row.get("icon", "")), rect.position + Vector2(14, 29), 16, Color("#f05aa5"), 20, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(String(row.get("label", "")), rect.position + Vector2(50, 30), 17, Color("#4f3149"), 178)
-	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 16), rect.position + Vector2(214, 31), 21, Color("#f05aa5"), rect.size.x - 228, HORIZONTAL_ALIGNMENT_RIGHT)
+	var label_text: String = String(row.get("label", ""))
+	var label_width := 178.0
+	var value_x := 214.0
+	if label_text.length() <= 4:
+		label_width = 92.0
+		value_x = 154.0
+	_draw_ranking_text(label_text, rect.position + Vector2(50, 30), 17, Color("#4f3149"), label_width)
+	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 16), rect.position + Vector2(value_x, 31), 21, Color("#f05aa5"), rect.size.x - value_x - 14.0, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_result_detail_panel(rect: Rect2, data: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.88), Color("#d8cdf7"), 20, 2, false)
@@ -3988,7 +4367,9 @@ func _draw_gift_choice_card_contents() -> void:
 		for line in desc_lines.slice(0, 2):
 			_draw_centered_card_text(String(line), center_x, desc_y, rect.size.x - 28.0, 16, sub_color)
 			desc_y += 21.0
-		if not EquipmentSystem.is_instant(gift):
+		if EquipmentSystem.is_evolution_gift(gift):
+			_draw_centered_card_text("進化", center_x, rect.position.y + 246.0, rect.size.x - 28.0, 18, text_color)
+		elif not EquipmentSystem.is_instant(gift):
 			_draw_centered_card_text("Lv %d/%d" % [gift_level, int(gift["maxLevel"])], center_x, rect.position.y + 246.0, rect.size.x - 28.0, 18, text_color)
 
 func _draw_gift_choice_cursor(rect: Rect2) -> void:
@@ -4076,6 +4457,8 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/short_range_icon.png"
 	elif comment_id == "attack_right_only":
 		path = "res://assets/generated/instruction_comment_icons_v1/attack_right_only_icon.png"
+	elif comment_id == "weapon_mute":
+		path = "res://assets/generated/instruction_comment_icons_v1/weapon_mute_icon.png"
 	elif comment_id == "temp_walls":
 		path = "res://assets/generated/instruction_comment_icons_v1/temp_walls_icon.png"
 	elif comment_id == "damage_pits":
@@ -4132,10 +4515,17 @@ func _split_card_text(text: String, max_chars: int) -> Array[String]:
 	return lines
 
 func _draw_comment_storm() -> void:
+	_reset_world_transform()
 	var samples: Array[String] = DisplayTextSystemScript.comment_storm_samples()
 	for item in DrawDataSystemScript.comment_storm_draw_data(FIELD_VIEW, elapsed, comment_barrage_setting, kuso_chat_timer > 0.0, samples):
 		var data: Dictionary = item as Dictionary
+		var shadow: Dictionary = data.duplicate()
+		var color: Color = data["color"] as Color
+		shadow["pos"] = (data["pos"] as Vector2) + Vector2(2.0, 2.0)
+		shadow["color"] = Color(0.04, 0.02, 0.08, minf(0.70, color.a * 0.78))
+		_draw_text_item(shadow)
 		_draw_text_item(data)
+	_reset_world_transform()
 
 func _draw_tutorial_overlay_v2() -> void:
 	var data: Dictionary = DrawDataSystemScript.tutorial_overlay_data()

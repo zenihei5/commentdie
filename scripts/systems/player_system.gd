@@ -51,6 +51,13 @@ static func speed_rate(move_slow_timer: float, active_genre_event: String, banan
 		value *= 1.15
 	return value
 
+static func no_brake_sliding(no_brake_power: float, input: Vector2, player_vel: Vector2) -> bool:
+	if no_brake_power <= 0.0 or player_vel.length() < 82.0:
+		return false
+	if input.length() < 0.1:
+		return true
+	return input.dot(player_vel.normalized()) < -0.35
+
 static func banana_input(input: Vector2, banana_power: float, elapsed: float) -> Vector2:
 	if banana_power <= 0.0 or input.length() < 0.1:
 		return input
@@ -148,6 +155,7 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var no_brake_power: float = float(context["noBrakePower"])
 	input = banana_input(input, banana_power, elapsed)
 	var player_vel: Vector2 = Vector2(context["playerVel"])
+	var no_brake_sliding_value: bool = no_brake_sliding(no_brake_power, input, player_vel)
 	var player_speed: float = float(context["playerSpeed"])
 	var friction_value: float = friction(banana_power, no_brake_power, input, player_vel, String(context["activeGenreEvent"]), int(context["kusogeResistLevel"]))
 	var speed_rate_value: float = speed_rate(float(context["moveSlowTimer"]), String(context["activeGenreEvent"]), banana_power, no_brake_power, float(context.get("fieldSlowRate", 0.0)))
@@ -188,7 +196,8 @@ static func update_motion(context: Dictionary) -> Dictionary:
 		"dashEnterDown": bool(button_result["dashEnterDown"]),
 		"invincible": invincible_value,
 		"stopTimer": stop_timer_value,
-		"stoppedDamage": stopped_damage
+		"stoppedDamage": stopped_damage,
+		"noBrakeSliding": no_brake_sliding_value
 	}
 
 static func resolve_wall_collision(pos: Vector2, previous_pos: Vector2, radius: float, effect_walls: Array, stream_frame_id: String = "zatsudan") -> Vector2:
@@ -286,4 +295,5 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	target.set("dash_enter_down", bool(result["dashEnterDown"]))
 	target.set("invincible", float(result["invincible"]))
 	target.set("stop_timer", float(result["stopTimer"]))
+	target.set("player_no_brake_sliding", bool(result["noBrakeSliding"]))
 	return result

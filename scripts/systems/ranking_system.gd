@@ -544,9 +544,8 @@ static func _equipment_summary(items: Array, fallback: String) -> String:
 			continue
 		var data: Dictionary = item as Dictionary
 		var name: String = String(data.get("displayName", data.get("id", "")))
-		var level: int = int(data.get("level", 1))
 		if name != "":
-			names.append("%s Lv%d" % [name, level])
+			names.append("%s %s" % [name, _equipment_level_label(data)])
 	if not names.is_empty():
 		return "、".join(names)
 	if fallback.strip_edges() != "":
@@ -562,10 +561,19 @@ static func _equipment_detail(items: Array) -> String:
 		var data: Dictionary = item as Dictionary
 		var name: String = String(data.get("displayName", data.get("id", "")))
 		if name != "":
-			lines.append("%s Lv%d" % [name, int(data.get("level", 1))])
+			lines.append("%s %s" % [name, _equipment_level_label(data)])
 	if lines.is_empty():
 		return "なし"
 	return "\n".join(lines)
+
+
+static func _equipment_level_label(data: Dictionary) -> String:
+	var label: String = String(data.get("levelLabel", ""))
+	if label != "":
+		return label
+	if bool(data.get("isEvolved", false)):
+		return "進化"
+	return "Lv%d" % int(data.get("level", 1))
 
 
 static func _character_nickname(entry: Dictionary) -> String:

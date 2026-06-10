@@ -23,7 +23,10 @@ static func default_boss_data() -> Dictionary:
 		"expValue": 20,
 		"viewerValue": 3000,
 		"giftHypeReward": 20,
-		"lifetime": 45.0
+		"lifetime": 45.0,
+		"hitFlashDuration": 0.06,
+		"knockbackResistance": 1.0,
+		"canBeKnockedBack": false
 	}
 
 static func reset_for_target(target: Node, reset_count: bool = true) -> void:
@@ -92,6 +95,7 @@ static func request_summon_for_target(target: Node, view: Dictionary, has_heart:
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	var chats: Array[String] = []
 	var toasts: Array[String] = []
+	var feedback: Dictionary = {"chats": chats, "toasts": toasts}
 	update_slow_fields_for_target(target, delta)
 	if bool(target.get("boss_requested")):
 		var timer: float = maxf(0.0, float(target.get("boss_warning_timer")) - delta)
@@ -102,12 +106,13 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 				chats.append(String(item))
 			for item in (spawn_result.get("toasts", []) as Array):
 				toasts.append(String(item))
+			merge_reaction_feedback(feedback, spawn_result)
 	if bool(target.get("boss_active")):
 		var boss: Dictionary = active_boss_for_target(target)
 		if boss.is_empty():
 			target.set("boss_active", false)
 			target.set("active_boss_uid", -1)
-		else:
+		elif not bool(boss.get("defeatPending", false)):
 			var life: float = float(boss.get("bossLifetimeElapsed", 0.0)) + delta
 			boss["bossLifetimeElapsed"] = life
 			if life >= float(boss.get("bossLifetime", 45.0)):
@@ -116,9 +121,18 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 					chats.append(String(item))
 				for item in (retreat_result.get("toasts", []) as Array):
 					toasts.append(String(item))
+				merge_reaction_feedback(feedback, retreat_result)
 			else:
 				update_boss_attacks_for_target(target, boss, delta, arena, rng, chats, toasts)
-	return {"chats": chats, "toasts": toasts}
+	return feedback
+
+static func merge_reaction_feedback(target: Dictionary, source: Dictionary) -> void:
+	if float(source.get("screenShakePower", 0.0)) > float(target.get("screenShakePower", 0.0)):
+		target["screenShakePower"] = float(source.get("screenShakePower", 0.0))
+	if float(source.get("screenShakeDuration", 0.0)) > float(target.get("screenShakeDuration", 0.0)):
+		target["screenShakeDuration"] = float(source.get("screenShakeDuration", 0.0))
+	if float(source.get("hitStop", 0.0)) > float(target.get("hitStop", 0.0)):
+		target["hitStop"] = float(source.get("hitStop", 0.0))
 
 static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	if bool(target.get("boss_active")):
@@ -161,7 +175,12 @@ static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenera
 		"bossAttackIntervalRate": float(target.get("boss_attack_interval_rate")),
 		"bossRewardRate": reward_rate,
 		"bossViewerReward": int(data.get("viewerValue", 3000)),
-		"bossGiftHypeReward": int(data.get("giftHypeReward", 20))
+		"bossGiftHypeReward": int(data.get("giftHypeReward", 20)),
+		"hitFlashDuration": float(data.get("hitFlashDuration", 0.06)),
+		"hitFlashTimer": 0.0,
+		"knockbackResistance": float(data.get("knockbackResistance", 1.0)),
+		"canBeKnockedBack": bool(data.get("canBeKnockedBack", false)),
+		"knockbackVelocity": Vector2.ZERO
 	}
 	var enemies: Array = target.get("enemies") as Array
 	enemies.append(boss)
@@ -175,10 +194,13 @@ static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenera
 	target.set("boss_summoned", true)
 	target.set("boss_last_name", boss_name)
 	target.set("boss_last_result", "active")
-	return {
+	var spawn_feedback: Dictionary = {
 		"chats": spawn_chats_for_boss(boss_id, boss_name),
-		"toasts": ["ボス出現：%s" % boss_name]
+		"toasts": ["ボス出現：%s" % boss_name],
+		"screenShakePower": 0.32,
+		"screenShakeDuration": 0.20
 	}
+	return spawn_feedback
 
 static func retreat_for_target(target: Node) -> Dictionary:
 	var boss_name: String = String(target.get("boss_last_name"))
@@ -201,7 +223,7 @@ static func retreat_for_target(target: Node) -> Dictionary:
 		(target.get("boss_slow_fields") as Array).clear()
 	return {
 		"chats": [retreat_chat_for_boss(boss_name)],
-		"toasts": ["ボス撤退：%s" % boss_name]
+		"toasts": ["ボスに逃げられた…"]
 	}
 
 static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionary:
@@ -235,7 +257,10 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
 	return {
-		"chat": "%s撃破！ ギフト箱が届いた！ 同時視聴者数 +%d人" % [boss_name, viewer_reward]
+		"chat": "%s撃破！ ギフト箱が届いた！ 同時視聴者数 +%d人" % [boss_name, viewer_reward],
+		"screenShakePower": 0.55,
+		"screenShakeDuration": 0.25,
+		"hitStop": 0.08
 	}
 
 static func active_boss_for_target(target: Node) -> Dictionary:
@@ -299,10 +324,8 @@ static func speech_text_for_boss(boss_id: String) -> String:
 		return "未読にするな"
 	return "戦え戦え"
 
-static func retreat_chat_for_boss(boss_name: String) -> String:
-	if boss_name.begins_with("クソマロキング"):
-		return "クソマロキングは去っていった……"
-	return "大荒れコメントは去っていった……"
+static func retreat_chat_for_boss(_boss_name: String) -> String:
+	return "ボスに逃げられた…"
 
 static func death_text_for_boss(boss_id: String, has_heart: bool) -> String:
 	if boss_id == BOSS_KUSO_MARO_KING:

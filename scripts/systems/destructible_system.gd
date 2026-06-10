@@ -15,13 +15,15 @@ static func reset_for_target(target: Node) -> void:
 	target.set("next_care_package_time", BOX_FIRST_TIME)
 
 static func update_world_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator, effect_walls: Array) -> Dictionary:
-	var feedback: Dictionary = {"chats": [], "toasts": []}
+	var feedback: Dictionary = {"chats": [], "toasts": [], "dropPickupSe": false}
 	_update_box_spawn_for_target(target, arena, rng, effect_walls)
 	var drop_feedback: Dictionary = _update_drops_for_target(target, delta)
 	for chat in (drop_feedback["chats"] as Array):
 		(feedback["chats"] as Array).append(String(chat))
 	for toast in (drop_feedback["toasts"] as Array):
 		(feedback["toasts"] as Array).append(String(toast))
+	if bool(drop_feedback.get("dropPickupSe", false)):
+		feedback["dropPickupSe"] = true
 	return feedback
 
 static func _update_box_spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator, effect_walls: Array) -> void:
@@ -190,6 +192,7 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	var updated: Array = []
 	var chats: Array = []
 	var toasts: Array = []
+	var drop_pickup_se := false
 	var hit_fx: Array = target.get("hit_fx") as Array
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
 	for item in (target.get("drop_items") as Array):
@@ -207,6 +210,7 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 			var feedback: Dictionary = apply_drop_for_target(target, String(drop["id"]))
 			chats.append(String(feedback["chat"]))
 			toasts.append(String(feedback["toast"]))
+			drop_pickup_se = true
 			hit_fx.append({
 				"kind": "pickup_text",
 				"pos": player_pos + Vector2(-30.0, -48.0),
@@ -220,7 +224,7 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 		if float(drop["life"]) > 0.0:
 			updated.append(drop)
 	target.set("drop_items", updated)
-	return {"chats": chats, "toasts": toasts}
+	return {"chats": chats, "toasts": toasts, "dropPickupSe": drop_pickup_se}
 
 static func apply_drop_for_target(target: Node, id: String) -> Dictionary:
 	if id == "heal_drink":

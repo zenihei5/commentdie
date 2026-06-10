@@ -125,7 +125,9 @@ static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictiona
 	var category: String = EquipmentSystem.category_label_for_card(gift, gift_level)
 	var display_name: String = EquipmentSystem.display_name_for_card(gift, gift_level)
 	var level_text: String = ""
-	if not EquipmentSystem.is_instant(gift):
+	if EquipmentSystem.is_evolution_gift(gift):
+		level_text = "\n進化"
+	elif not EquipmentSystem.is_instant(gift):
 		level_text = "\nLv %d/%d" % [gift_level, int(gift["maxLevel"])]
 	return {
 		"text": "[%d]\n[%s]\n%s\n%s\n\n%s%s" % [

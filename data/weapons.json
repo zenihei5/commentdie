@@ -11,9 +11,18 @@
     "attackInterval": 0.85,
     "range": 2.25,
     "arcAngle": 135,
-    "knockback": 1.0,
+    "knockback": 1.5,
+    "hitStop": 0.03,
+    "screenShakePower": 0.2,
+    "screenShakeDuration": 0.08,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ban_hammer.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ban_hammer.png",
+    "evolution": {
+      "evolvedWeaponId": "ban_judgement",
+      "requiredCharacterId": "ban_chan",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 5
+    }
   },
   {
     "id": "superchat_shot",
@@ -28,9 +37,15 @@
     "range": 8.0,
     "projectileSpeed": 7.0,
     "pierce": 0,
-    "knockback": 0.3,
+    "knockback": 0.4,
     "magnetRange": 105.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png",
+    "evolution": {
+      "evolvedWeaponId": "starlight_superchat",
+      "requiredCharacterId": "superchat_chan",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 5
+    }
   },
   {
     "id": "comment_boomerang",
@@ -46,8 +61,76 @@
     "hitRadius": 34.0,
     "orbitSpeed": 180.0,
     "boomerangCount": 1,
-    "knockback": 0.5,
+    "knockback": 0.3,
     "magnetRange": 125.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_boomerang.png",
+    "evolution": {
+      "evolvedWeaponId": "maro_comment_ring",
+      "requiredCharacterId": "maro_chan",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 5
+    }
+  },
+  {
+    "id": "ban_judgement",
+    "displayName": "BANジャッジメント",
+    "description": "BANハンマーが進化した裁きの一撃。広い範囲を強く振り抜く。",
+    "equipmentType": "weapon",
+    "attribute": "physical",
+    "maxLevel": 1,
+    "isEvolved": true,
+    "baseWeaponId": "ban_hammer",
+    "attackType": "melee_arc",
+    "damage": 23.0,
+    "attackInterval": 0.58,
+    "range": 3.2,
+    "arcAngle": 170,
+    "knockback": 1.8,
+    "hitStop": 0.04,
+    "screenShakePower": 0.3,
+    "screenShakeDuration": 0.12,
+    "magnetRange": 115.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ban_hammer.png"
+  },
+  {
+    "id": "starlight_superchat",
+    "displayName": "スターライトスパチャ",
+    "description": "スパチャ弾が進化した星の弾幕。近い敵へ高速の強化弾を撃つ。",
+    "equipmentType": "weapon",
+    "attribute": "bullet",
+    "maxLevel": 1,
+    "isEvolved": true,
+    "baseWeaponId": "superchat_shot",
+    "attackType": "projectile",
+    "damage": 10.0,
+    "attackInterval": 0.5,
+    "range": 10.0,
+    "projectileSpeed": 9.5,
+    "projectileCount": 3,
+    "projectileSpreadDegrees": 12,
+    "pierce": 0,
+    "knockback": 0.4,
+    "magnetRange": 125.0,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png"
+  },
+  {
+    "id": "maro_comment_ring",
+    "displayName": "まろコメントリング",
+    "description": "コメントブーメランが進化した輪。複数のコメントが周囲を守る。",
+    "equipmentType": "weapon",
+    "attribute": "bullet",
+    "maxLevel": 1,
+    "isEvolved": true,
+    "baseWeaponId": "comment_boomerang",
+    "attackType": "orbit",
+    "damage": 15.0,
+    "orbitRadius": 2.45,
+    "hitInterval": 0.34,
+    "hitRadius": 42.0,
+    "orbitSpeed": 230.0,
+    "boomerangCount": 6,
+    "knockback": 0.3,
+    "magnetRange": 150.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_boomerang.png"
   },
   {
@@ -61,7 +144,7 @@
     "damage": 3.0,
     "attackInterval": 0.45,
     "range": 1.35,
-    "knockback": 0.2,
+    "knockback": 0.1,
     "magnetRange": 95.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/mic_barrier.png"
   },
@@ -77,7 +160,7 @@
     "attackInterval": 2.6,
     "range": 2.4,
     "duration": 3.2,
-    "knockback": 0.1,
+    "knockback": 0.0,
     "magnetRange": 95.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/spotlight.png"
   },
@@ -93,7 +176,10 @@
     "attackInterval": 1.35,
     "range": 2.1,
     "arcAngle": 80,
-    "knockback": 0.45,
+    "knockback": 0.8,
+    "hitStop": 0.02,
+    "screenShakePower": 0.1,
+    "screenShakeDuration": 0.10,
     "magnetRange": 95.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/kusa_wave.png"
   },
@@ -116,9 +202,9 @@
     "range": 6.0,
     "slowRate": 0.4,
     "slowDuration": 2.0,
-    "knockback": 0.15,
+    "knockback": 0.3,
     "magnetRange": 95.0,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_pin.png"
   },
   {
     "id": "emote_mine",
@@ -139,9 +225,12 @@
     "explosionRadius": 1.5,
     "range": 1.5,
     "maxActiveCount": 3,
-    "knockback": 0.2,
+    "knockback": 1.2,
+    "hitStop": 0.05,
+    "screenShakePower": 0.4,
+    "screenShakeDuration": 0.15,
     "magnetRange": 95.0,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/weapon_fx_v1/emote_mine.png"
   },
   {
     "id": "ng_word_laser",
@@ -161,9 +250,9 @@
     "duration": 0.25,
     "range": 10.0,
     "width": 0.6,
-    "knockback": 0.1,
+    "knockback": 0.0,
     "magnetRange": 95.0,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ng_word_laser.png"
   },
   {
     "id": "listener_summon",
@@ -185,8 +274,8 @@
     "searchRange": 7.0,
     "range": 7.0,
     "maxActiveCount": 3,
-    "knockback": 0.25,
+    "knockback": 0.3,
     "magnetRange": 95.0,
-    "iconPath": ""
+    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon.png"
   }
 ]

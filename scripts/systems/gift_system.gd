@@ -1,6 +1,8 @@
 extends RefCounted
 class_name GiftSystem
 
+const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
+
 static func arrival_text(gift_hype: int) -> String:
 	if gift_hype >= 90:
 		return "神ギフトの予感……！"
@@ -24,8 +26,15 @@ static func build_offer(context: Dictionary) -> Array:
 	elif gift_hype >= 40 and not rarities.has("rare"):
 		rarities[2] = "rare"
 	var result: Array = []
+	var evolution_gift: Dictionary = context.get("evolutionGift", {}) as Dictionary
+	if not evolution_gift.is_empty():
+		result.append(evolution_gift)
 	for rarity in rarities:
+		if result.size() >= 3:
+			break
 		result.append(pick_gift(context, rarity, result))
+	while result.size() < 3:
+		result.append(pick_gift(context, "common", result))
 	return result
 
 static func build_forced_offer(context: Dictionary, rarity: String, count: int = 3) -> Array:
@@ -41,6 +50,7 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"giftHype": target.get("gift_hype"),
 		"giftTime": gift_time,
 		"availableIds": available_gift_ids_for_target(target, gifts, gift_time),
+		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
 		"rng": rng
 	}
 
@@ -109,6 +119,8 @@ static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dicti
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
 
 static func consume_for_rarity(rarity: String) -> int:
+	if rarity == "evolution":
+		return 0
 	if rarity == "rare":
 		return 40
 	if rarity == "god" or rarity == "flame":
@@ -160,7 +172,8 @@ static func choose_offer_index_for_target(target: Node, index: int) -> Dictionar
 		"giftName": String(gift["displayName"]),
 		"rollGenreEvent": bool(result.get("rollGenreEvent", false)),
 		"heartPendingActivated": bool(result.get("heartPendingActivated", false)),
-		"heartPendingDuplicate": bool(result.get("heartPendingDuplicate", false))
+		"heartPendingDuplicate": bool(result.get("heartPendingDuplicate", false)),
+		"weaponEvolution": result.get("weaponEvolution", {})
 	}
 
 static func choose_offer_index_ui_for_target(target: Node, index: int, choice_box: Control) -> Dictionary:
@@ -187,6 +200,12 @@ static func choose_offer_index_with_feedback_for_target(
 		chats.append("♡を受け取った！ 次の指示コメが全部ちょっと甘くなる")
 	if bool(result.get("heartPendingDuplicate", false)):
 		chats.append("♡はすでに待機中！ ギフト期待度 +15")
+	var weapon_evolution: Dictionary = result.get("weaponEvolution", {}) as Dictionary
+	if not weapon_evolution.is_empty():
+		chats.append("武器進化！ %s → %s" % [
+			String(weapon_evolution.get("baseDisplayName", "")),
+			String(weapon_evolution.get("evolvedDisplayName", ""))
+		])
 	return {
 		"selected": true,
 		"chats": chats
@@ -202,6 +221,10 @@ static func update_choice_input_for_target(target: Node, latch: Dictionary) -> D
 	return {"refresh": false, "chooseIndex": -1}
 
 static func apply_gift_to_target(target: Node, gift: Dictionary) -> Dictionary:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		var evolution_result: Dictionary = WeaponEvolutionSystemScript.apply_evolution_gift_for_target(target, gift)
+		_apply_equipment_stats_to_target(target)
+		return evolution_result
 	if not EquipmentSystem.is_instant(gift):
 		return apply_equipment_to_target(target, gift)
 	var effect: String = String(gift["effectType"])
@@ -223,6 +246,8 @@ static func apply_equipment_to_target(target: Node, gift: Dictionary) -> Diction
 	return {"rollGenreEvent": false, "heartPendingActivated": false, "heartPendingDuplicate": false}
 
 static func _taken_name_for_target(target: Node, gift: Dictionary) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return "%s 進化" % String(gift.get("evolvedDisplayName", gift.get("displayName", "武器進化")))
 	if EquipmentSystem.is_instant(gift):
 		return String(gift["displayName"])
 	var level_value: int = EquipmentSystem.level_for_target(target, String(gift["id"]))
@@ -258,6 +283,8 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	target.set("sweet_tooth_level", sweet_level)
 	var superchat_weapon_level: int = EquipmentSystem.level(weapons, "superchat_shot")
 	var boomerang_weapon_level: int = EquipmentSystem.level(weapons, "comment_boomerang")
+	var superchat_evolved: bool = EquipmentSystem.has_evolved_from(weapons, "superchat_shot")
+	var boomerang_evolved: bool = EquipmentSystem.has_evolved_from(weapons, "comment_boomerang")
 	var superchat_level: int = maxi(0, superchat_weapon_level)
 	var boomerang_level: int = maxi(0, boomerang_weapon_level)
 	if main_weapon_id == "superchat_shot":
@@ -268,6 +295,10 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 		superchat_level += bullet_support_level
 	if boomerang_weapon_level > 0:
 		boomerang_level += bullet_support_level
+	if superchat_evolved:
+		superchat_level = bullet_support_level
+	if boomerang_evolved:
+		boomerang_level = bullet_support_level
 	target.set("superchat_level", superchat_level)
 	target.set("boomerang_level", boomerang_level)
 
