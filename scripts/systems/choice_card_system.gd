@@ -7,17 +7,51 @@ static func hidden_card() -> Dictionary:
 	return {"text": "", "fill": Color(1.0, 1.0, 1.0, 0.88), "border": Color("#c6dfff")}
 
 static func selection_action(latch: Dictionary, current: int, count: int = 3) -> Dictionary:
+	var safe_count: int = maxi(1, count)
+	var safe_current: int = clampi(current, 0, safe_count - 1)
+	var wrap_edges: bool = safe_count == 3
 	if _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_UP):
-		return {"kind": "move", "index": maxi(0, current - 1)}
+		var previous_index: int = posmod(safe_current - 1, safe_count) if wrap_edges else maxi(0, safe_current - 1)
+		return {"kind": "move", "index": previous_index}
 	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_DOWN):
-		return {"kind": "move", "index": mini(count - 1, current + 1)}
+		var next_index: int = posmod(safe_current + 1, safe_count) if wrap_edges else mini(safe_count - 1, safe_current + 1)
+		return {"kind": "move", "index": next_index}
 	var keys: Array = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5]
-	for i in range(mini(count, keys.size())):
+	for i in range(mini(safe_count, keys.size())):
 		if _pressed(latch, keys[i]):
 			return {"kind": "select", "index": i}
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
-		return {"kind": "select", "index": current}
-	return {"kind": "", "index": current}
+		return {"kind": "select", "index": safe_current}
+	return {"kind": "", "index": safe_current}
+
+static func special_card_selection_action(latch: Dictionary, current: int, normal_count: int = 3, return_index: int = 0) -> Dictionary:
+	var safe_normal_count: int = maxi(1, normal_count)
+	var special_index: int = safe_normal_count
+	var safe_current: int = clampi(current, 0, special_index)
+	var safe_return: int = clampi(return_index, 0, safe_normal_count - 1)
+	if safe_current < safe_normal_count:
+		safe_return = safe_current
+	if _pressed(latch, KEY_LEFT):
+		if safe_current < safe_normal_count:
+			var previous_index: int = posmod(safe_current - 1, safe_normal_count)
+			return {"kind": "move", "index": previous_index, "returnIndex": previous_index}
+		return {"kind": "", "index": safe_current, "returnIndex": safe_return}
+	if _pressed(latch, KEY_RIGHT):
+		if safe_current < safe_normal_count:
+			var next_index: int = posmod(safe_current + 1, safe_normal_count)
+			return {"kind": "move", "index": next_index, "returnIndex": next_index}
+		return {"kind": "", "index": safe_current, "returnIndex": safe_return}
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_DOWN):
+		if safe_current == special_index:
+			return {"kind": "move", "index": safe_return, "returnIndex": safe_return}
+		return {"kind": "move", "index": special_index, "returnIndex": safe_current}
+	var keys: Array = [KEY_1, KEY_2, KEY_3, KEY_4]
+	for i in range(keys.size()):
+		if _pressed(latch, keys[i]):
+			return {"kind": "select", "index": i, "returnIndex": safe_return}
+	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
+		return {"kind": "select", "index": safe_current, "returnIndex": safe_return}
+	return {"kind": "", "index": safe_current, "returnIndex": safe_return}
 
 static func menu_selection_action(latch: Dictionary, current: int, count: int, max_number_key: int) -> Dictionary:
 	if _pressed(latch, KEY_ESCAPE):

@@ -48,10 +48,10 @@ static func title_menu_items() -> Array[String]:
 	return ["ニューゲーム", "ランキング", "オプション"]
 
 static func title_controls_text() -> String:
-	return "↑↓ / W/S：選択    Enter / Space：決定    1/2/3：直接選択"
+	return "↑↓ / W/S：選択    Enter / Space：決定"
 
-static func title_settings_text(comment_barrage: String, screen_shake_enabled: bool) -> String:
-	return "B: 弾幕量 %s    N: 画面揺れ %s" % [comment_barrage, "ON" if screen_shake_enabled else "OFF"]
+static func title_settings_text(_comment_barrage: String, screen_shake_enabled: bool) -> String:
+	return "N: 画面揺れ %s" % ("ON" if screen_shake_enabled else "OFF")
 
 static func title_tutorial_text() -> String:
 	return "U: 全配信枠解放"
@@ -75,10 +75,9 @@ static func title_lines(comment_barrage: String, screen_shake_enabled: bool, sel
 	result.append({"offset": Vector2(250, 254), "text": "v0.2", "size": 17, "color": Color("#6b7280")})
 	return result
 
-static func options_screen_text(selected_index: int, window_size: String, comment_barrage: String, screen_shake_enabled: bool, tutorial_seen: bool, window_size_status: String = "") -> String:
+static func options_screen_text(selected_index: int, window_size: String, _comment_barrage: String, screen_shake_enabled: bool, tutorial_seen: bool, window_size_status: String = "") -> String:
 	var labels: Array[String] = [
 		"画面サイズ　%s" % window_size,
-		"コメント弾幕量　%s" % comment_barrage,
 		"画面揺れ　　　%s" % ("ON" if screen_shake_enabled else "OFF"),
 		"チュートリアル再表示",
 		"戻る"

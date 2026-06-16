@@ -220,15 +220,21 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 	}
 
 static func defeat_delay_for_enemy(enemy: Dictionary) -> float:
-	var base_delay: float = 0.16 if bool(enemy.get("isBoss", false)) else 0.12
+	var base_delay: float = 0.55 if bool(enemy.get("isBoss", false)) else 0.12
 	return maxf(base_delay, float(enemy.get("hitFlashDuration", 0.10)))
 
 static func queue_defeat_for_enemy(enemy: Dictionary) -> void:
 	if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
 		return
+	var delay: float = defeat_delay_for_enemy(enemy)
 	enemy["defeatPending"] = true
-	enemy["defeatDelay"] = defeat_delay_for_enemy(enemy)
+	enemy["defeatDelay"] = delay
+	enemy["defeatDelayMax"] = delay
 	enemy["killQueued"] = true
+	if bool(enemy.get("isBoss", false)):
+		enemy["hitFlashColor"] = Color(1.0, 0.96, 0.66, 1.0)
+		enemy["hitFlashDuration"] = maxf(float(enemy.get("hitFlashDuration", 0.10)), 0.18)
+		enemy["hitFlashTimer"] = maxf(float(enemy.get("hitFlashTimer", 0.0)), float(enemy["hitFlashDuration"]))
 
 static func should_keep_enemy(enemy_value: Variant) -> bool:
 	var enemy: Dictionary = enemy_value as Dictionary
@@ -329,6 +335,15 @@ static func apply_pending_defeats_for_target(target: Node, result: Dictionary, a
 			continue
 		if bool(enemy.get("defeatResolved", false)):
 			continue
+		if bool(enemy.get("isBoss", false)) and not bool(enemy.get("defeatReactionApplied", false)):
+			enemy["defeatReactionApplied"] = true
+			merge_kill_feedback(result, {
+				"screenShakePower": 0.55,
+				"screenShakeDuration": 0.25,
+				"hitStop": 0.10,
+				"screenFlashColor": Color(1.0, 0.94, 0.50, 0.34),
+				"screenFlashDuration": 0.16
+			})
 		if float(enemy.get("defeatDelay", 0.0)) > 0.0:
 			continue
 		enemy["defeatResolved"] = true
@@ -342,13 +357,23 @@ static func merge_kill_feedback(target: Dictionary, source: Dictionary) -> void:
 	var chat: String = String(source.get("chat", ""))
 	if chat != "":
 		chats.append(chat)
+	for item in (source.get("chats", []) as Array):
+		chats.append(String(item))
 	target["chats"] = chats
+	var toasts: Array = target.get("toasts", []) as Array
+	for item in (source.get("toasts", []) as Array):
+		toasts.append(String(item))
+	if not toasts.is_empty():
+		target["toasts"] = toasts
 	if float(source.get("screenShakePower", 0.0)) > float(target.get("screenShakePower", 0.0)):
 		target["screenShakePower"] = float(source.get("screenShakePower", 0.0))
 	if float(source.get("screenShakeDuration", 0.0)) > float(target.get("screenShakeDuration", 0.0)):
 		target["screenShakeDuration"] = float(source.get("screenShakeDuration", 0.0))
 	if float(source.get("hitStop", 0.0)) > float(target.get("hitStop", 0.0)):
 		target["hitStop"] = float(source.get("hitStop", 0.0))
+	if float(source.get("screenFlashDuration", 0.0)) > float(target.get("screenFlashDuration", 0.0)):
+		target["screenFlashDuration"] = float(source.get("screenFlashDuration", 0.0))
+		target["screenFlashColor"] = source.get("screenFlashColor", Color.WHITE)
 	if bool(source.get("enemyDefeated", false)):
 		target["enemyDefeated"] = true
 

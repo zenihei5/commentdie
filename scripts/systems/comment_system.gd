@@ -1,10 +1,22 @@
 ﻿extends RefCounted
 class_name CommentSystem
 
+const DO_EVERYTHING_ID := "do_everything"
+const DO_EVERYTHING_OFFER_CHANCE := 0.05
+const DO_EVERYTHING_BUCKETS := [
+	["attack_right_only", "reverse_control", "no_stop", "no_brake", "short_range"],
+	["banana_floor", "damage_pits", "temp_walls", "camera_zoom", "hide_hp", "weapon_mute", "comment_barrage"],
+	["enemy_speed_up", "giant_enemies", "enemy_spawn_up", "split_enemy"]
+]
+
 static func build_offer(context: Dictionary) -> Array:
 	var result: Array = []
 	var comments: Array = context["comments"] as Array
 	var comment_time: float = float(context["commentTime"])
+	if _should_offer_do_everything(comments, context, comment_time):
+		var special_offer: Array = _build_do_everything_offer(comments, context, comment_time)
+		if not special_offer.is_empty():
+			return special_offer
 	result.append(_pick_for_slot(comments, context, comment_time, 1, 2, result))
 	result.append(_pick_for_slot(comments, context, comment_time, 2, 3, result))
 	var max_risk: int = 4 if comment_time >= 60.0 else (3 if comment_time >= 30.0 else 2)
@@ -12,7 +24,7 @@ static func build_offer(context: Dictionary) -> Array:
 	return result
 
 static func build_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
-	return build_offer({
+	var offer: Array = build_offer({
 		"comments": comments,
 		"commentTime": target.get("elapsed"),
 		"streamFrame": target.get("current_stream_frame"),
@@ -23,19 +35,46 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"bossRequested": target.get("boss_requested"),
 		"bossActive": target.get("boss_active"),
 		"bossSummonCount": target.get("boss_summon_count"),
+		"doEverythingOfferCount": target.get("do_everything_offer_count"),
 		"rng": rng
 	})
+	if _offer_has_do_everything(offer):
+		target.set("do_everything_offer_count", int(target.get("do_everything_offer_count")) + 1)
+	return offer
+
+static func build_forced_do_everything_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
+	var comment_time: float = maxf(float(target.get("elapsed")), _do_everything_min_time(comments))
+	var context: Dictionary = {
+		"comments": comments,
+		"commentTime": comment_time,
+		"streamFrame": target.get("current_stream_frame"),
+		"lastCommentId": target.get("last_comment_id"),
+		"recentCategories": target.get("recent_comment_categories"),
+		"yesListener": target.get("yes_listener"),
+		"expLevel": target.get("exp_level"),
+		"bossRequested": false,
+		"bossActive": false,
+		"bossSummonCount": target.get("boss_summon_count"),
+		"doEverythingOfferCount": 0,
+		"rng": rng
+	}
+	var offer: Array = _build_do_everything_offer(comments, context, comment_time)
+	if offer.size() == 4:
+		return offer
+	return _build_do_everything_fallback_offer(comments)
 
 static func start_choice_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float) -> Dictionary:
 	target.set("state", "comment_choice")
 	target.set("previous_state", "playing")
 	target.set("choice_timer", maxf(1.0, base_choice_time + float(target.get("choice_time_bonus")) - float(target.get("choice_time_penalty"))))
 	target.set("selected_card", 0)
+	target.set("special_choice_return_card", 0)
 	target.set("comment_warning_step", 0)
-	target.set("offered_comments", build_offer_for_target(target, comments, rng))
-	target.set("ng_cards", _bool_cards(false, 3))
+	var offer: Array = build_offer_for_target(target, comments, rng)
+	target.set("offered_comments", offer)
+	target.set("ng_cards", _bool_cards(false, offer.size()))
 	var pending_heart: bool = bool(target.get("heart_pending"))
-	target.set("heart_cards", _bool_cards(pending_heart, 3))
+	target.set("heart_cards", _bool_cards(pending_heart, offer.size()))
 	if pending_heart:
 		target.set("heart_pending", false)
 		target.set("heart_used_count", int(target.get("heart_used_count")) + 1)
@@ -67,7 +106,13 @@ static func choose_comment_for_target(target: Node, index: int, rng: RandomNumbe
 	var comment: Dictionary = offered_comments[index] as Dictionary
 	var has_heart: bool = index < heart_cards.size() and bool(heart_cards[index])
 	var view: Dictionary = comment_view(comment, has_heart)
-	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng)
+	var sub_comments: Array = []
+	var sub_heart_cards: Array = []
+	if _is_do_everything_comment(comment):
+		for i in range(mini(3, offered_comments.size())):
+			sub_comments.append(offered_comments[i])
+			sub_heart_cards.append(i < heart_cards.size() and bool(heart_cards[i]))
+	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng, sub_comments, sub_heart_cards)
 	var modifier_feedback: Dictionary = result.get("feedback", {"chats": [], "toasts": []}) as Dictionary
 	return {
 		"selected": true,
@@ -135,27 +180,33 @@ static func build_forced_offer(comments: Array, id: String, has_heart: bool) -> 
 
 static func comment_view(comment: Dictionary, has_heart: bool) -> Dictionary:
 	var view: Dictionary = comment.duplicate(true)
-	if not has_heart:
-		return view
-	if comment.has("heartVariant") and comment["heartVariant"] is Dictionary:
-		var variant: Dictionary = comment["heartVariant"] as Dictionary
-		for key in variant.keys():
-			view[key] = variant[key]
-	else:
-		var display_name: String = String(comment["displayName"]) + "♡"
-		view["displayName"] = display_name
-		view["riskLevel"] = maxi(1, int(comment["riskLevel"]) - 1)
-		view["multiplier"] = snappedf(float(comment["multiplier"]) * 0.8, 0.1)
-		view["giftHypeOnSelect"] = int(round(float(comment["giftHypeOnSelect"]) * 0.75))
-		view["giftHypeOnClear"] = int(round(float(comment["giftHypeOnClear"]) * 0.75))
-		view["deathText"] = String(comment["deathText"]).replace(String(comment["displayName"]), display_name)
+	if has_heart:
+		if comment.has("heartVariant") and comment["heartVariant"] is Dictionary:
+			var variant: Dictionary = comment["heartVariant"] as Dictionary
+			for key in variant.keys():
+				view[key] = variant[key]
+		else:
+			var display_name: String = String(comment["displayName"]) + "♡"
+			view["displayName"] = display_name
+			view["riskLevel"] = maxi(1, int(comment["riskLevel"]) - 1)
+			view["multiplier"] = snappedf(float(comment["multiplier"]) * 0.8, 0.1)
+			view["giftHypeOnSelect"] = int(round(float(comment["giftHypeOnSelect"]) * 0.75))
+			view["giftHypeOnClear"] = int(round(float(comment["giftHypeOnClear"]) * 0.75))
+			view["deathText"] = String(comment["deathText"]).replace(String(comment["displayName"]), display_name)
+	if _is_do_everything_comment(comment):
+		view["riskLevel"] = 5
+		view["multiplier"] = 4.0 if has_heart else 5.0
+		view["giftHypeOnSelect"] = 50 if has_heart else 70
+		view["giftHypeOnClear"] = 20 if has_heart else 30
 	return view
 
-static func highest_multiplier_card(offered_comments: Array, heart_cards: Array) -> int:
+static func highest_multiplier_card(offered_comments: Array, heart_cards: Array, include_special: bool = false) -> int:
 	var best_index: int = 0
 	var best_multiplier: float = -1.0
 	for i in range(offered_comments.size()):
 		var comment: Dictionary = offered_comments[i] as Dictionary
+		if not include_special and _is_do_everything_comment(comment):
+			continue
 		var has_heart: bool = i < heart_cards.size() and bool(heart_cards[i])
 		var view: Dictionary = comment_view(comment, has_heart)
 		var multiplier: float = float(view["multiplier"])
@@ -189,18 +240,26 @@ static func update_choice_input_for_target(target: Node, delta: float, latch: Di
 	var chats: Array = timer_result["chats"] as Array
 	var refresh: bool = false
 	var choose_index: int = -1
-	var action: Dictionary = ChoiceCardSystem.selection_action(latch, int(target.get("selected_card")), 3)
+	var offered_comments: Array = target.get("offered_comments") as Array
+	var heart_cards: Array = target.get("heart_cards") as Array
+	var offer_count: int = maxi(1, offered_comments.size())
+	var action: Dictionary = {}
+	if _has_do_everything_special_card(offered_comments):
+		action = ChoiceCardSystem.special_card_selection_action(latch, int(target.get("selected_card")), 3, int(target.get("special_choice_return_card")))
+	else:
+		action = ChoiceCardSystem.selection_action(latch, int(target.get("selected_card")), offer_count)
 	if ChoiceCardSystem.is_move(action):
 		target.set("selected_card", int(action["index"]))
+		if action.has("returnIndex"):
+			target.set("special_choice_return_card", int(action["returnIndex"]))
 		refresh = true
 	elif ChoiceCardSystem.is_select(action):
 		choose_index = int(action["index"])
 	elif bool(timer_result["timedOut"]):
 		chats.append("指示コメに押し切られた！")
-		choose_index = highest_multiplier_card(
-			target.get("offered_comments") as Array,
-			target.get("heart_cards") as Array
-		)
+		var selected_index: int = clampi(int(target.get("selected_card")), 0, offer_count - 1)
+		var selected_comment: Dictionary = offered_comments[selected_index] as Dictionary
+		choose_index = selected_index if _is_do_everything_comment(selected_comment) else highest_multiplier_card(offered_comments, heart_cards)
 	return {
 		"chats": chats,
 		"refresh": refresh,
@@ -237,6 +296,8 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 	var yes_listener: bool = bool(context["yesListener"])
 	for item in comments:
 		var comment: Dictionary = item as Dictionary
+		if _is_special_only_comment(comment):
+			continue
 		if not _data_allowed_for_frame(frame, comment, "commentPoolTags"):
 			continue
 		if not _comment_allowed_for_context(comment, context, comment_time):
@@ -249,8 +310,6 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 		if risk >= 4 and comment_time < 60.0:
 			continue
 		if String(comment["id"]) == last_comment_id:
-			continue
-		if String(comment["id"]) == "do_everything" and last_comment_id == "do_everything":
 			continue
 		if used.has(comment):
 			continue
@@ -265,12 +324,115 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 	if pool.is_empty():
 		for item in comments:
 			var fallback: Dictionary = item as Dictionary
-			if _data_allowed_for_frame(frame, fallback, "commentPoolTags") and _comment_allowed_for_context(fallback, context, comment_time) and comment_time >= float(fallback["minTime"]) and not used.has(fallback):
+			if not _is_special_only_comment(fallback) and _data_allowed_for_frame(frame, fallback, "commentPoolTags") and _comment_allowed_for_context(fallback, context, comment_time) and comment_time >= float(fallback["minTime"]) and not used.has(fallback):
 				pool.append(fallback)
 	if pool.is_empty():
 		return comments[0] as Dictionary
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+
+static func _should_offer_do_everything(comments: Array, context: Dictionary, comment_time: float) -> bool:
+	var comment: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
+	if comment.is_empty():
+		return false
+	if comment_time < float(comment.get("minTime", 60.0)):
+		return false
+	if int(context.get("doEverythingOfferCount", 0)) >= int(comment.get("maxOfferCountPerRun", 1)):
+		return false
+	if bool(context.get("bossRequested", false)) or bool(context.get("bossActive", false)):
+		return false
+	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
+	return rng.randf() < float(comment.get("offerChance", DO_EVERYTHING_OFFER_CHANCE))
+
+static func _build_do_everything_offer(comments: Array, context: Dictionary, comment_time: float) -> Array:
+	var result: Array = []
+	for bucket in DO_EVERYTHING_BUCKETS:
+		var bucket_ids: Array = bucket as Array
+		var picked: Dictionary = _pick_from_id_pool(bucket_ids, comments, context, comment_time, result)
+		if picked.is_empty():
+			return []
+		result.append(picked)
+	var special: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
+	if special.is_empty():
+		return []
+	result.append(special)
+	return result
+
+static func _build_do_everything_fallback_offer(comments: Array) -> Array:
+	var result: Array = []
+	for bucket in DO_EVERYTHING_BUCKETS:
+		var bucket_ids: Array = bucket as Array
+		var picked: Dictionary = {}
+		for id in bucket_ids:
+			var comment: Dictionary = _find_comment_by_id(comments, String(id))
+			if not comment.is_empty() and not result.has(comment):
+				picked = comment
+				break
+		if picked.is_empty():
+			return []
+		result.append(picked)
+	var special: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
+	if special.is_empty():
+		return []
+	result.append(special)
+	return result
+
+static func _do_everything_min_time(comments: Array) -> float:
+	var comment: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
+	if comment.is_empty():
+		return 60.0
+	return float(comment.get("minTime", 60.0))
+
+static func _pick_from_id_pool(ids: Array, comments: Array, context: Dictionary, comment_time: float, used: Array) -> Dictionary:
+	var pool: Array = []
+	var frame: Dictionary = context["streamFrame"] as Dictionary
+	var last_comment_id: String = String(context["lastCommentId"])
+	var yes_listener: bool = bool(context["yesListener"])
+	for item in comments:
+		var comment: Dictionary = item as Dictionary
+		var id: String = String(comment.get("id", ""))
+		if not ids.has(id):
+			continue
+		if used.has(comment) or id == last_comment_id:
+			continue
+		if _is_special_only_comment(comment):
+			continue
+		if not _data_allowed_for_frame(frame, comment, "commentPoolTags"):
+			continue
+		if not _comment_allowed_for_context(comment, context, comment_time):
+			continue
+		if comment_time < float(comment.get("minTime", 0.0)):
+			continue
+		for i in range(int(comment.get("weight", 1))):
+			if yes_listener and int(comment.get("riskLevel", 1)) >= 3:
+				pool.append(comment)
+			pool.append(comment)
+	if pool.is_empty():
+		return {}
+	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
+	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+
+static func _find_comment_by_id(comments: Array, id: String) -> Dictionary:
+	for item in comments:
+		var comment: Dictionary = item as Dictionary
+		if String(comment.get("id", "")) == id:
+			return comment
+	return {}
+
+static func _offer_has_do_everything(offer: Array) -> bool:
+	for item in offer:
+		if _is_do_everything_comment(item as Dictionary):
+			return true
+	return false
+
+static func _has_do_everything_special_card(offer: Array) -> bool:
+	return offer.size() > 3 and _is_do_everything_comment(offer[3] as Dictionary)
+
+static func _is_do_everything_comment(comment: Dictionary) -> bool:
+	return String(comment.get("id", "")) == DO_EVERYTHING_ID
+
+static func _is_special_only_comment(comment: Dictionary) -> bool:
+	return _is_do_everything_comment(comment) or bool(comment.get("isSpecialChoice", false)) or bool(comment.get("excludedFromNormalChoices", false))
 
 static func _comment_allowed_for_context(comment: Dictionary, context: Dictionary, comment_time: float) -> bool:
 	if String(comment.get("effectType", "")) != "summon_boss" and String(comment.get("id", "")) != "summon_boss":

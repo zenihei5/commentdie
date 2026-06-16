@@ -161,7 +161,8 @@ static func accessory_entries_for_ranking(accessories: Array, gift_data: Array) 
 			"id": id,
 			"displayName": String(data.get("displayName", id)),
 			"level": entry_level(entry),
-			"levelLabel": "Lv%d" % entry_level(entry)
+			"levelLabel": "Lv%d" % entry_level(entry),
+			"iconPath": String(data.get("iconPath", ""))
 		})
 	return entries
 

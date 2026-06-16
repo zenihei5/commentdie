@@ -40,7 +40,7 @@ static func normalized_settings(data: Dictionary) -> Dictionary:
 		"seVolume": normalized_volume(data.get("seVolume", DEFAULT_SE_VOLUME)),
 		"fullscreen": bool(data.get("fullscreen", DEFAULT_FULLSCREEN)),
 		"windowSize": window_size_index_from_value(data.get("windowSize", data.get("windowSizeIndex", DEFAULT_WINDOW_SIZE_INDEX))),
-		"commentBarrage": comment_barrage_index_from_value(data.get("commentDanmakuAmount", data.get("commentBarrage", DEFAULT_COMMENT_BARRAGE))),
+		"commentBarrage": DEFAULT_COMMENT_BARRAGE,
 		"screenShake": bool(data.get("screenShake", DEFAULT_SCREEN_SHAKE))
 	}
 
@@ -54,7 +54,7 @@ static func build_save_data(
 	fullscreen: bool = DEFAULT_FULLSCREEN
 ) -> Dictionary:
 	var window_index := normalized_window_size(window_size)
-	var barrage_index := normalized_comment_barrage(comment_barrage)
+	var barrage_index := DEFAULT_COMMENT_BARRAGE
 	return {
 		"bgmVolume": normalized_volume(bgm_volume),
 		"seVolume": normalized_volume(se_volume),
@@ -240,7 +240,7 @@ static func apply_title_action(current: Dictionary, action: String) -> Dictionar
 		"seVolume": normalized_volume(current.get("seVolume", DEFAULT_SE_VOLUME)),
 		"fullscreen": bool(current.get("fullscreen", DEFAULT_FULLSCREEN)),
 		"windowSize": normalized_window_size(int(current.get("windowSize", DEFAULT_WINDOW_SIZE_INDEX))),
-		"commentBarrage": normalized_comment_barrage(int(current.get("commentBarrage", DEFAULT_COMMENT_BARRAGE))),
+		"commentBarrage": DEFAULT_COMMENT_BARRAGE,
 		"screenShake": bool(current.get("screenShake", DEFAULT_SCREEN_SHAKE)),
 		"changed": false
 	}
@@ -265,11 +265,8 @@ static func apply_title_action(current: Dictionary, action: String) -> Dictionar
 	elif action == "window_size_left":
 		result["windowSize"] = previous_window_size(int(result["windowSize"]))
 		result["changed"] = true
-	elif action == "comment_barrage" or action == "comment_barrage_right":
-		result["commentBarrage"] = next_comment_barrage(int(result["commentBarrage"]))
-		result["changed"] = true
-	elif action == "comment_barrage_left":
-		result["commentBarrage"] = previous_comment_barrage(int(result["commentBarrage"]))
+	elif action == "comment_barrage" or action == "comment_barrage_right" or action == "comment_barrage_left":
+		result["commentBarrage"] = DEFAULT_COMMENT_BARRAGE
 		result["changed"] = true
 	elif action == "screen_shake":
 		result["screenShake"] = toggled_screen_shake(bool(result["screenShake"]))

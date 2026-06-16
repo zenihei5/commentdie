@@ -146,18 +146,26 @@ static func is_unlocked(frame: Dictionary) -> bool:
 	return bool(frame.get("isUnlocked", frame.get("initialUnlocked", false)))
 
 static func is_selectable(frame: Dictionary) -> bool:
-	return is_unlocked(frame) and not bool(frame.get("isComingSoon", false))
+	return _is_playable(frame)
 
 static func relay_selection_frame(relay_mode_unlocked: bool) -> Dictionary:
 	return {
 		"id": "relay",
 		"displayName": "配信リレー",
+		"iconId": "stream_icon_relay",
+		"iconPath": "res://assets/generated/stream_frame_icons_v1/relay/clean.png",
+		"themeColor": "relay",
 		"description": "複数の配信枠を連続で突破していく上級者向けモード。どこまで突破できるか、最大同時視聴者数をどこまで伸ばせるかを競います。",
 		"difficultyText": "上級",
 		"difficulty": 5,
+		"status": "relay_available" if relay_mode_unlocked else "locked",
+		"isPlayable": relay_mode_unlocked,
 		"features": ["連続配信", "上級者向け", "記録挑戦"],
+		"shortFeatures": ["連続配信", "上級者向け"],
+		"mainGimmicks": ["配信枠連続挑戦", "リレー記録", "高スコア狙い"],
 		"recommendText": "全配信枠解放後のやり込みモードです。",
 		"unlockConditionText": "すべての配信枠を開放すると選択できます。",
+		"disabledReason": "この配信リレーはまだ開放されていません。",
 		"isUnlocked": relay_mode_unlocked,
 		"isCleared": false,
 		"isRelayMode": true
@@ -189,13 +197,16 @@ static func selection_index_for_page(frames: Array, page: int, local_index: int 
 	return clampi(start + local_index, start, end - 1)
 
 static func locked_message(frame: Dictionary, frames: Array) -> String:
+	var disabled_reason: String = _disabled_reason(frame)
+	if disabled_reason != "":
+		return disabled_reason
 	if bool(frame.get("isRelayMode", false)):
 		return String(frame.get("unlockConditionText", "すべての配信枠を開放すると選択できます。"))
 	var condition: Dictionary = _condition_dict(frame)
 	var target_id: String = String(condition.get("targetFrameId", ""))
 	var target_frame: Dictionary = find_frame(frames, target_id)
 	var target_name: String = String(target_frame.get("displayName", "前の配信枠"))
-	return "この配信枠はまだ解放されていません。%sをクリアすると解放されます。" % target_name
+	return "この配信枠はまだ開放されていません。%sをクリアすると開放されます。" % target_name
 
 static func update_selection_action(latch: Dictionary, frames: Array, current_index: int) -> Dictionary:
 	var action: Dictionary = ChoiceCardSystem.character_grid_selection_action(latch, current_index, frames.size(), SELECT_PAGE_SIZE, SELECT_COLUMNS, 6)
@@ -260,6 +271,10 @@ static func start_selection_for_target(target: Node, choice_box: Control, result
 
 static func feature_labels(frame: Dictionary) -> Array[String]:
 	var labels: Array[String] = []
+	if frame.has("shortFeatures") and frame["shortFeatures"] is Array:
+		for feature in frame["shortFeatures"]:
+			labels.append(String(feature))
+		return labels
 	if frame.has("features") and frame["features"] is Array:
 		for feature in frame["features"]:
 			labels.append(String(feature))
@@ -268,30 +283,57 @@ static func feature_labels(frame: Dictionary) -> Array[String]:
 		labels.append(String(event))
 	return labels
 
+static func main_gimmick_labels(frame: Dictionary) -> Array[String]:
+	var labels: Array[String] = []
+	if frame.has("mainGimmicks") and frame["mainGimmicks"] is Array:
+		for gimmick in frame["mainGimmicks"]:
+			labels.append(String(gimmick))
+		return labels
+	for event in frame.get("events", []):
+		labels.append(String(event))
+	if labels.is_empty():
+		labels = feature_labels(frame)
+	return labels
+
 static func selection_card_view(frame: Dictionary) -> Dictionary:
 	var unlocked: bool = is_unlocked(frame)
 	var cleared: bool = bool(frame.get("isCleared", false))
-	var coming_soon: bool = bool(frame.get("isComingSoon", false))
+	var status_id: String = _status_id(frame)
+	var coming_soon: bool = status_id == "coming_soon"
 	var status: String = _status_text(frame)
 	var display_name: String = String(frame.get("displayName", "配信枠"))
+	var accent: Color = _accent_color(frame)
+	var features: Array[String] = feature_labels(frame)
+	var gimmicks: Array[String] = main_gimmick_labels(frame)
+	var selectable: bool = is_selectable(frame)
 	return {
 		"id": String(frame.get("id", "")),
-		"displayName": display_name if unlocked else "%s  LOCKED" % display_name,
+		"displayName": display_name,
 		"plainName": display_name,
-		"description": String(frame.get("description", "")) if unlocked else _locked_description(frame),
+		"description": String(frame.get("description", "")) if status_id != "locked" else _locked_description(frame),
 		"difficultyText": "難易度：%s" % _difficulty_stars(frame),
 		"difficultyStars": _difficulty_stars(frame),
+		"statusId": status_id,
 		"statusText": status,
-		"features": feature_labels(frame),
-		"featureText": " / ".join(feature_labels(frame)),
+		"features": features,
+		"featureText": " / ".join(features),
+		"mainGimmicks": gimmicks,
+		"mainGimmickText": " / ".join(gimmicks),
 		"iconText": _icon_text(frame),
-		"accent": _accent_color(frame),
+		"iconId": String(frame.get("iconId", _icon_id(frame))),
+		"iconPath": String(frame.get("iconPath", "")),
+		"accent": accent,
+		"accent2": _secondary_accent_color(frame),
+		"statusFill": _status_fill_color(status_id, accent),
+		"statusTextColor": _status_text_color(status_id, accent),
+		"statusBorder": _status_border_color(status_id, accent),
 		"recommendText": _recommend_text(frame),
 		"unlockConditionText": _unlock_condition_text(frame),
+		"disabledReason": _disabled_reason(frame),
 		"isUnlocked": unlocked,
 		"isCleared": cleared,
 		"isComingSoon": coming_soon,
-		"isSelectable": is_selectable(frame),
+		"isSelectable": selectable,
 		"isRelayMode": bool(frame.get("isRelayMode", false))
 	}
 
@@ -301,8 +343,8 @@ static func _locked_description(frame: Dictionary) -> String:
 	var condition: Dictionary = _condition_dict(frame)
 	var target_id: String = String(condition.get("targetFrameId", ""))
 	if target_id == "":
-		return "まだ解放されていません。"
-	return "%sをクリアで解放" % _display_name_for_id(target_id)
+		return "この配信枠はまだ開放されていません。"
+	return "%sをクリアすると開放されます。" % _display_name_for_id(target_id)
 
 static func _unlock_condition_text(frame: Dictionary) -> String:
 	if bool(frame.get("isRelayMode", false)):
@@ -311,7 +353,20 @@ static func _unlock_condition_text(frame: Dictionary) -> String:
 	var target_id: String = String(condition.get("targetFrameId", ""))
 	if target_id == "":
 		return "最初から選択できます。"
-	return "%sをクリアすると解放されます。" % _display_name_for_id(target_id)
+	return "%sをクリアすると開放されます。" % _display_name_for_id(target_id)
+
+static func _disabled_reason(frame: Dictionary) -> String:
+	if _is_playable(frame):
+		return ""
+	var existing: String = String(frame.get("disabledReason", "")).strip_edges()
+	if existing != "":
+		return existing
+	var status_id: String = _status_id(frame)
+	if status_id == "coming_soon":
+		return "この配信枠は現在準備中です。今後のアップデートで追加予定です。"
+	if status_id == "locked":
+		return "この配信枠はまだ開放されていません。%s" % _unlock_condition_text(frame)
+	return "この配信枠は現在選択できません。"
 
 static func _condition_dict(frame: Dictionary) -> Dictionary:
 	var value: Variant = frame.get("unlockCondition", {})
@@ -319,14 +374,66 @@ static func _condition_dict(frame: Dictionary) -> Dictionary:
 		return value as Dictionary
 	return {}
 
-static func _status_text(frame: Dictionary) -> String:
-	if bool(frame.get("isComingSoon", false)):
-		return "準備中"
+static func _status_id(frame: Dictionary) -> String:
+	var configured: String = String(frame.get("status", "")).strip_edges()
+	if configured == "coming_soon" or bool(frame.get("isComingSoon", false)):
+		return "coming_soon"
+	if configured == "locked":
+		return "locked"
 	if not is_unlocked(frame):
-		return "LOCK"
+		return "locked"
+	if bool(frame.get("isRelayMode", false)):
+		return "relay_available"
 	if bool(frame.get("isCleared", false)):
+		return "cleared"
+	if configured == "relay_available":
+		return "relay_available"
+	return "unlocked"
+
+static func _is_playable(frame: Dictionary) -> bool:
+	var status_id: String = _status_id(frame)
+	if status_id == "locked" or status_id == "coming_soon":
+		return false
+	if not is_unlocked(frame):
+		return false
+	return bool(frame.get("isPlayable", true))
+
+static func _status_text(frame: Dictionary) -> String:
+	var status_id: String = _status_id(frame)
+	if status_id == "coming_soon":
+		return "準備中"
+	if status_id == "locked":
+		return "LOCK"
+	if status_id == "cleared":
 		return "クリア済み"
+	if status_id == "relay_available":
+		return "挑戦可"
 	return "解放済み"
+
+static func _status_fill_color(status_id: String, accent: Color) -> Color:
+	if status_id == "cleared":
+		return Color("#fff2fa")
+	if status_id == "unlocked":
+		return Color("#e8f7ff")
+	if status_id == "relay_available":
+		return Color("#fff4d6")
+	return Color("#eee9ef")
+
+static func _status_text_color(status_id: String, accent: Color) -> Color:
+	if status_id == "cleared":
+		return Color("#f05aa5")
+	if status_id == "unlocked":
+		return Color("#247fd6")
+	if status_id == "relay_available":
+		return Color("#7a56c8")
+	return Color("#8f8793")
+
+static func _status_border_color(status_id: String, accent: Color) -> Color:
+	if status_id == "relay_available":
+		return Color("#f0b73a")
+	if status_id == "locked" or status_id == "coming_soon":
+		return Color("#cfc8d6")
+	return accent
 
 static func _difficulty_stars(frame: Dictionary) -> String:
 	var level: int = int(frame.get("difficulty", 0))
@@ -346,23 +453,25 @@ static func _difficulty_stars(frame: Dictionary) -> String:
 		stars += "★"
 	return stars
 
-static func _icon_text(frame: Dictionary) -> String:
+static func _icon_id(frame: Dictionary) -> String:
 	var frame_id: String = String(frame.get("id", ""))
-	if frame_id == "zatsudan":
-		return "..."
-	if frame_id == "gameplay":
-		return "PAD"
-	if frame_id == "singing":
-		return "MIC"
-	if frame_id == "drawing":
-		return "PEN"
-	if frame_id == "collab":
-		return "2P"
-	if frame_id == "relay":
-		return "RELAY"
-	return "LIVE"
+	return "stream_icon_%s" % frame_id
+
+static func _icon_text(frame: Dictionary) -> String:
+	return ""
 
 static func _accent_color(frame: Dictionary) -> Color:
+	var theme: String = String(frame.get("themeColor", "")).strip_edges()
+	if theme == "blue":
+		return Color("#438ee8")
+	if theme == "purple":
+		return Color("#9a6be8")
+	if theme == "mint":
+		return Color("#24b8bd")
+	if theme == "orange":
+		return Color("#f07d45")
+	if theme == "relay":
+		return Color("#7a56c8")
 	var frame_id: String = String(frame.get("id", ""))
 	if frame_id == "gameplay":
 		return Color("#438ee8")
@@ -373,8 +482,13 @@ static func _accent_color(frame: Dictionary) -> Color:
 	if frame_id == "collab":
 		return Color("#f07d45")
 	if frame_id == "relay":
-		return Color("#7c7aa0")
+		return Color("#7a56c8")
 	return Color("#f05aa5")
+
+static func _secondary_accent_color(frame: Dictionary) -> Color:
+	if String(frame.get("themeColor", "")) == "relay" or bool(frame.get("isRelayMode", false)):
+		return Color("#f0b73a")
+	return _accent_color(frame)
 
 static func _recommend_text(frame: Dictionary) -> String:
 	var existing: String = String(frame.get("recommendText", ""))
@@ -388,9 +502,9 @@ static func _recommend_text(frame: Dictionary) -> String:
 	if frame_id == "singing":
 		return "盛り上がり重視の配信枠です。"
 	if frame_id == "drawing":
-		return "ギミック変化を楽しみたい方向けです。"
+		return "お絵かきや制作の変化を楽しむ配信枠です。"
 	if frame_id == "collab":
-		return "連携と変化を楽しむ配信枠です。"
+		return "掛け合いと変化を楽しむ配信枠です。"
 	if frame_id == "relay":
 		return "全配信枠解放後のやり込みモードです。"
 	return "今日の配信に合わせて選べる配信枠です。"
@@ -406,6 +520,8 @@ static func _display_name_for_id(id: String) -> String:
 		return "お絵かき枠"
 	if id == "collab":
 		return "コラボ枠"
+	if id == "relay":
+		return "配信リレー"
 	return id
 
 static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionary:

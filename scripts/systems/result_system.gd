@@ -35,7 +35,7 @@ static func result_header_for_end_type(end_type: String, cleared: bool = false) 
 	if end_type == "completed":
 		return "配信完走！"
 	if end_type == "mental_breakdown":
-		return "配信終了……"
+		return "メンタル崩壊"
 	return "配信成功！" if cleared else "配信終了！"
 
 static func result_summary_for_end_type(end_type: String, fallback: String = "") -> String:
@@ -44,6 +44,82 @@ static func result_summary_for_end_type(end_type: String, fallback: String = "")
 	if end_type == "mental_breakdown":
 		return "コメントに振り回された配信だった……"
 	return fallback
+
+static func _clean_result_text(value: Variant, fallback: String = "なし") -> String:
+	var text := String(value).strip_edges()
+	return fallback if text == "" else text
+
+static func _culprit_comment_for_result(result: Dictionary, end_type: String) -> String:
+	if end_type == "completed":
+		return "なし"
+	var comment := _clean_result_text(result.get("currentComment", "なし"))
+	if comment == "なし" or comment == "発動中の指示コメなし":
+		return "なし"
+	return comment
+
+static func _last_blow_for_result(result: Dictionary, end_type: String) -> String:
+	if end_type == "completed":
+		return "なし"
+	var source := _clean_result_text(result.get("lastDeathSource", "接触"), "接触")
+	if source == "接触" or source == "敵":
+		return "敵に接触"
+	return source
+
+static func _source_action_for_result(source: String) -> String:
+	var text := source.strip_edges()
+	if text == "" or text == "接触" or text == "敵":
+		return "敵に接触"
+	if text == "敵弾":
+		return "敵弾を受けた"
+	if text == "ダメージ床":
+		return "ダメージ床を踏んだ"
+	if text == "バナナ床":
+		return "バナナ床で足を滑らせた"
+	if text.ends_with("に接触"):
+		return text.replace("に接触", "へ接触")
+	if text.contains("突進"):
+		return "%sを受けた" % text
+	return "%sを受けた" % text
+
+static func _source_breakdown_reason(source: String) -> String:
+	var text := source.strip_edges()
+	if text == "" or text == "接触" or text == "敵":
+		return "敵に接触してメンタル崩壊"
+	if text == "敵弾":
+		return "敵弾を受けてメンタル崩壊"
+	if text == "ダメージ床":
+		return "ダメージ床を踏んでメンタル崩壊"
+	if text == "バナナ床":
+		return "バナナ床で足を滑らせてメンタル崩壊"
+	if text.ends_with("に接触"):
+		return "%sしてメンタル崩壊" % text
+	return "%sでメンタル崩壊" % text
+
+static func _death_reason_for_result(result: Dictionary, end_type: String, culprit_comment: String) -> String:
+	if end_type == "completed":
+		return "最後まで配信を走り切った！"
+	var death_text := _clean_result_text(result.get("deathText", result.get("currentDeathText", result.get("reason", ""))), "")
+	var last_source := _clean_result_text(result.get("lastDeathSource", "接触"), "接触")
+	if culprit_comment != "なし":
+		if culprit_comment.contains("床、全部バナナ"):
+			return "「%s」中に足を滑らせてメンタル崩壊" % culprit_comment
+		if culprit_comment.contains("ノーブレーキ"):
+			return "「%s」中に止まれず%s" % [culprit_comment, _source_action_for_result(last_source)]
+		if culprit_comment.contains("ダッシュは甘え"):
+			return "「%s」中に%s" % [culprit_comment, _source_action_for_result(last_source)]
+		if culprit_comment.contains("武器ミュート"):
+			return "「%s」中に攻撃できず%s" % [culprit_comment, _source_action_for_result(last_source)]
+		if culprit_comment.contains("ボスと戦え"):
+			return "「%s」でボスに押し切られてメンタル崩壊" % culprit_comment
+		if death_text != "" and death_text != "発動中の指示コメなし" and not death_text.contains(culprit_comment):
+			return "「%s」中に%s" % [culprit_comment, death_text]
+		return "「%s」中に%s" % [culprit_comment, _source_action_for_result(last_source)]
+	return _source_breakdown_reason(last_source)
+
+static func _trouble_note_for_result(end_type: String, culprit_comment: String) -> String:
+	if end_type == "mental_breakdown" and culprit_comment == "なし":
+		return "通常被弾でメンタル崩壊"
+	return ""
 
 static func result_end_type_for_stats(stats: Dictionary, quick_test_mode: bool) -> String:
 	var end_type := String(stats.get("endType", ""))
@@ -293,6 +369,12 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 
 static func build_result_data(result: Dictionary) -> Dictionary:
 	var end_type := String(result.get("endType", ""))
+	var culprit_comment := _culprit_comment_for_result(result, end_type)
+	var death_reason_text := _death_reason_for_result(result, end_type, culprit_comment)
+	var trouble_note := _trouble_note_for_result(end_type, culprit_comment)
+	var death_text := "" if end_type == "completed" else String(result.get("deathText", result.get("currentDeathText", result.get("reason", ""))))
+	var last_death_source := "なし" if end_type == "completed" else String(result.get("lastDeathSource", "接触"))
+	var final_blow_text := _last_blow_for_result(result, end_type)
 	var fallback_summary := DisplayTextSystem.result_one_liner(
 		String(result.get("rank", "D")),
 		String(result.get("lastDeathSource", "")),
@@ -338,9 +420,12 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"weaponEquipmentText": String(result.get("weaponEquipmentText", "")),
 		"accessoryEquipmentText": String(result.get("accessoryEquipmentText", "")),
 		"lastInstructionComment": String(result.get("currentComment", "なし")),
-		"culpritInstructionComment": String(result.get("currentComment", "なし")),
-		"deathText": "" if end_type == "completed" else String(result.get("deathText", result.get("currentDeathText", result.get("reason", "")))),
-		"lastDeathSource": "なし" if end_type == "completed" else String(result.get("lastDeathSource", "接触")),
+		"culpritInstructionComment": culprit_comment,
+		"deathText": death_text,
+		"deathReasonText": death_reason_text,
+		"troubleNote": trouble_note,
+		"lastDeathSource": last_death_source,
+		"finalBlowText": final_blow_text,
 		"summaryLine": result_summary_for_end_type(end_type, fallback_summary),
 		"streamFrameResultText": String(result.get("streamFrameResultText", "")),
 		"unlockMessage": String(result.get("unlockMessage", "")),

@@ -83,7 +83,7 @@ static func banner_text(context: Dictionary) -> String:
 			"ON" if bool(context.get("screenShakeEnabled", true)) else "OFF"
 		]
 	if state == "ranking":
-		return "ランキング  Esc：タイトルへ戻る / R：リセット"
+		return ""
 	if state == "options":
 		return ""
 	if state == "character_select":
@@ -97,7 +97,7 @@ static func banner_text(context: Dictionary) -> String:
 	if state == "gift_choice":
 		return ""
 	if state == "pause":
-		return "ポーズ"
+		return ""
 	if String(context.get("activeGenreEvent", "")) != "":
 		return "%s  %.1fs" % [
 			String(context.get("activeGenreLabel", "")),

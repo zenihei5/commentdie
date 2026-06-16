@@ -2,17 +2,20 @@
   "character": "superchat_chan",
   "cellSize": 128,
   "idle": {
-    "source": "assets\\generated\\supana_gameplay_sprites_v1\\supana_idle_source_v4.png",
+    "source": "assets\\generated\\supana_gameplay_sprites_v1\\supana_idle_source_v5.png",
     "sourceSize": [
       1254,
       1254
     ],
     "sourceBBox": [
-      265,
-      100,
-      922,
-      1133
+      364,
+      123,
+      858,
+      1077
     ],
+    "removedGreenPixels": 1301493,
+    "softenedGreenPixels": 731,
+    "remainingGreenPixels": 0,
     "sheet": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\supana_gameplay_sprites_v1\\idle-sheet-transparent.png",
     "cols": 2,
     "rows": 2,
@@ -20,79 +23,80 @@
     "frames": [
       {
         "sourceSize": [
-          657,
-          1033
+          494,
+          954
         ],
         "outputSize": [
-          74,
-          116
+          58,
+          112
         ],
         "pastePosition": [
-          27,
-          5
+          35,
+          9
         ],
-        "scale": 0.1122942884801549,
+        "scale": 0.11740041928721175,
         "frame": 1,
         "yOffset": 0
       },
       {
         "sourceSize": [
-          657,
-          1033
+          494,
+          954
         ],
         "outputSize": [
-          74,
-          116
+          58,
+          112
         ],
         "pastePosition": [
-          27,
-          4
+          35,
+          8
         ],
-        "scale": 0.1122942884801549,
+        "scale": 0.11740041928721175,
         "frame": 2,
         "yOffset": -1
       },
       {
         "sourceSize": [
-          657,
-          1033
+          494,
+          954
         ],
         "outputSize": [
-          74,
-          116
+          58,
+          112
         ],
         "pastePosition": [
-          27,
-          5
+          35,
+          9
         ],
-        "scale": 0.1122942884801549,
+        "scale": 0.11740041928721175,
         "frame": 3,
         "yOffset": 0
       },
       {
         "sourceSize": [
-          657,
-          1033
+          494,
+          954
         ],
         "outputSize": [
-          74,
-          116
+          58,
+          112
         ],
         "pastePosition": [
-          27,
-          6
+          35,
+          10
         ],
-        "scale": 0.1122942884801549,
+        "scale": 0.11740041928721175,
         "frame": 4,
         "yOffset": 1
       }
-    ]
+    ],
+    "postCleanupRemovedGreenPixels": 152
   },
   "run": {
-    "source": "assets\\generated\\supana_gameplay_sprites_v1\\supana_run_source_v4.png",
+    "source": "assets\\generated\\supana_gameplay_sprites_v1\\supana_run_source_v5.png",
     "sourceSize": [
-      6400,
-      640
+      2220,
+      222
     ],
     "sourceFrameCount": 10,
     "selectedSourceFrames": [
@@ -102,6 +106,9 @@
       7,
       9
     ],
+    "removedBlackPixels": 0,
+    "softenedBlackPixels": 720,
+    "remainingBlackPixels": 655,
     "sheet": "C:\\Users\\zenih\\Documents\\Codex\\2026-05-29\\commentdie\\assets\\generated\\supana_gameplay_sprites_v1\\run-sheet-transparent.png",
     "cols": 5,
     "rows": 1,
@@ -109,124 +116,124 @@
     "frames": [
       {
         "sourceSize": [
-          255,
-          403
+          82,
+          144
         ],
         "outputSize": [
-          66,
+          59,
           104
         ],
         "pastePosition": [
-          31,
+          34,
           17
         ],
-        "scale": 0.25806451612903225,
+        "scale": 0.7222222222222222,
         "frame": 1,
         "sourceFrame": 1,
         "sourceBox": [
           0,
           0,
-          640,
-          640
+          222,
+          222
         ],
         "sourceBBox": [
-          193,
-          237,
-          448,
-          640
+          70,
+          71,
+          152,
+          215
         ]
       },
       {
         "sourceSize": [
-          217,
-          405
+          79,
+          143
         ],
         "outputSize": [
-          56,
+          57,
           104
         ],
         "pastePosition": [
-          36,
+          35,
           17
         ],
-        "scale": 0.25679012345679014,
+        "scale": 0.7272727272727273,
         "frame": 2,
         "sourceFrame": 3,
         "sourceBox": [
-          1280,
+          444,
           0,
-          1920,
-          640
+          666,
+          222
         ],
         "sourceBBox": [
-          220,
-          235,
-          437,
-          640
+          72,
+          72,
+          151,
+          215
         ]
       },
       {
         "sourceSize": [
-          255,
-          404
+          80,
+          141
         ],
         "outputSize": [
-          66,
+          59,
           104
         ],
         "pastePosition": [
-          31,
+          34,
           17
         ],
-        "scale": 0.25742574257425743,
+        "scale": 0.7375886524822695,
         "frame": 3,
         "sourceFrame": 5,
         "sourceBox": [
-          2560,
+          888,
           0,
-          3200,
-          640
+          1110,
+          222
         ],
         "sourceBBox": [
-          192,
-          231,
-          447,
-          635
+          70,
+          74,
+          150,
+          215
         ]
       },
       {
         "sourceSize": [
-          222,
-          393
+          79,
+          145
         ],
         "outputSize": [
-          59,
+          57,
           104
         ],
         "pastePosition": [
-          34,
+          35,
           17
         ],
-        "scale": 0.26463104325699743,
+        "scale": 0.7172413793103448,
         "frame": 4,
         "sourceFrame": 7,
         "sourceBox": [
-          3840,
+          1332,
           0,
-          4480,
-          640
+          1554,
+          222
         ],
         "sourceBBox": [
-          218,
-          244,
-          440,
-          637
+          71,
+          70,
+          150,
+          215
         ]
       },
       {
         "sourceSize": [
-          232,
-          408
+          80,
+          141
         ],
         "outputSize": [
           59,
@@ -236,22 +243,24 @@
           34,
           17
         ],
-        "scale": 0.2549019607843137,
+        "scale": 0.7375886524822695,
         "frame": 5,
         "sourceFrame": 9,
         "sourceBox": [
-          5120,
+          1776,
           0,
-          5760,
-          640
+          1998,
+          222
         ],
         "sourceBBox": [
-          210,
-          225,
-          442,
-          633
+          70,
+          74,
+          150,
+          215
         ]
       }
-    ]
+    ],
+    "postCleanupRemovedGreenPixels": 12,
+    "remainingGreenPixels": 0
   }
 }

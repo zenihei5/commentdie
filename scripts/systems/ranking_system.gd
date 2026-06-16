@@ -46,6 +46,31 @@ static func reset_rankings() -> void:
 	save_all_rankings([], [])
 
 
+static func reset_tab(tab_index: int = 0, relay_mode_unlocked: bool = false) -> void:
+	var clamped_tab: int = clamp_tab_index(tab_index, relay_mode_unlocked)
+	var tab: Dictionary = _tabs(relay_mode_unlocked)[clamped_tab] as Dictionary
+	var tab_id: String = String(tab.get("id", "all"))
+	if tab_id == "relay":
+		save_relay_rankings([])
+		return
+	if tab_id == "all":
+		save_rankings([])
+		return
+	var kept_entries: Array = []
+	for entry_item in load_rankings():
+		if not (entry_item is Dictionary):
+			continue
+		var entry: Dictionary = entry_item as Dictionary
+		if String(entry.get("streamFrameId", "")) != tab_id:
+			kept_entries.append(entry)
+	save_rankings(kept_entries)
+
+
+static func tab_reset_label(tab_index: int = 0, relay_mode_unlocked: bool = false) -> String:
+	var tab: Dictionary = _tabs(relay_mode_unlocked)[clamp_tab_index(tab_index, relay_mode_unlocked)] as Dictionary
+	return String(tab.get("label", "ランキング")).replace(" 未開放", "")
+
+
 static func save_all_rankings(entries: Array, relay_entries: Array) -> void:
 	var sorted_entries: Array = _sort_entries(entries)
 	if sorted_entries.size() > MAX_SAVED_ENTRIES:
@@ -167,8 +192,8 @@ static func ranking_view(tab_index: int = 0, selected_index: int = 0, relay_mode
 			"selected": index == clamped_tab
 		})
 	var view: Dictionary = {
-		"title": "配信リレーランキング" if tab_id == "relay" else "ランキング",
-		"subtitle": "神回ランキング",
+		"title": "ランキング",
+		"subtitle": "最大同時視聴者数ランキング",
 		"tabId": tab_id,
 		"tabIndex": clamped_tab,
 		"tabs": tab_views,
@@ -177,23 +202,24 @@ static func ranking_view(tab_index: int = 0, selected_index: int = 0, relay_mode
 		"messageLines": [],
 		"rows": [],
 		"selectedIndex": 0,
-		"detailCards": []
+		"detailCards": [],
+		"detail": {}
 	}
 	if bool(view["locked"]):
 		if tab_id == "relay":
-			view["messageLines"] = ["配信リレーはまだ開放されていません。", "すべての配信枠を開放すると選択できます。"]
+			view["messageLines"] = ["配信リレーランキングはまだ開放されていません。", "すべての配信枠を開放するとランキングが表示されます。"]
 		else:
-			view["messageLines"] = ["この配信枠はまだ開放されていません。", String(tab.get("unlockText", "ゲーム実況枠をクリアすると開放されます。"))]
+			view["messageLines"] = ["この配信枠はまだ開放されていません。", "解放条件：%s" % String(tab.get("unlockText", "ゲーム実況枠をクリアすると開放されます。"))]
 		return view
 	var entries: Array = _sorted_entries_for_tab(clamped_tab, relay_mode_unlocked)
 	if entries.is_empty():
 		view["empty"] = true
 		if tab_id == "relay":
-			view["messageLines"] = ["まだ配信リレーの記録がありません。", "全配信枠を突破して、神回リレーを目指そう！"]
+			view["messageLines"] = ["まだ配信リレーの記録がありません。", "配信リレーを遊ぶと、最大同時視聴者数ランキングに登録されます。"]
 		elif tab_id == "all":
-			view["messageLines"] = ["まだ記録がありません。", "ニューゲームから配信を始めよう！"]
+			view["messageLines"] = ["まだ記録がありません。", "配信を遊ぶと、最大同時視聴者数ランキングに登録されます。"]
 		else:
-			view["messageLines"] = ["まだ記録がありません。", "この配信枠で神回を目指そう！"]
+			view["messageLines"] = ["まだ記録がありません。", "この配信枠を遊ぶと、最大同時視聴者数ランキングに登録されます。"]
 		return view
 	var clamped_selected: int = clampi(selected_index, 0, entries.size() - 1)
 	view["selectedIndex"] = clamped_selected
@@ -204,6 +230,7 @@ static func ranking_view(tab_index: int = 0, selected_index: int = 0, relay_mode
 	view["rows"] = rows
 	var selected_entry: Dictionary = entries[clamped_selected] as Dictionary
 	view["detailCards"] = _relay_detail_cards(selected_entry) if tab_id == "relay" else _normal_detail_cards(selected_entry)
+	view["detail"] = _relay_detail_view(selected_entry, clamped_selected + 1) if tab_id == "relay" else _normal_detail_view(selected_entry, clamped_selected + 1)
 	return view
 
 
@@ -212,10 +239,10 @@ static func _tabs(relay_mode_unlocked: bool = false) -> Array:
 		{"id": "all", "label": "総合"},
 		{"id": "zatsudan", "label": "雑談枠"},
 		{"id": "gameplay", "label": "ゲーム実況枠"},
-		{"id": "singing", "label": "歌枠 LOCK", "locked": true, "unlockText": "ゲーム実況枠をクリアすると開放されます。"},
-		{"id": "drawing", "label": "お絵かき枠 LOCK", "locked": true, "unlockText": "歌枠をクリアすると開放されます。"},
-		{"id": "collab", "label": "コラボ枠 LOCK", "locked": true, "unlockText": "お絵かき枠をクリアすると開放されます。"},
-		{"id": "relay", "label": "配信リレー" if relay_mode_unlocked else "配信リレー LOCK", "locked": not relay_mode_unlocked}
+		{"id": "singing", "label": "歌枠 未開放", "locked": true, "unlockText": "ゲーム実況枠をクリアすると開放されます。"},
+		{"id": "drawing", "label": "お絵かき枠 未開放", "locked": true, "unlockText": "歌枠をクリアすると開放されます。"},
+		{"id": "collab", "label": "コラボ枠 未開放", "locked": true, "unlockText": "お絵かき枠をクリアすると開放されます。"},
+		{"id": "relay", "label": "配信リレー" if relay_mode_unlocked else "配信リレー 未開放", "locked": not relay_mode_unlocked}
 	]
 
 
@@ -312,15 +339,14 @@ static func _format_relay_entry_row(entry: Dictionary, index: int, selected: boo
 	return "\n".join(lines)
 
 
-static func _normal_row_view(entry: Dictionary, index: int, selected: bool, show_frame: bool) -> Dictionary:
-	var viewer_count: int = int(entry.get("viewerCount", entry.get("score", 0)))
+static func _normal_row_view(entry: Dictionary, index: int, selected: bool, _show_frame: bool) -> Dictionary:
+	var viewer_count: int = _viewer_count(entry)
 	var meta_parts: Array[String] = [
 		"神回度 %s" % String(entry.get("kamiRank", entry.get("rank", "D"))),
 		"x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0))),
 		_format_time(float(entry.get("survivalTime", entry.get("time", 0))))
 	]
-	if show_frame:
-		meta_parts.insert(1, String(entry.get("streamFrameName", "配信枠")))
+	meta_parts.insert(1, String(entry.get("streamFrameName", "配信枠")))
 	return {
 		"rank": index + 1,
 		"selected": selected,
@@ -330,6 +356,10 @@ static func _normal_row_view(entry: Dictionary, index: int, selected: bool, show
 		"scoreText": "%s人" % _format_number(viewer_count),
 		"summary": " / ".join(meta_parts),
 		"build": _format_build_short(entry),
+		"weapons": _slice_items(_safe_array(entry.get("weapons", [])), 5),
+		"accessories": _slice_items(_safe_array(entry.get("accessories", [])), 5),
+		"endType": _entry_end_type(entry),
+		"endTypeLabel": _end_type_label(entry),
 		"accent": _rank_accent(index)
 	}
 
@@ -354,7 +384,69 @@ static func _relay_row_view(entry: Dictionary, index: int, selected: bool) -> Di
 			_equipment_summary(_safe_array(entry.get("weapons", [])), "なし"),
 			_equipment_summary(_safe_array(entry.get("accessories", [])), "なし")
 		],
+		"weapons": _slice_items(_safe_array(entry.get("weapons", [])), 5),
+		"accessories": _slice_items(_safe_array(entry.get("accessories", [])), 5),
+		"endType": _entry_end_type(entry),
+		"endTypeLabel": _end_type_label(entry),
 		"accent": _rank_accent(index)
+	}
+
+
+static func _normal_detail_view(entry: Dictionary, rank_index: int) -> Dictionary:
+	var end_type: String = _entry_end_type(entry)
+	return {
+		"title": "記録詳細",
+		"rankLabel": "%d位記録" % rank_index,
+		"summaryLines": [
+			"%s / %s" % [_character_nickname(entry), String(entry.get("streamFrameName", "配信枠"))],
+			"最大同時視聴者数：%s人" % _format_number(_viewer_count(entry)),
+			"神回度：%s / 終了：%s" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _end_type_label(entry)]
+		],
+		"stats": [
+			{"label": "最大同時視聴者数", "value": "%s人" % _format_number(_viewer_count(entry))},
+			{"label": "神回度", "value": "%s  %dpt" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _god_point(entry)]},
+			{"label": "生存時間", "value": _format_time(float(entry.get("survivalTime", entry.get("time", 0))))},
+			{"label": "最大ボルテージ", "value": "x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0)))},
+			{"label": "炎上回数", "value": "%d" % int(entry.get("maxBurnCombo", 0))},
+			{"label": "ギフト数", "value": "%d" % int(entry.get("giftCount", 0))}
+		],
+		"weapons": _safe_array(entry.get("weapons", [])),
+		"accessories": _safe_array(entry.get("accessories", [])),
+		"instructionTitle": _instruction_title(end_type),
+		"instructionLines": _instruction_lines(entry, end_type),
+		"bossText": _boss_detail_text(entry) if _boss_detail_text(entry) != "" else "なし",
+		"playedAtText": _format_played_at(String(entry.get("playedAt", ""))),
+		"endTypeLabel": _end_type_label(entry)
+	}
+
+
+static func _relay_detail_view(entry: Dictionary, rank_index: int) -> Dictionary:
+	var end_type: String = _entry_end_type(entry)
+	var completed_names: Array[String] = _string_array(entry.get("completedFrameNames", []))
+	var completed_text: String = "なし" if completed_names.is_empty() else " / ".join(completed_names)
+	return {
+		"title": "配信リレー詳細",
+		"rankLabel": "%d位記録" % rank_index,
+		"summaryLines": [
+			"%s / 配信リレー" % _character_nickname(entry),
+			"最大同時視聴者数：%s人" % _format_number(int(entry.get("maxViewerCount", 0))),
+			"突破：%s / 終了：%s" % [_relay_progress_text(entry), _end_type_label(entry)]
+		],
+		"stats": [
+			{"label": "最大同時視聴者数", "value": "%s人" % _format_number(int(entry.get("maxViewerCount", 0)))},
+			{"label": "合計視聴者数", "value": "%s人" % _format_number(int(entry.get("totalViewerCount", 0)))},
+			{"label": "到達枠", "value": String(entry.get("currentFrameName", "配信枠"))},
+			{"label": "突破枠", "value": completed_text},
+			{"label": "最大ボルテージ", "value": "x%.1f" % float(entry.get("maxVoltage", 1.0))},
+			{"label": "炎上回数", "value": "%d" % int(entry.get("maxBurnCombo", 0))}
+		],
+		"weapons": _safe_array(entry.get("weapons", [])),
+		"accessories": _safe_array(entry.get("accessories", [])),
+		"instructionTitle": _instruction_title(end_type),
+		"instructionLines": _instruction_lines(entry, end_type),
+		"bossText": _boss_detail_text(entry) if _boss_detail_text(entry) != "" else "なし",
+		"playedAtText": _format_played_at(String(entry.get("playedAt", ""))),
+		"endTypeLabel": _end_type_label(entry)
 	}
 
 
@@ -533,8 +625,8 @@ static func _boss_detail_text(entry: Dictionary) -> String:
 	var status: String = "撃破" if bool(entry.get("bossDefeated", false)) else ("撤退" if String(entry.get("bossResult", "")) == "retreated" else "出現")
 	var reward: int = int(entry.get("bossRewardViewer", 0))
 	if reward > 0:
-		return "%s：%s / +%s人" % [status, boss_name, _format_number(reward)]
-	return "%s：%s" % [status, boss_name]
+		return "%s：%s / +%s人" % [boss_name, status, _format_number(reward)]
+	return "%s：%s" % [boss_name, status]
 
 
 static func _equipment_summary(items: Array, fallback: String) -> String:
@@ -646,7 +738,7 @@ static func _relay_rank_position(entries: Array, entry: Dictionary) -> int:
 
 static func _entry_is_same(a: Dictionary, b: Dictionary) -> bool:
 	return (
-		int(a.get("viewerCount", a.get("score", 0))) == int(b.get("viewerCount", b.get("score", 0)))
+		_viewer_count(a) == _viewer_count(b)
 		and String(a.get("playedAt", "")) == String(b.get("playedAt", ""))
 		and String(a.get("characterId", "")) == String(b.get("characterId", ""))
 	)
@@ -663,10 +755,14 @@ static func _relay_entry_is_same(a: Dictionary, b: Dictionary) -> bool:
 
 
 static func _entry_is_higher(a: Dictionary, b: Dictionary) -> bool:
-	var score_a: int = int(a.get("viewerCount", a.get("score", 0)))
-	var score_b: int = int(b.get("viewerCount", b.get("score", 0)))
+	var score_a: int = _viewer_count(a)
+	var score_b: int = _viewer_count(b)
 	if score_a != score_b:
 		return score_a > score_b
+	var point_a: int = _god_point(a)
+	var point_b: int = _god_point(b)
+	if point_a != point_b:
+		return point_a > point_b
 	var a_rank: int = _rank_value(String(a.get("kamiRank", a.get("rank", "D"))))
 	var b_rank: int = _rank_value(String(b.get("kamiRank", b.get("rank", "D"))))
 	if a_rank != b_rank:
@@ -675,18 +771,22 @@ static func _entry_is_higher(a: Dictionary, b: Dictionary) -> bool:
 	var b_time: float = float(b.get("survivalTime", b.get("time", 0)))
 	if not is_equal_approx(a_time, b_time):
 		return a_time > b_time
+	var voltage_a: float = float(a.get("maxVoltage", a.get("maxMultiplier", 1.0)))
+	var voltage_b: float = float(b.get("maxVoltage", b.get("maxMultiplier", 1.0)))
+	if not is_equal_approx(voltage_a, voltage_b):
+		return voltage_a > voltage_b
 	return String(a.get("playedAt", "")) > String(b.get("playedAt", ""))
 
 
 static func _relay_entry_is_higher(a: Dictionary, b: Dictionary) -> bool:
-	var cleared_a: int = int(a.get("clearedFrameCount", 0))
-	var cleared_b: int = int(b.get("clearedFrameCount", 0))
-	if cleared_a != cleared_b:
-		return cleared_a > cleared_b
 	var max_viewers_a: int = int(a.get("maxViewerCount", 0))
 	var max_viewers_b: int = int(b.get("maxViewerCount", 0))
 	if max_viewers_a != max_viewers_b:
 		return max_viewers_a > max_viewers_b
+	var cleared_a: int = int(a.get("clearedFrameCount", 0))
+	var cleared_b: int = int(b.get("clearedFrameCount", 0))
+	if cleared_a != cleared_b:
+		return cleared_a > cleared_b
 	var total_viewers_a: int = int(a.get("totalViewerCount", 0))
 	var total_viewers_b: int = int(b.get("totalViewerCount", 0))
 	if total_viewers_a != total_viewers_b:
@@ -729,6 +829,82 @@ static func _rank_accent(index: int) -> Color:
 
 static func _rank_value(rank: String) -> int:
 	return int(RANK_ORDER.get(rank, 0))
+
+
+static func _viewer_count(entry: Dictionary) -> int:
+	return int(entry.get("maxViewerCount", entry.get("viewerCount", entry.get("score", 0))))
+
+
+static func _god_point(entry: Dictionary) -> int:
+	return int(entry.get("godPoint", entry.get("kamiPoint", 0)))
+
+
+static func _slice_items(items: Array, max_count: int) -> Array:
+	if items.size() <= max_count:
+		return items
+	return items.slice(0, max_count)
+
+
+static func _entry_end_type(entry: Dictionary) -> String:
+	var end_type: String = String(entry.get("endType", "")).strip_edges()
+	if end_type != "":
+		return end_type
+	if bool(entry.get("isRelayCompleted", false)) or String(entry.get("endedReason", "")) == "completed":
+		return "completed"
+	if String(entry.get("endedReason", "")) == "interrupted":
+		return "relay_failed"
+	if String(entry.get("modeId", "")) == "relay":
+		return "relay_failed"
+	if String(entry.get("deathText", "")).strip_edges() != "":
+		return "mental_breakdown"
+	return "completed"
+
+
+static func _end_type_label(entry: Dictionary) -> String:
+	var end_type: String = _entry_end_type(entry)
+	if end_type == "completed":
+		return "完走"
+	if end_type == "mental_breakdown":
+		return "崩壊"
+	if end_type == "relay_failed" or end_type == "quit" or end_type == "debug":
+		return "中断"
+	return "記録"
+
+
+static func _instruction_title(end_type: String) -> String:
+	if end_type == "completed":
+		return "配信ハイライト"
+	if end_type == "relay_failed":
+		return "中断時の指示コメ"
+	return "戦犯指示コメ"
+
+
+static func _instruction_lines(entry: Dictionary, end_type: String) -> Array[String]:
+	var comment: String = String(entry.get("culpritInstructionComment", entry.get("lastInstructionComment", "なし"))).strip_edges()
+	if comment == "" or comment == "<null>":
+		comment = "なし"
+	var death: String = String(entry.get("deathText", entry.get("deathReason", ""))).strip_edges()
+	if end_type == "completed":
+		if comment == "なし":
+			comment = String(entry.get("lastInstructionComment", "最後まで走り切った！")).strip_edges()
+		return [comment, "最後まで配信を走り切った記録です。"]
+	if end_type == "relay_failed":
+		if death == "":
+			death = _relay_ended_reason_text(String(entry.get("endedReason", "")))
+		return [comment, "中断理由：%s" % death]
+	if death == "":
+		death = "通常被弾でメンタル崩壊"
+	return [comment, "死因：%s" % death]
+
+
+static func _format_played_at(text: String) -> String:
+	var value: String = text.strip_edges()
+	if value == "":
+		return "不明"
+	value = value.replace("T", " ").replace("-", "/")
+	if value.length() >= 16:
+		return value.substr(0, 16)
+	return value
 
 
 static func _format_time(seconds: float) -> String:

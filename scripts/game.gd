@@ -41,31 +41,76 @@ const TITLE_BANCHAN_IMAGE := "res://assets/title/title_banchan_alpha.png"
 const TITLE_SUPANA_IMAGE := "res://assets/title/title_supana_alpha.png"
 const TITLE_MARON_IMAGE := "res://assets/title/title_maron_alpha.png"
 const TITLE_BUTTON_IMAGE := "res://assets/title/title_button_alpha.png"
+const CHARACTER_SELECT_HEADER_ICON := "res://assets/generated/character_select_icons_v1/character_select.png"
+const STREAM_FRAME_SELECT_HEADER_ICON := "res://assets/generated/stream_frame_select_icons_v1/stream_frame_select.png"
+const OPTIONS_HEADER_ICON := "res://assets/generated/options_icons_v1/options_header.png"
+const OPTIONS_BGM_ICON := "res://assets/generated/options_icons_v1/option_bgm.png"
+const OPTIONS_SE_ICON := "res://assets/generated/options_icons_v1/option_se.png"
+const OPTIONS_FULLSCREEN_ICON := "res://assets/generated/options_icons_v1/option_fullscreen.png"
+const OPTIONS_WINDOW_SIZE_ICON := "res://assets/generated/options_icons_v1/option_window_size.png"
+const OPTIONS_SCREEN_SHAKE_ICON := "res://assets/generated/options_icons_v1/option_screen_shake.png"
+const OPTIONS_TUTORIAL_ICON := "res://assets/generated/options_icons_v1/option_tutorial.png"
+const RANKING_PODIUM_ICON := "res://assets/generated/ranking_icons_v1/ranking_podium.png"
+const RANKING_LOCK_ICON := "res://assets/generated/ranking_icons_v1/lock.png"
+const RANKING_RANK_ICON_1 := "res://assets/generated/ranking_icons_v1/rank_1.png"
+const RANKING_RANK_ICON_2 := "res://assets/generated/ranking_icons_v1/rank_2.png"
+const RANKING_RANK_ICON_3 := "res://assets/generated/ranking_icons_v1/rank_3.png"
+const RANKING_RANK_ICON_4_PLUS := "res://assets/generated/ranking_icons_v1/rank_4_plus.png"
+const RANKING_END_MENTAL_ICON := "res://assets/generated/ranking_icons_v1/end_mental_breakdown.png"
+const RANKING_END_COMPLETE_ICON := "res://assets/generated/ranking_icons_v1/end_stream_complete.png"
+const BAN_JUDGEMENT_WEAPON_SPRITE_PATH := "res://assets/generated/ban_judgement_weapon_sprite_v1/clean.png"
+const NO_BRAKE_SWEAT_IMAGE := "res://assets/generated/no_brake_sweat_icon_v1/sweat.png"
 const TITLE_BGM_PATH := "res://assets/audio/title_bgm.mp3"
 const BOSS_BATTLE_BGM_PATH := "res://assets/audio/boss_battle_bgm.mp3"
+const GAME_OVER_RESULT_BGM_PATH := "res://assets/audio/game_over_result_bgm.mp3"
+const STREAM_COMPLETE_RESULT_BGM_PATH := "res://assets/audio/stream_complete_result_bgm.mp3"
 const BOSS_BGM_FADE_DURATION := 0.75
 const CURSOR_MOVE_SE_PATH := "res://assets/audio/cursor_move.mp3"
 const CONFIRM_SELECT_SE_PATH := "res://assets/audio/confirm_select.mp3"
+const PAUSE_OPEN_SE_PATH := "res://assets/audio/pause_open.mp3"
+const BACK_TRANSITION_SE_PATH := "res://assets/audio/back_transition.mp3"
+const DASH_SE_PATH := "res://assets/audio/dash_move.mp3"
 const INSTRUCTION_COMMENT_ARRIVAL_SE_PATH := "res://assets/audio/instruction_comment_arrival.mp3"
 const LASER_SHOT_SE_PATH := "res://assets/audio/laser_shot.mp3"
 const BAN_HAMMER_SWING_SE_PATH := "res://assets/audio/ban_hammer_swing.mp3"
+const BAN_JUDGEMENT_ATTACK_SE_PATH := "res://assets/audio/ban_judgement_attack.mp3"
 const SUPERCHAT_SHOT_SE_PATH := "res://assets/audio/superchat_shot.mp3"
 const SPOTLIGHT_ATTACK_SE_PATH := "res://assets/audio/spotlight_attack.mp3"
 const KUSA_WAVE_SHOT_SE_PATH := "res://assets/audio/kusa_wave_shot.mp3"
 const COMMENT_PIN_THROW_SE_PATH := "res://assets/audio/comment_pin_throw.mp3"
+const LISTENER_ATTACK_SE_PATH := "res://assets/audio/listener_attack.mp3"
 const MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/marshmallow_pickup.mp3"
 const KUSO_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/kuso_marshmallow_pickup.mp3"
 const GOD_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/god_marshmallow_pickup.mp3"
 const EXP_PICKUP_SE_PATH := "res://assets/audio/exp_pickup.mp3"
 const GIFT_BOX_ITEM_PICKUP_SE_PATH := "res://assets/audio/gift_box_item_pickup.mp3"
 const LEVEL_UP_SE_PATH := "res://assets/audio/level_up.mp3"
+const PLAYER_DAMAGE_SE_PATH := "res://assets/audio/player_damage.mp3"
+const MENTAL_BREAKDOWN_SE_PATH := "res://assets/audio/mental_breakdown.mp3"
+const STREAM_COMPLETE_CLEAR_SE_PATH := "res://assets/audio/stream_complete_clear.mp3"
+const BOSS_WARNING_SE_PATH := "res://assets/audio/boss_warning.mp3"
+const ENEMY_DAMAGE_SE_PATH := "res://assets/audio/enemy_damage.mp3"
 const ENEMY_DEFEAT_SE_PATH := "res://assets/audio/enemy_defeat.mp3"
 const EMOTE_MINE_EXPLOSION_SE_PATH := "res://assets/audio/emote_mine_explosion.mp3"
+const MENTAL_BREAKDOWN_BANRI_IMAGE := "res://assets/generated/game_over_cutin_v1/banri_mental_breakdown.png"
+const MENTAL_BREAKDOWN_SUPANA_IMAGE := "res://assets/generated/game_over_cutin_v1/supana_mental_breakdown.png"
+const MENTAL_BREAKDOWN_MARON_IMAGE := "res://assets/generated/game_over_cutin_v1/maron_mental_breakdown.png"
+const MENTAL_BREAKDOWN_INTRO_BANRI_IMAGE := "res://assets/generated/game_over_intro_cutin_v1/banri_mental_intro.png"
+const MENTAL_BREAKDOWN_INTRO_SUPANA_IMAGE := "res://assets/generated/game_over_intro_cutin_v1/supana_mental_intro.png"
+const MENTAL_BREAKDOWN_INTRO_MARON_IMAGE := "res://assets/generated/game_over_intro_cutin_v1/maron_mental_intro.png"
+const STREAM_COMPLETE_BANRI_IMAGE := "res://assets/generated/game_clear_cutin_v1/banri_stream_complete.png"
+const STREAM_COMPLETE_SUPANA_IMAGE := "res://assets/generated/game_clear_cutin_v1/supana_stream_complete.png"
+const STREAM_COMPLETE_MARON_IMAGE := "res://assets/generated/game_clear_cutin_v1/maron_stream_complete.png"
 const COMMENT_BOOMERANG_IMAGE := "res://assets/generated/comment_boomerang_sprite_v1/comment_boomerang.png"
 const STREAM_START_INTRO_DURATION := 1.20
-const GAME_OVER_INTRO_MENTAL_DURATION := 2.0
-const GAME_OVER_INTRO_COMPLETE_DURATION := 2.2
+const GAME_OVER_INTRO_MENTAL_DURATION := 2.5
+const GAME_OVER_INTRO_COMPLETE_DURATION := 2.8
 const GAME_OVER_INTRO_SKIP_DELAY := 0.5
+const MENTAL_BREAKDOWN_SHAKE_POWER := 0.35
+const MENTAL_BREAKDOWN_SHAKE_DURATION := 0.22
+const MENTAL_BREAKDOWN_FLASH_DURATION := 0.18
+const MENTAL_BREAKDOWN_REACTION_DURATION := 1.10
+const MENTAL_BREAKDOWN_BGM_FADE_DURATION := 2.20
 const RESULT_DROP_DURATION := 0.48
 const RESULT_DROP_START_Y := -860.0
 const COMMENT_PANEL_BG_V25 := "res://assets/generated/ui_parts_v2/comment_panel_bg_v1_370x606.png"
@@ -114,6 +159,7 @@ var selected_character_index := 0
 var selected_stream_frame_index := 0
 var title_menu_index := 0
 var option_menu_index := 0
+var options_return_state := "title"
 var character_sprite_cache: Dictionary = {}
 var ranking_avatar_source_cache: Dictionary = {}
 var equipment_icon_cache: Dictionary = {}
@@ -123,6 +169,8 @@ var raw_png_texture_cache: Dictionary = {}
 var offered_comments: Array = []
 var offered_gifts: Array = []
 var pending_gift_choices := 0
+var gift_choice_delay_timer := 0.0
+var do_everything_offer_count := 0
 var taken_gift_names: Array[String] = []
 var ng_cards: Array[bool] = []
 var heart_cards: Array[bool] = []
@@ -164,6 +212,7 @@ var player_accessories: Array = []
 var chat_lines: Array[String] = []
 var active_effects: Array[String] = []
 var active_effect_rates: Dictionary = {}
+var active_sub_comment_ids: Array[String] = []
 
 var state := "title"
 var previous_state := "playing"
@@ -189,7 +238,11 @@ var screen_shake_duration := 0.0
 var screen_shake_strength := 0.0
 var screen_shake_offset := Vector2.ZERO
 var hit_stop_timer := 0.0
+var screen_flash_timer := 0.0
+var screen_flash_duration := 0.0
+var screen_flash_color := Color.TRANSPARENT
 var selected_card := 0
+var special_choice_return_card := 0
 var choice_timer := 0.0
 var comment_choice_enter_time := 0.0
 var gift_choice_enter_time := 0.0
@@ -308,10 +361,17 @@ var result_showing_ranking: bool = false
 var result_hover_button := ""
 var ranking_tab_index: int = 0
 var ranking_selected_index: int = 0
+var ranking_reset_confirm_visible := false
+var ranking_reset_confirm_index := 1
 var debug_key_latch: Dictionary = {}
 var pause_escape_down := false
 var pause_menu_index := 0
 var pause_confirm_action := ""
+var pause_confirm_index := 1
+var pause_focus_area := "actions"
+var pause_equipment_row := 0
+var pause_weapon_slot_index := 0
+var pause_accessory_slot_index := 0
 var pause_nav_repeat_timer := 0.0
 var pause_nav_last_dir := 0
 var toast_text := ""
@@ -350,29 +410,44 @@ var result_label: Label
 var title_label: Label
 var chat_title_label: Label
 var ban_hammer_weapon_sprite: Texture2D
+var ban_judgement_weapon_sprite: Texture2D
 var comment_boomerang_sprite: Texture2D
 var title_bgm_player: AudioStreamPlayer
 var gameplay_bgm_player: AudioStreamPlayer
 var gameplay_bgm_path := ""
 var boss_bgm_player: AudioStreamPlayer
+var result_bgm_player: AudioStreamPlayer
+var result_bgm_active_path := ""
 var boss_bgm_mix := 0.0
 var ui_se_player: AudioStreamPlayer
 var confirm_se_player: AudioStreamPlayer
+var pause_open_se_player: AudioStreamPlayer
+var back_transition_se_player: AudioStreamPlayer
+var dash_se_player: AudioStreamPlayer
 var instruction_comment_arrival_se_player: AudioStreamPlayer
 var laser_se_player: AudioStreamPlayer
 var ban_hammer_se_player: AudioStreamPlayer
+var ban_judgement_se_player: AudioStreamPlayer
 var superchat_shot_se_player: AudioStreamPlayer
 var spotlight_attack_se_player: AudioStreamPlayer
 var kusa_wave_se_player: AudioStreamPlayer
 var comment_pin_se_player: AudioStreamPlayer
+var listener_attack_se_player: AudioStreamPlayer
 var marshmallow_pickup_se_player: AudioStreamPlayer
 var kuso_marshmallow_pickup_se_player: AudioStreamPlayer
 var god_marshmallow_pickup_se_player: AudioStreamPlayer
 var exp_pickup_se_player: AudioStreamPlayer
 var gift_box_item_pickup_se_player: AudioStreamPlayer
 var level_up_se_player: AudioStreamPlayer
+var player_damage_se_player: AudioStreamPlayer
+var mental_breakdown_se_player: AudioStreamPlayer
+var stream_complete_clear_se_player: AudioStreamPlayer
+var boss_warning_se_player: AudioStreamPlayer
+var enemy_damage_se_player: AudioStreamPlayer
 var enemy_defeat_se_player: AudioStreamPlayer
 var emote_mine_explosion_se_player: AudioStreamPlayer
+var enemy_damage_se_played_frame := -1
+var listener_attack_se_played_frame := -1
 var stream_start_intro_timer := 0.0
 var game_over_intro_timer := 0.0
 var game_over_intro_duration := 0.0
@@ -384,25 +459,37 @@ var pending_game_over_end_type := ""
 func _ready() -> void:
 	rng.randomize()
 	ban_hammer_weapon_sprite = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, "res://assets/generated/ban_hammer_weapon_sprite_v1/clean.png")
+	ban_judgement_weapon_sprite = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, BAN_JUDGEMENT_WEAPON_SPRITE_PATH)
 	comment_boomerang_sprite = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, COMMENT_BOOMERANG_IMAGE)
 	_setup_title_bgm()
 	_setup_gameplay_bgm()
 	_setup_boss_bgm()
+	_setup_result_bgm()
 	_setup_ui_se()
 	_setup_confirm_se()
+	_setup_pause_open_se()
+	_setup_back_transition_se()
+	_setup_dash_se()
 	_setup_instruction_comment_arrival_se()
 	_setup_laser_se()
 	_setup_ban_hammer_se()
+	_setup_ban_judgement_se()
 	_setup_superchat_shot_se()
 	_setup_spotlight_attack_se()
 	_setup_kusa_wave_se()
 	_setup_comment_pin_se()
+	_setup_listener_attack_se()
 	_setup_marshmallow_pickup_se()
 	_setup_kuso_marshmallow_pickup_se()
 	_setup_god_marshmallow_pickup_se()
 	_setup_exp_pickup_se()
 	_setup_gift_box_item_pickup_se()
 	_setup_level_up_se()
+	_setup_player_damage_se()
+	_setup_mental_breakdown_se()
+	_setup_stream_complete_clear_se()
+	_setup_boss_warning_se()
+	_setup_enemy_damage_se()
 	_setup_enemy_defeat_se()
 	_setup_emote_mine_explosion_se()
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
@@ -412,11 +499,13 @@ func _ready() -> void:
 	_sync_title_bgm()
 	_sync_gameplay_bgm()
 	_sync_boss_bgm(0.0)
+	_sync_result_bgm()
 
 func _process(delta: float) -> void:
 	_update_window_resize_lock()
 	_update_world_zoom(delta)
 	_update_screen_shake(delta)
+	_update_screen_flash(delta)
 	_update_title_logo_drop(delta)
 	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro":
 		ChatSystemScript.update_timer_for_target(self, delta, rng, chat_box)
@@ -427,11 +516,12 @@ func _process(delta: float) -> void:
 		gift_choice_enter_time += delta
 		_update_gift_choice_box_drop()
 	if state != "stream_start_intro" and state != "game_over_intro":
-		StateFlowSystemScript.update_pause_input_for_target(self)
+		_update_pause_input_with_se()
 	if _update_front_state(delta):
 		_sync_title_bgm()
 		_sync_gameplay_bgm()
 		_sync_boss_bgm(delta)
+		_sync_result_bgm()
 		return
 	_handle_debug_keys()
 	_update_active_state(delta)
@@ -439,7 +529,16 @@ func _process(delta: float) -> void:
 	_sync_title_bgm()
 	_sync_gameplay_bgm()
 	_sync_boss_bgm(delta)
+	_sync_result_bgm()
 	queue_redraw()
+
+func _update_pause_input_with_se() -> void:
+	var before_state := state
+	StateFlowSystemScript.update_pause_input_for_target(self)
+	if before_state != "pause" and state == "pause":
+		_play_pause_open_se()
+	elif before_state == "pause" and state != "pause":
+		_play_back_transition_se()
 
 func _setup_title_bgm() -> void:
 	title_bgm_player = AudioStreamPlayer.new()
@@ -461,6 +560,14 @@ func _setup_boss_bgm() -> void:
 	boss_bgm_player.stream = _load_looping_audio_stream(BOSS_BATTLE_BGM_PATH)
 	add_child(boss_bgm_player)
 
+func _setup_result_bgm() -> void:
+	result_bgm_player = AudioStreamPlayer.new()
+	result_bgm_player.name = "ResultBgmPlayer"
+	result_bgm_player.volume_db = SettingsSystemScript.volume_db_from_percent(bgm_volume)
+	result_bgm_active_path = GAME_OVER_RESULT_BGM_PATH
+	result_bgm_player.stream = _load_looping_audio_stream(result_bgm_active_path)
+	add_child(result_bgm_player)
+
 func _setup_ui_se() -> void:
 	ui_se_player = AudioStreamPlayer.new()
 	ui_se_player.name = "UiSePlayer"
@@ -474,6 +581,27 @@ func _setup_confirm_se() -> void:
 	confirm_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	confirm_se_player.stream = _load_audio_stream(CONFIRM_SELECT_SE_PATH, false)
 	add_child(confirm_se_player)
+
+func _setup_pause_open_se() -> void:
+	pause_open_se_player = AudioStreamPlayer.new()
+	pause_open_se_player.name = "PauseOpenSePlayer"
+	pause_open_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	pause_open_se_player.stream = _load_audio_stream(PAUSE_OPEN_SE_PATH, false)
+	add_child(pause_open_se_player)
+
+func _setup_back_transition_se() -> void:
+	back_transition_se_player = AudioStreamPlayer.new()
+	back_transition_se_player.name = "BackTransitionSePlayer"
+	back_transition_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	back_transition_se_player.stream = _load_audio_stream(BACK_TRANSITION_SE_PATH, false)
+	add_child(back_transition_se_player)
+
+func _setup_dash_se() -> void:
+	dash_se_player = AudioStreamPlayer.new()
+	dash_se_player.name = "DashSePlayer"
+	dash_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	dash_se_player.stream = _load_audio_stream(DASH_SE_PATH, false)
+	add_child(dash_se_player)
 
 func _setup_instruction_comment_arrival_se() -> void:
 	instruction_comment_arrival_se_player = AudioStreamPlayer.new()
@@ -495,6 +623,13 @@ func _setup_ban_hammer_se() -> void:
 	ban_hammer_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	ban_hammer_se_player.stream = _load_audio_stream(BAN_HAMMER_SWING_SE_PATH, false)
 	add_child(ban_hammer_se_player)
+
+func _setup_ban_judgement_se() -> void:
+	ban_judgement_se_player = AudioStreamPlayer.new()
+	ban_judgement_se_player.name = "BanJudgementSePlayer"
+	ban_judgement_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	ban_judgement_se_player.stream = _load_audio_stream(BAN_JUDGEMENT_ATTACK_SE_PATH, false)
+	add_child(ban_judgement_se_player)
 
 func _setup_superchat_shot_se() -> void:
 	superchat_shot_se_player = AudioStreamPlayer.new()
@@ -523,6 +658,13 @@ func _setup_comment_pin_se() -> void:
 	comment_pin_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	comment_pin_se_player.stream = _load_audio_stream(COMMENT_PIN_THROW_SE_PATH, false)
 	add_child(comment_pin_se_player)
+
+func _setup_listener_attack_se() -> void:
+	listener_attack_se_player = AudioStreamPlayer.new()
+	listener_attack_se_player.name = "ListenerAttackSePlayer"
+	listener_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	listener_attack_se_player.stream = _load_audio_stream(LISTENER_ATTACK_SE_PATH, false)
+	add_child(listener_attack_se_player)
 
 func _setup_marshmallow_pickup_se() -> void:
 	marshmallow_pickup_se_player = AudioStreamPlayer.new()
@@ -566,6 +708,41 @@ func _setup_level_up_se() -> void:
 	level_up_se_player.stream = _load_audio_stream(LEVEL_UP_SE_PATH, false)
 	add_child(level_up_se_player)
 
+func _setup_player_damage_se() -> void:
+	player_damage_se_player = AudioStreamPlayer.new()
+	player_damage_se_player.name = "PlayerDamageSePlayer"
+	player_damage_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	player_damage_se_player.stream = _load_audio_stream(PLAYER_DAMAGE_SE_PATH, false)
+	add_child(player_damage_se_player)
+
+func _setup_mental_breakdown_se() -> void:
+	mental_breakdown_se_player = AudioStreamPlayer.new()
+	mental_breakdown_se_player.name = "MentalBreakdownSePlayer"
+	mental_breakdown_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	mental_breakdown_se_player.stream = _load_audio_stream(MENTAL_BREAKDOWN_SE_PATH, false)
+	add_child(mental_breakdown_se_player)
+
+func _setup_stream_complete_clear_se() -> void:
+	stream_complete_clear_se_player = AudioStreamPlayer.new()
+	stream_complete_clear_se_player.name = "StreamCompleteClearSePlayer"
+	stream_complete_clear_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	stream_complete_clear_se_player.stream = _load_audio_stream(STREAM_COMPLETE_CLEAR_SE_PATH, false)
+	add_child(stream_complete_clear_se_player)
+
+func _setup_boss_warning_se() -> void:
+	boss_warning_se_player = AudioStreamPlayer.new()
+	boss_warning_se_player.name = "BossWarningSePlayer"
+	boss_warning_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	boss_warning_se_player.stream = _load_audio_stream(BOSS_WARNING_SE_PATH, false)
+	add_child(boss_warning_se_player)
+
+func _setup_enemy_damage_se() -> void:
+	enemy_damage_se_player = AudioStreamPlayer.new()
+	enemy_damage_se_player.name = "EnemyDamageSePlayer"
+	enemy_damage_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	enemy_damage_se_player.stream = _load_audio_stream(ENEMY_DAMAGE_SE_PATH, false)
+	add_child(enemy_damage_se_player)
+
 func _setup_enemy_defeat_se() -> void:
 	enemy_defeat_se_player = AudioStreamPlayer.new()
 	enemy_defeat_se_player.name = "EnemyDefeatSePlayer"
@@ -600,8 +777,11 @@ func _load_audio_stream(path: String, loop: bool = false) -> AudioStream:
 func _load_looping_audio_stream(path: String) -> AudioStream:
 	return _load_audio_stream(path, true)
 
+func _is_pause_options_state() -> bool:
+	return state == "options" and options_return_state == "pause"
+
 func _title_bgm_should_play() -> bool:
-	return state in ["title", "ranking", "options", "character_select", "stream_frame_select", "stream_start_intro", "tutorial"]
+	return state in ["title", "ranking", "options", "character_select", "stream_frame_select", "stream_start_intro", "tutorial"] and not _is_pause_options_state()
 
 func _sync_title_bgm() -> void:
 	if title_bgm_player == null or title_bgm_player.stream == null:
@@ -617,7 +797,7 @@ func _stream_frame_bgm_path() -> String:
 	return String(current_stream_frame.get("bgmPath", ""))
 
 func _gameplay_bgm_should_play() -> bool:
-	return state in ["playing", "comment_choice", "gift_choice", "pause", "game_over_intro"] and _stream_frame_bgm_path() != ""
+	return (state in ["playing", "comment_choice", "gift_choice", "pause", "game_over_intro"] or _is_pause_options_state()) and _stream_frame_bgm_path() != ""
 
 func _sync_gameplay_bgm() -> void:
 	if gameplay_bgm_player == null:
@@ -640,8 +820,39 @@ func _sync_gameplay_bgm() -> void:
 		gameplay_bgm_player.stream_paused = false
 	_apply_bgm_volumes()
 
+func _result_bgm_should_play() -> bool:
+	return state == "result"
+
+func _result_bgm_path_for_current_end() -> String:
+	if pending_game_over_end_type == "completed":
+		return STREAM_COMPLETE_RESULT_BGM_PATH
+	return GAME_OVER_RESULT_BGM_PATH
+
+func _set_result_bgm_stream(path: String) -> void:
+	if result_bgm_player == null:
+		return
+	if result_bgm_active_path == path and result_bgm_player.stream != null:
+		return
+	if result_bgm_player.playing:
+		result_bgm_player.stop()
+	result_bgm_active_path = path
+	result_bgm_player.stream = _load_looping_audio_stream(path)
+
+func _sync_result_bgm() -> void:
+	if result_bgm_player == null:
+		return
+	result_bgm_player.volume_db = SettingsSystemScript.volume_db_from_percent(bgm_volume)
+	if _result_bgm_should_play():
+		_set_result_bgm_stream(_result_bgm_path_for_current_end())
+		if result_bgm_player.stream == null:
+			return
+		if not result_bgm_player.playing:
+			result_bgm_player.play()
+	elif result_bgm_player.playing:
+		result_bgm_player.stop()
+
 func _boss_bgm_can_fade() -> bool:
-	return state in ["playing", "comment_choice", "gift_choice", "pause", "game_over_intro"]
+	return state in ["playing", "comment_choice", "gift_choice", "pause", "game_over_intro"] or _is_pause_options_state()
 
 func _boss_bgm_should_play() -> bool:
 	return boss_active and _boss_bgm_can_fade()
@@ -695,10 +906,16 @@ func _resume_gameplay_bgm_after_boss() -> void:
 	gameplay_bgm_player.stream_paused = false
 
 func _apply_bgm_volumes() -> void:
+	var ending_scale := _mental_breakdown_bgm_fade_scale()
 	if gameplay_bgm_player != null:
-		gameplay_bgm_player.volume_db = _bgm_volume_db_for_scale(1.0 - boss_bgm_mix)
+		gameplay_bgm_player.volume_db = _bgm_volume_db_for_scale((1.0 - boss_bgm_mix) * ending_scale)
 	if boss_bgm_player != null:
-		boss_bgm_player.volume_db = _bgm_volume_db_for_scale(boss_bgm_mix)
+		boss_bgm_player.volume_db = _bgm_volume_db_for_scale(boss_bgm_mix * ending_scale)
+
+func _mental_breakdown_bgm_fade_scale() -> float:
+	if not _is_mental_breakdown_intro():
+		return 1.0
+	return clampf(1.0 - _game_over_intro_elapsed() / MENTAL_BREAKDOWN_BGM_FADE_DURATION, 0.0, 1.0)
 
 func _bgm_volume_db_for_scale(scale: float) -> float:
 	var normalized: float = float(SettingsSystemScript.normalized_volume(bgm_volume)) / 100.0
@@ -723,6 +940,30 @@ func _play_confirm_se() -> void:
 		confirm_se_player.stop()
 	confirm_se_player.play()
 
+func _play_pause_open_se() -> void:
+	if pause_open_se_player == null or pause_open_se_player.stream == null:
+		return
+	pause_open_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if pause_open_se_player.playing:
+		pause_open_se_player.stop()
+	pause_open_se_player.play()
+
+func _play_back_transition_se() -> void:
+	if back_transition_se_player == null or back_transition_se_player.stream == null:
+		return
+	back_transition_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if back_transition_se_player.playing:
+		back_transition_se_player.stop()
+	back_transition_se_player.play()
+
+func _play_dash_se() -> void:
+	if dash_se_player == null or dash_se_player.stream == null:
+		return
+	dash_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if dash_se_player.playing:
+		dash_se_player.stop()
+	dash_se_player.play()
+
 func _play_instruction_comment_arrival_se() -> void:
 	if instruction_comment_arrival_se_player == null or instruction_comment_arrival_se_player.stream == null:
 		return
@@ -746,6 +987,14 @@ func _play_ban_hammer_se() -> void:
 	if ban_hammer_se_player.playing:
 		ban_hammer_se_player.stop()
 	ban_hammer_se_player.play()
+
+func _play_ban_judgement_se() -> void:
+	if ban_judgement_se_player == null or ban_judgement_se_player.stream == null:
+		return
+	ban_judgement_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if ban_judgement_se_player.playing:
+		ban_judgement_se_player.stop()
+	ban_judgement_se_player.play()
 
 func _play_superchat_shot_se() -> void:
 	if superchat_shot_se_player == null or superchat_shot_se_player.stream == null:
@@ -778,6 +1027,18 @@ func _play_comment_pin_se() -> void:
 	if comment_pin_se_player.playing:
 		comment_pin_se_player.stop()
 	comment_pin_se_player.play()
+
+func _play_listener_attack_se_once_per_frame() -> void:
+	if listener_attack_se_player == null or listener_attack_se_player.stream == null:
+		return
+	var current_frame: int = Engine.get_process_frames()
+	if listener_attack_se_played_frame == current_frame:
+		return
+	listener_attack_se_played_frame = current_frame
+	listener_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if listener_attack_se_player.playing:
+		listener_attack_se_player.stop()
+	listener_attack_se_player.play()
 
 func _play_marshmallow_pickup_se() -> void:
 	if marshmallow_pickup_se_player == null or marshmallow_pickup_se_player.stream == null:
@@ -827,6 +1088,50 @@ func _play_level_up_se() -> void:
 		level_up_se_player.stop()
 	level_up_se_player.play()
 
+func _play_player_damage_se() -> void:
+	if player_damage_se_player == null or player_damage_se_player.stream == null:
+		return
+	player_damage_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if player_damage_se_player.playing:
+		player_damage_se_player.stop()
+	player_damage_se_player.play()
+
+func _play_mental_breakdown_se() -> void:
+	if mental_breakdown_se_player == null or mental_breakdown_se_player.stream == null:
+		return
+	mental_breakdown_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if mental_breakdown_se_player.playing:
+		mental_breakdown_se_player.stop()
+	mental_breakdown_se_player.play()
+
+func _play_stream_complete_clear_se() -> void:
+	if stream_complete_clear_se_player == null or stream_complete_clear_se_player.stream == null:
+		return
+	stream_complete_clear_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if stream_complete_clear_se_player.playing:
+		stream_complete_clear_se_player.stop()
+	stream_complete_clear_se_player.play()
+
+func _play_boss_warning_se() -> void:
+	if boss_warning_se_player == null or boss_warning_se_player.stream == null:
+		return
+	boss_warning_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if boss_warning_se_player.playing:
+		boss_warning_se_player.stop()
+	boss_warning_se_player.play()
+
+func _play_enemy_damage_se_once_per_frame() -> void:
+	if enemy_damage_se_player == null or enemy_damage_se_player.stream == null:
+		return
+	var current_frame: int = Engine.get_process_frames()
+	if enemy_damage_se_played_frame == current_frame:
+		return
+	enemy_damage_se_played_frame = current_frame
+	enemy_damage_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if enemy_damage_se_player.playing:
+		enemy_damage_se_player.stop()
+	enemy_damage_se_player.play()
+
 func _play_enemy_defeat_se() -> void:
 	if enemy_defeat_se_player == null or enemy_defeat_se_player.stream == null:
 		return
@@ -852,7 +1157,12 @@ func _cursor_sound_snapshot() -> Dictionary:
 		"streamFrame": selected_stream_frame_index,
 		"rankingTab": ranking_tab_index,
 		"rankingSelected": ranking_selected_index,
+		"rankingResetConfirmIndex": ranking_reset_confirm_index,
 		"pauseMenu": pause_menu_index,
+		"pauseFocus": pause_focus_area,
+		"pauseEquipRow": pause_equipment_row,
+		"pauseWeaponSlot": pause_weapon_slot_index,
+		"pauseAccessorySlot": pause_accessory_slot_index,
 		"choiceCard": selected_card,
 		"resultHover": result_hover_button
 	}
@@ -867,7 +1177,12 @@ func _cursor_sound_snapshot_changed(before: Dictionary) -> bool:
 		"streamFrame",
 		"rankingTab",
 		"rankingSelected",
+		"rankingResetConfirmIndex",
 		"pauseMenu",
+		"pauseFocus",
+		"pauseEquipRow",
+		"pauseWeaponSlot",
+		"pauseAccessorySlot",
 		"choiceCard",
 		"resultHover"
 	]:
@@ -970,7 +1285,7 @@ func _activate_character_select_mouse(pos: Vector2) -> bool:
 		_confirm_character_select()
 		return true
 	if (layout["backButton"] as Rect2).has_point(pos):
-		_play_confirm_se()
+		_play_back_transition_se()
 		_back_to_title()
 		return true
 	if (layout["prevButton"] as Rect2).has_point(pos):
@@ -991,9 +1306,10 @@ func _character_select_index_at(pos: Vector2) -> int:
 		return -1
 	var page: int = CharacterSystemScript.selection_page_for_index(selected_character_index, characters.size())
 	var start: int = page * CharacterSystemScript.SELECT_PAGE_SIZE
+	var visible_count: int = CharacterSystemScript.selection_visible_count(characters.size())
 	for local_index in range(CharacterSystemScript.SELECT_PAGE_SIZE):
 		var index: int = start + local_index
-		if index >= characters.size():
+		if index >= visible_count:
 			break
 		if _character_select_card_rect(local_index).has_point(pos):
 			return index
@@ -1015,7 +1331,7 @@ func _confirm_character_select() -> void:
 	if selected.is_empty():
 		return
 	var character: Dictionary = selected["character"] as Dictionary
-	if not CharacterSystemScript.is_unlocked(character):
+	if not CharacterSystemScript.is_selectable(character):
 		return
 	_play_confirm_se()
 	current_character_id = String(selected["characterId"])
@@ -1041,7 +1357,7 @@ func _activate_stream_frame_select_mouse(pos: Vector2) -> bool:
 		_confirm_stream_frame_select()
 		return true
 	if (layout["backButton"] as Rect2).has_point(pos):
-		_play_confirm_se()
+		_play_back_transition_se()
 		_start_character_select()
 		return true
 	if (layout["prevButton"] as Rect2).has_point(pos):
@@ -1108,6 +1424,24 @@ func _start_stream_start_intro() -> void:
 	result_panel.visible = false
 	queue_redraw()
 
+func _start_pause_retry_intro() -> void:
+	_reset_retry_bgm_from_start()
+	_start_stream_start_intro()
+
+func _reset_retry_bgm_from_start() -> void:
+	boss_bgm_mix = 0.0
+	if boss_bgm_player != null:
+		boss_bgm_player.stream_paused = false
+		if boss_bgm_player.playing:
+			boss_bgm_player.stop()
+	if gameplay_bgm_player != null:
+		gameplay_bgm_player.stream_paused = false
+		if gameplay_bgm_player.playing:
+			gameplay_bgm_player.stop()
+		gameplay_bgm_player.stream = null
+	gameplay_bgm_path = ""
+	_apply_bgm_volumes()
+
 func _update_stream_start_intro(delta: float) -> void:
 	stream_start_intro_timer = maxf(0.0, stream_start_intro_timer - delta)
 	if stream_start_intro_timer <= 0.0:
@@ -1133,9 +1467,17 @@ func _start_ending_cutin(reason: String, end_type: String) -> void:
 	previous_state = "playing"
 	choice_box.visible = false
 	result_panel.visible = false
+	if end_type == "mental_breakdown":
+		_start_mental_breakdown_impact()
+	elif end_type == "completed":
+		_play_stream_complete_clear_se()
 	var reaction_lines: Array[String] = _ending_cutin_reaction_lines(end_type)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": reaction_lines}, chat_box)
 	queue_redraw()
+
+func _start_mental_breakdown_impact() -> void:
+	player_hp = 0
+	_request_screen_shake(MENTAL_BREAKDOWN_SHAKE_POWER, MENTAL_BREAKDOWN_SHAKE_DURATION)
 
 func _update_game_over_intro(delta: float) -> void:
 	game_over_intro_timer = maxf(0.0, game_over_intro_timer - delta)
@@ -1150,18 +1492,57 @@ func _ending_cutin_reaction_lines(end_type: String) -> Array[String]:
 			"神回だった",
 			"ナイス配信！"
 		]
-	return [
+	var barrage_counts: Array[int] = [4, 6, 8]
+	var target_count: int = barrage_counts[clampi(comment_barrage_setting, 0, 2)]
+	var pool: Array[String] = [
 		"あっ",
 		"終わった",
 		"メンタルが……",
-		"これは事故"
+		"これは事故",
+		"コメントのせいだ",
+		"戦犯どれ？",
+		"配信止まった？",
+		"無理だったか……"
 	]
+	for cause_line in _mental_breakdown_cause_reaction_lines():
+		if not pool.has(cause_line):
+			pool.append(cause_line)
+	var lines: Array[String] = []
+	for line in pool:
+		lines.append(line)
+		if lines.size() >= target_count:
+			break
+	return lines
+
+func _mental_breakdown_cause_reaction_lines() -> Array[String]:
+	var cause_text := "%s %s %s" % [current_comment, pending_game_over_reason, current_death_text]
+	if cause_text.contains("ダッシュは甘え"):
+		return ["ダッシュ封印きつい", "逃げ切れなかったか", "甘えじゃなかった"]
+	if cause_text.contains("ノーブレーキ"):
+		return ["止まれなかったか……", "ブレーキ大事", "ノーブレーキは危険"]
+	if cause_text.contains("床、全部バナナ"):
+		return ["滑ったｗ", "バナナは危険", "床が終わってた"]
+	if cause_text.contains("ボスと戦え"):
+		return ["挑まなければ……", "ボスは無理だったか", "戦えって言ったの誰"]
+	if cause_text.contains("武器ミュート"):
+		return ["武器消えたのきつい", "ミュート中だったか……", "攻撃できないの無理"]
+	if cause_text.contains("カメラ近すぎ"):
+		return ["画角が終わってる", "近すぎた", "見えないのきつい"]
+	return ["配信止まるか？"]
 
 func _game_over_intro_elapsed() -> float:
 	return maxf(0.0, game_over_intro_duration - game_over_intro_timer)
 
 func _game_over_intro_can_skip() -> bool:
 	return state == "game_over_intro" and _game_over_intro_elapsed() >= GAME_OVER_INTRO_SKIP_DELAY
+
+func _is_mental_breakdown_intro() -> bool:
+	return state == "game_over_intro" and pending_game_over_end_type == "mental_breakdown"
+
+func _mental_breakdown_impact_ratio(duration: float) -> float:
+	if not _is_mental_breakdown_intro():
+		return 0.0
+	return clampf(1.0 - _game_over_intro_elapsed() / maxf(0.01, duration), 0.0, 1.0)
 
 func _game_over_intro_skip_pressed() -> bool:
 	if not _game_over_intro_can_skip():
@@ -1176,6 +1557,26 @@ func _stream_start_intro_display_name() -> String:
 
 func _result_layout() -> Dictionary:
 	var offset := _result_drop_offset()
+	if String(last_result_data.get("endType", "")) == "completed":
+		return {
+			"panel": Rect2(Vector2(150, 74) + offset, Vector2(1300, 746)),
+			"summaryPanel": Rect2(Vector2(190, 246) + offset, Vector2(350, 464)),
+			"detailPanel": Rect2(Vector2(560, 246) + offset, Vector2(520, 464)),
+			"characterPanel": Rect2(Vector2(1100, 208) + offset, Vector2(320, 520)),
+			"retryButton": Rect2(Vector2(300, 742) + offset, Vector2(330, 56)),
+			"rankingButton": Rect2(Vector2(660, 742) + offset, Vector2(260, 56)),
+			"titleButton": Rect2(Vector2(950, 742) + offset, Vector2(310, 56))
+		}
+	if String(last_result_data.get("endType", "")) == "mental_breakdown":
+		return {
+			"panel": Rect2(Vector2(150, 74) + offset, Vector2(1300, 746)),
+			"summaryPanel": Rect2(Vector2(190, 246) + offset, Vector2(350, 464)),
+			"detailPanel": Rect2(Vector2(560, 246) + offset, Vector2(520, 464)),
+			"characterPanel": Rect2(Vector2(1100, 208) + offset, Vector2(320, 520)),
+			"retryButton": Rect2(Vector2(300, 742) + offset, Vector2(330, 56)),
+			"rankingButton": Rect2(Vector2(660, 742) + offset, Vector2(260, 56)),
+			"titleButton": Rect2(Vector2(950, 742) + offset, Vector2(310, 56))
+		}
 	return {
 		"panel": Rect2(Vector2(210, 74) + offset, Vector2(1180, 746)),
 		"summaryPanel": Rect2(Vector2(246, 260) + offset, Vector2(360, 450)),
@@ -1216,7 +1617,7 @@ func _activate_result_button(button_id: String) -> bool:
 		_toggle_result_ranking()
 		return true
 	if button_id == "title":
-		_play_confirm_se()
+		_play_back_transition_se()
 		_back_to_title()
 		return true
 	return false
@@ -1308,6 +1709,13 @@ func _update_front_state(delta: float) -> bool:
 		queue_redraw()
 		return true
 	var ranking_action: String = DebugSystemScript.ranking_action(debug_key_latch) if (state == "ranking" or (state == "result" and result_showing_ranking)) else ""
+	if ranking_reset_confirm_visible and ranking_action != "":
+		if _handle_ranking_reset_confirm_action(ranking_action):
+			if _cursor_sound_snapshot_changed(cursor_before):
+				_play_cursor_move_se()
+			_update_ui()
+			queue_redraw()
+			return true
 	var title_action: String = DebugSystemScript.title_action(debug_key_latch) if state == "title" else ""
 	var result_action: String = DebugSystemScript.result_action(debug_key_latch) if state == "result" and not result_showing_ranking else ""
 	var options_action: String = DebugSystemScript.options_action(debug_key_latch) if state == "options" else ""
@@ -1315,10 +1723,13 @@ func _update_front_state(delta: float) -> bool:
 	if not bool(result["handled"]):
 		return false
 	var action: String = String(result["action"])
+	var is_back_transition := action == "back_to_title" or (action == "toggle_ranking" and state == "result" and result_showing_ranking)
 	if action in ["start_character_select", "open_title_ranking", "open_title_options"]:
 		_play_confirm_se()
-	if state == "options" and options_action == "option_select":
+	if state == "options" and options_action == "option_select" and not is_back_transition:
 		_play_confirm_se()
+	if is_back_transition:
+		_play_back_transition_se()
 	StateFlowSystemScript.apply_front_action(action, {
 		"start_character_select": Callable(self, "_start_character_select"),
 		"open_title_ranking": Callable(self, "_open_title_ranking"),
@@ -1329,7 +1740,7 @@ func _update_front_state(delta: float) -> bool:
 		"ranking_up": Callable(self, "_ranking_up"),
 		"ranking_down": Callable(self, "_ranking_down"),
 		"ranking_select": Callable(self, "_ranking_select"),
-		"back_to_title": Callable(self, "_back_to_title"),
+		"back_to_title": Callable(self, "_back_from_front_screen"),
 		"update_character_select": Callable(self, "_update_character_select"),
 		"update_stream_frame_select": Callable(self, "_update_stream_frame_select"),
 		"result_prev_button": Callable(self, "_result_prev_button"),
@@ -1415,6 +1826,31 @@ func _request_screen_shake(power: float, duration: float = 0.10) -> void:
 func _screen_shake_offset() -> Vector2:
 	return screen_shake_offset
 
+func _update_screen_flash(delta: float) -> void:
+	if screen_flash_timer <= 0.0:
+		screen_flash_duration = 0.0
+		screen_flash_color = Color.TRANSPARENT
+		return
+	screen_flash_timer = maxf(0.0, screen_flash_timer - delta)
+	if screen_flash_timer <= 0.0:
+		screen_flash_duration = 0.0
+		screen_flash_color = Color.TRANSPARENT
+
+func _request_screen_flash(color: Color, duration: float) -> void:
+	if duration <= 0.0 or color.a <= 0.0:
+		return
+	screen_flash_color = color
+	screen_flash_duration = maxf(screen_flash_duration, duration)
+	screen_flash_timer = maxf(screen_flash_timer, duration)
+
+func _draw_screen_flash() -> void:
+	if screen_flash_timer <= 0.0 or screen_flash_duration <= 0.0:
+		return
+	var ratio: float = clampf(screen_flash_timer / screen_flash_duration, 0.0, 1.0)
+	var color := screen_flash_color
+	color.a *= ratio
+	draw_rect(Rect2(Vector2.ZERO, Vector2(1600, 900)), color, true)
+
 func _request_hit_stop(seconds: float) -> void:
 	if seconds <= 0.0:
 		return
@@ -1429,10 +1865,18 @@ func _consume_hit_stop(delta: float) -> bool:
 func _apply_hit_reaction_feedback(feedback: Dictionary) -> void:
 	_request_screen_shake(float(feedback.get("screenShakePower", 0.0)), float(feedback.get("screenShakeDuration", 0.10)))
 	_request_hit_stop(float(feedback.get("hitStop", 0.0)))
+	if float(feedback.get("screenFlashDuration", 0.0)) > 0.0:
+		_request_screen_flash(feedback.get("screenFlashColor", Color(1.0, 1.0, 1.0, 0.24)) as Color, float(feedback.get("screenFlashDuration", 0.0)))
+	if bool(feedback.get("enemyDamaged", false)):
+		_play_enemy_damage_se_once_per_frame()
+	if bool(feedback.get("listenerSummonAttacked", false)):
+		_play_listener_attack_se_once_per_frame()
 	if bool(feedback.get("enemyDefeated", false)):
 		_play_enemy_defeat_se()
 	if bool(feedback.get("emoteMineExploded", false)):
 		_play_emote_mine_explosion_se()
+	if bool(feedback.get("bossWarningStarted", false)):
+		_play_boss_warning_se()
 
 func _world_transform_position() -> Vector2:
 	var center: Vector2 = FIELD_VIEW.get_center()
@@ -1462,6 +1906,7 @@ func _draw() -> void:
 	else:
 		_draw_world_layer()
 	_draw_overlay_layer()
+	_draw_screen_flash()
 	_draw_toast()
 
 func _draws_title_only() -> bool:
@@ -1492,7 +1937,14 @@ func _draw_world_layer() -> void:
 	_draw_frames()
 
 func _draw_overlay_layer() -> void:
-	if StateFlowSystemScript.has_modal_overlay(state) and not _draws_title_only():
+	var title_only: bool = _draws_title_only()
+	var modal_overlay_active: bool = StateFlowSystemScript.has_modal_overlay(state) and not title_only
+	var special_overlays: Array[String] = []
+	if not title_only:
+		special_overlays = DrawDataSystemScript.special_overlay_views(self)
+	if modal_overlay_active and special_overlays.has("comment_storm"):
+		_draw_comment_storm()
+	if modal_overlay_active:
 		_draw_modal_dim()
 	var overlay_view: String = StateFlowSystemScript.overlay_view(state)
 	if overlay_view == "title":
@@ -1519,10 +1971,11 @@ func _draw_overlay_layer() -> void:
 			_draw_gift_choice_card_contents()
 		elif state == "comment_choice":
 			_draw_comment_choice_card_contents()
-	if not _draws_title_only():
-		for special_overlay in DrawDataSystemScript.special_overlay_views(self):
+	if not title_only:
+		for special_overlay in special_overlays:
 			if String(special_overlay) == "comment_storm":
-				_draw_comment_storm()
+				if not modal_overlay_active:
+					_draw_comment_storm()
 			elif String(special_overlay) == "horror":
 				_draw_horror_mask()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1628,6 +2081,7 @@ func _update_stream_frame_events(delta: float) -> void:
 	_update_genre_event(delta)
 
 func _update_world_systems(delta: float) -> void:
+	_update_gift_choice_delay(delta)
 	_update_player(delta)
 	if state != "playing":
 		return
@@ -1646,13 +2100,19 @@ func _update_world_systems(delta: float) -> void:
 		_play_exp_pickup_se()
 	if bool(exp_result["levelUp"]):
 		pending_gift_choices += int(exp_result.get("levelUps", 1))
-		_start_gift_choice()
+		if gift_choice_delay_timer <= 0.0:
+			_start_gift_choice()
 	_update_marshmallow(delta)
 	var hit_fx_feedback: Dictionary = WeaponSystemScript.update_hit_fx_for_target(self, delta, ARENA, rng)
 	_apply_hit_reaction_feedback(hit_fx_feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, hit_fx_feedback, chat_box)
-	if state == "playing" and pending_gift_choices > 0:
+	if state == "playing" and pending_gift_choices > 0 and gift_choice_delay_timer <= 0.0:
 		_start_gift_choice()
+
+func _update_gift_choice_delay(delta: float) -> void:
+	if gift_choice_delay_timer <= 0.0:
+		return
+	gift_choice_delay_timer = maxf(0.0, gift_choice_delay_timer - delta)
 
 func _update_boss(delta: float) -> void:
 	var feedback: Dictionary = BossSystemScript.update_for_target(self, delta, ARENA, rng)
@@ -1670,7 +2130,11 @@ func _start_character_select() -> void:
 		_restart()
 
 func _update_character_select() -> void:
+	var before_state := state
 	var result: Dictionary = CharacterSystemScript.update_selection_for_target(self, debug_key_latch, characters)
+	if before_state == "character_select" and state == "title":
+		_play_back_transition_se()
+		return
 	if bool(result["startStreamFrameSelect"]):
 		_play_confirm_se()
 		_start_stream_frame_select()
@@ -1687,6 +2151,7 @@ func _update_stream_frame_select() -> void:
 	if chat != "":
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [chat]}, chat_box)
 	if bool(result["backToCharacterSelect"]):
+		_play_back_transition_se()
 		_start_character_select()
 		return
 	if bool(result["restart"]):
@@ -1697,35 +2162,80 @@ func _open_title_ranking() -> void:
 	state = "ranking"
 	ranking_tab_index = 0
 	ranking_selected_index = 0
+	ranking_reset_confirm_visible = false
+	ranking_reset_confirm_index = 1
 	choice_box.visible = false
 	result_panel.visible = false
 	_refresh_ranking_screen()
 
 func _reset_title_ranking() -> void:
-	RankingSystemScript.reset_rankings()
-	ranking_selected_index = 0
+	ranking_reset_confirm_visible = true
+	ranking_reset_confirm_index = 1
 	if state == "ranking" or (state == "result" and result_showing_ranking):
 		_refresh_ranking_screen()
 
+func _execute_ranking_reset() -> void:
+	RankingSystemScript.reset_tab(ranking_tab_index, relay_mode_unlocked)
+	ranking_selected_index = 0
+	ranking_reset_confirm_visible = false
+	ranking_reset_confirm_index = 1
+	if state == "ranking" or (state == "result" and result_showing_ranking):
+		_refresh_ranking_screen()
+
+func _cancel_ranking_reset() -> void:
+	ranking_reset_confirm_visible = false
+	ranking_reset_confirm_index = 1
+	if state == "ranking" or (state == "result" and result_showing_ranking):
+		_refresh_ranking_screen()
+
+func _handle_ranking_reset_confirm_action(action: String) -> bool:
+	if action == "reset_ranking":
+		return true
+	if action == "ranking_tab_left" or action == "ranking_tab_right" or action == "ranking_up" or action == "ranking_down":
+		ranking_reset_confirm_index = 1 - ranking_reset_confirm_index
+		return true
+	if action == "ranking_select":
+		if ranking_reset_confirm_index == 0:
+			_play_confirm_se()
+			_execute_ranking_reset()
+		else:
+			_play_back_transition_se()
+			_cancel_ranking_reset()
+		return true
+	if action == "back_to_title":
+		_play_back_transition_se()
+		_cancel_ranking_reset()
+		return true
+	return false
+
 func _refresh_ranking_screen() -> void:
-	var footer: String = "←→：タブ  ↑↓：記録  Esc / Backspace：タイトルへ戻る  R：ランキングリセット"
+	var footer: String = "←→：タブ  ↑↓：記録  Enter：詳細  Esc：戻る  R：リセット"
 	if state == "result" and result_showing_ranking:
-		footer = "←→：タブ  ↑↓：記録  R：リザルトへ戻る  Enter / Space：もう一回"
+		footer = "←→：タブ  ↑↓：記録  Enter：詳細  Esc：戻る  R：リセット"
 	result_label.text = RankingSystemScript.format_ranking_screen(ranking_tab_index, ranking_selected_index, relay_mode_unlocked) + "\n\n" + footer
 	if state == "ranking" or (state == "result" and result_showing_ranking):
 		result_panel.visible = false
 
 func _ranking_tab_left() -> void:
+	if ranking_reset_confirm_visible:
+		_handle_ranking_reset_confirm_action("ranking_tab_left")
+		return
 	ranking_tab_index = RankingSystemScript.clamp_tab_index(ranking_tab_index - 1, relay_mode_unlocked)
 	ranking_selected_index = 0
 	_refresh_ranking_screen()
 
 func _ranking_tab_right() -> void:
+	if ranking_reset_confirm_visible:
+		_handle_ranking_reset_confirm_action("ranking_tab_right")
+		return
 	ranking_tab_index = RankingSystemScript.clamp_tab_index(ranking_tab_index + 1, relay_mode_unlocked)
 	ranking_selected_index = 0
 	_refresh_ranking_screen()
 
 func _ranking_up() -> void:
+	if ranking_reset_confirm_visible:
+		_handle_ranking_reset_confirm_action("ranking_up")
+		return
 	var count: int = RankingSystemScript.entry_count_for_tab(ranking_tab_index, relay_mode_unlocked)
 	if count <= 0:
 		ranking_selected_index = 0
@@ -1734,6 +2244,9 @@ func _ranking_up() -> void:
 	_refresh_ranking_screen()
 
 func _ranking_down() -> void:
+	if ranking_reset_confirm_visible:
+		_handle_ranking_reset_confirm_action("ranking_down")
+		return
 	var count: int = RankingSystemScript.entry_count_for_tab(ranking_tab_index, relay_mode_unlocked)
 	if count <= 0:
 		ranking_selected_index = 0
@@ -1742,9 +2255,13 @@ func _ranking_down() -> void:
 	_refresh_ranking_screen()
 
 func _ranking_select() -> void:
+	if ranking_reset_confirm_visible:
+		_handle_ranking_reset_confirm_action("ranking_select")
+		return
 	_refresh_ranking_screen()
 
 func _open_title_options() -> void:
+	options_return_state = "title"
 	state = "options"
 	choice_box.visible = false
 	result_panel.visible = false
@@ -1754,7 +2271,16 @@ func _refresh_options_screen() -> void:
 	result_label.text = ""
 	result_panel.visible = false
 
+func _back_from_front_screen() -> void:
+	if state == "options" and options_return_state == "pause":
+		state = "pause"
+		result_label.text = ""
+		result_panel.visible = false
+		return
+	_back_to_title()
+
 func _back_to_title() -> void:
+	options_return_state = "title"
 	state = "title"
 	game_over_intro_timer = 0.0
 	game_over_intro_duration = 0.0
@@ -1772,6 +2298,8 @@ func _back_to_title() -> void:
 
 func _update_player(delta: float) -> void:
 	var result: Dictionary = PlayerSystemScript.update_for_target(self, delta, ARENA)
+	if bool(result.get("dashStarted", false)):
+		_play_dash_se()
 	if bool(result["stoppedDamage"]):
 		_damage_player("stopped moving")
 	_update_banana_slip_fx(delta)
@@ -1847,7 +2375,9 @@ func _update_weapons(delta: float) -> void:
 	var result: Dictionary = WeaponSystemScript.update_for_target(self, delta, ARENA, rng)
 	if _weapon_update_has_fx(result, "ng_word_laser"):
 		_play_laser_se()
-	if _weapon_update_has_hammer_swing(result):
+	if _weapon_update_has_ban_judgement_swing(result):
+		_play_ban_judgement_se()
+	elif _weapon_update_has_hammer_swing(result):
 		_play_ban_hammer_se()
 	if bool(result.get("superchatShotFired", false)):
 		_play_superchat_shot_se()
@@ -1875,6 +2405,13 @@ func _weapon_update_has_hammer_swing(result: Dictionary) -> bool:
 			return true
 	return false
 
+func _weapon_update_has_ban_judgement_swing(result: Dictionary) -> bool:
+	for item in (result.get("hitFx", []) as Array):
+		var fx: Dictionary = item as Dictionary
+		if bool(fx.get("hammer", false)) and bool(fx.get("judgement", false)):
+			return true
+	return false
+
 func _damage_player(source: String) -> void:
 	_apply_damage_feedback(DamageSystemScript.apply_damage_sources_for_target(self, [source]))
 
@@ -1883,8 +2420,11 @@ func _apply_damage_feedback(feedback: Dictionary) -> void:
 		return
 	if bool(feedback.get("damaged", false)):
 		_request_screen_shake(0.16, 0.10)
+		if not bool(feedback.get("dead", false)):
+			_play_player_damage_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 	if bool(feedback["dead"]):
+		_play_mental_breakdown_se()
 		_start_game_over_intro(String(feedback["deathReason"]))
 
 func _update_comment_choice(delta: float) -> void:
@@ -1903,6 +2443,8 @@ func _choose_comment(index: int) -> void:
 		return
 	_play_confirm_se()
 	_suppress_dash_button_after_ui_confirm()
+	if bool(result.get("bossWarningStarted", false)):
+		_play_boss_warning_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 	if not had_banana_floor and ModifierSystemScript.has_effect_for_target(self, "banana_floor"):
 		_start_banana_floor_appear()
@@ -1949,7 +2491,8 @@ func _update_marshmallow(delta: float) -> void:
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 	if bool(feedback["levelUp"]):
 		pending_gift_choices += int(feedback.get("levelUps", 1))
-		_start_gift_choice()
+		if gift_choice_delay_timer <= 0.0:
+			_start_gift_choice()
 	MarshmallowSystemScript.update_effect_timers_for_target(self, delta)
 
 func _update_destructibles(delta: float) -> void:
@@ -2040,6 +2583,8 @@ func _finish_run(reason: String) -> void:
 	result_showing_ranking = false
 	result_hover_button = "retry"
 	result_drop_timer = RESULT_DROP_DURATION
+	if pending_game_over_end_type == "mental_breakdown":
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": _ending_cutin_reaction_lines("mental_breakdown")}, chat_box)
 	ResultSystemScript.open_result_ui_for_target(reason, self, quick_test_mode, choice_box, result_panel, result_label, heart_cards, chat_box)
 
 func _end_type_for_finish_reason(reason: String) -> String:
@@ -2050,6 +2595,8 @@ func _end_type_for_finish_reason(reason: String) -> String:
 func _toggle_result_ranking() -> void:
 	result_showing_ranking = not result_showing_ranking
 	result_hover_button = ""
+	ranking_reset_confirm_visible = false
+	ranking_reset_confirm_index = 1
 	if result_showing_ranking:
 		ranking_tab_index = 0
 		ranking_selected_index = 0
@@ -2065,92 +2612,359 @@ func _update_pause_menu(delta: float) -> void:
 	var action: String = DebugSystemScript.pause_action(debug_key_latch)
 	if action == "":
 		return
+	if action in ["pause_up", "pause_down", "pause_left", "pause_right"]:
+		return
 	if pause_confirm_action != "":
 		if action == "pause_cancel":
-			pause_confirm_action = ""
+			_play_back_transition_se()
+			_close_pause_confirm()
 			return
 		if action == "pause_confirm" or action == "pause_select":
-			var confirmed_action: String = pause_confirm_action
-			pause_confirm_action = ""
-			if confirmed_action == "retry":
-				_restart()
-			elif confirmed_action == "title":
-				_back_to_title()
+			if pause_confirm_index == 0:
+				_accept_pause_confirm()
+			else:
+				_play_back_transition_se()
+				_close_pause_confirm()
 			return
 	if action == "pause_continue":
+		pause_focus_area = "actions"
 		pause_menu_index = 0
 		_resume_from_pause()
 	elif action == "pause_retry":
+		pause_focus_area = "actions"
 		pause_menu_index = 1
-		pause_confirm_action = "retry"
-	elif action == "pause_title":
+		_open_pause_confirm("retry")
+	elif action == "pause_options":
+		pause_focus_area = "actions"
 		pause_menu_index = 2
-		pause_confirm_action = "title"
+		_open_pause_options()
+	elif action == "pause_title":
+		pause_focus_area = "actions"
+		pause_menu_index = 3
+		_open_pause_confirm("title")
 	elif action == "pause_select":
+		if pause_focus_area != "actions":
+			return
 		if pause_menu_index == 0:
 			_resume_from_pause()
 		elif pause_menu_index == 1:
-			pause_confirm_action = "retry"
+			_open_pause_confirm("retry")
+		elif pause_menu_index == 2:
+			_open_pause_options()
 		else:
-			pause_confirm_action = "title"
+			_open_pause_confirm("title")
 
 func _update_pause_menu_navigation(delta: float) -> void:
+	var nav: int = 0
+	if Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_W):
+		nav = -2
+	elif Input.is_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_S):
+		nav = 2
+	elif Input.is_key_pressed(KEY_LEFT) or Input.is_key_pressed(KEY_A):
+		nav = -1
+	elif Input.is_key_pressed(KEY_RIGHT) or Input.is_key_pressed(KEY_D):
+		nav = 1
+	if nav == 0:
+		pause_nav_repeat_timer = 0.0
+		pause_nav_last_dir = 0
+		return
 	if pause_confirm_action != "":
-		pause_nav_repeat_timer = 0.0
-		pause_nav_last_dir = 0
+		if abs(nav) != 1:
+			pause_nav_repeat_timer = 0.0
+			pause_nav_last_dir = 0
+			return
+		if nav != pause_nav_last_dir:
+			_apply_pause_confirm_navigation(nav)
+			pause_nav_last_dir = nav
+			pause_nav_repeat_timer = 0.24
+			return
+		pause_nav_repeat_timer -= delta
+		if pause_nav_repeat_timer <= 0.0:
+			_apply_pause_confirm_navigation(nav)
+			pause_nav_repeat_timer = 0.10
 		return
-	var dir: int = 0
-	if Input.is_key_pressed(KEY_UP) or Input.is_key_pressed(KEY_LEFT) or Input.is_key_pressed(KEY_W):
-		dir -= 1
-	if Input.is_key_pressed(KEY_DOWN) or Input.is_key_pressed(KEY_RIGHT) or Input.is_key_pressed(KEY_S):
-		dir += 1
-	if dir == 0:
-		pause_nav_repeat_timer = 0.0
-		pause_nav_last_dir = 0
-		return
-	if dir != pause_nav_last_dir:
-		pause_menu_index = posmod(pause_menu_index + dir, 3)
-		pause_nav_last_dir = dir
+	if nav != pause_nav_last_dir:
+		_apply_pause_navigation(nav)
+		pause_nav_last_dir = nav
 		pause_nav_repeat_timer = 0.24
 		return
 	pause_nav_repeat_timer -= delta
 	if pause_nav_repeat_timer <= 0.0:
-		pause_menu_index = posmod(pause_menu_index + dir, 3)
+		_apply_pause_navigation(nav)
 		pause_nav_repeat_timer = 0.10
 
-func _resume_from_pause() -> void:
+func _apply_pause_navigation(nav: int) -> void:
+	if nav == -2:
+		if pause_focus_area == "actions":
+			pause_focus_area = "equipment"
+		return
+	if nav == 2:
+		if pause_focus_area == "equipment":
+			pause_focus_area = "actions"
+		return
+	var dir: int = -1 if nav < 0 else 1
+	if pause_focus_area == "actions":
+		pause_menu_index = posmod(pause_menu_index + dir, 4)
+		return
+	_move_pause_equipment_cursor(dir)
+
+func _apply_pause_confirm_navigation(nav: int) -> void:
+	var dir: int = -1 if nav < 0 else 1
+	pause_confirm_index = posmod(pause_confirm_index + dir, 2)
+	_play_cursor_move_se()
+
+func _open_pause_confirm(action: String) -> void:
+	pause_confirm_action = action
+	pause_confirm_index = 1
+	pause_nav_repeat_timer = 0.0
+	pause_nav_last_dir = 0
+
+func _close_pause_confirm() -> void:
 	pause_confirm_action = ""
+	pause_confirm_index = 1
+	pause_nav_repeat_timer = 0.0
+	pause_nav_last_dir = 0
+
+func _accept_pause_confirm() -> void:
+	var confirmed_action: String = pause_confirm_action
+	_close_pause_confirm()
+	if confirmed_action == "retry":
+		_start_pause_retry_intro()
+	elif confirmed_action == "title":
+		_play_back_transition_se()
+		_back_to_title()
+
+func _move_pause_equipment_cursor(dir: int) -> void:
+	if pause_equipment_row == 0:
+		var next_weapon_index: int = pause_weapon_slot_index + dir
+		if next_weapon_index < 0:
+			pause_equipment_row = 1
+			pause_accessory_slot_index = 4
+		elif next_weapon_index > 4:
+			pause_equipment_row = 1
+			pause_accessory_slot_index = 0
+		else:
+			pause_weapon_slot_index = next_weapon_index
+	else:
+		var next_accessory_index: int = pause_accessory_slot_index + dir
+		if next_accessory_index < 0:
+			pause_equipment_row = 0
+			pause_weapon_slot_index = 4
+		elif next_accessory_index > 4:
+			pause_equipment_row = 0
+			pause_weapon_slot_index = 0
+		else:
+			pause_accessory_slot_index = next_accessory_index
+
+func _resume_from_pause() -> void:
+	_play_back_transition_se()
+	_close_pause_confirm()
 	pause_nav_repeat_timer = 0.0
 	pause_nav_last_dir = 0
 	state = previous_state if previous_state != "" and previous_state != "pause" else "playing"
 
+func _open_pause_options() -> void:
+	_close_pause_confirm()
+	options_return_state = "pause"
+	state = "options"
+	choice_box.visible = false
+	result_panel.visible = false
+	_refresh_options_screen()
+
 func _draw_pause_overlay() -> void:
-	var panel: Rect2 = Rect2(Vector2(245, 86), Vector2(1110, 680))
-	draw_rect(panel, Color(0.97, 0.985, 1.0, 0.96))
-	_draw_rect_outline(panel, Color("#ff5b9c"), 4)
-	_draw_text_item({"pos": panel.position + Vector2(36, 52), "text": "ポーズ中", "width": 320, "size": 36, "color": Color("#e73763")})
-	_draw_pause_status_panel(Rect2(panel.position + Vector2(32, 78), Vector2(1046, 88)))
-	_draw_pause_equipment_panel(Rect2(panel.position + Vector2(32, 184), Vector2(506, 248)), true)
-	_draw_pause_equipment_panel(Rect2(panel.position + Vector2(572, 184), Vector2(506, 248)), false)
-	_draw_pause_instruction_panel(Rect2(panel.position + Vector2(32, 448), Vector2(506, 110)))
-	_draw_pause_stream_rule_panel(Rect2(panel.position + Vector2(572, 448), Vector2(506, 110)))
-	_draw_pause_controls_panel(Rect2(panel.position + Vector2(32, 574), Vector2(506, 74)))
-	_draw_pause_menu_panel(Rect2(panel.position + Vector2(572, 574), Vector2(506, 74)))
+	draw_rect(TITLE_SCREEN_RECT, Color(0.04, 0.01, 0.05, 0.62), true)
+	var panel: Rect2 = Rect2(Vector2(188, 68), Vector2(1224, 744))
+	_draw_ranking_panel(panel, Color(1.0, 0.972, 0.99, 0.98), Color("#ff72ad"), 28, 4, true)
+	_draw_text_item({"pos": panel.position + Vector2(40, 54), "text": "ポーズ中", "width": 260, "size": 38, "color": Color("#e73763")})
+	_draw_text_item({"pos": panel.position + Vector2(42, 84), "text": "配信を一時停止しています", "width": 360, "size": 17, "color": Color("#7a526b")})
+	_draw_pause_status_panel(Rect2(panel.position + Vector2(36, 104), Vector2(1152, 86)))
+	_draw_pause_equipment_slot_panel(Rect2(panel.position + Vector2(36, 210), Vector2(560, 244)), true)
+	_draw_pause_equipment_slot_panel(Rect2(panel.position + Vector2(628, 210), Vector2(560, 244)), false)
+	_draw_pause_current_instruction_panel(Rect2(panel.position + Vector2(36, 474), Vector2(356, 126)))
+	_draw_pause_compact_stream_rule_panel(Rect2(panel.position + Vector2(416, 474), Vector2(356, 126)))
+	_draw_pause_short_controls_panel(Rect2(panel.position + Vector2(796, 474), Vector2(392, 126)))
+	_draw_pause_action_panel(Rect2(panel.position + Vector2(36, 626), Vector2(1152, 84)))
 
 func _draw_pause_status_panel(rect: Rect2) -> void:
-	_draw_pause_box(rect, Color("#e9f7ff"))
+	_draw_pause_section_box(rect, Color("#eef9ff"), Color("#bfe8ff"))
 	var remaining: float = maxf(0.0, RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH) - elapsed)
-	var status_text: String = "配信者：%s　配信枠：%s\n残り時間：%s　同時視聴者数：%d人　ボルテージ：x%.1f\n炎上コンボ：%d　ギフト期待度：%d%%　♡待機中：%s" % [
-		String(current_character.get("displayName", "赤羽ばんり")),
-		String(current_stream_frame.get("displayName", "雑談枠")),
-		_format_pause_time(remaining),
-		score,
-		multiplier,
-		burn_combo,
-		gift_hype,
-		"あり" if heart_pending else "なし"
+	var status_lines: Array[String] = [
+		"配信者：%s　配信枠：%s" % [
+			String(current_character.get("displayName", "赤羽ばんり")),
+			String(current_stream_frame.get("displayName", "雑談枠"))
+		],
+		"残り時間：%s　視聴者数：%d人　ボルテージ：x%.1f" % [
+			_format_pause_time(remaining),
+			score,
+			multiplier
+		],
+		"炎上：%d　ギフト期待度：%d%%　♡待機：%s" % [
+			burn_combo,
+			gift_hype,
+			"あり" if heart_pending else "なし"
+		]
 	]
-	_draw_multiline_text_item({"pos": rect.position + Vector2(18, 25), "text": status_text, "width": int(rect.size.x - 36), "size": 18, "color": Color("#142033")})
+	var line_colors: Array[Color] = [Color("#26435c"), Color("#142033"), Color("#6d4b75")]
+	for i in range(status_lines.size()):
+		_draw_text_item({
+			"pos": rect.position + Vector2(20, 27 + i * 24),
+			"text": status_lines[i],
+			"width": int(rect.size.x - 40),
+			"size": 17 if i < 2 else 16,
+			"color": line_colors[i]
+		})
+
+func _pause_empty_slot_description(is_weapon: bool) -> Dictionary:
+	if is_weapon:
+		return {"title": "空き武器スロット", "body": "ギフトで武器を入手すると、ここに表示されます"}
+	return {"title": "空きアクセサリスロット", "body": "ギフトでアクセサリを入手すると、ここに表示されます"}
+
+func _pause_default_equipment_description() -> Dictionary:
+	return {
+		"title": "装備説明",
+		"body": "武器・アクセサリにカーソルを合わせると説明が表示されます"
+	}
+
+func _pause_equipment_description(selected_info: Dictionary, is_weapon: bool, active_row: bool) -> Dictionary:
+	if active_row:
+		if selected_info.is_empty() or not bool(selected_info.get("filled", false)):
+			return _pause_empty_slot_description(is_weapon)
+		var level_text: String = "進化" if bool(selected_info.get("evolved", false)) else "Lv%d" % int(selected_info.get("level", 1))
+		return {
+			"title": "%s %s" % [String(selected_info.get("name", "")), level_text],
+			"body": String(selected_info.get("description", ""))
+		}
+	return _pause_default_equipment_description()
+
+func _draw_pause_description_box(rect: Rect2, accent: Color, description: Dictionary) -> void:
+	_draw_ranking_panel(rect, Color(1, 1, 1, 0.86), Color(accent.r, accent.g, accent.b, 0.50), 14, 2, false)
+	_draw_ranking_text(String(description.get("title", "")), rect.position + Vector2(16, 34), 19, accent, rect.size.x - 32)
+	_draw_ranking_text(_short_pause_text(String(description.get("body", "")), 42), rect.position + Vector2(16, 62), 15, Color("#2d2530"), rect.size.x - 32)
+
+func _draw_pause_equipment_slot_panel(rect: Rect2, is_weapon: bool) -> void:
+	var accent: Color = Color("#ffb433") if is_weapon else Color("#45c8df")
+	var fill: Color = Color("#fffdf6") if is_weapon else Color("#f4fdff")
+	_draw_pause_section_box(rect, fill, accent)
+	var title: String = "武器" if is_weapon else "アクセサリ"
+	_draw_text_item({"pos": rect.position + Vector2(20, 32), "text": title, "width": 190, "size": 24, "color": accent})
+	var selected_index: int = pause_weapon_slot_index if is_weapon else pause_accessory_slot_index
+	var row: int = 0 if is_weapon else 1
+	var active_row: bool = pause_focus_area == "equipment" and pause_equipment_row == row
+	var slot_size := Vector2(58, 58)
+	var slot_step := 66.0
+	var slot_start := rect.position + Vector2(22, 56)
+	var selected_info: Dictionary = {}
+	for i in range(5):
+		var info: Dictionary = _pause_equipment_slot_info(i, is_weapon)
+		if i == selected_index:
+			selected_info = info
+		var slot_rect := Rect2(slot_start + Vector2(float(i) * slot_step, 0), slot_size)
+		_draw_pause_equipment_slot(slot_rect, info, i == selected_index, active_row, accent)
+	var desc_rect := Rect2(rect.position + Vector2(18, 132), Vector2(rect.size.x - 36, 90))
+	_draw_pause_description_box(desc_rect, accent, _pause_equipment_description(selected_info, is_weapon, active_row))
+
+func _pause_equipment_slot_info(index: int, is_weapon: bool) -> Dictionary:
+	var entries: Array = player_weapons if is_weapon else player_accessories
+	if index >= entries.size() or not (entries[index] is Dictionary):
+		return {"filled": false}
+	var entry: Dictionary = entries[index] as Dictionary
+	var item_id: String = String(entry.get("id", ""))
+	if item_id == "":
+		return {"filled": false}
+	var data: Dictionary = WeaponSystemScript.find_weapon(weapons, item_id, {}) if is_weapon else _find_gift_data(item_id)
+	var name: String = String(data.get("displayName", item_id))
+	return {
+		"filled": true,
+		"id": item_id,
+		"name": name,
+		"description": String(data.get("description", "")),
+		"iconPath": String(data.get("iconPath", entry.get("iconPath", ""))),
+		"level": EquipmentSystem.entry_level(entry),
+		"evolved": EquipmentSystem.is_evolved_entry(entry) or bool(data.get("isEvolved", false))
+	}
+
+func _draw_pause_equipment_slot(rect: Rect2, info: Dictionary, selected: bool, active_focus: bool, accent: Color) -> void:
+	var filled: bool = bool(info.get("filled", false))
+	var evolved: bool = bool(info.get("evolved", false))
+	var active_selected: bool = selected and active_focus
+	var border: Color = Color("#ffd15a") if evolved else Color("#d9c8ee")
+	if active_selected:
+		border = Color("#ff4f9b")
+	var fill: Color = Color("#fff4d6") if evolved else (Color(1, 1, 1, 0.95) if filled else Color(1, 1, 1, 0.40))
+	_draw_ranking_panel(rect, fill, border, 11, 4 if active_selected else (2 if filled else 1), false)
+	if active_selected:
+		draw_rect(rect.grow(4), Color("#ff5b9c"), false, 2.0)
+	if not filled:
+		draw_rect(Rect2(rect.position + Vector2(13, 13), rect.size - Vector2(26, 26)), Color(1, 1, 1, 0.22), true)
+		return
+	var icon: Texture2D = _load_equipment_icon(String(info.get("iconPath", "")))
+	if icon != null:
+		draw_texture_rect(icon, _fit_texture_rect(rect.grow(-7), icon.get_size()), false)
+	else:
+		_draw_ranking_text(_short_pause_text(String(info.get("name", "")), 2), rect.position + Vector2(0, 37), 17, Color("#7a56c8"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var badge_text: String = "進化" if evolved else "Lv%d" % int(info.get("level", 1))
+	var badge_width: float = 34.0 if evolved else 32.0
+	var badge_rect := Rect2(rect.end - Vector2(badge_width + 3.0, 17.0), Vector2(badge_width, 15.0))
+	_draw_ranking_panel(badge_rect, Color("#ffd15a") if evolved else Color("#ff72ad"), Color(1, 1, 1, 0.0), 5, 0, false)
+	_draw_ranking_text(badge_text, badge_rect.position + Vector2(0, 12), 9, Color("#6a3a00") if evolved else Color.WHITE, badge_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_pause_current_instruction_panel(rect: Rect2) -> void:
+	_draw_pause_section_box(rect, Color("#fff8fc"), Color("#ff8fc4"))
+	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "現在の指示コメ", "width": 230, "size": 21, "color": Color("#e73763")})
+	var text_pos := rect.position + Vector2(20, 58)
+	var text_width := int(rect.size.x - 40)
+	if current_comment != "なし" and effect_timer > 0.0:
+		var icon: Texture2D = _load_instruction_comment_icon(last_comment_id)
+		if icon != null:
+			var icon_rect := Rect2(rect.position + Vector2(20, 50), Vector2(48, 48))
+			draw_texture_rect(icon, icon_rect, false)
+			text_pos.x += 58.0
+			text_width -= 58
+	_draw_multiline_text_item({"pos": text_pos, "text": _pause_instruction_text(), "width": text_width, "size": 15, "color": Color("#142033")})
+
+func _draw_pause_compact_stream_rule_panel(rect: Rect2) -> void:
+	_draw_pause_section_box(rect, Color("#fffdf4"), Color("#ffbf5c"))
+	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "配信枠ルール", "width": 220, "size": 21, "color": Color("#d97706")})
+	var frame_name: String = String(current_stream_frame.get("displayName", "雑談枠"))
+	_draw_ranking_text(frame_name, rect.position + Vector2(20, 58), 17, Color("#8f4b00"), rect.size.x - 40)
+	_draw_multiline_text_item({"pos": rect.position + Vector2(20, 82), "text": _short_pause_text(_pause_stream_rule_text(), 45), "width": int(rect.size.x - 40), "size": 14, "color": Color("#33281e")})
+
+func _draw_pause_short_controls_panel(rect: Rect2) -> void:
+	_draw_pause_section_box(rect, Color("#f8fbff"), Color("#c9d7ef"))
+	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "操作", "width": 160, "size": 21, "color": Color("#6b7280")})
+	var text: String = "移動：WASD / 方向キー\nダッシュ：同方向2回\n指示コメ：1 / 2 / 3\nEsc：ポーズ解除"
+	_draw_multiline_text_item({"pos": rect.position + Vector2(20, 58), "text": text, "width": int(rect.size.x - 40), "size": 15, "color": Color("#34445c")})
+
+func _draw_pause_action_panel(rect: Rect2) -> void:
+	_draw_pause_section_box(rect, Color("#fff8fc"), Color("#ffd2e5"))
+	if pause_confirm_action != "":
+		var action_text: String = "リトライしますか？" if pause_confirm_action == "retry" else "タイトルへ戻りますか？"
+		_draw_ranking_text(action_text, rect.position + Vector2(32, 50), 22, Color("#e73763"), rect.size.x * 0.42, HORIZONTAL_ALIGNMENT_CENTER)
+		var confirm_labels: Array[String] = ["はい", "いいえ"]
+		var button_width := 190.0
+		var confirm_gap := 22.0
+		var start_x := rect.position.x + rect.size.x * 0.55
+		for i in range(confirm_labels.size()):
+			var selected: bool = i == pause_confirm_index
+			var item_rect := Rect2(Vector2(start_x + float(i) * (button_width + confirm_gap), rect.position.y + 17.0), Vector2(button_width, 50.0))
+			var fill := Color("#ff5b9c") if selected else Color(1, 1, 1, 0.88)
+			var border := Color("#ff5b9c") if selected else Color("#e6cfe1")
+			_draw_ranking_panel(item_rect, fill, border, 16, 3 if selected else 2, false)
+			_draw_ranking_text(confirm_labels[i], item_rect.position + Vector2(0, 32), 20, Color.WHITE if selected else Color("#573349"), item_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	var labels: Array[String] = ["配信に戻る", "リトライ", "オプション", "タイトルへ"]
+	var gap := 20.0
+	var button_width := (rect.size.x - 48.0 - gap * 3.0) / 4.0
+	for i in range(labels.size()):
+		var selected: bool = pause_focus_area == "actions" and i == pause_menu_index
+		var item_rect := Rect2(rect.position + Vector2(24.0 + float(i) * (button_width + gap), 17.0), Vector2(button_width, 50.0))
+		var fill := Color("#ff5b9c") if selected else Color(1, 1, 1, 0.88)
+		var border := Color("#ff5b9c") if selected else Color("#e6cfe1")
+		_draw_ranking_panel(item_rect, fill, border, 16, 3 if selected else 2, false)
+		_draw_ranking_text("[%d] %s" % [i + 1, labels[i]], item_rect.position + Vector2(0, 32), 19, Color.WHITE if selected else Color("#573349"), item_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_pause_section_box(rect: Rect2, fill: Color, border: Color) -> void:
+	_draw_ranking_panel(rect, fill, border, 18, 2, false)
 
 func _draw_pause_equipment_panel(rect: Rect2, is_weapon: bool) -> void:
 	_draw_pause_box(rect, Color("#ffffff"))
@@ -2171,16 +2985,30 @@ func _draw_pause_stream_rule_panel(rect: Rect2) -> void:
 
 func _draw_pause_controls_panel(rect: Rect2) -> void:
 	_draw_pause_box(rect, Color("#f7fbff"))
-	var text: String = "移動：WASD / 方向キー　ダッシュ：同じ方向を2回押し\n指示コメ選択：1 / 2 / 3　ポーズ：Esc"
+	var text: String = "移動：WASD / 方向キー　ダッシュ：同じ方向を2回押し\n指示コメ選択：1 / 2 / 3　Esc：ポーズ解除"
 	_draw_multiline_text_item({"pos": rect.position + Vector2(18, 29), "text": text, "width": int(rect.size.x - 36), "size": 16, "color": Color("#34445c")})
 
 func _draw_pause_menu_panel(rect: Rect2) -> void:
 	_draw_pause_box(rect, Color("#fff7fb"))
 	if pause_confirm_action != "":
-		var confirm_text: String = "現在の配信を終了します。よろしいですか？\nEnter / Space / Y：はい　N / Backspace：いいえ"
-		_draw_multiline_text_item({"pos": rect.position + Vector2(18, 30), "text": confirm_text, "width": int(rect.size.x - 36), "size": 16, "color": Color("#e73763")})
+		var action_text: String = "リトライしますか？" if pause_confirm_action == "retry" else "タイトルへ戻りますか？"
+		_draw_ranking_text(action_text, rect.position + Vector2(18, 30), 17, Color("#e73763"), rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
+		var confirm_labels: Array[String] = ["はい", "いいえ"]
+		for i in range(confirm_labels.size()):
+			var selected: bool = i == pause_confirm_index
+			var x: float = rect.position.x + 82.0 + float(i) * 170.0
+			var item_rect: Rect2 = Rect2(Vector2(x, rect.position.y + 50.0), Vector2(136.0, 34.0))
+			draw_rect(item_rect, Color("#ff5b9c") if selected else Color("#ffffff"))
+			_draw_rect_outline(item_rect, Color("#ff5b9c"), 2)
+			_draw_text_item({
+				"pos": item_rect.position + Vector2(0, 24),
+				"text": confirm_labels[i],
+				"width": int(item_rect.size.x),
+				"size": 16,
+				"color": Color.WHITE if selected else Color("#142033")
+			}, "", HORIZONTAL_ALIGNMENT_CENTER)
 		return
-	var labels: Array[String] = ["続ける", "リトライ", "タイトルへ"]
+	var labels: Array[String] = ["配信に戻る", "リトライ", "タイトルへ"]
 	for i in range(labels.size()):
 		var selected: bool = i == pause_menu_index
 		var x: float = rect.position.x + 22.0 + float(i) * 155.0
@@ -2223,7 +3051,11 @@ func _pause_instruction_text() -> String:
 	var lines: Array[String] = [
 		"%s　残り%02d秒" % [current_comment, int(ceil(effect_timer))]
 	]
-	if active_effects.size() > 1:
+	if not active_sub_comment_ids.is_empty():
+		lines.append("内訳：")
+		for label in _active_sub_instruction_labels():
+			lines.append("・%s" % label)
+	elif active_effects.size() > 1:
 		lines.append("発動中効果：%s" % _pause_active_effect_text())
 	else:
 		lines.append("効果：%s" % _pause_comment_description())
@@ -2244,12 +3076,25 @@ func _pause_comment_description() -> String:
 	return _short_pause_text(String(view.get("description", _pause_active_effect_text())), 34)
 
 func _pause_active_effect_text() -> String:
+	if not active_sub_comment_ids.is_empty():
+		return _active_sub_instruction_text()
 	if active_effects.is_empty():
 		return "なし"
 	var labels: Array[String] = []
 	for item in active_effects:
 		labels.append(_pause_effect_label(String(item)))
 	return " / ".join(labels)
+
+func _active_sub_instruction_text() -> String:
+	return " / ".join(_active_sub_instruction_labels())
+
+func _active_sub_instruction_labels() -> Array[String]:
+	var labels: Array[String] = []
+	for item in active_sub_comment_ids:
+		var id: String = String(item)
+		var comment: Dictionary = _find_comment_data(id)
+		labels.append(String(comment.get("displayName", _pause_effect_label(id))) if not comment.is_empty() else _pause_effect_label(id))
+	return labels
 
 func _pause_effect_label(id: String) -> String:
 	var labels: Dictionary = {
@@ -2312,6 +3157,10 @@ func _restart() -> void:
 	screen_shake_strength = 0.0
 	screen_shake_offset = Vector2.ZERO
 	hit_stop_timer = 0.0
+	screen_flash_timer = 0.0
+	screen_flash_duration = 0.0
+	screen_flash_color = Color.TRANSPARENT
+	gift_choice_delay_timer = 0.0
 	var restart_state: Dictionary = RunStateSystemScript.restart_run_for_target(
 		self,
 		characters,
@@ -2369,6 +3218,10 @@ func _start_next_relay_segment() -> void:
 	screen_shake_strength = 0.0
 	screen_shake_offset = Vector2.ZERO
 	hit_stop_timer = 0.0
+	screen_flash_timer = 0.0
+	screen_flash_duration = 0.0
+	screen_flash_color = Color.TRANSPARENT
+	gift_choice_delay_timer = 0.0
 	next_mallow_time = 30.0
 	stop_timer = 0.0
 	mute_timer = 0.0
@@ -2388,8 +3241,10 @@ func _start_next_relay_segment() -> void:
 	current_death_text = "発動中の指示コメなし"
 	active_comment_hurt = false
 	pending_clear_hype = 0
+	do_everything_offer_count = 0
 	active_effects.clear()
 	active_effect_rates.clear()
+	active_sub_comment_ids.clear()
 	effect_walls.clear()
 	effect_pits.clear()
 	enemies.clear()
@@ -2412,6 +3267,8 @@ func _start_next_relay_segment() -> void:
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["次の配信枠へ！ " + String(current_stream_frame.get("displayName", "配信枠"))]}, chat_box)
 
 func _handle_debug_keys() -> void:
+	if state == "comment_choice" or state == "gift_choice":
+		return
 	for action in DebugSystemScript.pressed_actions(debug_key_latch):
 		_apply_debug_action(action)
 
@@ -2420,6 +3277,9 @@ func _apply_debug_action(action: String) -> void:
 		comment_timer = 0.0
 	if DebugSystemScript.should_start_gift(action) and state == "playing":
 		_start_gift_choice()
+	if DebugSystemScript.should_force_do_everything_offer(action) and state == "playing":
+		_apply_forced_do_everything_debug()
+		return
 	var forced_gift_rarity: String = DebugSystemScript.forced_gift_rarity(action)
 	if forced_gift_rarity != "" and state == "playing":
 		var gift_result: Dictionary = DebugSystemScript.force_gift_choice_ui_for_target(self, gifts, forced_gift_rarity, rng, choice_box)
@@ -2444,6 +3304,14 @@ func _apply_forced_comment_debug(comment_id: String, has_heart: bool) -> void:
 	if bool(result["applied"]):
 		_play_instruction_comment_arrival_se()
 		_choose_comment(int(result["chooseIndex"]))
+
+func _apply_forced_do_everything_debug() -> void:
+	var result: Dictionary = DebugSystemScript.force_do_everything_choice_ui_for_target(self, comments, rng, CHOICE_TIME, choice_box)
+	if bool(result["applied"]):
+		comment_choice_enter_time = 0.0
+		_play_instruction_comment_arrival_se()
+		_refresh_choice_cards()
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result.get("chat", ""))]}, chat_box)
 
 func _draw_shadow(pos: Vector2, size: Vector2, alpha: float = 0.28) -> void:
 	DrawPrimitiveSystemScript.draw_shadow(self, pos, size, alpha)
@@ -2616,38 +3484,34 @@ func _draw_player_sprite() -> void:
 		_reset_world_transform()
 
 func _draw_player_no_brake_sweat() -> void:
+	if state != "playing":
+		return
 	if not player_no_brake_sliding:
 		return
-	var side_sign := -1.0
-	if player_vel.x < -24.0:
-		side_sign = 1.0
-	elif absf(player_vel.x) <= 24.0 and player_facing_x < 0.0:
-		side_sign = 1.0
-	var base_pos := player_pos + Vector2(24.0 * side_sign, -48.0)
-	for i in range(3):
-		var index := float(i)
-		var pulse := sin(elapsed * 9.5 + index * 1.7)
-		var pos := base_pos + Vector2(8.0 * index * side_sign, 9.0 * index + pulse * 2.0)
-		var radius := 5.2 - index * 0.7
-		var angle := -1.45 + 0.18 * side_sign + index * 0.12
-		var alpha := 0.86 - index * 0.12
-		_draw_player_sweat_drop(pos, radius, angle, alpha)
-
-func _draw_player_sweat_drop(center: Vector2, radius: float, angle: float, alpha: float) -> void:
-	var dir := Vector2(cos(angle), sin(angle))
-	var side := Vector2(-dir.y, dir.x)
-	var outline_color := Color(1.0, 1.0, 1.0, 0.82 * alpha)
-	var fill_color := Color(0.38, 0.86, 1.0, 0.86 * alpha)
-	var shine_color := Color(1.0, 1.0, 1.0, 0.70 * alpha)
-	var outline_tip := center + dir * radius * 1.6
-	var outline_base := center - dir * radius * 0.25
-	draw_colored_polygon(PackedVector2Array([outline_tip, outline_base + side * radius, outline_base - side * radius]), outline_color)
-	draw_circle(center, radius * 1.05, outline_color, true)
-	var tip := center + dir * radius * 1.35
-	var base := center - dir * radius * 0.18
-	draw_colored_polygon(PackedVector2Array([tip, base + side * radius * 0.72, base - side * radius * 0.72]), fill_color)
-	draw_circle(center, radius * 0.78, fill_color, true)
-	draw_circle(center - dir * radius * 0.20 - side * radius * 0.22, radius * 0.18, shine_color, true)
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, NO_BRAKE_SWEAT_IMAGE)
+	if texture == null:
+		return
+	var back_side := 1.0
+	if player_vel.x > 24.0:
+		back_side = -1.0
+	elif player_vel.x < -24.0:
+		back_side = 1.0
+	elif player_facing_x > 0.0:
+		back_side = -1.0
+	var bob := sin(elapsed * TAU / 0.42)
+	var pulse := 0.94 + 0.06 * sin(elapsed * TAU / 0.36)
+	var alpha := 0.88 + 0.08 * sin(elapsed * TAU / 0.48)
+	var center := player_pos + Vector2(35.0 * back_side, -48.0 + bob * 2.0)
+	var size := Vector2(44.0, 44.0) * pulse
+	var transform_scale: Vector2 = Vector2(-1.0, 1.0) if back_side < 0.0 else Vector2.ONE
+	if world_draw_active:
+		transform_scale *= world_zoom
+	draw_set_transform(_screen_pos(center), 0.0, transform_scale)
+	draw_texture_rect(texture, Rect2(-size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
+	if world_draw_active:
+		_apply_world_transform()
+	else:
+		_reset_world_transform()
 
 func _draw_invincible_label() -> void:
 	if debug_invincible:
@@ -2807,15 +3671,36 @@ func _draw_boss_hp_overlay() -> void:
 	var max_hp: float = float(boss.get("max_hp", 1.0))
 	if max_hp > 0.0:
 		ratio = clampf(float(boss.get("hp", 0.0)) / max_hp, 0.0, 1.0)
+	var defeat_pending := bool(boss.get("defeatPending", false))
+	var defeat_progress := 0.0
+	var overlay_alpha := 1.0
+	if defeat_pending:
+		var delay_max := maxf(0.01, float(boss.get("defeatDelayMax", 0.55)))
+		defeat_progress = clampf(1.0 - float(boss.get("defeatDelay", 0.0)) / delay_max, 0.0, 1.0)
+		overlay_alpha = clampf(1.0 - maxf(0.0, defeat_progress - 0.35) / 0.65, 0.0, 1.0)
 	var rect := Rect2(Vector2(388, 112), Vector2(640, 50))
-	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.94), true)
-	_draw_rect_outline(rect, Color("#c8b8ff"), 3)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.94 * overlay_alpha), true)
+	var border_color := Color("#c8b8ff")
+	border_color.a *= overlay_alpha
+	_draw_rect_outline(rect, border_color, 3)
 	var bar_rect := Rect2(rect.position + Vector2(142, 25), Vector2(482, 14))
-	draw_rect(bar_rect, Color("#241631"), true)
-	draw_rect(Rect2(bar_rect.position, Vector2(bar_rect.size.x * ratio, bar_rect.size.y)), Color("#ff4f92"), true)
-	_draw_rect_outline(bar_rect, Color("#6f55c8"), 2)
-	_draw_text_item({"pos": rect.position + Vector2(18, 34), "text": String(boss.get("displayName", "超長文ニキ")), "width": 132, "size": 20, "color": Color("#332255")})
-	_draw_text_item({"pos": rect.position + Vector2(516, 20), "text": "%d/%d" % [maxi(0, int(ceil(float(boss.get("hp", 0.0))))), int(ceil(max_hp))], "width": 108, "size": 14, "color": Color("#332255")})
+	draw_rect(bar_rect, Color(0.14, 0.09, 0.19, overlay_alpha), true)
+	draw_rect(Rect2(bar_rect.position, Vector2(bar_rect.size.x * ratio, bar_rect.size.y)), Color(1.0, 0.31, 0.57, overlay_alpha), true)
+	var bar_border := Color("#6f55c8")
+	bar_border.a *= overlay_alpha
+	_draw_rect_outline(bar_rect, bar_border, 2)
+	if defeat_pending:
+		var flash := sin(defeat_progress * PI)
+		draw_rect(rect, Color(1.0, 0.94, 0.48, 0.22 * flash * overlay_alpha), true)
+		draw_line(bar_rect.position + Vector2(8, -3), bar_rect.end + Vector2(-78, 8), Color(1.0, 1.0, 1.0, 0.78 * overlay_alpha), 3.0)
+		var crack_color := Color("#ff4f92")
+		crack_color.a *= overlay_alpha
+		draw_line(bar_rect.position + Vector2(128, 12), bar_rect.position + Vector2(180, -8), crack_color, 2.0)
+		draw_line(bar_rect.position + Vector2(276, -8), bar_rect.position + Vector2(322, 17), crack_color, 2.0)
+	var name_color := Color("#332255")
+	name_color.a *= overlay_alpha
+	_draw_text_item({"pos": rect.position + Vector2(18, 34), "text": String(boss.get("displayName", "超長文ニキ")), "width": 132, "size": 20, "color": name_color})
+	_draw_text_item({"pos": rect.position + Vector2(516, 20), "text": "%d/%d" % [maxi(0, int(ceil(float(boss.get("hp", 0.0))))), int(ceil(max_hp))], "width": 108, "size": 14, "color": name_color})
 
 func _draw_hit_fx(field_layer: bool = false) -> void:
 	for fx in DrawDataSystemScript.hit_fx_draw_data(hit_fx):
@@ -2828,21 +3713,27 @@ func _draw_hit_fx(field_layer: bool = false) -> void:
 func _draw_hit_fx_item(data: Dictionary) -> void:
 	for part in DrawDataSystemScript.hit_fx_parts(data):
 		_draw_simple_draw_part(data, part as Dictionary)
+	var hammer_texture: Texture2D = _hammer_weapon_sprite_for_data(data)
 	if bool(data.get("showHammer", false)):
-		_draw_ban_hammer_afterimages(data)
+		_draw_ban_hammer_afterimages(data, hammer_texture)
 	_draw_hit_fx_texture(data)
 	if bool(data.get("showHammer", false)):
-		_draw_rotated_texture(ban_hammer_weapon_sprite, data["hammerPos"] as Vector2, data["hammerSize"] as Vector2, float(data["hammerAngle"]), float(data["hammerAlpha"]))
+		_draw_rotated_texture(hammer_texture, data["hammerPos"] as Vector2, data["hammerSize"] as Vector2, float(data["hammerAngle"]), float(data["hammerAlpha"]))
 		_draw_ban_hammer_sparks(data)
 
-func _draw_ban_hammer_afterimages(data: Dictionary) -> void:
-	if ban_hammer_weapon_sprite == null:
+func _hammer_weapon_sprite_for_data(data: Dictionary) -> Texture2D:
+	if String(data.get("hammerSprite", "ban_hammer")) == "ban_judgement" and ban_judgement_weapon_sprite != null:
+		return ban_judgement_weapon_sprite
+	return ban_hammer_weapon_sprite
+
+func _draw_ban_hammer_afterimages(data: Dictionary, texture: Texture2D) -> void:
+	if texture == null:
 		return
 	var after_images: Array = data.get("hammerAfterImages", []) as Array
 	for image_item in after_images:
 		var image_data: Dictionary = image_item as Dictionary
 		_draw_rotated_texture(
-			ban_hammer_weapon_sprite,
+			texture,
 			image_data["pos"] as Vector2,
 			image_data["size"] as Vector2,
 			float(image_data["angle"]),
@@ -2988,6 +3879,43 @@ func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color,
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 30), "text": label, "width": int(rect.size.x - 30), "size": 15, "color": Color("#101420")})
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 65), "text": value, "width": int(rect.size.x - 28), "size": 27, "color": Color("#101420")})
 
+func _draw_mental_breakdown_viewer_card(rect: Rect2) -> void:
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	var reaction := _mental_breakdown_impact_ratio(MENTAL_BREAKDOWN_REACTION_DURATION)
+	var jitter := Vector2(sin(clock * 54.0), cos(clock * 47.0)) * 4.0 * reaction
+	var card := Rect2(rect.position + jitter, rect.size)
+	var viewer_drop := int(round(float(maxi(score, 1)) * 0.045 * reaction))
+	var preview_score := maxi(0, score - viewer_drop)
+	draw_rect(card, Color(0.94, 0.93, 0.95, 0.94), true)
+	_draw_rect_outline(card, Color("#d0c8d6"), 2)
+	draw_rect(Rect2(card.position + Vector2(0, card.size.y - 5), Vector2(card.size.x, 5)), Color("#9ca3af"), true)
+	_draw_text_item({"pos": card.position + Vector2(18, 47), "text": "●●", "width": 42, "size": 31, "color": Color("#a1a1aa")})
+	_draw_text_item({"pos": card.position + Vector2(58, 30), "text": "同時視聴者数", "width": int(card.size.x - 76), "size": 15, "color": Color("#625866")})
+	_draw_text_item({"pos": card.position + Vector2(58, 65), "text": "%s人が視聴中" % DrawDataSystemScript.format_viewer_count(preview_score), "width": int(card.size.x - 76), "size": 27, "color": Color("#55515d")})
+	if reaction > 0.02:
+		_draw_text_item({"pos": card.position + Vector2(168, 29), "text": "離脱中…", "width": 86, "size": 14, "color": Color("#ff5a96")})
+
+func _draw_mental_breakdown_hud_card(rect: Rect2) -> void:
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	var reaction := _mental_breakdown_impact_ratio(MENTAL_BREAKDOWN_REACTION_DURATION)
+	var jitter := Vector2(sin(clock * 62.0), cos(clock * 55.0)) * 3.0 * reaction
+	var card := Rect2(rect.position + jitter, rect.size)
+	draw_rect(card, Color(1.0, 0.90, 0.95, 0.96), true)
+	_draw_rect_outline(card, Color("#ff5a96"), 3)
+	draw_rect(Rect2(card.position + Vector2(0, card.size.y - 5), Vector2(card.size.x, 5)), Color("#ff477f"), true)
+	_draw_text_item({"pos": card.position + Vector2(14, 24), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
+	_draw_text_item({"pos": card.position + Vector2(54, 52), "text": "0/%d" % player_max_hp, "width": int(card.size.x - 68), "size": 26, "color": Color("#ff2f78")})
+	_draw_text_item({"pos": card.position + Vector2(18, 53), "text": "♡", "width": 28, "size": 26, "color": Color("#ff2f78")})
+	var crack := card.position + Vector2(34, 29)
+	draw_line(crack + Vector2(-3, 0), crack + Vector2(2, 7), Color.WHITE, 2.0)
+	draw_line(crack + Vector2(2, 7), crack + Vector2(-1, 14), Color.WHITE, 2.0)
+	draw_line(crack + Vector2(-1, 14), crack + Vector2(4, 22), Color.WHITE, 2.0)
+	if reaction > 0.02:
+		for i in range(5):
+			var angle := clock * 2.4 + float(i) * 1.32
+			var pos := card.position + Vector2(38, 36) + Vector2(cos(angle), sin(angle)) * (18.0 + float(i % 2) * 7.0) * (1.0 - reaction)
+			draw_circle(pos, 2.5, Color(1.0, 0.36, 0.68, 0.72 * reaction))
+
 func _draw_compact_ui_card_text_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "") -> void:
 	if icon_text != "":
 		_draw_text_item({"pos": rect.position + Vector2(18, 42), "text": icon_text, "width": 38, "size": 28, "color": accent})
@@ -3013,15 +3941,23 @@ func _time_hud_text() -> String:
 
 func _current_instruction_hud_text() -> String:
 	var text: String = current_comment.strip_edges()
+	if not active_sub_comment_ids.is_empty():
+		return "%s　%02d秒\n%s" % [text, maxi(0, int(ceil(effect_timer))), _active_sub_instruction_text()]
 	if text == "" or text == "なし":
 		return "なし"
+	if ModifierSystemScript.has_effect_for_target(self, "short_range"):
+		return "%s　%02d秒\n射程短縮中" % [text, maxi(0, int(ceil(effect_timer)))]
 	return "%s　%02d秒" % [text, maxi(0, int(ceil(effect_timer)))]
 
 func _draw_top_status_v25() -> void:
 	_draw_ui_card_v25(Rect2(28, 18, 210, 80), "配信枠", String(current_stream_frame.get("displayName", "雑談枠")), Color("#6ee7f0"), "▣")
 	_draw_ui_card_v25(Rect2(256, 18, 212, 80), "残り時間", _time_hud_text(), Color("#fff45c"), "◷")
 	_draw_ui_card_v25(Rect2(486, 18, 210, 80), "ボルテージ", "x%.1f  炎上 %d" % [multiplier, burn_combo], Color("#ff6f91"), "ϟ")
-	_draw_ui_card_v25(Rect2(714, 18, 260, 80), "同時視聴者数", _viewer_hud_text(), Color("#8df7ff"), "●●")
+	var viewer_rect := Rect2(714, 18, 260, 80)
+	if _is_mental_breakdown_intro():
+		_draw_mental_breakdown_viewer_card(viewer_rect)
+	else:
+		_draw_ui_card_v25(viewer_rect, "同時視聴者数", _viewer_hud_text(), Color("#8df7ff"), "●●")
 
 func _draw_instruction_countdown_v25() -> void:
 	if state == "comment_choice" or state == "gift_choice" or state == "pause" or state == "result":
@@ -3048,6 +3984,27 @@ func _fit_texture_rect(container: Rect2, tex_size: Vector2) -> Rect2:
 	var size: Vector2 = tex_size * scale
 	return Rect2(container.position + (container.size - size) * 0.5, size)
 
+func _draw_texture_cover_rect(texture: Texture2D, container: Rect2, focus: Vector2 = Vector2(0.5, 0.46), zoom: float = 1.0) -> void:
+	var tex_size := texture.get_size()
+	if tex_size.x <= 0.0 or tex_size.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
+		return
+	zoom = maxf(1.0, zoom)
+	var container_aspect: float = container.size.x / container.size.y
+	var texture_aspect: float = tex_size.x / tex_size.y
+	var source_rect := Rect2(Vector2.ZERO, tex_size)
+	if texture_aspect > container_aspect:
+		source_rect.size.x = tex_size.y * container_aspect
+		source_rect.position.x = clampf((tex_size.x - source_rect.size.x) * focus.x, 0.0, tex_size.x - source_rect.size.x)
+	else:
+		source_rect.size.y = tex_size.x / container_aspect
+		source_rect.position.y = clampf((tex_size.y - source_rect.size.y) * focus.y, 0.0, tex_size.y - source_rect.size.y)
+	if zoom > 1.0:
+		var zoomed_size := source_rect.size / zoom
+		var zoom_margin := source_rect.size - zoomed_size
+		source_rect.position += Vector2(zoom_margin.x * focus.x, zoom_margin.y * focus.y)
+		source_rect.size = zoomed_size
+	draw_texture_rect_region(texture, container, source_rect)
+
 func _draw_character_bust_panel_v25() -> void:
 	var rect := Rect2(Vector2(1006, 18), Vector2(230, 136))
 	draw_rect(rect, Color(1.0, 0.95, 0.98, 0.94), true)
@@ -3063,11 +4020,44 @@ func _draw_current_instruction_panel_v25() -> void:
 	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.94), true)
 	_draw_rect_outline(rect, Color("#ffc1da"), 2)
 	_draw_text_item({"pos": rect.position + Vector2(22, 39), "text": "現在の指示コメ", "width": 230, "size": 18, "color": Color("#101420")})
+	if not active_sub_comment_ids.is_empty():
+		_draw_active_sub_instruction_panel_rows_v25(rect)
+		return
 	_draw_text_item({"pos": rect.position + Vector2(22, 91), "text": _current_instruction_hud_text(), "width": 280, "size": 26, "color": Color("#101420")})
+
+func _draw_active_sub_instruction_panel_rows_v25(rect: Rect2) -> void:
+	var labels: Array[String] = _active_sub_instruction_labels()
+	var seconds_text: String = "%02d" % maxi(0, int(ceil(effect_timer)))
+	var row_start_y: float = rect.position.y + 66.0
+	var row_gap: float = 28.0
+	var visible_count: int = mini(labels.size(), 3)
+	var timer_row: int = int(visible_count / 2)
+	for i in range(visible_count):
+		var y: float = row_start_y + float(i) * row_gap
+		_draw_text_item({
+			"pos": Vector2(rect.position.x + 22.0, y),
+			"text": _short_pause_text(String(labels[i]), 9),
+			"width": 210,
+			"size": 21,
+			"color": Color("#101420")
+		})
+		if i != timer_row:
+			continue
+		_draw_text_item({
+			"pos": Vector2(rect.position.x + 244.0, y),
+			"text": seconds_text,
+			"width": 52,
+			"size": 20,
+			"color": Color("#e73763")
+		}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_bottom_hud_v25() -> void:
 	_draw_prefixed_panel_rect({"hudRect": HUD, "hudFill": Color(0.985, 0.99, 1.0, 0.94), "hudBorder": Color("#b8d9ff"), "hudBorderWidth": 4}, "hud")
-	_draw_ui_card_v25(Rect2(34, 806, 205, 62), "メンタル", _mental_hud_text(), Color("#4ade80"), "")
+	var mental_rect := Rect2(34, 806, 205, 62)
+	if _is_mental_breakdown_intro():
+		_draw_mental_breakdown_hud_card(mental_rect)
+	else:
+		_draw_ui_card_v25(mental_rect, "メンタル", _mental_hud_text(), Color("#4ade80"), "")
 	var exp_need: int = maxi(1, ExpSystemScript.current_need(exp_level))
 	_draw_ui_card_v25(Rect2(254, 806, 256, 62), "EXP", "Lv.%d  %d/%d" % [exp_level, exp_value, exp_need], Color("#27c4d9"), "★")
 	_draw_ui_card_v25(Rect2(526, 806, 200, 62), "ギフト期待度", "%d%%" % gift_hype, Color("#ff5a78"), "▣")
@@ -3140,6 +4130,22 @@ func _find_equipment_icon_data(source_data: Array, id: String) -> Dictionary:
 		if String(data.get("id", "")) == id:
 			return data
 	return {}
+
+func _equipment_icon_path_for_item(item: Dictionary, source_data: Array = []) -> String:
+	var icon_path: String = String(item.get("iconPath", ""))
+	if icon_path != "":
+		return icon_path
+	var id: String = String(item.get("id", ""))
+	if id == "":
+		return ""
+	var data: Dictionary = _find_equipment_icon_data(source_data, id)
+	icon_path = String(data.get("iconPath", ""))
+	if icon_path != "":
+		return icon_path
+	var generated_path := "res://assets/generated/equipment_icons_v1/icons/%s.png" % id
+	if FileAccess.file_exists(generated_path):
+		return generated_path
+	return ""
 
 func _load_equipment_icon(path: String) -> Texture2D:
 	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)
@@ -3220,6 +4226,7 @@ func _draw_ranking_overlay() -> void:
 	_draw_ranking_list_panel(list_rect, view)
 	_draw_ranking_detail_panel(detail_rect, view)
 	_draw_ranking_footer()
+	_draw_ranking_reset_confirm()
 
 func _draw_ranking_background() -> void:
 	var background: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, TITLE_BACK_IMAGE)
@@ -3233,11 +4240,68 @@ func _draw_ranking_background() -> void:
 func _draw_ranking_header(view: Dictionary) -> void:
 	var rect := Rect2(76, 16, 1448, 68)
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 22, 2, true)
-	_draw_ranking_text(String(view.get("title", "ランキング")), rect.position + Vector2(96, 44), 34, Color("#4f3149"), 620)
-	_draw_ranking_text("Esc：タイトルへ戻る", rect.position + Vector2(1000, 42), 20, Color("#6b4a63"), 210, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("R：リセット", rect.position + Vector2(1224, 42), 20, Color("#6b4a63"), 170, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(String(view.get("title", "ランキング")), rect.position + Vector2(96, 44), 34, Color("#4f3149"), 720)
 	draw_circle(rect.position + Vector2(48, 34), 22, Color("#fff4fb"))
-	_draw_ranking_text("1", rect.position + Vector2(41, 44), 24, Color("#f05aa5"), 24, HORIZONTAL_ALIGNMENT_CENTER)
+	var icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, RANKING_PODIUM_ICON)
+	if icon != null:
+		var icon_rect := Rect2(rect.position + Vector2(18, 8), Vector2(60, 52))
+		draw_texture_rect(icon, _fit_texture_rect(icon_rect, icon.get_size()), false, Color(1, 1, 1, 0.98))
+	else:
+		_draw_ranking_text("視", rect.position + Vector2(36, 44), 23, Color("#f05aa5"), 32, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_ranking_lock_icon(rect: Rect2, selected: bool) -> void:
+	var icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, RANKING_LOCK_ICON)
+	if icon == null:
+		return
+	var alpha := 0.98 if selected else 0.86
+	draw_texture_rect(icon, _fit_texture_rect(rect, icon.get_size()), false, Color(1, 1, 1, alpha))
+
+func _ranking_rank_icon_path(rank: int) -> String:
+	if rank <= 1:
+		return RANKING_RANK_ICON_1
+	if rank == 2:
+		return RANKING_RANK_ICON_2
+	if rank == 3:
+		return RANKING_RANK_ICON_3
+	return RANKING_RANK_ICON_4_PLUS
+
+func _ranking_rank_text_color(rank: int) -> Color:
+	if rank <= 1:
+		return Color("#8a5200")
+	if rank == 2:
+		return Color("#52606c")
+	if rank == 3:
+		return Color("#8c4a18")
+	return Color("#7c7386")
+
+func _draw_ranking_rank_icon(rect: Rect2, rank: int) -> void:
+	var safe_rank: int = maxi(1, rank)
+	var icon_path := _ranking_rank_icon_path(safe_rank)
+	var icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+	if icon == null:
+		_draw_ranking_text(str(safe_rank), rect.position + Vector2(0, rect.size.y * 0.68), 46, _ranking_rank_text_color(safe_rank), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	draw_texture_rect(icon, _fit_texture_rect(rect, icon.get_size()), false, Color(1, 1, 1, 0.98))
+	var rank_label := str(safe_rank)
+	var font_size := 32
+	if rank_label.length() >= 2:
+		font_size = 25
+	if rank_label.length() >= 3:
+		font_size = 20
+	var text_y := rect.position.y + rect.size.y * 0.61
+	var text_x := rect.position.x - 1.0
+	if safe_rank <= 3:
+		text_y = rect.position.y + rect.size.y * 0.67
+		text_x = rect.position.x + 1.0
+	_draw_ranking_text(rank_label, Vector2(text_x + 1.0, text_y + 1.0), font_size, Color(1, 1, 1, 0.82), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(rank_label, Vector2(text_x, text_y), font_size, _ranking_rank_text_color(safe_rank), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _ranking_end_icon_path(end_type: String) -> String:
+	if end_type == "mental_breakdown":
+		return RANKING_END_MENTAL_ICON
+	if end_type == "completed":
+		return RANKING_END_COMPLETE_ICON
+	return ""
 
 func _draw_ranking_tabs(tabs: Array) -> void:
 	var count: int = maxi(1, tabs.size())
@@ -3261,8 +4325,16 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 			fill = Color("#f2eef2")
 			text_color = Color("#9a8f98")
 		_draw_ranking_panel(rect, fill, border, 18, 2, false)
-		var label: String = _short_pause_text(String(tab.get("label", "")), 9)
-		_draw_ranking_text(label, rect.position + Vector2(0, 38), 20, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var label: String = String(tab.get("label", ""))
+		var display_label: String = label.replace(" 未開放", "")
+		var text_size := 19
+		if display_label.length() >= 8:
+			text_size = 16
+		var text_width := rect.size.x - (36.0 if locked else 0.0)
+		_draw_ranking_text(display_label, rect.position + Vector2(0, 38), text_size, text_color, text_width, HORIZONTAL_ALIGNMENT_CENTER)
+		if locked:
+			var icon_rect := Rect2(rect.position + Vector2(rect.size.x - 44.0, 15.0), Vector2(30.0, 30.0))
+			_draw_ranking_lock_icon(icon_rect, selected)
 		if selected:
 			var p1 := rect.position + Vector2(rect.size.x * 0.5 - 12.0, rect.size.y + 2.0)
 			var p2 := rect.position + Vector2(rect.size.x * 0.5 + 12.0, rect.size.y + 2.0)
@@ -3271,7 +4343,7 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 
 func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
-	var title: String = "配信リレーランキング" if String(view.get("tabId", "")) == "relay" else "神回ランキング"
+	var title: String = String(view.get("subtitle", "最大同時視聴者数ランキング"))
 	_draw_ranking_text(title, panel.position + Vector2(30, 42), 28, Color("#7a3fb0"), panel.size.x - 60)
 	var rows: Array = view.get("rows", []) as Array
 	if bool(view.get("locked", false)) or bool(view.get("empty", false)):
@@ -3309,14 +4381,122 @@ func _draw_ranking_row(rect: Rect2, row: Dictionary) -> void:
 		4 if selected else 2,
 		false
 	)
-	_draw_ranking_text(str(int(row.get("rank", 0))), rect.position + Vector2(24, 72), 48, accent, 64, HORIZONTAL_ALIGNMENT_CENTER)
-	draw_arc(rect.position + Vector2(57, 54), 35, -PI * 0.82, PI * 0.82, 28, Color(accent.r, accent.g, accent.b, 0.34), 4)
+	_draw_ranking_rank_icon(Rect2(rect.position + Vector2(16, 14), Vector2(78, 78)), int(row.get("rank", 0)))
 	var avatar_pos := rect.position + Vector2(132, 54)
 	_draw_ranking_character_avatar(avatar_pos, 36.0, row, accent)
-	_draw_ranking_text(_short_pause_text(String(row.get("title", "")), 13), rect.position + Vector2(188, 36), 25, accent, 250)
-	_draw_ranking_text(_short_pause_text(String(row.get("scoreText", "")), 18), rect.position + Vector2(188, 68), 26, Color("#ff4d9f"), 260)
-	_draw_ranking_text(_short_pause_text(String(row.get("summary", "")), 48), rect.position + Vector2(390, 42), 16, Color("#6b4a63"), rect.size.x - 410)
-	_draw_ranking_text(_short_pause_text(String(row.get("build", "")), 42), rect.position + Vector2(390, 74), 15, Color("#7a6d79"), rect.size.x - 410)
+	_draw_ranking_text(_short_pause_text(_ranking_formal_character_name(row), 13), rect.position + Vector2(188, 36), 25, accent, 190)
+	_draw_ranking_text(_short_pause_text(String(row.get("scoreText", "")), 18), rect.position + Vector2(188, 68), 26, Color("#ff4d9f"), 190)
+	_draw_ranking_row_build_icons(Rect2(rect.position + Vector2(370, 28), Vector2(238, 72)), row.get("weapons", []) as Array, row.get("accessories", []) as Array)
+	_draw_ranking_end_type_badge(Rect2(rect.end - Vector2(126, 82), Vector2(108, 64)), String(row.get("endTypeLabel", "")), String(row.get("endType", "")))
+
+func _ranking_formal_character_name(row: Dictionary) -> String:
+	var character_id := String(row.get("characterId", "")).strip_edges()
+	var name := String(row.get("title", row.get("character", ""))).strip_edges()
+	if character_id == "ban_chan" or character_id == "banri" or name == "ばんちゃん" or name == "ばん" or name == "赤羽ばんり":
+		return "赤羽ばんり"
+	if character_id == "superchat_chan" or character_id == "supana" or name == "すぱなちゃん" or name == "すぱ" or name == "星投すぱな":
+		return "星投すぱな"
+	if character_id == "maro_chan" or character_id == "maron" or name == "まろんちゃん" or name == "まろ" or name == "白綿まろん":
+		return "白綿まろん"
+	return name
+
+func _draw_ranking_row_build_icons(area: Rect2, weapons: Array, accessories: Array) -> void:
+	var slot := 34.0
+	var gap := 4.0
+	var label_w := 42.0
+	var weapon_y := area.position.y
+	var accessory_y := area.position.y + 36.0
+	_draw_ranking_text("武器", area.position + Vector2(0, 20), 13, Color("#b7771f"), label_w)
+	_draw_ranking_text("アクセ", area.position + Vector2(0, 56), 13, Color("#208a9b"), label_w)
+	for index in range(5):
+		var x: float = area.position.x + label_w + float(index) * (slot + gap)
+		_draw_ranking_equipment_icon_slot(Rect2(x, weapon_y, slot, slot), _ranking_item_at(weapons, index), Color("#ffb547"), true)
+		_draw_ranking_equipment_icon_slot(Rect2(x, accessory_y, slot, slot), _ranking_item_at(accessories, index), Color("#55cfe0"), true)
+
+func _ranking_item_at(items: Array, index: int) -> Dictionary:
+	if index < 0 or index >= items.size():
+		return {}
+	if not (items[index] is Dictionary):
+		return {}
+	return items[index] as Dictionary
+
+func _draw_ranking_equipment_icon_slot(rect: Rect2, item: Dictionary, accent: Color, compact: bool = false) -> void:
+	var filled: bool = not item.is_empty()
+	var evolved: bool = filled and (bool(item.get("isEvolved", false)) or String(item.get("levelLabel", "")) == "進化")
+	var border: Color = Color("#ffd45a") if evolved else accent
+	var fill := Color(1, 1, 1, 0.96) if filled else Color(1, 1, 1, 0.46)
+	if filled and evolved:
+		_draw_ranking_panel(rect.grow(2.0), Color(1.0, 0.78, 0.22, 0.10), Color("#ffd45a"), 8, 1, false)
+	_draw_ranking_panel(rect, fill, border if filled else Color("#decfeb"), 7, 2, false)
+	if filled:
+		var icon_path: String = _equipment_icon_path_for_item(item, gifts)
+		var icon: Texture2D = _load_equipment_icon(icon_path) if icon_path != "" else null
+		var icon_padding := 2.0 if compact else 4.0
+		var icon_rect := rect.grow(-icon_padding)
+		if icon != null:
+			draw_texture_rect(icon, _fit_texture_rect(icon_rect, icon.get_size()), false, Color(1, 1, 1, 0.98))
+		else:
+			var fallback: String = String(item.get("displayName", item.get("id", "?")))
+			_draw_ranking_text(_short_pause_text(fallback, 2), rect.position + Vector2(0, rect.size.y * 0.65), 13, Color("#76536f"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		if evolved and compact:
+			draw_circle(rect.position + Vector2(rect.size.x - 4.0, 4.0), 3.0, Color("#ffd45a"))
+	if filled and not compact:
+		var level_label: String = String(item.get("levelLabel", ""))
+		if level_label == "":
+			level_label = "Lv%d" % int(item.get("level", 1))
+		var badge_rect := Rect2(rect.position + Vector2(rect.size.x - 28, rect.size.y - 15), Vector2(30, 14))
+		draw_rect(badge_rect, Color("#ff70b6") if not evolved else Color("#ffc94c"), true)
+		_draw_ranking_text(_short_pause_text(level_label, 4), badge_rect.position + Vector2(0, 11), 9, Color.WHITE, badge_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_ranking_end_type_badge(rect: Rect2, label: String, end_type: String) -> void:
+	if end_type == "":
+		if label == "崩壊":
+			end_type = "mental_breakdown"
+		elif label == "完走":
+			end_type = "completed"
+		elif label == "中断":
+			end_type = "relay_failed"
+	var fill := Color("#fff1a9")
+	var border := Color("#f6bf3f")
+	var text_color := Color("#9b6b18")
+	if end_type == "mental_breakdown":
+		fill = Color("#ffe2f0")
+		border = Color("#ff76b8")
+		text_color = Color("#c23d7f")
+	elif end_type == "completed":
+		fill = Color("#fff8e4")
+		border = Color("#ffcf72")
+		text_color = Color("#d58119")
+	elif end_type == "relay_failed" or end_type == "quit" or end_type == "debug":
+		fill = Color("#edf1f6")
+		border = Color("#b8c2d1")
+		text_color = Color("#697487")
+	_draw_ranking_panel(rect, fill, border, 14, 2, false)
+	var icon_path := _ranking_end_icon_path(end_type)
+	if rect.size.y >= 48.0:
+		if icon_path != "":
+			var vertical_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+			if vertical_icon != null:
+				var vertical_icon_size: float = minf(rect.size.x - 44.0, rect.size.y - 25.0)
+				var vertical_icon_rect := Rect2(
+					rect.position + Vector2((rect.size.x - vertical_icon_size) * 0.5, 6.0),
+					Vector2(vertical_icon_size, vertical_icon_size)
+				)
+				draw_texture_rect(vertical_icon, _fit_texture_rect(vertical_icon_rect, vertical_icon.get_size()), false, Color(1, 1, 1, 0.98))
+		_draw_ranking_text(label, rect.position + Vector2(0, rect.size.y - 8.0), 14, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	var text_size := 16 if rect.size.y >= 36.0 else 14
+	var text_pos := rect.position + Vector2(0, rect.size.y * 0.67)
+	var text_width := rect.size.x
+	if icon_path != "":
+		var icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+		if icon != null:
+			var icon_size: float = minf(rect.size.y - 8.0, 30.0)
+			var icon_rect := Rect2(rect.position + Vector2(7.0, (rect.size.y - icon_size) * 0.5), Vector2(icon_size, icon_size))
+			draw_texture_rect(icon, _fit_texture_rect(icon_rect, icon.get_size()), false, Color(1, 1, 1, 0.98))
+			text_pos.x += icon_size + 12.0
+			text_width -= icon_size + 14.0
+	_draw_ranking_text(label, text_pos, text_size, text_color, text_width, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_ranking_character_avatar(center: Vector2, radius: float, row: Dictionary, accent: Color) -> void:
 	draw_circle(center, radius, Color("#fff4fb"))
@@ -3419,21 +4599,75 @@ func _clamp_rect_to_rect(rect: Rect2, bounds: Rect2) -> Rect2:
 
 func _draw_ranking_detail_panel(panel: Rect2, view: Dictionary) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
-	var title: String = "配信リレー詳細" if String(view.get("tabId", "")) == "relay" else "記録詳細"
+	var detail: Dictionary = view.get("detail", {}) as Dictionary
+	var title: String = String(detail.get("title", "記録詳細"))
 	_draw_ranking_text(title, panel.position + Vector2(30, 42), 28, Color("#ff5aa5"), panel.size.x - 60)
 	if bool(view.get("locked", false)) or bool(view.get("empty", false)):
 		_draw_ranking_message(panel, view.get("messageLines", []) as Array)
 		return
-	var cards: Array = view.get("detailCards", []) as Array
-	var gap := 14.0
-	var card_w := (panel.size.x - 54.0) * 0.5
-	var card_h := 132.0
-	var start := panel.position + Vector2(20, 70)
-	for index in range(cards.size()):
-		var col: int = index % 2
-		var row: int = int(index / 2)
-		var rect := Rect2(start + Vector2(float(col) * (card_w + gap), float(row) * (card_h + gap)), Vector2(card_w, card_h))
-		_draw_ranking_detail_card(rect, cards[index] as Dictionary)
+	if detail.is_empty():
+		_draw_ranking_message(panel, ["記録詳細を表示できません。"])
+		return
+	_draw_ranking_detail_summary(Rect2(panel.position + Vector2(20, 70), Vector2(panel.size.x - 40, 112)), detail)
+	_draw_ranking_detail_stats(Rect2(panel.position + Vector2(20, 196), Vector2(292, 176)), detail.get("stats", []) as Array)
+	_draw_ranking_detail_build_slots(Rect2(panel.position + Vector2(330, 196), Vector2(panel.size.x - 350, 176)), detail.get("weapons", []) as Array, detail.get("accessories", []) as Array)
+	_draw_ranking_detail_instruction(Rect2(panel.position + Vector2(20, 386), Vector2(panel.size.x - 40, 160)), detail)
+	_draw_ranking_detail_played_at_line(Rect2(panel.position + Vector2(20, 562), Vector2(panel.size.x - 40, 34)), detail)
+
+func _draw_ranking_detail_summary(rect: Rect2, detail: Dictionary) -> void:
+	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#ffd1e5"), 16, 2, false)
+	_draw_ranking_text(String(detail.get("rankLabel", "記録")), rect.position + Vector2(18, 28), 20, Color("#b1509c"), 180)
+	var end_badge_rect := Rect2(Vector2(rect.end.x - 132.0, rect.position.y + (rect.size.y - 68.0) * 0.5), Vector2(112, 68))
+	_draw_ranking_end_type_badge(end_badge_rect, String(detail.get("endTypeLabel", "")), String(detail.get("endType", "")))
+	var lines: Array = detail.get("summaryLines", []) as Array
+	for index in range(mini(lines.size(), 3)):
+		var size := 21 if index == 1 else 17
+		var color := Color("#ff4d9f") if index == 1 else Color("#5d4658")
+		_draw_ranking_text(_short_pause_text(String(lines[index]), 34), rect.position + Vector2(18, 58 + float(index) * 24.0), size, color, rect.size.x - 152)
+
+func _draw_ranking_detail_stats(rect: Rect2, stats: Array) -> void:
+	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#efd5e7"), 14, 2, false)
+	_draw_ranking_text("統計情報", rect.position + Vector2(18, 31), 19, Color("#b1509c"), rect.size.x - 36)
+	for index in range(mini(stats.size(), 6)):
+		if not (stats[index] is Dictionary):
+			continue
+		var item: Dictionary = stats[index] as Dictionary
+		var y: float = rect.position.y + 60.0 + float(index) * 18.5
+		_draw_ranking_text(_short_pause_text(String(item.get("label", "")), 10), Vector2(rect.position.x + 18, y), 14, Color("#7a6d79"), 118)
+		_draw_ranking_text(_short_pause_text(String(item.get("value", "")), 14), Vector2(rect.position.x + 132, y), 15, Color("#ff4d9f"), rect.size.x - 150, HORIZONTAL_ALIGNMENT_RIGHT)
+
+func _draw_ranking_detail_build_slots(rect: Rect2, weapons: Array, accessories: Array) -> void:
+	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#d7c8ff"), 14, 2, false)
+	_draw_ranking_text("ビルド構成", rect.position + Vector2(18, 31), 19, Color("#7a52cd"), rect.size.x - 36)
+	var slot := 38.0
+	var gap := 6.0
+	var weapon_y := rect.position.y + 62.0
+	var accessory_y := rect.position.y + 118.0
+	_draw_ranking_text("武器", rect.position + Vector2(18, 87), 15, Color("#5d4658"), 42)
+	_draw_ranking_text("アクセ", rect.position + Vector2(18, 143), 15, Color("#5d4658"), 48)
+	for index in range(5):
+		var x: float = rect.position.x + 72.0 + float(index) * (slot + gap)
+		_draw_ranking_equipment_icon_slot(Rect2(x, weapon_y, slot, slot), _ranking_item_at(weapons, index), Color("#ffb547"), false)
+		_draw_ranking_equipment_icon_slot(Rect2(x, accessory_y, slot, slot), _ranking_item_at(accessories, index), Color("#55cfe0"), false)
+
+func _draw_ranking_detail_instruction(rect: Rect2, detail: Dictionary) -> void:
+	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#ffbfdc"), 14, 2, false)
+	_draw_ranking_text(String(detail.get("instructionTitle", "指示コメ")), rect.position + Vector2(18, 31), 19, Color("#ff5aa5"), rect.size.x - 36)
+	var lines: Array = detail.get("instructionLines", []) as Array
+	for index in range(mini(lines.size(), 3)):
+		var color := Color("#5d4658") if index > 0 else Color("#b1509c")
+		_draw_ranking_text(_short_pause_text(String(lines[index]), 44), rect.position + Vector2(18, 61 + float(index) * 23.0), 16, color, rect.size.x - 36)
+	var boss_text: String = String(detail.get("bossText", "なし"))
+	_draw_ranking_text("ボス：%s" % _short_pause_text(boss_text, 28), rect.position + Vector2(18, rect.size.y - 18), 14, Color("#7a6d79"), rect.size.x - 36)
+
+func _draw_ranking_detail_meta(rect: Rect2, detail: Dictionary) -> void:
+	_draw_ranking_panel(rect, Color("#fffaf0"), Color("#f2c96e"), 14, 2, false)
+	_draw_ranking_text("記録日時", rect.position + Vector2(18, 31), 18, Color("#b7771f"), rect.size.x - 36)
+	_draw_ranking_text(String(detail.get("playedAtText", "不明")), rect.position + Vector2(18, 62), 19, Color("#5d4658"), rect.size.x - 36)
+
+func _draw_ranking_detail_played_at_line(rect: Rect2, detail: Dictionary) -> void:
+	var played_at := String(detail.get("playedAtText", "不明"))
+	_draw_ranking_text("記録日時：%s" % played_at, rect.position + Vector2(0, 23), 14, Color("#8a6b82"), rect.size.x, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_ranking_detail_card(rect: Rect2, card: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.97), Color("#efd5e7"), 14, 2, false)
@@ -3446,7 +4680,27 @@ func _draw_ranking_detail_card(rect: Rect2, card: Dictionary) -> void:
 func _draw_ranking_footer() -> void:
 	var rect := Rect2(76, 848, 1448, 44)
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	_draw_ranking_text("← →：タブ        ↑ ↓：記録        Esc：戻る        R：リセット", rect.position + Vector2(0, 29), 18, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("←→：タブ　↑↓：記録　Enter：詳細　Esc：戻る　R：リセット", rect.position + Vector2(0, 29), 18, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_ranking_reset_confirm() -> void:
+	if not ranking_reset_confirm_visible:
+		return
+	draw_rect(TITLE_SCREEN_RECT, Color(0.16, 0.06, 0.13, 0.42), true)
+	var rect := Rect2(500, 282, 600, 284)
+	_draw_ranking_panel(rect, Color(1, 1, 1, 0.98), Color("#ff7dbc"), 22, 3, true)
+	var target_label: String = RankingSystemScript.tab_reset_label(ranking_tab_index, relay_mode_unlocked)
+	_draw_ranking_text("%sランキングをリセットしますか？" % target_label, rect.position + Vector2(0, 76), 28, Color("#4f3149"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("この操作は元に戻せません。", rect.position + Vector2(0, 118), 19, Color("#8a6b82"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var labels: Array[String] = ["はい", "いいえ"]
+	var button_y := rect.position.y + 184.0
+	for index in range(labels.size()):
+		var button_rect := Rect2(rect.position.x + 92.0 + float(index) * 222.0, button_y, 194, 54)
+		var selected: bool = index == ranking_reset_confirm_index
+		var fill := Color("#ff5aa5") if selected else Color(1, 1, 1, 0.96)
+		var border := Color("#ff4d9f") if selected else Color("#ead7e9")
+		var text_color := Color.WHITE if selected else Color("#6b4a63")
+		_draw_ranking_panel(button_rect, fill, border, 16, 2, false)
+		_draw_ranking_text(labels[index], button_rect.position + Vector2(0, 36), 21, text_color, button_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_ranking_message(panel: Rect2, lines: Array) -> void:
 	var y: float = panel.position.y + panel.size.y * 0.48
@@ -3486,12 +4740,20 @@ func _draw_options_overlay() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.94, 0.98, 0.42), true)
 	var panel := Rect2(Vector2(230, 46), Vector2(1140, 812))
 	_draw_ranking_panel(panel, Color(1.0, 0.992, 1.0, 0.97), Color("#ffbad8"), 32, 4, true)
-	_draw_ranking_text("オプション", panel.position + Vector2(54, 64), 42, Color("#e73778"), 390)
+	var options_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, OPTIONS_HEADER_ICON)
+	if options_icon != null:
+		var icon_rect := Rect2(panel.position + Vector2(54, 30), Vector2(54, 54))
+		draw_texture_rect(options_icon, _fit_texture_rect(icon_rect, options_icon.get_size()), false, Color(1, 1, 1, 0.98))
+		_draw_ranking_text("オプション", panel.position + Vector2(122, 64), 42, Color("#e73778"), 390)
+	else:
+		_draw_ranking_text("オプション", panel.position + Vector2(54, 64), 42, Color("#e73778"), 390)
 	_draw_ranking_text("ゲームの表示や演出を設定できます", panel.position + Vector2(58, 102), 20, Color("#6b4a63"), 560)
 	_draw_ranking_panel(Rect2(panel.position + Vector2(846, 36), Vector2(244, 70)), Color("#fff8fc"), Color("#f2d7e8"), 22, 2, false)
 	_draw_ranking_text("↑↓ 選択", panel.position + Vector2(876, 66), 18, Color("#6b4a63"), 94, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("←→ 変更", panel.position + Vector2(976, 66), 18, Color("#6b4a63"), 94, HORIZONTAL_ALIGNMENT_CENTER)
 	var items: Array = _option_items()
+	var reset_index := items.size()
+	var back_index := items.size() + 1
 	var list_x := panel.position.x + 52.0
 	var y := panel.position.y + 136.0
 	var card_width := panel.size.x - 104.0
@@ -3500,16 +4762,18 @@ func _draw_options_overlay() -> void:
 		_draw_option_card(card_rect, items[index] as Dictionary, option_menu_index == index)
 	var guide_rect := Rect2(panel.position + Vector2(52, 670), Vector2(panel.size.x - 104, 42))
 	_draw_ranking_panel(guide_rect, Color("#fff8fc"), Color("#f2d7e8"), 18, 2, false)
-	_draw_ranking_text("↑↓：選択　←→：変更　Enter：決定　Esc：戻る", guide_rect.position + Vector2(0, 28), 18, Color("#6b4a63"), guide_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var back_label: String = "ポーズへ戻る" if options_return_state == "pause" else "戻る"
+	_draw_ranking_text("↑↓：選択　←→：変更 / 下段移動　Enter：決定　Esc：%s" % back_label, guide_rect.position + Vector2(0, 28), 18, Color("#6b4a63"), guide_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var reset_rect := Rect2(panel.position + Vector2(panel.size.x - 52 - 430, 724), Vector2(250, 54))
 	var back_rect := Rect2(panel.position + Vector2(panel.size.x - 52 - 160, 724), Vector2(160, 54))
-	_draw_options_button(reset_rect, "設定を初期化", option_menu_index == 7, Color("#fff0f7"), Color("#d93682"))
-	_draw_options_button(back_rect, "戻る", option_menu_index == 8, Color("#eef9ff"), Color("#2587b8"))
+	_draw_options_button(reset_rect, "設定を初期化", option_menu_index == reset_index, Color("#fff0f7"), Color("#d93682"))
+	_draw_options_button(back_rect, "戻る", option_menu_index == back_index, Color("#eef9ff"), Color("#2587b8"))
 
 func _option_items() -> Array:
 	return [
 		{
 			"icon": "♪",
+			"iconPath": OPTIONS_BGM_ICON,
 			"name": "BGM音量",
 			"description": "タイトルBGMなどの音量を調整します",
 			"type": "slider",
@@ -3518,6 +4782,7 @@ func _option_items() -> Array:
 		},
 		{
 			"icon": "SE",
+			"iconPath": OPTIONS_SE_ICON,
 			"name": "SE音量",
 			"description": "効果音の音量を保存します",
 			"type": "slider",
@@ -3526,6 +4791,7 @@ func _option_items() -> Array:
 		},
 		{
 			"icon": "全",
+			"iconPath": OPTIONS_FULLSCREEN_ICON,
 			"name": "フルスクリーン切替",
 			"description": "全画面表示のON/OFFを切り替えます",
 			"type": "toggle",
@@ -3534,6 +4800,7 @@ func _option_items() -> Array:
 		},
 		{
 			"icon": "窓",
+			"iconPath": OPTIONS_WINDOW_SIZE_ICON,
 			"name": "ウィンドウサイズ",
 			"description": "ウィンドウ表示時のサイズを選びます",
 			"type": "select",
@@ -3541,15 +4808,8 @@ func _option_items() -> Array:
 			"accent": Color("#6d8dde")
 		},
 		{
-			"icon": "弾",
-			"name": "コメント弾幕量",
-			"description": "ゲーム中に流れるコメント量を調整します",
-			"type": "select",
-			"value": DisplayTextSystemScript.comment_barrage_label(comment_barrage_setting),
-			"accent": Color("#f08a44")
-		},
-		{
 			"icon": "揺",
+			"iconPath": OPTIONS_SCREEN_SHAKE_ICON,
 			"name": "画面揺れ",
 			"description": "ダメージや演出時の画面揺れを切り替えます",
 			"type": "toggle",
@@ -3558,6 +4818,7 @@ func _option_items() -> Array:
 		},
 		{
 			"icon": "教",
+			"iconPath": OPTIONS_TUTORIAL_ICON,
 			"name": "チュートリアル再表示",
 			"description": "次回開始時にチュートリアルを表示するか選びます",
 			"type": "select",
@@ -3573,11 +4834,18 @@ func _draw_option_card(rect: Rect2, item: Dictionary, selected: bool) -> void:
 	var fill := Color("#fff5fb") if selected else Color(1, 1, 1, 0.88)
 	var border := accent if selected else Color("#f2d7e8")
 	_draw_ranking_panel(rect, fill, border, 20, 4 if selected else 2, false)
-	var icon_rect := Rect2(rect.position + Vector2(18, 12), Vector2(40, 40))
-	_draw_ranking_panel(icon_rect, Color(accent.r, accent.g, accent.b, 0.13), Color(accent.r, accent.g, accent.b, 0.65), 16, 2, false)
-	_draw_ranking_text(String(item.get("icon", "")), icon_rect.position + Vector2(0, 28), 18, accent, icon_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(String(item.get("name", "")), rect.position + Vector2(76, 29), 22, Color("#3d3041"), 310)
-	_draw_ranking_text(String(item.get("description", "")), rect.position + Vector2(76, 52), 15, Color("#7b6475"), 430)
+	var icon_rect := Rect2(rect.position + Vector2(15, 9), Vector2(46, 46))
+	_draw_ranking_panel(icon_rect, Color(accent.r, accent.g, accent.b, 0.13), Color(accent.r, accent.g, accent.b, 0.55), 16, 2, false)
+	var icon_path := String(item.get("iconPath", ""))
+	var icon_texture: Texture2D = null
+	if icon_path != "":
+		icon_texture = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+	if icon_texture != null:
+		draw_texture_rect(icon_texture, _fit_texture_rect(icon_rect.grow(-3.0), icon_texture.get_size()), false, Color(1, 1, 1, 0.98))
+	else:
+		_draw_ranking_text(String(item.get("icon", "")), icon_rect.position + Vector2(0, 29), 18, accent, icon_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(String(item.get("name", "")), rect.position + Vector2(82, 29), 22, Color("#3d3041"), 310)
+	_draw_ranking_text(String(item.get("description", "")), rect.position + Vector2(82, 52), 15, Color("#7b6475"), 430)
 	var control_rect := Rect2(rect.position + Vector2(rect.size.x - 330, 12), Vector2(298, 40))
 	_draw_option_control(control_rect, item, accent)
 
@@ -3636,31 +4904,116 @@ func _draw_result_overlay() -> void:
 	var layout: Dictionary = _result_layout()
 	var panel: Rect2 = layout["panel"] as Rect2
 	var completed := String(data.get("endType", "")) == "completed"
-	var panel_border := Color("#ffd46a") if completed else Color("#ffbad8")
-	var panel_fill := Color(1.0, 0.995, 0.965, 0.97) if completed else Color(1.0, 0.985, 0.995, 0.97)
+	var mental_breakdown := String(data.get("endType", "")) == "mental_breakdown"
+	if mental_breakdown:
+		draw_rect(TITLE_SCREEN_RECT, Color(0.08, 0.0, 0.055, 0.78), true)
+		_draw_ranking_panel(panel.grow(12.0), Color(0.62, 0.03, 0.31, 0.16), Color(1, 1, 1, 0), 42, 0, false)
+		_draw_ranking_panel(panel.grow(5.0), Color(1.0, 0.09, 0.42, 0.06), Color("#9f175f"), 38, 2, false)
+	elif completed:
+		draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.98, 0.90, 0.50), true)
+		draw_rect(TITLE_SCREEN_RECT, Color(1.0, 1.0, 1.0, 0.12), true)
+		_draw_ranking_panel(panel.grow(12.0), Color(1.0, 0.75, 0.18, 0.12), Color(1, 1, 1, 0), 42, 0, false)
+		_draw_ranking_panel(panel.grow(5.0), Color(1.0, 0.42, 0.68, 0.08), Color("#ffd46a"), 38, 2, false)
+	var panel_border := Color("#ffd46a") if completed else (Color("#d83b8f") if mental_breakdown else Color("#ffbad8"))
+	var panel_fill := Color(1.0, 0.995, 0.965, 0.97) if completed else (Color(1.0, 0.94, 0.978, 0.985) if mental_breakdown else Color(1.0, 0.985, 0.995, 0.97))
 	_draw_ranking_panel(panel, panel_fill, panel_border, 36, 4, true)
+	if mental_breakdown:
+		_draw_result_accident_noise(panel)
+	elif completed:
+		_draw_result_complete_celebration(panel)
 	_draw_result_header(panel, data)
 	_draw_result_summary_panel(layout["summaryPanel"] as Rect2, data)
 	_draw_result_detail_panel(layout["detailPanel"] as Rect2, data)
+	if mental_breakdown:
+		_draw_result_mental_breakdown_character(layout["characterPanel"] as Rect2, data)
+	elif completed:
+		_draw_result_stream_complete_character(layout["characterPanel"] as Rect2, data)
 	_draw_result_buttons(layout)
+
+func _draw_result_accident_noise(panel: Rect2) -> void:
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	for i in range(16):
+		var y := panel.position.y + 82.0 + fmod(clock * 34.0 + float(i) * 47.0, panel.size.y - 150.0)
+		var x := panel.position.x + 34.0 + fmod(float(i) * 123.0 + sin(clock * 1.3 + float(i)) * 30.0, panel.size.x - 140.0)
+		var length := 70.0 + float((i * 31) % 140)
+		var color := Color(1.0, 0.17, 0.55, 0.12) if i % 2 == 0 else Color(0.42, 0.95, 1.0, 0.10)
+		draw_line(Vector2(x, y), Vector2(minf(panel.end.x - 32.0, x + length), y), color, 1.2, true)
+	_draw_result_broken_heart(panel.position + Vector2(panel.size.x - 268.0, 148.0), 18.0, 0.52)
+
+func _draw_result_complete_celebration(panel: Rect2) -> void:
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	var colors := [Color("#ff6faf"), Color("#ffd35c"), Color("#8de7ff"), Color("#a875ff")]
+	for i in range(22):
+		var x := panel.position.x + 44.0 + fmod(float(i) * 137.0 + sin(clock * 0.9 + float(i)) * 24.0, panel.size.x - 88.0)
+		var y := panel.position.y + 38.0 + fmod(float(i) * 61.0 - clock * 18.0, panel.size.y - 88.0)
+		var color: Color = colors[i % colors.size()] as Color
+		var alpha_color := Color(color.r, color.g, color.b, 0.24)
+		if i % 3 == 0:
+			draw_rect(Rect2(Vector2(x, y), Vector2(14, 6)), alpha_color, true)
+		else:
+			_draw_stream_start_sparkle(Vector2(x, y), 5.0 + float(i % 3) * 2.0, alpha_color)
+	for i in range(5):
+		var symbol := "★" if i % 2 == 0 else "♥"
+		var pos := panel.position + Vector2(105.0 + float(i) * 238.0, 54.0 + sin(clock * 1.6 + float(i)) * 5.0)
+		var text_color := Color(1.0, 0.64, 0.10, 0.28) if symbol == "★" else Color(1.0, 0.34, 0.62, 0.24)
+		_draw_ranking_text(symbol, pos, 25, text_color, 38, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_result_header(panel: Rect2, data: Dictionary) -> void:
 	var completed := String(data.get("endType", "")) == "completed"
-	var accent := Color("#ff9f1c") if completed else Color("#f05aa5")
+	var mental_breakdown := String(data.get("endType", "")) == "mental_breakdown"
+	var accent := Color("#ff9f1c") if completed else (Color("#ee3e8f") if mental_breakdown else Color("#f05aa5"))
 	var header_text := String(data.get("resultTitle", "配信終了！"))
-	_draw_ranking_text(header_text, panel.position + Vector2(112, 78), 46, accent, 360)
+	if completed:
+		header_text = "配信完走！"
+		var success_tag := Rect2(panel.position + Vector2(88, 34), Vector2(126, 30))
+		_draw_ranking_panel(success_tag, Color("#ffb433"), Color(1, 1, 1, 0.62), 14, 2, false)
+		_draw_ranking_text("配信成功", success_tag.position + Vector2(0, 22), 16, Color.WHITE, success_tag.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text(header_text, panel.position + Vector2(94, 116), 50, accent, 390)
+		_draw_ranking_text("最後まで配信を走り切った！", panel.position + Vector2(98, 150), 19, Color("#8a5b1d"), 410)
+	elif mental_breakdown:
+		var accident_tag := Rect2(panel.position + Vector2(88, 34), Vector2(126, 30))
+		_draw_ranking_panel(accident_tag, Color("#ee3e8f"), Color(1, 1, 1, 0.52), 14, 2, false)
+		_draw_ranking_text("配信事故", accident_tag.position + Vector2(0, 22), 16, Color.WHITE, accident_tag.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text(header_text, panel.position + Vector2(94, 102), 50, accent, 390)
+		_draw_ranking_text("配信は続けられなかった……", panel.position + Vector2(98, 132), 19, Color("#7a415f"), 390)
+		_draw_ranking_text(_short_pause_text(String(data.get("summaryLine", "繧ｳ繝｡繝ｳ繝医↓謖ｯ繧雁屓縺輔ｌ縺滄・菫｡縺縺｣縺溪ｦ窶ｦ")), 30), panel.position + Vector2(98, 144), 15, Color("#8a5a72"), 410)
+	else:
+		_draw_ranking_text(header_text, panel.position + Vector2(112, 78), 46, accent, 360)
+	if mental_breakdown:
+		draw_rect(Rect2(panel.position + Vector2(86, 116), Vector2(438, 52)), Color(1.0, 0.94, 0.978, 0.985), true)
+		var mental_summary := String(data.get("summaryLine", "コメントに振り回された配信だった……"))
+		if mental_summary == "":
+			mental_summary = "コメントに振り回された配信だった……"
+		_draw_ranking_text(_short_pause_text(mental_summary, 32), panel.position + Vector2(98, 142), 17, Color("#7a415f"), 410)
 	var rank_rect := Rect2(panel.position + Vector2(482, 26), Vector2(392, 86))
-	_draw_ranking_panel(rank_rect, Color(1, 1, 1, 0.88), Color("#d7c5ff"), 20, 2, false)
-	_draw_ranking_text("神回度", rank_rect.position + Vector2(30, 54), 24, Color("#7a56c8"), 116)
+	if mental_breakdown or completed:
+		rank_rect = Rect2(panel.position + Vector2(430, 28), Vector2(392, 86))
+	_draw_ranking_panel(rank_rect, Color(1, 1, 1, 0.88), Color("#ffd46a") if completed else (Color("#ffc0dc") if mental_breakdown else Color("#d7c5ff")), 20, 2, false)
+	if mental_breakdown:
+		_draw_ranking_text("今回の配信評価", rank_rect.position + Vector2(24, 54), 20, Color("#c74187"), 150)
+	elif completed:
+		_draw_ranking_text("配信完走評価", rank_rect.position + Vector2(24, 54), 20, Color("#c97813"), 150)
+	else:
+		_draw_ranking_text("神回度", rank_rect.position + Vector2(30, 54), 24, Color("#7a56c8"), 116)
 	_draw_ranking_text(String(data.get("kamiRank", "D")), rank_rect.position + Vector2(154, 63), 54, _result_rank_color(String(data.get("kamiRank", "D"))), 70, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("%d pt" % int(data.get("kamiPoint", 0)), rank_rect.position + Vector2(244, 58), 34, Color("#7a56c8"), 130)
 	var summary_line: String = String(data.get("summaryLine", "これはコメントが悪い。たぶん。"))
-	_draw_ranking_panel(Rect2(panel.position + Vector2(196, 128), Vector2(700, 46)), Color(1, 1, 1, 0.78), Color("#f3d3e6"), 20, 2, false)
-	_draw_ranking_text(_short_pause_text(summary_line, 44), panel.position + Vector2(210, 158), 20, Color("#4f3149"), 672, HORIZONTAL_ALIGNMENT_CENTER)
-	var character_rect := Rect2(panel.position + Vector2(938, 18), Vector2(138, 138))
-	_draw_ranking_panel(character_rect, Color("#fff5fb"), Color("#f3d3e6"), 22, 2, false)
-	_draw_result_character_bust(character_rect.grow(-8), String(data.get("characterId", "")), String(data.get("characterName", "配信者")))
-	_draw_result_small_badge(panel.position + Vector2(58, 46), "完走" if completed else "BAN", Color("#ffb433") if completed else Color("#ff4b62"))
+	if not mental_breakdown and not completed:
+		var summary_rect := Rect2(panel.position + Vector2(196, 128), Vector2(700, 46))
+		_draw_ranking_panel(summary_rect, Color(1, 1, 1, 0.78), Color("#f3d3e6"), 20, 2, false)
+		_draw_ranking_text(_short_pause_text(summary_line, 44), summary_rect.position + Vector2(14, 29), 20, Color("#4f3149"), summary_rect.size.x - 28, HORIZONTAL_ALIGNMENT_CENTER)
+	if not mental_breakdown and not completed:
+		var character_rect := Rect2(panel.position + Vector2(938, 18), Vector2(138, 138))
+		_draw_ranking_panel(character_rect, Color("#fff5fb"), Color("#f3d3e6"), 22, 2, false)
+		_draw_result_character_bust(character_rect.grow(-8), String(data.get("characterId", "")), String(data.get("characterName", "配信者")), false)
+		_draw_result_small_badge(panel.position + Vector2(58, 46), "完走" if completed else "BAN", Color("#ffb433") if completed else Color("#ff4b62"))
+
+func _result_mental_kami_label(rank: String) -> Array[String]:
+	if rank == "S" or rank == "A":
+		return ["事故ったけど", "神回度"]
+	if rank == "B" or rank == "C":
+		return ["コメント的には", "神回度"]
+	return ["今回の配信", "評価"]
 
 func _draw_result_summary_panel(rect: Rect2, data: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.88), Color("#ffd2e5"), 20, 2, false)
@@ -3679,127 +5032,260 @@ func _draw_result_summary_panel(rect: Rect2, data: Dictionary) -> void:
 		_draw_result_summary_row(row_rect, rows[index] as Dictionary)
 
 func _draw_result_summary_row(rect: Rect2, row: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.88), Color("#f4d5e6"), 12, 1, false)
+	var label_text: String = String(row.get("label", ""))
+	var emphasized := label_text in ["最大同時視聴者数", "生存時間", "最大ボルテージ"]
+	var fill := Color(1, 0.985, 0.995, 0.94) if emphasized else Color(1, 1, 1, 0.88)
+	var border := Color("#ffacd0") if emphasized else Color("#f4d5e6")
+	_draw_ranking_panel(rect, fill, border, 12, 2 if emphasized else 1, false)
 	draw_circle(rect.position + Vector2(24, 23), 16, Color("#fff0f8"))
 	_draw_ranking_text(String(row.get("icon", "")), rect.position + Vector2(14, 29), 16, Color("#f05aa5"), 20, HORIZONTAL_ALIGNMENT_CENTER)
-	var label_text: String = String(row.get("label", ""))
 	var label_width := 178.0
 	var value_x := 214.0
 	if label_text.length() <= 4:
 		label_width = 92.0
 		value_x = 154.0
 	_draw_ranking_text(label_text, rect.position + Vector2(50, 30), 17, Color("#4f3149"), label_width)
-	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 16), rect.position + Vector2(value_x, 31), 21, Color("#f05aa5"), rect.size.x - value_x - 14.0, HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 16), rect.position + Vector2(value_x, 31), 23 if emphasized else 21, Color("#ee3e8f") if emphasized else Color("#f05aa5"), rect.size.x - value_x - 14.0, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_result_detail_panel(rect: Rect2, data: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.88), Color("#d8cdf7"), 20, 2, false)
-	_draw_result_ribbon(rect.position + Vector2(68, -18), "配信詳細", Color("#a875e8"))
+	var completed := String(data.get("endType", "")) == "completed"
+	var mental_breakdown := String(data.get("endType", "")) == "mental_breakdown"
+	var detail_fill := Color(1, 1, 1, 0.94) if (mental_breakdown or completed) else Color(1, 1, 1, 0.88)
+	var detail_border := Color("#ffd98a") if completed else (Color("#ffbddc") if mental_breakdown else Color("#d8cdf7"))
+	_draw_ranking_panel(rect, detail_fill, detail_border, 20, 2, false)
+	_draw_result_ribbon(rect.position + Vector2(68, -18), "配信詳細", Color("#ffb433") if completed else (Color("#ee5aa1") if mental_breakdown else Color("#a875e8")))
 	var trouble_rect := Rect2(rect.position + Vector2(24, 42), Vector2(rect.size.x - 48, 120))
 	var build_rect := Rect2(rect.position + Vector2(24, 182), Vector2(330, 140))
 	var gift_rect := Rect2(rect.position + Vector2(374, 182), Vector2(330, 140))
 	var ranking_rect := Rect2(rect.position + Vector2(24, 340), Vector2(330, 92))
-	var maro_rect := Rect2(rect.position + Vector2(374, 340), Vector2(330, 92))
+	if completed:
+		trouble_rect = Rect2(rect.position + Vector2(24, 42), Vector2(rect.size.x - 48, 156))
+		build_rect = Rect2(rect.position + Vector2(24, 216), Vector2(rect.size.x - 48, 154))
+		ranking_rect = Rect2(rect.position + Vector2(24, 388), Vector2(rect.size.x - 48, 72))
+		_draw_result_trouble_card(trouble_rect, data)
+		_draw_result_build_card(build_rect, data)
+		_draw_result_ranking_card(ranking_rect, data)
+		return
+	if mental_breakdown:
+		trouble_rect = Rect2(rect.position + Vector2(24, 42), Vector2(rect.size.x - 48, 156))
+		build_rect = Rect2(rect.position + Vector2(24, 216), Vector2(rect.size.x - 48, 154))
+		ranking_rect = Rect2(rect.position + Vector2(24, 388), Vector2(rect.size.x - 48, 72))
+		_draw_result_trouble_card(trouble_rect, data)
+		_draw_result_build_card(build_rect, data)
+		_draw_result_ranking_card(ranking_rect, data)
+		return
+	ranking_rect = Rect2(rect.position + Vector2(24, 340), Vector2(rect.size.x - 48, 92))
 	_draw_result_trouble_card(trouble_rect, data)
 	_draw_result_build_card(build_rect, data)
 	_draw_result_gift_card(gift_rect, data)
-	_draw_result_marshmallow_card(maro_rect, data)
 	_draw_result_ranking_card(ranking_rect, data)
 
 func _draw_result_trouble_card(rect: Rect2, data: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.92), Color("#ead7ff"), 14, 2, false)
 	var completed := String(data.get("endType", "")) == "completed"
-	_draw_ranking_text("配信ハイライト" if completed else "配信トラブル", rect.position + Vector2(18, 28), 17, Color("#7a56c8"), rect.size.x - 36)
+	var mental_breakdown := String(data.get("endType", "")) == "mental_breakdown"
+	if mental_breakdown:
+		_draw_ranking_panel(rect, Color("#fff8fc"), Color("#ff8fc2"), 16, 3, false)
+		_draw_ranking_text("配信トラブル", rect.position + Vector2(18, 30), 18, Color("#e53e8c"), rect.size.x - 36)
+		var culprit := String(data.get("culpritInstructionComment", "なし"))
+		var has_culprit := culprit != "" and culprit != "なし" and culprit != "縺ｪ縺・"
+		var reason := String(data.get("deathReasonText", "メンタル崩壊"))
+		_draw_ranking_text("終了理由", rect.position + Vector2(20, 58), 13, Color("#b24488"), 82)
+		_draw_ranking_text(_short_pause_text(reason, 52), rect.position + Vector2(94, 59), 16, Color("#d92f7e"), rect.size.x - 114)
+		var culprit_rect := Rect2(rect.position + Vector2(20, 76), Vector2(rect.size.x - 40, 30))
+		_draw_ranking_panel(culprit_rect, Color("#fff0f8") if has_culprit else Color(1, 1, 1, 0.65), Color("#ffbddc"), 12, 1, false)
+		_draw_ranking_text("戦犯指示コメ", culprit_rect.position + Vector2(12, 21), 13, Color("#b24488"), 104)
+		_draw_ranking_text(_short_pause_text(culprit, 24), culprit_rect.position + Vector2(126, 22), 15, Color("#d92f7e") if has_culprit else Color("#7b6475"), culprit_rect.size.x - 138)
+		_draw_ranking_text("最後の一撃: %s" % String(data.get("finalBlowText", data.get("lastDeathSource", "接触"))), rect.position + Vector2(20, 124), 14, Color("#4f3149"), rect.size.x - 40)
+		if bool(data.get("bossSummoned", false)):
+			var boss_result: String = "撃破" if bool(data.get("bossDefeated", false)) else ("撤退" if String(data.get("bossResult", "")) == "retreated" else "出現中")
+			_draw_ranking_text("出現ボス: %s / %s" % [String(data.get("bossName", "ボス")), boss_result], rect.position + Vector2(20, 144), 13, Color("#8d46b5"), rect.size.x - 40)
+		return
+	var panel_fill := Color("#fffdf4") if completed else (Color("#fff8fc") if mental_breakdown else Color(1, 1, 1, 0.92))
+	var panel_border := Color("#ffd98a") if completed else (Color("#ff9aca") if mental_breakdown else Color("#ead7ff"))
+	var title_color := Color("#c97813") if completed else (Color("#e53e8c") if mental_breakdown else Color("#7a56c8"))
+	_draw_ranking_panel(rect, panel_fill, panel_border, 14, 2, false)
+	_draw_ranking_text("配信ハイライト" if completed else "配信トラブル", rect.position + Vector2(18, 28), 17, title_color, rect.size.x - 36)
 	var rows: Array = []
 	if completed:
 		rows = [
-			"結果：最後まで配信を走り切った！",
-			"最終指示コメ：%s" % String(data.get("lastInstructionComment", "なし")),
-			"コメント欄：大盛り上がり"
+			{"text": "完走結果：最後まで配信を走り切った！", "color": Color("#7a4b10")},
+			{"text": "ラスト指示コメ：%s" % String(data.get("lastInstructionComment", "なし")), "color": Color("#4f3149")},
+			{"text": "コメント欄：完走おめ！で大盛り上がり", "color": Color("#4f3149")},
+			{"text": "完走ポイント：最後までメンタルを残して完走", "color": Color("#d77b10")}
 		]
+	elif mental_breakdown:
+		var culprit := String(data.get("culpritInstructionComment", "なし"))
+		rows = [
+			{"text": "終了理由：%s" % String(data.get("deathReasonText", "メンタル崩壊")), "color": Color("#d92f7e")},
+			{"text": "戦犯指示コメ：%s" % culprit, "color": Color("#b24488") if culprit != "なし" else Color("#4f3149")}
+		]
+		var note := String(data.get("troubleNote", ""))
+		if note != "":
+			rows.append({"text": "補足：%s" % note, "color": Color("#7b6475")})
+		rows.append({"text": "最後の一撃：%s" % String(data.get("finalBlowText", data.get("lastDeathSource", "接触"))), "color": Color("#4f3149")})
 	else:
 		rows = [
-			"戦犯指示コメ：%s" % String(data.get("culpritInstructionComment", "なし")),
-			"死因：%s" % String(data.get("deathText", "")),
-			"最後の一撃：%s" % String(data.get("lastDeathSource", "接触"))
+			{"text": "戦犯指示コメ：%s" % String(data.get("culpritInstructionComment", "なし")), "color": Color("#4f3149")},
+			{"text": "死因：%s" % String(data.get("deathText", "")), "color": Color("#4f3149")},
+			{"text": "最後の一撃：%s" % String(data.get("lastDeathSource", "接触")), "color": Color("#4f3149")}
 		]
 	if bool(data.get("bossSummoned", false)):
 		var boss_result: String = "撃破" if bool(data.get("bossDefeated", false)) else ("撤退" if String(data.get("bossResult", "")) == "retreated" else "出現")
 		var reward_text: String = " / +%s人" % _result_number(int(data.get("bossRewardViewer", 0))) if int(data.get("bossRewardViewer", 0)) > 0 else ""
-		rows.append("ボス%s：%s%s" % [boss_result, String(data.get("bossName", "ボス")), reward_text])
+		var boss_label := "挑戦ボス" if completed else ("出現ボス" if mental_breakdown else "ボス%s" % boss_result)
+		rows.append({"text": "%s：%s%s" % [boss_label, String(data.get("bossName", "ボス")), reward_text], "color": Color("#8d46b5")})
 	for index in range(rows.size()):
-		var y: float = 52.0 + float(index) * (20.0 if rows.size() >= 4 else 24.0)
-		_draw_ranking_text(_short_pause_text(String(rows[index]), 66), rect.position + Vector2(18, y), 15, Color("#4f3149"), rect.size.x - 36)
+		var row: Dictionary = rows[index] as Dictionary
+		var y: float = 52.0 + float(index) * (18.0 if rows.size() >= 5 else (20.0 if rows.size() >= 4 else 24.0))
+		_draw_ranking_text(_short_pause_text(String(row.get("text", "")), 66), rect.position + Vector2(18, y), 14 if rows.size() >= 5 else 15, row.get("color", Color("#4f3149")) as Color, rect.size.x - 36)
 
 func _draw_result_build_card(rect: Rect2, data: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.92), Color("#d8cdf7"), 14, 2, false)
-	_draw_ranking_text("最終ビルド", rect.position + Vector2(18, 28), 17, Color("#7a56c8"), rect.size.x - 36)
-	_draw_ranking_text("武器", rect.position + Vector2(18, 64), 16, Color("#4f3149"), 54)
-	_draw_result_equipment_slots(data.get("weapons", []), weapons, rect.position + Vector2(72, 42), 5)
-	_draw_ranking_text("アクセ", rect.position + Vector2(18, 112), 16, Color("#4f3149"), 54)
-	_draw_result_equipment_slots(data.get("accessories", []), gifts, rect.position + Vector2(72, 90), 5)
+	var completed := String(data.get("endType", "")) == "completed"
+	_draw_ranking_panel(rect, Color("#fffdf4") if completed else Color(1, 1, 1, 0.92), Color("#ffd98a") if completed else Color("#d8cdf7"), 14, 2, false)
+	_draw_ranking_text("最終ビルド", rect.position + Vector2(18, 28), 17, Color("#c97813") if completed else Color("#7a56c8"), rect.size.x - 36)
+	var compact := rect.size.x < 300.0
+	var label_width := 42.0 if compact else 54.0
+	var slot_start_x := 60.0 if compact else 76.0
+	var slot_size := 30.0 if compact else 42.0
+	var slot_step := 35.0 if compact else 52.0
+	_draw_ranking_text("武器", rect.position + Vector2(18, 64), 16, Color("#4f3149"), label_width)
+	_draw_result_equipment_slots(data.get("weapons", []), weapons, rect.position + Vector2(slot_start_x, 42), 5, slot_size, slot_step)
+	_draw_ranking_text("アクセ", rect.position + Vector2(18, 112), 16, Color("#4f3149"), label_width)
+	_draw_result_equipment_slots(data.get("accessories", []), gifts, rect.position + Vector2(slot_start_x, 98), 5, slot_size, slot_step)
 
 func _draw_result_gift_card(rect: Rect2, data: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.92), Color("#ffd2e5"), 14, 2, false)
 	_draw_ranking_text("取得ギフト", rect.position + Vector2(18, 28), 17, Color("#f05aa5"), rect.size.x - 36)
 	var names: Array = data.get("giftList", []) as Array
 	if names.is_empty():
-		_draw_ranking_text("なし", rect.position + Vector2(18, 82), 18, Color("#7f7480"), rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text("なし", rect.position + Vector2(18, rect.size.y * 0.58), 18, Color("#7f7480"), rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
 		return
-	for index in range(mini(names.size(), 4)):
-		var slot := Rect2(rect.position + Vector2(18 + float(index) * 76.0, 50), Vector2(58, 58))
+	var compact := rect.size.x < 260.0
+	if compact:
+		var compact_slot_size := 36.0
+		var compact_step_x := 44.0
+		var compact_step_y := 42.0
+		var compact_columns := 4
+		var max_compact_icons := mini(names.size(), 8)
+		for index in range(max_compact_icons):
+			var slot := Rect2(rect.position + Vector2(18 + float(index % compact_columns) * compact_step_x, 44 + float(index / compact_columns) * compact_step_y), Vector2(compact_slot_size, compact_slot_size))
+			_draw_ranking_panel(slot, Color("#fff8fc"), Color("#ffd2e5"), 9, 2, false)
+			var gift_name := String(names[index])
+			var icon := _result_gift_icon_for_name(gift_name)
+			if icon != null:
+				draw_texture_rect(icon, slot.grow(-4), false)
+			else:
+				_draw_result_present_icon(slot.grow(-7))
+		return
+	var slot_size := 42.0 if compact else 58.0
+	var slot_step := 52.0 if compact else 76.0
+	var max_icons := mini(names.size(), 4 if not compact else 3)
+	for index in range(max_icons):
+		var slot := Rect2(rect.position + Vector2(18 + float(index) * slot_step, 50), Vector2(slot_size, slot_size))
 		_draw_ranking_panel(slot, Color("#fff8fc"), Color("#ffd2e5"), 10, 2, false)
-		_draw_ranking_text("G", slot.position + Vector2(0, 38), 24, Color("#f05aa5"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_ranking_text("x1", slot.position + Vector2(0, 78), 13, Color("#4f3149"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(_short_pause_text(String(data.get("giftSummary", "")), 24), rect.position + Vector2(18, 132), 14, Color("#6b4a63"), rect.size.x - 36)
+		var gift_name := String(names[index])
+		var icon := _result_gift_icon_for_name(gift_name)
+		if icon != null:
+			draw_texture_rect(icon, slot.grow(-5), false)
+		else:
+			_draw_result_present_icon(slot.grow(-8))
+		if rect.size.y >= 120.0:
+			_draw_ranking_text("x1", slot.position + Vector2(0, slot.size.y + 20.0), 13, Color("#4f3149"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	if rect.size.y >= 128.0:
+		_draw_ranking_text(_short_pause_text(String(data.get("giftSummary", "")), 24), rect.position + Vector2(18, 132), 14, Color("#6b4a63"), rect.size.x - 36)
 
-func _draw_result_marshmallow_card(rect: Rect2, data: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.92), Color("#d4eafe"), 14, 2, false)
-	_draw_ranking_text("マシュマロ結果", rect.position + Vector2(18, 28), 17, Color("#438ee8"), rect.size.x - 36)
-	var chips: Array = [
-		"読了 %d" % int(data.get("marshmallowReadCount", 0)),
-		"良マロ %d" % int(data.get("goodMaroCount", 0)),
-		"神マロ %d" % int(data.get("godMaroCount", 0)),
-		"クソマロ %d" % int(data.get("kusoMaroCount", 0)),
-		"未読 %d" % int(data.get("unreadMaroCount", 0))
-	]
-	for index in range(chips.size()):
-		var chip := Rect2(rect.position + Vector2(18 + float(index % 3) * 98.0, 40 + float(index / 3) * 30.0), Vector2(86, 24))
-		_draw_ranking_panel(chip, Color("#f7fbff"), Color("#d4eafe"), 10, 1, false)
-		_draw_ranking_text(String(chips[index]), chip.position + Vector2(0, 18), 13, Color("#4f3149"), chip.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+func _result_gift_icon_for_name(name: String) -> Texture2D:
+	var path := _result_gift_icon_path_for_name(name)
+	if path == "":
+		return null
+	return _load_equipment_icon(path)
+
+func _result_gift_icon_path_for_name(name: String) -> String:
+	var normalized := name.strip_edges()
+	var level_index := normalized.find(" Lv")
+	if level_index >= 0:
+		normalized = normalized.substr(0, level_index).strip_edges()
+	if normalized.ends_with(" 進化"):
+		normalized = normalized.substr(0, normalized.length() - " 進化".length()).strip_edges()
+	for source in [gifts, weapons]:
+		for item_value in source:
+			var item: Dictionary = item_value as Dictionary
+			if String(item.get("displayName", "")) == normalized or String(item.get("id", "")) == normalized:
+				return String(item.get("iconPath", ""))
+	return ""
+
+func _draw_result_present_icon(rect: Rect2) -> void:
+	var box := Rect2(rect.position + Vector2(rect.size.x * 0.18, rect.size.y * 0.34), Vector2(rect.size.x * 0.64, rect.size.y * 0.48))
+	var lid := Rect2(rect.position + Vector2(rect.size.x * 0.12, rect.size.y * 0.24), Vector2(rect.size.x * 0.76, rect.size.y * 0.20))
+	_draw_ranking_panel(lid, Color("#ff75b1"), Color("#d93e86"), 4, 1, false)
+	_draw_ranking_panel(box, Color("#ffd7e8"), Color("#d93e86"), 5, 1, false)
+	draw_rect(Rect2(box.position + Vector2(box.size.x * 0.43, 0), Vector2(box.size.x * 0.14, box.size.y)), Color("#ff5aa5"), true)
+	draw_rect(Rect2(lid.position + Vector2(0, lid.size.y * 0.38), Vector2(lid.size.x, lid.size.y * 0.24)), Color(1, 1, 1, 0.42), true)
 
 func _draw_result_ranking_card(rect: Rect2, data: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color("#fffaf0"), Color("#ffd98a"), 14, 2, false)
 	var text: String = String(data.get("rankingText", ""))
 	if text == "":
 		text = "ランキング対象外"
-	_draw_ranking_text(_short_pause_text(text, 31), rect.position + Vector2(18, 39), 16, Color("#b06b18"), rect.size.x - 36)
+	var title := "ランキング登録！" if text.contains("ランキング登録") else ("ランキング対象外" if text.contains("対象外") else "ランキング結果")
+	var body := text
+	body = body.replace("ランキング登録：", "")
+	body = body.replace("配信リレーランキング登録：", "")
+	body = body.replace("ランキング対象外：", "")
+	var compact := rect.size.y < 90.0
+	_draw_ranking_text(title, rect.position + Vector2(18, 29 if compact else 31), 16 if compact else 17, Color("#d77b10"), rect.size.x - 36)
+	var first_line := body.strip_edges()
+	var second_line := ""
+	var separator_index := first_line.find(" / ")
+	if separator_index >= 0:
+		second_line = first_line.substr(separator_index + 3).strip_edges()
+		first_line = first_line.substr(0, separator_index).strip_edges()
+	_draw_ranking_text(_short_pause_text(first_line, 24), rect.position + Vector2(18, 56 if compact else 63), 17 if compact else 19, Color("#d77b10"), rect.size.x - 36)
+	if second_line != "" and (not compact or rect.size.y >= 86.0):
+		_draw_ranking_text(_short_pause_text(second_line, 28), rect.position + Vector2(18, 76 if compact else 84), 11 if compact else 13, Color("#6b4a2f"), rect.size.x - 36)
 
-func _draw_result_equipment_slots(items_value: Variant, source_data: Array, start: Vector2, slot_count: int) -> void:
+func _draw_result_equipment_slots(items_value: Variant, source_data: Array, start: Vector2, slot_count: int, slot_size: float = 38.0, slot_step: float = 46.0) -> void:
 	var items: Array = []
 	if items_value is Array:
 		items = items_value as Array
 	for index in range(slot_count):
-		var slot := Rect2(start + Vector2(float(index) * 46.0, 0), Vector2(38, 38))
-		_draw_ranking_panel(slot, Color("#fbfbff"), Color("#d8cdf7"), 6, 1, false)
+		var slot := Rect2(start + Vector2(float(index) * slot_step, 0), Vector2(slot_size, slot_size))
+		var evolved := false
+		if index < items.size() and items[index] is Dictionary:
+			evolved = EquipmentSystem.is_evolved_entry(items[index] as Dictionary)
+		_draw_ranking_panel(slot, Color("#fff9ec") if evolved else Color("#fbfbff"), Color("#ffd15a") if evolved else Color("#d8cdf7"), 6, 2 if evolved else 1, false)
 		if index >= items.size() or not (items[index] is Dictionary):
 			continue
 		var item: Dictionary = items[index] as Dictionary
 		var data: Dictionary = _find_equipment_icon_data(source_data, String(item.get("id", "")))
-		var icon: Texture2D = _load_equipment_icon(String(data.get("iconPath", "")))
+		evolved = evolved or bool(data.get("isEvolved", false))
+		if evolved:
+			_draw_ranking_panel(slot.grow(2.0), Color(1.0, 0.78, 0.16, 0.10), Color("#ffd15a"), 7, 2, false)
+		var icon: Texture2D = _load_equipment_icon(_equipment_icon_path_for_item(item, source_data))
 		if icon != null:
 			draw_texture_rect(icon, slot.grow(-3), false)
 		else:
-			_draw_ranking_text(_short_pause_text(String(item.get("displayName", item.get("id", ""))), 2), slot.position + Vector2(0, 25), 13, Color("#7a56c8"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+			_draw_ranking_text(_short_pause_text(String(item.get("displayName", item.get("id", ""))), 2), slot.position + Vector2(0, slot.size.y * 0.66), 12, Color("#7a56c8"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		if evolved:
+			var label_rect := Rect2(slot.position + Vector2(1, -10), Vector2(slot.size.x - 2, 14))
+			_draw_ranking_panel(label_rect, Color("#ffd15a"), Color(1, 1, 1, 0), 4, 0, false)
+			_draw_ranking_text("進化", slot.position + Vector2(0, 1), 9, Color("#7a3f00"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_result_buttons(layout: Dictionary) -> void:
-	_draw_result_button(layout["retryButton"] as Rect2, "▶ もう一回", Color("#ff5aa5"), Color.WHITE, "retry")
+	var mental_breakdown := String(last_result_data.get("endType", "")) == "mental_breakdown"
+	if mental_breakdown:
+		_draw_ranking_panel((layout["retryButton"] as Rect2).grow(8), Color(1.0, 0.18, 0.56, 0.14), Color(1, 1, 1, 0), 22, 0, false)
+	_draw_result_button(layout["retryButton"] as Rect2, "▶ もう一回", Color("#ff3f9b") if mental_breakdown else Color("#ff5aa5"), Color.WHITE, "retry")
 	_draw_result_button(layout["rankingButton"] as Rect2, "ランキング", Color("#f8f2ff"), Color("#7a56c8"), "ranking")
 	_draw_result_button(layout["titleButton"] as Rect2, "タイトルへ", Color("#e8f7ff"), Color("#2587b8"), "title")
 
 func _draw_result_button(rect: Rect2, label: String, fill: Color, text_color: Color, button_id: String) -> void:
 	if result_hover_button == button_id:
 		_draw_ranking_panel(rect.grow(5), Color(1, 1, 1, 0.72), Color("#ff9cc9"), 18, 3, false)
-	_draw_character_select_button(rect, label, fill, text_color, true)
+	_draw_ranking_panel(rect, fill, Color("#ead7e9"), 14, 2, false)
+	var font_size := 17
+	var text_baseline_y := rect.position.y + rect.size.y * 0.5 + float(font_size) * 0.38
+	_draw_ranking_text(label, Vector2(rect.position.x, text_baseline_y), font_size, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_result_ribbon(pos: Vector2, text: String, color: Color) -> void:
 	var rect := Rect2(pos, Vector2(200, 32))
@@ -3811,7 +5297,76 @@ func _draw_result_small_badge(pos: Vector2, text: String, color: Color) -> void:
 	_draw_ranking_panel(rect, Color(color.r, color.g, color.b, 0.16), color, 16, 3, false)
 	_draw_ranking_text(text, rect.position + Vector2(0, 42), 22, color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
-func _draw_result_character_bust(rect: Rect2, character_id: String, character_name: String) -> void:
+func _draw_result_mental_breakdown_character(rect: Rect2, data: Dictionary) -> void:
+	var breakdown_path := _mental_breakdown_result_image_path(String(data.get("characterId", "")))
+	if breakdown_path == "":
+		return
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, breakdown_path)
+	if texture == null:
+		return
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	var sway := Vector2(sin(clock * 1.7) * 2.0, sin(clock * 2.1) * 2.5)
+	var area_rect := rect.grow(-6.0)
+	_draw_ranking_panel(area_rect, Color(1.0, 0.76, 0.90, 0.18), Color(1, 1, 1, 0), 36, 0, false)
+	_draw_ranking_panel(area_rect.grow(-18.0), Color(0.68, 0.02, 0.28, 0.08), Color(1, 1, 1, 0), 28, 0, false)
+	for i in range(5):
+		var line_y := rect.position.y + 70.0 + float(i) * 74.0 + sin(clock * 1.5 + float(i)) * 6.0
+		draw_line(Vector2(rect.position.x + 28.0, line_y), Vector2(rect.end.x - 24.0, line_y), Color(1.0, 0.18, 0.55, 0.10), 1.2, true)
+	var glow_rect := Rect2(rect.position + Vector2(24, 72), Vector2(rect.size.x - 48.0, rect.size.y * 0.64))
+	_draw_ranking_panel(glow_rect.grow(18.0), Color(0.94, 0.05, 0.40, 0.11), Color(1, 1, 1, 0), 44, 0, false)
+	_draw_ranking_panel(glow_rect.grow(6.0), Color(0.52, 0.03, 0.32, 0.10), Color(1, 1, 1, 0), 38, 0, false)
+	_draw_result_broken_heart(rect.position + Vector2(38, 98), 20.0, 0.78)
+	_draw_result_broken_heart(rect.position + Vector2(rect.size.x - 40.0, rect.size.y - 132.0), 15.0, 0.48)
+	var container := Rect2(rect.position + Vector2(0, 24) + sway, rect.size - Vector2(0, 44))
+	draw_texture_rect(texture, _fit_texture_rect(container, texture.get_size()), false)
+
+func _draw_result_stream_complete_character(rect: Rect2, data: Dictionary) -> void:
+	var character_id := String(data.get("characterId", ""))
+	var image_path := _stream_complete_result_image_path(character_id)
+	if image_path == "":
+		return
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, image_path)
+	if texture == null:
+		return
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	var sway := Vector2(0.0, sin(clock * 2.0) * 3.0)
+	var area_rect := rect.grow(-6.0)
+	_draw_ranking_panel(area_rect, Color(1.0, 0.78, 0.18, 0.14), Color(1, 1, 1, 0), 36, 0, false)
+	_draw_ranking_panel(area_rect.grow(-18.0), Color(1.0, 0.98, 0.88, 0.28), Color("#ffe08a"), 30, 2, false)
+	var glow_rect := Rect2(rect.position + Vector2(18, 74), Vector2(rect.size.x - 36.0, rect.size.y * 0.66))
+	_draw_ranking_panel(glow_rect.grow(24.0), Color(1.0, 0.70, 0.16, 0.13), Color(1, 1, 1, 0), 48, 0, false)
+	_draw_ranking_panel(glow_rect.grow(8.0), Color(1.0, 0.40, 0.66, 0.07), Color(1, 1, 1, 0), 38, 0, false)
+	for i in range(10):
+		var color := Color(1.0, 0.74, 0.18, 0.42) if i % 2 == 0 else Color(1.0, 0.38, 0.70, 0.34)
+		var pos := rect.position + Vector2(28.0 + fmod(float(i) * 73.0, rect.size.x - 56.0), 44.0 + fmod(float(i) * 51.0 - clock * 12.0, rect.size.y - 90.0))
+		if i % 3 == 0:
+			draw_rect(Rect2(pos, Vector2(14, 6)), color, true)
+		else:
+			_draw_stream_start_sparkle(pos, 6.0 + float(i % 2) * 3.0, color)
+	for i in range(4):
+		var symbol := "★" if i % 2 == 0 else "♥"
+		var symbol_color := Color(1.0, 0.68, 0.08, 0.46) if symbol == "★" else Color(1.0, 0.34, 0.60, 0.38)
+		var pos := rect.position + Vector2(20.0 + float(i) * 84.0, 78.0 + sin(clock * 1.6 + float(i)) * 5.0)
+		_draw_ranking_text(symbol, pos, 22, symbol_color, 34, HORIZONTAL_ALIGNMENT_CENTER)
+	var offset := Vector2(-44.0, 38.0)
+	var expand := Vector2(88.0, -48.0)
+	if character_id == "superchat_chan" or character_id == "supana":
+		offset = Vector2(-36.0, 38.0)
+		expand = Vector2(72.0, -46.0)
+	elif character_id == "maro_chan" or character_id == "maron":
+		offset = Vector2(-68.0, 38.0)
+		expand = Vector2(136.0, -48.0)
+	var container := Rect2(rect.position + offset + sway, rect.size + expand)
+	draw_texture_rect(texture, _fit_texture_rect(container, texture.get_size()), false)
+
+func _draw_result_character_bust(rect: Rect2, character_id: String, character_name: String, mental_breakdown: bool = false) -> void:
+	if mental_breakdown:
+		var breakdown_path := _mental_breakdown_result_image_path(character_id)
+		if breakdown_path != "":
+			var breakdown_tex: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, breakdown_path)
+			if breakdown_tex != null:
+				draw_texture_rect(breakdown_tex, _fit_texture_rect(rect, breakdown_tex.get_size()), false)
+				return
 	var character: Dictionary = CharacterSystemScript.find_character(characters, character_id)
 	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(character.get("sprite", "")))
 	if tex != null:
@@ -3819,6 +5374,40 @@ func _draw_result_character_bust(rect: Rect2, character_id: String, character_na
 	else:
 		draw_circle(rect.get_center(), 44, Color("#fff0f8"))
 		_draw_ranking_text(_ranking_avatar_text(character_name), rect.position + Vector2(0, rect.size.y * 0.55), 20, Color("#f05aa5"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _mental_breakdown_result_image_path(character_id: String) -> String:
+	if character_id == "ban_chan" or character_id == "banri":
+		return MENTAL_BREAKDOWN_BANRI_IMAGE
+	if character_id == "superchat_chan" or character_id == "supana":
+		return MENTAL_BREAKDOWN_SUPANA_IMAGE
+	if character_id == "maro_chan" or character_id == "maron":
+		return MENTAL_BREAKDOWN_MARON_IMAGE
+	return ""
+
+func _stream_complete_result_image_path(character_id: String) -> String:
+	if character_id == "ban_chan" or character_id == "banri":
+		return STREAM_COMPLETE_BANRI_IMAGE
+	if character_id == "superchat_chan" or character_id == "supana":
+		return STREAM_COMPLETE_SUPANA_IMAGE
+	if character_id == "maro_chan" or character_id == "maron":
+		return STREAM_COMPLETE_MARON_IMAGE
+	return ""
+
+func _draw_result_broken_heart(center: Vector2, size: float, alpha: float = 1.0) -> void:
+	var color := Color(0.94, 0.16, 0.40, alpha)
+	var shine := Color(1.0, 0.72, 0.84, alpha * 0.7)
+	draw_circle(center + Vector2(-size * 0.28, -size * 0.12), size * 0.28, color)
+	draw_circle(center + Vector2(size * 0.28, -size * 0.12), size * 0.28, color)
+	var points := PackedVector2Array([
+		center + Vector2(-size * 0.58, -size * 0.06),
+		center + Vector2(size * 0.58, -size * 0.06),
+		center + Vector2(0.0, size * 0.62)
+	])
+	draw_colored_polygon(points, color)
+	draw_line(center + Vector2(-size * 0.04, -size * 0.34), center + Vector2(size * 0.10, -size * 0.08), Color.WHITE, 2.2, true)
+	draw_line(center + Vector2(size * 0.10, -size * 0.08), center + Vector2(-size * 0.02, size * 0.18), Color.WHITE, 2.2, true)
+	draw_line(center + Vector2(-size * 0.02, size * 0.18), center + Vector2(size * 0.12, size * 0.48), Color.WHITE, 2.2, true)
+	draw_circle(center + Vector2(-size * 0.28, -size * 0.20), size * 0.08, shine)
 
 func _result_rank_color(rank: String) -> Color:
 	if rank == "S":
@@ -3847,7 +5436,7 @@ func _draw_character_select_overlay() -> void:
 	var layout: Dictionary = _character_select_layout()
 	var page: int = CharacterSystemScript.selection_page_for_index(selected_character_index, characters.size())
 	var page_count: int = CharacterSystemScript.selection_page_count(characters.size())
-	_draw_character_select_header(layout["header"] as Rect2)
+	_draw_character_select_header(layout["header"] as Rect2, page_count)
 	_draw_character_select_list_panel(layout["listPanel"] as Rect2, page)
 	_draw_character_select_detail_panel(layout["detailPanel"] as Rect2)
 	_draw_character_select_footer(layout, page, page_count)
@@ -3883,61 +5472,126 @@ func _draw_character_select_background() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.93, 0.985, 0.62), true)
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 1.0, 1.0, 0.30), true)
 
-func _draw_character_select_header(rect: Rect2) -> void:
+func _draw_character_select_header(rect: Rect2, page_count: int) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.95), Color("#ead7e9"), 22, 2, true)
-	draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
-	_draw_ranking_text("配", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
+	var header_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, CHARACTER_SELECT_HEADER_ICON)
+	if header_icon != null:
+		var icon_rect := Rect2(rect.position + Vector2(18, 11), Vector2(58, 50))
+		draw_texture_rect(header_icon, _fit_texture_rect(icon_rect, header_icon.get_size()), false, Color(1, 1, 1, 0.98))
+	else:
+		draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
+		_draw_ranking_text("配", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("配信者を選択", rect.position + Vector2(88, 47), 34, Color("#4f3149"), 360)
-	_draw_ranking_text("← →：選択 / A D：ページ / Enter Space：決定 / Esc：戻る", rect.position + Vector2(682, 45), 20, Color("#6b4a63"), 710, HORIZONTAL_ALIGNMENT_CENTER)
+	var guide := "←→：選択　Enter：決定　Esc：戻る"
+	if page_count > 1:
+		guide = "←→：選択　A/D：ページ　Enter：決定　Esc：戻る"
+	_draw_ranking_text(guide, rect.position + Vector2(682, 45), 20, Color("#6b4a63"), 710, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_character_select_list_panel(panel: Rect2, page: int) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
 	_draw_ranking_text("配信者一覧", panel.position + Vector2(30, 46), 28, Color("#7a3fb0"), 360)
 	var start: int = page * CharacterSystemScript.SELECT_PAGE_SIZE
+	var visible_count: int = CharacterSystemScript.selection_visible_count(characters.size())
 	for local_index in range(CharacterSystemScript.SELECT_PAGE_SIZE):
 		var rect: Rect2 = _character_select_card_rect(local_index)
 		var index: int = start + local_index
 		if index < characters.size():
 			_draw_character_select_card(rect, index)
-		else:
-			_draw_character_select_coming_card(rect)
+		elif index < visible_count:
+			if _character_select_placeholder_status(index) == "locked":
+				_draw_character_select_locked_card(rect, index, index == selected_character_index)
+			else:
+				_draw_character_select_coming_card(rect, index, index == selected_character_index)
 
 func _draw_character_select_card(rect: Rect2, index: int) -> void:
 	var character: Dictionary = characters[index] as Dictionary
 	var view: Dictionary = CharacterSystemScript.selection_card_view(character, weapons)
 	var selected: bool = index == selected_character_index
-	var unlocked: bool = bool(view.get("isUnlocked", true))
-	var border: Color = Color("#ff62b5") if selected else Color("#cfe9ff")
+	var selectable: bool = bool(view.get("isSelectable", true))
+	var accent: Color = view.get("accent", Color("#ff4f92")) as Color
+	var accent2: Color = view.get("accent2", Color("#7a56c8")) as Color
+	var soft_fill: Color = view.get("softFill", Color("#fff2fa")) as Color
+	var border: Color = accent if selected else Color(accent.r, accent.g, accent.b, 0.34)
 	var fill: Color = Color(1, 1, 1, 0.98)
 	var text_color := Color("#4f3149")
-	if not unlocked:
+	if not selectable:
 		border = Color("#cfc8d6") if not selected else Color("#a887d8")
 		fill = Color("#f4f0f5")
 		text_color = Color("#7f7480")
 	if selected:
-		_draw_ranking_panel(rect.grow(6), Color(1.0, 0.73, 0.90, 0.18), Color(1, 1, 1, 0), 22, 0, false)
-	_draw_ranking_panel(rect, fill, border, 20, 4 if selected else 2, false)
-	_draw_ranking_text("[%d]" % (index + 1), rect.position + Vector2(16, 31), 18, Color("#ff5aa5") if unlocked else Color("#8f8793"), 42)
+		fill = Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.96) if selectable else Color("#f4eff7")
+		_draw_ranking_panel(rect.grow(8), Color(accent.r, accent.g, accent.b, 0.20), Color(1, 1, 1, 0), 24, 0, false)
+		_draw_ranking_panel(rect.grow(3), Color(1, 1, 1, 0), Color(accent.r, accent.g, accent.b, 0.42), 22, 2, false)
+	_draw_ranking_panel(rect, fill, border, 20, 5 if selected else 2, false)
+	_draw_ranking_text("[%d]" % (index + 1), rect.position + Vector2(16, 31), 18, accent if selectable else Color("#8f8793"), 42)
 	_draw_ranking_text(_short_pause_text(String(view.get("displayName", "配信者")), 9), rect.position + Vector2(58, 35), 23, text_color, rect.size.x - 76)
-	var image_rect := Rect2(rect.position + Vector2(42, 50), Vector2(rect.size.x - 84, 130))
-	if unlocked:
+	var status_rect := Rect2(rect.position + Vector2(rect.size.x - 92, 12), Vector2(74, 26))
+	if selected:
+		_draw_ranking_panel(status_rect, Color(accent.r, accent.g, accent.b, 0.88), accent, 13, 1, false)
+		_draw_ranking_text("★ 選択中", status_rect.position + Vector2(4, 19), 13, Color.WHITE, status_rect.size.x - 8, HORIZONTAL_ALIGNMENT_CENTER)
+	else:
+		_draw_character_select_tag(status_rect, String(view.get("statusText", "使用可能")), Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.90), accent)
+	var image_rect := Rect2(rect.position + Vector2(18, 62), Vector2(rect.size.x - 36, 136))
+	if selectable:
 		var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 		if tex != null:
-			draw_texture_rect(tex, _fit_texture_rect(image_rect, tex.get_size()), false)
+			_draw_texture_cover_rect(tex, image_rect, Vector2(0.5, 0.10), 1.24)
 	else:
 		draw_circle(image_rect.get_center() + Vector2(0, -6), 44, Color("#dfd8e3"))
 		_draw_ranking_text("LOCK", image_rect.position + Vector2(0, 84), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_tag(Rect2(rect.position + Vector2(18, 190), Vector2(rect.size.x - 36, 34)), String(view.get("roleName", "配信者")), Color("#e8f7ff"), Color("#4d8ab5"))
-	_draw_character_select_weapon_line(Rect2(rect.position + Vector2(18, 232), Vector2(rect.size.x - 36, 30)), view)
-	if selected:
-		_draw_ranking_text("★", rect.position + Vector2(rect.size.x - 36, 33), 22, Color("#ffd15c"), 28, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_character_select_tag_row(Rect2(rect.position + Vector2(18, 198), Vector2(rect.size.x - 36, 30)), view.get("cardTags", []) as Array, accent, 2, 13)
+	_draw_character_select_weapon_line(Rect2(rect.position + Vector2(18, 238), Vector2(rect.size.x - 36, 30)), view, "weaponName", "weaponIconPath", accent)
 
-func _draw_character_select_coming_card(rect: Rect2) -> void:
-	_draw_ranking_panel(rect, Color("#fbf8fc"), Color("#e0d7e2"), 20, 2, false)
-	draw_circle(rect.position + rect.size * 0.5 + Vector2(0, -24), 48, Color("#f1eaf2"))
-	_draw_ranking_text("COMING", rect.position + Vector2(0, 136), 24, Color("#a294a3"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("SOON", rect.position + Vector2(0, 168), 24, Color("#a294a3"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("新しい配信者をお楽しみに！", rect.position + Vector2(20, 224), 15, Color("#8f8793"), rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
+func _character_select_placeholder_status(index: int) -> String:
+	var local_index := index % CharacterSystemScript.SELECT_PAGE_SIZE
+	if local_index < CharacterSystemScript.SELECT_PAGE_SIZE - 1:
+		return "locked"
+	return "coming_soon"
+
+func _character_select_placeholder_unlock_text(index: int) -> String:
+	if index == 3:
+		return "雑談枠をクリア"
+	if index == 4:
+		return "ゲーム実況枠をクリア"
+	return "今後のアップデートで追加予定"
+
+func _draw_character_select_locked_card(rect: Rect2, index: int, selected: bool) -> void:
+	var border := Color("#a887d8") if selected else Color("#d8d0dc")
+	var fill := Color("#f5f0f6") if selected else Color("#faf7fb")
+	if selected:
+		_draw_ranking_panel(rect.grow(7), Color(0.50, 0.38, 0.76, 0.16), Color(1, 1, 1, 0), 24, 0, false)
+		_draw_ranking_panel(rect.grow(3), Color(1, 1, 1, 0), Color(0.50, 0.38, 0.76, 0.34), 22, 2, false)
+	_draw_ranking_panel(rect, fill, border, 20, 4 if selected else 2, false)
+	_draw_ranking_text("[%d]" % (index + 1), rect.position + Vector2(16, 31), 18, Color("#8f8793"), 42)
+	if selected:
+		var selected_rect := Rect2(rect.position + Vector2(rect.size.x - 92, 12), Vector2(74, 26))
+		_draw_ranking_panel(selected_rect, Color("#a887d8"), Color("#8f70c8"), 13, 1, false)
+		_draw_ranking_text("★ 選択中", selected_rect.position + Vector2(4, 19), 13, Color.WHITE, selected_rect.size.x - 8, HORIZONTAL_ALIGNMENT_CENTER)
+	var image_rect := Rect2(rect.position + Vector2(34, 52), Vector2(rect.size.x - 68, 140))
+	var mystery_center := image_rect.get_center() + Vector2(0, -8)
+	draw_circle(mystery_center, 54, Color("#eee7f1"))
+	draw_circle(mystery_center, 54, Color("#d8d0dc"), false, 3.0)
+	_draw_ranking_text("？？？", Vector2(image_rect.position.x, mystery_center.y + 10.0), 28, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_character_select_tag(Rect2(rect.position + Vector2(52, 198), Vector2(rect.size.x - 104, 30)), "未開放", Color("#f0eaf3"), Color("#8f70c8"))
+	_draw_ranking_text("解放条件：%s" % _character_select_placeholder_unlock_text(index), rect.position + Vector2(18, 254), 14, Color("#8f8793"), rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_character_select_coming_card(rect: Rect2, index: int, selected: bool) -> void:
+	var border := Color("#cba3d9") if selected else Color("#e0d7e2")
+	var fill := Color("#f7f0f9") if selected else Color("#fbf8fc")
+	if selected:
+		_draw_ranking_panel(rect.grow(7), Color(0.68, 0.48, 0.78, 0.16), Color(1, 1, 1, 0), 24, 0, false)
+		_draw_ranking_panel(rect.grow(3), Color(1, 1, 1, 0), Color(0.68, 0.48, 0.78, 0.34), 22, 2, false)
+	_draw_ranking_panel(rect, fill, border, 20, 4 if selected else 2, false)
+	_draw_ranking_text("[%d]" % (index + 1), rect.position + Vector2(16, 31), 18, Color("#a294a3"), 42)
+	if selected:
+		var selected_rect := Rect2(rect.position + Vector2(rect.size.x - 92, 12), Vector2(74, 26))
+		_draw_ranking_panel(selected_rect, Color("#c08adb"), Color("#a46fc3"), 13, 1, false)
+		_draw_ranking_text("★ 選択中", selected_rect.position + Vector2(4, 19), 13, Color.WHITE, selected_rect.size.x - 8, HORIZONTAL_ALIGNMENT_CENTER)
+	var preparing_center := rect.position + rect.size * 0.5 + Vector2(0, -36)
+	draw_circle(preparing_center, 48, Color("#f1eaf2"))
+	draw_circle(preparing_center, 48, Color("#ddd2e0"), false, 2.0)
+	_draw_ranking_text("準備中", Vector2(rect.position.x, preparing_center.y + 9.0), 24, Color("#8d7b93"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("今後のアップデートで追加予定", rect.position + Vector2(20, 204), 15, Color("#8f8793"), rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_character_select_detail_panel(panel: Rect2) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
@@ -3945,42 +5599,68 @@ func _draw_character_select_detail_panel(panel: Rect2) -> void:
 	if characters.is_empty():
 		_draw_ranking_text("配信者データがありません。", panel.position + Vector2(30, 300), 22, Color("#6b4a63"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
 		return
-	var index: int = clampi(selected_character_index, 0, characters.size() - 1)
+	if selected_character_index < 0 or selected_character_index >= characters.size():
+		if _character_select_placeholder_status(selected_character_index) == "locked":
+			_draw_character_select_locked_detail(panel, selected_character_index)
+		else:
+			_draw_character_select_preparing_detail(panel)
+		return
+	var index: int = selected_character_index
 	var character: Dictionary = characters[index] as Dictionary
 	var view: Dictionary = CharacterSystemScript.selection_card_view(character, weapons)
-	var unlocked: bool = bool(view.get("isUnlocked", true))
-	_draw_ranking_text(String(view.get("displayName", "配信者")), panel.position + Vector2(30, 88), 32, Color("#4f3149"), panel.size.x - 60)
-	var image_rect := Rect2(panel.position + Vector2(70, 104), Vector2(panel.size.x - 140, 250))
-	if unlocked:
+	var selectable: bool = bool(view.get("isSelectable", true))
+	var accent: Color = view.get("accent", Color("#ff4f92")) as Color
+	var accent2: Color = view.get("accent2", Color("#7a56c8")) as Color
+	var soft_fill: Color = view.get("softFill", Color("#fff2fa")) as Color
+	var status_rect := Rect2(panel.position + Vector2(panel.size.x - 132, 20), Vector2(102, 30))
+	_draw_character_select_tag(status_rect, String(view.get("statusText", "使用可能")), Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.92), accent)
+	_draw_ranking_text(String(view.get("displayName", "配信者")), panel.position + Vector2(30, 88), 32, accent if selectable else Color("#7f7480"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
+	var image_panel := Rect2(panel.position + Vector2(28, 104), Vector2(panel.size.x - 56, 426))
+	_draw_ranking_panel(image_panel, Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.66), Color(accent.r, accent.g, accent.b, 0.32), 24, 2, false)
+	var image_rect := Rect2(image_panel.position + Vector2(10, 8), image_panel.size - Vector2(20, 18))
+	if selectable:
 		var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 		if tex != null:
 			draw_texture_rect(tex, _fit_texture_rect(image_rect, tex.get_size()), false)
 	else:
 		draw_circle(image_rect.get_center() + Vector2(0, -10), 68, Color("#dfd8e3"))
 		_draw_ranking_text("LOCK", image_rect.position + Vector2(0, 148), 30, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	if not unlocked:
+	if not selectable:
 		var lock_rect := Rect2(panel.position + Vector2(28, 390), Vector2(panel.size.x - 56, 170))
 		_draw_ranking_panel(lock_rect, Color("#fbf8fc"), Color("#e0d7e2"), 16, 2, false)
 		_draw_multiline_text_item({"pos": lock_rect.position + Vector2(22, 48), "text": "この配信者はまだ開放されていません。\n\n解放条件：\n%s" % String(view.get("unlockConditionText", "？？？")), "width": int(lock_rect.size.x - 44), "size": 20, "color": Color("#6b4a63")})
 		return
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 380), Vector2(232, 56)), "タイプ", String(view.get("roleName", "配信者")), Color("#e8f7ff"), Color("#4d8ab5"))
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 380), Vector2(232, 56)), "初期武器", String(view.get("weaponName", "未設定")), Color("#fff2fa"), Color("#e24e9a"))
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 448), Vector2(panel.size.x - 56, 62)), "特性", "%s：%s" % [String(view.get("passiveName", "なし")), String(view.get("passiveDescription", ""))], Color("#f3ecff"), Color("#7a56c8"))
-	var desc_rect := Rect2(panel.position + Vector2(28, 522), Vector2(panel.size.x - 56, 112))
-	_draw_ranking_panel(desc_rect, Color(1, 1, 1, 0.98), Color("#efd5e7"), 16, 2, false)
-	_draw_ranking_text("紹介", desc_rect.position + Vector2(18, 30), 17, Color("#b1509c"), desc_rect.size.x - 36)
-	_draw_multiline_text_item({"pos": desc_rect.position + Vector2(18, 62), "text": String(view.get("description", "")), "width": int(desc_rect.size.x - 36), "size": 17, "color": Color("#5d4658")})
-	var weapon_rect := Rect2(panel.position + Vector2(28, 648), Vector2(panel.size.x - 56, 54))
-	_draw_ranking_panel(weapon_rect, Color("#fff8fc"), Color("#efd5e7"), 16, 2, false)
-	_draw_character_select_weapon_line(Rect2(weapon_rect.position + Vector2(18, 12), Vector2(weapon_rect.size.x - 36, 30)), view)
+	_draw_character_select_weapon_highlight(Rect2(image_panel.position + Vector2(18, image_panel.size.y - 94), Vector2(image_panel.size.x - 36, 44)), view, accent, soft_fill, true)
+	_draw_character_select_tag_row(Rect2(image_panel.position + Vector2(18, image_panel.size.y - 42), Vector2(image_panel.size.x - 36, 30)), view.get("detailTags", []) as Array, accent, 4, 13, true)
+	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 548), Vector2(panel.size.x - 60, 56)), "特性", "%s：%s" % [String(view.get("passiveName", "なし")), String(view.get("passiveDescription", ""))], accent2, Color("#fff8fc"), 14)
+	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 618), Vector2(panel.size.x - 60, 72)), "紹介", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 15)
+
+func _draw_character_select_preparing_detail(panel: Rect2) -> void:
+	var box := Rect2(panel.position + Vector2(34, 96), Vector2(panel.size.x - 68, 300))
+	_draw_ranking_panel(box, Color("#fbf8fc"), Color("#e0d7e2"), 22, 2, false)
+	draw_circle(box.get_center() + Vector2(0, -58), 58, Color("#f1eaf2"))
+	draw_circle(box.get_center() + Vector2(0, -58), 58, Color("#ddd2e0"), false, 3.0)
+	_draw_ranking_text("準備中の配信者", box.position + Vector2(0, 190), 29, Color("#8d7b93"), box.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_multiline_text_item({"pos": box.position + Vector2(36, 228), "text": "この配信者は現在準備中です。\n今後のアップデートで追加予定です。", "width": int(box.size.x - 72), "size": 19, "color": Color("#6b4a63")}, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_character_select_detail_section(Rect2(panel.position + Vector2(34, 438), Vector2(panel.size.x - 68, 120)), "状態", "準備中\n選択はできますが、決定はできません。", Color("#a46fc3"), Color("#fff8fc"), 18)
+
+func _draw_character_select_locked_detail(panel: Rect2, index: int) -> void:
+	var box := Rect2(panel.position + Vector2(34, 96), Vector2(panel.size.x - 68, 300))
+	_draw_ranking_panel(box, Color("#fbf8fc"), Color("#ded4e4"), 22, 2, false)
+	draw_circle(box.get_center() + Vector2(0, -58), 58, Color("#eee7f1"))
+	draw_circle(box.get_center() + Vector2(0, -58), 58, Color("#d8d0dc"), false, 3.0)
+	_draw_ranking_text("？？？", box.position + Vector2(0, 152), 42, Color("#8f8793"), box.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("未開放の配信者", box.position + Vector2(0, 210), 26, Color("#8d7b93"), box.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var condition := _character_select_placeholder_unlock_text(index)
+	_draw_character_select_detail_section(Rect2(panel.position + Vector2(34, 438), Vector2(panel.size.x - 68, 132)), "解放条件", "この配信者はまだ開放されていません。\n解放条件：%s" % condition, Color("#8f70c8"), Color("#fff8fc"), 18)
 
 func _draw_character_select_footer(layout: Dictionary, page: int, page_count: int) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	var unlocked := false
+	var selectable := false
 	if not characters.is_empty() and selected_character_index >= 0 and selected_character_index < characters.size():
-		unlocked = CharacterSystemScript.is_unlocked(characters[selected_character_index] as Dictionary)
-	_draw_character_select_button(layout["confirmButton"] as Rect2, "決定", Color("#ff93cd"), Color.WHITE, unlocked)
+		selectable = CharacterSystemScript.is_selectable(characters[selected_character_index] as Dictionary)
+	_draw_character_select_button(layout["confirmButton"] as Rect2, "決定", Color("#ff93cd"), Color.WHITE, selectable)
 	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#f8f2ff"), Color("#6b4a63"), true)
 	_draw_ranking_text("%d / %d" % [page + 1, page_count], rect.position + Vector2(0, 34), 19, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_button(layout["prevButton"] as Rect2, "← 前", Color("#ffffff"), Color("#6b4a63"), page > 0)
@@ -3999,16 +5679,49 @@ func _draw_character_select_info_card(rect: Rect2, label: String, value: String,
 
 func _draw_character_select_tag(rect: Rect2, text: String, fill: Color, accent: Color) -> void:
 	_draw_ranking_panel(rect, fill, Color("#dbeaf4"), 12, 1, false)
-	_draw_ranking_text(_short_pause_text(text, 13), rect.position + Vector2(0, 24), 16, accent, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(_short_pause_text(text, 13), rect.position + Vector2(0, rect.size.y * 0.68), 16, accent, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
-func _draw_character_select_weapon_line(rect: Rect2, view: Dictionary) -> void:
-	var icon: Texture2D = _load_equipment_icon(String(view.get("weaponIconPath", "")))
+func _draw_character_select_tag_row(rect: Rect2, tags: Array, accent: Color, max_count: int, text_size: int = 14, opaque: bool = false) -> void:
+	var x := rect.position.x
+	var y := rect.position.y
+	var shown := 0
+	for item in tags:
+		if shown >= max_count:
+			break
+		var tag := String(item)
+		if tag.strip_edges() == "":
+			continue
+		var width := clampf(float(tag.length()) * float(text_size) + 28.0, 78.0, rect.end.x - x)
+		if x + width > rect.end.x:
+			break
+		var tag_rect := Rect2(Vector2(x, y), Vector2(width, rect.size.y))
+		var tag_fill := Color(1.0, 1.0, 1.0, 1.0) if opaque else Color(accent.r, accent.g, accent.b, 0.10)
+		var tag_border := Color(accent.r, accent.g, accent.b, 0.56 if opaque else 0.34)
+		_draw_ranking_panel(tag_rect, tag_fill, tag_border, int(rect.size.y * 0.5), 1, false)
+		_draw_ranking_text(tag, tag_rect.position + Vector2(0, rect.size.y * 0.68), text_size, Color(accent.r * 0.75, accent.g * 0.75, accent.b * 0.75, 1.0), tag_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		x += width + 8.0
+		shown += 1
+
+func _draw_character_select_weapon_highlight(rect: Rect2, view: Dictionary, accent: Color, soft_fill: Color, overlay: bool = false) -> void:
+	var fill := Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.92) if overlay else Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.98)
+	var border := Color(accent.r, accent.g, accent.b, 0.48 if overlay else 0.42)
+	_draw_ranking_panel(rect, fill, border, 17, 2, false)
+	_draw_character_select_weapon_line(Rect2(rect.position + Vector2(18, 8), Vector2(rect.size.x - 36, 30)), view, "weaponName", "weaponIconPath", accent, "初期武器：")
+
+func _draw_character_select_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 15) -> void:
+	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.28), 16, 2, false)
+	_draw_ranking_text(title, rect.position + Vector2(18, 26), 15, accent, rect.size.x - 36)
+	_draw_multiline_text_item({"pos": rect.position + Vector2(18, 48), "text": text, "width": int(rect.size.x - 36), "size": text_size, "color": Color("#5d4658")})
+
+func _draw_character_select_weapon_line(rect: Rect2, view: Dictionary, name_key: String = "weaponName", icon_key: String = "weaponIconPath", accent: Color = Color("#e24e9a"), prefix: String = "") -> void:
+	var icon: Texture2D = _load_equipment_icon(String(view.get(icon_key, "")))
 	var text_x := rect.position.x
 	if icon != null:
-		var icon_rect := Rect2(rect.position, Vector2(30, 30))
+		var icon_size: float = minf(rect.size.y, 30.0)
+		var icon_rect := Rect2(rect.position, Vector2(icon_size, icon_size))
 		draw_texture_rect(icon, icon_rect, false)
-		text_x += 38.0
-	_draw_ranking_text(_short_pause_text(String(view.get("weaponName", "未設定")), 16), Vector2(text_x, rect.position.y + 23), 16, Color("#e24e9a"), rect.end.x - text_x)
+		text_x += icon_size + 8.0
+	_draw_ranking_text(_short_pause_text("%s%s" % [prefix, String(view.get(name_key, "未設定"))], 22), Vector2(text_x, rect.position.y + 23), 16, accent, rect.end.x - text_x)
 
 func _draw_selection_overlay(data: Dictionary, selected_index: int, card_kind: String) -> void:
 	var panel: Rect2 = data["panel"] as Rect2
@@ -4121,19 +5834,28 @@ func _draw_game_over_intro_overlay() -> void:
 	var progress := clampf((duration - game_over_intro_timer) / duration, 0.0, 1.0)
 	var is_completed := pending_game_over_end_type == "completed"
 	var clock := float(Time.get_ticks_msec()) / 1000.0
+	var completed_has_cutin := is_completed and _stream_complete_cutin_image_path() != ""
 	if is_completed:
 		draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.96, 0.99, lerpf(0.24, 0.46, progress)), true)
 		draw_rect(TITLE_SCREEN_RECT, Color(0.58, 0.92, 1.0, 0.12 + sin(clock * 5.0) * 0.03), true)
+		_draw_stream_complete_cutin_fx(clock, progress)
 	else:
 		var dim_alpha := lerpf(0.32, 0.58, progress)
 		draw_rect(TITLE_SCREEN_RECT, Color(0.06, 0.02, 0.07, dim_alpha), true)
 		for i in range(12):
 			var y := fmod(clock * 130.0 + float(i) * 77.0, TITLE_SCREEN_RECT.size.y)
 			draw_line(Vector2(0, y), Vector2(TITLE_SCREEN_RECT.size.x, y), Color(0.9, 0.05, 0.35, 0.08), 2.0)
+		var flash := _mental_breakdown_impact_ratio(MENTAL_BREAKDOWN_FLASH_DURATION)
+		if flash > 0.0:
+			draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.08, 0.32, 0.25 * flash), true)
 	var pulse := 1.0 + sin(clock * 7.5) * 0.018
-	var panel := Rect2(430, 244, 740, 318).grow((pulse - 1.0) * 64.0)
+	var completed_panel_base := Rect2(276, 238, 706, 360) if completed_has_cutin else Rect2(447, 238, 706, 360)
+	var panel_base := completed_panel_base if is_completed else Rect2(342, 232, 640, 360)
+	var panel := panel_base.grow((pulse - 1.0) * 64.0)
 	var panel_border := Color("#ffd46a") if is_completed else Color("#ff7db7")
 	var panel_fill := Color(1.0, 0.995, 0.985, 0.97) if is_completed else Color(1.0, 0.972, 0.994, 0.96)
+	if not is_completed:
+		_draw_mental_breakdown_accident_label(panel)
 	_draw_ranking_panel(panel, panel_fill, panel_border, 34, 4, true)
 	var inner_color := Color(1.0, 0.90, 0.35, 0.14) if is_completed else Color(1.0, 0.46, 0.72, 0.10)
 	draw_rect(panel.grow(-14.0), inner_color, false, 3.0)
@@ -4153,24 +5875,206 @@ func _draw_game_over_intro_overlay() -> void:
 	var main_text := "配信完走！" if is_completed else "メンタル崩壊"
 	var sub_text := "最後まで乗り切った！" if is_completed else "配信は続けられなかった……"
 	var main_color := Color("#ff9f1c") if is_completed else Color("#f04893")
+	var main_y := 118.0 if is_completed else 148.0
+	var sub_y := 176.0 if is_completed else 210.0
+	var reason_y := 218.0 if is_completed else 256.0
+	var bar_y := 306.0 if is_completed else 314.0
+	var skip_y := 340.0 if is_completed else 348.0
 	_draw_ranking_text(icon_text, panel.position + Vector2(63, 101), 28, main_color, 40, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(main_text, panel.position + Vector2(0, 126), 58, main_color, panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(sub_text, panel.position + Vector2(0, 186), 25, Color("#6b4a63"), panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(main_text, panel.position + Vector2(0, main_y), 58, main_color, panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(sub_text, panel.position + Vector2(0, sub_y), 25, Color("#6b4a63"), panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	if not is_completed:
+		_draw_mental_breakdown_cutin_status(panel, clock)
 	var reason_text := pending_game_over_reason.strip_edges()
 	if reason_text != "":
-		_draw_ranking_text(reason_text, panel.position + Vector2(72, 228), 18, Color("#554155"), panel.size.x - 144.0, HORIZONTAL_ALIGNMENT_CENTER)
-	var bar_back := Rect2(panel.position + Vector2(170, 270), Vector2(400, 14))
+		var reason_width := panel.size.x - 144.0 if is_completed else 380.0
+		_draw_ranking_text(reason_text, panel.position + Vector2(72, reason_y), 18, Color("#554155"), reason_width, HORIZONTAL_ALIGNMENT_CENTER)
+	if is_completed:
+		_draw_stream_complete_cutin_stats(panel, clock)
+		_draw_stream_complete_comment_bubbles(panel, clock, progress)
+	if not is_completed:
+		_draw_mental_breakdown_cutin_character(progress, clock)
+	else:
+		_draw_stream_complete_cutin_character(progress, clock)
+	var bar_pos := panel.position + (Vector2(170, bar_y) if is_completed else Vector2(118, bar_y))
+	var bar_size := Vector2(400, 14) if is_completed else Vector2(330, 14)
+	var bar_back := Rect2(bar_pos, bar_size)
 	_draw_ranking_panel(bar_back.grow(5.0), Color("#fff9fd"), Color("#f2c8de"), 10, 2, false)
 	draw_rect(Rect2(bar_back.position, Vector2(bar_back.size.x * progress, bar_back.size.y)), Color("#ffd15c") if is_completed else Color("#ff5aa5"), true)
 	if _game_over_intro_can_skip():
-		_draw_ranking_text("Enter / Space / Clickでスキップ", panel.position + Vector2(0, 302), 15, Color("#7b6475"), panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var skip_pos := panel.position + (Vector2(0, skip_y) if is_completed else Vector2(28, skip_y))
+		var skip_width := panel.size.x if is_completed else 500.0
+		_draw_ranking_text("Enter / Space / Clickでスキップ", skip_pos, 15, Color("#7b6475"), skip_width, HORIZONTAL_ALIGNMENT_CENTER)
+	if not is_completed:
+		_draw_mental_breakdown_noise_lines(clock, progress)
+
+func _draw_stream_complete_cutin_fx(clock: float, progress: float) -> void:
+	var alpha := clampf(progress * 1.8, 0.0, 1.0)
+	var colors := [
+		Color(1.0, 0.45, 0.72, 0.36 * alpha),
+		Color(1.0, 0.86, 0.25, 0.32 * alpha),
+		Color(0.52, 0.90, 1.0, 0.28 * alpha),
+		Color(1.0, 1.0, 1.0, 0.34 * alpha)
+	]
+	for i in range(30):
+		var angle := clock * 0.72 + float(i) * 0.81
+		var x := 70.0 + fmod(float(i) * 137.0 + sin(clock * 1.1 + float(i)) * 52.0, 1460.0)
+		var y := 124.0 + fmod(float(i) * 59.0 - clock * 28.0, 610.0)
+		var color: Color = colors[i % colors.size()] as Color
+		if i % 4 == 0:
+			_draw_stream_start_sparkle(Vector2(x, y), 5.0 + float(i % 3) * 2.0, color)
+		else:
+			var size := 8.0 + float(i % 5) * 2.0
+			draw_line(Vector2(x, y), Vector2(x + cos(angle) * size, y + sin(angle) * size * 0.55), color, 3.0, true)
+	for i in range(8):
+		var symbol := "★" if i % 2 == 0 else "♥"
+		var pos := Vector2(120.0 + float(i) * 178.0, 168.0 + sin(clock * 2.2 + float(i)) * 20.0)
+		var text_color := Color(1.0, 0.35, 0.68, 0.30 * alpha) if symbol == "♥" else Color(1.0, 0.78, 0.14, 0.36 * alpha)
+		_draw_ranking_text(symbol, pos, 28, text_color, 42, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_complete_cutin_stats(panel: Rect2, clock: float) -> void:
+	var max_viewers := score
+	if relay_mode:
+		max_viewers = maxi(max_viewers, relay_max_score)
+	var stat_rect := Rect2(panel.position + Vector2(76, 246), Vector2(438, 48))
+	var glow := 0.07 + sin(clock * 5.0) * 0.025
+	_draw_ranking_panel(stat_rect, Color(1.0, 0.98, 0.92, 0.90), Color("#ffd86c"), 18, 2, false)
+	draw_rect(stat_rect.grow(-4.0), Color(1.0, 0.56, 0.74, glow), false, 2.0)
+	_draw_ranking_text("最大同時視聴者数", stat_rect.position + Vector2(22, 30), 16, Color("#9a5b3b"), 162)
+	_draw_ranking_text("%s人" % _result_number(max_viewers), stat_rect.position + Vector2(184, 34), 25, Color("#ff5a9d"), 170, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("神回！", stat_rect.position + Vector2(354, 31), 18, Color("#8c5be8"), 70, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_complete_comment_bubbles(panel: Rect2, clock: float, progress: float) -> void:
+	var alpha := clampf(progress * 2.2, 0.0, 1.0)
+	var comments: Array[String] = ["完走おめ！", "神回だった", "888888"]
+	for i in range(comments.size()):
+		var rect := Rect2(panel.position + Vector2(26.0 + float(i) * 220.0, -56.0 + sin(clock * 2.0 + float(i)) * 4.0), Vector2(184, 38))
+		var fill := Color(1.0, 0.985, 1.0, 0.82 * alpha)
+		var border := Color(1.0, 0.48, 0.74, 0.68 * alpha)
+		if i == 2:
+			border = Color(1.0, 0.78, 0.22, 0.70 * alpha)
+		_draw_ranking_panel(rect, fill, border, 18, 2, true)
+		_draw_ranking_text(comments[i], rect.position + Vector2(0, 27), 18, Color(0.55, 0.25, 0.50, 0.92 * alpha), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_complete_cutin_character(progress: float, clock: float) -> void:
+	var image_path := _stream_complete_cutin_image_path()
+	if image_path == "":
+		return
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, image_path)
+	if texture == null:
+		return
+	var appear := clampf(_game_over_intro_elapsed() / 0.28, 0.0, 1.0)
+	var eased := appear * appear * (3.0 - 2.0 * appear)
+	var scale := lerpf(0.94, 1.0, eased) + sin(clock * 3.8) * 0.006
+	var base_rect := _stream_complete_cutin_rect()
+	var size := base_rect.size * scale
+	var bob := Vector2(0, sin(clock * 4.2) * 5.0)
+	var pos := base_rect.position + (base_rect.size - size) * 0.5 + Vector2(0, (1.0 - eased) * 30.0) + bob
+	draw_texture_rect(texture, Rect2(pos, size), false, Color(1, 1, 1, clampf(progress * 5.0, 0.0, 1.0)))
+
+func _stream_complete_cutin_image_path() -> String:
+	return _stream_complete_result_image_path(_stream_complete_cutin_character_id())
+
+func _stream_complete_cutin_rect() -> Rect2:
+	var character_id := _stream_complete_cutin_character_id()
+	if character_id == "superchat_chan" or character_id == "supana":
+		return Rect2(Vector2(806, 112), Vector2(546, 632))
+	if character_id == "maro_chan" or character_id == "maron":
+		return Rect2(Vector2(800, 96), Vector2(670, 632))
+	return Rect2(Vector2(848, 112), Vector2(520, 632))
+
+func _stream_complete_cutin_character_id() -> String:
+	var character_id := current_character_id
+	if character_id == "":
+		character_id = String(current_character.get("id", ""))
+	return character_id
+
+func _draw_mental_breakdown_accident_label(panel: Rect2) -> void:
+	var label_rect := Rect2(panel.position + Vector2(100, -48), Vector2(362, 42))
+	_draw_ranking_panel(label_rect, Color("#f2308b"), Color("#fff5fb"), 18, 2, false)
+	_draw_ranking_text("配信事故発生", label_rect.position + Vector2(0, 30), 27, Color.WHITE, label_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_mental_breakdown_cutin_character(progress: float, clock: float) -> void:
+	var image_path := _mental_breakdown_cutin_image_path()
+	if image_path == "":
+		return
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, image_path)
+	if texture == null:
+		return
+	var appear := clampf(_game_over_intro_elapsed() / 0.24, 0.0, 1.0)
+	var eased := appear * appear * (3.0 - 2.0 * appear)
+	var scale := lerpf(0.95, 1.0, eased)
+	var base_rect := _mental_breakdown_cutin_rect()
+	var shake_strength := 2.0 * _mental_breakdown_impact_ratio(MENTAL_BREAKDOWN_REACTION_DURATION)
+	var jitter := Vector2(sin(clock * 46.0), cos(clock * 51.0)) * shake_strength
+	var size := base_rect.size * scale
+	var pos := base_rect.position + (base_rect.size - size) * 0.5 + Vector2(0, (1.0 - eased) * 34.0) + jitter
+	draw_texture_rect(texture, Rect2(pos, size), false, Color(1, 1, 1, clampf(progress * 5.0, 0.0, 1.0)))
+
+func _mental_breakdown_cutin_image_path() -> String:
+	var character_id := current_character_id
+	if character_id == "":
+		character_id = String(current_character.get("id", ""))
+	if character_id == "ban_chan" or character_id == "banri":
+		return MENTAL_BREAKDOWN_INTRO_BANRI_IMAGE
+	if character_id == "superchat_chan" or character_id == "supana":
+		return MENTAL_BREAKDOWN_INTRO_SUPANA_IMAGE
+	if character_id == "maro_chan" or character_id == "maron":
+		return MENTAL_BREAKDOWN_INTRO_MARON_IMAGE
+	return ""
+
+func _mental_breakdown_cutin_rect() -> Rect2:
+	var character_id := current_character_id
+	if character_id == "":
+		character_id = String(current_character.get("id", ""))
+	if character_id == "superchat_chan" or character_id == "supana":
+		return Rect2(Vector2(820, 232), Vector2(486, 562))
+	if character_id == "maro_chan" or character_id == "maron":
+		return Rect2(Vector2(820, 226), Vector2(558, 562))
+	return Rect2(Vector2(872, 232), Vector2(450, 562))
+
+func _draw_mental_breakdown_noise_lines(clock: float, progress: float) -> void:
+	var alpha_base := 0.10 + 0.16 * clampf(progress * 2.0, 0.0, 1.0)
+	var colors := [
+		Color(1.0, 1.0, 1.0, alpha_base),
+		Color(1.0, 0.18, 0.55, alpha_base * 0.85),
+		Color(0.45, 0.95, 1.0, alpha_base * 0.75)
+	]
+	for i in range(18):
+		var y := 166.0 + fmod(clock * 92.0 + float(i) * 43.0, 610.0)
+		var x := fmod(float(i) * 173.0 + sin(clock * 1.7 + float(i)) * 84.0, 1420.0)
+		var length := 110.0 + float((i * 37) % 260)
+		var thickness := 1.0 + float(i % 3) * 0.55
+		var color: Color = colors[i % colors.size()] as Color
+		draw_line(Vector2(x, y), Vector2(minf(TITLE_SCREEN_RECT.size.x, x + length), y), color, thickness, true)
+		if i % 5 == 0:
+			draw_line(Vector2(maxf(0.0, x - 70.0), y + 8.0), Vector2(x + length * 0.42, y + 8.0), Color(1.0, 1.0, 1.0, alpha_base * 0.55), 1.0, true)
+
+func _draw_mental_breakdown_cutin_status(panel: Rect2, clock: float) -> void:
+	var gauge := Rect2(panel.position + Vector2(112, 52), Vector2(150, 44))
+	_draw_ranking_panel(gauge, Color("#fff2f8"), Color("#ff74aa"), 16, 2, false)
+	_draw_ranking_text("メンタル 0/%d" % player_max_hp, gauge.position + Vector2(0, 29), 18, Color("#f04893"), gauge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var icon_center := panel.position + Vector2(82, 86)
+	var crack_alpha := 0.72 + sin(clock * 12.0) * 0.18
+	draw_line(icon_center + Vector2(-12, -16), icon_center + Vector2(-2, -4), Color(1, 1, 1, crack_alpha), 3.0)
+	draw_line(icon_center + Vector2(-2, -4), icon_center + Vector2(-8, 7), Color(1, 1, 1, crack_alpha), 3.0)
+	draw_line(icon_center + Vector2(-8, 7), icon_center + Vector2(8, 19), Color(1, 1, 1, crack_alpha), 3.0)
+	if pending_game_over_reason.strip_edges() == "":
+		var note := Rect2(panel.position + Vector2(238, 210), Vector2(264, 34))
+		_draw_ranking_panel(note, Color(1.0, 0.92, 0.97, 0.92), Color("#ffc1da"), 14, 1, false)
+		_draw_ranking_text("コメント欄がざわついている…", note.position + Vector2(0, 24), 16, Color("#9b4774"), note.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_stream_frame_select_header(rect: Rect2) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.95), Color("#ead7e9"), 22, 2, true)
-	draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
-	_draw_ranking_text("枠", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
+	var header_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, STREAM_FRAME_SELECT_HEADER_ICON)
+	if header_icon != null:
+		var icon_rect := Rect2(rect.position + Vector2(14, 16), Vector2(66, 40))
+		draw_texture_rect(header_icon, _fit_texture_rect(icon_rect, header_icon.get_size()), false, Color(1, 1, 1, 0.98))
+	else:
+		draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
+		_draw_ranking_text("枠", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("今日の配信枠を選択", rect.position + Vector2(88, 47), 34, Color("#4f3149"), 520)
-	_draw_ranking_text("← →：選択 / A D：ページ / Enter Space：決定 / Esc：戻る", rect.position + Vector2(682, 45), 20, Color("#6b4a63"), 710, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("←→：選択　A/D：ページ　Enter：決定　Esc：戻る", rect.position + Vector2(682, 45), 20, Color("#6b4a63"), 710, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_stream_frame_select_list_panel(panel: Rect2, frames: Array, page: int) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
@@ -4189,7 +6093,10 @@ func _draw_stream_frame_select_card(rect: Rect2, frame: Dictionary, index: int) 
 	var selected: bool = index == selected_stream_frame_index
 	var selectable: bool = bool(view.get("isSelectable", true))
 	var accent: Color = view.get("accent", Color("#f05aa5")) as Color
-	var border: Color = Color("#ff62b5") if selected else Color(accent.r, accent.g, accent.b, 0.34)
+	var status_fill: Color = view.get("statusFill", Color("#fff2fa")) as Color
+	var status_text_color: Color = view.get("statusTextColor", accent) as Color
+	var status_border: Color = view.get("statusBorder", accent) as Color
+	var border: Color = Color("#ff4aa2") if selected else Color(accent.r, accent.g, accent.b, 0.34)
 	var fill: Color = Color(1, 1, 1, 0.98)
 	var text_color := Color("#4f3149")
 	if not selectable:
@@ -4197,15 +6104,21 @@ func _draw_stream_frame_select_card(rect: Rect2, frame: Dictionary, index: int) 
 		fill = Color("#f4f0f5")
 		text_color = Color("#7f7480")
 	if selected:
-		_draw_ranking_panel(rect.grow(6), Color(accent.r, accent.g, accent.b, 0.18), Color(1, 1, 1, 0), 22, 0, false)
-	_draw_ranking_panel(rect, fill, border, 20, 4 if selected else 2, false)
-	_draw_stream_frame_select_icon(Rect2(rect.position + Vector2(66, 38), Vector2(132, 84)), view, accent, not selectable)
-	_draw_ranking_text("%d. %s" % [index + 1, _short_pause_text(String(view.get("plainName", "配信枠")), 9)], rect.position + Vector2(20, 154), 24, text_color if selectable else Color("#8f8793"), rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(String(view.get("difficultyText", "難易度：★")), rect.position + Vector2(20, 184), 17, accent if selectable else Color("#8f8793"), rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_tag(Rect2(rect.position + Vector2(18, 210), Vector2(rect.size.x - 36, 32)), String(view.get("statusText", "解放済み")), Color("#fff2fa") if selectable else Color("#eee9ef"), accent if selectable else Color("#8f8793"))
-	_draw_ranking_text(_short_pause_text(String(view.get("featureText", "")), 20), rect.position + Vector2(18, 264), 14, Color("#5d4658") if selectable else Color("#8f8793"), rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
+		fill = Color("#fff2fa") if selectable else Color("#f4eff7")
+		_draw_ranking_panel(rect.grow(8), Color(accent.r, accent.g, accent.b, 0.22), Color(1, 1, 1, 0), 24, 0, false)
+		_draw_ranking_panel(rect.grow(3), Color(1, 1, 1, 0), Color(accent.r, accent.g, accent.b, 0.42), 22, 2, false)
+	_draw_ranking_panel(rect, fill, border, 20, 5 if selected else 2, false)
+	_draw_stream_frame_select_icon(Rect2(rect.position + Vector2(66, 34), Vector2(132, 92)), view, accent, not selectable)
+	_draw_ranking_text("%d. %s" % [index + 1, _short_pause_text(String(view.get("plainName", "配信枠")), 9)], rect.position + Vector2(20, 150), 24, text_color if selectable else Color("#8f8793"), rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(String(view.get("difficultyText", "難易度：★")), rect.position + Vector2(20, 180), 17, accent if selectable else Color("#8f8793"), rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
+	var badge_rect := Rect2(rect.position + Vector2(52, 207), Vector2(rect.size.x - 104, 32))
+	_draw_character_select_tag(badge_rect, String(view.get("statusText", "解放済み")), status_fill, status_text_color)
+	_draw_rect_outline(badge_rect, status_border, 1)
+	_draw_ranking_text(_short_pause_text(String(view.get("featureText", "")), 20), rect.position + Vector2(18, 260), 14, Color("#5d4658") if selectable else Color("#8f8793"), rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
 	if selected:
-		_draw_ranking_text("★", rect.position + Vector2(rect.size.x - 36, 33), 22, Color("#ffd15c"), 28, HORIZONTAL_ALIGNMENT_CENTER)
+		var selected_rect := Rect2(rect.position + Vector2(rect.size.x - 92, 14), Vector2(74, 26))
+		_draw_ranking_panel(selected_rect, Color("#ff6fb7"), Color("#ff3d98"), 13, 1, false)
+		_draw_ranking_text("★ 選択中", selected_rect.position + Vector2(4, 19), 13, Color.WHITE, selected_rect.size.x - 8, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_stream_frame_select_coming_card(rect: Rect2) -> void:
 	_draw_ranking_panel(rect, Color("#fbf8fc"), Color("#e0d7e2"), 20, 2, false)
@@ -4216,7 +6129,7 @@ func _draw_stream_frame_select_coming_card(rect: Rect2) -> void:
 
 func _draw_stream_frame_select_detail_panel(panel: Rect2, frames: Array) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
-	_draw_ranking_text("選択中の配信枠", panel.position + Vector2(30, 46), 28, Color("#ff5aa5"), panel.size.x - 60)
+	_draw_ranking_text("選択中の配信枠", panel.position + Vector2(30, 44), 26, Color("#ff5aa5"), panel.size.x - 60)
 	if frames.is_empty():
 		_draw_ranking_text("配信枠データがありません。", panel.position + Vector2(30, 300), 22, Color("#6b4a63"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
 		return
@@ -4224,22 +6137,27 @@ func _draw_stream_frame_select_detail_panel(panel: Rect2, frames: Array) -> void
 	var frame: Dictionary = frames[index] as Dictionary
 	var view: Dictionary = StreamFrameSystemScript.selection_card_view(frame)
 	var accent: Color = view.get("accent", Color("#f05aa5")) as Color
+	var accent2: Color = view.get("accent2", accent) as Color
 	var selectable: bool = bool(view.get("isSelectable", true))
-	_draw_stream_frame_select_icon(Rect2(panel.position + Vector2(152, 78), Vector2(238, 156)), view, accent, not selectable, true)
-	_draw_ranking_text(String(view.get("plainName", "配信枠")), panel.position + Vector2(30, 274), 34, accent if selectable else Color("#7f7480"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 326), Vector2(232, 58)), "難易度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 326), Vector2(232, 58)), "状態", String(view.get("statusText", "解放済み")), Color("#f3ecff"), accent)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 398), Vector2(panel.size.x - 56, 58)), "特徴", String(view.get("featureText", "")), Color("#e8f7ff"), Color("#4d8ab5"))
-	var desc_rect := Rect2(panel.position + Vector2(28, 470), Vector2(panel.size.x - 56, 124))
-	_draw_ranking_panel(desc_rect, Color(1, 1, 1, 0.98), Color("#efd5e7"), 16, 2, false)
-	_draw_ranking_text("説明", desc_rect.position + Vector2(18, 30), 17, Color("#b1509c"), desc_rect.size.x - 36)
-	_draw_multiline_text_item({"pos": desc_rect.position + Vector2(18, 62), "text": String(view.get("description", "")), "width": int(desc_rect.size.x - 36), "size": 17, "color": Color("#5d4658")})
-	var note_rect := Rect2(panel.position + Vector2(28, 610), Vector2(panel.size.x - 56, 90))
-	_draw_ranking_panel(note_rect, Color("#fff8fc"), Color("#efd5e7"), 16, 2, false)
-	var note_title := "おすすめ" if selectable else "解放条件"
-	var note_text := String(view.get("recommendText", "")) if selectable else String(view.get("unlockConditionText", ""))
-	_draw_ranking_text(note_title, note_rect.position + Vector2(18, 30), 17, Color("#b1509c"), note_rect.size.x - 36)
-	_draw_multiline_text_item({"pos": note_rect.position + Vector2(18, 58), "text": note_text, "width": int(note_rect.size.x - 36), "size": 16, "color": Color("#5d4658")})
+	_draw_stream_frame_select_icon(Rect2(panel.position + Vector2(164, 70), Vector2(214, 142)), view, accent, not selectable, true)
+	_draw_ranking_text(String(view.get("plainName", "配信枠")), panel.position + Vector2(30, 252), 32, accent if selectable else Color("#7f7480"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 298), Vector2(232, 54)), "難易度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 298), Vector2(232, 54)), "状態", String(view.get("statusText", "解放済み")), Color("#f3ecff"), accent2)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 366), Vector2(panel.size.x - 56, 54)), "特徴", String(view.get("featureText", "")), Color("#e8f7ff"), Color("#4d8ab5"))
+	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 436), Vector2(panel.size.x - 56, 72)), "主なギミック", String(view.get("mainGimmickText", "")), accent, Color("#fff8fc"), 16)
+	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 522), Vector2(panel.size.x - 56, 92)), "説明", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 16)
+	var note_title := "おすすめ" if selectable else "理由"
+	var note_text := String(view.get("recommendText", "")) if selectable else String(view.get("disabledReason", "この配信枠はまだ選択できません。"))
+	if not selectable and String(view.get("statusId", "")) == "locked":
+		note_title = "解放条件"
+		note_text = String(view.get("unlockConditionText", note_text))
+	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 628), Vector2(panel.size.x - 56, 76)), note_title, note_text, accent2, Color("#fff8fc"), 15)
+
+
+func _draw_stream_frame_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 16) -> void:
+	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.28), 16, 2, false)
+	_draw_ranking_text(title, rect.position + Vector2(18, 28), 16, accent, rect.size.x - 36)
+	_draw_multiline_text_item({"pos": rect.position + Vector2(18, 52), "text": text, "width": int(rect.size.x - 36), "size": text_size, "color": Color("#5d4658")})
 
 func _draw_stream_frame_select_footer(layout: Dictionary, frames: Array, page: int, page_count: int) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
@@ -4259,9 +6177,79 @@ func _draw_stream_frame_select_icon(rect: Rect2, view: Dictionary, accent: Color
 	var icon_color: Color = Color("#8f8793") if muted else accent
 	draw_circle(center, radius, Color(icon_color.r, icon_color.g, icon_color.b, 0.14))
 	draw_circle(center, radius, Color(icon_color.r, icon_color.g, icon_color.b, 0.38), false, 3.0)
-	var text_size := 24 if large else 18
-	var width := radius * 2.0
-	_draw_ranking_text(String(view.get("iconText", "LIVE")), center + Vector2(-radius, 8.0), text_size, icon_color, width, HORIZONTAL_ALIGNMENT_CENTER)
+	var icon_path := String(view.get("iconPath", ""))
+	if not icon_path.is_empty():
+		var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+		if texture != null:
+			var texture_rect := _fit_texture_rect(rect.grow(-8), texture.get_size())
+			var modulate := Color(1, 1, 1, 0.5) if muted else Color.WHITE
+			draw_texture_rect(texture, texture_rect, false, modulate)
+			return
+	_draw_stream_frame_symbol_icon(center, radius, String(view.get("iconId", "")), icon_color, muted)
+
+
+func _draw_stream_frame_symbol_icon(center: Vector2, radius: float, icon_id: String, color: Color, muted: bool) -> void:
+	var alpha := 0.58 if muted else 1.0
+	var main := Color(color.r, color.g, color.b, alpha)
+	var soft := Color(color.r, color.g, color.b, 0.18 if muted else 0.26)
+	var white := Color(1, 1, 1, 0.78 if muted else 0.92)
+	var line_width := maxf(2.0, radius * 0.08)
+	if icon_id.contains("zatsudan"):
+		draw_circle(center + Vector2(0, -6), radius * 0.44, soft)
+		draw_circle(center + Vector2(0, -6), radius * 0.44, main, false, line_width)
+		draw_colored_polygon(PackedVector2Array([center + Vector2(-12, radius * 0.28), center + Vector2(0, radius * 0.56), center + Vector2(12, radius * 0.28)]), main)
+		for offset in [-16.0, 0.0, 16.0]:
+			draw_circle(center + Vector2(offset, -6), radius * 0.08, white)
+	elif icon_id.contains("gameplay"):
+		var body := Rect2(center + Vector2(-radius * 0.5, -radius * 0.22), Vector2(radius, radius * 0.48))
+		_draw_ranking_panel(body, soft, main, int(radius * 0.18), int(line_width), false)
+		draw_circle(center + Vector2(-radius * 0.24, 2), radius * 0.09, white)
+		draw_line(center + Vector2(-radius * 0.35, 2), center + Vector2(-radius * 0.13, 2), main, line_width * 0.7)
+		draw_line(center + Vector2(-radius * 0.24, -radius * 0.1), center + Vector2(-radius * 0.24, radius * 0.12), main, line_width * 0.7)
+		draw_circle(center + Vector2(radius * 0.22, -radius * 0.06), radius * 0.08, white)
+		draw_circle(center + Vector2(radius * 0.34, radius * 0.08), radius * 0.08, white)
+	elif icon_id.contains("singing"):
+		draw_circle(center + Vector2(0, -radius * 0.2), radius * 0.24, soft)
+		draw_circle(center + Vector2(0, -radius * 0.2), radius * 0.24, main, false, line_width)
+		draw_line(center + Vector2(radius * 0.14, -radius * 0.02), center + Vector2(radius * 0.32, radius * 0.42), main, line_width)
+		draw_line(center + Vector2(radius * 0.2, radius * 0.42), center + Vector2(radius * 0.44, radius * 0.42), main, line_width)
+		draw_arc(center + Vector2(-radius * 0.16, -radius * 0.05), radius * 0.56, -1.35, -0.75, 12, white, line_width * 0.65)
+	elif icon_id.contains("drawing"):
+		draw_line(center + Vector2(-radius * 0.34, radius * 0.28), center + Vector2(radius * 0.32, -radius * 0.34), main, line_width * 1.4)
+		draw_line(center + Vector2(-radius * 0.22, radius * 0.4), center + Vector2(radius * 0.44, -radius * 0.22), white, line_width * 0.65)
+		draw_colored_polygon(PackedVector2Array([center + Vector2(radius * 0.32, -radius * 0.34), center + Vector2(radius * 0.52, -radius * 0.52), center + Vector2(radius * 0.48, -radius * 0.18)]), main)
+		draw_arc(center + Vector2(-radius * 0.16, radius * 0.36), radius * 0.28, 2.9, 6.0, 18, main, line_width * 0.65)
+	elif icon_id.contains("collab"):
+		draw_circle(center + Vector2(-radius * 0.18, -radius * 0.16), radius * 0.17, soft)
+		draw_circle(center + Vector2(radius * 0.18, -radius * 0.16), radius * 0.17, soft)
+		draw_circle(center + Vector2(-radius * 0.18, -radius * 0.16), radius * 0.17, main, false, line_width * 0.65)
+		draw_circle(center + Vector2(radius * 0.18, -radius * 0.16), radius * 0.17, main, false, line_width * 0.65)
+		draw_line(center + Vector2(-radius * 0.3, radius * 0.22), center + Vector2(-radius * 0.05, radius * 0.04), main, line_width)
+		draw_line(center + Vector2(radius * 0.3, radius * 0.22), center + Vector2(radius * 0.05, radius * 0.04), main, line_width)
+		_draw_stream_frame_icon_heart(center + Vector2(0, radius * 0.16), radius * 0.18, Color("#ff7aa9") if not muted else main)
+	elif icon_id.contains("relay"):
+		draw_arc(center, radius * 0.48, 0.25, 2.85, 28, main, line_width)
+		draw_arc(center, radius * 0.48, 3.38, 6.0, 28, main, line_width)
+		draw_colored_polygon(PackedVector2Array([center + Vector2(-radius * 0.48, -radius * 0.06), center + Vector2(-radius * 0.2, -radius * 0.22), center + Vector2(-radius * 0.25, radius * 0.08)]), main)
+		draw_colored_polygon(PackedVector2Array([center + Vector2(radius * 0.48, radius * 0.06), center + Vector2(radius * 0.2, radius * 0.22), center + Vector2(radius * 0.25, -radius * 0.08)]), main)
+		_draw_stream_frame_icon_star(center, radius * 0.18, Color("#ffd15c") if not muted else main)
+	else:
+		_draw_stream_frame_icon_star(center, radius * 0.36, main)
+
+
+func _draw_stream_frame_icon_heart(center: Vector2, size: float, color: Color) -> void:
+	draw_circle(center + Vector2(-size * 0.35, -size * 0.2), size * 0.42, color)
+	draw_circle(center + Vector2(size * 0.35, -size * 0.2), size * 0.42, color)
+	draw_colored_polygon(PackedVector2Array([center + Vector2(-size * 0.8, -size * 0.05), center + Vector2(size * 0.8, -size * 0.05), center + Vector2(0, size * 0.86)]), color)
+
+
+func _draw_stream_frame_icon_star(center: Vector2, radius: float, color: Color) -> void:
+	var points := PackedVector2Array()
+	for i in range(10):
+		var angle := -PI * 0.5 + float(i) * PI / 5.0
+		var length := radius if i % 2 == 0 else radius * 0.48
+		points.append(center + Vector2(cos(angle), sin(angle)) * length)
+	draw_colored_polygon(points, color)
 
 func _draw_selection_card_frame(card: Rect2, selected: bool) -> Color:
 	var data: Dictionary = DrawDataSystemScript.selection_card_frame_data(card, selected)
@@ -4335,6 +6323,15 @@ func _gift_choice_card_rect(index: int) -> Rect2:
 
 func _comment_choice_card_rect(index: int) -> Rect2:
 	return Rect2(Vector2(326.0 + float(index) * 278.0, 322.0) + _comment_choice_drop_offset(), Vector2(265.0, 326.0))
+
+func _comment_choice_has_special_card() -> bool:
+	if offered_comments.size() <= 3:
+		return false
+	var comment: Dictionary = offered_comments[3] as Dictionary
+	return String(comment.get("id", "")) == "do_everything"
+
+func _comment_choice_special_card_rect() -> Rect2:
+	return Rect2(Vector2(326.0, 657.0) + _comment_choice_drop_offset(), Vector2(821.0, 70.0))
 
 func _draw_gift_choice_card_contents() -> void:
 	for i in range(mini(offered_gifts.size(), 3)):
@@ -4422,7 +6419,25 @@ func _draw_comment_choice_card_contents() -> void:
 		var gift_hype_on_select: int = int(view["giftHypeOnSelect"]) if view.has("giftHypeOnSelect") else 0
 		_draw_centered_card_text("倍率 x%.1f" % [multiplier], center_x, rect.position.y + 257.0, rect.size.x - 38.0, 26, metric_color)
 		_draw_centered_card_text("ギフト期待 +%d" % [gift_hype_on_select], center_x, rect.position.y + 289.0, rect.size.x - 38.0, 21, Color("#ffd46a"))
+	if _comment_choice_has_special_card():
+		var special_comment: Dictionary = offered_comments[3] as Dictionary
+		var special_heart: bool = 3 < heart_cards.size() and bool(heart_cards[3])
+		var special_view: Dictionary = CommentSystemScript.comment_view(special_comment, special_heart)
+		var special_rect: Rect2 = _comment_choice_special_card_rect()
+		if selected_card == 3:
+			_draw_comment_choice_cursor(special_rect, int(special_view.get("riskLevel", 5)))
+		_draw_do_everything_special_card(special_rect, special_view)
 	_draw_comment_choice_footer()
+
+func _draw_do_everything_special_card(rect: Rect2, view: Dictionary) -> void:
+	draw_rect(rect, Color(1.0, 0.92, 0.98, 0.97), true)
+	_draw_rect_outline(rect, Color("#ffe45c"), 4)
+	draw_rect(Rect2(rect.position, Vector2(166.0, rect.size.y)), Color("#ff4c9a"), true)
+	_draw_text_item({"pos": rect.position + Vector2(20.0, 42.0), "text": "[4] SPECIAL", "width": 140, "size": 23, "color": Color.WHITE})
+	var name: String = String(view.get("displayName", "SPECIAL"))
+	_draw_text_item({"pos": rect.position + Vector2(188.0, 44.0), "text": name, "width": 230, "size": 31, "color": Color("#e73763")})
+	_draw_text_item({"pos": rect.position + Vector2(422.0, 40.0), "text": "上の3つを全部発動", "width": 210, "size": 22, "color": Color("#5b2a4c")})
+	_draw_text_item({"pos": rect.position + Vector2(638.0, 40.0), "text": "x%.1f / +%d" % [float(view.get("multiplier", 5.0)), int(view.get("giftHypeOnSelect", 70))], "width": 150, "size": 24, "color": Color("#ff8a36")})
 
 func _draw_comment_choice_cursor(rect: Rect2, risk: int) -> void:
 	var color: Color = Color("#8df7ff")
@@ -4484,6 +6499,8 @@ func _draw_comment_choice_alert_overlay() -> void:
 	draw_rect(panel_rect.grow(-13.0), Color(1.0, 0.12, 0.04, 0.05 + pulse * 0.20), false, 3.0)
 
 func _draw_comment_choice_footer() -> void:
+	if _comment_choice_has_special_card():
+		return
 	var footer_rect: Rect2 = Rect2(Vector2(530.0, 668.0) + _comment_choice_drop_offset(), Vector2(410.0, 32.0))
 	draw_rect(footer_rect.grow(-3.0), Color(0.0, 0.0, 0.0, 0.82))
 	var remain: float = maxf(0.0, choice_timer)

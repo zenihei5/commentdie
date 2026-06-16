@@ -170,10 +170,12 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var button_result: Dictionary = dash_button_result(context, input)
 	if dash_dir.length() < 0.1:
 		dash_dir = Vector2(button_result["dashDir"])
+	var dash_started := false
 	if dash_dir.length() >= 0.1 and can_dash(no_dash_power, dash_cd_value):
 		dash_dir = dash_dir.normalized()
 		player_vel += dash_dir * 760.0
 		dash_cd_value = float(context["dashCooldown"]) * dash_cooldown_rate(no_dash_power)
+		dash_started = true
 
 	var previous_pos: Vector2 = Vector2(context["playerPos"])
 	var player_pos: Vector2 = previous_pos + player_vel * delta
@@ -194,6 +196,7 @@ static func update_motion(context: Dictionary) -> Dictionary:
 		"dashUpDown": bool(tap_result["dashUpDown"]),
 		"dashDownDown": bool(tap_result["dashDownDown"]),
 		"dashEnterDown": bool(button_result["dashEnterDown"]),
+		"dashStarted": dash_started,
 		"invincible": invincible_value,
 		"stopTimer": stop_timer_value,
 		"stoppedDamage": stopped_damage,

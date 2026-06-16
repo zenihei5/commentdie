@@ -6,6 +6,9 @@ const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_s
 const SELECT_PAGE_SIZE := 6
 const SELECT_COLUMNS := 3
 
+static func selection_visible_count(character_count: int) -> int:
+	return maxi(SELECT_PAGE_SIZE, character_count)
+
 static func find_character(characters: Array, id: String) -> Dictionary:
 	for item in characters:
 		var character: Dictionary = item as Dictionary
@@ -62,7 +65,8 @@ static func selected_character_state_by_index(characters: Array, index: int) -> 
 	}
 
 static func update_selection_action(latch: Dictionary, characters: Array, current_index: int) -> Dictionary:
-	var action: Dictionary = ChoiceCardSystem.character_grid_selection_action(latch, current_index, characters.size(), SELECT_PAGE_SIZE, SELECT_COLUMNS, 3)
+	var visible_count: int = selection_visible_count(characters.size())
+	var action: Dictionary = ChoiceCardSystem.character_grid_selection_action(latch, current_index, visible_count, SELECT_PAGE_SIZE, SELECT_COLUMNS, 6)
 	if ChoiceCardSystem.is_escape(action):
 		return {"kind": "escape", "index": current_index}
 	if ChoiceCardSystem.is_move(action):
@@ -70,8 +74,8 @@ static func update_selection_action(latch: Dictionary, characters: Array, curren
 	if ChoiceCardSystem.is_select(action):
 		var selected: Dictionary = selected_character_state_by_index(characters, int(action["index"]))
 		if selected.is_empty():
-			return {"kind": "", "index": current_index}
-		if not is_unlocked(selected["character"] as Dictionary):
+			return {"kind": "locked", "index": int(action["index"])}
+		if not is_selectable(selected["character"] as Dictionary):
 			return {"kind": "locked", "index": int(action["index"])}
 		return {
 			"kind": "select",
@@ -105,41 +109,121 @@ static func start_selection_for_target(target: Node, choice_box: Control, result
 	return {"restart": false, "chat": "今日の配信者を選べ"}
 
 static func selection_page_count(character_count: int) -> int:
-	return maxi(1, int(ceil(float(maxi(1, character_count)) / float(SELECT_PAGE_SIZE))))
+	var count: int = selection_visible_count(character_count)
+	return maxi(1, int(ceil(float(maxi(1, count)) / float(SELECT_PAGE_SIZE))))
 
 static func selection_page_for_index(index: int, character_count: int) -> int:
 	var page_count: int = selection_page_count(character_count)
-	if character_count <= 0:
+	var count: int = selection_visible_count(character_count)
+	if count <= 0:
 		return 0
-	return clampi(int(clampi(index, 0, character_count - 1) / SELECT_PAGE_SIZE), 0, page_count - 1)
+	return clampi(int(clampi(index, 0, count - 1) / SELECT_PAGE_SIZE), 0, page_count - 1)
 
 static func selection_index_for_page(characters: Array, page: int, local_index: int = 0) -> int:
-	if characters.is_empty():
-		return 0
 	var page_count: int = selection_page_count(characters.size())
 	var clamped_page: int = clampi(page, 0, page_count - 1)
 	var start: int = clamped_page * SELECT_PAGE_SIZE
-	var end: int = mini(start + SELECT_PAGE_SIZE, characters.size())
+	var end: int = mini(start + SELECT_PAGE_SIZE, selection_visible_count(characters.size()))
 	return clampi(start + local_index, start, end - 1)
 
 static func is_unlocked(character: Dictionary) -> bool:
 	return bool(character.get("isUnlocked", true))
 
+static func status_id(character: Dictionary) -> String:
+	var explicit_status: String = String(character.get("status", "")).strip_edges()
+	if explicit_status != "":
+		return explicit_status
+	if not is_unlocked(character):
+		return "locked"
+	return "playable"
+
+static func is_selectable(character: Dictionary) -> bool:
+	var status: String = status_id(character)
+	return is_unlocked(character) and (status == "playable" or status == "selected" or status == "unlocked")
+
+static func status_text(character: Dictionary) -> String:
+	var status: String = status_id(character)
+	match status:
+		"coming_soon":
+			return "準備中"
+		"locked":
+			return "未開放"
+		"selected":
+			return "選択中"
+		_:
+			return "使用可能"
+
+static func theme_colors(character: Dictionary) -> Dictionary:
+	var theme: String = String(character.get("themeColor", ""))
+	var id: String = String(character.get("id", ""))
+	if theme == "yellow_orange" or id == "superchat_chan":
+		return {"accent": Color("#ffb238"), "accent2": Color("#ff7f4f"), "soft": Color("#fff4d8")}
+	if theme == "pink_mint" or id == "maro_chan":
+		return {"accent": Color("#ff7fbd"), "accent2": Color("#5ecfc0"), "soft": Color("#fff0f7")}
+	return {"accent": Color("#ff4f92"), "accent2": Color("#7a56c8"), "soft": Color("#fff2fa")}
+
+static func default_recommend_text(character_id: String) -> String:
+	if character_id == "superchat_chan":
+		return "遠くから敵を処理したい人向け。スパチャ弾で安全に戦える。"
+	if character_id == "maro_chan":
+		return "回収や安定感を重視したい人向け。コメントブーメランで周囲を守れる。"
+	return "初めて遊ぶ人向け。近距離で敵をまとめて処理しやすい。"
+
+static func default_specialty_text(character_id: String) -> String:
+	if character_id == "superchat_chan":
+		return "遠距離攻撃 / 弾数強化 / 火力型"
+	if character_id == "maro_chan":
+		return "周囲防御 / 回収補助 / 成長型"
+	return "近距離制圧 / 正面突破 / 安定型"
+
+static func default_card_tags(character_id: String) -> Array:
+	if character_id == "superchat_chan":
+		return ["#遠距離火力", "#安全圏"]
+	if character_id == "maro_chan":
+		return ["#回収補助", "#安定型"]
+	return ["#近距離制圧", "#初心者向け"]
+
+static func default_detail_tags(character_id: String) -> Array:
+	if character_id == "superchat_chan":
+		return ["#遠距離火力", "#安全圏", "#弾幕", "#火力型"]
+	if character_id == "maro_chan":
+		return ["#回収補助", "#周囲防御", "#安定型", "#成長型"]
+	return ["#近距離制圧", "#初心者向け", "#正面突破"]
+
 static func selection_card_view(character: Dictionary, weapons: Array) -> Dictionary:
 	var weapon_id: String = String(character.get("initialWeapon", "ban_hammer"))
 	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, fallback_weapon())
 	var passive_data: Dictionary = passive(character)
+	var character_id: String = String(character.get("id", "ban_chan"))
+	var colors: Dictionary = theme_colors(character)
+	var evolution: Dictionary = weapon.get("evolution", {}) as Dictionary
+	var evolved_weapon_id: String = String(character.get("evolvedWeaponId", evolution.get("evolvedWeaponId", "")))
+	var evolved_weapon: Dictionary = WeaponSystem.find_weapon(weapons, evolved_weapon_id, {})
+	var evolved_weapon_name: String = String(character.get("evolvedWeaponName", evolved_weapon.get("displayName", "")))
+	var evolved_icon_path: String = String(evolved_weapon.get("iconPath", weapon.get("iconPath", "")))
 	return {
 		"displayName": String(character.get("displayName", "配信者")),
 		"nickname": String(character.get("nickname", "")),
 		"roleName": String(character.get("roleName", "")),
 		"weaponName": String(weapon.get("displayName", "未設定")),
 		"weaponIconPath": String(weapon.get("iconPath", "")),
+		"evolvedWeaponName": evolved_weapon_name,
+		"evolvedWeaponIconPath": evolved_icon_path,
 		"passiveName": String(passive_data.get("displayName", "なし")),
 		"passiveDescription": String(passive_data.get("description", "")),
 		"description": String(character.get("description", "")),
+		"recommendText": String(character.get("recommendText", default_recommend_text(character_id))),
+		"specialtyText": String(character.get("specialtyText", default_specialty_text(character_id))),
+		"cardTags": character.get("cardTags", default_card_tags(character_id)) as Array,
+		"detailTags": character.get("detailTags", default_detail_tags(character_id)) as Array,
 		"spritePath": String(character.get("sprite", "")),
 		"isUnlocked": is_unlocked(character),
+		"isSelectable": is_selectable(character),
+		"statusId": status_id(character),
+		"statusText": status_text(character),
+		"accent": colors["accent"] as Color,
+		"accent2": colors["accent2"] as Color,
+		"softFill": colors["soft"] as Color,
 		"unlockConditionText": String(character.get("unlockConditionText", "？？？"))
 	}
 

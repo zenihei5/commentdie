@@ -169,6 +169,8 @@ static func start_run_for_target(target: Node, character: Dictionary, weapon: Di
 	(target.get("marshmallows") as Array).clear()
 	apply_score_state(target, score_state(int(initial["giftHype"])))
 	target.set("pending_gift_choices", 0)
+	target.set("gift_choice_delay_timer", 0.0)
+	target.set("do_everything_offer_count", 0)
 	apply_marshmallow_state(target, marshmallow_state())
 	target.set("player_weapons", EquipmentSystem.initial_weapons(String(weapon.get("id", "ban_hammer"))))
 	target.set("player_accessories", EquipmentSystem.empty_accessories())
@@ -341,6 +343,8 @@ static func clear_run_collections(target: Node) -> void:
 	(target.get("hit_fx") as Array).clear()
 	(target.get("active_effects") as Array).clear()
 	(target.get("active_effect_rates") as Dictionary).clear()
+	if target.get("active_sub_comment_ids") != null:
+		(target.get("active_sub_comment_ids") as Array).clear()
 	if target.get("destructibles") != null:
 		(target.get("destructibles") as Array).clear()
 	if target.get("drop_items") != null:

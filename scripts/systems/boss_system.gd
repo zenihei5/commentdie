@@ -10,6 +10,20 @@ const ATTACK_KUSO_MARO_BARRAGE := "kuso_maro_barrage"
 const ATTACK_STICKY_MARO_FLOOR := "sticky_maro_floor"
 const ATTACK_SUMMON_UNREAD_MARO := "summon_unread_maro"
 const BOSS_ATTACK_PRIORITY := [ATTACK_KUSO_MARO_BARRAGE, ATTACK_STICKY_MARO_FLOOR, ATTACK_SUMMON_UNREAD_MARO]
+const BOSS_DEFEAT_BANNER := "大荒れ鎮火！"
+const BOSS_DEFEAT_FX_LIFE := 1.65
+const BOSS_DEFEAT_GIFT_DELAY := 0.45
+const BOSS_DEFEAT_COMMON_CHATS: Array[String] = [
+	"ボス撃破きた！",
+	"神回",
+	"888888",
+	"これは切り抜き",
+	"よく倒した",
+	"大荒れ鎮火",
+	"ギフト投げろ",
+	"今の熱い",
+	"コメント欄も大盛り上がり"
+]
 
 static func default_boss_data() -> Dictionary:
 	return {
@@ -89,7 +103,8 @@ static func request_summon_for_target(target: Node, view: Dictionary, has_heart:
 	target.set("boss_reward_rate", float(params.get("bossRewardRate", reward_rate)))
 	return {
 		"chats": request_chats_for_boss(boss_id, warning_text),
-		"toasts": ["WARNING! %s接近中！" % boss_name]
+		"toasts": ["WARNING! %s接近中！" % boss_name],
+		"bossWarningStarted": true
 	}
 
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
@@ -133,6 +148,9 @@ static func merge_reaction_feedback(target: Dictionary, source: Dictionary) -> v
 		target["screenShakeDuration"] = float(source.get("screenShakeDuration", 0.0))
 	if float(source.get("hitStop", 0.0)) > float(target.get("hitStop", 0.0)):
 		target["hitStop"] = float(source.get("hitStop", 0.0))
+	if float(source.get("screenFlashDuration", 0.0)) > float(target.get("screenFlashDuration", 0.0)):
+		target["screenFlashDuration"] = float(source.get("screenFlashDuration", 0.0))
+		target["screenFlashColor"] = source.get("screenFlashColor", Color.WHITE)
 
 static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	if bool(target.get("boss_active")):
@@ -229,9 +247,11 @@ static func retreat_for_target(target: Node) -> Dictionary:
 static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionary:
 	if int(target.get("active_boss_uid")) != int(boss.get("uid", -2)):
 		return {"chat": ""}
+	var boss_id: String = String(boss.get("bossId", boss.get("kind", "")))
 	var boss_name: String = String(boss.get("displayName", target.get("boss_last_name")))
 	if boss_name == "":
 		boss_name = "超長文ニキ"
+	var readable_name: String = readable_boss_name(boss_id, boss_name)
 	var reward_rate: float = maxf(0.1, float(boss.get("bossRewardRate", 1.0)))
 	var viewer_reward: int = int(round(float(boss.get("bossViewerReward", 3000)) * reward_rate))
 	var exp_reward: int = maxi(1, int(round(float(boss.get("expValue", 20)) * reward_rate)))
@@ -247,6 +267,7 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 	target.set("gift_hype", gift_hype)
 	target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), gift_hype))
 	target.set("pending_gift_choices", int(target.get("pending_gift_choices")) + 1)
+	target.set("gift_choice_delay_timer", maxf(float(target.get("gift_choice_delay_timer")), BOSS_DEFEAT_GIFT_DELAY))
 	target.set("boss_active", false)
 	target.set("boss_requested", false)
 	target.set("active_boss_uid", -1)
@@ -256,12 +277,73 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 	target.set("boss_reward_viewers", int(target.get("boss_reward_viewers")) + viewer_reward)
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
+	append_boss_defeat_fx_for_target(target, boss, boss_id, readable_name, viewer_reward)
+	var celebration_chats: Array[String] = defeat_chats_for_boss(boss_id, readable_name, viewer_reward, int(target.get("comment_barrage_setting")))
 	return {
-		"chat": "%s撃破！ ギフト箱が届いた！ 同時視聴者数 +%d人" % [boss_name, viewer_reward],
-		"screenShakePower": 0.55,
-		"screenShakeDuration": 0.25,
-		"hitStop": 0.08
+		"chat": celebration_chats[0] if celebration_chats.size() > 0 else "",
+		"chats": celebration_chats.slice(1, celebration_chats.size()) if celebration_chats.size() > 1 else [],
+		"toasts": [BOSS_DEFEAT_BANNER],
+		"screenShakePower": 0.34,
+		"screenShakeDuration": 0.14,
+		"hitStop": 0.0,
+		"screenFlashColor": Color(1.0, 0.94, 0.50, 0.18),
+		"screenFlashDuration": 0.08
 	}
+
+static func readable_boss_name(boss_id: String, fallback: String) -> String:
+	if boss_id == BOSS_KUSO_MARO_KING:
+		return "クソマロキング"
+	if boss_id == BOSS_SUPER_LONG_COMMENT:
+		return "超長文ニキ"
+	return fallback
+
+static func defeat_effect_type_for_boss(boss_id: String) -> String:
+	if boss_id == BOSS_KUSO_MARO_KING:
+		return "maro"
+	return "long_comment"
+
+static func append_boss_defeat_fx_for_target(target: Node, boss: Dictionary, boss_id: String, boss_name: String, viewer_reward: int) -> void:
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "boss_defeat",
+		"pos": Vector2(boss.get("pos", Vector2.ZERO)),
+		"radius": float(boss.get("radius", 78.0)),
+		"life": BOSS_DEFEAT_FX_LIFE,
+		"maxLife": BOSS_DEFEAT_FX_LIFE,
+		"banner": BOSS_DEFEAT_BANNER,
+		"bossName": boss_name,
+		"effectType": defeat_effect_type_for_boss(boss_id),
+		"viewerText": "+%d人" % viewer_reward,
+		"seed": float(int(boss.get("uid", 0)) % 997)
+	})
+	target.set("hit_fx", hit_fx)
+
+static func defeat_chats_for_boss(boss_id: String, boss_name: String, viewer_reward: int, comment_barrage_setting: int) -> Array[String]:
+	var result: Array[String] = [
+		"%s %s撃破！ 同時視聴者数 +%d人" % [BOSS_DEFEAT_BANNER, boss_name, viewer_reward]
+	]
+	var specific: Array[String] = []
+	if boss_id == BOSS_KUSO_MARO_KING:
+		specific = ["クソマロ鎮圧", "マロ欄救われた", "クソマロ成敗", "甘くない勝利"]
+	else:
+		specific = ["長文ニキ沈黙", "読まずに勝った", "要約成功", "長文、鎮圧！"]
+	var target_total: int = defeat_comment_total_for_setting(comment_barrage_setting)
+	for item in specific:
+		if result.size() >= target_total:
+			return result
+		result.append(item)
+	for item in BOSS_DEFEAT_COMMON_CHATS:
+		if result.size() >= target_total:
+			return result
+		result.append(item)
+	return result
+
+static func defeat_comment_total_for_setting(setting: int) -> int:
+	if setting <= 0:
+		return 4
+	if setting >= 2:
+		return 8
+	return 6
 
 static func active_boss_for_target(target: Node) -> Dictionary:
 	var active_uid: int = int(target.get("active_boss_uid"))

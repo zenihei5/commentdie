@@ -1422,10 +1422,19 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var kind: String = String(enemy["kind"])
 	var pos: Vector2 = Vector2(enemy["pos"])
 	var radius: float = float(enemy["radius"])
+	var is_boss: bool = bool(enemy.get("isBoss", false)) or kind.begins_with("boss_")
+	if bool(enemy.get("defeatPending", false)) and is_boss:
+		var max_delay: float = maxf(0.01, float(enemy.get("defeatDelayMax", 0.55)))
+		var left: float = clampf(float(enemy.get("defeatDelay", 0.0)), 0.0, max_delay)
+		var progress: float = clampf(1.0 - left / max_delay, 0.0, 1.0)
+		var clock: float = float(Time.get_ticks_msec()) / 1000.0
+		var shake: float = lerpf(5.0, 1.2, progress)
+		pos += Vector2(sin(clock * 56.0), cos(clock * 47.0)) * shake
+		radius *= 1.0 + sin(progress * PI) * 0.055
 	var color: Color = enemy_color(kind)
 	var speech_text: String = String(enemy.get("speechText", ""))
 	var flash_strength: float = enemy_hit_flash_strength(enemy)
-	var flash_color: Color = enemy_hit_flash_color(kind)
+	var flash_color: Color = enemy.get("hitFlashColor", enemy_hit_flash_color(kind)) as Color
 	return {
 		"kind": kind,
 		"pos": pos,
@@ -1891,6 +1900,141 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 		"labelSize": 20
 	}
 
+static func ban_judgement_shockwave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, range: float, width: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var norm_dir: Vector2 = dir.normalized()
+	if norm_dir.length() < 0.1:
+		norm_dir = Vector2.RIGHT
+	var side: Vector2 = Vector2(-norm_dir.y, norm_dir.x)
+	var tail: Vector2 = pos + norm_dir * (18.0 + range * 0.06 * progress)
+	var front: Vector2 = pos + norm_dir * range
+	var tail_half: float = width * (0.20 + 0.10 * progress)
+	var front_half: float = width * (0.48 + 0.08 * sin(progress * PI))
+	var tip: Vector2 = front + norm_dir * (20.0 + 18.0 * progress)
+	var points := PackedVector2Array([
+		tail - side * tail_half,
+		front - side * front_half,
+		tip,
+		front + side * front_half,
+		tail + side * tail_half
+	])
+	var fill_color := Color(1.0, 0.20, 0.34, 0.20 * alpha)
+	return {
+		"kind": "ban_judgement_shockwave",
+		"shockwavePoints": points,
+		"shockwaveColors": PackedColorArray([fill_color, fill_color, Color(1.0, 1.0, 1.0, 0.32 * alpha), fill_color, fill_color]),
+		"coreStart": tail,
+		"coreEnd": tip,
+		"coreColor": Color(1.0, 1.0, 1.0, 0.76 * alpha),
+		"coreWidth": maxf(8.0, width * 0.12),
+		"glowStart": tail - side * tail_half * 0.35,
+		"glowEnd": front - side * front_half * 0.40,
+		"glowColor": Color(1.0, 0.08, 0.26, 0.54 * alpha),
+		"glowWidth": maxf(12.0, width * 0.16),
+		"edge1Start": tail - side * tail_half,
+		"edge1End": tip,
+		"edge1Color": Color(1.0, 0.92, 0.92, 0.62 * alpha),
+		"edge1Width": 4.0,
+		"edge2Start": tail + side * tail_half,
+		"edge2End": tip,
+		"edge2Color": Color(1.0, 0.34, 0.46, 0.58 * alpha),
+		"edge2Width": 4.0,
+		"ringPos": pos + norm_dir * range * (0.55 + progress * 0.12),
+		"ringRadius": width * (0.34 + 0.08 * sin(progress * PI)),
+		"ringColor": Color(1.0, 0.96, 0.96, 0.34 * alpha),
+		"dotRadius": 3.0 + 3.0 * sin(progress * PI),
+		"dotColor": Color(1.0, 0.28, 0.45, 0.72 * alpha),
+		"dot1Pos": pos + norm_dir * range * 0.42 - side * width * 0.18,
+		"dot2Pos": pos + norm_dir * range * 0.66 + side * width * 0.24,
+		"dot3Pos": pos + norm_dir * range * 0.82 - side * width * 0.10
+	}
+
+static func wavy_ring_points(pos: Vector2, radius: float, amplitude: float, phase: float, wave_count: float, samples: int = 56) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for i in range(samples + 1):
+		var ratio: float = float(i) / float(samples)
+		var angle: float = TAU * ratio
+		var wave_radius: float = radius
+		wave_radius += sin(angle * wave_count + phase) * amplitude
+		wave_radius += sin(angle * 3.0 - phase * 0.65) * amplitude * 0.32
+		points.append(pos + Vector2(cos(angle), sin(angle)) * wave_radius)
+	return points
+
+static func mic_wave_fx_data(pos: Vector2, life: float, max_life: float, range: float, hit_count: int) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var fade_in: float = clampf(progress / 0.22, 0.0, 1.0)
+	fade_in = fade_in * fade_in * (3.0 - 2.0 * fade_in)
+	var fade_out: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = minf(fade_in, fade_out)
+	var pulse: float = 0.45 + 0.35 * sin(progress * PI)
+	var hit_boost: float = 1.04 if hit_count > 0 else 0.86
+	var base_radius: float = maxf(32.0, range)
+	var phase: float = progress * TAU * 0.62
+	var ring1_radius: float = base_radius * lerpf(0.28, 1.05, progress)
+	var ring2_radius: float = base_radius * lerpf(0.18, 0.84, progress)
+	var ring3_radius: float = base_radius * lerpf(0.10, 0.62, progress)
+	var tick_radius: float = base_radius * (0.74 + 0.20 * pulse)
+	var tick_len: float = 12.0 + 10.0 * pulse
+	var tick_angle1: float = phase + 0.25
+	var tick_angle2: float = phase + 1.85
+	var tick_angle3: float = phase + 3.40
+	var tick_angle4: float = phase + 5.05
+	var tick_dir1: Vector2 = Vector2.RIGHT.rotated(tick_angle1)
+	var tick_dir2: Vector2 = Vector2.RIGHT.rotated(tick_angle2)
+	var tick_dir3: Vector2 = Vector2.RIGHT.rotated(tick_angle3)
+	var tick_dir4: Vector2 = Vector2.RIGHT.rotated(tick_angle4)
+	return {
+		"kind": "mic_wave",
+		"pos": pos,
+		"rangeFillPos": pos,
+		"rangeFillRadius": base_radius,
+		"rangeFillColor": Color(0.22, 0.86, 1.0, 0.045 * alpha),
+		"rangeGlowPos": pos,
+		"rangeGlowRadius": base_radius,
+		"rangeGlowColor": Color(0.42, 0.94, 1.0, 0.18 * alpha),
+		"rangeRingPos": pos,
+		"rangeRingRadius": base_radius,
+		"rangeRingColor": Color(0.72, 1.0, 1.0, 0.48 * alpha),
+		"glowPos": pos,
+		"glowRadius": base_radius * (0.34 + 0.10 * pulse),
+		"glowColor": Color(0.38, 0.95, 1.0, 0.11 * alpha),
+		"corePos": pos,
+		"coreRadius": base_radius * (0.12 + 0.05 * pulse),
+		"coreColor": Color(1.0, 1.0, 1.0, 0.22 * alpha),
+		"wave1Points": wavy_ring_points(pos, ring1_radius, 3.0 + 3.0 * pulse, phase, 5.0),
+		"wave1Color": Color(0.38, 0.92, 1.0, 0.62 * alpha * hit_boost),
+		"wave1Width": 6.0 + 2.0 * pulse,
+		"wave2Points": wavy_ring_points(pos, ring2_radius, 2.5 + 2.5 * pulse, phase + 1.15, 4.5),
+		"wave2Color": Color(1.0, 0.42, 0.82, 0.46 * alpha * hit_boost),
+		"wave2Width": 5.0 + 1.5 * pulse,
+		"wave3Points": wavy_ring_points(pos, ring3_radius, 2.0 + 2.0 * pulse, phase + 2.30, 4.0),
+		"wave3Color": Color(1.0, 1.0, 1.0, 0.42 * alpha),
+		"wave3Width": 4.0 + 1.0 * pulse,
+		"tick1Start": pos + tick_dir1 * (tick_radius - tick_len * 0.35),
+		"tick1End": pos + tick_dir1 * (tick_radius + tick_len),
+		"tick1Color": Color(1.0, 1.0, 1.0, 0.44 * alpha * hit_boost),
+		"tick1Width": 3.0,
+		"tick2Start": pos + tick_dir2 * (tick_radius - tick_len * 0.35),
+		"tick2End": pos + tick_dir2 * (tick_radius + tick_len),
+		"tick2Color": Color(0.50, 0.96, 1.0, 0.38 * alpha * hit_boost),
+		"tick2Width": 3.0,
+		"tick3Start": pos + tick_dir3 * (tick_radius - tick_len * 0.35),
+		"tick3End": pos + tick_dir3 * (tick_radius + tick_len),
+		"tick3Color": Color(1.0, 0.50, 0.86, 0.34 * alpha * hit_boost),
+		"tick3Width": 3.0,
+		"tick4Start": pos + tick_dir4 * (tick_radius - tick_len * 0.35),
+		"tick4End": pos + tick_dir4 * (tick_radius + tick_len),
+		"tick4Color": Color(0.86, 0.72, 1.0, 0.32 * alpha * hit_boost),
+		"tick4Width": 3.0,
+		"dotRadius": 3.0 + 3.0 * pulse,
+		"dotColor": Color(0.72, 0.98, 1.0, 0.42 * alpha * hit_boost),
+		"dot1Pos": pos + Vector2.RIGHT.rotated(phase + 0.70) * base_radius * 0.52,
+		"dot2Pos": pos + Vector2.RIGHT.rotated(-phase * 0.82 + 2.10) * base_radius * 0.72,
+		"dot3Pos": pos + Vector2.RIGHT.rotated(phase * 0.65 + 3.70) * base_radius * 0.92,
+		"dot4Pos": pos + Vector2.RIGHT.rotated(-phase + 5.00) * base_radius * 0.64
+	}
+
 static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float) -> Dictionary:
 	var max_life: float = 0.48
 	var alpha: float = clampf(life / max_life, 0.0, 1.0)
@@ -1922,6 +2066,55 @@ static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float) -> Dictio
 		"burstColor": Color(0.0, 0.95, 0.10, 0.34 * alpha),
 		"showBurst": true,
 		"showHammer": false
+	}
+
+static func spotlight_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var pulse: float = sin(progress * PI)
+	var visual_radius: float = radius * lerpf(1.15, 1.55, progress)
+	var top: Vector2 = pos + Vector2(0.0, -visual_radius * 2.15)
+	return {
+		"kind": "spotlight",
+		"pos": pos,
+		"beamGlowStart": top + Vector2(-visual_radius * 0.58, 0.0),
+		"beamGlowEnd": pos + Vector2(-visual_radius * 0.18, visual_radius * 0.26),
+		"beamGlowColor": Color(1.0, 0.95, 0.42, 0.22 * alpha),
+		"beamGlowWidth": visual_radius * 0.72,
+		"beamCoreStart": top + Vector2(visual_radius * 0.26, -visual_radius * 0.18),
+		"beamCoreEnd": pos + Vector2(visual_radius * 0.10, visual_radius * 0.18),
+		"beamCoreColor": Color(1.0, 1.0, 1.0, 0.36 * alpha),
+		"beamCoreWidth": visual_radius * 0.34,
+		"beamSideStart": top + Vector2(visual_radius * 0.92, visual_radius * 0.10),
+		"beamSideEnd": pos + Vector2(visual_radius * 0.38, visual_radius * 0.28),
+		"beamSideColor": Color(0.46, 0.92, 1.0, 0.20 * alpha),
+		"beamSideWidth": visual_radius * 0.24,
+		"glowRadius": visual_radius * 0.92,
+		"glowColor": Color(1.0, 0.96, 0.45, 0.20 * alpha),
+		"haloRadius": visual_radius * (0.88 + pulse * 0.22),
+		"haloColor": Color(1.0, 0.84, 0.12, 0.54 * alpha),
+		"outerRadius": visual_radius * (1.20 + progress * 0.12),
+		"outerColor": Color(0.55, 0.94, 1.0, 0.34 * alpha),
+		"coreRadius": radius * (0.34 + pulse * 0.16),
+		"coreColor": Color(1.0, 1.0, 0.92, 0.60 * alpha),
+		"sparkStart": pos + Vector2.RIGHT.rotated(progress * TAU + 0.30) * visual_radius * 0.42,
+		"sparkEnd": pos + Vector2.RIGHT.rotated(progress * TAU + 0.30) * visual_radius * 0.72,
+		"sparkColor": Color(1.0, 1.0, 1.0, 0.82 * alpha),
+		"sparkWidth": 3.0,
+		"crossStart": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.55 + 2.2) * visual_radius * 0.50,
+		"crossEnd": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.55 + 2.2) * visual_radius * 0.78,
+		"crossColor": Color(1.0, 0.48, 0.86, 0.58 * alpha),
+		"crossWidth": 3.0,
+		"dot1Pos": pos + Vector2.RIGHT.rotated(progress * TAU + 0.90) * visual_radius * 0.82,
+		"dot2Pos": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.85 + 2.75) * visual_radius * 0.70,
+		"dot3Pos": pos + Vector2.RIGHT.rotated(progress * TAU * 0.62 + 4.40) * visual_radius * 0.55,
+		"dot4Pos": pos + Vector2.RIGHT.rotated(-progress * TAU + 5.25) * visual_radius * 0.96,
+		"dotRadius": 3.5 + 4.0 * pulse,
+		"dotColor": Color(1.0, 0.92, 0.25, 0.72 * alpha),
+		"label": "LIVE!",
+		"labelPos": pos + Vector2(-34.0, -visual_radius * 0.30),
+		"labelColor": Color(1.0, 0.98, 0.54, 0.78 * alpha),
+		"labelSize": 18 + int(4.0 * pulse)
 	}
 
 static func damage_number_fx_data(pos: Vector2, life: float, max_life: float, damage: float) -> Dictionary:
@@ -2131,10 +2324,75 @@ static func enemy_defeat_fx_data(pos: Vector2, life: float, max_life: float, rad
 		"dotColor": Color(1.0, 0.88, 0.32, 0.55 * alpha)
 	}
 
+static func boss_defeat_fx_data(pos: Vector2, life: float, max_life: float, radius: float, banner: String, viewer_text: String, effect_type: String, seed: float) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	var warm_color := Color(1.0, 0.40, 0.18, 0.50 * alpha)
+	var accent_color := Color("#ff65b2") if effect_type == "maro" else Color("#a77cff")
+	accent_color.a = 0.72 * alpha
+	var data := {
+		"kind": "boss_defeat",
+		"pos": pos,
+		"outerPos": pos,
+		"outerRadius": radius * (0.9 + progress * 2.15),
+		"outerColor": Color(1.0, 0.86, 0.20, 0.36 * alpha),
+		"wavePos": pos,
+		"waveRadius": radius * (0.55 + progress * 1.30),
+		"waveColor": accent_color,
+		"corePos": pos,
+		"coreRadius": radius * (0.36 + burst * 0.42),
+		"coreColor": Color(1.0, 1.0, 0.92, 0.42 * alpha),
+		"dotRadius": 4.0 + 4.5 * burst,
+		"dotColor": Color(1.0, 0.92, 0.24, 0.80 * alpha),
+		"dot1Pos": pos + Vector2.RIGHT.rotated(seed + progress * TAU) * radius * (1.25 + progress * 0.85),
+		"dot2Pos": pos + Vector2.RIGHT.rotated(seed + 1.72 - progress * TAU * 0.62) * radius * (1.05 + progress * 0.70),
+		"dot3Pos": pos + Vector2.RIGHT.rotated(seed + 3.35 + progress * TAU * 0.48) * radius * (0.95 + progress * 0.65),
+		"dot4Pos": pos + Vector2.RIGHT.rotated(seed + 4.70 - progress * TAU * 0.80) * radius * (1.18 + progress * 0.78),
+		"bannerShadowText": banner,
+		"bannerShadowPos": pos + Vector2(-162.0, -radius * 1.95 - 48.0 - progress * 24.0) + Vector2(3, 3),
+		"bannerShadowWidth": 324,
+		"bannerShadowSize": 32,
+		"bannerShadowColor": Color(0.20, 0.06, 0.16, 0.46 * alpha),
+		"bannerText": banner,
+		"bannerPos": pos + Vector2(-162.0, -radius * 1.95 - 48.0 - progress * 24.0),
+		"bannerWidth": 324,
+		"bannerSize": 32,
+		"bannerColor": Color(1.0, 0.98, 0.78, 0.96 * alpha),
+		"viewerShadowText": viewer_text,
+		"viewerShadowPos": pos + Vector2(-58.0, -radius * 0.92 - progress * 42.0) + Vector2(2, 2),
+		"viewerShadowWidth": 128,
+		"viewerShadowSize": 24,
+		"viewerShadowColor": Color(0.18, 0.05, 0.14, 0.38 * alpha),
+		"viewerText": viewer_text,
+		"viewerPos": pos + Vector2(-58.0, -radius * 0.92 - progress * 42.0),
+		"viewerWidth": 128,
+		"viewerSize": 24,
+		"viewerColor": Color("#ff4f92").lerp(Color("#fff36b"), burst * 0.35)
+	}
+	for i in range(6):
+		var idx: int = i + 1
+		var angle: float = seed * 0.37 + float(i) * TAU / 6.0 + progress * (1.1 if i % 2 == 0 else -0.9)
+		var center: Vector2 = pos + Vector2.RIGHT.rotated(angle) * radius * (0.75 + progress * 1.85)
+		var side: Vector2 = Vector2.RIGHT.rotated(angle + PI * 0.5)
+		data["confetti%dStart" % idx] = center - side * (8.0 + burst * 8.0)
+		data["confetti%dEnd" % idx] = center + side * (8.0 + burst * 8.0)
+		var confetti_color: Color = [Color("#ff4f92"), Color("#fff36b"), Color("#65e9ff"), Color("#a77cff"), Color("#ff9f43"), Color("#ffffff")][i]
+		confetti_color.a = 0.72 * alpha
+		data["confetti%dColor" % idx] = confetti_color
+		data["confetti%dWidth" % idx] = 4.0
+	data["flareStart"] = pos + Vector2(-radius * 1.65, -radius * 0.18)
+	data["flareEnd"] = pos + Vector2(radius * 1.65, radius * 0.18)
+	data["flareColor"] = warm_color
+	data["flareWidth"] = 10.0 + 10.0 * burst
+	return data
+
 static func hit_fx_draw_data(hit_fx: Array) -> Array:
 	var items: Array = []
 	for fx in hit_fx:
 		var fx_item: Dictionary = fx as Dictionary
+		if float(fx_item.get("delay", 0.0)) > 0.0:
+			continue
 		if String(fx_item.get("kind", "")) == "comment_pin":
 			items.append(comment_pin_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.45))))
 			continue
@@ -2159,14 +2417,48 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 		if String(fx_item.get("kind", "")) == "enemy_defeat":
 			items.append(enemy_defeat_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.28)), float(fx_item.get("radius", 22.0)), bool(fx_item.get("boss", false))))
 			continue
+		if String(fx_item.get("kind", "")) == "boss_defeat":
+			items.append(boss_defeat_fx_data(
+				Vector2(fx_item["pos"]),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 1.65)),
+				float(fx_item.get("radius", 78.0)),
+				String(fx_item.get("banner", "")),
+				String(fx_item.get("viewerText", "")),
+				String(fx_item.get("effectType", "")),
+				float(fx_item.get("seed", 0.0))
+			))
+			continue
 		if String(fx_item.get("kind", "")) == "pickup_text":
 			items.append(pickup_text_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.72)), String(fx_item.get("text", "")), fx_item.get("color", Color.WHITE) as Color))
 			continue
 		if String(fx_item.get("kind", "")) == "damage_number":
 			items.append(damage_number_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.62)), float(fx_item["damage"])))
 			continue
+		if String(fx_item.get("kind", "")) == "ban_judgement_shockwave":
+			items.append(ban_judgement_shockwave_fx_data(
+				Vector2(fx_item["pos"]),
+				Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.22)),
+				float(fx_item.get("range", 450.0)),
+				float(fx_item.get("width", 96.0))
+			))
+			continue
+		if String(fx_item.get("kind", "")) == "mic_wave":
+			items.append(mic_wave_fx_data(
+				Vector2(fx_item["pos"]),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.42)),
+				float(fx_item.get("range", 110.0)),
+				int(fx_item.get("hitCount", fx_item.get("count", 0)))
+			))
+			continue
 		if String(fx_item.get("kind", "")) == "kusa_wave":
 			items.append(kusa_wave_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), float(fx_item["life"])))
+			continue
+		if String(fx_item.get("kind", "")) == "spotlight":
+			items.append(spotlight_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.55)), float(fx_item.get("range", 72.0))))
 			continue
 		if String(fx_item.get("kind", "")) == "banana_slip":
 			items.append(banana_slip_fx_data(
@@ -2179,8 +2471,16 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 			))
 			continue
 		var data: Dictionary = hit_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), Vector2(fx_item["hit"]), float(fx_item["range"]), float(fx_item["life"]), float(fx_item.get("arcAngle", 120.0)))
+		var is_judgement_hammer: bool = bool(fx_item.get("judgement", false))
 		data["showBurst"] = int(fx_item["count"]) > 0
 		data["showHammer"] = bool(fx_item.get("hammer", false))
+		data["hammerSprite"] = "ban_judgement" if is_judgement_hammer else "ban_hammer"
+		if is_judgement_hammer:
+			data["hammerSize"] = (data["hammerSize"] as Vector2) * 1.28
+			data["sparkSize"] = float(data.get("sparkSize", 10.0)) * 1.18
+			for image_item in (data.get("hammerAfterImages", []) as Array):
+				var image_data: Dictionary = image_item as Dictionary
+				image_data["size"] = (image_data["size"] as Vector2) * 1.28
 		items.append(data)
 	return items
 
@@ -2194,6 +2494,37 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "text", "prefix": "shadow"},
 			{"kind": "text", "prefix": "label"}
+		]
+	if String(data.get("kind", "")) == "ban_judgement_shockwave":
+		return [
+			{"kind": "polygon", "pointsKey": "shockwavePoints", "colorsKey": "shockwaveColors"},
+			{"kind": "line", "prefix": "glow"},
+			{"kind": "line", "prefix": "core"},
+			{"kind": "line", "prefix": "edge1"},
+			{"kind": "line", "prefix": "edge2"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 5.0},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
+		]
+	if String(data.get("kind", "")) == "mic_wave":
+		return [
+			{"kind": "circle", "prefix": "rangeFill"},
+			{"kind": "circle", "prefix": "rangeGlow", "filled": false, "width": 10.0},
+			{"kind": "circle", "prefix": "rangeRing", "filled": false, "width": 4.5},
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "polyline", "pointsKey": "wave1Points", "colorKey": "wave1Color", "widthKey": "wave1Width"},
+			{"kind": "polyline", "pointsKey": "wave2Points", "colorKey": "wave2Color", "widthKey": "wave2Width"},
+			{"kind": "polyline", "pointsKey": "wave3Points", "colorKey": "wave3Color", "widthKey": "wave3Width"},
+			{"kind": "line", "prefix": "tick1"},
+			{"kind": "line", "prefix": "tick2"},
+			{"kind": "line", "prefix": "tick3"},
+			{"kind": "line", "prefix": "tick4"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot4Pos"] as Vector2}
 		]
 	if String(data.get("kind", "")) == "kusa_wave":
 		return [
@@ -2209,6 +2540,23 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 			{"kind": "line", "prefix": "shine"},
 			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot2Pos"] as Vector2}
+		]
+	if String(data.get("kind", "")) == "spotlight":
+		return [
+			{"kind": "line", "prefix": "beamGlow"},
+			{"kind": "line", "prefix": "beamCore"},
+			{"kind": "line", "prefix": "beamSide"},
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "halo", "filled": false, "width": 10.0},
+			{"kind": "circle", "prefix": "outer", "filled": false, "width": 6.0},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "line", "prefix": "spark"},
+			{"kind": "line", "prefix": "cross"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "comment_pin":
 		return [
@@ -2226,6 +2574,27 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
+		]
+	if String(data.get("kind", "")) == "boss_defeat":
+		return [
+			{"kind": "line", "prefix": "flare"},
+			{"kind": "circle", "prefix": "outer", "filled": false, "width": 6.0},
+			{"kind": "circle", "prefix": "wave", "filled": false, "width": 9.0},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "line", "prefix": "confetti1"},
+			{"kind": "line", "prefix": "confetti2"},
+			{"kind": "line", "prefix": "confetti3"},
+			{"kind": "line", "prefix": "confetti4"},
+			{"kind": "line", "prefix": "confetti5"},
+			{"kind": "line", "prefix": "confetti6"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
+			{"kind": "text", "prefix": "bannerShadow", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "banner", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "viewerShadow", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "viewer", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "emote_mine":
 		return [

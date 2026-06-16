@@ -48,12 +48,6 @@ static func title_action(latch: Dictionary) -> String:
 		return "title_up"
 	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
 		return "title_down"
-	if _pressed(latch, KEY_1):
-		return "title_new_game"
-	if _pressed(latch, KEY_2):
-		return "title_ranking"
-	if _pressed(latch, KEY_3):
-		return "title_options"
 	if _pressed(latch, KEY_R):
 		return "toggle_relay"
 	if _pressed(latch, KEY_T):
@@ -98,24 +92,6 @@ static func options_action(latch: Dictionary) -> String:
 		return "option_right"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
 		return "option_select"
-	if _pressed(latch, KEY_1):
-		return "option_bgm_volume"
-	if _pressed(latch, KEY_2):
-		return "option_se_volume"
-	if _pressed(latch, KEY_3):
-		return "option_fullscreen"
-	if _pressed(latch, KEY_4):
-		return "option_window_size"
-	if _pressed(latch, KEY_5):
-		return "option_comment_barrage"
-	if _pressed(latch, KEY_6):
-		return "option_screen_shake"
-	if _pressed(latch, KEY_7):
-		return "option_tutorial"
-	if _pressed(latch, KEY_8):
-		return "option_reset"
-	if _pressed(latch, KEY_9):
-		return "back_to_title"
 	return ""
 
 static func result_action(latch: Dictionary) -> String:
@@ -136,12 +112,10 @@ static func pause_action(latch: Dictionary) -> String:
 		return "pause_up"
 	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
 		return "pause_down"
-	if _pressed(latch, KEY_1):
-		return "pause_continue"
-	if _pressed(latch, KEY_2):
-		return "pause_retry"
-	if _pressed(latch, KEY_3):
-		return "pause_title"
+	if _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_A):
+		return "pause_left"
+	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_D):
+		return "pause_right"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
 		return "pause_select"
 	if _pressed(latch, KEY_Y):
@@ -196,11 +170,12 @@ static func forced_comment_id(action: String) -> String:
 		return "enemy_speed_up"
 	if action == "comment_barrage":
 		return "comment_barrage"
-	if action == "comment_do_everything":
-		return "do_everything"
 	if action == "comment_boss":
 		return "summon_boss"
 	return ""
+
+static func should_force_do_everything_offer(action: String) -> bool:
+	return action == "comment_do_everything"
 
 static func forced_heart_comment_id(action: String) -> String:
 	if action == "heart_comment_giant":
@@ -320,6 +295,26 @@ static func force_comment_offer_for_target(target: Node, comments: Array, id: St
 		return {"applied": false, "chooseIndex": -1}
 	return {"applied": true, "chooseIndex": 0}
 
+static func force_do_everything_choice_ui_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float, choice_box: Control) -> Dictionary:
+	var offer: Array = CommentSystem.build_forced_do_everything_offer_for_target(target, comments, rng)
+	if offer.is_empty():
+		return {"applied": false, "chat": "DEBUG: do_everything offer failed"}
+	target.set("state", "comment_choice")
+	target.set("previous_state", "playing")
+	target.set("choice_timer", maxf(1.0, base_choice_time + float(target.get("choice_time_bonus")) - float(target.get("choice_time_penalty"))))
+	target.set("selected_card", 0)
+	target.set("special_choice_return_card", 0)
+	target.set("comment_warning_step", 0)
+	target.set("offered_comments", offer)
+	target.set("ng_cards", _bool_cards(false, offer.size()))
+	var pending_heart: bool = bool(target.get("heart_pending"))
+	target.set("heart_cards", _bool_cards(pending_heart, offer.size()))
+	if pending_heart:
+		target.set("heart_pending", false)
+		target.set("heart_used_count", int(target.get("heart_used_count")) + 1)
+	choice_box.visible = true
+	return {"applied": true, "chat": "DEBUG: do_everything offer forced"}
+
 static func force_marshmallow_for_target(target: Node, data_list: Array, kind: String, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
 	if kind == "":
 		return {"spawned": false, "chat": ""}
@@ -332,6 +327,12 @@ static func force_marshmallow_for_target(target: Node, data_list: Array, kind: S
 static func _add_if_pressed(actions: Array[String], latch: Dictionary, keycode: Key, action: String) -> void:
 	if _pressed(latch, keycode):
 		actions.append(action)
+
+static func _bool_cards(value: bool, count: int) -> Array[bool]:
+	var cards: Array[bool] = []
+	for i in range(count):
+		cards.append(value)
+	return cards
 
 static func _pressed(latch: Dictionary, keycode: Key) -> bool:
 	var down: bool = Input.is_key_pressed(keycode)

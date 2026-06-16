@@ -52,17 +52,25 @@ static func effect_rate_for_target(target: Node, id: String) -> float:
 		id
 	)
 
-static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNumberGenerator) -> Dictionary:
+static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNumberGenerator, sub_comments: Array = [], _sub_heart_cards: Array = []) -> Dictionary:
 	var effects: Array[String] = []
 	var rates: Dictionary = {}
 	var rate: float = 0.7 if has_heart else 1.0
 	if String(comment["id"]) == "do_everything":
-		var candidates: Array[String] = ["banana_floor", "reverse_control", "giant_enemies", "no_dash", "attack_right_only", "enemy_speed", "short_range"]
-		candidates.shuffle()
-		effects.append(String(candidates[0]))
-		effects.append(String(candidates[1]))
-		rates[String(candidates[0])] = rate
-		rates[String(candidates[1])] = rate
+		if sub_comments.is_empty():
+			var candidates: Array[String] = ["attack_right_only", "reverse_control", "no_stop", "banana_floor", "camera_zoom", "enemy_speed_up"]
+			candidates.shuffle()
+			for i in range(3):
+				effects.append(String(candidates[i]))
+				rates[String(candidates[i])] = rate
+		else:
+			for item in sub_comments:
+				var sub_comment: Dictionary = item as Dictionary
+				var id: String = String(sub_comment.get("id", ""))
+				if id == "" or id == "do_everything" or id == "summon_boss" or effects.has(id):
+					continue
+				effects.append(id)
+				rates[id] = rate
 	else:
 		effects.append(String(comment["id"]))
 		rates[String(comment["id"])] = rate
@@ -127,10 +135,20 @@ static func apply_choice_numbers_to_target(target: Node, view: Dictionary) -> Di
 	target.set("active_comment_hurt", bool(number_state["activeCommentHurt"]))
 	return number_state
 
-static func start_comment_for_target(target: Node, comment: Dictionary, view: Dictionary, has_heart: bool, rng: RandomNumberGenerator) -> Dictionary:
-	var activation: Dictionary = build_activation(comment, has_heart, rng)
+static func start_comment_for_target(target: Node, comment: Dictionary, view: Dictionary, has_heart: bool, rng: RandomNumberGenerator, sub_comments: Array = [], sub_heart_cards: Array = []) -> Dictionary:
+	var activation: Dictionary = build_activation(comment, has_heart, rng, sub_comments, sub_heart_cards)
 	target.set("active_effects", activation["effects"] as Array[String])
 	target.set("active_effect_rates", activation["rates"] as Dictionary)
+	if String(comment["id"]) == "do_everything":
+		var sub_ids: Array[String] = []
+		for item in sub_comments:
+			var sub_comment: Dictionary = item as Dictionary
+			var id: String = String(sub_comment.get("id", ""))
+			if id != "" and id != "do_everything" and id != "summon_boss":
+				sub_ids.append(id)
+		target.set("active_sub_comment_ids", sub_ids)
+	elif target.get("active_sub_comment_ids") != null:
+		(target.get("active_sub_comment_ids") as Array).clear()
 	target.set("current_comment", String(view["displayName"]))
 	target.set("current_death_text", String(view["deathText"]))
 	target.set("last_comment_id", String(comment["id"]))
@@ -249,6 +267,8 @@ static func clear_state_for_target(target: Node) -> Dictionary:
 	target.set("current_comment", String(clear_state_result["currentComment"]))
 	target.set("current_death_text", String(clear_state_result["currentDeathText"]))
 	target.set("last_comment_id", String(clear_state_result["lastCommentId"]))
+	if target.get("active_sub_comment_ids") != null:
+		(target.get("active_sub_comment_ids") as Array).clear()
 	(target.get("recent_comment_categories") as Array).clear()
 	target.set("multiplier", float(clear_state_result["multiplier"]))
 	target.set("pending_clear_hype", int(clear_state_result["pendingClearHype"]))

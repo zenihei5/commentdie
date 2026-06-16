@@ -1,7 +1,9 @@
 class_name StateFlowSystem
 extends RefCounted
 
-const OPTION_ITEM_COUNT := 9
+const OPTION_ITEM_COUNT := 8
+const OPTION_RESET_INDEX := 6
+const OPTION_BACK_INDEX := 7
 
 static func toggle_pause_state(state: String, previous_state: String) -> Dictionary:
 	if state == "pause":
@@ -17,8 +19,14 @@ static func toggle_pause_for_target(target: Node) -> Dictionary:
 	if String(result["state"]) == "pause":
 		target.set("pause_menu_index", 0)
 		target.set("pause_confirm_action", "")
+		target.set("pause_confirm_index", 1)
+		target.set("pause_focus_area", "actions")
+		target.set("pause_equipment_row", 0)
+		target.set("pause_weapon_slot_index", 0)
+		target.set("pause_accessory_slot_index", 0)
 	else:
 		target.set("pause_confirm_action", "")
+		target.set("pause_confirm_index", 1)
 	return result
 
 static func update_pause_input_for_target(target: Node) -> void:
@@ -77,58 +85,51 @@ static func option_action_for_index(index: int, direction: int) -> String:
 	if normalized == 3:
 		return "window_size_left" if direction < 0 else "window_size_right"
 	if normalized == 4:
-		return "comment_barrage_left" if direction < 0 else "comment_barrage_right"
-	if normalized == 5:
 		return "screen_shake"
-	if normalized == 6:
+	if normalized == 5:
 		return "tutorial_toggle"
-	if normalized == 7:
+	if normalized == OPTION_RESET_INDEX:
 		return "reset_options" if direction == 0 else ""
-	if normalized == 8:
+	if normalized == OPTION_BACK_INDEX:
 		return "back_to_title" if direction == 0 else ""
 	return ""
 
+static func option_button_navigation_index(index: int, direction: int) -> int:
+	var normalized := posmod(index, OPTION_ITEM_COUNT)
+	if normalized == OPTION_RESET_INDEX and direction != 0:
+		return OPTION_BACK_INDEX
+	if normalized == OPTION_BACK_INDEX and direction != 0:
+		return OPTION_RESET_INDEX
+	return normalized
+
+static func option_vertical_navigation_index(index: int, direction: int) -> int:
+	var normalized := posmod(index, OPTION_ITEM_COUNT)
+	if normalized == OPTION_RESET_INDEX or normalized == OPTION_BACK_INDEX:
+		return 5 if direction < 0 else 0
+	return posmod(normalized + direction, OPTION_ITEM_COUNT)
+
 static func apply_options_action_for_target(target: Node, action: String) -> Dictionary:
 	if action == "option_up":
-		target.set("option_menu_index", posmod(int(target.get("option_menu_index")) - 1, OPTION_ITEM_COUNT))
+		target.set("option_menu_index", option_vertical_navigation_index(int(target.get("option_menu_index")), -1))
 	if action == "option_down":
-		target.set("option_menu_index", posmod(int(target.get("option_menu_index")) + 1, OPTION_ITEM_COUNT))
+		target.set("option_menu_index", option_vertical_navigation_index(int(target.get("option_menu_index")), 1))
 	var selected_action := ""
 	if action == "option_left":
-		selected_action = option_action_for_index(int(target.get("option_menu_index")), -1)
+		var index := int(target.get("option_menu_index"))
+		if index >= OPTION_RESET_INDEX:
+			target.set("option_menu_index", option_button_navigation_index(index, -1))
+		else:
+			selected_action = option_action_for_index(index, -1)
 	elif action == "option_right":
-		selected_action = option_action_for_index(int(target.get("option_menu_index")), 1)
+		var index := int(target.get("option_menu_index"))
+		if index >= OPTION_RESET_INDEX:
+			target.set("option_menu_index", option_button_navigation_index(index, 1))
+		else:
+			selected_action = option_action_for_index(index, 1)
 	elif action == "option_select":
 		selected_action = option_action_for_index(int(target.get("option_menu_index")), 0)
 	elif action == "back_to_title":
 		selected_action = "back_to_title"
-	elif action == "option_bgm_volume":
-		target.set("option_menu_index", 0)
-		selected_action = "bgm_volume_up"
-	elif action == "option_se_volume":
-		target.set("option_menu_index", 1)
-		selected_action = "se_volume_up"
-	elif action == "option_fullscreen":
-		target.set("option_menu_index", 2)
-		selected_action = "fullscreen_toggle"
-	elif action == "option_window_size":
-		target.set("option_menu_index", 3)
-		selected_action = "window_size_right"
-	elif action == "option_comment_barrage":
-		target.set("option_menu_index", 4)
-		selected_action = "comment_barrage_right"
-	elif action == "option_screen_shake":
-		target.set("option_menu_index", 5)
-		selected_action = "screen_shake"
-	elif action == "option_tutorial":
-		target.set("option_menu_index", 6)
-		selected_action = "tutorial_toggle"
-	elif action == "option_reset_tutorial":
-		target.set("option_menu_index", 6)
-		selected_action = "reset_tutorial"
-	elif action == "option_reset":
-		target.set("option_menu_index", 7)
-		selected_action = "reset_options"
 	if selected_action != "" and selected_action != "back_to_title":
 		SettingsSystem.apply_title_action_for_target(target, selected_action)
 	return {"backToTitle": selected_action == "back_to_title"}
@@ -171,11 +172,11 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 	if state == "result":
 		if bool(target.get("result_showing_ranking")):
 			if ranking_action == "back_to_title":
-				return {"handled": true, "action": "back_to_title"}
-			if ranking_action == "reset_ranking":
 				return {"handled": true, "action": "toggle_ranking"}
+			if ranking_action == "reset_ranking":
+				return {"handled": true, "action": "reset_title_ranking"}
 			if ranking_action == "ranking_select":
-				return {"handled": true, "action": "result_select_button"}
+				return {"handled": true, "action": "ranking_select"}
 			if (
 				ranking_action == "ranking_tab_left"
 				or ranking_action == "ranking_tab_right"

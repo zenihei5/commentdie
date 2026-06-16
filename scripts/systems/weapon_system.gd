@@ -3,6 +3,11 @@ class_name WeaponSystem
 
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
 const DEFEAT_KNOCKBACK_MULTIPLIER := 2.4
+const SHORT_RANGE_MIN_PROJECTILE_RANGE := 165.0
+const SHORT_RANGE_MIN_AREA_RADIUS := 66.0
+const SHORT_RANGE_MIN_SEARCH_RANGE := 206.0
+const SHORT_RANGE_MIN_LASER_RANGE := 247.5
+const SHORT_RANGE_MIN_ORBIT_RADIUS := 34.0
 
 static func find_weapon(weapons: Array, id: String, fallback: Dictionary) -> Dictionary:
 	for item in weapons:
@@ -21,6 +26,9 @@ static func attack_type(weapon: Dictionary) -> String:
 	if legacy_type == "boomerang":
 		return "orbit"
 	return "melee_arc"
+
+static func is_melee_attack_type(value: String) -> bool:
+	return value == "melee_arc" or value == "melee_shockwave"
 
 static func attack_interval(weapon: Dictionary, default_value: float = 0.85) -> float:
 	return float(weapon.get("attackInterval", weapon.get("interval", default_value)))
@@ -41,6 +49,55 @@ static func range_base(weapon: Dictionary) -> float:
 	if attack_type(weapon) == "orbit":
 		return scaled_range(float(weapon.get("orbitRadius", weapon.get("range", 1.8))), 43.0)
 	return scaled_range(float(weapon.get("range", 2.0)))
+
+static func _short_range_rate(context: Dictionary, normal_rate: float, heart_rate: float) -> float:
+	if not bool(context.get("shortRange", false)):
+		return 1.0
+	return heart_rate if float(context.get("shortRangeRate", 1.0)) < 0.95 else normal_rate
+
+static func _apply_short_range(context: Dictionary, value: float, normal_rate: float, heart_rate: float, min_value: float = 0.0) -> float:
+	var result: float = value * _short_range_rate(context, normal_rate, heart_rate)
+	if min_value > 0.0:
+		result = maxf(result, min_value)
+	return result
+
+static func _short_range_projectile_rate(context: Dictionary) -> float:
+	return _short_range_rate(context, 0.60, 0.75)
+
+static func _short_range_area_rate(context: Dictionary) -> float:
+	return _short_range_rate(context, 0.75, 0.85)
+
+static func _short_range_orbit_rate(context: Dictionary) -> float:
+	return _short_range_rate(context, 0.70, 0.85)
+
+static func _short_range_explosion_area_rate(context: Dictionary) -> float:
+	return _short_range_rate(context, 0.85, 0.92)
+
+static func _short_range_search_rate(context: Dictionary) -> float:
+	return _short_range_rate(context, 0.60, 0.75)
+
+static func _short_range_laser_rate(context: Dictionary) -> float:
+	return _short_range_rate(context, 0.55, 0.75)
+
+static func _short_range_range_for_weapon(weapon_id: String, weapon: Dictionary, range_value: float, context: Dictionary) -> float:
+	match weapon_id:
+		"ban_hammer", "ban_judgement", "mic_barrier":
+			return _apply_short_range(context, range_value, 0.75, 0.85, SHORT_RANGE_MIN_AREA_RADIUS)
+		"comment_boomerang", "maro_comment_ring":
+			return _apply_short_range(context, range_value, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
+		"spotlight", "kusa_wave", "comment_pin":
+			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
+		"ng_word_laser":
+			return _apply_short_range(context, range_value, 0.55, 0.75, SHORT_RANGE_MIN_LASER_RANGE)
+		"listener_summon":
+			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_SEARCH_RANGE)
+		"emote_mine":
+			return range_value
+	if attack_type(weapon) == "orbit":
+		return _apply_short_range(context, range_value, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
+	if is_melee_attack_type(attack_type(weapon)) or attack_type(weapon) == "aura":
+		return _apply_short_range(context, range_value, 0.75, 0.85, SHORT_RANGE_MIN_AREA_RADIUS)
+	return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
 
 static func orbit_count(weapon: Dictionary, boomerang_level: int) -> int:
 	var base_count: int = int(weapon.get("boomerangCount", 1)) if attack_type(weapon) == "orbit" else 0
@@ -74,6 +131,8 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"interval": context["interval"],
 		"range": context["range"],
 		"damage": context["damage"],
+		"shortRange": context["shortRange"],
+		"shortRangeRate": context["shortRangeRate"],
 		"playerPos": context["playerPos"],
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
@@ -104,6 +163,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"attackRightOnlyRate": context["attackRightOnlyRate"],
 		"attackJitter": context["attackJitter"],
 		"shortRange": context["shortRange"],
+		"shortRangeRate": context["shortRangeRate"],
 		"playerPos": context["playerPos"],
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
@@ -131,6 +191,8 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"boomerangHits": context["boomerangHits"],
 		"range": context["range"],
 		"damage": context["damage"],
+		"shortRange": context["shortRange"],
+		"shortRangeRate": context["shortRangeRate"],
 		"knockback": context["knockback"]
 	})
 	result["boomerangHits"] = boomerang_result["boomerangHits"]
@@ -144,6 +206,9 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"timers": context["equipmentWeaponTimers"],
 		"playerPos": context["playerPos"],
 		"facingDir": context["facingDir"],
+		"rng": context["rng"],
+		"attackRightOnly": context["attackRightOnly"],
+		"attackRightOnlyRate": context["attackRightOnlyRate"],
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
 		"enemyBullets": context["enemyBullets"],
@@ -152,6 +217,8 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"rangeRate": context["equipmentRangeRate"],
 		"intervalRate": context["equipmentIntervalRate"],
 		"bulletSupportLevel": context["equipmentBulletSupportLevel"],
+		"shortRange": context["shortRange"],
+		"shortRangeRate": context["shortRangeRate"],
 		"knockback": context["knockback"]
 	})
 	result["equipmentWeaponTimers"] = equipment_result["timers"]
@@ -181,6 +248,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"attackRightOnlyRate": ModifierSystem.effect_rate_for_target(target, "attack_right_only"),
 		"attackJitter": float(target.get("attack_jitter_timer")) > 0.0,
 		"shortRange": ModifierSystem.has_effect_for_target(target, "short_range"),
+		"shortRangeRate": ModifierSystem.effect_rate_for_target(target, "short_range"),
 		"superchatLevel": target.get("superchat_level"),
 		"boomerangLevel": target.get("boomerang_level"),
 		"elapsed": target.get("elapsed"),
@@ -252,16 +320,35 @@ static func _merge_weapon_result(target: Dictionary, source: Dictionary) -> void
 	_merge_reaction_result(target, source)
 
 static func _merge_reaction_result(target: Dictionary, source: Dictionary) -> void:
+	var chats: Array = target.get("chats", target.get("chat", [])) as Array
+	for item in (source.get("chats", []) as Array):
+		chats.append(String(item))
+	if target.has("chats"):
+		target["chats"] = chats
+	elif target.has("chat"):
+		target["chat"] = chats
+	var toasts: Array = target.get("toasts", []) as Array
+	for item in (source.get("toasts", []) as Array):
+		toasts.append(String(item))
+	if not toasts.is_empty():
+		target["toasts"] = toasts
 	if float(source.get("screenShakePower", 0.0)) > float(target.get("screenShakePower", 0.0)):
 		target["screenShakePower"] = float(source.get("screenShakePower", 0.0))
 	if float(source.get("screenShakeDuration", 0.0)) > float(target.get("screenShakeDuration", 0.0)):
 		target["screenShakeDuration"] = float(source.get("screenShakeDuration", 0.0))
 	if float(source.get("hitStop", 0.0)) > float(target.get("hitStop", 0.0)):
 		target["hitStop"] = float(source.get("hitStop", 0.0))
+	if float(source.get("screenFlashDuration", 0.0)) > float(target.get("screenFlashDuration", 0.0)):
+		target["screenFlashDuration"] = float(source.get("screenFlashDuration", 0.0))
+		target["screenFlashColor"] = source.get("screenFlashColor", Color.WHITE)
+	if bool(source.get("enemyDamaged", false)):
+		target["enemyDamaged"] = true
+	if bool(source.get("listenerSummonAttacked", false)):
+		target["listenerSummonAttacked"] = true
 	if bool(source.get("enemyDefeated", false)):
 		target["enemyDefeated"] = true
 
-static func _request_weapon_hit_reaction(result: Dictionary, weapon: Dictionary, hit_count: int) -> void:
+static func _request_weapon_hit_reaction(result: Dictionary, weapon: Dictionary, hit_count: int, enemy_hit_count: int = -1) -> void:
 	if hit_count <= 0:
 		return
 	var reaction: Dictionary = {
@@ -269,6 +356,10 @@ static func _request_weapon_hit_reaction(result: Dictionary, weapon: Dictionary,
 		"screenShakeDuration": float(weapon.get("screenShakeDuration", 0.10)),
 		"hitStop": float(weapon.get("hitStop", 0.0))
 	}
+	if enemy_hit_count < 0:
+		enemy_hit_count = hit_count
+	if enemy_hit_count > 0:
+		reaction["enemyDamaged"] = true
 	_merge_reaction_result(result, reaction)
 
 static func _enemy_knockback_scale(enemy: Dictionary) -> float:
@@ -365,6 +456,137 @@ static func _clear_enemy_bullets_in_arc(enemy_bullets: Array, origin: Vector2, d
 			cleared += 1
 	return cleared
 
+static func _attack_target_id(prefix: String, item: Dictionary) -> String:
+	return "%s_%d" % [prefix, int(item.get("uid", 0))]
+
+static func _is_forward_shockwave_hit(origin: Vector2, dir: Vector2, length: float, width: float, target_pos: Vector2, target_radius: float) -> bool:
+	var norm_dir: Vector2 = dir.normalized()
+	if norm_dir.length() < 0.1:
+		norm_dir = Vector2.RIGHT
+	var offset: Vector2 = target_pos - origin
+	var forward: float = offset.dot(norm_dir)
+	if forward < -target_radius or forward > length + target_radius:
+		return false
+	var side: Vector2 = Vector2(-norm_dir.y, norm_dir.x)
+	var progress: float = clampf(forward / maxf(1.0, length), 0.0, 1.0)
+	var half_width: float = width * (0.42 + progress * 0.16)
+	return absf(offset.dot(side)) <= half_width + target_radius
+
+static func _apply_ban_judgement_attack(
+	weapon: Dictionary,
+	enemies: Array,
+	destructibles: Array,
+	enemy_bullets: Array,
+	player_pos: Vector2,
+	dir: Vector2,
+	swing_range: float,
+	arc_angle: float,
+	swing_damage: float,
+	swing_knockback: float,
+	shockwave_range_rate: float,
+	shockwave_width_rate: float,
+	killed_enemies: Array,
+	destroyed_boxes: Array,
+	hit_effects: Array
+) -> Dictionary:
+	var norm_dir: Vector2 = dir.normalized()
+	if norm_dir.length() < 0.1:
+		norm_dir = Vector2.RIGHT
+	var hit_ids: Array[String] = []
+	var hits: int = 0
+	var swing_hits: int = 0
+	var swing_enemy_hits: int = 0
+	var shockwave_hits: int = 0
+	var closest_hit: Vector2 = player_pos + norm_dir * swing_range
+	var closest_swing_hit: Vector2 = closest_hit
+	var arc_dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
+
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if float(enemy.get("hp", 0.0)) <= 0.0:
+			continue
+		var enemy_pos: Vector2 = Vector2(enemy["pos"])
+		var to_enemy: Vector2 = enemy_pos - player_pos
+		var enemy_radius: float = float(enemy.get("radius", 20.0))
+		var range_padding: float = enemy_radius * 0.65 + 12.0
+		if to_enemy.length() <= swing_range + range_padding and (to_enemy.length() <= 0.1 or norm_dir.dot(to_enemy.normalized()) >= arc_dot_threshold):
+			var push_dir: Vector2 = to_enemy.normalized()
+			if push_dir.length() < 0.1:
+				push_dir = norm_dir
+			if _apply_enemy_hit(enemy, swing_damage, push_dir, swing_knockback, killed_enemies, hit_effects):
+				hit_ids.append(_attack_target_id("enemy", enemy))
+				hits += 1
+				swing_hits += 1
+				swing_enemy_hits += 1
+				if enemy_pos.distance_squared_to(player_pos) < closest_hit.distance_squared_to(player_pos):
+					closest_hit = enemy_pos
+				if enemy_pos.distance_squared_to(player_pos) < closest_swing_hit.distance_squared_to(player_pos):
+					closest_swing_hit = enemy_pos
+
+	for box_item in destructibles:
+		var box: Dictionary = box_item as Dictionary
+		if float(box.get("hp", 0.0)) <= 0.0:
+			continue
+		var box_pos: Vector2 = Vector2(box["pos"])
+		var to_box: Vector2 = box_pos - player_pos
+		var box_padding: float = float(box.get("radius", 24.0)) * 0.55 + 10.0
+		if to_box.length() <= swing_range + box_padding and (to_box.length() <= 0.1 or norm_dir.dot(to_box.normalized()) >= arc_dot_threshold):
+			DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+			hit_ids.append(_attack_target_id("box", box))
+			hits += 1
+			swing_hits += 1
+			if box_pos.distance_squared_to(player_pos) < closest_swing_hit.distance_squared_to(player_pos):
+				closest_swing_hit = box_pos
+
+	var cleared_bullets: int = _clear_enemy_bullets_in_arc(enemy_bullets, player_pos, norm_dir, swing_range + 18.0, arc_angle, hit_effects)
+	if cleared_bullets > 0:
+		hits += cleared_bullets
+		swing_hits += cleared_bullets
+
+	var shockwave_range: float = maxf(scaled_range(float(weapon.get("shockwaveRange", 5.5))) * shockwave_range_rate, SHORT_RANGE_MIN_PROJECTILE_RANGE)
+	var shockwave_width: float = maxf(scaled_range(float(weapon.get("shockwaveWidth", 1.2))) * shockwave_width_rate, SHORT_RANGE_MIN_AREA_RADIUS)
+	var base_damage: float = maxf(0.01, float(weapon.get("damage", 28.0)))
+	var damage_rate: float = swing_damage / base_damage
+	var shockwave_damage: float = float(weapon.get("shockwaveDamage", 18.0)) * damage_rate
+	var base_knockback: float = maxf(0.01, scaled_knockback(float(weapon.get("knockback", 1.8))))
+	var knockback_rate: float = swing_knockback / base_knockback
+	var shockwave_knockback: float = scaled_knockback(float(weapon.get("shockwaveKnockback", 1.0))) * knockback_rate
+	var shockwave_origin: Vector2 = player_pos + norm_dir * 18.0
+
+	hit_effects.append({
+		"pos": player_pos,
+		"dir": norm_dir,
+		"life": 0.26,
+		"range": swing_range * 0.92,
+		"arcAngle": arc_angle,
+		"hammer": true,
+		"judgement": true,
+		"hit": closest_swing_hit,
+		"count": swing_hits
+	})
+	hit_effects.append({
+		"kind": "ban_judgement_shockwave",
+		"pos": shockwave_origin,
+		"dir": norm_dir,
+		"life": float(weapon.get("shockwaveLife", 0.22)),
+		"maxLife": float(weapon.get("shockwaveLife", 0.22)),
+		"delay": float(weapon.get("shockwaveDelay", 0.12)),
+		"maxDelay": float(weapon.get("shockwaveDelay", 0.12)),
+		"range": shockwave_range,
+		"width": shockwave_width,
+		"damage": shockwave_damage,
+		"knockback": shockwave_knockback,
+		"hitIds": hit_ids.duplicate(),
+		"count": shockwave_hits
+	})
+	return {
+		"hits": hits,
+		"swingHits": swing_hits,
+		"swingEnemyHits": swing_enemy_hits,
+		"shockwaveHits": shockwave_hits,
+		"closestHit": closest_hit
+	}
+
 static func update_hammer(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
 		"attackTimer": float(context["attackTimer"]),
@@ -379,14 +601,17 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 	var killed_enemies: Array = result["killed"] as Array
 	var destroyed_boxes: Array = result["destroyedBoxes"] as Array
 	var chat_events: Array = result["chat"] as Array
-	if String(context["weaponType"]) != "melee_arc":
+	var weapon_type: String = String(context["weaponType"])
+	if not is_melee_attack_type(weapon_type):
 		return result
 	var attack_timer_value: float = float(context["attackTimer"]) - float(context["delta"])
 	if attack_timer_value > 0.0:
 		result["attackTimer"] = attack_timer_value
 		return result
+	var weapon: Dictionary = context.get("weapon", {}) as Dictionary
 	var interval_rate: float = 0.9 if bool(context["supportAttack"]) else 1.0
-	attack_timer_value = float(context["interval"]) * interval_rate
+	var min_interval: float = float(weapon.get("minAttackInterval", weapon.get("minCooldown", 0.0)))
+	attack_timer_value = maxf(min_interval, float(context["interval"]) * interval_rate)
 	var mute_timer_value: float = float(context["muteTimer"]) + float(context["interval"])
 	var mute_window: float = 1.1 * float(context["weaponMuteRate"])
 	if bool(context["weaponMute"]) and fmod(mute_timer_value, 3.0) < mute_window:
@@ -399,7 +624,6 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 	var enemies: Array = context["enemies"] as Array
 	var destructibles: Array = context["destructibles"] as Array
 	var enemy_bullets: Array = context["enemyBullets"] as Array
-	var weapon: Dictionary = context.get("weapon", {}) as Dictionary
 	var dir: Vector2 = Vector2(context.get("facingDir", Vector2.RIGHT))
 	if dir.length() < 0.1:
 		dir = Vector2(context["lastDir"])
@@ -416,10 +640,42 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 		dir = dir.rotated(rng.randf_range(-0.45, 0.45))
 	result["lastDir"] = dir
 	var hits: int = 0
-	var effective_range: float = float(context["range"]) * (0.55 if bool(context["shortRange"]) else 1.0)
-	var arc_angle: float = float(context.get("arcAngle", 120.0)) + 8.0
+	var enemy_hits: int = 0
+	var is_judgement: bool = weapon_type == "melee_shockwave" or String(weapon.get("id", "")) == "ban_judgement"
+	var inherited_range_rate: float = float(context["range"]) / maxf(1.0, range_base(weapon))
+	var effective_range: float = _apply_short_range(context, float(context["range"]), 0.75, 0.85, SHORT_RANGE_MIN_AREA_RADIUS)
+	var arc_angle: float = float(context.get("arcAngle", 120.0)) if is_judgement else float(context.get("arcAngle", 120.0)) + 8.0
 	var arc_dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
 	var closest_hit: Vector2 = player_pos + dir * effective_range
+	if is_judgement:
+		var judgement_result: Dictionary = _apply_ban_judgement_attack(
+			weapon,
+			enemies,
+			destructibles,
+			enemy_bullets,
+			player_pos,
+			dir,
+			effective_range,
+			arc_angle,
+			float(context["damage"]),
+			float(context["knockback"]),
+			inherited_range_rate * _short_range_projectile_rate(context),
+			inherited_range_rate * _short_range_area_rate(context),
+			killed_enemies,
+			destroyed_boxes,
+			hit_effects
+		)
+		hits = int(judgement_result.get("hits", 0))
+		closest_hit = judgement_result.get("closestHit", closest_hit) as Vector2
+		var swing_hits: int = int(judgement_result.get("swingHits", 0))
+		var swing_enemy_hits: int = int(judgement_result.get("swingEnemyHits", swing_hits))
+		if swing_hits > 0:
+			_request_weapon_hit_reaction(result, weapon, swing_hits, swing_enemy_hits)
+		if hits > 0:
+			chat_events.append("BANジャッジメント命中！")
+		result["attackTimer"] = attack_timer_value
+		result["muteTimer"] = mute_timer_value
+		return result
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item
 		if float(enemy["hp"]) <= 0.0:
@@ -432,6 +688,7 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 			var damage: float = float(context["damage"])
 			_apply_enemy_hit(enemy, damage, to_enemy.normalized(), float(context["knockback"]), killed_enemies, hit_effects)
 			hits += 1
+			enemy_hits += 1
 			if enemy_pos.distance_squared_to(player_pos) < closest_hit.distance_squared_to(player_pos):
 				closest_hit = enemy_pos
 	for box_item in destructibles:
@@ -446,7 +703,7 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 	hit_effects.append({"pos": player_pos, "dir": dir, "life": 0.26, "range": effective_range * 0.92, "arcAngle": arc_angle, "hammer": true, "hit": closest_hit, "count": hits})
 	if hits > 0:
 		chat_events.append("BAN命中！")
-		_request_weapon_hit_reaction(result, weapon, hits)
+		_request_weapon_hit_reaction(result, weapon, hits, enemy_hits)
 	result["attackTimer"] = attack_timer_value
 	result["muteTimer"] = mute_timer_value
 	return result
@@ -481,6 +738,7 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 			var target_data: Dictionary = target as Dictionary
 			var dir: Vector2 = (Vector2(target_data["pos"]) - player_pos).normalized()
 			var range_value: float = float(context["range"]) if is_main_projectile else 520.0
+			range_value = _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
 			if player_pos.distance_to(Vector2(target_data["pos"])) <= range_value:
 				var weapon: Dictionary = context["weapon"] as Dictionary
 				var speed: float = scaled_projectile_speed(float(weapon.get("projectileSpeed", 7.0))) if is_main_projectile else 460.0
@@ -557,6 +815,7 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	var is_main_orbit: bool = weapon_type == "orbit"
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var radius: float = float(context["range"]) if is_main_orbit else 78.0
+	radius = _apply_short_range(context, radius, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
 	var hit_radius: float = float(weapon.get("hitRadius", 34.0)) if is_main_orbit else 28.0
 	var speed: float = orbit_speed(weapon)
 	var damage: float = float(context["damage"]) if is_main_orbit else 5.0
@@ -631,6 +890,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 		if timer > 0.0:
 			timers[weapon_id] = timer
 			continue
+		var attack_dir: Vector2 = _direction_with_attack_right_only(facing_dir, context)
 		var level_value: int = int(entry.get("level", 1))
 		var damage: float = (float(weapon.get("damage", 4.0)) + float(level_value - 1) * 1.5) * float(context["damageRate"])
 		var range_value: float = range_base(weapon) * float(context["rangeRate"])
@@ -639,18 +899,20 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			damage *= 1.0 + 0.15 * float(support_level)
 			range_value *= 1.0 + 0.10 * float(support_level)
 			interval *= pow(0.94, float(support_level))
+		range_value = _short_range_range_for_weapon(weapon_id, weapon, range_value, context)
 		var spawn_support_level: int = support_level if String(weapon.get("attribute", "")) == "bullet" else 0
 		timers[weapon_id] = maxf(0.18, interval)
 		if attack_type(weapon) == "melee_arc":
 			var arc_angle: float = float(weapon.get("arcAngle", 120.0)) + 8.0
-			var closest_hit: Vector2 = player_pos + facing_dir * range_value
-			var hits: int = _apply_arc_damage(enemies, player_pos, facing_dir, range_value, arc_angle, damage, float(context["knockback"]), killed_enemies, hit_effects)
-			hits += _apply_arc_damage_to_boxes(destructibles, player_pos, facing_dir, range_value, arc_angle, destroyed_boxes, hit_effects)
-			hits += _clear_enemy_bullets_in_arc(enemy_bullets, player_pos, facing_dir, range_value + 18.0, arc_angle, hit_effects)
-			_request_weapon_hit_reaction(result, weapon, hits)
+			var closest_hit: Vector2 = player_pos + attack_dir * range_value
+			var enemy_hits: int = _apply_arc_damage(enemies, player_pos, attack_dir, range_value, arc_angle, damage, float(context["knockback"]), killed_enemies, hit_effects)
+			var hits: int = enemy_hits
+			hits += _apply_arc_damage_to_boxes(destructibles, player_pos, attack_dir, range_value, arc_angle, destroyed_boxes, hit_effects)
+			hits += _clear_enemy_bullets_in_arc(enemy_bullets, player_pos, attack_dir, range_value + 18.0, arc_angle, hit_effects)
+			_request_weapon_hit_reaction(result, weapon, hits, enemy_hits)
 			hit_effects.append({
 				"pos": player_pos,
-				"dir": facing_dir,
+				"dir": attack_dir,
 				"life": 0.24,
 				"range": range_value * 0.88,
 				"arcAngle": arc_angle,
@@ -661,32 +923,38 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			if weapon_id == "ban_hammer" and hits > 0:
 				chat_events.append("BAN命中！")
 		elif weapon_id == "mic_barrier":
-			var hits: int = _apply_circle_damage(enemies, player_pos, range_value, damage, float(context["knockback"]), killed_enemies, hit_effects)
+			var enemy_hits: int = _apply_circle_damage(enemies, player_pos, range_value, damage, float(context["knockback"]), killed_enemies, hit_effects)
 			_apply_circle_damage_to_boxes(destructibles, player_pos, range_value, destroyed_boxes, hit_effects)
 			_clear_enemy_bullets_in_circle(enemy_bullets, player_pos, range_value, hit_effects)
-			_request_weapon_hit_reaction(result, weapon, hits)
-			hit_effects.append({"pos": player_pos, "dir": Vector2.RIGHT, "life": 0.16, "range": range_value, "arcAngle": 360.0, "hit": player_pos, "count": 1})
+			_request_weapon_hit_reaction(result, weapon, enemy_hits, enemy_hits)
+			hit_effects.append({"kind": "mic_wave", "pos": player_pos, "life": 0.42, "maxLife": 0.42, "range": range_value, "hitCount": enemy_hits, "count": enemy_hits})
 		elif weapon_id == "spotlight":
 			var target: Variant = nearest_enemy(enemies, player_pos)
-			var center: Vector2 = player_pos + facing_dir * range_value
+			var center: Vector2 = player_pos + attack_dir * range_value
 			if target != null:
-				center = Vector2((target as Dictionary)["pos"])
-			var hits: int = _apply_circle_damage(enemies, center, 72.0 * float(context["rangeRate"]), damage, float(context["knockback"]) * 0.35, killed_enemies, hit_effects)
-			_apply_circle_damage_to_boxes(destructibles, center, 72.0 * float(context["rangeRate"]), destroyed_boxes, hit_effects)
-			_clear_enemy_bullets_in_circle(enemy_bullets, center, 72.0 * float(context["rangeRate"]), hit_effects)
-			_request_weapon_hit_reaction(result, weapon, hits)
-			hit_effects.append({"kind": "spotlight", "pos": center, "dir": Vector2.RIGHT, "life": 0.22, "range": 72.0 * float(context["rangeRate"]), "arcAngle": 360.0, "hit": center, "count": 1})
+				var target_pos: Vector2 = Vector2((target as Dictionary)["pos"])
+				var to_target: Vector2 = target_pos - player_pos
+				if to_target.length() <= range_value:
+					center = target_pos
+				elif to_target.length() > 0.1:
+					center = player_pos + to_target.normalized() * range_value
+			var spotlight_radius: float = maxf(72.0 * float(context["rangeRate"]) * _short_range_explosion_area_rate(context), SHORT_RANGE_MIN_AREA_RADIUS)
+			var enemy_hits: int = _apply_circle_damage(enemies, center, spotlight_radius, damage, float(context["knockback"]) * 0.35, killed_enemies, hit_effects)
+			_apply_circle_damage_to_boxes(destructibles, center, spotlight_radius, destroyed_boxes, hit_effects)
+			_clear_enemy_bullets_in_circle(enemy_bullets, center, spotlight_radius, hit_effects)
+			_request_weapon_hit_reaction(result, weapon, enemy_hits, enemy_hits)
+			hit_effects.append({"kind": "spotlight", "pos": center, "dir": Vector2.RIGHT, "life": 0.55, "maxLife": 0.55, "range": spotlight_radius, "arcAngle": 360.0, "hit": center, "count": 1})
 		elif weapon_id == "kusa_wave":
 			hit_effects.append({
 				"kind": "kusa_wave",
-				"pos": player_pos + facing_dir * 34.0,
-				"dir": facing_dir,
-				"vel": facing_dir * 430.0,
+				"pos": player_pos + attack_dir * 34.0,
+				"dir": attack_dir,
+				"vel": attack_dir * 430.0,
 				"life": 0.48,
 				"maxLife": 0.48,
 				"range": range_value,
 				"arcAngle": float(weapon.get("arcAngle", 80.0)),
-				"hit": player_pos + facing_dir * range_value,
+				"hit": player_pos + attack_dir * range_value,
 				"count": 1,
 				"damage": damage,
 				"knockback": float(context["knockback"]),
@@ -697,13 +965,13 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 				"hitIds": []
 			})
 		elif weapon_id == "comment_pin":
-			_spawn_comment_pin_projectiles(weapon, level_value, spawn_support_level, player_pos, facing_dir, enemies, range_value, damage, hit_effects)
+			_spawn_comment_pin_projectiles(weapon, level_value, spawn_support_level, player_pos, attack_dir, enemies, range_value, damage, hit_effects)
 		elif weapon_id == "emote_mine":
-			_spawn_emote_mines(weapon, level_value, spawn_support_level, player_pos, active_fx, hit_effects, damage, float(context["rangeRate"]))
+			_spawn_emote_mines(weapon, level_value, spawn_support_level, player_pos, active_fx, hit_effects, damage, float(context["rangeRate"]) * _short_range_explosion_area_rate(context))
 		elif weapon_id == "ng_word_laser":
-			_fire_ng_word_lasers(weapon, level_value, spawn_support_level, player_pos, facing_dir, enemies, destructibles, enemy_bullets, range_value, damage, float(context["rangeRate"]), float(context["knockback"]), killed_enemies, destroyed_boxes, hit_effects)
+			_fire_ng_word_lasers(weapon, level_value, spawn_support_level, player_pos, attack_dir, enemies, destructibles, enemy_bullets, range_value, damage, float(context["rangeRate"]), float(context["knockback"]), killed_enemies, destroyed_boxes, hit_effects)
 		elif weapon_id == "listener_summon":
-			_spawn_listener_summons(weapon, level_value, spawn_support_level, player_pos, facing_dir, active_fx, hit_effects, damage, float(context["rangeRate"]), float(context["knockback"]))
+			_spawn_listener_summons(weapon, level_value, spawn_support_level, player_pos, attack_dir, active_fx, hit_effects, damage, float(context["rangeRate"]) * _short_range_search_rate(context), float(context["knockback"]))
 	return result
 
 static func _weapon_spawn_count(weapon: Dictionary, key: String, level_value: int, support_level: int) -> int:
@@ -711,6 +979,20 @@ static func _weapon_spawn_count(weapon: Dictionary, key: String, level_value: in
 	if level_value >= 5:
 		count += 1
 	return maxi(1, count + support_level)
+
+static func _direction_with_attack_right_only(base_dir: Vector2, context: Dictionary) -> Vector2:
+	var dir: Vector2 = base_dir.normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	if bool(context.get("attackRightOnly", false)):
+		var right_power: float = float(context.get("attackRightOnlyRate", 1.0))
+		var should_force_right: bool = right_power >= 0.95
+		if not should_force_right:
+			var rng: RandomNumberGenerator = context.get("rng", null) as RandomNumberGenerator
+			should_force_right = rng.randf() <= 0.70 if rng != null else right_power > 0.0
+		if should_force_right:
+			dir = Vector2.RIGHT
+	return dir
 
 static func _level_duration(base_duration: float, level_value: int) -> float:
 	return base_duration * (1.20 if level_value >= 3 else 1.0)
@@ -789,6 +1071,7 @@ static func _spawn_emote_mines(weapon: Dictionary, level_value: int, support_lev
 	var active_count: int = _active_fx_count(active_fx, hit_effects, "emote_mine", String(weapon.get("id", "emote_mine")))
 	var duration: float = _level_duration(float(weapon.get("duration", 8.0)), level_value)
 	var radius: float = scaled_range(float(weapon.get("explosionRadius", 1.5))) * range_rate * (1.12 if level_value >= 3 else 1.0)
+	radius = maxf(radius, SHORT_RANGE_MIN_AREA_RADIUS)
 	for i in range(count):
 		if active_count >= max_active:
 			return
@@ -875,6 +1158,7 @@ static func _spawn_listener_summons(weapon: Dictionary, level_value: int, suppor
 	var duration: float = _level_duration(float(weapon.get("duration", 6.0)), level_value)
 	var speed: float = scaled_move_speed(float(weapon.get("moveSpeed", 3.5)))
 	var search_range: float = scaled_range(float(weapon.get("searchRange", weapon.get("range", 7.0)))) * range_rate * (1.10 if level_value >= 3 else 1.0)
+	search_range = maxf(search_range, SHORT_RANGE_MIN_SEARCH_RANGE)
 	for i in range(count):
 		if active_count >= max_active:
 			return
@@ -999,6 +1283,7 @@ static func update_kusa_wave_damage(fx: Dictionary, enemies: Array, destructible
 			hit_count += 1
 	if hit_count > 0:
 		_merge_reaction_result(feedback, {
+			"enemyDamaged": true,
 			"screenShakePower": float(fx.get("screenShakePower", 0.0)),
 			"screenShakeDuration": float(fx.get("screenShakeDuration", 0.10)),
 			"hitStop": float(fx.get("hitStop", 0.0))
@@ -1022,7 +1307,46 @@ static func update_kusa_wave_damage(fx: Dictionary, enemies: Array, destructible
 		hit_ids.append(box_uid)
 	fx["hitIds"] = hit_ids
 
-static func update_comment_pin_damage(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array) -> void:
+static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
+	var pos: Vector2 = Vector2(fx["pos"])
+	var dir: Vector2 = Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	var range_value: float = float(fx.get("range", 450.0))
+	var width_value: float = float(fx.get("width", 96.0))
+	var damage: float = float(fx.get("damage", 0.0))
+	var knockback: float = float(fx.get("knockback", 0.0))
+	var hit_ids: Array = fx.get("hitIds", []) as Array
+	var hit_count: int = 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if float(enemy.get("hp", 0.0)) <= 0.0:
+			continue
+		var target_id: String = _attack_target_id("enemy", enemy)
+		if hit_ids.has(target_id):
+			continue
+		var enemy_pos: Vector2 = Vector2(enemy["pos"])
+		if not _is_forward_shockwave_hit(pos, dir, range_value, width_value, enemy_pos, float(enemy.get("radius", 20.0))):
+			continue
+		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects):
+			hit_ids.append(target_id)
+			hit_count += 1
+	if hit_count > 0:
+		_merge_reaction_result(feedback, {"enemyDamaged": true})
+	for box_item in destructibles:
+		var box: Dictionary = box_item as Dictionary
+		if float(box.get("hp", 0.0)) <= 0.0:
+			continue
+		var target_id: String = _attack_target_id("box", box)
+		if hit_ids.has(target_id):
+			continue
+		if not _is_forward_shockwave_hit(pos, dir, range_value, width_value, Vector2(box["pos"]), float(box.get("radius", 24.0))):
+			continue
+		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+		hit_ids.append(target_id)
+	fx["hitIds"] = hit_ids
+
+static func update_comment_pin_damage(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
 	var pos: Vector2 = Vector2(fx["pos"])
 	var damage: float = float(fx.get("damage", 0.0))
 	var hit_radius: float = float(fx.get("hitRadius", 12.0))
@@ -1039,6 +1363,7 @@ static func update_comment_pin_damage(fx: Dictionary, enemies: Array, destructib
 		if push_dir.length() < 0.1:
 			push_dir = (enemy_pos - pos).normalized()
 		_apply_enemy_hit(enemy, damage, push_dir, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects)
+		_merge_reaction_result(feedback, {"enemyDamaged": true})
 		hit_effects.append({
 			"kind": "pin_burst",
 			"pos": enemy_pos,
@@ -1071,10 +1396,11 @@ static func update_emote_mine_damage(fx: Dictionary, enemies: Array, destructibl
 		return
 	var radius: float = float(fx.get("radius", 120.0))
 	var damage: float = float(fx.get("damage", 0.0))
-	_apply_circle_damage(enemies, pos, radius, damage, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects)
+	var hit_count: int = _apply_circle_damage(enemies, pos, radius, damage, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects)
 	_apply_circle_damage_to_boxes(destructibles, pos, radius, destroyed_boxes, hit_effects)
 	_clear_enemy_bullets_in_circle(enemy_bullets, pos, radius, hit_effects)
 	_merge_reaction_result(feedback, {
+		"enemyDamaged": hit_count > 0,
 		"screenShakePower": float(fx.get("screenShakePower", 0.0)),
 		"screenShakeDuration": float(fx.get("screenShakeDuration", 0.15)),
 		"hitStop": float(fx.get("hitStop", 0.0))
@@ -1089,7 +1415,7 @@ static func update_emote_mine_damage(fx: Dictionary, enemies: Array, destructibl
 	})
 	fx["life"] = 0.0
 
-static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies: Array, killed_enemies: Array, hit_effects: Array) -> void:
+static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
 	var pos: Vector2 = Vector2(fx["pos"])
 	var hit_timer: float = maxf(0.0, float(fx.get("hitTimer", 0.0)) - delta)
 	fx["hitTimer"] = hit_timer
@@ -1117,6 +1443,7 @@ static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies:
 		return
 	var damage: float = float(fx.get("damage", 0.0))
 	_apply_enemy_hit(target_enemy, damage, dir, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects)
+	_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true})
 	hit_effects.append({
 		"kind": "listener_burst",
 		"pos": enemy_pos,
@@ -1129,6 +1456,10 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 	var appended_fx: Array = []
 	for fx_item in hit_fx:
 		var fx: Dictionary = fx_item
+		var delay: float = float(fx.get("delay", 0.0))
+		if delay > 0.0:
+			fx["delay"] = maxf(0.0, delay - delta)
+			continue
 		if fx.has("vel"):
 			var move: Vector2 = Vector2(fx["vel"]) * delta
 			fx["pos"] = Vector2(fx["pos"]) + move
@@ -1136,12 +1467,14 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 				fx["hit"] = Vector2(fx["hit"]) + move
 		if String(fx.get("kind", "")) == "kusa_wave":
 			update_kusa_wave_damage(fx, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
+		elif String(fx.get("kind", "")) == "ban_judgement_shockwave":
+			update_ban_judgement_shockwave_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif String(fx.get("kind", "")) == "comment_pin":
-			update_comment_pin_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx)
+			update_comment_pin_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif String(fx.get("kind", "")) == "emote_mine":
 			update_emote_mine_damage(fx, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif String(fx.get("kind", "")) == "listener_summon":
-			update_listener_summon_damage(fx, delta, enemies, killed_enemies, appended_fx)
+			update_listener_summon_damage(fx, delta, enemies, killed_enemies, appended_fx, feedback)
 		fx["life"] = float(fx["life"]) - delta
 	var remaining: Array = hit_fx.filter(func(f): return float(f["life"]) > 0.0)
 	for fx_item in appended_fx:
