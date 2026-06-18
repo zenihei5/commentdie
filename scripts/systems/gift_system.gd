@@ -3,6 +3,48 @@ class_name GiftSystem
 
 const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
 
+const MENTAL_CARE_MAX_HP_PER_LEVEL := 10
+const NOTIFICATION_BELL_EXP_RATE_PER_LEVEL := 0.08
+const COMMENT_RADAR_RANGE_UNIT_PER_LEVEL := 0.45
+const COMMENT_RADAR_RANGE_PIXEL_SCALE := 82.5
+const COMMENT_RADAR_SPEED_RATE_PER_LEVEL := 0.08
+const COMMENT_RADAR_FX_COOLDOWN := 0.35
+const MINI_HUMIDIFIER_HURT_PAUSE_SECONDS := 3.0
+
+static func mental_care_max_hp_bonus(level: int) -> int:
+	return maxi(0, level) * MENTAL_CARE_MAX_HP_PER_LEVEL
+
+static func notification_bell_exp_rate(level: int) -> float:
+	return maxf(0.0, float(level)) * NOTIFICATION_BELL_EXP_RATE_PER_LEVEL
+
+static func comment_radar_range_bonus(level: int) -> float:
+	return maxf(0.0, float(level)) * COMMENT_RADAR_RANGE_UNIT_PER_LEVEL * COMMENT_RADAR_RANGE_PIXEL_SCALE
+
+static func comment_radar_speed_rate(level: int) -> float:
+	return 1.0 + maxf(0.0, float(level)) * COMMENT_RADAR_SPEED_RATE_PER_LEVEL
+
+static func mini_humidifier_interval(level: int) -> float:
+	match clampi(level, 0, 3):
+		1:
+			return 10.0
+		2:
+			return 8.0
+		3:
+			return 6.0
+		_:
+			return 0.0
+
+static func mini_humidifier_heal_amount(level: int) -> int:
+	match clampi(level, 0, 3):
+		1:
+			return 4
+		2:
+			return 5
+		3:
+			return 6
+		_:
+			return 0
+
 static func arrival_text(gift_hype: int) -> String:
 	if gift_hype >= 90:
 		return "神ギフトの予感……！"
@@ -44,12 +86,18 @@ static func build_forced_offer(context: Dictionary, rarity: String, count: int =
 	return result
 
 static func build_offer_context_for_target(target: Node, gifts: Array, gift_time: float, rng: RandomNumberGenerator) -> Dictionary:
+	var current_character: Dictionary = target.get("current_character") as Dictionary
+	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+	var initial_weapon_id: String = String(current_character.get("initialWeapon", ""))
+	if initial_weapon_id == "":
+		initial_weapon_id = String(current_weapon.get("baseWeaponId", current_weapon.get("id", "")))
 	return {
 		"gifts": gifts,
 		"streamFrame": target.get("current_stream_frame"),
 		"giftHype": target.get("gift_hype"),
 		"giftTime": gift_time,
 		"availableIds": available_gift_ids_for_target(target, gifts, gift_time),
+		"initialWeaponId": initial_weapon_id,
 		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
 		"rng": rng
 	}
@@ -96,27 +144,45 @@ static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dicti
 	var gifts: Array = context["gifts"] as Array
 	var available_ids: Array = context["availableIds"] as Array
 	var frame: Dictionary = context["streamFrame"] as Dictionary
+	var used_ids: Array[String] = _used_gift_ids(used)
 	for item in gifts:
 		var gift: Dictionary = item as Dictionary
 		if String(gift["rarity"]) != rarity:
 			continue
 		if not _data_allowed_for_frame(frame, gift, "giftPoolTags"):
 			continue
-		if used.has(gift):
+		var gift_id: String = String(gift["id"])
+		if used_ids.has(gift_id):
 			continue
-		if not available_ids.has(String(gift["id"])):
+		if not available_ids.has(gift_id):
 			continue
-		for i in range(int(gift["weight"])):
+		for i in range(_gift_pick_weight(context, gift)):
 			pool.append(gift)
 	if pool.is_empty():
 		for item in gifts:
 			var fallback: Dictionary = item as Dictionary
-			if _data_allowed_for_frame(frame, fallback, "giftPoolTags") and available_ids.has(String(fallback["id"])):
+			var fallback_id: String = String(fallback["id"])
+			if _data_allowed_for_frame(frame, fallback, "giftPoolTags") and available_ids.has(fallback_id) and not used_ids.has(fallback_id):
 				pool.append(fallback)
 	if pool.is_empty():
 		return {"id": "rest", "displayName": "休憩", "description": "メンタルを回復", "rarity": "common", "maxLevel": 0, "effectType": "heal", "weight": 1}
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+
+static func _used_gift_ids(used: Array) -> Array[String]:
+	var result: Array[String] = []
+	for item in used:
+		var gift: Dictionary = item as Dictionary
+		var gift_id: String = String(gift.get("id", ""))
+		if gift_id != "" and not result.has(gift_id):
+			result.append(gift_id)
+	return result
+
+static func _gift_pick_weight(context: Dictionary, gift: Dictionary) -> int:
+	var weight: int = maxi(1, int(gift.get("weight", 1)))
+	if String(gift.get("id", "")) == String(context.get("initialWeaponId", "")):
+		return weight * 3
+	return weight
 
 static func consume_for_rarity(rarity: String) -> int:
 	if rarity == "evolution":
@@ -267,13 +333,27 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	var sneaker_level: int = EquipmentSystem.level(accessories, "light_sneakers")
 	var bullet_support_level: int = EquipmentSystem.level(accessories, "bullet_support")
 	var sweet_level: int = EquipmentSystem.level(accessories, "sweet_tooth")
+	var mental_care_level: int = EquipmentSystem.level(accessories, "mental_care")
+	var notification_bell_level: int = EquipmentSystem.level(accessories, "notification_bell")
+	var comment_radar_level: int = EquipmentSystem.level(accessories, "comment_radar")
+	var previous_humidifier_level: int = int(target.get("mini_humidifier_level"))
+	var mini_humidifier_level: int = EquipmentSystem.level(accessories, "mini_humidifier")
 	var main_damage_rate: float = 1.0 + 0.10 * float(stream_power_level) + 0.10 * float(main_weapon_level - 1)
 	var main_range_rate: float = 1.0 + 0.10 * float(wide_angle_level) + 0.08 * float(main_weapon_level - 1)
 	var main_interval_rate: float = pow(0.92, float(high_speed_level)) * pow(0.94, float(main_weapon_level - 1))
+	var previous_max_hp: int = int(target.get("player_max_hp"))
+	var previous_hp: int = int(target.get("player_hp"))
+	var base_hp: int = _scaled_player_hp(int(stats.get("hp", current_character.get("initialHp", 100))))
+	var new_max_hp: int = base_hp + mental_care_max_hp_bonus(mental_care_level)
+	var max_hp_delta: int = new_max_hp - previous_max_hp
+	target.set("mental_care_level", mental_care_level)
+	target.set("player_max_hp", new_max_hp)
+	target.set("player_hp", clampi(previous_hp + maxi(0, max_hp_delta), 0, new_max_hp))
 	target.set("equipment_damage_rate", 1.0 + 0.10 * float(stream_power_level))
 	target.set("equipment_range_rate", 1.0 + 0.10 * float(wide_angle_level))
 	target.set("equipment_interval_rate", pow(0.92, float(high_speed_level)))
 	target.set("equipment_bullet_support_level", bullet_support_level)
+	target.set("notification_bell_level", notification_bell_level)
 	target.set("hammer_damage", float(current_weapon.get("damage", 12.0)) * main_damage_rate)
 	target.set("hammer_range", WeaponSystem.range_base(current_weapon) * main_range_rate)
 	var min_main_interval: float = float(current_weapon.get("minAttackInterval", current_weapon.get("minCooldown", 0.28)))
@@ -281,27 +361,35 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	target.set("knockback_power", WeaponSystem.scaled_knockback(float(current_weapon.get("knockback", 1.0))) * (1.0 + 0.10 * float(main_weapon_level - 1)))
 	target.set("player_speed", WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * (1.0 + 0.05 * float(sneaker_level)))
 	target.set("dash_cooldown", float(stats.get("dashCooldown", current_character.get("dashCooldown", 1.2))) * pow(0.95, float(sneaker_level)))
+	var comment_radar_range: float = comment_radar_range_bonus(comment_radar_level)
+	target.set("comment_radar_level", comment_radar_level)
+	target.set("comment_radar_range_bonus", comment_radar_range)
+	target.set("item_magnet_speed_rate", comment_radar_speed_rate(comment_radar_level))
+	target.set("magnet_range", float(current_weapon.get("magnetRange", 95.0)) * float(stats.get("pickupRange", 1.0)) + comment_radar_range)
+	target.set("mini_humidifier_level", mini_humidifier_level)
+	if mini_humidifier_level <= 0:
+		target.set("mini_humidifier_timer", 0.0)
+		target.set("mini_humidifier_hurt_cooldown", 0.0)
+	elif mini_humidifier_level > previous_humidifier_level:
+		var interval: float = mini_humidifier_interval(mini_humidifier_level)
+		var current_timer: float = float(target.get("mini_humidifier_timer"))
+		target.set("mini_humidifier_timer", interval if current_timer <= 0.0 else minf(current_timer, interval))
 	target.set("sweet_tooth_level", sweet_level)
 	var superchat_weapon_level: int = EquipmentSystem.level(weapons, "superchat_shot")
 	var boomerang_weapon_level: int = EquipmentSystem.level(weapons, "comment_boomerang")
-	var superchat_evolved: bool = EquipmentSystem.has_evolved_from(weapons, "superchat_shot")
-	var boomerang_evolved: bool = EquipmentSystem.has_evolved_from(weapons, "comment_boomerang")
 	var superchat_level: int = maxi(0, superchat_weapon_level)
 	var boomerang_level: int = maxi(0, boomerang_weapon_level)
 	if main_weapon_id == "superchat_shot":
 		superchat_level = maxi(0, superchat_weapon_level - 1)
 	if main_weapon_id == "comment_boomerang":
 		boomerang_level = maxi(0, boomerang_weapon_level - 1)
-	if superchat_weapon_level > 0:
-		superchat_level += bullet_support_level
-	if boomerang_weapon_level > 0:
-		boomerang_level += bullet_support_level
-	if superchat_evolved:
-		superchat_level = bullet_support_level
-	if boomerang_evolved:
-		boomerang_level = bullet_support_level
 	target.set("superchat_level", superchat_level)
 	target.set("boomerang_level", boomerang_level)
+
+static func _scaled_player_hp(value: int) -> int:
+	if value <= 10:
+		return maxi(1, value * DamageSystem.LEGACY_HP_UNIT)
+	return value
 
 static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 	var result: Dictionary = context.duplicate()
@@ -317,10 +405,10 @@ static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 	elif effect == "move_speed":
 		result["playerSpeed"] = float(result.get("playerSpeed", 0.0)) * 1.07
 	elif effect == "max_hp":
-		result["playerMaxHp"] = int(result.get("playerMaxHp", 5)) + 1
-		result["playerHp"] = mini(int(result["playerMaxHp"]), int(result.get("playerHp", 5)) + 1)
+		result["playerMaxHp"] = int(result.get("playerMaxHp", 100)) + DamageSystem.LEGACY_HP_UNIT
+		result["playerHp"] = mini(int(result["playerMaxHp"]), int(result.get("playerHp", 100)) + DamageSystem.LEGACY_HP_UNIT)
 	elif effect == "heal":
-		result["playerHp"] = mini(int(result.get("playerMaxHp", 5)), int(result.get("playerHp", 5)) + 2)
+		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + DamageSystem.LEGACY_HP_UNIT * 2)
 	elif effect == "gift_hype_boost":
 		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 25, 0, 100)
 		result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
@@ -428,6 +516,10 @@ static func build_effect_context_from_target(target: Node) -> Dictionary:
 		"maroAppraisal": target.get("maro_appraisal"),
 		"blockFunctionStock": target.get("block_function_stock"),
 		"steelMentalLevel": target.get("steel_mental_level"),
+		"mentalCareLevel": target.get("mental_care_level"),
+		"notificationBellLevel": target.get("notification_bell_level"),
+		"commentRadarLevel": target.get("comment_radar_level"),
+		"miniHumidifierLevel": target.get("mini_humidifier_level"),
 		"likeScoreLevel": target.get("like_score_level"),
 		"dashCooldown": target.get("dash_cooldown"),
 		"knockbackPower": target.get("knockback_power"),
@@ -500,7 +592,7 @@ static func build_level_context_from_target(target: Node) -> Dictionary:
 	context["baseWeaponRange"] = WeaponSystem.range_base(weapon)
 	context["baseWeaponInterval"] = WeaponSystem.attack_interval(weapon, 0.85)
 	context["basePlayerSpeed"] = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0)))
-	context["baseHp"] = int(stats.get("hp", character.get("initialHp", 5)))
+	context["baseHp"] = int(stats.get("hp", character.get("initialHp", 100)))
 	context["baseDashCooldown"] = float(stats.get("dashCooldown", character.get("dashCooldown", 1.2)))
 	context["baseKnockback"] = float(weapon.get("knockback", 18.0))
 	context["heartUsedCount"] = int(target.get("heart_used_count"))
@@ -521,7 +613,7 @@ static func gift_level(id: String, context: Dictionary) -> int:
 		var base_speed: float = float(context.get("basePlayerSpeed", 1.0))
 		return int(round((float(context.get("playerSpeed", base_speed)) / base_speed - 1.0) / 0.07))
 	if id == "mental":
-		return int(context.get("playerMaxHp", 5)) - int(context.get("baseHp", 5))
+		return int(round(float(int(context.get("playerMaxHp", 100)) - int(context.get("baseHp", 100))) / float(DamageSystem.LEGACY_HP_UNIT)))
 	if id == "exp_magnet":
 		return int(round((float(context.get("magnetRange", 95.0)) / 95.0 - 1.0) / 0.30))
 	if id == "heart_mark":
@@ -554,6 +646,14 @@ static func gift_level(id: String, context: Dictionary) -> int:
 		return int(context.get("blockFunctionStock", 0))
 	if id == "steel_mental":
 		return int(context.get("steelMentalLevel", 0))
+	if id == "mental_care":
+		return int(context.get("mentalCareLevel", 0))
+	if id == "notification_bell":
+		return int(context.get("notificationBellLevel", 0))
+	if id == "comment_radar":
+		return int(context.get("commentRadarLevel", 0))
+	if id == "mini_humidifier":
+		return int(context.get("miniHumidifierLevel", 0))
 	if id == "like_score":
 		return int(context.get("likeScoreLevel", 0))
 	if id == "dash_cooldown":

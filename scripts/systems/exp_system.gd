@@ -36,15 +36,18 @@ static func update_orbs(context: Dictionary) -> Dictionary:
 	var orbs: Array = context["orbs"] as Array
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var magnet_range: float = float(context["magnetRange"])
+	var magnet_speed_rate: float = maxf(0.1, float(context.get("magnetSpeedRate", 1.0)))
 	var delta: float = float(context["delta"])
 	var collected_exp: int = 0
 	var collected_count: int = 0
+	var attracted_count: int = 0
 	for orb_item in orbs:
 		var orb: Dictionary = orb_item
 		var pos: Vector2 = Vector2(orb["pos"])
 		orb["life"] = float(orb["life"]) - delta
 		if pos.distance_to(player_pos) <= magnet_range:
-			pos = pos.lerp(player_pos, minf(1.0, delta * 7.5))
+			attracted_count += 1
+			pos = pos.lerp(player_pos, minf(1.0, delta * 7.5 * magnet_speed_rate))
 		orb["pos"] = pos
 		if pos.distance_to(player_pos) < 24.0:
 			orb["life"] = -1.0
@@ -53,7 +56,8 @@ static func update_orbs(context: Dictionary) -> Dictionary:
 	return {
 		"orbs": orbs.filter(func(o): return float(o["life"]) > 0.0),
 		"collectedExp": collected_exp,
-		"collectedCount": collected_count
+		"collectedCount": collected_count,
+		"attractedCount": attracted_count
 	}
 
 static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
@@ -61,9 +65,12 @@ static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
 		"orbs": target.get("exp_orbs"),
 		"playerPos": target.get("player_pos"),
 		"magnetRange": target.get("magnet_range"),
+		"magnetSpeedRate": target.get("item_magnet_speed_rate"),
 		"delta": delta
 	})
 	target.set("exp_orbs", result["orbs"] as Array)
+	if int(result.get("attractedCount", 0)) > 0:
+		_append_comment_radar_fx_for_target(target)
 	var collected_count: int = int(result["collectedCount"])
 	result["levelUp"] = false
 	result["levelUps"] = 0
@@ -100,7 +107,8 @@ static func update_world_for_target(target: Node, delta: float) -> Dictionary:
 	return result
 
 static func add_exp_to_target(target: Node, amount: int) -> int:
-	target.set("exp_value", int(target.get("exp_value")) + amount)
+	var adjusted_amount: int = _exp_amount_with_notification_bonus_for_target(target, amount)
+	target.set("exp_value", int(target.get("exp_value")) + adjusted_amount)
 	var level_ups := 0
 	while int(target.get("exp_value")) >= current_need(int(target.get("exp_level"))):
 		var need: int = current_need(int(target.get("exp_level")))
@@ -108,3 +116,41 @@ static func add_exp_to_target(target: Node, amount: int) -> int:
 		target.set("exp_level", int(target.get("exp_level")) + 1)
 		level_ups += 1
 	return level_ups
+
+static func _exp_amount_with_notification_bonus_for_target(target: Node, amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var level: int = int(target.get("notification_bell_level"))
+	if level <= 0:
+		return amount
+	var bonus_pool: float = float(amount) * GiftSystem.notification_bell_exp_rate(level) + float(target.get("exp_bonus_remainder"))
+	var bonus: int = int(floor(bonus_pool))
+	target.set("exp_bonus_remainder", bonus_pool - float(bonus))
+	if bonus > 0:
+		_append_notification_bell_fx_for_target(target, bonus)
+	return amount + bonus
+
+static func _append_notification_bell_fx_for_target(target: Node, bonus: int) -> void:
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "notification_bell",
+		"pos": Vector2(target.get("player_pos")) + Vector2(26.0, -46.0),
+		"life": 0.46,
+		"maxLife": 0.46,
+		"bonus": bonus
+	})
+
+static func _append_comment_radar_fx_for_target(target: Node) -> void:
+	if int(target.get("comment_radar_level")) <= 0:
+		return
+	if float(target.get("comment_radar_fx_timer")) > 0.0:
+		return
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "comment_radar_ping",
+		"pos": Vector2(target.get("player_pos")),
+		"life": 0.38,
+		"maxLife": 0.38,
+		"radius": float(target.get("magnet_range"))
+	})
+	target.set("comment_radar_fx_timer", GiftSystem.COMMENT_RADAR_FX_COOLDOWN)

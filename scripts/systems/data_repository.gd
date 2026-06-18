@@ -9,6 +9,7 @@ var genre_events: Array = []
 var characters: Array = []
 var weapons: Array = []
 var bosses: Array = []
+var stream_start_intro_config: Dictionary = {}
 
 static func loaded() -> DataRepository:
 	var repository: DataRepository = DataRepository.new()
@@ -24,6 +25,7 @@ func load_all() -> void:
 	characters = _load_array("res://data/characters.json")
 	weapons = _load_array("res://data/weapons.json")
 	bosses = _load_array("res://data/bosses.json", true)
+	stream_start_intro_config = _load_dictionary("res://data/stream_start_intro.json", true)
 
 func apply_to_target(target: Node) -> void:
 	target.set("comments", comments)
@@ -34,6 +36,7 @@ func apply_to_target(target: Node) -> void:
 	target.set("characters", characters)
 	target.set("weapons", weapons)
 	target.set("bosses", bosses)
+	target.set("stream_start_intro_config", stream_start_intro_config)
 
 func find_by_id(list: Array, id: String) -> Dictionary:
 	for item in list:
@@ -50,3 +53,12 @@ func _load_array(path: String, optional: bool = false) -> Array:
 	if parsed is Array:
 		return parsed as Array
 	return []
+
+func _load_dictionary(path: String, optional: bool = false) -> Dictionary:
+	if optional and not FileAccess.file_exists(path):
+		return {}
+	var text: String = FileAccess.get_file_as_string(path)
+	var parsed: Variant = JSON.parse_string(text)
+	if parsed is Dictionary:
+		return parsed as Dictionary
+	return {}

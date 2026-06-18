@@ -407,7 +407,7 @@ static func _normal_detail_view(entry: Dictionary, rank_index: int) -> Dictionar
 			{"label": "神回度", "value": "%s  %dpt" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _god_point(entry)]},
 			{"label": "生存時間", "value": _format_time(float(entry.get("survivalTime", entry.get("time", 0))))},
 			{"label": "最大ボルテージ", "value": "x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0)))},
-			{"label": "炎上回数", "value": "%d" % int(entry.get("maxBurnCombo", 0))},
+			{"label": "最大バズ度", "value": "%d" % int(entry.get("maxBurnCombo", 0))},
 			{"label": "ギフト数", "value": "%d" % int(entry.get("giftCount", 0))}
 		],
 		"weapons": _safe_array(entry.get("weapons", [])),
@@ -438,7 +438,7 @@ static func _relay_detail_view(entry: Dictionary, rank_index: int) -> Dictionary
 			{"label": "到達枠", "value": String(entry.get("currentFrameName", "配信枠"))},
 			{"label": "突破枠", "value": completed_text},
 			{"label": "最大ボルテージ", "value": "x%.1f" % float(entry.get("maxVoltage", 1.0))},
-			{"label": "炎上回数", "value": "%d" % int(entry.get("maxBurnCombo", 0))}
+			{"label": "最大バズ度", "value": "%d" % int(entry.get("maxBurnCombo", 0))}
 		],
 		"weapons": _safe_array(entry.get("weapons", [])),
 		"accessories": _safe_array(entry.get("accessories", [])),
@@ -459,7 +459,7 @@ static func _format_detail(entry: Dictionary, rank_index: int) -> String:
 		"神回度：%s" % String(entry.get("kamiRank", entry.get("rank", "D"))),
 		"生存時間：%s" % _format_time(float(entry.get("survivalTime", entry.get("time", 0)))),
 		"最大ボルテージ：x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0))),
-		"最大炎上コンボ：%d" % int(entry.get("maxBurnCombo", 0)),
+		"最大バズ度：%d" % int(entry.get("maxBurnCombo", 0)),
 		"武器：%s" % _equipment_summary(_safe_array(entry.get("weapons", [])), String(entry.get("weaponEquipmentText", "なし"))),
 		"アクセサリ：%s" % _equipment_summary(_safe_array(entry.get("accessories", [])), String(entry.get("accessoryEquipmentText", "なし"))),
 		"戦犯指示コメ：%s" % String(entry.get("culpritInstructionComment", "なし")),
@@ -488,7 +488,7 @@ static func _normal_detail_cards(entry: Dictionary) -> Array:
 				"神回度 %s" % String(entry.get("kamiRank", entry.get("rank", "D"))),
 				"生存時間 %s" % _format_time(float(entry.get("survivalTime", entry.get("time", 0)))),
 				"最大ボルテージ x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0))),
-				"最大炎上コンボ %d" % int(entry.get("maxBurnCombo", 0))
+				"最大バズ度 %d" % int(entry.get("maxBurnCombo", 0))
 			]
 		},
 		{
@@ -536,7 +536,7 @@ static func _format_relay_detail(entry: Dictionary, rank_index: int) -> String:
 		"最大同時視聴者数：%s人" % _format_number(int(entry.get("maxViewerCount", 0))),
 		"合計同時視聴者数：%s人" % _format_number(int(entry.get("totalViewerCount", 0))),
 		"最大ボルテージ：x%.1f" % float(entry.get("maxVoltage", 1.0)),
-		"最大炎上コンボ：%d" % int(entry.get("maxBurnCombo", 0)),
+		"最大バズ度：%d" % int(entry.get("maxBurnCombo", 0)),
 		"最終武器ビルド：\n%s" % _equipment_detail(_safe_array(entry.get("weapons", []))),
 		"最終アクセサリビルド：\n%s" % _equipment_detail(_safe_array(entry.get("accessories", []))),
 		"終了理由：%s" % ended_reason,
@@ -579,7 +579,7 @@ static func _relay_detail_cards(entry: Dictionary) -> Array:
 				"最大同時視聴者数 %s人" % _format_number(int(entry.get("maxViewerCount", 0))),
 				"合計同時視聴者数 %s人" % _format_number(int(entry.get("totalViewerCount", 0))),
 				"最大ボルテージ x%.1f" % float(entry.get("maxVoltage", 1.0)),
-				"最大炎上コンボ %d" % int(entry.get("maxBurnCombo", 0))
+				"最大バズ度 %d" % int(entry.get("maxBurnCombo", 0))
 			]
 		},
 		{

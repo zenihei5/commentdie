@@ -1,0 +1,40 @@
+{
+  "version": "hud_character_icons_v1",
+  "purpose": "Small character portraits for the top in-game HUD character card.",
+  "chromaKey": "Bright green screen pixels are removed while preserving mint/blue accessory colors.",
+  "items": [
+    {
+      "id": "banri",
+      "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\小ばんちゃん.png",
+      "output": "res://assets/generated/hud_character_icons_v1/banri_hud_icon.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "removedPixels": 799602,
+      "softenedPixels": 559
+    },
+    {
+      "id": "supana",
+      "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\小すぱな.png",
+      "output": "res://assets/generated/hud_character_icons_v1/supana_hud_icon.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "removedPixels": 752521,
+      "softenedPixels": 558
+    },
+    {
+      "id": "maron",
+      "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\小まろん.png",
+      "output": "res://assets/generated/hud_character_icons_v1/maron_hud_icon.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "removedPixels": 444529,
+      "softenedPixels": 361
+    }
+  ]
+}

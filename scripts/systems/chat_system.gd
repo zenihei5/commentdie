@@ -46,24 +46,56 @@ static func update_timer(state: String, kuso_chat_timer: float, chat_timer: floa
 	}
 
 static func prefix(line: String) -> String:
-	if line.contains("x10") or line.contains("全部"):
+	var category := line_category(line)
+	if category == "danger" or category == "warning" or category == "instruction":
 		return "!"
-	if line.contains("ギフト") or line.contains("回復"):
+	if category == "gift":
 		return "+"
-	if line.contains("草"):
+	if category == "special":
+		return "*"
+	if category == "reaction":
 		return "ｗ"
 	return ">"
 
 static func color(line: String) -> Color:
-	if line.contains("x10") or line.contains("全部"):
-		return Color("#d81b3c")
-	if line.contains("ギフト") or line.contains("回復"):
+	var category := line_category(line)
+	if category == "danger":
+		return Color("#c93058")
+	if category == "warning":
+		return Color("#d64e98")
+	if category == "instruction":
+		return Color("#e15aa0")
+	if category == "gift":
 		return Color("#0097b8")
-	if line.contains("草"):
-		return Color("#42a800")
-	return Color("#526174")
+	if category == "special":
+		return Color("#c97913")
+	if category == "reaction":
+		return Color("#8a76b8")
+	return Color("#6b7280")
 
-static func append_line(lines: Array[String], text: String, limit: int = 14) -> Array[String]:
+static func font_size_for_line(line: String) -> int:
+	var category := line_category(line)
+	if category == "danger" or category == "warning" or category == "instruction":
+		return 21
+	return 20
+
+static func line_category(line: String) -> String:
+	var text := line.strip_edges()
+	if text.contains("事故") or text.contains("やられ") or text.contains("メンタル") or text.contains("逃げろ"):
+		return "danger"
+	if text.contains("クソマロ") or text.contains("ブロック") or text.contains("未読") or text.contains("逃げ"):
+		return "warning"
+	if text.contains("x10") or text.contains("全部") or text.contains("日和") or text.contains("早く選") or text.contains("指示コメ"):
+		return "instruction"
+	if text.contains("ギフト") or text.contains("回復") or text.contains("♡") or text.contains("ハート") or text.contains("火力") or text.contains("EXP"):
+		return "gift"
+	if text.contains("神") or text.contains("切り抜き") or text.contains("完走") or text.contains("おめ") or text.contains("888") or text.contains("バズ"):
+		return "special"
+	if text.contains("草") or text.contains("ｗ") or text.contains("うまい") or text.contains("いい"):
+		return "reaction"
+	return "normal"
+
+static func append_line(lines: Array[String], text: String, limit: int = 20) -> Array[String]:
 	var result: Array[String] = lines.duplicate()
 	result.append(text)
 	while result.size() > limit:
@@ -73,13 +105,13 @@ static func append_line(lines: Array[String], text: String, limit: int = 14) -> 
 static func display_items(lines: Array[String]) -> Array:
 	var items: Array = []
 	var visible_lines: Array[String] = lines
-	if visible_lines.size() > 11:
-		visible_lines = visible_lines.slice(visible_lines.size() - 11, visible_lines.size())
+	if visible_lines.size() > 20:
+		visible_lines = visible_lines.slice(visible_lines.size() - 20, visible_lines.size())
 	for line in visible_lines:
 		items.append({
 			"text": prefix(line) + " " + line,
 			"color": color(line),
-			"fontSize": 23
+			"fontSize": font_size_for_line(line)
 		})
 	return items
 
@@ -95,8 +127,9 @@ static func refresh_box(chat_box: Control, lines: Array[String]) -> void:
 		GameFontSystemScript.apply_regular_font(label)
 		label.add_theme_font_size_override("font_size", int(view["fontSize"]))
 		label.add_theme_color_override("font_color", view["color"] as Color)
-		label.custom_minimum_size = Vector2(280, 27)
-		label.size = Vector2(280, 27)
+		var row_width := maxf(240.0, chat_box.size.x)
+		label.custom_minimum_size = Vector2(row_width, 24)
+		label.size = Vector2(row_width, 24)
 		label.clip_text = true
 		chat_box.add_child(label)
 

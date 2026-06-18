@@ -8,6 +8,10 @@ const SHORT_RANGE_MIN_AREA_RADIUS := 66.0
 const SHORT_RANGE_MIN_SEARCH_RANGE := 206.0
 const SHORT_RANGE_MIN_LASER_RANGE := 247.5
 const SHORT_RANGE_MIN_ORBIT_RADIUS := 34.0
+const STARLIGHT_SHOT_COUNTER_KEY := "__starlight_superchat_shot_count"
+const MARO_PULSE_INDEX_KEY := "__maro_comment_pulse_index"
+const MARO_PULSE_UNTIL_KEY := "__maro_comment_pulse_until"
+const MARO_FLASH_UNTIL_KEY := "__maro_comment_flash_until"
 
 static func find_weapon(weapons: Array, id: String, fallback: Dictionary) -> Dictionary:
 	for item in weapons:
@@ -125,8 +129,10 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 	var projectile_result: Dictionary = update_projectiles({
 		"delta": context["delta"],
 		"weapon": context["weapon"],
+		"weaponTimers": context["equipmentWeaponTimers"],
 		"weaponType": context["weaponType"],
 		"superchatLevel": context["superchatLevel"],
+		"bulletSupportLevel": context["equipmentBulletSupportLevel"],
 		"superchatTimer": context["superchatTimer"],
 		"interval": context["interval"],
 		"range": context["range"],
@@ -180,11 +186,15 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 	_merge_weapon_result(result, hammer_result)
 
 	var boomerang_result: Dictionary = update_boomerang({
+		"delta": context["delta"],
 		"weapon": context["weapon"],
+		"weaponTimers": context["equipmentWeaponTimers"],
 		"weaponType": context["weaponType"],
 		"boomerangLevel": context["boomerangLevel"],
+		"bulletSupportLevel": context["equipmentBulletSupportLevel"],
 		"elapsed": context["elapsed"],
 		"playerPos": context["playerPos"],
+		"expOrbs": context["expOrbs"],
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
 		"enemyBullets": context["enemyBullets"],
@@ -253,6 +263,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"boomerangLevel": target.get("boomerang_level"),
 		"elapsed": target.get("elapsed"),
 		"playerPos": target.get("player_pos"),
+		"expOrbs": target.get("exp_orbs"),
 		"enemies": target.get("enemies"),
 		"destructibles": target.get("destructibles"),
 		"playerBullets": target.get("player_bullets"),
@@ -422,7 +433,19 @@ static func _bullet_pop_fx(pos: Vector2) -> Dictionary:
 		"count": 1
 	}
 
-static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2, radius: float, hit_effects: Array) -> int:
+static func _maro_bullet_clear_fx(pos: Vector2, center: Vector2) -> Dictionary:
+	var dir: Vector2 = (pos - center).normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	return {
+		"kind": "maro_bullet_clear",
+		"pos": pos,
+		"dir": dir,
+		"life": 0.24,
+		"maxLife": 0.24
+	}
+
+static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2, radius: float, hit_effects: Array, clear_fx_kind: String = "") -> int:
 	var cleared: int = 0
 	for item in enemy_bullets:
 		var bullet: Dictionary = item as Dictionary
@@ -432,7 +455,10 @@ static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2
 		var bullet_radius: float = float(bullet.get("hitRadius", 16.0))
 		if bullet_pos.distance_to(center) <= radius + bullet_radius:
 			bullet["life"] = -1.0
-			hit_effects.append(_bullet_pop_fx(bullet_pos))
+			if clear_fx_kind == "maro_comment":
+				hit_effects.append(_maro_bullet_clear_fx(bullet_pos, center))
+			else:
+				hit_effects.append(_bullet_pop_fx(bullet_pos))
 			cleared += 1
 	return cleared
 
@@ -724,12 +750,14 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 	var timer: float = float(context["superchatTimer"]) - delta
 	var is_main_projectile: bool = String(context["weaponType"]) == "projectile"
 	var superchat_level: int = int(context["superchatLevel"])
+	var bullet_support_level: int = int(context.get("bulletSupportLevel", 0))
 	var has_projectile: bool = is_main_projectile or superchat_level > 0
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var enemies: Array = context["enemies"] as Array
 	var destructibles: Array = context["destructibles"] as Array
 	var bullets: Array = context["bullets"] as Array
 	var enemy_bullets: Array = context["enemyBullets"] as Array
+	var weapon_timers: Dictionary = context.get("weaponTimers", {}) as Dictionary
 	if has_projectile and timer <= 0.0:
 		var base_interval: float = float(context["interval"]) if is_main_projectile else 0.8
 		timer = maxf(0.18, base_interval * pow(0.92, float(superchat_level)))
@@ -744,11 +772,16 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 				var speed: float = scaled_projectile_speed(float(weapon.get("projectileSpeed", 7.0))) if is_main_projectile else 460.0
 				var damage: float = float(context["damage"]) if is_main_projectile else 3.0
 				damage += float(superchat_level) * 1.5
-				var projectile_count: int = maxi(1, int(weapon.get("projectileCount", 1))) if is_main_projectile else 1
+				var projectile_count: int = (maxi(1, int(weapon.get("projectileCount", 1))) if is_main_projectile else 1) + bullet_support_level
 				var spread_rad: float = deg_to_rad(float(weapon.get("projectileSpreadDegrees", 10.0)))
+				if is_main_projectile and _is_starlight_superchat(weapon):
+					weapon_timers[STARLIGHT_SHOT_COUNTER_KEY] = int(weapon_timers.get(STARLIGHT_SHOT_COUNTER_KEY, 0)) + 1
 				for shot_index in range(projectile_count):
 					var shot_dir: Vector2 = _spread_direction(dir, shot_index, projectile_count, spread_rad)
-					bullets.append({"pos": player_pos, "vel": shot_dir * speed, "life": range_value / speed, "damage": damage})
+					if is_main_projectile and _is_starlight_superchat(weapon):
+						bullets.append(_starlight_bullet_data(weapon, player_pos, shot_dir, speed, range_value / speed, damage, shot_index, projectile_count, weapon_timers))
+					else:
+						bullets.append({"pos": player_pos, "vel": shot_dir * speed, "life": range_value / speed, "damage": damage})
 				result["superchatShotFired"] = true
 	for bullet_item in bullets:
 		var bullet: Dictionary = bullet_item
@@ -761,7 +794,7 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 					continue
 				var bullet_pos: Vector2 = Vector2(bullet["pos"])
 				var enemy_bullet_pos: Vector2 = Vector2(enemy_bullet["pos"])
-				if bullet_pos.distance_to(enemy_bullet_pos) <= float(enemy_bullet.get("hitRadius", 16.0)) + 8.0:
+				if bullet_pos.distance_to(enemy_bullet_pos) <= float(enemy_bullet.get("hitRadius", 16.0)) + float(bullet.get("hitRadius", 8.0)):
 					enemy_bullet["life"] = -1.0
 					bullet["life"] = -1.0
 					hit_effects.append(_bullet_pop_fx(enemy_bullet_pos))
@@ -770,25 +803,58 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 			var enemy: Dictionary = enemy_item
 			if float(enemy["hp"]) <= 0.0:
 				continue
-			if float(bullet["life"]) > 0.0 and Vector2(bullet["pos"]).distance_to(Vector2(enemy["pos"])) < float(enemy["radius"]) + 7.0:
+			if float(bullet["life"]) <= 0.0:
+				break
+			var enemy_id: String = _attack_target_id("enemy", enemy)
+			var bullet_hit_ids: Array = bullet.get("hitIds", []) as Array
+			if bullet_hit_ids.has(enemy_id):
+				continue
+			if Vector2(bullet["pos"]).distance_to(Vector2(enemy["pos"])) < float(enemy["radius"]) + float(bullet.get("hitRadius", 7.0)):
 				var damage: float = float(bullet["damage"])
 				var hit_pos: Vector2 = Vector2(enemy["pos"])
-				bullet["life"] = -1.0
 				var push_dir: Vector2 = Vector2(bullet["vel"]).normalized()
 				if push_dir.length() < 0.1:
 					push_dir = (hit_pos - player_pos).normalized()
 				if push_dir.length() < 0.1:
 					push_dir = Vector2.RIGHT
+				bullet_hit_ids.append(enemy_id)
+				bullet["hitIds"] = bullet_hit_ids
 				if _apply_enemy_hit(enemy, damage, push_dir, float(context.get("knockback", 0.0)) * 0.42, killed_enemies, hit_effects):
+					var weapon_for_hit: Dictionary = context["weapon"] as Dictionary
+					if bool(bullet.get("premium", false)):
+						var explosion_hits: int = _apply_starlight_explosion(weapon_for_hit, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects)
+						_request_weapon_hit_reaction(result, weapon_for_hit, 1 + explosion_hits, 1 + explosion_hits)
+					elif String(bullet.get("visualKind", "")) == "starlight_superchat":
+						hit_effects.append(_starlight_hit_fx(hit_pos))
 					_request_weapon_hit_reaction(result, context["weapon"] as Dictionary, 1)
+				var pierce_left: int = int(bullet.get("pierceLeft", 0))
+				if pierce_left > 0:
+					bullet["pierceLeft"] = pierce_left - 1
+					continue
+				bullet["life"] = -1.0
 				break
 		if float(bullet["life"]) > 0.0:
 			for box_item in destructibles:
 				var box: Dictionary = box_item as Dictionary
 				if float(box.get("hp", 0.0)) <= 0.0:
 					continue
-				if Vector2(bullet["pos"]).distance_to(Vector2(box["pos"])) < float(box.get("radius", 24.0)) + 7.0:
+				var box_id: String = _attack_target_id("box", box)
+				var bullet_hit_ids: Array = bullet.get("hitIds", []) as Array
+				if bullet_hit_ids.has(box_id):
+					continue
+				if Vector2(bullet["pos"]).distance_to(Vector2(box["pos"])) < float(box.get("radius", 24.0)) + float(bullet.get("hitRadius", 7.0)):
 					DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+					var hit_pos: Vector2 = Vector2(box["pos"])
+					bullet_hit_ids.append(box_id)
+					bullet["hitIds"] = bullet_hit_ids
+					if bool(bullet.get("premium", false)):
+						_apply_starlight_explosion(context["weapon"] as Dictionary, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects)
+					elif String(bullet.get("visualKind", "")) == "starlight_superchat":
+						hit_effects.append(_starlight_hit_fx(hit_pos))
+					var pierce_left: int = int(bullet.get("pierceLeft", 0))
+					if pierce_left > 0:
+						bullet["pierceLeft"] = pierce_left - 1
+						continue
 					bullet["life"] = -1.0
 					break
 	var arena: Rect2 = context["arena"]
@@ -808,14 +874,27 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	var destroyed_boxes: Array = result["destroyedBoxes"] as Array
 	var weapon: Dictionary = context["weapon"] as Dictionary
 	var weapon_type: String = String(context["weaponType"])
+	var weapon_timers: Dictionary = context.get("weaponTimers", {}) as Dictionary
 	var boomerang_level: int = int(context["boomerangLevel"])
 	var count: int = orbit_count(weapon, boomerang_level)
+	if count > 0:
+		count += int(context.get("bulletSupportLevel", 0))
 	if count <= 0:
 		return result
 	var is_main_orbit: bool = weapon_type == "orbit"
+	var is_maro_ring: bool = is_main_orbit and _is_maro_comment_ring(weapon)
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var radius: float = float(context["range"]) if is_main_orbit else 78.0
 	radius = _apply_short_range(context, radius, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
+	if is_maro_ring:
+		_update_maro_comment_pulse(weapon, context, radius, weapon_timers, context["enemies"] as Array, killed_enemies, hit_effects, result)
+		var pulse_until: float = float(weapon_timers.get(MARO_PULSE_UNTIL_KEY, 0.0))
+		var pulse_duration: float = maxf(0.05, float(weapon.get("pulseDuration", 0.25)))
+		if float(context["elapsed"]) < pulse_until:
+			var pulse_progress: float = clampf(1.0 - (pulse_until - float(context["elapsed"])) / pulse_duration, 0.0, 1.0)
+			var pulse_strength: float = sin(pulse_progress * PI)
+			radius = lerpf(radius, _maro_pulse_radius(weapon, radius), pulse_strength)
+			_nudge_exp_orbs_for_maro_pulse(context.get("expOrbs", []) as Array, player_pos, _maro_pulse_exp_pull_radius(weapon), float(context["delta"]))
 	var hit_radius: float = float(weapon.get("hitRadius", 34.0)) if is_main_orbit else 28.0
 	var speed: float = orbit_speed(weapon)
 	var damage: float = float(context["damage"]) if is_main_orbit else 5.0
@@ -829,7 +908,9 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	for i in range(count):
 		var angle: float = elapsed * speed + TAU * float(i) / float(count)
 		var pos: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * radius
-		_clear_enemy_bullets_in_circle(enemy_bullets, pos, hit_radius + 10.0, hit_effects)
+		var cleared_bullets: int = _clear_enemy_bullets_in_circle(enemy_bullets, pos, hit_radius + 10.0, hit_effects, "maro_comment" if is_maro_ring else "")
+		if is_maro_ring and cleared_bullets > 0:
+			weapon_timers[MARO_FLASH_UNTIL_KEY] = elapsed + 0.18
 		for enemy_item in enemies:
 			var enemy: Dictionary = enemy_item
 			if float(enemy["hp"]) <= 0.0:
@@ -843,7 +924,10 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 				if _apply_enemy_hit(enemy, damage, push_dir, float(context["knockback"]) * 0.45, killed_enemies, hit_effects):
 					_request_weapon_hit_reaction(result, weapon, 1)
 				hit_memory[hit_key] = elapsed + hit_interval
-				hit_effects.append({"pos": pos, "dir": push_dir, "life": 0.14, "range": 36.0, "hit": Vector2(enemy["pos"]), "count": 1})
+				if is_maro_ring:
+					hit_effects.append(_maro_comment_hit_fx(Vector2(enemy["pos"])))
+				else:
+					hit_effects.append({"pos": pos, "dir": push_dir, "life": 0.14, "range": 36.0, "hit": Vector2(enemy["pos"]), "count": 1})
 		for box_item in destructibles:
 			var box: Dictionary = box_item as Dictionary
 			if float(box.get("hp", 0.0)) <= 0.0:
@@ -895,10 +979,6 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 		var damage: float = (float(weapon.get("damage", 4.0)) + float(level_value - 1) * 1.5) * float(context["damageRate"])
 		var range_value: float = range_base(weapon) * float(context["rangeRate"])
 		var interval: float = attack_interval(weapon, 1.0) * float(context["intervalRate"])
-		if String(weapon.get("attribute", "")) == "bullet":
-			damage *= 1.0 + 0.15 * float(support_level)
-			range_value *= 1.0 + 0.10 * float(support_level)
-			interval *= pow(0.94, float(support_level))
 		range_value = _short_range_range_for_weapon(weapon_id, weapon, range_value, context)
 		var spawn_support_level: int = support_level if String(weapon.get("attribute", "")) == "bullet" else 0
 		timers[weapon_id] = maxf(0.18, interval)
@@ -1005,6 +1085,145 @@ static func _spread_direction(base_dir: Vector2, index: int, count: int, spread_
 		return dir
 	var offset: float = (float(index) - float(count - 1) * 0.5) * spread_rad
 	return dir.rotated(offset).normalized()
+
+static func _is_starlight_superchat(weapon: Dictionary) -> bool:
+	return String(weapon.get("id", "")) == "starlight_superchat"
+
+static func _is_maro_comment_ring(weapon: Dictionary) -> bool:
+	return String(weapon.get("id", "")) == "maro_comment_ring"
+
+static func _starlight_hit_fx(pos: Vector2, premium: bool = false) -> Dictionary:
+	return {
+		"kind": "starlight_hit",
+		"pos": pos,
+		"life": 0.24 if not premium else 0.30,
+		"maxLife": 0.24 if not premium else 0.30,
+		"premium": premium
+	}
+
+static func _starlight_burst_fx(pos: Vector2, radius: float) -> Dictionary:
+	return {
+		"kind": "starlight_burst",
+		"pos": pos,
+		"life": 0.38,
+		"maxLife": 0.38,
+		"radius": radius
+	}
+
+static func _maro_comment_hit_fx(pos: Vector2) -> Dictionary:
+	return {
+		"kind": "maro_comment_hit",
+		"pos": pos,
+		"life": 0.22,
+		"maxLife": 0.22
+	}
+
+static func _maro_comment_pulse_fx(pos: Vector2, radius: float, pulled_exp: int) -> Dictionary:
+	return {
+		"kind": "maro_comment_pulse",
+		"pos": pos,
+		"life": 0.36,
+		"maxLife": 0.36,
+		"radius": radius,
+		"pulledExp": pulled_exp
+	}
+
+static func _premium_superchat_explosion_radius(weapon: Dictionary, context: Dictionary) -> float:
+	var radius_value: float = float(weapon.get("premiumExplosionRadius", 0.85))
+	return scaled_range(radius_value) * _short_range_explosion_area_rate(context)
+
+static func _apply_starlight_explosion(
+	weapon: Dictionary,
+	context: Dictionary,
+	center: Vector2,
+	enemies: Array,
+	destructibles: Array,
+	killed_enemies: Array,
+	destroyed_boxes: Array,
+	hit_effects: Array
+) -> int:
+	var radius: float = _premium_superchat_explosion_radius(weapon, context)
+	var damage: float = float(weapon.get("premiumExplosionDamage", 7.0))
+	var knockback: float = float(context.get("knockback", 0.0)) * 0.28
+	var hits: int = _apply_circle_damage(enemies, center, radius, damage, knockback, killed_enemies, hit_effects)
+	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects)
+	hit_effects.append(_starlight_burst_fx(center, radius))
+	return hits
+
+static func _maro_pulse_target_radius(weapon: Dictionary) -> float:
+	return scaled_range(float(weapon.get("pulseOrbitRadius", 3.1)), 43.0)
+
+static func _maro_pulse_exp_pull_radius(weapon: Dictionary) -> float:
+	return scaled_range(float(weapon.get("pulseExpPullRadius", 3.5)), 43.0)
+
+static func _maro_pulse_radius(weapon: Dictionary, base_radius: float) -> float:
+	return maxf(base_radius, _maro_pulse_target_radius(weapon))
+
+static func _nudge_exp_orbs_for_maro_pulse(exp_orbs: Array, player_pos: Vector2, radius: float, delta: float) -> int:
+	var pulled: int = 0
+	var pull_rate: float = minf(0.22, delta * 3.2)
+	for orb_item in exp_orbs:
+		var orb: Dictionary = orb_item as Dictionary
+		if float(orb.get("life", 0.0)) <= 0.0:
+			continue
+		var pos: Vector2 = Vector2(orb.get("pos", Vector2.ZERO))
+		var distance: float = pos.distance_to(player_pos)
+		if distance <= radius and distance > 18.0:
+			orb["pos"] = pos.lerp(player_pos, pull_rate)
+			pulled += 1
+	return pulled
+
+static func _update_maro_comment_pulse(
+	weapon: Dictionary,
+	context: Dictionary,
+	base_radius: float,
+	weapon_timers: Dictionary,
+	enemies: Array,
+	killed_enemies: Array,
+	hit_effects: Array,
+	result: Dictionary
+) -> void:
+	var elapsed: float = float(context["elapsed"])
+	var pulse_interval: float = maxf(0.10, float(weapon.get("pulseInterval", 2.0)))
+	var pulse_duration: float = maxf(0.05, float(weapon.get("pulseDuration", 0.25)))
+	var pulse_index: int = int(floor(elapsed / pulse_interval))
+	if not weapon_timers.has(MARO_PULSE_INDEX_KEY):
+		weapon_timers[MARO_PULSE_INDEX_KEY] = pulse_index
+		weapon_timers[MARO_PULSE_UNTIL_KEY] = 0.0
+		return
+	var last_pulse_index: int = int(weapon_timers.get(MARO_PULSE_INDEX_KEY, pulse_index))
+	if pulse_index <= last_pulse_index:
+		return
+	weapon_timers[MARO_PULSE_INDEX_KEY] = pulse_index
+	weapon_timers[MARO_PULSE_UNTIL_KEY] = elapsed + pulse_duration
+	var player_pos: Vector2 = Vector2(context["playerPos"])
+	var pulse_radius: float = _maro_pulse_radius(weapon, base_radius)
+	var pulse_damage: float = float(weapon.get("pulseDamage", 8.0))
+	var hit_count: int = _apply_circle_damage(enemies, player_pos, pulse_radius, pulse_damage, float(context["knockback"]) * 0.20, killed_enemies, hit_effects)
+	var pulled_exp: int = _nudge_exp_orbs_for_maro_pulse(context.get("expOrbs", []) as Array, player_pos, _maro_pulse_exp_pull_radius(weapon), float(context["delta"]))
+	_request_weapon_hit_reaction(result, weapon, hit_count, hit_count)
+	hit_effects.append(_maro_comment_pulse_fx(player_pos, pulse_radius, pulled_exp))
+
+static func _starlight_bullet_data(weapon: Dictionary, pos: Vector2, dir: Vector2, speed: float, life: float, base_damage: float, shot_index: int, projectile_count: int, weapon_timers: Dictionary) -> Dictionary:
+	var is_center_shot: bool = shot_index == int(float(projectile_count - 1) * 0.5)
+	var shot_count: int = int(weapon_timers.get(STARLIGHT_SHOT_COUNTER_KEY, 0))
+	var premium_every: int = maxi(1, int(weapon.get("premiumEvery", 5)))
+	var is_premium: bool = is_center_shot and shot_count > 0 and shot_count % premium_every == 0
+	var damage: float = float(weapon.get("premiumDamage", 14.0)) if is_premium else base_damage
+	var hit_radius: float = 11.0 if is_premium else 7.0
+	var bullet := {
+		"pos": pos,
+		"vel": dir * speed,
+		"life": life,
+		"damage": damage,
+		"visualKind": "high_superchat" if is_premium else "starlight_superchat",
+		"hitRadius": hit_radius,
+		"hitIds": []
+	}
+	if is_premium:
+		bullet["premium"] = true
+		bullet["pierceLeft"] = maxi(0, int(weapon.get("premiumPierce", 1)))
+	return bullet
 
 static func _entity_uid(prefix: String, item: Dictionary) -> String:
 	return "%s_%s_%d" % [prefix, String(item.get("kind", "")), int(item.get("uid", 0))]

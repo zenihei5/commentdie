@@ -186,6 +186,50 @@
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/sweet_tooth.png"
   },
   {
+    "id": "mental_care",
+    "displayName": "メンタルケア",
+    "description": "最大HPが上がる。取得時に少し回復する",
+    "rarity": "common",
+    "equipmentType": "accessory",
+    "maxLevel": 5,
+    "effectType": "equipment_accessory",
+    "weight": 11,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mental_care.png"
+  },
+  {
+    "id": "notification_bell",
+    "displayName": "通知ベル",
+    "description": "獲得EXPが増える",
+    "rarity": "common",
+    "equipmentType": "accessory",
+    "maxLevel": 5,
+    "effectType": "equipment_accessory",
+    "weight": 11,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/notification_bell.png"
+  },
+  {
+    "id": "comment_radar",
+    "displayName": "コメントレーダー",
+    "description": "アイテムを拾いやすくなる",
+    "rarity": "common",
+    "equipmentType": "accessory",
+    "maxLevel": 5,
+    "effectType": "equipment_accessory",
+    "weight": 11,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_radar.png"
+  },
+  {
+    "id": "mini_humidifier",
+    "displayName": "ミニ加湿器",
+    "description": "時間経過で少しずつ回復する。被弾すると少しの間止まる",
+    "rarity": "rare",
+    "equipmentType": "accessory",
+    "maxLevel": 3,
+    "effectType": "equipment_accessory",
+    "weight": 8,
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mini_humidifier.png"
+  },
+  {
     "id": "rest",
     "displayName": "休憩",
     "description": "メンタルを2回復",

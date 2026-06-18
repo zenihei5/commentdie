@@ -341,14 +341,14 @@
   </main>
 
   <script>
-    const DATA_URL = "map_prop_editor_data.json";
+    const DATA_URL = new URLSearchParams(window.location.search).get("data") || "map_prop_editor_data.json";
     const canvas = document.getElementById("map-canvas");
     const wrap = document.getElementById("canvas-wrap");
     const ctx = canvas.getContext("2d");
 
     let data = null;
     let floorImage = new Image();
-    let propsImage = new Image();
+    let propsImage = null;
     let selectedIndex = 0;
     let editMode = "dst";
     let showPropsRef = true;
@@ -405,10 +405,16 @@
       data = await res.json();
       const [floor, props] = await Promise.all([
         loadImage(data.floorPath),
-        loadImage(data.propsLayerPath),
+        data.propsLayerPath ? loadImage(data.propsLayerPath) : Promise.resolve(null),
       ]);
       floorImage = floor;
       propsImage = props;
+      showPropsRef = !!propsImage && data.showPropsRef !== false;
+      showCollision = data.showCollision !== false;
+      if (data.defaultEditMode === "dst" || data.defaultEditMode === "collision") {
+        editMode = data.defaultEditMode;
+        document.querySelectorAll(".mode-button").forEach((b) => b.classList.toggle("active", b.dataset.mode === editMode));
+      }
       selectedIndex = 0;
       resizeCanvas();
       renderPropList();
@@ -517,7 +523,7 @@
       const w = data.canvasSize[0] * view.scale;
       const h = data.canvasSize[1] * view.scale;
       ctx.drawImage(floorImage, origin.x, origin.y, w, h);
-      if (showPropsRef) {
+      if (showPropsRef && propsImage) {
         ctx.globalAlpha = 0.82;
         ctx.drawImage(propsImage, origin.x, origin.y, w, h);
         ctx.globalAlpha = 1;

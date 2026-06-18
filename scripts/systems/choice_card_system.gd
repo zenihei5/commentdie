@@ -129,6 +129,21 @@ static func is_move(action: Dictionary) -> bool:
 static func is_select(action: Dictionary) -> bool:
 	return String(action["kind"]) == "select"
 
+static func buzz_gain_for_risk(risk: int) -> int:
+	if risk >= 4:
+		return 2
+	if risk >= 2:
+		return 1
+	return 0
+
+static func buzz_gain_text(risk: int) -> String:
+	var gain := buzz_gain_for_risk(risk)
+	if gain >= 2:
+		return "📈 大バズ +%d" % gain
+	if gain == 1:
+		return "📈 バズ度 +1"
+	return "📈 バズ度 +0"
+
 static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_timer: float, elapsed: float) -> Dictionary:
 	var risk: int = int(view["riskLevel"])
 	var border: Color = Color("#60a5ff")
@@ -141,10 +156,11 @@ static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_t
 	if has_heart:
 		border = border.lightened(0.35)
 	return {
-		"text": "[%d]\n%s\n\n%s\n\nボルテージ x%.1f\nギフト期待 +%d\n危険度 %d" % [
+		"text": "[%d]\n%s\n\n%s\n\n%s\nボルテージ x%.1f\nギフト期待 +%d\n危険度 %d" % [
 			index + 1,
 			String(view["displayName"]),
 			String(view["description"]),
+			buzz_gain_text(risk),
 			float(view["multiplier"]),
 			int(view["giftHypeOnSelect"]),
 			int(view["riskLevel"])

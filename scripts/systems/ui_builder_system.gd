@@ -68,19 +68,19 @@ static func build_choice_ui(ui: CanvasLayer, choose_callable: Callable) -> Dicti
 
 static func build_chat_ui(ui: CanvasLayer) -> Dictionary:
 	var comment_title := Label.new()
-	comment_title.position = Vector2(1274, 206)
+	comment_title.position = Vector2(1306, 36)
 	comment_title.text = "COMMENT"
 	comment_title.visible = false
 	GameFontSystemScript.apply_black_font(comment_title)
-	comment_title.add_theme_font_size_override("font_size", 28)
+	comment_title.add_theme_font_size_override("font_size", 24)
 	comment_title.add_theme_color_override("font_color", Color("#c85cff"))
 	ui.add_child(comment_title)
 
 	var chat_box := VBoxContainer.new()
-	chat_box.position = Vector2(1246, 270)
-	chat_box.size = Vector2(292, 288)
+	chat_box.position = Vector2(1258, 104)
+	chat_box.size = Vector2(276, 560)
 	chat_box.clip_contents = true
-	chat_box.add_theme_constant_override("separation", 6)
+	chat_box.add_theme_constant_override("separation", 3)
 	ui.add_child(chat_box)
 	return {"chatTitleLabel": comment_title, "chatBox": chat_box}
 

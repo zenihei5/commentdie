@@ -1,0 +1,526 @@
+{
+  "version": 2,
+  "mode": "trial_field_collision",
+  "canvasSize": [
+    2200,
+    1500
+  ],
+  "floorPath": "../assets/generated/maps/trial_field_v1/field_trial_cover_2200x1500.png",
+  "propsLayerPath": "",
+  "assembledPath": "../assets/generated/maps/trial_field_v1/field_trial_cover_2200x1500.png",
+  "collisionPreviewPath": "../assets/generated/maps/trial_field_v1/field_trial_collision_preview_2200x1500.png",
+  "systemPath": "../scripts/systems/map_background_system.gd",
+  "defaultEditMode": "collision",
+  "showPropsRef": false,
+  "showCollision": true,
+  "props": [
+    {
+      "id": "top_wall_decor",
+      "source": "collision",
+      "src_rect": [
+        5,
+        -39,
+        2196,
+        231
+      ],
+      "dst_rect": [
+        5,
+        -39,
+        2196,
+        231
+      ],
+      "collision_rect": [
+        5,
+        -39,
+        2196,
+        231
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "left_upper_shelf",
+      "source": "collision",
+      "src_rect": [
+        0,
+        0,
+        252,
+        280
+      ],
+      "dst_rect": [
+        0,
+        0,
+        252,
+        280
+      ],
+      "collision_rect": [
+        0,
+        0,
+        252,
+        280
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "right_upper_shelf",
+      "source": "collision",
+      "src_rect": [
+        1940,
+        2,
+        260,
+        330
+      ],
+      "dst_rect": [
+        1940,
+        2,
+        260,
+        330
+      ],
+      "collision_rect": [
+        1940,
+        2,
+        260,
+        330
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "left_ring_camera",
+      "source": "collision",
+      "src_rect": [
+        102,
+        407,
+        192,
+        223
+      ],
+      "dst_rect": [
+        102,
+        407,
+        192,
+        223
+      ],
+      "collision_rect": [
+        102,
+        407,
+        192,
+        223
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "right_ring_camera",
+      "source": "collision",
+      "src_rect": [
+        1924,
+        402,
+        271,
+        217
+      ],
+      "dst_rect": [
+        1924,
+        402,
+        271,
+        217
+      ],
+      "collision_rect": [
+        1924,
+        402,
+        271,
+        217
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "left_work_desk",
+      "source": "collision",
+      "src_rect": [
+        0,
+        585,
+        178,
+        278
+      ],
+      "dst_rect": [
+        0,
+        585,
+        178,
+        278
+      ],
+      "collision_rect": [
+        0,
+        585,
+        178,
+        278
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "right_work_desk",
+      "source": "collision",
+      "src_rect": [
+        2023,
+        614,
+        180,
+        286
+      ],
+      "dst_rect": [
+        2023,
+        614,
+        180,
+        286
+      ],
+      "collision_rect": [
+        2023,
+        614,
+        180,
+        286
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "pink_comment_table",
+      "source": "collision",
+      "src_rect": [
+        607,
+        415,
+        280,
+        237
+      ],
+      "dst_rect": [
+        607,
+        415,
+        280,
+        237
+      ],
+      "collision_rect": [
+        607,
+        415,
+        280,
+        237
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "white_heart_table",
+      "source": "collision",
+      "src_rect": [
+        1308,
+        554,
+        301,
+        252
+      ],
+      "dst_rect": [
+        1308,
+        554,
+        301,
+        252
+      ],
+      "collision_rect": [
+        1308,
+        554,
+        301,
+        252
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "dark_comment_table",
+      "source": "collision",
+      "src_rect": [
+        912,
+        858,
+        344,
+        242
+      ],
+      "dst_rect": [
+        912,
+        858,
+        344,
+        242
+      ],
+      "collision_rect": [
+        912,
+        858,
+        344,
+        242
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_streaming_desk",
+      "source": "collision",
+      "src_rect": [
+        693,
+        1234,
+        840,
+        262
+      ],
+      "dst_rect": [
+        693,
+        1234,
+        840,
+        262
+      ],
+      "collision_rect": [
+        693,
+        1234,
+        840,
+        262
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_left_decor",
+      "source": "collision",
+      "src_rect": [
+        1,
+        1041,
+        289,
+        460
+      ],
+      "dst_rect": [
+        1,
+        1041,
+        289,
+        460
+      ],
+      "collision_rect": [
+        1,
+        1041,
+        289,
+        460
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_right_decor",
+      "source": "collision",
+      "src_rect": [
+        1872,
+        1175,
+        326,
+        306
+      ],
+      "dst_rect": [
+        1872,
+        1175,
+        326,
+        306
+      ],
+      "collision_rect": [
+        1872,
+        1175,
+        326,
+        306
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_left_plant",
+      "source": "collision",
+      "src_rect": [
+        596,
+        1276,
+        92,
+        161
+      ],
+      "dst_rect": [
+        596,
+        1276,
+        92,
+        161
+      ],
+      "collision_rect": [
+        596,
+        1276,
+        92,
+        161
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_right_plant",
+      "source": "collision",
+      "src_rect": [
+        1518,
+        1320,
+        96,
+        120
+      ],
+      "dst_rect": [
+        1518,
+        1320,
+        96,
+        120
+      ],
+      "collision_rect": [
+        1518,
+        1320,
+        96,
+        120
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_right_decor_copy",
+      "source": "collision",
+      "src_rect": [
+        2051,
+        1079,
+        151,
+        118
+      ],
+      "dst_rect": [
+        2051,
+        1079,
+        151,
+        118
+      ],
+      "collision_rect": [
+        2051,
+        1079,
+        151,
+        118
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_right_plant_copy",
+      "source": "collision",
+      "src_rect": [
+        909,
+        1171,
+        437,
+        115
+      ],
+      "dst_rect": [
+        909,
+        1171,
+        437,
+        115
+      ],
+      "collision_rect": [
+        909,
+        1171,
+        437,
+        115
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "left_ring_camera_copy",
+      "source": "collision",
+      "src_rect": [
+        -11,
+        285,
+        66,
+        234
+      ],
+      "dst_rect": [
+        -11,
+        285,
+        66,
+        234
+      ],
+      "collision_rect": [
+        -11,
+        285,
+        66,
+        234
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "bottom_left_plant_copy",
+      "source": "collision",
+      "src_rect": [
+        294,
+        1295,
+        129,
+        205
+      ],
+      "dst_rect": [
+        294,
+        1295,
+        129,
+        205
+      ],
+      "collision_rect": [
+        294,
+        1295,
+        129,
+        205
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "top_wall_decor_copy",
+      "source": "collision",
+      "src_rect": [
+        15,
+        28,
+        585,
+        220
+      ],
+      "dst_rect": [
+        15,
+        28,
+        585,
+        220
+      ],
+      "collision_rect": [
+        15,
+        28,
+        585,
+        220
+      ],
+      "decorative": false,
+      "no_collision": false
+    },
+    {
+      "id": "top_wall_decor_copy_copy",
+      "source": "collision",
+      "src_rect": [
+        1602,
+        37,
+        585,
+        220
+      ],
+      "dst_rect": [
+        1602,
+        37,
+        585,
+        220
+      ],
+      "collision_rect": [
+        1602,
+        37,
+        585,
+        220
+      ],
+      "decorative": false,
+      "no_collision": false
+    }
+  ],
+  "notes": [
+    "Generated for tools/map_prop_editor.html?data=trial_field_collision_editor_data.json.",
+    "Edit collision_rect values, export JSON, then run tools/apply_trial_field_collision_editor_export.py."
+  ]
+}

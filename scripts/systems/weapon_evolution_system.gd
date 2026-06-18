@@ -109,6 +109,10 @@ static func apply_evolution_gift_for_target(target: Node, gift: Dictionary) -> D
 	var timers: Dictionary = target.get("equipment_weapon_timers") as Dictionary
 	timers.erase(base_id)
 	timers.erase(evolved_id)
+	timers.erase("__starlight_superchat_shot_count")
+	timers.erase("__maro_comment_pulse_index")
+	timers.erase("__maro_comment_pulse_until")
+	timers.erase("__maro_comment_flash_until")
 	target.set("equipment_weapon_timers", timers)
 
 	var base_weapon: Dictionary = WeaponSystem.find_weapon(weapon_data, base_id, {})

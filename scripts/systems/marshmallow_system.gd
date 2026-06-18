@@ -152,14 +152,27 @@ static func bad_rate_for_time(t: float) -> float:
 		return 0.12
 	return 0.05
 
-static func good_amount(amount: int, passive_rate: float, sweet_tooth_level: int) -> int:
+static func good_effect_rate(passive_rate: float, sweet_tooth_level: int) -> float:
 	var rate: float = passive_rate
 	if sweet_tooth_level > 0:
 		rate *= 1.0 + 0.15 * float(sweet_tooth_level)
+	return rate
+
+static func good_amount(amount: int, passive_rate: float, sweet_tooth_level: int) -> int:
+	var rate: float = good_effect_rate(passive_rate, sweet_tooth_level)
 	return int(ceil(float(amount) * rate))
 
-static func kuso_duration(duration: float, steel_mental_level: int) -> float:
-	return duration * maxf(0.35, 1.0 - 0.30 * float(steel_mental_level))
+static func good_duration(duration: float, passive_rate: float, sweet_tooth_level: int) -> float:
+	return duration * good_effect_rate(passive_rate, sweet_tooth_level)
+
+static func hp_amount(amount: int) -> int:
+	if amount <= 10:
+		return amount * DamageSystem.LEGACY_HP_UNIT
+	return amount
+
+static func kuso_duration(duration: float, sweet_tooth_level: int, steel_mental_level: int = 0) -> float:
+	var resist_level: int = maxi(sweet_tooth_level, steel_mental_level)
+	return duration * maxf(0.35, 1.0 - 0.30 * float(resist_level))
 
 static func update_pickups(context: Dictionary) -> Dictionary:
 	var updated: Array = []
@@ -261,8 +274,9 @@ static func expire_pickups_for_target(target: Node, expired: Array, arena: Rect2
 
 static func pickup_range_for_target(target: Node) -> float:
 	var magnet_range: float = float(target.get("maro_magnet_range"))
+	var radar_range: float = float(target.get("comment_radar_range_bonus"))
 	var passive_rate: float = float(target.get("passive_maro_pickup_rate"))
-	return (PICKUP_BASE_RANGE + magnet_range) * passive_rate
+	return (PICKUP_BASE_RANGE + magnet_range + radar_range) * passive_rate
 
 static func update_effect_timers(context: Dictionary) -> Dictionary:
 	var delta: float = float(context.get("delta", 0.0))
@@ -308,6 +322,7 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 	var result: Dictionary = context.duplicate()
 	result["blocked"] = false
 	result["spawnTrolls"] = 0
+	result["effectValue"] = 0
 	var counts: Dictionary = pickup_counts(data)
 	result["answered"] = int(result.get("answered", 0)) + int(counts["answeredAdd"])
 	result["lastType"] = String(data["displayName"])
@@ -327,35 +342,57 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 	var params: Dictionary = data["params"] as Dictionary
 	var effect: String = String(data["effectType"])
 	if effect == "heal":
-		result["playerHp"] = mini(int(result.get("playerMaxHp", 5)), int(result.get("playerHp", 5)) + good_amount(int(params["amount"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0))))
+		var before_hp: int = int(result.get("playerHp", 100))
+		var heal_amount: int = good_amount(hp_amount(int(params["amount"])), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + heal_amount)
+		result["effectValue"] = int(result["playerHp"]) - before_hp
 	elif effect == "gift_hype":
+		var before_hype: int = int(result.get("giftHype", 0))
 		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + good_amount(int(params["amount"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0))), 0, 100)
 		result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
+		result["effectValue"] = int(result["giftHype"]) - before_hype
 	elif effect == "exp":
 		result["expAdd"] = good_amount(int(params["amount"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		result["effectValue"] = int(result["expAdd"])
 	elif effect == "score":
-		result["score"] = int(result.get("score", 0)) + good_amount(int(params["amount"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		var score_add: int = good_amount(int(params["amount"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		result["score"] = int(result.get("score", 0)) + score_add
+		result["effectValue"] = score_add
 	elif effect == "attack_rate_buff":
-		result["supportAttackTimer"] = kuso_duration(float(params["duration"]), int(result.get("steelMentalLevel", 0)))
+		var buff_duration: float = good_duration(float(params["duration"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		result["supportAttackTimer"] = maxf(float(result.get("supportAttackTimer", 0.0)), buff_duration)
+		result["effectValue"] = buff_duration
 	elif effect == "invincible_heal":
-		result["playerHp"] = mini(int(result.get("playerMaxHp", 5)), int(result.get("playerHp", 5)) + int(params["amount"]))
+		var before_invincible_hp: int = int(result.get("playerHp", 100))
+		var invincible_heal_amount: int = good_amount(hp_amount(int(params["amount"])), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + invincible_heal_amount)
 		result["invincible"] = maxf(float(result.get("invincible", 0.0)), float(params["invincible"]))
+		result["effectValue"] = int(result["playerHp"]) - before_invincible_hp
 	elif effect == "add_heart_pending":
+		var before_heart_hype: int = int(result.get("giftHype", 0))
 		result["heartPending"] = true
 		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 30, 0, 100)
 		result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))
+		result["effectValue"] = int(result["giftHype"]) - before_heart_hype
 	elif effect == "hype_down":
+		var before_bad_hype: int = int(result.get("giftHype", 0))
 		result["giftHype"] = maxi(0, int(result.get("giftHype", 0)) - int(params["amount"]))
+		result["effectValue"] = before_bad_hype - int(result["giftHype"])
 	elif effect == "chat_storm":
-		result["kusoChatTimer"] = kuso_duration(float(params["duration"]), int(result.get("steelMentalLevel", 0)))
+		result["kusoChatTimer"] = kuso_duration(float(params["duration"]), int(result.get("sweetToothLevel", 0)), int(result.get("steelMentalLevel", 0)))
+		result["effectValue"] = float(result["kusoChatTimer"])
 	elif effect == "attack_jitter":
-		result["attackJitterTimer"] = kuso_duration(float(params["duration"]), int(result.get("steelMentalLevel", 0)))
+		result["attackJitterTimer"] = kuso_duration(float(params["duration"]), int(result.get("sweetToothLevel", 0)), int(result.get("steelMentalLevel", 0)))
+		result["effectValue"] = float(result["attackJitterTimer"])
 	elif effect == "spawn_trolls":
 		result["spawnTrolls"] = int(params["count"])
+		result["effectValue"] = int(result["spawnTrolls"])
 	elif effect == "move_slow":
-		result["moveSlowTimer"] = kuso_duration(float(params["duration"]), int(result.get("steelMentalLevel", 0)))
+		result["moveSlowTimer"] = kuso_duration(float(params["duration"]), int(result.get("sweetToothLevel", 0)), int(result.get("steelMentalLevel", 0)))
+		result["effectValue"] = float(result["moveSlowTimer"])
 	elif effect == "spawn_rate":
-		result["spawnRateTimer"] = kuso_duration(float(params["duration"]), int(result.get("steelMentalLevel", 0)))
+		result["spawnRateTimer"] = kuso_duration(float(params["duration"]), int(result.get("sweetToothLevel", 0)), int(result.get("steelMentalLevel", 0)))
+		result["effectValue"] = float(result["spawnRateTimer"])
 	return result
 
 static func build_effect_context_from_target(target: Node) -> Dictionary:
@@ -433,9 +470,32 @@ static func pickup_feedback(data: Dictionary, result: Dictionary) -> Dictionary:
 		}
 	return {
 		"blocked": false,
-		"toast": String(data["toastText"]),
+		"toast": pickup_toast_text(data, result),
 		"chat": String(data["messageText"]),
 		"maroChatKind": String(result.get("chatKind", "good")),
 		"spawnTrolls": int(result.get("spawnTrolls", 0)),
 		"expAdd": int(result.get("expAdd", 0))
 	}
+
+static func pickup_toast_text(data: Dictionary, result: Dictionary) -> String:
+	var effect: String = String(data.get("effectType", ""))
+	var rarity: String = String(data.get("rarity", "normal"))
+	var prefix: String = "マシュマロ読了！"
+	if String(data.get("type", "")) == "bad":
+		prefix = "クソマロだった！"
+	elif rarity == "god":
+		prefix = "神マロ！"
+	elif rarity == "good":
+		prefix = "良マロ！"
+	var value: int = int(round(float(result.get("effectValue", 0))))
+	if effect == "heal" or effect == "invincible_heal":
+		return "%s メンタル +%d" % [prefix, value]
+	if effect == "gift_hype":
+		return "%s ギフト期待度 +%d" % [prefix, value]
+	if effect == "exp":
+		return "%s EXP +%d" % [prefix, value]
+	if effect == "score":
+		return "%s 視聴者数 +%d人" % [prefix, value]
+	if effect == "hype_down":
+		return "%s ギフト期待度 -%d" % [prefix, value]
+	return String(data.get("toastText", ""))

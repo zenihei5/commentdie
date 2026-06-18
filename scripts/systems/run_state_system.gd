@@ -26,7 +26,7 @@ static func load_boot_data_for_target(target: Node, sprite_cache: Dictionary) ->
 	return repository
 
 static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary) -> Dictionary:
-	var max_hp: int = int(stats.get("hp", character.get("initialHp", 5)))
+	var max_hp: int = _scaled_player_hp(int(stats.get("hp", character.get("initialHp", 100))))
 	var move_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", character.get("moveSpeed", 5.0))))
 	var weapon_range: float = WeaponSystem.range_base(weapon)
 	var weapon_interval: float = WeaponSystem.attack_interval(weapon, 0.85)
@@ -49,6 +49,11 @@ static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dic
 		"heartStock": clampi(int(resources.get("heartStock", character.get("initialHeartStock", 0))), 0, 3),
 		"giftHype": clampi(int(resources.get("giftHype", 0)), 0, 100)
 	}
+
+static func _scaled_player_hp(value: int) -> int:
+	if value <= 10:
+		return maxi(1, value * 20)
+	return value
 
 static func gift_flags() -> Dictionary:
 	return {
@@ -74,6 +79,16 @@ static func gift_flags() -> Dictionary:
 		"maroAppraisal": false,
 		"blockFunctionStock": 0,
 		"steelMentalLevel": 0,
+		"mentalCareLevel": 0,
+		"notificationBellLevel": 0,
+		"expBonusRemainder": 0.0,
+		"commentRadarLevel": 0,
+		"commentRadarRangeBonus": 0.0,
+		"itemMagnetSpeedRate": 1.0,
+		"commentRadarFxTimer": 0.0,
+		"miniHumidifierLevel": 0,
+		"miniHumidifierTimer": 0.0,
+		"miniHumidifierHurtCooldown": 0.0,
 		"equipmentDamageRate": 1.0,
 		"equipmentRangeRate": 1.0,
 		"equipmentIntervalRate": 1.0,
@@ -252,6 +267,16 @@ static func apply_gift_flags(target: Node, defaults: Dictionary) -> void:
 	target.set("maro_appraisal", bool(defaults["maroAppraisal"]))
 	target.set("block_function_stock", int(defaults["blockFunctionStock"]))
 	target.set("steel_mental_level", int(defaults["steelMentalLevel"]))
+	target.set("mental_care_level", int(defaults["mentalCareLevel"]))
+	target.set("notification_bell_level", int(defaults["notificationBellLevel"]))
+	target.set("exp_bonus_remainder", float(defaults["expBonusRemainder"]))
+	target.set("comment_radar_level", int(defaults["commentRadarLevel"]))
+	target.set("comment_radar_range_bonus", float(defaults["commentRadarRangeBonus"]))
+	target.set("item_magnet_speed_rate", float(defaults["itemMagnetSpeedRate"]))
+	target.set("comment_radar_fx_timer", float(defaults["commentRadarFxTimer"]))
+	target.set("mini_humidifier_level", int(defaults["miniHumidifierLevel"]))
+	target.set("mini_humidifier_timer", float(defaults["miniHumidifierTimer"]))
+	target.set("mini_humidifier_hurt_cooldown", float(defaults["miniHumidifierHurtCooldown"]))
 	target.set("equipment_damage_rate", float(defaults["equipmentDamageRate"]))
 	target.set("equipment_range_rate", float(defaults["equipmentRangeRate"]))
 	target.set("equipment_interval_rate", float(defaults["equipmentIntervalRate"]))

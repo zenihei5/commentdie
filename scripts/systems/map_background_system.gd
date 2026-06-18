@@ -6,6 +6,10 @@ const ZATSUDAN_STUDIO_BG := ZATSUDAN_STUDIO_DIR + "/zatsudan_studio_floor_with_d
 const ZATSUDAN_STUDIO_FLOOR := ZATSUDAN_STUDIO_DIR + "/zatsudan_studio_floor_only_chatgpt_2200x1500.png"
 const ZATSUDAN_STUDIO_PROPS := ZATSUDAN_STUDIO_DIR + "/zatsudan_studio_desk_props_2200x1500.png"
 const ZATSUDAN_STUDIO_COLLISION_PREVIEW := ZATSUDAN_STUDIO_DIR + "/zatsudan_studio_floor_with_desk_props_collision_preview_2200x1500.png"
+const USE_TRIAL_FIELD_BACKGROUND := true
+const TRIAL_FIELD_DIR := "res://assets/generated/maps/trial_field_v1"
+const TRIAL_FIELD_BG := TRIAL_FIELD_DIR + "/field_trial_cover_2200x1500.png"
+const TRIAL_FIELD_COLLISION_PREVIEW := TRIAL_FIELD_DIR + "/field_trial_collision_preview_2200x1500.png"
 
 const ZATSUDAN_STUDIO_SIZE := Vector2(2200, 1500)
 const ZATSUDAN_STUDIO_WORLD_RECT := Rect2(Vector2(20, 120), ZATSUDAN_STUDIO_SIZE)
@@ -30,7 +34,35 @@ const ZATSUDAN_STUDIO_COLLISION_RECTS := [
 const ZATSUDAN_STUDIO_PROP_COLLISION_RECTS := [
 ]
 
+# Local coordinates for field_trial_cover_2200x1500.png. Tune these Rect2 values
+# while USE_TRIAL_FIELD_BACKGROUND is true; set it false to restore the old map.
+const TRIAL_FIELD_COLLISION_RECTS := [
+	{"id": "top_wall_decor", "rect": Rect2(5, -39, 2196, 231)},
+	{"id": "left_upper_shelf", "rect": Rect2(0, 0, 252, 280)},
+	{"id": "right_upper_shelf", "rect": Rect2(1940, 2, 260, 330)},
+	{"id": "left_ring_camera", "rect": Rect2(102, 407, 192, 223)},
+	{"id": "right_ring_camera", "rect": Rect2(1924, 402, 271, 217)},
+	{"id": "left_work_desk", "rect": Rect2(0, 585, 178, 278)},
+	{"id": "right_work_desk", "rect": Rect2(2023, 614, 180, 286)},
+	{"id": "pink_comment_table", "rect": Rect2(607, 415, 280, 237)},
+	{"id": "white_heart_table", "rect": Rect2(1308, 554, 301, 252)},
+	{"id": "dark_comment_table", "rect": Rect2(912, 858, 344, 242)},
+	{"id": "bottom_streaming_desk", "rect": Rect2(693, 1234, 840, 262)},
+	{"id": "bottom_left_decor", "rect": Rect2(1, 1041, 289, 460)},
+	{"id": "bottom_right_decor", "rect": Rect2(1872, 1175, 326, 306)},
+	{"id": "bottom_left_plant", "rect": Rect2(596, 1276, 92, 161)},
+	{"id": "bottom_right_plant", "rect": Rect2(1518, 1320, 96, 120)},
+	{"id": "bottom_right_decor_copy", "rect": Rect2(2051, 1079, 151, 118)},
+	{"id": "bottom_right_plant_copy", "rect": Rect2(909, 1171, 437, 115)},
+	{"id": "left_ring_camera_copy", "rect": Rect2(-11, 285, 66, 234)},
+	{"id": "bottom_left_plant_copy", "rect": Rect2(294, 1295, 129, 205)},
+	{"id": "top_wall_decor_copy", "rect": Rect2(15, 28, 585, 220)},
+	{"id": "top_wall_decor_copy_copy", "rect": Rect2(1602, 37, 585, 220)}
+]
+
 static func zatsudan_background_data() -> Dictionary:
+	if USE_TRIAL_FIELD_BACKGROUND:
+		return trial_field_background_data()
 	return {
 		"id": "zatsudan_studio_layered_v1",
 		"size": ZATSUDAN_STUDIO_SIZE,
@@ -41,6 +73,19 @@ static func zatsudan_background_data() -> Dictionary:
 		"collisionPreviewPath": ZATSUDAN_STUDIO_COLLISION_PREVIEW,
 		"collisionRects": ZATSUDAN_STUDIO_COLLISION_RECTS,
 		"propCollisionRects": ZATSUDAN_STUDIO_PROP_COLLISION_RECTS
+	}
+
+static func trial_field_background_data() -> Dictionary:
+	return {
+		"id": "trial_field_v1",
+		"size": ZATSUDAN_STUDIO_SIZE,
+		"worldRect": ZATSUDAN_STUDIO_WORLD_RECT,
+		"assembledPath": TRIAL_FIELD_BG,
+		"floorPath": TRIAL_FIELD_BG,
+		"propsPath": "",
+		"collisionPreviewPath": TRIAL_FIELD_COLLISION_PREVIEW,
+		"collisionRects": TRIAL_FIELD_COLLISION_RECTS,
+		"propCollisionRects": []
 	}
 
 static func background_data_for_stream_frame(frame_id: String) -> Dictionary:

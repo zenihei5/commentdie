@@ -1,10 +1,20 @@
 class_name DamageSystem
 extends RefCounted
 
+const LEGACY_HP_UNIT := 20
+const DEFAULT_CONTACT_DAMAGE := 20
+const FAST_CONTACT_DAMAGE := 22
+const STRONG_CONTACT_DAMAGE := 28
+const BOSS_CONTACT_DAMAGE := 35
+const ENEMY_BULLET_DAMAGE := 12
+const BOSS_ATTACK_DAMAGE := 34
+const STAGE_HAZARD_DAMAGE := 12
+const REVIVE_HP := 20
+
 static func apply_hit(context: Dictionary) -> Dictionary:
-	var damage := 1
+	var damage: int = maxi(1, int(context.get("damage", DEFAULT_CONTACT_DAMAGE)))
 	if bool(context.get("zeroTauntResist", false)) and float(context.get("multiplier", 1.0)) >= 3.0:
-		damage += 1
+		damage += LEGACY_HP_UNIT
 
 	var hp: int = int(context.get("playerHp", 1)) - damage
 	var burn_resist_charges: int = int(context.get("burnResistCharges", 0))
@@ -20,7 +30,7 @@ static func apply_hit(context: Dictionary) -> Dictionary:
 	var invincible: float = float(context.get("baseInvincibleTime", 0.7))
 	if hp <= 0 and revive_available:
 		revive_available = false
-		hp = 1
+		hp = REVIVE_HP
 		invincible = 1.2
 		revived = true
 
@@ -36,9 +46,26 @@ static func apply_hit(context: Dictionary) -> Dictionary:
 		"activeCommentHurt": true
 	}
 
-static func apply_hit_to_target(target: Node) -> Dictionary:
+static func source_damage(source: String, fallback: int = DEFAULT_CONTACT_DAMAGE) -> int:
+	if source == "damage_pit" or source == "stopped moving" or source.contains("ダメージ床"):
+		return STAGE_HAZARD_DAMAGE
+	if source == "boss_bullet" or source == "boss_attack" or source.contains("boss_"):
+		return BOSS_CONTACT_DAMAGE if source.ends_with(" contact") else BOSS_ATTACK_DAMAGE
+	if source == "enemy bullet":
+		return ENEMY_BULLET_DAMAGE
+	if source.ends_with(" contact"):
+		var kind := source.replace(" contact", "")
+		if kind == "long_comment_guy" or kind == "clipper" or kind == "ghost_comment":
+			return STRONG_CONTACT_DAMAGE
+		if kind == "fast":
+			return FAST_CONTACT_DAMAGE
+		return DEFAULT_CONTACT_DAMAGE
+	return fallback
+
+static func apply_hit_to_target(target: Node, damage: int = DEFAULT_CONTACT_DAMAGE) -> Dictionary:
 	var result: Dictionary = apply_hit({
 		"playerHp": target.get("player_hp"),
+		"damage": damage,
 		"zeroTauntResist": target.get("zero_taunt_resist"),
 		"multiplier": target.get("multiplier"),
 		"burnResistCharges": target.get("burn_resist_charges"),
@@ -56,11 +83,11 @@ static func apply_hit_to_target(target: Node) -> Dictionary:
 	target.set("invincible", float(result["invincible"]))
 	return result
 
-static func apply_damage_for_target(target: Node, source_text: String) -> Dictionary:
+static func apply_damage_for_target(target: Node, source_text: String, damage: int = DEFAULT_CONTACT_DAMAGE) -> Dictionary:
 	if float(target.get("invincible")) > 0.0 or bool(target.get("debug_invincible")):
 		return {"ignored": true, "revived": false, "dead": false, "chat": "", "deathReason": ""}
 	target.set("last_death_source", source_text)
-	var result: Dictionary = apply_hit_to_target(target)
+	var result: Dictionary = apply_hit_to_target(target, damage)
 	var dead: bool = int(target.get("player_hp")) <= 0
 	var death_text: String = ""
 	if dead:
@@ -73,18 +100,20 @@ static func apply_damage_for_target(target: Node, source_text: String) -> Dictio
 		"ignored": false,
 		"revived": bool(result["revived"]),
 		"dead": dead,
-		"chat": "低評価回避！メンタル1で復帰" if bool(result["revived"]) else "",
+		"chat": "メンタル%dで復帰" % REVIVE_HP if bool(result["revived"]) else "",
 		"deathReason": death_text
 	}
 
-static func apply_damage_source_for_target(target: Node, source: String) -> Dictionary:
-	return apply_damage_for_target(target, DisplayTextSystem.damage_source_display(source))
+static func apply_damage_source_for_target(target: Node, source: String, damage: int = -1) -> Dictionary:
+	var amount: int = source_damage(source) if damage < 0 else damage
+	return apply_damage_for_target(target, DisplayTextSystem.damage_source_display(source), amount)
 
 static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dictionary:
 	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false}
 	var chats: Array = feedback["chats"] as Array
 	for source_item in sources:
-		var result: Dictionary = apply_damage_source_for_target(target, String(source_item))
+		var source: String = String(source_item)
+		var result: Dictionary = apply_damage_source_for_target(target, source, source_damage(source))
 		if bool(result["ignored"]):
 			continue
 		feedback["damaged"] = true
@@ -98,13 +127,26 @@ static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dic
 	return feedback
 
 static func apply_damage_events_for_target(target: Node, damage_events: Array) -> Dictionary:
-	var sources: Array = []
+	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false}
+	var chats: Array = feedback["chats"] as Array
 	for item in damage_events:
 		var event: Dictionary = item as Dictionary
-		sources.append(String(event.get("source", "enemy")))
-	return apply_damage_sources_for_target(target, sources)
+		var source: String = String(event.get("source", "enemy"))
+		var amount: int = int(event.get("damage", source_damage(source)))
+		var result: Dictionary = apply_damage_source_for_target(target, source, amount)
+		if bool(result["ignored"]):
+			continue
+		feedback["damaged"] = true
+		if bool(result["revived"]):
+			chats.append(String(result["chat"]))
+			continue
+		if bool(result["dead"]):
+			feedback["dead"] = true
+			feedback["deathReason"] = String(result["deathReason"])
+			return feedback
+	return feedback
 
 static func death_reason(current_comment: String, current_death_text: String, damage_source_text: String) -> String:
-	if current_comment == "なし":
+	if current_comment == "" or current_comment == "なし" or current_comment == "縺ｪ縺・":
 		return "%sでやられた。指示コメは発動していなかった。" % damage_source_text
 	return current_death_text

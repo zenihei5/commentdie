@@ -501,7 +501,7 @@ static func build_result_text(stats: Dictionary) -> String:
 			String(stats.get("streamFrameName", "雑談枠")),
 			String(stats.get("weaponName", "BANハンマー"))
 		],
-		"最大同時視聴者数：%d人  生存：%s  最大ボルテージ：x%.1f  炎上：%d" % [
+		"最大同時視聴者数：%d人  生存：%s  最大ボルテージ：x%.1f  最大バズ度：%d" % [
 			int(stats.get("score", 0)),
 			String(stats.get("timeText", "00:00")),
 			float(stats.get("maxMultiplier", 1.0)),

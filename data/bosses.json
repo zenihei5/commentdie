@@ -6,7 +6,7 @@
     "hp": 400.0,
     "speed": 58.0,
     "radius": 78.0,
-    "contactDamage": 1,
+    "contactDamage": 36,
     "expValue": 20,
     "viewerValue": 3000,
     "giftHypeReward": 20,
@@ -28,7 +28,7 @@
     "hp": 360.0,
     "speed": 1.4,
     "radius": 96.0,
-    "contactDamage": 1,
+    "contactDamage": 34,
     "expValue": 18,
     "viewerValue": 2800,
     "giftHypeReward": 20,
@@ -57,7 +57,7 @@
         "interval": 6.0,
         "bulletCount": 6,
         "bulletSpeed": 230.0,
-        "damage": 1,
+        "damage": 34,
         "bulletLifetime": 4.0
       },
       "summon_unread_maro": {

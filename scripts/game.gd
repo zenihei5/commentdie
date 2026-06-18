@@ -41,6 +41,9 @@ const TITLE_BANCHAN_IMAGE := "res://assets/title/title_banchan_alpha.png"
 const TITLE_SUPANA_IMAGE := "res://assets/title/title_supana_alpha.png"
 const TITLE_MARON_IMAGE := "res://assets/title/title_maron_alpha.png"
 const TITLE_BUTTON_IMAGE := "res://assets/title/title_button_alpha.png"
+const TITLE_QUIT_BUTTON_IMAGE := "res://assets/title/title_quit_button_alpha.png"
+const TITLE_MENU_COUNT := 4
+const TITLE_QUIT_INDEX := 3
 const CHARACTER_SELECT_HEADER_ICON := "res://assets/generated/character_select_icons_v1/character_select.png"
 const STREAM_FRAME_SELECT_HEADER_ICON := "res://assets/generated/stream_frame_select_icons_v1/stream_frame_select.png"
 const OPTIONS_HEADER_ICON := "res://assets/generated/options_icons_v1/options_header.png"
@@ -58,6 +61,11 @@ const RANKING_RANK_ICON_3 := "res://assets/generated/ranking_icons_v1/rank_3.png
 const RANKING_RANK_ICON_4_PLUS := "res://assets/generated/ranking_icons_v1/rank_4_plus.png"
 const RANKING_END_MENTAL_ICON := "res://assets/generated/ranking_icons_v1/end_mental_breakdown.png"
 const RANKING_END_COMPLETE_ICON := "res://assets/generated/ranking_icons_v1/end_stream_complete.png"
+const RANKING_FOCUS_TABS := "tabs"
+const RANKING_FOCUS_ENTRIES := "entries"
+const RANKING_FOCUS_BACK := "back"
+const PRE_RUN_SELECT_FOCUS_ITEMS := "items"
+const PRE_RUN_SELECT_FOCUS_BACK := "back"
 const BAN_JUDGEMENT_WEAPON_SPRITE_PATH := "res://assets/generated/ban_judgement_weapon_sprite_v1/clean.png"
 const NO_BRAKE_SWEAT_IMAGE := "res://assets/generated/no_brake_sweat_icon_v1/sweat.png"
 const TITLE_BGM_PATH := "res://assets/audio/title_bgm.mp3"
@@ -102,7 +110,8 @@ const STREAM_COMPLETE_BANRI_IMAGE := "res://assets/generated/game_clear_cutin_v1
 const STREAM_COMPLETE_SUPANA_IMAGE := "res://assets/generated/game_clear_cutin_v1/supana_stream_complete.png"
 const STREAM_COMPLETE_MARON_IMAGE := "res://assets/generated/game_clear_cutin_v1/maron_stream_complete.png"
 const COMMENT_BOOMERANG_IMAGE := "res://assets/generated/comment_boomerang_sprite_v1/comment_boomerang.png"
-const STREAM_START_INTRO_DURATION := 1.20
+const STREAM_START_INTRO_DURATION := 1.90
+const STREAM_START_INTRO_SKIP_DELAY := 0.30
 const GAME_OVER_INTRO_MENTAL_DURATION := 2.5
 const GAME_OVER_INTRO_COMPLETE_DURATION := 2.8
 const GAME_OVER_INTRO_SKIP_DELAY := 0.5
@@ -114,19 +123,31 @@ const MENTAL_BREAKDOWN_BGM_FADE_DURATION := 2.20
 const RESULT_DROP_DURATION := 0.48
 const RESULT_DROP_START_Y := -860.0
 const COMMENT_PANEL_BG_V25 := "res://assets/generated/ui_parts_v2/comment_panel_bg_v1_370x606.png"
+const HUD_ICON_BANRI_IMAGE := "res://assets/generated/hud_character_icons_v1/banri_hud_icon.png"
+const HUD_ICON_SUPANA_IMAGE := "res://assets/generated/hud_character_icons_v1/supana_hud_icon.png"
+const HUD_ICON_MARON_IMAGE := "res://assets/generated/hud_character_icons_v1/maron_hud_icon.png"
 const TITLE_SCREEN_RECT := Rect2(Vector2.ZERO, Vector2(1600, 900))
 const TITLE_SUPANA_RECT := Rect2(Vector2(-210, 160), Vector2(580, 845))
 const TITLE_MARON_RECT := Rect2(Vector2(1155, 185), Vector2(460, 822))
 const TITLE_BANCHAN_RECT := Rect2(Vector2(125, 285), Vector2(510, 711))
 const TITLE_LOGO_RECT := Rect2(Vector2(390, 4), Vector2(820, 442))
-const TITLE_BUTTON_RECT := Rect2(Vector2(560, 450), Vector2(480, 430))
+const TITLE_BUTTON_RECT := Rect2(Vector2(610, 432), Vector2(380, 340))
 const TITLE_BUTTON_SOURCE_SIZE := Vector2(1074, 960)
+const TITLE_QUIT_BUTTON_RECT := Rect2(Vector2(635, 775), Vector2(330, 116))
 const TITLE_LOGO_DROP_DURATION := 0.72
 const TITLE_LOGO_DROP_START_Y_OFFSET := -540.0
-const FIELD_VIEW := Rect2(Vector2(20, 190), Vector2(1160, 590))
+const TITLE_CHARACTER_APPEAR_TOTAL_DURATION := 1.28
+const TITLE_CHARACTER_APPEAR_DURATION := 0.72
+const TITLE_SUPANA_START_OFFSET := Vector2(-430.0, 10.0)
+const TITLE_MARON_START_OFFSET := Vector2(490.0, 12.0)
+const TITLE_BANCHAN_START_OFFSET := Vector2(0.0, 635.0)
+const FIELD_VIEW := Rect2(Vector2(20, 190), Vector2(1200, 590))
 const ARENA := Rect2(Vector2(20, 120), Vector2(2200, 1500))
 const SIDE := Rect2(Vector2(1210, 174), Vector2(370, 606))
+const COMMENT_PANEL_RECT_V25 := Rect2(Vector2(1240, 18), Vector2(320, 752))
 const HUD := Rect2(Vector2(20, 790), Vector2(1560, 90))
+const CLICK_MOVE_ARRIVE_DISTANCE := 22.0
+const CLICK_MOVE_PLAYER_RADIUS := 24.0
 const NORMAL_RUN_LENGTH := 180.0
 const QUICK_RUN_LENGTH := 60.0
 const COMMENT_INTERVAL := 15.0
@@ -144,6 +165,7 @@ var genre_events: Array = []
 var characters: Array = []
 var weapons: Array = []
 var bosses: Array = []
+var stream_start_intro_config: Dictionary = {}
 var stream_frame_progress: Dictionary = {}
 var relay_mode_unlocked := false
 var current_stream_frame: Dictionary = {}
@@ -157,6 +179,8 @@ var player_idle_sprite: Texture2D
 var player_run_sprite: Texture2D
 var selected_character_index := 0
 var selected_stream_frame_index := 0
+var character_select_focus_area := PRE_RUN_SELECT_FOCUS_ITEMS
+var stream_frame_select_focus_area := PRE_RUN_SELECT_FOCUS_ITEMS
 var title_menu_index := 0
 var option_menu_index := 0
 var options_return_state := "title"
@@ -262,12 +286,14 @@ var player_pos := ARENA.get_center()
 var player_vel := Vector2.ZERO
 var player_no_brake_sliding := false
 var player_facing_x := 1.0
+var click_move_active := false
+var click_move_target := Vector2.ZERO
 var world_camera_offset := Vector2.ZERO
 var world_draw_active := false
 var world_zoom: float = 1.0
 var world_zoom_target: float = 1.0
-var player_hp := 5
-var player_max_hp := 5
+var player_hp := 100
+var player_max_hp := 100
 var player_speed := 255.0
 var player_base_invincible_time := 0.7
 var passive_score_rate := 1.0
@@ -313,6 +339,16 @@ var read_manager_level := 0
 var maro_appraisal := false
 var block_function_stock := 0
 var steel_mental_level := 0
+var mental_care_level := 0
+var notification_bell_level := 0
+var exp_bonus_remainder := 0.0
+var comment_radar_level := 0
+var comment_radar_range_bonus := 0.0
+var item_magnet_speed_rate := 1.0
+var comment_radar_fx_timer := 0.0
+var mini_humidifier_level := 0
+var mini_humidifier_timer := 0.0
+var mini_humidifier_hurt_cooldown := 0.0
 var superchat_level := 0
 var boomerang_level := 0
 var burn_resist_charges := 0
@@ -361,6 +397,7 @@ var result_showing_ranking: bool = false
 var result_hover_button := ""
 var ranking_tab_index: int = 0
 var ranking_selected_index: int = 0
+var ranking_focus_area := RANKING_FOCUS_TABS
 var ranking_reset_confirm_visible := false
 var ranking_reset_confirm_index := 1
 var debug_key_latch: Dictionary = {}
@@ -449,10 +486,13 @@ var emote_mine_explosion_se_player: AudioStreamPlayer
 var enemy_damage_se_played_frame := -1
 var listener_attack_se_played_frame := -1
 var stream_start_intro_timer := 0.0
+var stream_start_intro_duration := STREAM_START_INTRO_DURATION
+var stream_start_intro_skip_down := false
 var game_over_intro_timer := 0.0
 var game_over_intro_duration := 0.0
 var result_drop_timer := 0.0
 var title_logo_drop_timer := TITLE_LOGO_DROP_DURATION
+var title_character_appear_timer := TITLE_CHARACTER_APPEAR_TOTAL_DURATION
 var pending_game_over_reason := ""
 var pending_game_over_end_type := ""
 
@@ -507,6 +547,7 @@ func _process(delta: float) -> void:
 	_update_screen_shake(delta)
 	_update_screen_flash(delta)
 	_update_title_logo_drop(delta)
+	_update_title_character_appear(delta)
 	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro":
 		ChatSystemScript.update_timer_for_target(self, delta, rng, chat_box)
 	if state == "comment_choice":
@@ -1154,9 +1195,12 @@ func _cursor_sound_snapshot() -> Dictionary:
 		"titleMenu": title_menu_index,
 		"optionMenu": option_menu_index,
 		"character": selected_character_index,
+		"characterFocus": character_select_focus_area,
 		"streamFrame": selected_stream_frame_index,
+		"streamFrameFocus": stream_frame_select_focus_area,
 		"rankingTab": ranking_tab_index,
 		"rankingSelected": ranking_selected_index,
+		"rankingFocus": ranking_focus_area,
 		"rankingResetConfirmIndex": ranking_reset_confirm_index,
 		"pauseMenu": pause_menu_index,
 		"pauseFocus": pause_focus_area,
@@ -1174,9 +1218,12 @@ func _cursor_sound_snapshot_changed(before: Dictionary) -> bool:
 		"titleMenu",
 		"optionMenu",
 		"character",
+		"characterFocus",
 		"streamFrame",
+		"streamFrameFocus",
 		"rankingTab",
 		"rankingSelected",
+		"rankingFocus",
 		"rankingResetConfirmIndex",
 		"pauseMenu",
 		"pauseFocus",
@@ -1227,6 +1274,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			if frame_mouse_button.button_index == MOUSE_BUTTON_LEFT and frame_mouse_button.pressed:
 				if _activate_stream_frame_select_mouse(frame_mouse_button.position):
 					get_viewport().set_input_as_handled()
+	elif state == "ranking" or (state == "result" and result_showing_ranking):
+		if event is InputEventMouseButton:
+			var ranking_mouse_button := event as InputEventMouseButton
+			if ranking_mouse_button.button_index == MOUSE_BUTTON_LEFT and ranking_mouse_button.pressed:
+				if _activate_ranking_mouse(ranking_mouse_button.position):
+					get_viewport().set_input_as_handled()
 	elif state == "result" and not result_showing_ranking:
 		if event is InputEventMouseMotion:
 			_update_result_mouse_selection((event as InputEventMouseMotion).position)
@@ -1235,6 +1288,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			if result_mouse_button.button_index == MOUSE_BUTTON_LEFT and result_mouse_button.pressed:
 				if _activate_result_mouse(result_mouse_button.position):
 					get_viewport().set_input_as_handled()
+	elif state == "playing":
+		if event is InputEventMouseButton:
+			var play_mouse_button := event as InputEventMouseButton
+			if play_mouse_button.button_index == MOUSE_BUTTON_LEFT and play_mouse_button.pressed:
+				if _set_click_move_target_from_screen(play_mouse_button.position):
+					get_viewport().set_input_as_handled()
+
+func _set_click_move_target_from_screen(pos: Vector2) -> bool:
+	if not FIELD_VIEW.has_point(pos):
+		return false
+	var target: Vector2 = _world_pos_from_screen(pos)
+	target.x = clampf(target.x, ARENA.position.x + CLICK_MOVE_PLAYER_RADIUS, ARENA.end.x - CLICK_MOVE_PLAYER_RADIUS)
+	target.y = clampf(target.y, ARENA.position.y + CLICK_MOVE_PLAYER_RADIUS, ARENA.end.y - CLICK_MOVE_PLAYER_RADIUS)
+	target = PlayerSystemScript.resolve_wall_collision(target, player_pos, CLICK_MOVE_PLAYER_RADIUS, effect_walls, current_stream_frame_id)
+	click_move_target = target
+	click_move_active = true
+	queue_redraw()
+	return true
 
 func _update_title_mouse_selection(pos: Vector2) -> void:
 	var index: int = _title_button_index_at(pos)
@@ -1245,12 +1316,14 @@ func _update_title_mouse_selection(pos: Vector2) -> void:
 	queue_redraw()
 
 func _title_button_index_at(pos: Vector2) -> int:
-	for i in range(3):
+	for i in range(TITLE_MENU_COUNT):
 		if _title_button_hit_rect(i).has_point(pos):
 			return i
 	return -1
 
 func _title_button_hit_rect(index: int) -> Rect2:
+	if index == TITLE_QUIT_INDEX:
+		return TITLE_QUIT_BUTTON_RECT
 	var source_rect: Rect2 = _title_button_source_rect(index)
 	var scale := Vector2(TITLE_BUTTON_RECT.size.x / TITLE_BUTTON_SOURCE_SIZE.x, TITLE_BUTTON_RECT.size.y / TITLE_BUTTON_SOURCE_SIZE.y)
 	return Rect2(TITLE_BUTTON_RECT.position + source_rect.position * scale, source_rect.size * scale)
@@ -1270,20 +1343,22 @@ func _activate_title_menu_index(index: int) -> void:
 		_open_title_ranking()
 	elif index == 2:
 		_open_title_options()
+	elif index == TITLE_QUIT_INDEX:
+		_quit_game()
 
 func _update_character_select_mouse_selection(pos: Vector2) -> void:
 	var index: int = _character_select_index_at(pos)
-	if index < 0 or index == selected_character_index:
+	if index < 0:
 		return
+	if index == selected_character_index and character_select_focus_area == PRE_RUN_SELECT_FOCUS_ITEMS:
+		return
+	character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	selected_character_index = index
 	_play_cursor_move_se()
 	queue_redraw()
 
 func _activate_character_select_mouse(pos: Vector2) -> bool:
 	var layout: Dictionary = _character_select_layout()
-	if (layout["confirmButton"] as Rect2).has_point(pos):
-		_confirm_character_select()
-		return true
 	if (layout["backButton"] as Rect2).has_point(pos):
 		_play_back_transition_se()
 		_back_to_title()
@@ -1296,6 +1371,10 @@ func _activate_character_select_mouse(pos: Vector2) -> bool:
 		return true
 	var index: int = _character_select_index_at(pos)
 	if index >= 0:
+		if index == selected_character_index:
+			_confirm_character_select()
+			return true
+		character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 		selected_character_index = index
 		queue_redraw()
 		return true
@@ -1323,6 +1402,7 @@ func _move_character_select_page(direction: int) -> void:
 	var next_page: int = clampi(page + direction, 0, page_count - 1)
 	if next_page == page:
 		return
+	character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	selected_character_index = CharacterSystemScript.selection_index_for_page(characters, next_page, 0)
 	queue_redraw()
 
@@ -1345,17 +1425,17 @@ func _stream_frame_selection_items() -> Array:
 
 func _update_stream_frame_select_mouse_selection(pos: Vector2) -> void:
 	var index: int = _stream_frame_select_index_at(pos)
-	if index < 0 or index == selected_stream_frame_index:
+	if index < 0:
 		return
+	if index == selected_stream_frame_index and stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_ITEMS:
+		return
+	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	selected_stream_frame_index = index
 	_play_cursor_move_se()
 	queue_redraw()
 
 func _activate_stream_frame_select_mouse(pos: Vector2) -> bool:
 	var layout: Dictionary = _stream_frame_select_layout()
-	if (layout["confirmButton"] as Rect2).has_point(pos):
-		_confirm_stream_frame_select()
-		return true
 	if (layout["backButton"] as Rect2).has_point(pos):
 		_play_back_transition_se()
 		_start_character_select()
@@ -1368,6 +1448,10 @@ func _activate_stream_frame_select_mouse(pos: Vector2) -> bool:
 		return true
 	var index: int = _stream_frame_select_index_at(pos)
 	if index >= 0:
+		if index == selected_stream_frame_index:
+			_confirm_stream_frame_select()
+			return true
+		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 		selected_stream_frame_index = index
 		queue_redraw()
 		return true
@@ -1396,6 +1480,7 @@ func _move_stream_frame_select_page(direction: int) -> void:
 	var next_page: int = clampi(page + direction, 0, page_count - 1)
 	if next_page == page:
 		return
+	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	selected_stream_frame_index = StreamFrameSystemScript.selection_index_for_page(frames, next_page, 0)
 	queue_redraw()
 
@@ -1419,7 +1504,9 @@ func _confirm_stream_frame_select() -> void:
 
 func _start_stream_start_intro() -> void:
 	state = "stream_start_intro"
-	stream_start_intro_timer = STREAM_START_INTRO_DURATION
+	stream_start_intro_duration = float(stream_start_intro_config.get("duration", STREAM_START_INTRO_DURATION))
+	stream_start_intro_timer = stream_start_intro_duration
+	stream_start_intro_skip_down = _stream_start_intro_confirm_down()
 	choice_box.visible = false
 	result_panel.visible = false
 	queue_redraw()
@@ -1443,8 +1530,9 @@ func _reset_retry_bgm_from_start() -> void:
 	_apply_bgm_volumes()
 
 func _update_stream_start_intro(delta: float) -> void:
+	var skip_pressed := _stream_start_intro_skip_pressed()
 	stream_start_intro_timer = maxf(0.0, stream_start_intro_timer - delta)
-	if stream_start_intro_timer <= 0.0:
+	if stream_start_intro_timer <= 0.0 or skip_pressed:
 		_restart()
 
 func _start_game_over_intro(reason: String) -> void:
@@ -1554,6 +1642,26 @@ func _stream_start_intro_display_name() -> String:
 		return "配信リレー"
 	var display_name := String(current_stream_frame.get("displayName", ""))
 	return display_name if display_name != "" else "配信枠"
+
+func _stream_start_intro_elapsed() -> float:
+	return clampf(stream_start_intro_duration - stream_start_intro_timer, 0.0, maxf(0.01, stream_start_intro_duration))
+
+func _stream_start_intro_progress() -> float:
+	return clampf(_stream_start_intro_elapsed() / maxf(0.01, stream_start_intro_duration), 0.0, 1.0)
+
+func _stream_start_intro_skip_delay() -> float:
+	return float(stream_start_intro_config.get("skipDelay", STREAM_START_INTRO_SKIP_DELAY))
+
+func _stream_start_intro_confirm_down() -> bool:
+	if Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_SPACE):
+		return true
+	return InputMap.has_action("ui_accept") and Input.is_action_pressed("ui_accept")
+
+func _stream_start_intro_skip_pressed() -> bool:
+	var down := _stream_start_intro_confirm_down()
+	var pressed := down and not stream_start_intro_skip_down and _stream_start_intro_elapsed() >= _stream_start_intro_skip_delay()
+	stream_start_intro_skip_down = down
+	return pressed
 
 func _result_layout() -> Dictionary:
 	var offset := _result_drop_offset()
@@ -1724,7 +1832,7 @@ func _update_front_state(delta: float) -> bool:
 		return false
 	var action: String = String(result["action"])
 	var is_back_transition := action == "back_to_title" or (action == "toggle_ranking" and state == "result" and result_showing_ranking)
-	if action in ["start_character_select", "open_title_ranking", "open_title_options"]:
+	if action in ["start_character_select", "open_title_ranking", "open_title_options", "quit_game"]:
 		_play_confirm_se()
 	if state == "options" and options_action == "option_select" and not is_back_transition:
 		_play_confirm_se()
@@ -1734,6 +1842,7 @@ func _update_front_state(delta: float) -> bool:
 		"start_character_select": Callable(self, "_start_character_select"),
 		"open_title_ranking": Callable(self, "_open_title_ranking"),
 		"open_title_options": Callable(self, "_open_title_options"),
+		"quit_game": Callable(self, "_quit_game"),
 		"reset_title_ranking": Callable(self, "_reset_title_ranking"),
 		"ranking_tab_left": Callable(self, "_ranking_tab_left"),
 		"ranking_tab_right": Callable(self, "_ranking_tab_right"),
@@ -1893,6 +2002,12 @@ func _screen_pos(world_pos: Vector2) -> Vector2:
 		return world_pos
 	return world_pos * world_zoom + _world_transform_position()
 
+func _world_pos_from_screen(screen_pos: Vector2) -> Vector2:
+	var center: Vector2 = FIELD_VIEW.get_center()
+	var camera_offset: Vector2 = _world_camera_offset()
+	var transform_pos: Vector2 = center - (camera_offset + center) * world_zoom + _screen_shake_offset()
+	return (screen_pos - transform_pos) / world_zoom
+
 func _draw_field_clip_masks() -> void:
 	var fill: Color = (DrawDataSystemScript.screen_backdrop_data()["color"] as Color)
 	draw_rect(Rect2(Vector2.ZERO, Vector2(1600.0, FIELD_VIEW.position.y)), fill, true)
@@ -1920,6 +2035,7 @@ func _draw_world_layer() -> void:
 	_draw_arena()
 	_draw_boss_slow_fields()
 	_draw_hit_fx(true)
+	_draw_click_move_marker()
 	_draw_exp()
 	_draw_mallow()
 	_draw_drop_items()
@@ -2040,6 +2156,7 @@ func _update_comment_timer(delta: float) -> bool:
 		comment_choice_enter_time = 0.0
 		_play_instruction_comment_arrival_se()
 		var choice_result: Dictionary = CommentSystemScript.start_choice_ui_for_target(self, comments, rng, CHOICE_TIME, choice_box)
+		_prime_choice_selection_latch()
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(choice_result["chat"])]}, chat_box)
 		_refresh_choice_cards()
 		return true
@@ -2085,6 +2202,7 @@ func _update_world_systems(delta: float) -> void:
 	_update_player(delta)
 	if state != "playing":
 		return
+	_update_accessory_effects(delta)
 	_apply_damage_feedback(ModifierSystemScript.update_stage_hazard_damage_for_target(self, ARENA))
 	if state != "playing":
 		return
@@ -2119,17 +2237,118 @@ func _update_boss(delta: float) -> void:
 	_apply_hit_reaction_feedback(feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
+func _update_accessory_effects(delta: float) -> void:
+	comment_radar_fx_timer = maxf(0.0, comment_radar_fx_timer - delta)
+	if mini_humidifier_level <= 0:
+		return
+	var interval: float = GiftSystemScript.mini_humidifier_interval(mini_humidifier_level)
+	if interval <= 0.0:
+		return
+	if mini_humidifier_hurt_cooldown > 0.0:
+		mini_humidifier_hurt_cooldown = maxf(0.0, mini_humidifier_hurt_cooldown - delta)
+		return
+	if mini_humidifier_timer <= 0.0:
+		mini_humidifier_timer = interval
+	mini_humidifier_timer -= delta
+	if mini_humidifier_timer > 0.0:
+		return
+	mini_humidifier_timer = interval
+	if player_hp >= player_max_hp:
+		return
+	var heal_amount: int = GiftSystemScript.mini_humidifier_heal_amount(mini_humidifier_level)
+	var actual_heal: int = mini(heal_amount, player_max_hp - player_hp)
+	if actual_heal <= 0:
+		return
+	player_hp = mini(player_max_hp, player_hp + actual_heal)
+	_append_mini_humidifier_heal_fx(actual_heal)
+
+func _notify_accessory_player_damaged() -> void:
+	if mini_humidifier_level <= 0:
+		return
+	mini_humidifier_hurt_cooldown = GiftSystemScript.MINI_HUMIDIFIER_HURT_PAUSE_SECONDS
+	mini_humidifier_timer = GiftSystemScript.mini_humidifier_interval(mini_humidifier_level)
+
+func _append_mini_humidifier_heal_fx(amount: int) -> void:
+	var pos: Vector2 = player_pos + Vector2(0.0, -34.0)
+	hit_fx.append({
+		"kind": "mini_humidifier_heal",
+		"pos": pos,
+		"life": 0.58,
+		"maxLife": 0.58,
+		"amount": amount
+	})
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos + Vector2(-34.0, -20.0),
+		"vel": Vector2(0.0, -42.0),
+		"life": 0.72,
+		"maxLife": 0.72,
+		"text": "HP +%d" % amount,
+		"color": Color("#65e9ff")
+	})
+
 func _update_genre_event(delta: float) -> void:
 	var feedback: Dictionary = GenreEventSystemScript.update_world_if_enabled_for_target(self, current_stream_frame, delta, genre_events, ARENA, rng)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
 func _start_character_select() -> void:
 	var result: Dictionary = CharacterSystemScript.start_selection_for_target(self, choice_box, result_panel, characters)
+	character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["chat"])]}, chat_box)
 	if bool(result["restart"]):
 		_restart()
 
+func _selection_latch_pressed(keycode: Key) -> bool:
+	var down: bool = Input.is_key_pressed(keycode)
+	var was_down: bool = bool(debug_key_latch.get(keycode, false))
+	debug_key_latch[keycode] = down
+	return down and not was_down
+
+func _selection_latch_would_press(keycode: Key) -> bool:
+	return Input.is_key_pressed(keycode) and not bool(debug_key_latch.get(keycode, false))
+
+func _prime_choice_selection_latch() -> void:
+	for keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_ENTER, KEY_SPACE, KEY_1, KEY_2, KEY_3, KEY_4]:
+		debug_key_latch[keycode] = Input.is_key_pressed(keycode)
+
+func _character_select_can_move_down_to_footer() -> bool:
+	var visible_count: int = CharacterSystemScript.selection_visible_count(characters.size())
+	if visible_count <= 0:
+		return false
+	var safe_index := clampi(selected_character_index, 0, visible_count - 1)
+	var page := int(safe_index / CharacterSystemScript.SELECT_PAGE_SIZE)
+	var page_count := CharacterSystemScript.selection_page_count(characters.size())
+	var local := safe_index - page * CharacterSystemScript.SELECT_PAGE_SIZE
+	return page + 1 >= page_count and (local + CharacterSystemScript.SELECT_COLUMNS >= CharacterSystemScript.SELECT_PAGE_SIZE or safe_index + CharacterSystemScript.SELECT_COLUMNS >= visible_count)
+
+func _update_character_select_back_focus() -> bool:
+	if character_select_focus_area != PRE_RUN_SELECT_FOCUS_BACK:
+		return false
+	var escape_pressed := _selection_latch_pressed(KEY_ESCAPE)
+	var backspace_pressed := _selection_latch_pressed(KEY_BACKSPACE)
+	var enter_pressed := _selection_latch_pressed(KEY_ENTER)
+	var space_pressed := _selection_latch_pressed(KEY_SPACE)
+	var up_pressed := _selection_latch_pressed(KEY_UP)
+	_selection_latch_pressed(KEY_DOWN)
+	_selection_latch_pressed(KEY_LEFT)
+	_selection_latch_pressed(KEY_RIGHT)
+	_selection_latch_pressed(KEY_A)
+	_selection_latch_pressed(KEY_D)
+	_selection_latch_pressed(KEY_Q)
+	_selection_latch_pressed(KEY_E)
+	if escape_pressed or backspace_pressed or enter_pressed or space_pressed:
+		_play_back_transition_se()
+		_back_to_title()
+		return true
+	if up_pressed:
+		character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+		return true
+	return true
+
 func _update_character_select() -> void:
+	if _update_character_select_back_focus():
+		return
+	var footer_down_requested := _selection_latch_would_press(KEY_DOWN) and _character_select_can_move_down_to_footer()
 	var before_state := state
 	var result: Dictionary = CharacterSystemScript.update_selection_for_target(self, debug_key_latch, characters)
 	if before_state == "character_select" and state == "title":
@@ -2138,14 +2357,55 @@ func _update_character_select() -> void:
 	if bool(result["startStreamFrameSelect"]):
 		_play_confirm_se()
 		_start_stream_frame_select()
+		return
+	if footer_down_requested:
+		character_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
 
 func _start_stream_frame_select() -> void:
 	var result: Dictionary = StreamFrameSystemScript.start_selection_for_target(self, choice_box, result_panel, stream_frames)
+	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["chat"])]}, chat_box)
 	if bool(result["restart"]):
 		_restart()
 
+func _stream_frame_select_can_move_down_to_footer() -> bool:
+	var frames: Array = _stream_frame_selection_items()
+	if frames.is_empty():
+		return false
+	var safe_index := clampi(selected_stream_frame_index, 0, frames.size() - 1)
+	var page := int(safe_index / StreamFrameSystemScript.SELECT_PAGE_SIZE)
+	var page_count := StreamFrameSystemScript.selection_page_count(frames.size())
+	var local := safe_index - page * StreamFrameSystemScript.SELECT_PAGE_SIZE
+	return page + 1 >= page_count and (local + StreamFrameSystemScript.SELECT_COLUMNS >= StreamFrameSystemScript.SELECT_PAGE_SIZE or safe_index + StreamFrameSystemScript.SELECT_COLUMNS >= frames.size())
+
+func _update_stream_frame_select_back_focus() -> bool:
+	if stream_frame_select_focus_area != PRE_RUN_SELECT_FOCUS_BACK:
+		return false
+	var escape_pressed := _selection_latch_pressed(KEY_ESCAPE)
+	var backspace_pressed := _selection_latch_pressed(KEY_BACKSPACE)
+	var enter_pressed := _selection_latch_pressed(KEY_ENTER)
+	var space_pressed := _selection_latch_pressed(KEY_SPACE)
+	var up_pressed := _selection_latch_pressed(KEY_UP)
+	_selection_latch_pressed(KEY_DOWN)
+	_selection_latch_pressed(KEY_LEFT)
+	_selection_latch_pressed(KEY_RIGHT)
+	_selection_latch_pressed(KEY_A)
+	_selection_latch_pressed(KEY_D)
+	_selection_latch_pressed(KEY_Q)
+	_selection_latch_pressed(KEY_E)
+	if escape_pressed or backspace_pressed or enter_pressed or space_pressed:
+		_play_back_transition_se()
+		_start_character_select()
+		return true
+	if up_pressed:
+		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+		return true
+	return true
+
 func _update_stream_frame_select() -> void:
+	if _update_stream_frame_select_back_focus():
+		return
+	var footer_down_requested := _selection_latch_would_press(KEY_DOWN) and _stream_frame_select_can_move_down_to_footer()
 	var result: Dictionary = StreamFrameSystemScript.update_selection_for_target(self, debug_key_latch, stream_frames)
 	var chat: String = String(result.get("chat", ""))
 	if chat != "":
@@ -2157,11 +2417,15 @@ func _update_stream_frame_select() -> void:
 	if bool(result["restart"]):
 		_play_confirm_se()
 		_start_stream_start_intro()
+		return
+	if footer_down_requested:
+		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
 
 func _open_title_ranking() -> void:
 	state = "ranking"
 	ranking_tab_index = 0
 	ranking_selected_index = 0
+	ranking_focus_area = RANKING_FOCUS_TABS
 	ranking_reset_confirm_visible = false
 	ranking_reset_confirm_index = 1
 	choice_box.visible = false
@@ -2177,6 +2441,8 @@ func _reset_title_ranking() -> void:
 func _execute_ranking_reset() -> void:
 	RankingSystemScript.reset_tab(ranking_tab_index, relay_mode_unlocked)
 	ranking_selected_index = 0
+	if ranking_focus_area == RANKING_FOCUS_ENTRIES:
+		ranking_focus_area = RANKING_FOCUS_TABS
 	ranking_reset_confirm_visible = false
 	ranking_reset_confirm_index = 1
 	if state == "ranking" or (state == "result" and result_showing_ranking):
@@ -2208,6 +2474,29 @@ func _handle_ranking_reset_confirm_action(action: String) -> bool:
 		return true
 	return false
 
+func _activate_ranking_mouse(pos: Vector2) -> bool:
+	if ranking_reset_confirm_visible:
+		return false
+	if _ranking_back_button_rect().has_point(pos):
+		_activate_ranking_back_button()
+		return true
+	return false
+
+func _activate_ranking_back_button() -> void:
+	_play_back_transition_se()
+	if state == "result" and result_showing_ranking:
+		_toggle_result_ranking()
+	else:
+		_back_from_front_screen()
+
+func _ranking_current_entry_count() -> int:
+	return RankingSystemScript.entry_count_for_tab(ranking_tab_index, relay_mode_unlocked)
+
+func _ranking_focus_entries_at(index: int) -> void:
+	var count := _ranking_current_entry_count()
+	ranking_focus_area = RANKING_FOCUS_ENTRIES
+	ranking_selected_index = 0 if count <= 0 else clampi(index, 0, count - 1)
+
 func _refresh_ranking_screen() -> void:
 	var footer: String = "←→：タブ  ↑↓：記録  Enter：詳細  Esc：戻る  R：リセット"
 	if state == "result" and result_showing_ranking:
@@ -2220,44 +2509,92 @@ func _ranking_tab_left() -> void:
 	if ranking_reset_confirm_visible:
 		_handle_ranking_reset_confirm_action("ranking_tab_left")
 		return
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		return
 	ranking_tab_index = RankingSystemScript.clamp_tab_index(ranking_tab_index - 1, relay_mode_unlocked)
 	ranking_selected_index = 0
+	if ranking_focus_area == RANKING_FOCUS_ENTRIES and _ranking_current_entry_count() <= 0:
+		ranking_focus_area = RANKING_FOCUS_TABS
 	_refresh_ranking_screen()
 
 func _ranking_tab_right() -> void:
 	if ranking_reset_confirm_visible:
 		_handle_ranking_reset_confirm_action("ranking_tab_right")
 		return
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		return
 	ranking_tab_index = RankingSystemScript.clamp_tab_index(ranking_tab_index + 1, relay_mode_unlocked)
 	ranking_selected_index = 0
+	if ranking_focus_area == RANKING_FOCUS_ENTRIES and _ranking_current_entry_count() <= 0:
+		ranking_focus_area = RANKING_FOCUS_TABS
 	_refresh_ranking_screen()
 
 func _ranking_up() -> void:
 	if ranking_reset_confirm_visible:
 		_handle_ranking_reset_confirm_action("ranking_up")
 		return
-	var count: int = RankingSystemScript.entry_count_for_tab(ranking_tab_index, relay_mode_unlocked)
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		var last_count := _ranking_current_entry_count()
+		if last_count > 0:
+			_ranking_focus_entries_at(last_count - 1)
+			_refresh_ranking_screen()
+		return
+	if ranking_focus_area == RANKING_FOCUS_TABS:
+		ranking_focus_area = RANKING_FOCUS_BACK
+		_refresh_ranking_screen()
+		return
+	var count := _ranking_current_entry_count()
 	if count <= 0:
+		ranking_focus_area = RANKING_FOCUS_TABS
 		ranking_selected_index = 0
+	elif ranking_selected_index <= 0:
+		ranking_selected_index = 0
+		ranking_focus_area = RANKING_FOCUS_TABS
 	else:
-		ranking_selected_index = posmod(ranking_selected_index - 1, count)
+		ranking_selected_index -= 1
 	_refresh_ranking_screen()
 
 func _ranking_down() -> void:
 	if ranking_reset_confirm_visible:
 		_handle_ranking_reset_confirm_action("ranking_down")
 		return
-	var count: int = RankingSystemScript.entry_count_for_tab(ranking_tab_index, relay_mode_unlocked)
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		ranking_focus_area = RANKING_FOCUS_TABS
+		_refresh_ranking_screen()
+		return
+	if ranking_focus_area == RANKING_FOCUS_TABS:
+		var tab_count := _ranking_current_entry_count()
+		if tab_count <= 0:
+			ranking_selected_index = 0
+			ranking_focus_area = RANKING_FOCUS_BACK
+		else:
+			_ranking_focus_entries_at(0)
+		_refresh_ranking_screen()
+		return
+	var count := _ranking_current_entry_count()
 	if count <= 0:
 		ranking_selected_index = 0
+		ranking_focus_area = RANKING_FOCUS_BACK
+	elif ranking_selected_index >= count - 1:
+		ranking_selected_index = count - 1
+		ranking_focus_area = RANKING_FOCUS_BACK
 	else:
-		ranking_selected_index = posmod(ranking_selected_index + 1, count)
+		ranking_selected_index += 1
 	_refresh_ranking_screen()
 
 func _ranking_select() -> void:
 	if ranking_reset_confirm_visible:
 		_handle_ranking_reset_confirm_action("ranking_select")
 		return
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		_activate_ranking_back_button()
+		return
+	if ranking_focus_area == RANKING_FOCUS_TABS:
+		var count := _ranking_current_entry_count()
+		if count <= 0:
+			ranking_focus_area = RANKING_FOCUS_BACK
+		else:
+			_ranking_focus_entries_at(0)
 	_refresh_ranking_screen()
 
 func _open_title_options() -> void:
@@ -2266,6 +2603,9 @@ func _open_title_options() -> void:
 	choice_box.visible = false
 	result_panel.visible = false
 	_refresh_options_screen()
+
+func _quit_game() -> void:
+	get_tree().quit()
 
 func _refresh_options_screen() -> void:
 	result_label.text = ""
@@ -2286,9 +2626,12 @@ func _back_to_title() -> void:
 	game_over_intro_duration = 0.0
 	result_drop_timer = 0.0
 	title_logo_drop_timer = TITLE_LOGO_DROP_DURATION
+	title_character_appear_timer = TITLE_CHARACTER_APPEAR_TOTAL_DURATION
 	pending_game_over_reason = ""
 	pending_game_over_end_type = ""
 	player_no_brake_sliding = false
+	click_move_active = false
+	click_move_target = Vector2.ZERO
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
@@ -2419,6 +2762,7 @@ func _apply_damage_feedback(feedback: Dictionary) -> void:
 	if state == "game_over_intro" or state == "result":
 		return
 	if bool(feedback.get("damaged", false)):
+		_notify_accessory_player_damaged()
 		_request_screen_shake(0.16, 0.10)
 		if not bool(feedback.get("dead", false)):
 			_play_player_damage_se()
@@ -2600,6 +2944,7 @@ func _toggle_result_ranking() -> void:
 	if result_showing_ranking:
 		ranking_tab_index = 0
 		ranking_selected_index = 0
+		ranking_focus_area = RANKING_FOCUS_TABS
 		result_panel.visible = false
 		_refresh_ranking_screen()
 	else:
@@ -2798,8 +3143,9 @@ func _draw_pause_status_panel(rect: Rect2) -> void:
 			score,
 			multiplier
 		],
-		"炎上：%d　ギフト期待度：%d%%　♡待機：%s" % [
+		"バズ度：%d　撃破スコア +%d%%　ギフト期待度：%d%%　♡待機：%s" % [
 			burn_combo,
+			burn_combo * 10,
 			gift_hype,
 			"あり" if heart_pending else "なし"
 		]
@@ -3149,6 +3495,8 @@ func _restart() -> void:
 	pending_game_over_reason = ""
 	pending_game_over_end_type = ""
 	player_no_brake_sliding = false
+	click_move_active = false
+	click_move_target = Vector2.ZERO
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
@@ -3210,6 +3558,8 @@ func _start_next_relay_segment() -> void:
 	superchat_timer = 0.4
 	banana_slip_fx_timer = 0.0
 	player_no_brake_sliding = false
+	click_move_active = false
+	click_move_target = Vector2.ZERO
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
@@ -3232,7 +3582,7 @@ func _start_next_relay_segment() -> void:
 	move_slow_timer = 0.0
 	spawn_rate_timer = 0.0
 	support_attack_timer = 0.0
-	player_hp = mini(player_max_hp, player_hp + 2)
+	player_hp = mini(player_max_hp, player_hp + DamageSystemScript.LEGACY_HP_UNIT * 2)
 	gift_hype = int(floor(float(gift_hype) * 0.5))
 	max_gift_hype = maxi(max_gift_hype, gift_hype)
 	multiplier = 1.0
@@ -3310,6 +3660,7 @@ func _apply_forced_do_everything_debug() -> void:
 	if bool(result["applied"]):
 		comment_choice_enter_time = 0.0
 		_play_instruction_comment_arrival_se()
+		_prime_choice_selection_latch()
 		_refresh_choice_cards()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result.get("chat", ""))]}, chat_box)
 
@@ -3452,17 +3803,33 @@ func _draw_map_foreground() -> void:
 	var map_data: Dictionary = MapBackgroundSystemScript.background_data_for_stream_frame(current_stream_frame_id)
 	_draw_map_background_image(MapBackgroundSystemScript.props_path(map_data), MapBackgroundSystemScript.world_rect(map_data))
 
+func _draw_click_move_marker() -> void:
+	if state != "playing" or not click_move_active:
+		return
+	var pulse: float = 0.5 + sin(elapsed * 8.0) * 0.5
+	var spin: float = elapsed * 2.2
+	var radius: float = 18.0 + pulse * 4.0
+	var center := click_move_target
+	draw_circle(center, radius + 8.0, Color(1.0, 0.42, 0.72, 0.10 + pulse * 0.05))
+	draw_arc(center, radius, 0.0, TAU, 56, Color(1.0, 0.36, 0.70, 0.86), 3.0, true)
+	draw_arc(center, radius + 7.0, spin, spin + TAU * 0.72, 48, Color(0.50, 0.94, 1.0, 0.62), 2.0, true)
+	draw_line(center + Vector2(-10.0, 0.0), center + Vector2(10.0, 0.0), Color(1.0, 1.0, 1.0, 0.82), 2.0, true)
+	draw_line(center + Vector2(0.0, -10.0), center + Vector2(0.0, 10.0), Color(1.0, 1.0, 1.0, 0.82), 2.0, true)
+	draw_circle(center, 3.8 + pulse * 1.2, Color(1.0, 0.94, 0.35, 0.92))
+
 func _draw_player() -> void:
 	if player_sprite != null:
 		_draw_player_sprite()
 		_draw_player_no_brake_sweat()
 		_draw_invincible_label()
 		_draw_player_hp_bar()
+		_draw_player_dash_status_icon()
 		return
 	_draw_player_fallback()
 	_draw_player_no_brake_sweat()
 	_draw_invincible_label()
 	_draw_player_hp_bar()
+	_draw_player_dash_status_icon()
 
 func _draw_player_fallback() -> void:
 	var fallback: Dictionary = DrawDataSystemScript.fallback_player_draw_data(player_pos, current_character_id, invincible > 0.0)
@@ -3501,8 +3868,8 @@ func _draw_player_no_brake_sweat() -> void:
 	var bob := sin(elapsed * TAU / 0.42)
 	var pulse := 0.94 + 0.06 * sin(elapsed * TAU / 0.36)
 	var alpha := 0.88 + 0.08 * sin(elapsed * TAU / 0.48)
-	var center := player_pos + Vector2(35.0 * back_side, -48.0 + bob * 2.0)
-	var size := Vector2(44.0, 44.0) * pulse
+	var center := player_pos + Vector2(24.0 * back_side, -30.0 + bob * 1.6)
+	var size := Vector2(32.0, 32.0) * pulse
 	var transform_scale: Vector2 = Vector2(-1.0, 1.0) if back_side < 0.0 else Vector2.ONE
 	if world_draw_active:
 		transform_scale *= world_zoom
@@ -3523,6 +3890,39 @@ func _draw_player_hp_bar() -> void:
 	var bar: Dictionary = DrawDataSystemScript.player_hp_bar_data(player_pos, player_hp, player_max_hp, hide_hp, elapsed)
 	for part in DrawDataSystemScript.player_hp_bar_parts():
 		_draw_simple_draw_part(bar, part as Dictionary)
+
+func _draw_player_dash_status_icon() -> void:
+	if state != "playing":
+		return
+	var no_dash_power: float = ModifierSystemScript.effect_rate_for_target(self, "no_dash")
+	var max_cd: float = maxf(0.01, dash_cooldown * PlayerSystemScript.dash_cooldown_rate(no_dash_power))
+	var cooldown_ratio: float = clampf(1.0 - dash_cd / max_cd, 0.0, 1.0)
+	var banned: bool = no_dash_power >= 0.95
+	var ready: bool = PlayerSystemScript.can_dash(no_dash_power, dash_cd)
+	var center := player_pos + Vector2(31.0, 31.0)
+	var back_color := Color(1.0, 1.0, 1.0, 0.78)
+	var ring_color := Color("#62e7d8")
+	var icon_color := Color("#1cae9f")
+	var label := "OK"
+	if banned:
+		back_color = Color(1.0, 0.92, 0.96, 0.82)
+		ring_color = Color("#ff4f78")
+		icon_color = Color("#d9315f")
+		label = "NG"
+	elif not ready:
+		back_color = Color(0.96, 0.94, 0.90, 0.72)
+		ring_color = Color("#ffd166")
+		icon_color = Color("#8f8793")
+		label = "CT"
+	draw_circle(center + Vector2(0, 3), 18.0, Color(0.24, 0.15, 0.28, 0.14))
+	draw_circle(center, 16.0, back_color)
+	_draw_fixed_arc(center, 18.0, -PI * 0.5, PI * 1.5, 40, Color(0.80, 0.78, 0.84, 0.40), 2.0)
+	var ring_end := -PI * 0.5 + TAU * (1.0 if ready or banned else cooldown_ratio)
+	_draw_fixed_arc(center, 18.0, -PI * 0.5, ring_end, 40, ring_color, 3.0)
+	_draw_text_item({"pos": center + Vector2(-11, 8), "text": "足", "width": 22, "size": 16, "color": icon_color, "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({"pos": center + Vector2(-18, 30), "text": label, "width": 36, "size": 9, "color": icon_color, "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	if banned:
+		draw_line(center + Vector2(-10, -10), center + Vector2(10, 10), ring_color, 3.0, true)
 
 func _draw_enemies() -> void:
 	EnemyDrawSystemScript.draw_enemies(self, enemies)
@@ -3644,7 +4044,9 @@ func _draw_boomerang() -> void:
 		hammer_range,
 		elapsed,
 		comment_boomerang_sprite,
-		Callable(self, "_draw_rotated_texture")
+		Callable(self, "_draw_rotated_texture"),
+		equipment_weapon_timers,
+		equipment_bullet_support_level
 	)
 
 func _draw_boss_overlay() -> void:
@@ -3832,43 +4234,54 @@ func _draw_frames() -> void:
 	_draw_equipment_icons()
 
 func _draw_frames_v25() -> void:
-	var frame: Dictionary = DrawDataSystemScript.hud_frame_data(SIDE, HUD, score)
-	var side_image_drawn := _draw_ui_part(COMMENT_PANEL_BG_V25, SIDE.position)
-	if not side_image_drawn:
-		_draw_prefixed_panel_rect(frame, "side")
-		_draw_line_item(frame, "sideDivider")
-		_draw_text_item({"pos": SIDE.position + Vector2(64, 44), "text": "COMMENT", "width": 210, "size": 30, "color": Color("#b46cff")})
-		_draw_comment_input_panel_v25()
+	_draw_field_view_frame_v25()
+	_draw_comment_panel_v25()
 	_draw_comment_row_lines_v25()
 	_draw_top_status_v25()
 	_draw_instruction_countdown_v25()
-	_draw_character_bust_panel_v25()
-	_draw_current_instruction_panel_v25()
 	_draw_bottom_hud_v25()
 	_draw_equipment_icons()
 
+func _draw_field_view_frame_v25() -> void:
+	_draw_ranking_panel(FIELD_VIEW.grow(5.0), Color(1.0, 1.0, 1.0, 0.0), Color(0.67, 0.59, 0.75, 0.18), 8, 2, false)
+	_draw_rect_outline(FIELD_VIEW.grow(1.0), Color(1.0, 1.0, 1.0, 0.34), 2)
+
+func _draw_comment_panel_v25() -> void:
+	var rect := COMMENT_PANEL_RECT_V25
+	_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.62), Color(1.0, 0.64, 0.82, 0.34), 24, 1, true)
+	var header := Rect2(rect.position + Vector2(14, 14), Vector2(rect.size.x - 28, 44))
+	_draw_ranking_panel(header, Color(1.0, 0.96, 0.995, 0.54), Color(0.76, 0.42, 1.0, 0.16), 20, 1, false)
+	draw_circle(rect.position + Vector2(38, 36), 15, Color(1.0, 0.33, 0.64, 0.76))
+	_draw_text_item({"pos": rect.position + Vector2(30, 43), "text": "…", "width": 18, "size": 17, "color": Color.WHITE})
+	_draw_text_item({"pos": rect.position + Vector2(64, 41), "text": "COMMENT", "width": 150, "size": 22, "color": Color("#9a55d9")})
+	_draw_text_item({"pos": rect.position + Vector2(246, 40), "text": "コメント", "width": 62, "size": 12, "color": Color("#9d7a99")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_comment_input_panel_v25()
+
 func _draw_comment_input_panel_v25() -> void:
-	var input_rect := Rect2(SIDE.position + Vector2(20, SIDE.size.y - 58), Vector2(SIDE.size.x - 72, 40))
+	var panel := COMMENT_PANEL_RECT_V25
+	var input_rect := Rect2(panel.position + Vector2(16, panel.size.y - 56), Vector2(panel.size.x - 68, 38))
 	var send_rect := Rect2(Vector2(input_rect.end.x + 10, input_rect.position.y), Vector2(42, 40))
-	draw_rect(input_rect, Color(1.0, 1.0, 1.0, 0.96), true)
-	_draw_rect_outline(input_rect, Color("#b8d9ff"), 2)
-	_draw_text_item({"pos": input_rect.position + Vector2(18, 27), "text": "コメントを入力...", "width": int(input_rect.size.x - 30), "size": 16, "color": Color("#7b8798")})
-	draw_rect(send_rect, Color(1.0, 0.96, 0.99, 0.96), true)
-	_draw_rect_outline(send_rect, Color("#ff5a9a"), 2)
-	_draw_text_item({"pos": send_rect.position + Vector2(13, 28), "text": "▶", "width": 20, "size": 22, "color": Color("#ff4f92")})
+	_draw_ranking_panel(input_rect, Color(1.0, 1.0, 1.0, 0.72), Color(0.72, 0.85, 1.0, 0.58), 11, 1, false)
+	_draw_text_item({"pos": input_rect.position + Vector2(16, 26), "text": "コメントを入力...", "width": int(input_rect.size.x - 30), "size": 15, "color": Color("#7b8798")})
+	_draw_ranking_panel(send_rect, Color(1.0, 0.94, 0.985, 0.76), Color("#ff9bc8"), 12, 1, false)
+	_draw_text_item({"pos": send_rect.position + Vector2(13, 27), "text": "▶", "width": 20, "size": 20, "color": Color("#ff4f92")})
 
 func _draw_comment_row_lines_v25() -> void:
-	var x1: float = SIDE.position.x + 20.0
-	var x2: float = SIDE.end.x - 22.0
-	var y: float = SIDE.position.y + 88.0
-	var bottom: float = SIDE.position.y + SIDE.size.y - 120.0
+	var panel := COMMENT_PANEL_RECT_V25
+	var x1: float = panel.position.x + 16.0
+	var x2: float = panel.end.x - 16.0
+	var y: float = panel.position.y + 72.0
+	var bottom: float = panel.position.y + panel.size.y - 116.0
 	while y <= bottom:
-		draw_line(Vector2(x1, y), Vector2(x2, y), Color("#cfdcf0"), 1.0)
-		y += 38.0
+		draw_line(Vector2(x1, y), Vector2(x2, y), Color(0.74, 0.82, 0.92, 0.38), 1.0)
+		y += 30.0
 
-func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "") -> void:
-	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.94), true)
-	_draw_rect_outline(rect, Color("#ffc1da"), 2)
+func _draw_soft_card_shadow_v25(rect: Rect2, radius: int) -> void:
+	_draw_ranking_panel(Rect2(rect.position + Vector2(0, 4), rect.size), Color(0.67, 0.59, 0.75, 0.12), Color(1, 1, 1, 0), radius, 0, false)
+
+func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "", border_color: Color = Color("#ffc1da"), border_width: int = 2) -> void:
+	_draw_soft_card_shadow_v25(rect, 6)
+	_draw_ranking_panel(rect, Color("#fcfbfe"), border_color, 6, border_width, false)
 	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	if rect.size.y <= 64.0:
 		_draw_compact_ui_card_text_v25(rect, label, value, accent, icon_text)
@@ -3878,6 +4291,18 @@ func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color,
 	var text_x: float = rect.position.x + (58.0 if icon_text != "" else 16.0)
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 30), "text": label, "width": int(rect.size.x - 30), "size": 15, "color": Color("#101420")})
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 65), "text": value, "width": int(rect.size.x - 28), "size": 27, "color": Color("#101420")})
+
+func _draw_buzz_status_card_v25(rect: Rect2) -> void:
+	var accent := Color("#b46cff")
+	_draw_soft_card_shadow_v25(rect, 6)
+	_draw_ranking_panel(rect, Color("#fcfbfe"), Color("#e2d3fb"), 6, 1, false)
+	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	_draw_text_item({"pos": rect.position + Vector2(16, 47), "text": "↗", "width": 42, "size": 31, "color": accent})
+	_draw_text_item({"pos": rect.position + Vector2(36, 24), "text": "✦", "width": 24, "size": 14, "color": Color("#ff8fd0")})
+	var text_x := rect.position.x + 58.0
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28), "text": "バズ度", "width": int(rect.size.x - 72), "size": 15, "color": Color("#51316c")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 53), "text": "%d / 10" % burn_combo, "width": int(rect.size.x - 72), "size": 25, "color": Color("#2b1738")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 74), "text": "撃破スコア +%d%%" % (burn_combo * 10), "width": int(rect.size.x - 72), "size": 13, "color": Color("#9a55d9")})
 
 func _draw_mental_breakdown_viewer_card(rect: Rect2) -> void:
 	var clock := float(Time.get_ticks_msec()) / 1000.0
@@ -3904,7 +4329,7 @@ func _draw_mental_breakdown_hud_card(rect: Rect2) -> void:
 	_draw_rect_outline(card, Color("#ff5a96"), 3)
 	draw_rect(Rect2(card.position + Vector2(0, card.size.y - 5), Vector2(card.size.x, 5)), Color("#ff477f"), true)
 	_draw_text_item({"pos": card.position + Vector2(14, 24), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
-	_draw_text_item({"pos": card.position + Vector2(54, 52), "text": "0/%d" % player_max_hp, "width": int(card.size.x - 68), "size": 26, "color": Color("#ff2f78")})
+	_draw_text_item({"pos": card.position + Vector2(54, 52), "text": "0%", "width": int(card.size.x - 68), "size": 26, "color": Color("#ff2f78")})
 	_draw_text_item({"pos": card.position + Vector2(18, 53), "text": "♡", "width": 28, "size": 26, "color": Color("#ff2f78")})
 	var crack := card.position + Vector2(34, 29)
 	draw_line(crack + Vector2(-3, 0), crack + Vector2(2, 7), Color.WHITE, 2.0)
@@ -3917,23 +4342,24 @@ func _draw_mental_breakdown_hud_card(rect: Rect2) -> void:
 			draw_circle(pos, 2.5, Color(1.0, 0.36, 0.68, 0.72 * reaction))
 
 func _draw_compact_ui_card_text_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "") -> void:
+	var tight := rect.size.y <= 56.0
 	if icon_text != "":
-		_draw_text_item({"pos": rect.position + Vector2(18, 42), "text": icon_text, "width": 38, "size": 28, "color": accent})
+		_draw_text_item({"pos": rect.position + Vector2(18, 38 if tight else 42), "text": icon_text, "width": 38, "size": 24 if tight else 28, "color": accent})
 	var text_x: float = rect.position.x + (58.0 if icon_text != "" else 14.0)
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 24), "text": label, "width": int(rect.size.x - 28), "size": 14, "color": Color("#101420")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + (20 if tight else 24)), "text": label, "width": int(rect.size.x - 28), "size": 13 if tight else 14, "color": Color("#101420")})
 	if value != "":
-		_draw_text_item({"pos": Vector2(text_x, rect.position.y + 52), "text": value, "width": int(rect.size.x - 30), "size": 25, "color": Color("#101420")})
+		_draw_text_item({"pos": Vector2(text_x, rect.position.y + (44 if tight else 52)), "text": value, "width": int(rect.size.x - 30), "size": 21 if tight else 25, "color": Color("#101420")})
 
 func _draw_equipment_panel_v25(rect: Rect2, label: String, accent: Color) -> void:
-	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.94), true)
-	_draw_rect_outline(rect, Color("#ffc1da"), 2)
+	_draw_soft_card_shadow_v25(rect, 6)
+	_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.88), Color(accent.r, accent.g, accent.b, 0.36), 6, 2, false)
 	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	var tab := Rect2(rect.position + Vector2(10, -1), Vector2(72, 23))
 	draw_rect(tab, accent, true)
 	_draw_text_item({"pos": tab.position + Vector2(12, 17), "text": label, "width": 54, "size": 14, "color": Color("#101420")})
 
 func _viewer_hud_text() -> String:
-	return "%s人が視聴中" % DrawDataSystemScript.format_viewer_count(score)
+	return "%s人視聴中" % DrawDataSystemScript.format_viewer_count(score)
 
 func _time_hud_text() -> String:
 	var remaining: int = maxi(0, int(ceil(RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH) - elapsed)))
@@ -3949,15 +4375,87 @@ func _current_instruction_hud_text() -> String:
 		return "%s　%02d秒\n射程短縮中" % [text, maxi(0, int(ceil(effect_timer)))]
 	return "%s　%02d秒" % [text, maxi(0, int(ceil(effect_timer)))]
 
+func _current_instruction_panel_text_v25() -> String:
+	var text: String = current_comment.strip_edges()
+	if text == "" or text == "なし" or effect_timer <= 0.0:
+		return "なし"
+	if active_sub_comment_ids.is_empty():
+		if ModifierSystemScript.has_effect_for_target(self, "short_range"):
+			return "%s / 射程短縮中" % text
+		return text
+	var labels: Array[String] = []
+	for label in _active_sub_instruction_labels():
+		labels.append(_short_pause_text(String(label), 8))
+	var joined := " / ".join(labels)
+	if text == "" or text == "なし":
+		return joined
+	return "%s：%s" % [_short_pause_text(text, 8), joined]
+
+func _current_instruction_risk_v25() -> int:
+	if not active_sub_comment_ids.is_empty():
+		return 5
+	var comment: Dictionary = _find_comment_data(last_comment_id)
+	if comment.is_empty():
+		return 0
+	var has_heart: bool = current_comment.ends_with("♡")
+	var view: Dictionary = CommentSystemScript.comment_view(comment, has_heart)
+	return int(view.get("riskLevel", 0))
+
 func _draw_top_status_v25() -> void:
-	_draw_ui_card_v25(Rect2(28, 18, 210, 80), "配信枠", String(current_stream_frame.get("displayName", "雑談枠")), Color("#6ee7f0"), "▣")
-	_draw_ui_card_v25(Rect2(256, 18, 212, 80), "残り時間", _time_hud_text(), Color("#fff45c"), "◷")
-	_draw_ui_card_v25(Rect2(486, 18, 210, 80), "ボルテージ", "x%.1f  炎上 %d" % [multiplier, burn_combo], Color("#ff6f91"), "ϟ")
-	var viewer_rect := Rect2(714, 18, 260, 80)
+	_draw_ui_card_v25(Rect2(20, 18, 198, 80), "配信枠", String(current_stream_frame.get("displayName", "雑談枠")), Color("#6ee7f0"), "▣", Color("#d8eaf4"), 1)
+	_draw_ui_card_v25(Rect2(230, 18, 198, 80), "残り時間", _time_hud_text(), Color("#fff45c"), "◷", Color("#eadf9a"), 1)
+	_draw_buzz_status_card_v25(Rect2(440, 18, 220, 80))
+	var viewer_rect := Rect2(672, 18, 278, 80)
 	if _is_mental_breakdown_intro():
 		_draw_mental_breakdown_viewer_card(viewer_rect)
 	else:
-		_draw_ui_card_v25(viewer_rect, "同時視聴者数", _viewer_hud_text(), Color("#8df7ff"), "●●")
+		_draw_ui_card_v25(viewer_rect, "同時視聴者数", _viewer_hud_text(), Color("#8df7ff"), "●●", Color("#d8eaf4"), 1)
+	_draw_character_status_card_v25(Rect2(962, 18, 258, 80))
+
+func _draw_character_status_card_v25(rect: Rect2) -> void:
+	var accent := Color("#ff8fc7")
+	_draw_soft_card_shadow_v25(rect, 6)
+	_draw_ranking_panel(rect, Color("#fcfbfe"), Color("#ead7e9"), 6, 1, false)
+	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	var avatar_rect := Rect2(rect.position + Vector2(12, 9), Vector2(62, 62))
+	_draw_ranking_panel(avatar_rect, Color(1.0, 0.94, 0.98, 0.90), Color(1.0, 0.56, 0.76, 0.34), 8, 1, false)
+	var hud_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _current_character_hud_icon_path_v25())
+	if hud_icon != null:
+		draw_texture_rect(hud_icon, _fit_texture_rect(avatar_rect.grow(-3), hud_icon.get_size()), false)
+	else:
+		var sprite_path: String = String(current_character.get("sprite", ""))
+		var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, sprite_path)
+		if tex != null:
+			_draw_character_hud_icon_texture_v25(tex, avatar_rect.grow(-3))
+	var text_x := rect.position.x + 86.0
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 24), "text": "使用キャラ", "width": int(rect.size.x - 98), "size": 13, "color": Color("#8a6b82")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 50), "text": String(current_character.get("displayName", "")), "width": int(rect.size.x - 98), "size": 22, "color": Color("#101420")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 72), "text": _current_character_role_tag_v25(), "width": int(rect.size.x - 98), "size": 12, "color": Color("#d64e98")})
+
+func _current_character_hud_icon_path_v25() -> String:
+	if current_character_id == "superchat_chan" or current_character_id == "supana":
+		return HUD_ICON_SUPANA_IMAGE
+	if current_character_id == "maro_chan" or current_character_id == "maron":
+		return HUD_ICON_MARON_IMAGE
+	return HUD_ICON_BANRI_IMAGE
+
+func _current_character_role_tag_v25() -> String:
+	if current_character_id == "superchat_chan" or current_character_id == "supana":
+		return "遠距離火力"
+	if current_character_id == "maro_chan" or current_character_id == "maron":
+		return "回収支援"
+	return "近距離バランス"
+
+func _draw_character_hud_icon_texture_v25(texture: Texture2D, rect: Rect2) -> void:
+	var focus := Vector2(0.50, 0.30)
+	var zoom := 2.35
+	if current_character_id == "maro_chan" or current_character_id == "maron":
+		focus = Vector2(0.50, 0.28)
+		zoom = 2.25
+	elif current_character_id == "superchat_chan" or current_character_id == "supana":
+		focus = Vector2(0.50, 0.30)
+		zoom = 2.45
+	_draw_texture_cover_rect(texture, rect, focus, zoom)
 
 func _draw_instruction_countdown_v25() -> void:
 	if state == "comment_choice" or state == "gift_choice" or state == "pause" or state == "result":
@@ -3966,16 +4464,32 @@ func _draw_instruction_countdown_v25() -> void:
 	var ratio: float = clampf(left / COMMENT_INTERVAL, 0.0, 1.0)
 	var alert: bool = left <= 5.0
 	var urgent: bool = left <= 3.0
-	var rect := Rect2(Vector2(28, 126), Vector2(946, 54))
-	var accent: Color = Color("#ff3f78") if alert else Color("#ff6fa8")
-	var fill: Color = Color(1.0, 0.94, 0.97, 0.94) if not urgent else Color(1.0, 0.87, 0.90, 0.96)
-	draw_rect(rect, fill, true)
-	_draw_rect_outline(rect, Color("#ffc1da"), 2)
-	var text_color: Color = Color("#ff245f") if alert else Color("#e73763")
-	_draw_text_item({"pos": rect.position + Vector2(26, 35), "text": "⚠ 次の指示コメまで　あと %.1fs" % left, "width": 360, "size": 24, "color": text_color})
-	var bar_back := Rect2(rect.position + Vector2(365, 21), Vector2(560, 14))
-	draw_rect(bar_back, Color("#f2e6ef"), true)
-	draw_rect(Rect2(bar_back.position, Vector2(bar_back.size.x * ratio, bar_back.size.y)), accent, true)
+	var risk: int = _current_instruction_risk_v25()
+	var rect := Rect2(Vector2(20, 108), Vector2(1200, 76))
+	var accent: Color = Color("#ff4f92") if risk >= 4 else Color("#ff73ad")
+	if alert:
+		accent = Color("#ff3f78")
+	var fill: Color = Color(1.0, 0.965, 0.985, 0.94) if not urgent else Color(1.0, 0.90, 0.94, 0.96)
+	var border := Color("#ff80b7") if risk >= 4 else Color("#ffc1da")
+	if urgent:
+		var flash := 0.5 + sin(elapsed * 12.0) * 0.5
+		border = Color("#ff3f78").lerp(Color("#ffc1da"), flash * 0.34)
+	_draw_ranking_panel(rect, fill, border, 18, 3 if risk >= 4 or urgent else 2, true)
+	draw_line(rect.position + Vector2(18, 40), rect.position + Vector2(rect.size.x - 18, 40), Color(1.0, 0.72, 0.86, 0.40), 1.0)
+	var current_text := _short_pause_text(_current_instruction_panel_text_v25(), 33)
+	var current_color := Color("#101420") if current_text != "なし" else Color("#817184")
+	_draw_text_item({"pos": rect.position + Vector2(24, 25), "text": "現在の指示コメ", "width": 126, "size": 14, "color": Color("#e73783")})
+	_draw_text_item({"pos": rect.position + Vector2(156, 33), "text": current_text, "width": 800, "size": 28, "color": current_color, "fontWeight": "black"})
+	if current_text != "なし":
+		var remain_fill := Color("#fff3fa") if not urgent else Color("#ffe6f0")
+		var remain_rect := Rect2(rect.position + Vector2(rect.size.x - 152, 11), Vector2(124, 28))
+		_draw_ranking_panel(remain_rect, remain_fill, Color(1.0, 0.45, 0.70, 0.35), 14, 1, false)
+		_draw_text_item({"pos": remain_rect.position + Vector2(0, 21), "text": "残り %02d秒" % maxi(0, int(ceil(effect_timer))), "width": int(remain_rect.size.x), "size": 16, "color": Color("#e73763")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	var text_color: Color = Color("#e06a86") if alert else Color("#8b74bd")
+	_draw_text_item({"pos": rect.position + Vector2(24, 64), "text": "⚠ 次の指示まで", "width": 160, "size": 15, "color": text_color})
+	var bar_back := Rect2(rect.position + Vector2(188, 54), Vector2(rect.size.x - 216, 9))
+	_draw_ranking_panel(bar_back, Color("#f2e6ef"), Color(1, 1, 1, 0), 6, 0, false)
+	_draw_ranking_panel(Rect2(bar_back.position, Vector2(bar_back.size.x * ratio, bar_back.size.y)), Color(accent.r, accent.g, accent.b, 0.72), Color(1, 1, 1, 0), 6, 0, false)
 
 func _fit_texture_rect(container: Rect2, tex_size: Vector2) -> Rect2:
 	if tex_size.x <= 0.0 or tex_size.y <= 0.0:
@@ -4052,29 +4566,57 @@ func _draw_active_sub_instruction_panel_rows_v25(rect: Rect2) -> void:
 		}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_bottom_hud_v25() -> void:
-	_draw_prefixed_panel_rect({"hudRect": HUD, "hudFill": Color(0.985, 0.99, 1.0, 0.94), "hudBorder": Color("#b8d9ff"), "hudBorderWidth": 4}, "hud")
-	var mental_rect := Rect2(34, 806, 205, 62)
+	_draw_ranking_panel(HUD, Color(0.985, 0.99, 1.0, 0.91), Color("#b8d9ff"), 10, 3, false)
+	var mental_rect := Rect2(34, 806, 226, 62)
 	if _is_mental_breakdown_intro():
 		_draw_mental_breakdown_hud_card(mental_rect)
 	else:
-		_draw_ui_card_v25(mental_rect, "メンタル", _mental_hud_text(), Color("#4ade80"), "")
+		_draw_mental_hud_card_v25(mental_rect)
 	var exp_need: int = maxi(1, ExpSystemScript.current_need(exp_level))
-	_draw_ui_card_v25(Rect2(254, 806, 256, 62), "EXP", "Lv.%d  %d/%d" % [exp_level, exp_value, exp_need], Color("#27c4d9"), "★")
-	_draw_ui_card_v25(Rect2(526, 806, 200, 62), "ギフト期待度", "%d%%" % gift_hype, Color("#ff5a78"), "▣")
-	_draw_ui_card_v25(Rect2(742, 806, 190, 62), "♡ 状態", "待機" if heart_pending else "なし", Color("#ff91c8"), "♥")
-	_draw_equipment_panel_v25(Rect2(952, 806, 270, 62), "武器", Color("#fff45c"))
-	_draw_equipment_panel_v25(Rect2(1234, 806, 296, 62), "アクセサリ", Color("#8df7ff"))
+	_draw_ui_card_v25(Rect2(274, 806, 260, 62), "EXP", "Lv.%d  %d/%d" % [exp_level, exp_value, exp_need], Color("#27c4d9"), "★", Color("#b8d9ff"), 2)
+	_draw_ui_card_v25(Rect2(548, 810, 170, 54), "ギフト期待度", "%d%%" % gift_hype, Color("#ff7ea8"), "▣", Color("#f2d7e6"), 1)
+	_draw_ui_card_v25(Rect2(730, 810, 160, 54), "♡ 状態", "待機" if heart_pending else "なし", Color("#ffabd5"), "♥", Color("#f2d7e6"), 1)
+	_draw_equipment_panel_v25(Rect2(910, 802, 304, 70), "武器", Color("#fff45c"))
+	_draw_equipment_panel_v25(Rect2(1230, 802, 322, 70), "アクセ", Color("#8df7ff"))
 	var exp_ratio: float = clampf(float(exp_value) / float(exp_need), 0.0, 1.0)
 	var hype_ratio: float = clampf(float(gift_hype) / 100.0, 0.0, 1.0)
-	draw_rect(Rect2(Vector2(270, 862), Vector2(220, 6)), Color("#d8ecff"), true)
-	draw_rect(Rect2(Vector2(270, 862), Vector2(220 * exp_ratio, 6)), Color("#24c7d9"), true)
-	draw_rect(Rect2(Vector2(542, 862), Vector2(168, 6)), Color("#ffe1eb"), true)
-	draw_rect(Rect2(Vector2(542, 862), Vector2(168 * hype_ratio, 6)), DrawDataSystemScript.gift_hype_color(hype_ratio), true)
+	draw_rect(Rect2(Vector2(290, 861), Vector2(224, 7)), Color("#d8ecff"), true)
+	draw_rect(Rect2(Vector2(290, 861), Vector2(224 * exp_ratio, 7)), Color("#24c7d9"), true)
+	draw_rect(Rect2(Vector2(564, 858), Vector2(138, 5)), Color("#ffe1eb"), true)
+	draw_rect(Rect2(Vector2(564, 858), Vector2(138 * hype_ratio, 5)), DrawDataSystemScript.gift_hype_color(hype_ratio), true)
 
 func _mental_hud_text() -> String:
 	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
-		return "？？/？？"
-	return "%d/%d" % [player_hp, player_max_hp]
+		return "??%"
+	return "%d%%" % int(round(_mental_hud_ratio() * 100.0))
+
+func _mental_hud_ratio() -> float:
+	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
+		return DrawDataSystemScript.fake_hp_ratio(elapsed)
+	if player_max_hp <= 0:
+		return 0.0
+	return clampf(float(player_hp) / float(player_max_hp), 0.0, 1.0)
+
+func _mental_hud_fill_color(ratio: float) -> Color:
+	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
+		return Color("#9ca3af")
+	if ratio <= 0.25:
+		return Color("#ff4f8f")
+	if ratio <= 0.55:
+		return Color("#ffd166")
+	return Color("#4ade80")
+
+func _draw_mental_hud_card_v25(rect: Rect2) -> void:
+	var ratio := _mental_hud_ratio()
+	var accent := _mental_hud_fill_color(ratio)
+	_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.94), Color("#ffc1da"), 6, 2, false)
+	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	_draw_text_item({"pos": rect.position + Vector2(16, 12), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
+	_draw_text_item({"pos": rect.position + Vector2(rect.size.x - 64, 12), "text": _mental_hud_text(), "width": 48, "size": 15, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	var gauge := Rect2(rect.position + Vector2(16, 34), Vector2(rect.size.x - 32, 16))
+	draw_rect(gauge, Color("#e7f7ee"), true)
+	draw_rect(Rect2(gauge.position, Vector2(gauge.size.x * ratio, gauge.size.y)), accent, true)
+	_draw_rect_outline(gauge, Color("#b9e8cb"), 1)
 
 func _draw_ui_part(path: String, pos: Vector2) -> bool:
 	var texture: Texture2D = _load_ui_part(path)
@@ -4094,30 +4636,44 @@ func _load_ui_part(path: String) -> Texture2D:
 	return TextureCacheSystemScript.load_resource_texture(ui_part_cache, path)
 
 func _draw_equipment_icons() -> void:
-	_draw_equipment_icon_row(player_weapons, weapons, Vector2(1008, 827), true)
-	_draw_equipment_icon_row(player_accessories, gifts, Vector2(1304, 827), false)
+	_draw_equipment_icon_row(player_weapons, weapons, Vector2(1014, 823), true)
+	_draw_equipment_icon_row(player_accessories, gifts, Vector2(1326, 823), false)
 
 func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, is_weapon: bool) -> void:
-	var slot_size := Vector2(30, 30)
-	var step := 40.0
+	var slot_size := Vector2(34, 34)
+	var step := 39.0
+	var accent := Color("#ffd15a") if is_weapon else Color("#55d8ec")
+	var empty_border := Color(0.72, 0.67, 0.82, 0.42)
+	var fill := Color("#fffdf3") if is_weapon else Color("#f2fdff")
+	var empty_mark := "◇" if is_weapon else "♡"
 	for i in range(5):
 		var slot_rect := Rect2(start + Vector2(i * step, 0), slot_size)
-		draw_rect(slot_rect, Color(1.0, 1.0, 1.0, 0.92), true)
-		_draw_rect_outline(slot_rect, Color("#c6dfff"), 2)
+		var filled := i < items.size()
+		draw_rect(slot_rect, Color(fill.r, fill.g, fill.b, 0.96 if filled else 0.50), true)
+		_draw_rect_outline(slot_rect, accent if filled else empty_border, 2 if filled else 1)
 		if i >= items.size():
+			_draw_text_item({
+				"pos": slot_rect.position + Vector2(0, 25),
+				"text": empty_mark,
+				"width": int(slot_rect.size.x),
+				"size": 17,
+				"color": Color(accent.r, accent.g, accent.b, 0.25)
+			}, "", HORIZONTAL_ALIGNMENT_CENTER)
 			continue
 		var entry: Dictionary = items[i] as Dictionary
 		var id: String = String(entry.get("id", ""))
 		var data: Dictionary = _find_equipment_icon_data(source_data, id)
 		var texture: Texture2D = _load_equipment_icon(String(data.get("iconPath", "")))
 		if texture != null:
-			draw_texture_rect(texture, slot_rect.grow(-2), false)
+			var icon_rect := _fit_texture_rect(slot_rect.grow(-1), texture.get_size())
+			_draw_ranking_panel(icon_rect.grow(1.5), Color(1.0, 1.0, 1.0, 0.78), Color(1.0, 1.0, 1.0, 0.62), 7, 1, false)
+			draw_texture_rect(texture, icon_rect, false)
 		else:
 			var fallback_text: String = DrawDataSystemScript.equipment_icon(id, is_weapon)
-			_draw_text_item({"pos": slot_rect.position + Vector2(8, 22), "text": fallback_text, "width": 22, "size": 14, "color": Color("#1f2a3a")})
+			_draw_text_item({"pos": slot_rect.position + Vector2(9, 24), "text": fallback_text, "width": 22, "size": 14, "color": Color("#1f2a3a")})
 		var level_text: String = "進" if EquipmentSystem.is_evolved_entry(entry) else str(EquipmentSystem.entry_level(entry))
 		_draw_text_item({
-			"pos": slot_rect.position + Vector2(19, 28),
+			"pos": slot_rect.position + Vector2(22, 31),
 			"text": level_text,
 			"width": 20,
 			"size": 11,
@@ -4164,11 +4720,12 @@ func _draw_title_image_overlay() -> bool:
 	if background == null:
 		return false
 	draw_texture_rect(background, TITLE_SCREEN_RECT, false)
-	_draw_title_image(TITLE_SUPANA_IMAGE, TITLE_SUPANA_RECT)
-	_draw_title_image(TITLE_MARON_IMAGE, TITLE_MARON_RECT)
-	_draw_title_image(TITLE_BANCHAN_IMAGE, TITLE_BANCHAN_RECT)
+	_draw_title_character_image(TITLE_SUPANA_IMAGE, TITLE_SUPANA_RECT, TITLE_SUPANA_START_OFFSET, 0.04, 0.0)
+	_draw_title_character_image(TITLE_MARON_IMAGE, TITLE_MARON_RECT, TITLE_MARON_START_OFFSET, 0.18, 0.7)
+	_draw_title_character_image(TITLE_BANCHAN_IMAGE, TITLE_BANCHAN_RECT, TITLE_BANCHAN_START_OFFSET, 0.30, 1.4)
 	_draw_title_image(TITLE_LOGO_IMAGE, _title_logo_draw_rect())
 	_draw_title_image(TITLE_BUTTON_IMAGE, TITLE_BUTTON_RECT)
+	_draw_title_quit_button(title_menu_index == TITLE_QUIT_INDEX)
 	_draw_title_button_selection()
 	return true
 
@@ -4176,6 +4733,11 @@ func _update_title_logo_drop(delta: float) -> void:
 	if state != "title":
 		return
 	title_logo_drop_timer = maxf(0.0, title_logo_drop_timer - delta)
+
+func _update_title_character_appear(delta: float) -> void:
+	if state != "title":
+		return
+	title_character_appear_timer = maxf(0.0, title_character_appear_timer - delta)
 
 func _title_logo_draw_rect() -> Rect2:
 	if title_logo_drop_timer <= 0.0:
@@ -4186,27 +4748,67 @@ func _title_logo_draw_rect() -> Rect2:
 	var y := lerpf(TITLE_LOGO_RECT.position.y + TITLE_LOGO_DROP_START_Y_OFFSET, TITLE_LOGO_RECT.position.y, eased)
 	return Rect2(Vector2(TITLE_LOGO_RECT.position.x, y), TITLE_LOGO_RECT.size)
 
-func _draw_title_image(path: String, rect: Rect2) -> void:
+func _title_character_appear_progress(delay: float) -> float:
+	var elapsed := TITLE_CHARACTER_APPEAR_TOTAL_DURATION - title_character_appear_timer
+	return clampf((elapsed - delay) / TITLE_CHARACTER_APPEAR_DURATION, 0.0, 1.0)
+
+func _title_character_ease(progress: float) -> float:
+	return 1.0 - pow(1.0 - progress, 3.0)
+
+func _title_character_draw_rect(final_rect: Rect2, start_offset: Vector2, delay: float, phase: float) -> Rect2:
+	var progress := _title_character_appear_progress(delay)
+	var eased := _title_character_ease(progress)
+	var start_pos := final_rect.position + start_offset
+	var pos := start_pos.lerp(final_rect.position, eased)
+	var idle_strength := smoothstep(0.72, 1.0, progress)
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	pos.y += sin(clock * 2.0 + phase) * 2.0 * idle_strength
+	return Rect2(pos, final_rect.size)
+
+func _draw_title_image(path: String, rect: Rect2, modulate: Color = Color.WHITE) -> void:
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
 	if texture == null:
 		return
-	draw_texture_rect(texture, rect, false)
+	draw_texture_rect(texture, rect, false, modulate)
+
+func _draw_title_character_image(path: String, final_rect: Rect2, start_offset: Vector2, delay: float, phase: float) -> void:
+	var progress := _title_character_appear_progress(delay)
+	var alpha := smoothstep(0.0, 0.45, progress)
+	_draw_title_image(path, _title_character_draw_rect(final_rect, start_offset, delay, phase), Color(1, 1, 1, alpha))
 
 func _draw_title_button_selection() -> void:
 	var rect: Rect2 = _title_button_hit_rect(title_menu_index).grow(6.0)
 	var pulse: float = 0.5 + sin(float(Time.get_ticks_msec()) / 1000.0 * 6.5) * 0.5
+	var is_quit_selected := title_menu_index == TITLE_QUIT_INDEX
+	var corner_radius := 54 if is_quit_selected else 48
+	var outer_corner_radius := 62 if is_quit_selected else 56
+	var outer_grow := 3.0 if is_quit_selected else 8.0
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(1.0, 0.97, 0.45, 0.08 + pulse * 0.08)
 	style.border_color = Color(1.0, 0.96, 0.25, 0.72 + pulse * 0.22)
-	style.set_border_width_all(5)
-	style.set_corner_radius_all(48)
+	style.set_border_width_all(4 if is_quit_selected else 5)
+	style.set_corner_radius_all(corner_radius)
 	draw_style_box(style, rect)
 	var outer_style := StyleBoxFlat.new()
 	outer_style.bg_color = Color(1.0, 1.0, 1.0, 0.0)
 	outer_style.border_color = Color(1.0, 1.0, 1.0, 0.20 + pulse * 0.16)
 	outer_style.set_border_width_all(3)
-	outer_style.set_corner_radius_all(56)
-	draw_style_box(outer_style, rect.grow(8.0))
+	outer_style.set_corner_radius_all(outer_corner_radius)
+	draw_style_box(outer_style, rect.grow(outer_grow))
+
+func _draw_title_quit_button(selected: bool) -> void:
+	var rect := TITLE_QUIT_BUTTON_RECT
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, TITLE_QUIT_BUTTON_IMAGE)
+	if texture != null:
+		var image_rect := _fit_texture_rect(rect, texture.get_size())
+		var alpha := 1.0 if selected else 0.96
+		draw_texture_rect(texture, image_rect, false, Color(1, 1, 1, alpha))
+		return
+	var fill := Color("#fff4fb") if selected else Color(1.0, 0.98, 1.0, 0.82)
+	var border := Color("#ff62b5") if selected else Color("#e7cfe1")
+	var text_color := Color("#e73778") if selected else Color("#6b4a63")
+	_draw_ranking_panel(rect, fill, border, 42, 3 if selected else 2, true)
+	_draw_ranking_text("終了する", rect.position + Vector2(0, 72), 24, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_title_overlay() -> void:
 	if _draw_title_image_overlay():
@@ -4313,18 +4915,23 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 		var tab: Dictionary = tabs[index] as Dictionary
 		var rect := Rect2(76 + float(index) * (tab_width + gap), y, tab_width, 60)
 		var selected: bool = bool(tab.get("selected", false))
+		var focused: bool = selected and ranking_focus_area == RANKING_FOCUS_TABS
 		var locked: bool = bool(tab.get("locked", false))
 		var fill := Color(1, 1, 1, 0.93)
 		var border := Color("#e7d7e5")
 		var text_color := Color("#5d3b56")
-		if selected:
+		if focused:
 			fill = Color("#ff93cd")
 			border = Color("#ff62b5")
 			text_color = Color.WHITE
+		elif selected:
+			fill = Color("#fff3fb")
+			border = Color("#ff9acb")
+			text_color = Color("#d64e98")
 		elif locked:
 			fill = Color("#f2eef2")
 			text_color = Color("#9a8f98")
-		_draw_ranking_panel(rect, fill, border, 18, 2, false)
+		_draw_ranking_panel(rect, fill, border, 18, 3 if focused else 2, false)
 		var label: String = String(tab.get("label", ""))
 		var display_label: String = label.replace(" 未開放", "")
 		var text_size := 19
@@ -4339,14 +4946,16 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 			var p1 := rect.position + Vector2(rect.size.x * 0.5 - 12.0, rect.size.y + 2.0)
 			var p2 := rect.position + Vector2(rect.size.x * 0.5 + 12.0, rect.size.y + 2.0)
 			var p3 := rect.position + Vector2(rect.size.x * 0.5, rect.size.y + 22.0)
-			draw_colored_polygon(PackedVector2Array([p1, p2, p3]), Color("#ff62b5"))
+			draw_colored_polygon(PackedVector2Array([p1, p2, p3]), Color("#ff62b5") if focused else Color("#ffb9dc"))
 
 func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
-	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
+	var empty_or_locked := bool(view.get("locked", false)) or bool(view.get("empty", false))
+	var panel_focused := ranking_focus_area == RANKING_FOCUS_ENTRIES and empty_or_locked
+	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ff67b8") if panel_focused else Color("#ead7e9"), 24, 4 if panel_focused else 2, true)
 	var title: String = String(view.get("subtitle", "最大同時視聴者数ランキング"))
 	_draw_ranking_text(title, panel.position + Vector2(30, 42), 28, Color("#7a3fb0"), panel.size.x - 60)
 	var rows: Array = view.get("rows", []) as Array
-	if bool(view.get("locked", false)) or bool(view.get("empty", false)):
+	if empty_or_locked:
 		_draw_ranking_message(panel, view.get("messageLines", []) as Array)
 		return
 	var visible_count := 5
@@ -4360,7 +4969,7 @@ func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 			break
 		var row: Dictionary = rows[row_index] as Dictionary
 		var rect := Rect2(panel.position.x + 20, row_y + float(i) * (row_height + 10.0), panel.size.x - 46, row_height)
-		_draw_ranking_row(rect, row)
+		_draw_ranking_row(rect, row, ranking_focus_area == RANKING_FOCUS_ENTRIES)
 	if rows.size() > visible_count:
 		var bar_rect := Rect2(panel.end.x - 22, panel.position.y + 72, 8, panel.size.y - 104)
 		draw_rect(bar_rect, Color("#f3deef"), true)
@@ -4370,8 +4979,8 @@ func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 		var thumb_y: float = bar_rect.position.y + (bar_rect.size.y - thumb_h) * float(start) / float(denom)
 		draw_rect(Rect2(bar_rect.position.x, thumb_y, bar_rect.size.x, thumb_h), Color("#ff7dbc"), true)
 
-func _draw_ranking_row(rect: Rect2, row: Dictionary) -> void:
-	var selected: bool = bool(row.get("selected", false))
+func _draw_ranking_row(rect: Rect2, row: Dictionary, selection_active: bool = true) -> void:
+	var selected: bool = selection_active and bool(row.get("selected", false))
 	var accent: Color = row.get("accent", Color("#8d6be8")) as Color
 	_draw_ranking_panel(
 		rect,
@@ -4677,10 +5286,21 @@ func _draw_ranking_detail_card(rect: Rect2, card: Dictionary) -> void:
 		var text: String = _short_pause_text(String(lines[index]), 28)
 		_draw_ranking_text(text, rect.position + Vector2(18, 60 + float(index) * 24.0), 16, Color("#5d4658"), rect.size.x - 36)
 
+func _ranking_footer_rect() -> Rect2:
+	return Rect2(76, 848, 1448, 44)
+
+func _ranking_back_button_rect() -> Rect2:
+	var footer := _ranking_footer_rect()
+	return Rect2(footer.end.x - 154.0, footer.position.y + 6.0, 132.0, 32.0)
+
 func _draw_ranking_footer() -> void:
-	var rect := Rect2(76, 848, 1448, 44)
+	var rect := _ranking_footer_rect()
+	var back_rect := _ranking_back_button_rect()
+	var back_selected := ranking_focus_area == RANKING_FOCUS_BACK
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	_draw_ranking_text("←→：タブ　↑↓：記録　Enter：詳細　Esc：戻る　R：リセット", rect.position + Vector2(0, 29), 18, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("←→：タブ　↑↓：記録　Enter：詳細　Esc：戻る　R：リセット", rect.position + Vector2(0, 29), 18, Color("#6b4a63"), back_rect.position.x - rect.position.x - 18.0, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_panel(back_rect, Color("#ff93cd") if back_selected else Color("#eef9ff"), Color("#ff62b5") if back_selected else Color("#9ed9f4"), 14, 3 if back_selected else 2, false)
+	_draw_ranking_text("戻る", back_rect.position + Vector2(0, 23), 16, Color.WHITE if back_selected else Color("#2587b8"), back_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_ranking_reset_confirm() -> void:
 	if not ranking_reset_confirm_visible:
@@ -5024,7 +5644,7 @@ func _draw_result_summary_panel(rect: Rect2, data: Dictionary) -> void:
 		{"icon": "人", "label": "最大同時視聴者数", "value": "%s 人" % _result_number(int(data.get("viewerCount", data.get("score", 0))))},
 		{"icon": "時", "label": "生存時間", "value": ResultSystemScript.format_time(float(data.get("survivalTime", 0.0)))},
 		{"icon": "V", "label": "最大ボルテージ", "value": "x%.1f" % float(data.get("maxVoltage", data.get("maxMultiplier", 1.0)))},
-		{"icon": "炎", "label": "炎上", "value": str(int(data.get("maxBurnCombo", 0)))},
+		{"icon": "話", "label": "最大バズ度", "value": str(int(data.get("maxBurnCombo", 0)))},
 		{"icon": "贈", "label": "ギフト", "value": str(int(data.get("giftCount", 0)))}
 	]
 	for index in range(rows.size()):
@@ -5447,8 +6067,7 @@ func _character_select_layout() -> Dictionary:
 		"listPanel": Rect2(76, 112, 880, 692),
 		"detailPanel": Rect2(982, 112, 542, 692),
 		"footer": Rect2(76, 828, 1448, 52),
-		"confirmButton": Rect2(108, 838, 176, 34),
-		"backButton": Rect2(306, 838, 150, 34),
+		"backButton": Rect2(108, 838, 176, 34),
 		"prevButton": Rect2(1230, 838, 96, 34),
 		"nextButton": Rect2(1352, 838, 96, 34)
 	}
@@ -5499,14 +6118,14 @@ func _draw_character_select_list_panel(panel: Rect2, page: int) -> void:
 			_draw_character_select_card(rect, index)
 		elif index < visible_count:
 			if _character_select_placeholder_status(index) == "locked":
-				_draw_character_select_locked_card(rect, index, index == selected_character_index)
+				_draw_character_select_locked_card(rect, index, character_select_focus_area == PRE_RUN_SELECT_FOCUS_ITEMS and index == selected_character_index)
 			else:
-				_draw_character_select_coming_card(rect, index, index == selected_character_index)
+				_draw_character_select_coming_card(rect, index, character_select_focus_area == PRE_RUN_SELECT_FOCUS_ITEMS and index == selected_character_index)
 
 func _draw_character_select_card(rect: Rect2, index: int) -> void:
 	var character: Dictionary = characters[index] as Dictionary
 	var view: Dictionary = CharacterSystemScript.selection_card_view(character, weapons)
-	var selected: bool = index == selected_character_index
+	var selected: bool = character_select_focus_area == PRE_RUN_SELECT_FOCUS_ITEMS and index == selected_character_index
 	var selectable: bool = bool(view.get("isSelectable", true))
 	var accent: Color = view.get("accent", Color("#ff4f92")) as Color
 	var accent2: Color = view.get("accent2", Color("#7a56c8")) as Color
@@ -5633,7 +6252,7 @@ func _draw_character_select_detail_panel(panel: Rect2) -> void:
 	_draw_character_select_weapon_highlight(Rect2(image_panel.position + Vector2(18, image_panel.size.y - 94), Vector2(image_panel.size.x - 36, 44)), view, accent, soft_fill, true)
 	_draw_character_select_tag_row(Rect2(image_panel.position + Vector2(18, image_panel.size.y - 42), Vector2(image_panel.size.x - 36, 30)), view.get("detailTags", []) as Array, accent, 4, 13, true)
 	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 548), Vector2(panel.size.x - 60, 56)), "特性", "%s：%s" % [String(view.get("passiveName", "なし")), String(view.get("passiveDescription", ""))], accent2, Color("#fff8fc"), 14)
-	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 618), Vector2(panel.size.x - 60, 72)), "紹介", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 15)
+	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 618), Vector2(panel.size.x - 60, 72)), "紹介", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 15, -4.0)
 
 func _draw_character_select_preparing_detail(panel: Rect2) -> void:
 	var box := Rect2(panel.position + Vector2(34, 96), Vector2(panel.size.x - 68, 300))
@@ -5657,19 +6276,15 @@ func _draw_character_select_locked_detail(panel: Rect2, index: int) -> void:
 func _draw_character_select_footer(layout: Dictionary, page: int, page_count: int) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	var selectable := false
-	if not characters.is_empty() and selected_character_index >= 0 and selected_character_index < characters.size():
-		selectable = CharacterSystemScript.is_selectable(characters[selected_character_index] as Dictionary)
-	_draw_character_select_button(layout["confirmButton"] as Rect2, "決定", Color("#ff93cd"), Color.WHITE, selectable)
-	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#f8f2ff"), Color("#6b4a63"), true)
+	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#ff93cd") if character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#f8f2ff"), Color.WHITE if character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#6b4a63"), true, character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK)
 	_draw_ranking_text("%d / %d" % [page + 1, page_count], rect.position + Vector2(0, 34), 19, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_button(layout["prevButton"] as Rect2, "← 前", Color("#ffffff"), Color("#6b4a63"), page > 0)
 	_draw_character_select_button(layout["nextButton"] as Rect2, "次 →", Color("#ffffff"), Color("#6b4a63"), page + 1 < page_count)
 
-func _draw_character_select_button(rect: Rect2, label: String, fill: Color, text_color: Color, enabled: bool) -> void:
+func _draw_character_select_button(rect: Rect2, label: String, fill: Color, text_color: Color, enabled: bool, selected: bool = false) -> void:
 	var actual_fill: Color = fill if enabled else Color("#eee9ef")
 	var actual_text: Color = text_color if enabled else Color("#a89fac")
-	_draw_ranking_panel(rect, actual_fill, Color("#ead7e9"), 14, 2, false)
+	_draw_ranking_panel(rect, actual_fill, Color("#ff62b5") if selected else Color("#ead7e9"), 14, 3 if selected else 2, false)
 	_draw_ranking_text(label, rect.position + Vector2(0, 24), 17, actual_text, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_character_select_info_card(rect: Rect2, label: String, value: String, fill: Color, accent: Color) -> void:
@@ -5708,10 +6323,10 @@ func _draw_character_select_weapon_highlight(rect: Rect2, view: Dictionary, acce
 	_draw_ranking_panel(rect, fill, border, 17, 2, false)
 	_draw_character_select_weapon_line(Rect2(rect.position + Vector2(18, 8), Vector2(rect.size.x - 36, 30)), view, "weaponName", "weaponIconPath", accent, "初期武器：")
 
-func _draw_character_select_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 15) -> void:
+func _draw_character_select_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 15, body_offset_y: float = 0.0) -> void:
 	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.28), 16, 2, false)
 	_draw_ranking_text(title, rect.position + Vector2(18, 26), 15, accent, rect.size.x - 36)
-	_draw_multiline_text_item({"pos": rect.position + Vector2(18, 48), "text": text, "width": int(rect.size.x - 36), "size": text_size, "color": Color("#5d4658")})
+	_draw_multiline_text_item({"pos": rect.position + Vector2(18, 48 + body_offset_y), "text": text, "width": int(rect.size.x - 36), "size": text_size, "color": Color("#5d4658")})
 
 func _draw_character_select_weapon_line(rect: Rect2, view: Dictionary, name_key: String = "weaponName", icon_key: String = "weaponIconPath", accent: Color = Color("#e24e9a"), prefix: String = "") -> void:
 	var icon: Texture2D = _load_equipment_icon(String(view.get(icon_key, "")))
@@ -5765,8 +6380,7 @@ func _stream_frame_select_layout() -> Dictionary:
 		"listPanel": Rect2(76, 112, 880, 692),
 		"detailPanel": Rect2(982, 112, 542, 692),
 		"footer": Rect2(76, 828, 1448, 52),
-		"confirmButton": Rect2(108, 838, 176, 34),
-		"backButton": Rect2(306, 838, 150, 34),
+		"backButton": Rect2(108, 838, 176, 34),
 		"prevButton": Rect2(1230, 838, 96, 34),
 		"nextButton": Rect2(1352, 838, 96, 34)
 	}
@@ -5790,39 +6404,173 @@ func _draw_stream_frame_select_background() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.93, 0.985, 0.62), true)
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 1.0, 1.0, 0.30), true)
 
-func _draw_stream_start_intro_overlay() -> void:
-	_draw_stream_frame_select_background()
-	var progress := clampf((STREAM_START_INTRO_DURATION - stream_start_intro_timer) / STREAM_START_INTRO_DURATION, 0.0, 1.0)
-	var live_phase := progress >= 0.48
+func _stream_start_intro_color(data: Dictionary, key: String, fallback: Color) -> Color:
+	var raw := String(data.get(key, ""))
+	return Color(raw) if raw != "" else fallback
+
+func _stream_start_intro_alpha(color: Color, alpha: float) -> Color:
+	color.a *= alpha
+	return color
+
+func _stream_start_intro_character_config() -> Dictionary:
+	var character_configs_raw: Variant = stream_start_intro_config.get("characters", {})
+	if not (character_configs_raw is Dictionary):
+		return {}
+	var character_configs: Dictionary = character_configs_raw as Dictionary
+	var character_id := current_character_id
+	if character_id == "":
+		character_id = String(current_character.get("id", ""))
+	var default_config: Dictionary = character_configs.get("default", {}) as Dictionary
+	var config: Dictionary = character_configs.get(character_id, default_config) as Dictionary
+	var alias := String(config.get("aliasOf", ""))
+	if alias != "" and character_configs.has(alias):
+		config = character_configs[alias] as Dictionary
+	return config
+
+func _stream_start_intro_character_display_name(character_config: Dictionary) -> String:
+	var display_name := String(character_config.get("displayName", ""))
+	if display_name != "":
+		return display_name
+	display_name = String(current_character.get("displayName", ""))
+	return display_name if display_name != "" else "配信者"
+
+func _stream_start_intro_frame_config() -> Dictionary:
+	var frame_configs_raw: Variant = stream_start_intro_config.get("frames", {})
+	if not (frame_configs_raw is Dictionary):
+		return {}
+	var frame_configs: Dictionary = frame_configs_raw as Dictionary
+	var frame_id := "relay" if relay_mode else current_stream_frame_id
+	return frame_configs.get(frame_id, frame_configs.get("default", {})) as Dictionary
+
+func _stream_start_intro_frame_title(frame_config: Dictionary) -> String:
+	var title := String(frame_config.get("title", ""))
+	if title != "":
+		return title
+	if relay_mode:
+		return "配信リレー"
+	return String(current_stream_frame.get("displayName", "配信枠"))
+
+func _stream_start_intro_status_label(frame_config: Dictionary, progress: float) -> String:
+	var labels: Array = []
+	var raw_labels: Variant = frame_config.get("statusLabels", [])
+	if raw_labels is Array:
+		labels = raw_labels as Array
+	if labels.is_empty():
+		var default_labels: Variant = stream_start_intro_config.get("progressLabels", [])
+		if default_labels is Array:
+			labels = default_labels as Array
+	if labels.is_empty():
+		return "配信準備中…"
+	var index := clampi(int(floor(progress * float(labels.size()))), 0, labels.size() - 1)
+	return String(labels[index])
+
+func _stream_start_intro_character_texture(character_config: Dictionary) -> Texture2D:
+	var paths: Array[String] = []
+	var ready_path := String(character_config.get("imagePath", ""))
+	if ready_path != "":
+		paths.append(ready_path)
+	var sprite_path := String(current_character.get("sprite", ""))
+	if sprite_path != "":
+		paths.append(sprite_path)
+	var icon_path := String(current_character.get("iconPath", ""))
+	if icon_path != "":
+		paths.append(icon_path)
+	for path in paths:
+		if not ResourceLoader.exists(path) and not FileAccess.file_exists(path):
+			continue
+		var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+		if texture != null:
+			return texture
+	return null
+
+func _draw_stream_start_intro_overlay_v2() -> void:
+	var elapsed_intro := _stream_start_intro_elapsed()
+	var progress := _stream_start_intro_progress()
 	var clock := float(Time.get_ticks_msec()) / 1000.0
-	var flash_alpha := (0.05 + sin(clock * 5.4) * 0.025) if live_phase else 0.0
-	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 1.0, 1.0, flash_alpha), true)
-	var panel := Rect2(318, 190, 964, 500)
-	_draw_ranking_panel(panel, Color(1.0, 0.99, 1.0, 0.96), Color("#ffaad1"), 36, 4, true)
-	draw_rect(panel.grow(-12.0), Color(1.0, 0.50, 0.78, 0.16), false, 3.0)
-	var sparkle_colors := [Color("#ff70b6"), Color("#8de7ff"), Color("#ffe27a"), Color("#a875ff")]
-	for i in range(14):
-		var angle := clock * 1.7 + float(i) * 0.72
-		var distance := 260.0 + sin(clock * 2.0 + float(i)) * 34.0
-		var pos := panel.get_center() + Vector2(cos(angle) * distance, sin(angle * 0.88) * 174.0)
-		var sparkle_color: Color = sparkle_colors[i % sparkle_colors.size()] as Color
-		_draw_stream_start_sparkle(pos, 8.0 + float(i % 3) * 2.0, sparkle_color)
-	var display_name := _stream_start_intro_display_name()
-	_draw_ranking_text("今日の配信枠", panel.position + Vector2(0, 82), 24, Color("#a954a0"), panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(display_name, panel.position + Vector2(0, 126), 38, Color("#4f3149"), panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	var big_text := "LIVE START!!" if live_phase else "READY..."
-	var big_color := Color("#ff3f94") if live_phase else Color("#7d55d8")
-	var pulse_speed := 7.0 if live_phase else 4.5
-	var pulse_amount := 0.025 if live_phase else 0.012
-	var big_pulse := 1.0 + sin(clock * pulse_speed) * pulse_amount
-	var big_rect := Rect2(panel.position + Vector2(122, 190), Vector2(720, 124)).grow((big_pulse - 1.0) * 80.0)
-	_draw_ranking_panel(big_rect, Color(1.0, 0.965, 0.995, 0.94), Color("#ffd0e6"), 34, 3, false)
-	_draw_ranking_text(big_text, big_rect.position + Vector2(0, 84), 72, big_color, big_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	var sub_text := "コメント受付開始！" if live_phase else "配信準備中"
-	_draw_ranking_text(sub_text, panel.position + Vector2(0, 374), 25, Color("#6b4a63"), panel.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	var bar_back := Rect2(panel.position + Vector2(278, 414), Vector2(408, 16))
-	_draw_ranking_panel(bar_back.grow(6.0), Color("#fff8fc"), Color("#f3cfe4"), 12, 2, false)
-	draw_rect(Rect2(bar_back.position, Vector2(bar_back.size.x * progress, bar_back.size.y)), Color("#ff67ad"), true)
+	var fade_in := smoothstep(0.0, 0.30, elapsed_intro)
+	var fade_out := 1.0 - smoothstep(maxf(0.35, stream_start_intro_duration - 0.35), stream_start_intro_duration, elapsed_intro)
+	var alpha := clampf(minf(fade_in, fade_out), 0.0, 1.0)
+	var character_config := _stream_start_intro_character_config()
+	var frame_config := _stream_start_intro_frame_config()
+	var character_accent := _stream_start_intro_color(character_config, "accentColor", Color("#f36fa8"))
+	var accent := _stream_start_intro_color(frame_config, "accentColor", character_accent)
+	var sub_color := _stream_start_intro_color(frame_config, "subColor", _stream_start_intro_color(character_config, "subColor", Color("#8bdff2")))
+	var soft_color := _stream_start_intro_color(character_config, "softColor", Color("#fff4fb"))
+	var background_path := String(stream_start_intro_config.get("backgroundPath", TITLE_BACK_IMAGE))
+	var background: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, background_path)
+	if background != null:
+		draw_texture_rect(background, TITLE_SCREEN_RECT, false, Color(1, 1, 1, alpha))
+	else:
+		_draw_screen_backdrop()
+	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.96, 0.995, 0.64 * alpha), true)
+	draw_rect(TITLE_SCREEN_RECT, Color(0.76, 0.92, 1.0, 0.10 * alpha), true)
+	_draw_stream_start_ready_character(Rect2(-64, 156, 720, 710), character_config, soft_color, alpha)
+	var panel := Rect2(670, 118, 822, 650)
+	_draw_ranking_panel(panel, Color(1.0, 0.99, 1.0, 0.95 * alpha), Color(accent.r, accent.g, accent.b, 0.82 * alpha), 36, 4, true)
+	_draw_ranking_panel(panel.grow(-16.0), Color(soft_color.r, soft_color.g, soft_color.b, 0.35 * alpha), Color(sub_color.r, sub_color.g, sub_color.b, 0.26 * alpha), 26, 2, false)
+	var icon_path := String(frame_config.get("iconPath", ""))
+	var icon_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+	if icon_texture != null:
+		var icon_rect := Rect2(panel.position + Vector2(54, 48), Vector2(78, 78))
+		_draw_ranking_panel(icon_rect.grow(8.0), Color(1, 1, 1, 0.82 * alpha), Color(sub_color.r, sub_color.g, sub_color.b, 0.50 * alpha), 28, 2, false)
+		draw_texture_rect(icon_texture, _fit_texture_rect(icon_rect, icon_texture.get_size()), false, Color(1, 1, 1, alpha))
+	_draw_ranking_text("今日の配信枠", panel.position + Vector2(152, 74), 24, _stream_start_intro_alpha(Color("#9b5a95"), 0.92 * alpha), 260)
+	_draw_ranking_text(_stream_start_intro_frame_title(frame_config), panel.position + Vector2(152, 122), 42, _stream_start_intro_alpha(Color("#4f3149"), alpha), 560)
+	var ready_alpha := smoothstep(0.30, 0.46, elapsed_intro) * (1.0 - smoothstep(0.88, 1.02, elapsed_intro)) * alpha
+	if ready_alpha > 0.01:
+		var ready_glow := 0.45 + sin(clock * 8.0) * 0.16
+		_draw_ranking_panel(Rect2(panel.position + Vector2(70, 190), Vector2(300, 82)), Color(1, 1, 1, 0.72 * ready_alpha), Color(sub_color.r, sub_color.g, sub_color.b, (0.40 + ready_glow * 0.30) * ready_alpha), 30, 3, false)
+		_draw_ranking_text("READY", panel.position + Vector2(70, 252), 50, _stream_start_intro_alpha(Color("#7a56c8"), ready_alpha), 300, HORIZONTAL_ALIGNMENT_CENTER)
+	var live_alpha := smoothstep(0.90, 1.08, elapsed_intro) * alpha
+	var live_scale := 0.84 + 0.16 * smoothstep(0.90, 1.14, elapsed_intro) + sin(clock * 6.8) * 0.012
+	var live_rect_base := Rect2(panel.position + Vector2(72, 220), Vector2(678, 138))
+	var live_rect := live_rect_base.grow((live_scale - 1.0) * 84.0)
+	if live_alpha > 0.01:
+		_draw_stream_start_live_fx(panel, clock, live_alpha, accent, sub_color)
+		_draw_ranking_panel(live_rect, Color(1.0, 0.965, 0.995, 0.94 * live_alpha), Color(accent.r, accent.g, accent.b, 0.76 * live_alpha), 36, 3, false)
+		_draw_ranking_text("LIVE START!!", live_rect.position + Vector2(0, 94), 72, _stream_start_intro_alpha(Color("#ff3f94"), live_alpha), live_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var main_message := String(frame_config.get("mainMessage", "コメント受付開始！"))
+	_draw_ranking_text(main_message, panel.position + Vector2(72, 430), 30, _stream_start_intro_alpha(Color("#6b4a63"), alpha), panel.size.x - 144, HORIZONTAL_ALIGNMENT_CENTER)
+	var notice := String(frame_config.get("notice", "コメント欄の反応に注意！"))
+	_draw_ranking_panel(Rect2(panel.position + Vector2(72, 468), Vector2(panel.size.x - 144, 70)), _stream_start_intro_alpha(Color("#fff7fc"), 0.86 * alpha), Color(accent.r, accent.g, accent.b, 0.28 * alpha), 22, 2, false)
+	_draw_ranking_text(notice, panel.position + Vector2(92, 511), 22, _stream_start_intro_alpha(Color("#8a587d"), alpha), panel.size.x - 184, HORIZONTAL_ALIGNMENT_CENTER)
+	var status_label := _stream_start_intro_status_label(frame_config, progress)
+	_draw_ranking_text(status_label, panel.position + Vector2(72, 584), 20, _stream_start_intro_alpha(Color("#7a56c8"), alpha), 360)
+	var bar_back := Rect2(panel.position + Vector2(72, 602), Vector2(panel.size.x - 144, 20))
+	_draw_ranking_panel(bar_back.grow(7.0), _stream_start_intro_alpha(Color("#fff8fc"), 0.92 * alpha), _stream_start_intro_alpha(Color("#f3cfe4"), 0.88 * alpha), 14, 2, false)
+	draw_rect(Rect2(bar_back.position, Vector2(bar_back.size.x * progress, bar_back.size.y)), Color(accent.r, accent.g, accent.b, 0.86 * alpha), true)
+	draw_rect(Rect2(bar_back.position, Vector2(bar_back.size.x * progress, 5.0)), Color(1.0, 1.0, 1.0, 0.34 * alpha), true)
+	_draw_ranking_text("%d%%" % int(round(progress * 100.0)), bar_back.position + Vector2(0, 37), 18, _stream_start_intro_alpha(Color("#6b4a63"), alpha), bar_back.size.x, HORIZONTAL_ALIGNMENT_RIGHT)
+
+func _draw_stream_start_ready_character(rect: Rect2, character_config: Dictionary, soft_color: Color, alpha: float) -> void:
+	var texture := _stream_start_intro_character_texture(character_config)
+	if texture == null:
+		var silhouette := Rect2(rect.position + Vector2(120, 82), Vector2(360, 520))
+		_draw_ranking_panel(silhouette, Color(soft_color.r, soft_color.g, soft_color.b, 0.66 * alpha), _stream_start_intro_alpha(Color("#ffaad1"), 0.54 * alpha), 44, 3, true)
+		draw_circle(silhouette.position + Vector2(silhouette.size.x * 0.5, 170), 86, Color(1, 1, 1, 0.68 * alpha))
+		draw_circle(silhouette.position + Vector2(silhouette.size.x * 0.5, 354), 132, Color(1, 1, 1, 0.54 * alpha))
+	else:
+		var image_rect := _fit_texture_rect(rect, texture.get_size())
+		image_rect.position.y = rect.end.y - image_rect.size.y
+		image_rect.position.x = rect.position.x + (rect.size.x - image_rect.size.x) * 0.18
+		draw_texture_rect(texture, image_rect, false, Color(1, 1, 1, alpha))
+	var badge := Rect2(68, 784, 360, 54)
+	_draw_ranking_panel(badge, Color(1, 1, 1, 0.72 * alpha), Color(1.0, 0.70, 0.84, 0.58 * alpha), 24, 2, true)
+	_draw_ranking_text(_stream_start_intro_character_display_name(character_config) + "　配信準備中", badge.position + Vector2(0, 36), 20, _stream_start_intro_alpha(Color("#774865"), alpha), badge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_start_live_fx(panel: Rect2, clock: float, alpha: float, accent: Color, sub_color: Color) -> void:
+	var colors := [Color(accent.r, accent.g, accent.b, 0.84 * alpha), Color(sub_color.r, sub_color.g, sub_color.b, 0.78 * alpha), Color(1.0, 0.88, 0.34, 0.78 * alpha)]
+	for i in range(18):
+		var angle := clock * 1.8 + float(i) * 0.74
+		var distance := 300.0 + sin(clock * 2.0 + float(i)) * 26.0
+		var pos := panel.get_center() + Vector2(cos(angle) * distance, sin(angle * 0.82) * 210.0)
+		_draw_stream_start_sparkle(pos, 6.0 + float(i % 3) * 2.0, colors[i % colors.size()] as Color)
+	for i in range(5):
+		var pos := panel.position + Vector2(110.0 + float(i) * 142.0, 178.0 + sin(clock * 2.6 + float(i)) * 12.0)
+		_draw_ranking_text("♡", pos, 24 + i % 2 * 4, Color(accent.r, accent.g, accent.b, 0.56 * alpha), 36, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_start_intro_overlay() -> void:
+	_draw_stream_start_intro_overlay_v2()
 
 func _draw_stream_start_sparkle(pos: Vector2, size: float, color: Color) -> void:
 	draw_line(pos + Vector2(-size, 0), pos + Vector2(size, 0), color, 2.5, true)
@@ -6009,7 +6757,8 @@ func _draw_mental_breakdown_cutin_character(progress: float, clock: float) -> vo
 	var jitter := Vector2(sin(clock * 46.0), cos(clock * 51.0)) * shake_strength
 	var size := base_rect.size * scale
 	var pos := base_rect.position + (base_rect.size - size) * 0.5 + Vector2(0, (1.0 - eased) * 34.0) + jitter
-	draw_texture_rect(texture, Rect2(pos, size), false, Color(1, 1, 1, clampf(progress * 5.0, 0.0, 1.0)))
+	var image_rect := _fit_texture_rect(Rect2(pos, size), texture.get_size())
+	draw_texture_rect(texture, image_rect, false, Color(1, 1, 1, clampf(progress * 5.0, 0.0, 1.0)))
 
 func _mental_breakdown_cutin_image_path() -> String:
 	var character_id := current_character_id
@@ -6053,7 +6802,7 @@ func _draw_mental_breakdown_noise_lines(clock: float, progress: float) -> void:
 func _draw_mental_breakdown_cutin_status(panel: Rect2, clock: float) -> void:
 	var gauge := Rect2(panel.position + Vector2(112, 52), Vector2(150, 44))
 	_draw_ranking_panel(gauge, Color("#fff2f8"), Color("#ff74aa"), 16, 2, false)
-	_draw_ranking_text("メンタル 0/%d" % player_max_hp, gauge.position + Vector2(0, 29), 18, Color("#f04893"), gauge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("メンタル 0%", gauge.position + Vector2(0, 29), 18, Color("#f04893"), gauge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var icon_center := panel.position + Vector2(82, 86)
 	var crack_alpha := 0.72 + sin(clock * 12.0) * 0.18
 	draw_line(icon_center + Vector2(-12, -16), icon_center + Vector2(-2, -4), Color(1, 1, 1, crack_alpha), 3.0)
@@ -6090,7 +6839,7 @@ func _draw_stream_frame_select_list_panel(panel: Rect2, frames: Array, page: int
 
 func _draw_stream_frame_select_card(rect: Rect2, frame: Dictionary, index: int) -> void:
 	var view: Dictionary = StreamFrameSystemScript.selection_card_view(frame)
-	var selected: bool = index == selected_stream_frame_index
+	var selected: bool = stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_ITEMS and index == selected_stream_frame_index
 	var selectable: bool = bool(view.get("isSelectable", true))
 	var accent: Color = view.get("accent", Color("#f05aa5")) as Color
 	var status_fill: Color = view.get("statusFill", Color("#fff2fa")) as Color
@@ -6139,19 +6888,19 @@ func _draw_stream_frame_select_detail_panel(panel: Rect2, frames: Array) -> void
 	var accent: Color = view.get("accent", Color("#f05aa5")) as Color
 	var accent2: Color = view.get("accent2", accent) as Color
 	var selectable: bool = bool(view.get("isSelectable", true))
-	_draw_stream_frame_select_icon(Rect2(panel.position + Vector2(164, 70), Vector2(214, 142)), view, accent, not selectable, true)
-	_draw_ranking_text(String(view.get("plainName", "配信枠")), panel.position + Vector2(30, 252), 32, accent if selectable else Color("#7f7480"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 298), Vector2(232, 54)), "難易度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 298), Vector2(232, 54)), "状態", String(view.get("statusText", "解放済み")), Color("#f3ecff"), accent2)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 366), Vector2(panel.size.x - 56, 54)), "特徴", String(view.get("featureText", "")), Color("#e8f7ff"), Color("#4d8ab5"))
-	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 436), Vector2(panel.size.x - 56, 72)), "主なギミック", String(view.get("mainGimmickText", "")), accent, Color("#fff8fc"), 16)
-	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 522), Vector2(panel.size.x - 56, 92)), "説明", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 16)
+	_draw_stream_frame_select_icon(Rect2(panel.position + Vector2(176, 62), Vector2(190, 126)), view, accent, not selectable, true)
+	_draw_ranking_text(String(view.get("plainName", "配信枠")), panel.position + Vector2(30, 230), 31, accent if selectable else Color("#7f7480"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 272), Vector2(232, 52)), "難易度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 272), Vector2(232, 52)), "状態", String(view.get("statusText", "解放済み")), Color("#f3ecff"), accent2)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 336), Vector2(panel.size.x - 56, 52)), "特徴", String(view.get("featureText", "")), Color("#e8f7ff"), Color("#4d8ab5"))
+	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 402), Vector2(panel.size.x - 56, 68)), "主なギミック", String(view.get("mainGimmickText", "")), accent, Color("#fff8fc"), 15)
+	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 482), Vector2(panel.size.x - 56, 116)), "説明", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 16)
 	var note_title := "おすすめ" if selectable else "理由"
 	var note_text := String(view.get("recommendText", "")) if selectable else String(view.get("disabledReason", "この配信枠はまだ選択できません。"))
 	if not selectable and String(view.get("statusId", "")) == "locked":
 		note_title = "解放条件"
 		note_text = String(view.get("unlockConditionText", note_text))
-	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 628), Vector2(panel.size.x - 56, 76)), note_title, note_text, accent2, Color("#fff8fc"), 15)
+	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 612), Vector2(panel.size.x - 56, 66)), note_title, note_text, accent2, Color("#fff8fc"), 15)
 
 
 func _draw_stream_frame_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 16) -> void:
@@ -6162,11 +6911,7 @@ func _draw_stream_frame_detail_section(rect: Rect2, title: String, text: String,
 func _draw_stream_frame_select_footer(layout: Dictionary, frames: Array, page: int, page_count: int) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	var selectable := false
-	if not frames.is_empty() and selected_stream_frame_index >= 0 and selected_stream_frame_index < frames.size():
-		selectable = StreamFrameSystemScript.is_selectable(frames[selected_stream_frame_index] as Dictionary)
-	_draw_character_select_button(layout["confirmButton"] as Rect2, "決定", Color("#ff93cd"), Color.WHITE, selectable)
-	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#f8f2ff"), Color("#6b4a63"), true)
+	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#ff93cd") if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#f8f2ff"), Color.WHITE if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#6b4a63"), true, stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK)
 	_draw_ranking_text("%d / %d" % [page + 1, page_count], rect.position + Vector2(0, 34), 19, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_button(layout["prevButton"] as Rect2, "← 前", Color("#ffffff"), Color("#6b4a63"), page > 0)
 	_draw_character_select_button(layout["nextButton"] as Rect2, "次 →", Color("#ffffff"), Color("#6b4a63"), page + 1 < page_count)

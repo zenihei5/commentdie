@@ -195,14 +195,18 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	var drop_pickup_se := false
 	var hit_fx: Array = target.get("hit_fx") as Array
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
+	var attract_range: float = DROP_ATTRACT_RANGE + float(target.get("comment_radar_range_bonus"))
+	var magnet_speed_rate: float = maxf(0.1, float(target.get("item_magnet_speed_rate")))
+	var attracted_any := false
 	for item in (target.get("drop_items") as Array):
 		var drop: Dictionary = item as Dictionary
 		drop["life"] = float(drop.get("life", DROP_LIFE)) - delta
 		drop["age"] = float(drop.get("age", 0.0)) + delta
 		var pos: Vector2 = Vector2(drop["pos"])
 		var distance: float = pos.distance_to(player_pos)
-		if distance < DROP_ATTRACT_RANGE and distance > 1.0:
-			var speed: float = lerpf(110.0, 330.0, 1.0 - distance / DROP_ATTRACT_RANGE)
+		if distance < attract_range and distance > 1.0:
+			attracted_any = true
+			var speed: float = lerpf(110.0, 330.0, 1.0 - distance / maxf(1.0, attract_range)) * magnet_speed_rate
 			pos += (player_pos - pos).normalized() * speed * delta
 			drop["pos"] = pos
 			distance = pos.distance_to(player_pos)
@@ -224,13 +228,31 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 		if float(drop["life"]) > 0.0:
 			updated.append(drop)
 	target.set("drop_items", updated)
+	if attracted_any:
+		_append_comment_radar_fx_for_target(target, attract_range)
 	return {"chats": chats, "toasts": toasts, "dropPickupSe": drop_pickup_se}
+
+static func _append_comment_radar_fx_for_target(target: Node, radius: float) -> void:
+	if int(target.get("comment_radar_level")) <= 0:
+		return
+	if float(target.get("comment_radar_fx_timer")) > 0.0:
+		return
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "comment_radar_ping",
+		"pos": Vector2(target.get("player_pos")),
+		"life": 0.38,
+		"maxLife": 0.38,
+		"radius": radius
+	})
+	target.set("comment_radar_fx_timer", GiftSystem.COMMENT_RADAR_FX_COOLDOWN)
 
 static func apply_drop_for_target(target: Node, id: String) -> Dictionary:
 	if id == "heal_drink":
 		if int(target.get("player_hp")) < int(target.get("player_max_hp")):
-			target.set("player_hp", mini(int(target.get("player_max_hp")), int(target.get("player_hp")) + 1))
-			return {"chat": "エナドリを拾った！", "toast": "エナドリ！ メンタル +1", "popup": "メンタル +1", "color": Color("#37e06d")}
+			var heal_amount: int = DamageSystem.LEGACY_HP_UNIT
+			target.set("player_hp", mini(int(target.get("player_max_hp")), int(target.get("player_hp")) + heal_amount))
+			return {"chat": "エナドリを拾った！", "toast": "エナドリ！ メンタル +%d" % heal_amount, "popup": "メンタル +%d" % heal_amount, "color": Color("#37e06d")}
 		target.set("score", int(target.get("score")) + 300)
 		return {"chat": "エナドリが視聴者流入に変わった！", "toast": "メンタル満タン！ +300人", "popup": "+300人", "color": Color("#5ad7ff")}
 	if id == "heart_drop":

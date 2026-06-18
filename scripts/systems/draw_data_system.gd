@@ -9,7 +9,7 @@ static func title_center() -> Vector2:
 static func screen_backdrop_data() -> Dictionary:
 	return {
 		"rect": Rect2(Vector2.ZERO, Vector2(1600, 900)),
-		"color": Color("#11101a")
+		"color": Color("#f8f7fb")
 	}
 
 static func modal_dim_data(arena: Rect2) -> Dictionary:
@@ -693,7 +693,7 @@ static func hud_metric_specs(comment_alert: bool, _burn_combo: int, _heart_pendi
 		{"key": "streamFrame", "rect": Rect2(214, 22, 185, 46), "label": "配信枠", "accent": Color("#8df7ff")},
 		{"key": "multiplier", "rect": Rect2(410, 22, 210, 46), "label": "ボルテージ", "accent": Color("#ff8a31")}
 	]
-	items.append({"key": "burn", "rect": Rect2(630, 22, 168, 46), "label": "炎上コンボ", "accent": Color("#ff4b68")})
+	items.append({"key": "burn", "rect": Rect2(630, 22, 168, 46), "label": "バズ度", "accent": Color("#ff4b68")})
 	var next_rect := Rect2(808, 22, 322, 46)
 	items.append({
 		"key": "nextInstruction",
@@ -743,7 +743,7 @@ static func visual_hp_ratio(hp: int, max_hp: int, hide_hp: bool, elapsed: float)
 static func hud_value_data(context: Dictionary) -> Dictionary:
 	var remaining: int = maxi(0, int(ceil(float(context["runLength"]) - float(context["elapsed"]))))
 	var exp_need: int = maxi(1, int(context["expNeed"]))
-	var hp_text: String = "？？/？？" if bool(context["hideHp"]) else "%d/%d" % [int(context["playerHp"]), int(context["playerMaxHp"])]
+	var hp_text: String = "??%" if bool(context["hideHp"]) else "%d%%" % int(round(hp_ratio(int(context["playerHp"]), int(context["playerMaxHp"])) * 100.0))
 	var current_comment_text: String = String(context["currentComment"])
 	if current_comment_text.strip_edges() == "" or current_comment_text == "なし":
 		current_comment_text = "なし"
@@ -755,7 +755,7 @@ static func hud_value_data(context: Dictionary) -> Dictionary:
 			"time": "%02d:%02d" % [remaining / 60, remaining % 60],
 			"streamFrame": String(context.get("streamFrameName", "雑談枠")),
 			"multiplier": "x%.1f" % float(context["multiplier"]),
-			"burn": "%d" % int(context["burnCombo"]),
+			"burn": "%d / 10" % int(context["burnCombo"]),
 			"hype": "%d%%" % int(context["giftHype"]),
 			"heart": "待機中" if bool(context["heartPending"]) else "なし",
 			"viewer": "%s人が視聴中" % format_viewer_count(int(context.get("score", 0))),
@@ -825,7 +825,11 @@ static func equipment_icon(id: String, is_weapon: bool) -> String:
 		"high_speed_connection": "速",
 		"wide_angle": "広",
 		"light_sneakers": "靴",
-		"sweet_tooth": "甘"
+		"sweet_tooth": "甘",
+		"mental_care": "心",
+		"notification_bell": "鈴",
+		"comment_radar": "探",
+		"mini_humidifier": "潤"
 	}
 	return String(icons.get(id, "武" if is_weapon else "ア"))
 
@@ -1008,7 +1012,8 @@ static func tutorial_overlay_parts(data: Dictionary) -> Array:
 	return parts
 
 static func toast_data(text: String) -> Dictionary:
-	var rect := Rect2(Vector2(440, 655), Vector2(700, 72))
+	var toast_width: float = clampf(360.0 + float(text.length()) * 14.0, 500.0, 660.0)
+	var rect := Rect2(Vector2(1180.0 - toast_width, 732.0), Vector2(toast_width, 50.0))
 	var border := Color("#8df7ff")
 	if text.contains("クソマロ") or text.contains("ブロック"):
 		border = Color("#ff4b68")
@@ -1016,10 +1021,10 @@ static func toast_data(text: String) -> Dictionary:
 		"rect": rect,
 		"fill": Color(0.04, 0.035, 0.06, 0.88),
 		"border": border,
-		"borderWidth": 4,
-		"textPos": rect.position + Vector2(22, 45),
-		"textWidth": int(rect.size.x - 44),
-		"fontSize": 28,
+		"borderWidth": 3,
+		"textPos": rect.position + Vector2(18, 34),
+		"textWidth": int(rect.size.x - 36),
+		"fontSize": 21 if text.length() >= 24 else 23,
 		"textColor": Color.WHITE
 	}
 
@@ -1704,8 +1709,37 @@ static func marshmallow_parts(visual: Dictionary) -> Array:
 		parts.append({"kind": "speech", "data": visual["speech"] as Dictionary})
 	return parts
 
-static func bullet_visual(player_owned: bool) -> Dictionary:
+static func bullet_visual(player_owned: bool, bullet_item: Dictionary = {}) -> Dictionary:
 	if player_owned:
+		var visual_kind: String = String(bullet_item.get("visualKind", ""))
+		if visual_kind == "high_superchat":
+			return {
+				"trailLength": 44.0,
+				"trailColor": Color(1.0, 0.64, 0.20, 0.50),
+				"trailWidth": 13.0,
+				"outerRadius": 15.0,
+				"outerColor": Color("#ffb52e"),
+				"innerRadius": 8.0,
+				"innerColor": Color("#fff8d8"),
+				"glowRadius": 22.0,
+				"glowColor": Color(1.0, 0.86, 0.24, 0.26),
+				"starColor": Color(1.0, 0.98, 0.42, 0.82),
+				"label": "￥"
+			}
+		if visual_kind == "starlight_superchat":
+			return {
+				"trailLength": 32.0,
+				"trailColor": Color(0.58, 0.96, 1.0, 0.34),
+				"trailWidth": 8.0,
+				"outerRadius": 10.0,
+				"outerColor": Color("#fff45c"),
+				"innerRadius": 4.5,
+				"innerColor": Color.WHITE,
+				"glowRadius": 15.0,
+				"glowColor": Color(0.45, 0.88, 1.0, 0.18),
+				"starColor": Color(1.0, 0.96, 0.36, 0.76),
+				"label": ""
+			}
 		return {
 			"trailLength": 22.0,
 			"trailColor": Color(0.25, 0.73, 1.0, 0.28),
@@ -1729,7 +1763,7 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 	var items: Array = []
 	for bullet in bullets:
 		var bullet_item: Dictionary = bullet as Dictionary
-		var visual: Dictionary = bullet_visual(player_owned)
+		var visual: Dictionary = bullet_visual(player_owned, bullet_item)
 		if not player_owned and String(bullet_item.get("visualKind", "")) == "kuso_maro":
 			visual = {
 				"trailLength": 16.0,
@@ -1742,7 +1776,12 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 			}
 		var pos: Vector2 = Vector2(bullet_item["pos"])
 		var vel: Vector2 = Vector2(bullet_item["vel"]).normalized()
-		items.append({
+		if vel.length() < 0.1:
+			vel = Vector2.RIGHT
+		var side: Vector2 = Vector2(-vel.y, vel.x)
+		var visual_kind: String = String(bullet_item.get("visualKind", ""))
+		var item := {
+			"visualKind": visual_kind,
 			"trailStart": pos - vel * float(visual["trailLength"]),
 			"trailEnd": pos,
 			"trailColor": visual["trailColor"] as Color,
@@ -1752,10 +1791,58 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 			"outerColor": visual["outerColor"] as Color,
 			"innerRadius": visual["innerRadius"],
 			"innerColor": visual["innerColor"] as Color
-		})
+		}
+		if visual_kind == "starlight_superchat" or visual_kind == "high_superchat":
+			var star_color: Color = visual["starColor"] as Color
+			item["glowPos"] = pos
+			item["glowRadius"] = float(visual["glowRadius"])
+			item["glowColor"] = visual["glowColor"] as Color
+			item["star1Text"] = "★"
+			item["star1Pos"] = pos - vel * 18.0 + side * 7.0 + Vector2(-8.0, 6.0)
+			item["star1Width"] = 20
+			item["star1Size"] = 15
+			item["star1Color"] = star_color
+			item["star2Text"] = "★"
+			item["star2Pos"] = pos - vel * 34.0 - side * 6.0 + Vector2(-7.0, 5.0)
+			item["star2Width"] = 18
+			item["star2Size"] = 11
+			item["star2Color"] = Color(star_color.r, star_color.g, star_color.b, star_color.a * 0.72)
+			if visual_kind == "high_superchat":
+				item["star3Text"] = "★"
+				item["star3Pos"] = pos - vel * 48.0 + side * 12.0 + Vector2(-7.0, 5.0)
+				item["star3Width"] = 18
+				item["star3Size"] = 12
+				item["star3Color"] = Color(1.0, 0.86, 0.22, 0.72)
+				item["labelText"] = String(visual["label"])
+				item["labelPos"] = pos + Vector2(-8.0, 6.0)
+				item["labelWidth"] = 18
+				item["labelSize"] = 15
+				item["labelColor"] = Color("#7a2d00")
+		items.append(item)
 	return items
 
-static func bullet_parts() -> Array:
+static func bullet_parts(data: Dictionary = {}) -> Array:
+	var visual_kind: String = String(data.get("visualKind", ""))
+	if visual_kind == "high_superchat":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "text", "prefix": "star3", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star1", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if visual_kind == "starlight_superchat":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star1", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"}
+		]
 	return [
 		{"kind": "line", "prefix": "trail"},
 		{"kind": "circle", "prefix": "outer"},
@@ -1774,6 +1861,75 @@ static func boomerang_visual() -> Dictionary:
 		"innerWidth": 3.0,
 		"textureSize": Vector2(42.0, 64.0)
 	}
+
+static func maro_comment_ring_label(index: int) -> String:
+	var labels: Array[String] = ["まろ", "888", "♡", "草", "GG", "すき"]
+	return labels[index % labels.size()]
+
+static func maro_comment_ring_bubble(center: Vector2, angle: float, index: int, flash_strength: float) -> Dictionary:
+	var size := Vector2(50.0, 30.0)
+	var rect := Rect2(center - size * 0.5, size)
+	var tail_tip: Vector2 = center + Vector2.DOWN.rotated(angle) * 18.0
+	var tail := PackedVector2Array([
+		center + Vector2(-8.0, size.y * 0.42),
+		center + Vector2(8.0, size.y * 0.42),
+		tail_tip
+	])
+	var fill := Color(1.0, 0.96, 0.99, 0.94)
+	var border := Color("#ff91c8").lerp(Color("#fff45c"), flash_strength * 0.45)
+	return {
+		"rect": rect,
+		"tail": tail,
+		"fill": fill,
+		"border": border,
+		"borderWidth": 3,
+		"text": maro_comment_ring_label(index),
+		"pos": rect.position + Vector2(0.0, 21.0),
+		"width": int(size.x),
+		"size": 16,
+		"color": Color("#7a3a67")
+	}
+
+static func maro_comment_ring_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float, pulse_strength: float, flash_strength: float) -> Array:
+	var items: Array = []
+	var phase: float = elapsed_time * orbit_speed
+	var halo_alpha: float = 0.16 + pulse_strength * 0.18 + flash_strength * 0.26
+	items.append({
+		"visualKind": "maro_comment_ring_halo",
+		"pos": player_pos,
+		"softPos": player_pos,
+		"softRadius": radius + 18.0 + pulse_strength * 12.0,
+		"softColor": Color(1.0, 0.74, 0.90, halo_alpha * 0.46),
+		"ringPos": player_pos,
+		"ringRadius": radius,
+		"ringColor": Color(1.0, 0.92, 0.98, halo_alpha),
+		"wavePoints": wavy_ring_points(player_pos, radius, 2.0 + 5.0 * maxf(pulse_strength, flash_strength), phase, 6.0),
+		"waveColor": Color(0.90, 0.98, 1.0, 0.28 + flash_strength * 0.28 + pulse_strength * 0.24),
+		"waveWidth": 3.0 + pulse_strength * 4.0 + flash_strength * 2.0
+	})
+	if count <= 0:
+		return items
+	for i in range(count):
+		var angle: float = phase + TAU * float(i) / float(count)
+		var pos: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * radius
+		var bubble: Dictionary = maro_comment_ring_bubble(pos, angle, i, flash_strength)
+		items.append({
+			"visualKind": "maro_comment_ring_bubble",
+			"pos": pos,
+			"shadowPos": pos + Vector2(0.0, 14.0),
+			"shadowSize": Vector2(42.0, 10.0),
+			"shadowAlpha": 0.20,
+			"glowPos": pos,
+			"glowRadius": 22.0 + 7.0 * maxf(pulse_strength, flash_strength),
+			"glowColor": Color(1.0, 0.78, 0.92, 0.10 + flash_strength * 0.18 + pulse_strength * 0.10),
+			"bubble": bubble,
+			"sparkText": "☆",
+			"sparkPos": pos + Vector2.RIGHT.rotated(-angle * 0.7 + float(i)) * 22.0 + Vector2(-7.0, 5.0),
+			"sparkWidth": 16,
+			"sparkSize": 12 + int(4.0 * maxf(pulse_strength, flash_strength)),
+			"sparkColor": Color(1.0, 0.92, 0.98, 0.52 + flash_strength * 0.36)
+		})
+	return items
 
 static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float) -> Array:
 	var visual: Dictionary = boomerang_visual()
@@ -1801,14 +1957,43 @@ static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, 
 		})
 	return items
 
-static func boomerang_draw_data_for_weapon(player_pos: Vector2, weapon: Dictionary, boomerang_level: int, weapon_range: float, elapsed_time: float) -> Array:
+static func boomerang_draw_data_for_weapon(player_pos: Vector2, weapon: Dictionary, boomerang_level: int, weapon_range: float, elapsed_time: float, weapon_state: Dictionary = {}, bullet_support_level: int = 0) -> Array:
 	var is_main_orbit: bool = WeaponSystem.attack_type(weapon) == "orbit"
 	var count: int = WeaponSystem.orbit_count(weapon, boomerang_level)
+	if count > 0:
+		count += bullet_support_level
 	var radius: float = weapon_range if is_main_orbit else 78.0
 	var orbit_speed: float = WeaponSystem.orbit_speed(weapon)
+	if String(weapon.get("id", "")) == "maro_comment_ring":
+		var pulse_until: float = float(weapon_state.get("__maro_comment_pulse_until", 0.0))
+		var flash_until: float = float(weapon_state.get("__maro_comment_flash_until", 0.0))
+		var pulse_duration: float = maxf(0.05, float(weapon.get("pulseDuration", 0.25)))
+		var pulse_strength: float = 0.0
+		if elapsed_time < pulse_until:
+			var pulse_progress: float = clampf(1.0 - (pulse_until - elapsed_time) / pulse_duration, 0.0, 1.0)
+			pulse_strength = sin(pulse_progress * PI)
+			radius = lerpf(radius, maxf(radius, WeaponSystem.scaled_range(float(weapon.get("pulseOrbitRadius", 3.1)), 43.0)), pulse_strength)
+		var flash_strength: float = 0.0
+		if elapsed_time < flash_until:
+			flash_strength = clampf((flash_until - elapsed_time) / 0.18, 0.0, 1.0)
+		return maro_comment_ring_draw_data(player_pos, count, radius, orbit_speed, elapsed_time, pulse_strength, flash_strength)
 	return boomerang_draw_data(player_pos, count, radius, orbit_speed, elapsed_time)
 
-static func boomerang_parts() -> Array:
+static func boomerang_parts(data: Dictionary = {}) -> Array:
+	var visual_kind: String = String(data.get("visualKind", ""))
+	if visual_kind == "maro_comment_ring_halo":
+		return [
+			{"kind": "circle", "prefix": "soft"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 4.0},
+			{"kind": "polyline", "pointsKey": "wavePoints", "colorKey": "waveColor", "widthKey": "waveWidth"}
+		]
+	if visual_kind == "maro_comment_ring_bubble":
+		return [
+			{"kind": "shadow"},
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "speech", "data": data["bubble"] as Dictionary},
+			{"kind": "text", "prefix": "spark", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
 	return [
 		{"kind": "arc", "prefix": "outer"},
 		{"kind": "arc", "prefix": "inner"}
@@ -2151,6 +2336,227 @@ static func pickup_text_fx_data(pos: Vector2, life: float, max_life: float, text
 		"labelSize": 19
 	}
 
+static func starlight_hit_fx_data(pos: Vector2, life: float, max_life: float, premium: bool) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	var radius_scale: float = 1.28 if premium else 1.0
+	return {
+		"kind": "starlight_hit",
+		"glowPos": pos,
+		"glowRadius": (18.0 + progress * 18.0) * radius_scale,
+		"glowColor": Color(0.46, 0.94, 1.0, 0.18 * alpha),
+		"ringPos": pos,
+		"ringRadius": (10.0 + progress * 24.0) * radius_scale,
+		"ringColor": Color(1.0, 0.94, 0.26, 0.64 * alpha),
+		"corePos": pos,
+		"coreRadius": (5.0 + burst * 6.0) * radius_scale,
+		"coreColor": Color(1.0, 1.0, 1.0, 0.62 * alpha),
+		"spark1Start": pos + Vector2.LEFT * (10.0 + progress * 14.0),
+		"spark1End": pos + Vector2.RIGHT * (10.0 + progress * 14.0),
+		"spark1Color": Color(1.0, 1.0, 1.0, 0.72 * alpha),
+		"spark1Width": 2.6,
+		"spark2Start": pos + Vector2.UP * (10.0 + progress * 14.0),
+		"spark2End": pos + Vector2.DOWN * (10.0 + progress * 14.0),
+		"spark2Color": Color(1.0, 0.82, 0.20, 0.62 * alpha),
+		"spark2Width": 2.4,
+		"starText": "★",
+		"starPos": pos + Vector2(-17.0, 11.0 - progress * 8.0),
+		"starWidth": 34,
+		"starSize": 22 + int(5.0 * burst),
+		"starColor": Color(1.0, 0.96, 0.30, 0.88 * alpha)
+	}
+
+static func starlight_burst_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	var wave_radius: float = lerpf(18.0, radius, progress)
+	var data := {
+		"kind": "starlight_burst",
+		"rangePos": pos,
+		"rangeRadius": wave_radius,
+		"rangeColor": Color(1.0, 0.82, 0.18, 0.20 * alpha),
+		"ringPos": pos,
+		"ringRadius": wave_radius * (0.82 + burst * 0.18),
+		"ringColor": Color(0.62, 0.96, 1.0, 0.46 * alpha),
+		"corePos": pos,
+		"coreRadius": 10.0 + burst * 18.0,
+		"coreColor": Color(1.0, 1.0, 0.84, 0.56 * alpha),
+		"wavePoints": wavy_ring_points(pos, wave_radius, 2.0 + burst * 5.0, progress * TAU, 5.0),
+		"waveColor": Color(1.0, 0.95, 0.30, 0.58 * alpha),
+		"waveWidth": 4.0 + burst * 4.0,
+		"dotRadius": 3.0 + burst * 4.0,
+		"dotColor": Color(1.0, 1.0, 1.0, 0.78 * alpha),
+		"starText": "★",
+		"starPos": pos + Vector2(-22.0, 14.0 - progress * 16.0),
+		"starWidth": 44,
+		"starSize": 28 + int(7.0 * burst),
+		"starColor": Color(1.0, 0.90, 0.18, 0.90 * alpha)
+	}
+	for i in range(4):
+		var idx: int = i + 1
+		var angle: float = progress * TAU * 0.38 + float(i) * TAU / 4.0
+		var dir: Vector2 = Vector2.RIGHT.rotated(angle)
+		data["spark%dStart" % idx] = pos + dir * (wave_radius * 0.32)
+		data["spark%dEnd" % idx] = pos + dir * (wave_radius * (0.82 + burst * 0.16))
+		var spark_color: Color = [Color("#fff45c"), Color("#65e9ff"), Color("#ffffff"), Color("#ff91c8")][i]
+		spark_color.a = 0.72 * alpha
+		data["spark%dColor" % idx] = spark_color
+		data["spark%dWidth" % idx] = 3.0 + burst * 2.0
+		data["dot%dPos" % idx] = pos + Vector2.RIGHT.rotated(angle + 0.38) * wave_radius * (0.58 + 0.20 * burst)
+	return data
+
+static func maro_comment_hit_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	return {
+		"kind": "maro_comment_hit",
+		"bubblePos": pos,
+		"bubbleRadius": 10.0 + progress * 16.0,
+		"bubbleColor": Color(1.0, 0.72, 0.88, 0.32 * alpha),
+		"corePos": pos,
+		"coreRadius": 5.0 + sin(progress * PI) * 5.0,
+		"coreColor": Color(1.0, 0.98, 1.0, 0.54 * alpha),
+		"labelText": "♡",
+		"labelPos": pos + Vector2(-12.0, 8.0 - progress * 10.0),
+		"labelWidth": 24,
+		"labelSize": 20,
+		"labelColor": Color(1.0, 0.36, 0.66, 0.84 * alpha)
+	}
+
+static func maro_bullet_clear_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
+	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
+	return {
+		"kind": "maro_bullet_clear",
+		"outerPos": pos,
+		"outerRadius": 12.0 + progress * 18.0,
+		"outerColor": Color(1.0, 0.72, 0.90, 0.30 * alpha),
+		"innerPos": pos,
+		"innerRadius": 6.0 + progress * 8.0,
+		"innerColor": Color(1.0, 1.0, 1.0, 0.50 * alpha),
+		"pop1Start": pos - normalized_dir * 6.0,
+		"pop1End": pos + normalized_dir * (18.0 + progress * 12.0),
+		"pop1Color": Color(1.0, 0.88, 0.96, 0.68 * alpha),
+		"pop1Width": 3.0,
+		"pop2Start": pos - side * 5.0,
+		"pop2End": pos + side * (16.0 + progress * 10.0),
+		"pop2Color": Color(1.0, 0.54, 0.78, 0.58 * alpha),
+		"pop2Width": 2.6,
+		"labelText": "♡",
+		"labelPos": pos + Vector2(-11.0, 8.0 - progress * 8.0),
+		"labelWidth": 22,
+		"labelSize": 18,
+		"labelColor": Color(1.0, 0.44, 0.72, 0.82 * alpha)
+	}
+
+static func maro_comment_pulse_fx_data(pos: Vector2, life: float, max_life: float, radius: float, pulled_exp: int) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	return {
+		"kind": "maro_comment_pulse",
+		"softPos": pos,
+		"softRadius": radius * (0.48 + progress * 0.72),
+		"softColor": Color(1.0, 0.72, 0.90, 0.12 * alpha),
+		"ringPos": pos,
+		"ringRadius": radius * (0.72 + progress * 0.36),
+		"ringColor": Color(1.0, 0.92, 0.98, 0.50 * alpha),
+		"wavePoints": wavy_ring_points(pos, radius * (0.62 + progress * 0.52), 3.0 + burst * 5.0, progress * TAU, 6.0),
+		"waveColor": Color(0.86, 1.0, 1.0, 0.54 * alpha),
+		"waveWidth": 5.0 + burst * 4.0,
+		"labelText": "COMMENT",
+		"labelPos": pos + Vector2(-58.0, -radius * 0.36 - progress * 22.0),
+		"labelWidth": 116,
+		"labelSize": 18 + int(4.0 * burst),
+		"labelColor": Color(1.0, 0.72, 0.90, 0.66 * alpha),
+		"dotRadius": 3.0 + burst * 3.0,
+		"dotColor": Color(1.0, 1.0, 1.0, 0.66 * alpha),
+		"dot1Pos": pos + Vector2.RIGHT.rotated(progress * TAU + 0.2) * radius * 0.72,
+		"dot2Pos": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.8 + 2.2) * radius * 0.92,
+		"dot3Pos": pos + Vector2.RIGHT.rotated(progress * TAU * 0.6 + 4.1) * radius * 0.82,
+		"pullText": "+EXP" if pulled_exp > 0 else "",
+		"pullPos": pos + Vector2(-34.0, radius * 0.34 + 18.0),
+		"pullWidth": 68,
+		"pullSize": 16,
+		"pullColor": Color(0.72, 1.0, 0.98, 0.54 * alpha)
+	}
+
+static func notification_bell_fx_data(pos: Vector2, life: float, max_life: float, bonus: int) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var pop: float = sin(progress * PI)
+	return {
+		"kind": "notification_bell",
+		"glowPos": pos,
+		"glowRadius": 12.0 + progress * 22.0,
+		"glowColor": Color(1.0, 0.92, 0.30, 0.22 * alpha),
+		"corePos": pos,
+		"coreRadius": 7.0 + pop * 4.0,
+		"coreColor": Color(1.0, 0.78, 0.18, 0.72 * alpha),
+		"spark1Start": pos + Vector2(-18.0, -9.0),
+		"spark1End": pos + Vector2(-31.0 - progress * 10.0, -19.0 - progress * 8.0),
+		"spark1Color": Color(1.0, 1.0, 0.82, 0.62 * alpha),
+		"spark1Width": 2.4,
+		"spark2Start": pos + Vector2(15.0, -7.0),
+		"spark2End": pos + Vector2(28.0 + progress * 8.0, -17.0 - progress * 6.0),
+		"spark2Color": Color(0.72, 1.0, 1.0, 0.50 * alpha),
+		"spark2Width": 2.2,
+		"labelText": "+%d EXP" % bonus,
+		"labelPos": pos + Vector2(-42.0, -38.0 - progress * 16.0),
+		"labelWidth": 84,
+		"labelSize": 15,
+		"labelColor": Color(1.0, 0.94, 0.38, 0.78 * alpha)
+	}
+
+static func comment_radar_ping_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var draw_radius: float = maxf(42.0, radius * (0.28 + progress * 0.36))
+	return {
+		"kind": "comment_radar_ping",
+		"softPos": pos,
+		"softRadius": draw_radius * 0.78,
+		"softColor": Color(0.56, 0.94, 1.0, 0.08 * alpha),
+		"ringPos": pos,
+		"ringRadius": draw_radius,
+		"ringColor": Color(0.62, 1.0, 0.96, 0.42 * alpha),
+		"dotRadius": 3.0,
+		"dotColor": Color(1.0, 1.0, 1.0, 0.52 * alpha),
+		"dot1Pos": pos + Vector2.RIGHT.rotated(progress * TAU) * draw_radius * 0.72,
+		"dot2Pos": pos + Vector2.RIGHT.rotated(progress * TAU + 2.2) * draw_radius * 0.56,
+		"dot3Pos": pos + Vector2.RIGHT.rotated(progress * TAU + 4.3) * draw_radius * 0.64
+	}
+
+static func mini_humidifier_heal_fx_data(pos: Vector2, life: float, max_life: float, amount: int) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var drift: float = progress * 28.0
+	return {
+		"kind": "mini_humidifier_heal",
+		"mist1Pos": pos + Vector2(-15.0, -drift),
+		"mist1Radius": 8.0 + progress * 9.0,
+		"mist1Color": Color(0.62, 0.94, 1.0, 0.28 * alpha),
+		"mist2Pos": pos + Vector2(8.0, -8.0 - drift * 0.82),
+		"mist2Radius": 7.0 + progress * 8.0,
+		"mist2Color": Color(0.90, 1.0, 1.0, 0.24 * alpha),
+		"heartText": "♥",
+		"heartPos": pos + Vector2(-12.0, -18.0 - drift * 0.55),
+		"heartWidth": 24,
+		"heartSize": 20,
+		"heartColor": Color(0.52, 0.92, 1.0, 0.76 * alpha),
+		"labelText": "+%d" % amount,
+		"labelPos": pos + Vector2(2.0, -22.0 - drift * 0.45),
+		"labelWidth": 38,
+		"labelSize": 15,
+		"labelColor": Color(0.78, 1.0, 1.0, 0.66 * alpha)
+	}
+
 static func banana_slip_fx_data(pos: Vector2, dir: Vector2, side: Vector2, life: float, max_life: float, seed: float) -> Dictionary:
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
@@ -2435,6 +2841,30 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 		if String(fx_item.get("kind", "")) == "damage_number":
 			items.append(damage_number_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.62)), float(fx_item["damage"])))
 			continue
+		if String(fx_item.get("kind", "")) == "starlight_hit":
+			items.append(starlight_hit_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.24)), bool(fx_item.get("premium", false))))
+			continue
+		if String(fx_item.get("kind", "")) == "starlight_burst":
+			items.append(starlight_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.38)), float(fx_item.get("radius", 70.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "maro_comment_hit":
+			items.append(maro_comment_hit_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
+			continue
+		if String(fx_item.get("kind", "")) == "maro_bullet_clear":
+			items.append(maro_bullet_clear_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.24))))
+			continue
+		if String(fx_item.get("kind", "")) == "maro_comment_pulse":
+			items.append(maro_comment_pulse_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.36)), float(fx_item.get("radius", 130.0)), int(fx_item.get("pulledExp", 0))))
+			continue
+		if String(fx_item.get("kind", "")) == "notification_bell":
+			items.append(notification_bell_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.46)), int(fx_item.get("bonus", 0))))
+			continue
+		if String(fx_item.get("kind", "")) == "comment_radar_ping":
+			items.append(comment_radar_ping_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.38)), float(fx_item.get("radius", 120.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "mini_humidifier_heal":
+			items.append(mini_humidifier_heal_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.58)), int(fx_item.get("amount", 0))))
+			continue
 		if String(fx_item.get("kind", "")) == "ban_judgement_shockwave":
 			items.append(ban_judgement_shockwave_fx_data(
 				Vector2(fx_item["pos"]),
@@ -2494,6 +2924,81 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "text", "prefix": "shadow"},
 			{"kind": "text", "prefix": "label"}
+		]
+	if String(data.get("kind", "")) == "starlight_hit":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "starlight_burst":
+		return [
+			{"kind": "circle", "prefix": "range"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 5.0},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "polyline", "pointsKey": "wavePoints", "colorKey": "waveColor", "widthKey": "waveWidth"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "line", "prefix": "spark3"},
+			{"kind": "line", "prefix": "spark4"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
+			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "maro_comment_hit":
+		return [
+			{"kind": "circle", "prefix": "bubble"},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "maro_bullet_clear":
+		return [
+			{"kind": "circle", "prefix": "outer", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "inner"},
+			{"kind": "line", "prefix": "pop1"},
+			{"kind": "line", "prefix": "pop2"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "maro_comment_pulse":
+		var parts: Array = [
+			{"kind": "circle", "prefix": "soft"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 6.0},
+			{"kind": "polyline", "pointsKey": "wavePoints", "colorKey": "waveColor", "widthKey": "waveWidth"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+		if String(data.get("pullText", "")) != "":
+			parts.append({"kind": "text", "prefix": "pull", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+		return parts
+	if String(data.get("kind", "")) == "notification_bell":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "comment_radar_ping":
+		return [
+			{"kind": "circle", "prefix": "soft"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
+		]
+	if String(data.get("kind", "")) == "mini_humidifier_heal":
+		return [
+			{"kind": "circle", "prefix": "mist1"},
+			{"kind": "circle", "prefix": "mist2"},
+			{"kind": "text", "prefix": "heart", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "ban_judgement_shockwave":
 		return [

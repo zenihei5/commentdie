@@ -10,7 +10,9 @@ static func tutorial_lines() -> Array[String]:
 		"攻撃は自動",
 		"15秒ごとに指示コメが来ます",
 		"10秒以内にひとつ選びます",
-		"危険な指示コメほどボルテージとギフト期待度が上がります",
+		"攻めた指示コメを選ぶと、バズ度が上がります",
+		"バズ度が高いほど、敵撃破時のスコアが増えます",
+		"ただし、被弾するとバズ度が少し下がります",
 		"EXPを集めるとギフトが届きます",
 		"マシュマロは拾うと効果が出ます",
 		"死んだらコメントのせいです"
@@ -45,7 +47,7 @@ static func title_tagline() -> String:
 	return "指示コメが配信を壊しにくる"
 
 static func title_menu_items() -> Array[String]:
-	return ["ニューゲーム", "ランキング", "オプション"]
+	return ["ニューゲーム", "ランキング", "オプション", "終了する"]
 
 static func title_controls_text() -> String:
 	return "↑↓ / W/S：選択    Enter / Space：決定"
@@ -154,6 +156,12 @@ static func damage_source_display(source: String) -> String:
 		return "敵"
 	if source == "enemy bullet":
 		return "敵弾"
+	if source == "boss_bullet" or source == "boss_attack":
+		return "ボス攻撃"
+	if source == "damage_pit":
+		return "ダメージ床"
+	if source == "stopped moving":
+		return "足止め"
 	return source
 
 static func rarity_label(rarity: String) -> String:
@@ -162,7 +170,7 @@ static func rarity_label(rarity: String) -> String:
 	if rarity == "god":
 		return "神"
 	if rarity == "flame":
-		return "炎上"
+		return "大バズ"
 	if rarity == "rare":
 		return "レア"
 	return "通常"

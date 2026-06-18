@@ -237,7 +237,7 @@ static func fallback_character() -> Dictionary:
 		"spriteScale": 0.095,
 		"spriteOffset": {"x": 0, "y": -34},
 		"initialWeapon": "ban_hammer",
-		"baseStats": {"hp": 5, "moveSpeed": 5.0, "dashCooldown": 1.2, "pickupRange": 1.0, "invincibleTime": 0.7},
+		"baseStats": {"hp": 100, "moveSpeed": 5.0, "dashCooldown": 1.2, "pickupRange": 1.0, "invincibleTime": 0.7},
 		"initialResources": {"ngTickets": 0, "heartStock": 0, "giftHype": 0},
 		"passiveSkill": {"id": "beginner_safe", "displayName": "初配信補正", "params": {"invincibleTimeBonus": 0.2}}
 	}

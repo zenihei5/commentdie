@@ -1,0 +1,119 @@
+{
+  "duration": 1.9,
+  "skipDelay": 0.3,
+  "backgroundPath": "res://assets/title/title_back.png",
+  "progressLabels": [
+    "配信準備中…",
+    "コメント欄接続中…",
+    "リスナー集合中…",
+    "配信開始！"
+  ],
+  "characters": {
+    "ban_chan": {
+      "displayName": "赤羽ばんり",
+      "imageKey": "banri_ready_pc",
+      "imagePath": "res://assets/generated/stream_start_intro_ready_pc/banri_ready_pc.png",
+      "accentColor": "#f24f7f",
+      "subColor": "#ff8db8",
+      "softColor": "#fff1f7"
+    },
+    "banri": {
+      "aliasOf": "ban_chan"
+    },
+    "superchat_chan": {
+      "displayName": "星投すぱな",
+      "imageKey": "supana_ready_pc",
+      "imagePath": "res://assets/generated/stream_start_intro_ready_pc/supana_ready_pc.png",
+      "accentColor": "#f2b233",
+      "subColor": "#ff7fb5",
+      "softColor": "#fff6df"
+    },
+    "supana": {
+      "aliasOf": "superchat_chan"
+    },
+    "maro_chan": {
+      "displayName": "白綿まろん",
+      "imageKey": "maron_ready_pc",
+      "imagePath": "res://assets/generated/stream_start_intro_ready_pc/maron_ready_pc.png",
+      "accentColor": "#f37db7",
+      "subColor": "#7bd7c9",
+      "softColor": "#fff2fb"
+    },
+    "maron": {
+      "aliasOf": "maro_chan"
+    },
+    "default": {
+      "displayName": "配信者",
+      "imageKey": "default_ready_pc",
+      "imagePath": "",
+      "accentColor": "#f36fa8",
+      "subColor": "#8bdff2",
+      "softColor": "#fff4fb"
+    }
+  },
+  "frames": {
+    "zatsudan": {
+      "title": "雑談枠",
+      "mainMessage": "コメント受付開始！",
+      "notice": "マシュマロ / クソマロ / 未読マロ に注意！",
+      "statusLabels": ["配信準備中…", "コメント欄接続中…", "マシュマロ箱確認中…", "コメント受付開始！"],
+      "iconPath": "res://assets/generated/stream_frame_icons_v1/zatsudan/clean.png",
+      "accentColor": "#f36fa8",
+      "subColor": "#8bdff2"
+    },
+    "gameplay": {
+      "title": "ゲーム実況枠",
+      "mainMessage": "コメント受付開始！",
+      "notice": "ジャンルイベント / 実況コメント / ボス乱入 に注意！",
+      "statusLabels": ["配信準備中…", "ゲーム画面接続中…", "リスナー集合中…", "コメント受付開始！"],
+      "iconPath": "res://assets/generated/stream_frame_icons_v1/gameplay/clean.png",
+      "accentColor": "#4f9df2",
+      "subColor": "#ff8cc2"
+    },
+    "singing": {
+      "title": "歌枠",
+      "mainMessage": "コメント受付開始！",
+      "notice": "サビタイム / 盛り上がりイベント に注意！",
+      "statusLabels": ["配信準備中…", "マイク確認中…", "リスナー集合中…", "コメント受付開始！"],
+      "iconPath": "res://assets/generated/stream_frame_icons_v1/singing/clean.png",
+      "accentColor": "#9a70e8",
+      "subColor": "#ff91c8"
+    },
+    "drawing": {
+      "title": "お絵かき枠",
+      "mainMessage": "コメント受付開始！",
+      "notice": "お題コメント / 制作タイム / 差し入れリアクション に注意！",
+      "statusLabels": ["配信準備中…", "キャンバス準備中…", "リスナー集合中…", "コメント受付開始！"],
+      "iconPath": "res://assets/generated/stream_frame_icons_v1/drawing/clean.png",
+      "accentColor": "#66cdbd",
+      "subColor": "#ff91c8"
+    },
+    "collab": {
+      "title": "コラボ枠",
+      "mainMessage": "コメント受付開始！",
+      "notice": "相方イベント / 同時配信リアクション に注意！",
+      "statusLabels": ["配信準備中…", "通話接続中…", "リスナー集合中…", "コメント受付開始！"],
+      "iconPath": "res://assets/generated/stream_frame_icons_v1/collab/clean.png",
+      "accentColor": "#f3a35a",
+      "subColor": "#8bdff2"
+    },
+    "relay": {
+      "title": "配信リレー",
+      "mainMessage": "コメント受付開始！",
+      "notice": "連続配信 / 上級者向け / 記録更新狙い！",
+      "statusLabels": ["リレー準備中…", "次枠へ接続中…", "リスナー集合中…", "配信開始！"],
+      "iconPath": "res://assets/generated/stream_frame_icons_v1/relay/clean.png",
+      "accentColor": "#7a56c8",
+      "subColor": "#ff8cc2"
+    },
+    "default": {
+      "title": "配信枠",
+      "mainMessage": "コメント受付開始！",
+      "notice": "コメント欄の反応に注意！",
+      "statusLabels": ["配信準備中…", "コメント欄接続中…", "リスナー集合中…", "配信開始！"],
+      "iconPath": "",
+      "accentColor": "#f36fa8",
+      "subColor": "#8bdff2"
+    }
+  }
+}

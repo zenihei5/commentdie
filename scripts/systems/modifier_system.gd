@@ -83,6 +83,13 @@ static func updated_recent_categories(recent: Array[String], category: String) -
 		result.pop_front()
 	return result
 
+static func buzz_gain_for_risk(risk: int) -> int:
+	if risk >= 4:
+		return 2
+	if risk >= 2:
+		return 1
+	return 0
+
 static func apply_choice_numbers(context: Dictionary) -> Dictionary:
 	var view: Dictionary = context["view"] as Dictionary
 	var multiplier: float = float(view["multiplier"]) * (1.2 if bool(context.get("commentBoost", false)) else 1.0)
@@ -90,8 +97,7 @@ static func apply_choice_numbers(context: Dictionary) -> Dictionary:
 	var burn_combo: int = int(context.get("burnCombo", 0))
 	var danger_comments_chosen: int = int(context.get("dangerCommentsChosen", 0))
 	var risk: int = int(view["riskLevel"])
-	if risk >= 2:
-		burn_combo += 1
+	burn_combo += buzz_gain_for_risk(risk)
 	if risk >= 3:
 		danger_comments_chosen += 1
 	var burn_combo_max: int = maxi(int(context.get("burnComboMax", 0)), burn_combo)
@@ -213,7 +219,7 @@ static func update_stage_hazards_for_target(target: Node, arena: Rect2) -> Dicti
 static func update_stage_hazard_damage_for_target(target: Node, arena: Rect2) -> Dictionary:
 	var result: Dictionary = update_stage_hazards_for_target(target, arena)
 	if bool(result["hitPit"]):
-		return DamageSystem.apply_damage_sources_for_target(target, ["ダメージ床"])
+		return DamageSystem.apply_damage_events_for_target(target, [{"source": "damage_pit", "damage": DamageSystem.STAGE_HAZARD_DAMAGE}])
 	return {"chats": [], "dead": false, "deathReason": ""}
 
 static func update_effect_timer_for_target(target: Node, delta: float) -> Dictionary:

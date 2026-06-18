@@ -4,6 +4,8 @@ extends RefCounted
 const OPTION_ITEM_COUNT := 8
 const OPTION_RESET_INDEX := 6
 const OPTION_BACK_INDEX := 7
+const TITLE_MENU_COUNT := 4
+const TITLE_QUIT_INDEX := 3
 
 static func toggle_pause_state(state: String, previous_state: String) -> Dictionary:
 	if state == "pause":
@@ -40,10 +42,11 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 	var start_character_select := false
 	var open_ranking := false
 	var open_options := false
+	var quit_game := false
 	if action == "title_up":
-		target.set("title_menu_index", posmod(int(target.get("title_menu_index")) - 1, 3))
+		target.set("title_menu_index", posmod(int(target.get("title_menu_index")) - 1, TITLE_MENU_COUNT))
 	if action == "title_down":
-		target.set("title_menu_index", posmod(int(target.get("title_menu_index")) + 1, 3))
+		target.set("title_menu_index", posmod(int(target.get("title_menu_index")) + 1, TITLE_MENU_COUNT))
 	if action == "title_new_game":
 		target.set("title_menu_index", 0)
 		start_character_select = true
@@ -58,6 +61,7 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 		start_character_select = index == 0
 		open_ranking = index == 1
 		open_options = index == 2
+		quit_game = index == TITLE_QUIT_INDEX
 	if action == "toggle_mode":
 		target.set("quick_test_mode", not bool(target.get("quick_test_mode")))
 		target.set("relay_mode", false)
@@ -71,7 +75,8 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 	return {
 		"startCharacterSelect": start_character_select,
 		"openRanking": open_ranking,
-		"openOptions": open_options
+		"openOptions": open_options,
+		"quitGame": quit_game
 	}
 
 static func option_action_for_index(index: int, direction: int) -> String:
@@ -144,6 +149,8 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 			return {"handled": true, "action": "open_title_ranking"}
 		if bool(title_result["openOptions"]):
 			return {"handled": true, "action": "open_title_options"}
+		if bool(title_result["quitGame"]):
+			return {"handled": true, "action": "quit_game"}
 		return {"handled": true, "action": ""}
 	if state == "ranking":
 		if ranking_action == "reset_ranking":

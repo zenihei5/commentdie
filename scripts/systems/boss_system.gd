@@ -10,7 +10,9 @@ const ATTACK_KUSO_MARO_BARRAGE := "kuso_maro_barrage"
 const ATTACK_STICKY_MARO_FLOOR := "sticky_maro_floor"
 const ATTACK_SUMMON_UNREAD_MARO := "summon_unread_maro"
 const BOSS_ATTACK_PRIORITY := [ATTACK_KUSO_MARO_BARRAGE, ATTACK_STICKY_MARO_FLOOR, ATTACK_SUMMON_UNREAD_MARO]
-const BOSS_DEFEAT_BANNER := "大荒れ鎮火！"
+const BOSS_SPAWN_WALL_RADIUS_RATE := 0.62
+const BOSS_SPAWN_WALL_RADIUS_MIN := 56.0
+const BOSS_DEFEAT_BANNER := "大荒れ突破！"
 const BOSS_DEFEAT_FX_LIFE := 1.65
 const BOSS_DEFEAT_GIFT_DELAY := 0.45
 const BOSS_DEFEAT_COMMON_CHATS: Array[String] = [
@@ -19,7 +21,7 @@ const BOSS_DEFEAT_COMMON_CHATS: Array[String] = [
 	"888888",
 	"これは切り抜き",
 	"よく倒した",
-	"大荒れ鎮火",
+	"大荒れ突破",
 	"ギフト投げろ",
 	"今の熱い",
 	"コメント欄も大盛り上がり"
@@ -33,7 +35,7 @@ static func default_boss_data() -> Dictionary:
 		"hp": 400.0,
 		"speed": 58.0,
 		"radius": 78.0,
-		"contactDamage": 1,
+		"contactDamage": DamageSystem.BOSS_CONTACT_DAMAGE,
 		"expValue": 20,
 		"viewerValue": 3000,
 		"giftHypeReward": 20,
@@ -179,6 +181,7 @@ static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenera
 		"max_hp": max_hp,
 		"speed": boss_speed(data),
 		"radius": float(data.get("radius", 78.0)),
+		"contactDamage": int(data.get("contactDamage", DamageSystem.BOSS_CONTACT_DAMAGE)),
 		"score": int(data.get("viewerValue", 3000)),
 		"exp": int(data.get("expValue", 20)),
 		"expValue": int(data.get("expValue", 20)),
@@ -488,7 +491,7 @@ static func spawn_kuso_maro_barrage_for_target(target: Node, boss: Dictionary, d
 	if speed <= 10.0:
 		speed *= 78.0
 	var lifetime: float = float(attack.get("bulletLifetime", 4.0))
-	var damage: int = int(attack.get("damage", 1))
+	var damage: int = int(attack.get("damage", DamageSystem.BOSS_ATTACK_DAMAGE))
 	var boss_pos: Vector2 = Vector2(boss.get("pos", Vector2.ZERO))
 	var radius: float = float(boss.get("radius", 78.0))
 	var bullets: Array = target.get("enemy_bullets") as Array
@@ -501,7 +504,7 @@ static func spawn_kuso_maro_barrage_for_target(target: Node, boss: Dictionary, d
 			"vel": dir * speed,
 			"life": lifetime,
 			"hitRadius": 19.0,
-			"source": "クソマロ弾",
+			"source": "boss_bullet",
 			"damage": damage,
 			"visualKind": "kuso_maro"
 		})
@@ -532,6 +535,7 @@ static func spawn_unread_maro_for_target(target: Node, pos: Vector2, rng: Random
 		"max_hp": 8.0,
 		"speed": 130.0,
 		"radius": 19.0,
+		"contactDamage": DamageSystem.DEFAULT_CONTACT_DAMAGE,
 		"score": 20,
 		"exp": 1,
 		"expValue": 1,
@@ -582,6 +586,8 @@ static func update_slow_fields_for_target(target: Node, delta: float) -> void:
 
 static func spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator, radius: float) -> Vector2:
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
+	var wall_radius := boss_spawn_wall_radius(radius)
+	var walls: Array = boss_spawn_walls_for_target(target)
 	for attempt in range(32):
 		var angle: float = rng.randf_range(0.0, TAU)
 		var distance: float = rng.randf_range(430.0, 620.0)
@@ -590,13 +596,34 @@ static func spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNum
 		pos.y = clampf(pos.y, arena.position.y + radius + 24.0, arena.end.y - radius - 24.0)
 		if pos.distance_to(player_pos) < 340.0:
 			continue
-		if _blocked_by_walls(pos, radius, target.get("effect_walls") as Array):
+		if _blocked_by_walls(pos, wall_radius, walls):
 			continue
 		return pos
-	return Vector2(
+	var fallback := Vector2(
 		clampf(player_pos.x + 480.0, arena.position.x + radius + 24.0, arena.end.x - radius - 24.0),
 		clampf(player_pos.y, arena.position.y + radius + 24.0, arena.end.y - radius - 24.0)
 	)
+	if not _blocked_by_walls(fallback, wall_radius, walls):
+		return fallback
+	var fallback_candidates := [
+		Vector2(arena.position.x + radius + 96.0, player_pos.y),
+		Vector2(arena.end.x - radius - 96.0, player_pos.y),
+		Vector2(player_pos.x, arena.position.y + radius + 146.0),
+		Vector2(player_pos.x, arena.end.y - radius - 146.0)
+	]
+	var best_pos := fallback
+	var best_score := -1.0
+	for candidate_value in fallback_candidates:
+		var candidate: Vector2 = candidate_value
+		candidate.x = clampf(candidate.x, arena.position.x + radius + 24.0, arena.end.x - radius - 24.0)
+		candidate.y = clampf(candidate.y, arena.position.y + radius + 24.0, arena.end.y - radius - 24.0)
+		if _blocked_by_walls(candidate, wall_radius, walls):
+			continue
+		var score := candidate.distance_to(player_pos)
+		if score > best_score:
+			best_score = score
+			best_pos = candidate
+	return best_pos
 
 static func _blocked_by_walls(pos: Vector2, radius: float, walls: Array) -> bool:
 	for item in walls:
@@ -604,3 +631,17 @@ static func _blocked_by_walls(pos: Vector2, radius: float, walls: Array) -> bool
 		if rect.grow(radius + 12.0).has_point(pos):
 			return true
 	return false
+
+static func boss_spawn_wall_radius(radius: float) -> float:
+	return minf(radius, maxf(BOSS_SPAWN_WALL_RADIUS_MIN, radius * BOSS_SPAWN_WALL_RADIUS_RATE))
+
+static func boss_spawn_walls_for_target(target: Node) -> Array:
+	var stream_frame_id := String(target.get("current_stream_frame_id"))
+	if stream_frame_id == "":
+		stream_frame_id = "zatsudan"
+	var walls: Array = DrawDataSystem.static_wall_rects(stream_frame_id)
+	var effect_walls_value: Variant = target.get("effect_walls")
+	if effect_walls_value is Array:
+		for wall in (effect_walls_value as Array):
+			walls.append(wall as Rect2)
+	return walls

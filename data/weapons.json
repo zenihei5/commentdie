@@ -115,10 +115,15 @@
     "projectileSpeed": 9.5,
     "projectileCount": 3,
     "projectileSpreadDegrees": 12,
+    "premiumEvery": 5,
+    "premiumDamage": 14.0,
+    "premiumPierce": 1,
+    "premiumExplosionRadius": 0.85,
+    "premiumExplosionDamage": 7.0,
     "pierce": 0,
     "knockback": 0.4,
     "magnetRange": 125.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/starlight_superchat.png"
   },
   {
     "id": "maro_comment_ring",
@@ -136,9 +141,14 @@
     "hitRadius": 42.0,
     "orbitSpeed": 230.0,
     "boomerangCount": 6,
+    "pulseInterval": 2.0,
+    "pulseDuration": 0.25,
+    "pulseOrbitRadius": 3.1,
+    "pulseDamage": 8.0,
+    "pulseExpPullRadius": 3.5,
     "knockback": 0.3,
     "magnetRange": 150.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_boomerang.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/maro_comment_ring.png"
   },
   {
     "id": "mic_barrier",

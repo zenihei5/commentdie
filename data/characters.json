@@ -38,7 +38,7 @@
     },
     "initialWeapon": "ban_hammer",
     "baseStats": {
-      "hp": 5,
+      "hp": 100,
       "moveSpeed": 5,
       "dashCooldown": 1.2,
       "pickupRange": 1,
@@ -97,7 +97,7 @@
     },
     "initialWeapon": "superchat_shot",
     "baseStats": {
-      "hp": 4,
+      "hp": 80,
       "moveSpeed": 5.1,
       "dashCooldown": 1.2,
       "pickupRange": 1,
@@ -156,7 +156,7 @@
     },
     "initialWeapon": "comment_boomerang",
     "baseStats": {
-      "hp": 5,
+      "hp": 100,
       "moveSpeed": 4.8,
       "dashCooldown": 1.25,
       "pickupRange": 1.25,

@@ -139,7 +139,20 @@ static func dash_button_result(context: Dictionary, input: Vector2) -> Dictionar
 static func update_motion(context: Dictionary) -> Dictionary:
 	var delta: float = float(context["delta"])
 	var elapsed: float = float(context["elapsed"])
-	var input: Vector2 = input_vector()
+	var keyboard_input: Vector2 = input_vector()
+	var input: Vector2 = keyboard_input
+	var click_move_active: bool = bool(context.get("clickMoveActive", false))
+	var click_move_target: Vector2 = Vector2(context.get("clickMoveTarget", Vector2.ZERO))
+	var click_move_arrive_distance: float = float(context.get("clickMoveArriveDistance", 22.0))
+	if keyboard_input.length() >= 0.1:
+		click_move_active = false
+	elif click_move_active:
+		var to_click_target: Vector2 = click_move_target - Vector2(context["playerPos"])
+		if to_click_target.length() <= click_move_arrive_distance:
+			click_move_active = false
+			input = Vector2.ZERO
+		else:
+			input = to_click_target.normalized()
 	var stop_timer_value: float = float(context["stopTimer"])
 	if input.length() < 0.1:
 		stop_timer_value += delta
@@ -184,6 +197,8 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	player_pos.y = clampf(player_pos.y, arena.position.y + 28.0, arena.end.y - 28.0)
 	var effect_wall_list: Array = context["effectWalls"] as Array if context.has("effectWalls") else []
 	player_pos = resolve_wall_collision(player_pos, previous_pos, 24.0, effect_wall_list, String(context["streamFrameId"]))
+	if click_move_active and player_pos.distance_to(click_move_target) <= click_move_arrive_distance:
+		click_move_active = false
 
 	return {
 		"playerPos": player_pos,
@@ -200,7 +215,8 @@ static func update_motion(context: Dictionary) -> Dictionary:
 		"invincible": invincible_value,
 		"stopTimer": stop_timer_value,
 		"stoppedDamage": stopped_damage,
-		"noBrakeSliding": no_brake_sliding_value
+		"noBrakeSliding": no_brake_sliding_value,
+		"clickMoveActive": click_move_active
 	}
 
 static func resolve_wall_collision(pos: Vector2, previous_pos: Vector2, radius: float, effect_walls: Array, stream_frame_id: String = "zatsudan") -> Vector2:
@@ -281,7 +297,10 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"dashCooldown": target.get("dash_cooldown"),
 		"arena": arena,
 		"effectWalls": target.get("effect_walls"),
-		"streamFrameId": target.get("current_stream_frame_id")
+		"streamFrameId": target.get("current_stream_frame_id"),
+		"clickMoveActive": target.get("click_move_active"),
+		"clickMoveTarget": target.get("click_move_target"),
+		"clickMoveArriveDistance": 22.0
 	})
 	target.set("player_pos", Vector2(result["playerPos"]))
 	target.set("player_vel", Vector2(result["playerVel"]))
@@ -299,4 +318,5 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	target.set("invincible", float(result["invincible"]))
 	target.set("stop_timer", float(result["stopTimer"]))
 	target.set("player_no_brake_sliding", bool(result["noBrakeSliding"]))
+	target.set("click_move_active", bool(result["clickMoveActive"]))
 	return result
