@@ -2088,51 +2088,307 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 static func ban_judgement_shockwave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, range: float, width: float) -> Dictionary:
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
 	var norm_dir: Vector2 = dir.normalized()
 	if norm_dir.length() < 0.1:
 		norm_dir = Vector2.RIGHT
 	var side: Vector2 = Vector2(-norm_dir.y, norm_dir.x)
-	var tail: Vector2 = pos + norm_dir * (18.0 + range * 0.06 * progress)
-	var front: Vector2 = pos + norm_dir * range
-	var tail_half: float = width * (0.20 + 0.10 * progress)
-	var front_half: float = width * (0.48 + 0.08 * sin(progress * PI))
-	var tip: Vector2 = front + norm_dir * (20.0 + 18.0 * progress)
+	var angle: float = norm_dir.angle()
+	var half_angle: float = deg_to_rad(48.0 + 10.0 * burst)
+	var tail: Vector2 = pos + norm_dir * (10.0 + range * 0.04 * progress)
+	var mid: Vector2 = pos + norm_dir * range * (0.48 + 0.08 * progress)
+	var front: Vector2 = pos + norm_dir * range * (0.78 + 0.10 * progress)
+	var tail_half: float = width * (0.24 + 0.12 * burst)
+	var mid_half: float = width * (0.52 + 0.18 * burst)
+	var front_half: float = width * (0.32 + 0.12 * burst)
+	var tip: Vector2 = front + norm_dir * (24.0 + 24.0 * burst)
+	var core_mid_half: float = width * (0.20 + 0.10 * burst)
+	var core_front_half: float = width * (0.13 + 0.06 * burst)
 	var points := PackedVector2Array([
 		tail - side * tail_half,
+		mid - side * mid_half,
 		front - side * front_half,
 		tip,
 		front + side * front_half,
+		mid + side * mid_half,
 		tail + side * tail_half
 	])
-	var fill_color := Color(1.0, 0.20, 0.34, 0.20 * alpha)
+	var after_points := PackedVector2Array([
+		tail - side * tail_half * 1.22 - norm_dir * 8.0,
+		mid - side * mid_half * 1.18,
+		front - side * front_half * 1.16,
+		tip + norm_dir * (12.0 + 12.0 * burst),
+		front + side * front_half * 1.16,
+		mid + side * mid_half * 1.18,
+		tail + side * tail_half * 1.22 - norm_dir * 8.0
+	])
+	var core_points := PackedVector2Array([
+		tail - side * tail_half * 0.24,
+		mid - side * core_mid_half,
+		front - side * core_front_half,
+		tip - norm_dir * 4.0,
+		front + side * core_front_half,
+		mid + side * core_mid_half,
+		tail + side * tail_half * 0.24
+	])
+	var fill_color := Color(1.0, 0.12, 0.22, 0.46 * alpha)
+	var impact_pos: Vector2 = pos + norm_dir * range * (0.72 + 0.08 * burst)
+	var stamp_radius: float = width * (0.18 + 0.10 * burst)
+	var slam_pos: Vector2 = pos + norm_dir * range * (0.34 + 0.10 * burst)
+	var slam_radius: float = width * (0.30 + 0.15 * burst)
+	var burst_points := PackedVector2Array()
+	var burst_colors := PackedColorArray()
+	for i in range(18):
+		var point_angle: float = TAU * float(i) / 18.0 + progress * 0.35
+		var radius_rate: float = 1.0 if i % 2 == 0 else 0.48
+		var point_radius: float = slam_radius * radius_rate * (1.04 + 0.18 * sin(float(i) * 1.7 + progress * TAU))
+		var point: Vector2 = slam_pos + norm_dir * cos(point_angle) * point_radius * 1.52 + side * sin(point_angle) * point_radius * 1.02
+		burst_points.append(point)
+		var point_alpha: float = (0.82 if i % 2 == 0 else 0.52) * alpha
+		burst_colors.append(Color(1.0, 0.84, 0.20, point_alpha) if i % 3 == 0 else Color(1.0, 0.16, 0.22, point_alpha))
+	var shard_base: Vector2 = slam_pos + norm_dir * slam_radius * 0.28
+	var shard_length: float = range * (0.40 + 0.16 * burst)
+	var shard_width: float = width * (0.13 + 0.05 * burst)
+	var shard1_base: Vector2 = shard_base - side * width * 0.18
+	var shard2_base: Vector2 = shard_base + side * width * 0.10 + norm_dir * slam_radius * 0.20
+	var shard3_base: Vector2 = shard_base + side * width * 0.34 + norm_dir * slam_radius * 0.06
+	var shard1_points := PackedVector2Array([
+		shard1_base - side * shard_width,
+		shard1_base + norm_dir * shard_length - side * shard_width * 0.20,
+		shard1_base + norm_dir * (shard_length + 36.0 * burst),
+		shard1_base + norm_dir * shard_length + side * shard_width * 0.20,
+		shard1_base + side * shard_width
+	])
+	var shard2_points := PackedVector2Array([
+		shard2_base - side * shard_width * 0.76,
+		shard2_base + norm_dir * shard_length * 0.88 - side * shard_width * 0.18,
+		shard2_base + norm_dir * (shard_length * 1.05 + 28.0 * burst),
+		shard2_base + norm_dir * shard_length * 0.88 + side * shard_width * 0.18,
+		shard2_base + side * shard_width * 0.76
+	])
+	var shard3_points := PackedVector2Array([
+		shard3_base - side * shard_width * 0.58,
+		shard3_base + norm_dir * shard_length * 0.72 - side * shard_width * 0.12,
+		shard3_base + norm_dir * (shard_length * 0.92 + 20.0 * burst),
+		shard3_base + norm_dir * shard_length * 0.72 + side * shard_width * 0.12,
+		shard3_base + side * shard_width * 0.58
+	])
+	var shard1_colors := PackedColorArray([
+		Color(1.0, 0.10, 0.20, 0.10 * alpha),
+		Color(1.0, 0.30, 0.16, 0.42 * alpha),
+		Color(1.0, 0.98, 0.58, 0.82 * alpha),
+		Color(1.0, 0.30, 0.16, 0.42 * alpha),
+		Color(1.0, 0.10, 0.20, 0.10 * alpha)
+	])
+	var shard2_colors := PackedColorArray([
+		Color(1.0, 0.22, 0.26, 0.08 * alpha),
+		Color(1.0, 0.58, 0.20, 0.32 * alpha),
+		Color(1.0, 0.92, 0.34, 0.66 * alpha),
+		Color(1.0, 0.58, 0.20, 0.32 * alpha),
+		Color(1.0, 0.22, 0.26, 0.08 * alpha)
+	])
+	var shard3_colors := PackedColorArray([
+		Color(1.0, 0.08, 0.16, 0.06 * alpha),
+		Color(1.0, 0.28, 0.34, 0.24 * alpha),
+		Color(1.0, 0.80, 0.24, 0.50 * alpha),
+		Color(1.0, 0.28, 0.34, 0.24 * alpha),
+		Color(1.0, 0.08, 0.16, 0.06 * alpha)
+	])
 	return {
 		"kind": "ban_judgement_shockwave",
+		"pos": pos,
+		"slamPos": slam_pos,
+		"impactGlowPos": slam_pos,
+		"impactGlowRadius": slam_radius * 2.15,
+		"impactGlowColor": Color(1.0, 0.10, 0.18, 0.22 * alpha),
+		"impactCorePos": slam_pos,
+		"impactCoreRadius": slam_radius * (0.50 + 0.14 * burst),
+		"impactCoreColor": Color(1.0, 0.96, 0.50, 0.60 * alpha),
+		"impactRingOuterPos": slam_pos,
+		"impactRingOuterRadius": slam_radius * (1.42 + 0.34 * progress),
+		"impactRingOuterColor": Color(1.0, 0.82, 0.18, 0.70 * alpha),
+		"impactRingInnerPos": slam_pos,
+		"impactRingInnerRadius": slam_radius * (0.86 + 0.22 * progress),
+		"impactRingInnerColor": Color(1.0, 0.18, 0.26, 0.66 * alpha),
+		"burstPoints": burst_points,
+		"burstColors": burst_colors,
+		"shard1Points": shard1_points,
+		"shard1Colors": shard1_colors,
+		"shard2Points": shard2_points,
+		"shard2Colors": shard2_colors,
+		"shard3Points": shard3_points,
+		"shard3Colors": shard3_colors,
+		"crack1Start": slam_pos - norm_dir * slam_radius * 0.24 - side * slam_radius * 0.50,
+		"crack1End": slam_pos + norm_dir * range * 0.58 - side * width * 0.22,
+		"crack1Color": Color(1.0, 0.94, 0.58, 0.78 * alpha),
+		"crack1Width": 5.4 + 2.2 * burst,
+		"crack2Start": slam_pos - norm_dir * slam_radius * 0.16 + side * slam_radius * 0.44,
+		"crack2End": slam_pos + norm_dir * range * 0.52 + side * width * 0.36,
+		"crack2Color": Color(1.0, 0.18, 0.28, 0.72 * alpha),
+		"crack2Width": 4.8 + 2.0 * burst,
+		"crack3Start": slam_pos - norm_dir * slam_radius * 0.05,
+		"crack3End": slam_pos + norm_dir * range * 0.70,
+		"crack3Color": Color(1.0, 0.98, 0.78, 0.68 * alpha),
+		"crack3Width": 3.8 + 1.6 * burst,
+		"backGlowPos": pos + norm_dir * range * 0.34,
+		"backGlowRadius": range * (0.68 + 0.16 * burst),
+		"backGlowColor": Color(1.0, 0.08, 0.16, 0.14 * alpha),
+		"aftershockPoints": after_points,
+		"aftershockColors": PackedColorArray([
+			Color(1.0, 0.08, 0.16, 0.03 * alpha),
+			Color(1.0, 0.16, 0.22, 0.10 * alpha),
+			Color(1.0, 0.50, 0.08, 0.17 * alpha),
+			Color(1.0, 0.94, 0.42, 0.24 * alpha),
+			Color(1.0, 0.50, 0.08, 0.17 * alpha),
+			Color(1.0, 0.16, 0.22, 0.10 * alpha),
+			Color(1.0, 0.08, 0.16, 0.03 * alpha)
+		]),
 		"shockwavePoints": points,
-		"shockwaveColors": PackedColorArray([fill_color, fill_color, Color(1.0, 1.0, 1.0, 0.32 * alpha), fill_color, fill_color]),
-		"coreStart": tail,
-		"coreEnd": tip,
-		"coreColor": Color(1.0, 1.0, 1.0, 0.76 * alpha),
-		"coreWidth": maxf(8.0, width * 0.12),
-		"glowStart": tail - side * tail_half * 0.35,
-		"glowEnd": front - side * front_half * 0.40,
-		"glowColor": Color(1.0, 0.08, 0.26, 0.54 * alpha),
-		"glowWidth": maxf(12.0, width * 0.16),
-		"edge1Start": tail - side * tail_half,
-		"edge1End": tip,
-		"edge1Color": Color(1.0, 0.92, 0.92, 0.62 * alpha),
-		"edge1Width": 4.0,
-		"edge2Start": tail + side * tail_half,
-		"edge2End": tip,
-		"edge2Color": Color(1.0, 0.34, 0.46, 0.58 * alpha),
-		"edge2Width": 4.0,
-		"ringPos": pos + norm_dir * range * (0.55 + progress * 0.12),
-		"ringRadius": width * (0.34 + 0.08 * sin(progress * PI)),
-		"ringColor": Color(1.0, 0.96, 0.96, 0.34 * alpha),
-		"dotRadius": 3.0 + 3.0 * sin(progress * PI),
-		"dotColor": Color(1.0, 0.28, 0.45, 0.72 * alpha),
-		"dot1Pos": pos + norm_dir * range * 0.42 - side * width * 0.18,
-		"dot2Pos": pos + norm_dir * range * 0.66 + side * width * 0.24,
-		"dot3Pos": pos + norm_dir * range * 0.82 - side * width * 0.10
+		"shockwaveColors": PackedColorArray([fill_color, fill_color, Color(1.0, 0.42, 0.18, 0.58 * alpha), Color(1.0, 0.94, 0.34, 0.78 * alpha), Color(1.0, 0.42, 0.18, 0.58 * alpha), fill_color, fill_color]),
+		"corePoints": core_points,
+		"coreColors": PackedColorArray([
+			Color(1.0, 0.92, 0.56, 0.10 * alpha),
+			Color(1.0, 0.56, 0.18, 0.42 * alpha),
+			Color(1.0, 0.90, 0.32, 0.70 * alpha),
+			Color(1.0, 1.0, 0.86, 0.92 * alpha),
+			Color(1.0, 0.90, 0.32, 0.70 * alpha),
+			Color(1.0, 0.56, 0.18, 0.42 * alpha),
+			Color(1.0, 0.92, 0.56, 0.10 * alpha)
+		]),
+		"outerRadius": range * (0.74 + 0.08 * burst),
+		"outerStart": angle - half_angle,
+		"outerEnd": angle + half_angle,
+		"outerPoints": 34,
+		"outerColor": Color(1.0, 0.84, 0.16, 0.88 * alpha),
+		"outerWidth": 14.0 + 10.0 * burst,
+		"hotRadius": range * (0.56 + 0.10 * burst),
+		"hotStart": angle - half_angle * 0.78,
+		"hotEnd": angle + half_angle * 0.78,
+		"hotPoints": 28,
+		"hotColor": Color(1.0, 0.18, 0.28, 0.82 * alpha),
+		"hotWidth": 20.0 + 12.0 * burst,
+		"innerRadius": range * (0.36 + 0.08 * burst),
+		"innerStart": angle - half_angle * 0.54,
+		"innerEnd": angle + half_angle * 0.54,
+		"innerPoints": 22,
+		"innerColor": Color(1.0, 0.98, 0.74, 0.86 * alpha),
+		"innerWidth": 8.0 + 4.0 * burst,
+		"impactPos": impact_pos,
+		"impactRadius": width * (0.10 + 0.08 * burst),
+		"impactColor": Color(1.0, 0.32, 0.16, 0.18 * alpha),
+		"ringPos": impact_pos,
+		"ringRadius": width * (0.16 + 0.10 * burst),
+		"ringColor": Color(1.0, 0.94, 0.34, 0.66 * alpha),
+		"slash1Start": impact_pos - norm_dir * width * 0.10 - side * width * 0.22,
+		"slash1End": impact_pos + norm_dir * width * 0.34 + side * width * 0.22,
+		"slash1Color": Color(1.0, 0.98, 0.70, 0.90 * alpha),
+		"slash1Width": 7.0 + 4.0 * burst,
+		"slash2Start": impact_pos - norm_dir * width * 0.06 + side * width * 0.20,
+		"slash2End": impact_pos + norm_dir * width * 0.28 - side * width * 0.20,
+		"slash2Color": Color(1.0, 0.18, 0.28, 0.78 * alpha),
+		"slash2Width": 6.0 + 3.2 * burst,
+		"slash3Start": pos + norm_dir * range * 0.20 - side * width * 0.34,
+		"slash3End": pos + norm_dir * range * 0.66 - side * width * 0.74,
+		"slash3Color": Color(1.0, 0.74, 0.18, 0.46 * alpha),
+		"slash3Width": 2.6 + 2.2 * burst,
+		"slash4Start": pos + norm_dir * range * 0.24 + side * width * 0.38,
+		"slash4End": pos + norm_dir * range * 0.70 + side * width * 0.82,
+		"slash4Color": Color(1.0, 0.20, 0.28, 0.42 * alpha),
+		"slash4Width": 2.8 + 2.0 * burst,
+		"ray1Start": tail - side * tail_half * 0.90,
+		"ray1End": front - side * front_half * 1.45 + norm_dir * width * 0.14,
+		"ray1Color": Color(1.0, 0.92, 0.42, 0.52 * alpha),
+		"ray1Width": 3.0 + 2.4 * burst,
+		"ray2Start": tail + side * tail_half * 0.90,
+		"ray2End": front + side * front_half * 1.45 + norm_dir * width * 0.14,
+		"ray2Color": Color(1.0, 0.34, 0.40, 0.48 * alpha),
+		"ray2Width": 3.0 + 2.4 * burst,
+		"ray3Start": tail + norm_dir * width * 0.06,
+		"ray3End": tip + norm_dir * width * 0.22,
+		"ray3Color": Color(1.0, 1.0, 0.82, 0.44 * alpha),
+		"ray3Width": 2.2 + 2.0 * burst,
+		"sealBackPos": impact_pos - norm_dir * width * 0.05,
+		"sealBackRadius": stamp_radius * 1.32,
+		"sealBackColor": Color(1.0, 0.05, 0.14, 0.36 * alpha),
+		"sealRingPos": impact_pos - norm_dir * width * 0.05,
+		"sealRingRadius": stamp_radius,
+		"sealRingColor": Color(1.0, 0.84, 0.18, 0.70 * alpha),
+		"sealSlashStart": impact_pos - norm_dir * width * 0.05 - Vector2(stamp_radius * 0.72, -stamp_radius * 0.48),
+		"sealSlashEnd": impact_pos - norm_dir * width * 0.05 + Vector2(stamp_radius * 0.72, -stamp_radius * 0.48),
+		"sealSlashColor": Color(1.0, 0.97, 0.70, 0.84 * alpha),
+		"sealSlashWidth": 3.0 + 2.0 * burst,
+		"sealLabelText": "BAN",
+		"sealLabelPos": impact_pos - norm_dir * width * 0.05 + Vector2(-stamp_radius * 0.82, stamp_radius * 0.22),
+		"sealLabelWidth": int(stamp_radius * 1.64),
+		"sealLabelSize": int(stamp_radius * 0.58),
+		"sealLabelColor": Color(1.0, 0.96, 0.54, 0.88 * alpha),
+		"dotRadius": 3.0 + 4.0 * burst,
+		"dotColor": Color(1.0, 0.78, 0.20, 0.78 * alpha),
+		"dot1Pos": slam_pos + norm_dir * slam_radius * 0.80 - side * slam_radius * 0.62,
+		"dot2Pos": slam_pos + norm_dir * slam_radius * 1.42 + side * slam_radius * 0.46,
+		"dot3Pos": slam_pos - norm_dir * slam_radius * 0.30 + side * slam_radius * 0.74,
+		"dot4Pos": slam_pos + norm_dir * range * 0.22 - side * width * 0.26,
+		"dot5Pos": slam_pos + norm_dir * range * 0.28 + side * width * 0.32
+	}
+
+static func ban_judgement_hit_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, boss_hit: bool = false) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	var norm_dir: Vector2 = dir.normalized()
+	if norm_dir.length() < 0.1:
+		norm_dir = Vector2.RIGHT
+	var side: Vector2 = Vector2(-norm_dir.y, norm_dir.x)
+	var stamp_radius: float = (22.0 + 12.0 * burst) * (0.78 if boss_hit else 1.0)
+	var stamp_pos: Vector2 = pos - norm_dir * 8.0 + side * sin(progress * TAU) * 3.0
+	return {
+		"kind": "ban_judgement_hit",
+		"push1Start": stamp_pos - norm_dir * stamp_radius * 1.40 - side * stamp_radius * 0.26,
+		"push1End": stamp_pos + norm_dir * stamp_radius * 1.25 - side * stamp_radius * 0.18,
+		"push1Color": Color(1.0, 0.86, 0.18, 0.36 * alpha),
+		"push1Width": 5.0 + 2.0 * burst,
+		"push2Start": stamp_pos - norm_dir * stamp_radius * 1.20 + side * stamp_radius * 0.34,
+		"push2End": stamp_pos + norm_dir * stamp_radius * 1.08 + side * stamp_radius * 0.24,
+		"push2Color": Color(1.0, 0.22, 0.28, 0.34 * alpha),
+		"push2Width": 4.2 + 1.8 * burst,
+		"glowPos": stamp_pos,
+		"glowRadius": stamp_radius * 1.75,
+		"glowColor": Color(1.0, 0.22, 0.18, 0.24 * alpha),
+		"burstPos": stamp_pos,
+		"burstRadius": stamp_radius * (1.10 + 0.28 * burst),
+		"burstColor": Color(1.0, 0.76, 0.18, 0.20 * alpha),
+		"stampPos": stamp_pos,
+		"stampRadius": stamp_radius,
+		"stampColor": Color(1.0, 0.06, 0.16, 0.90 * alpha),
+		"ringPos": stamp_pos,
+		"ringRadius": stamp_radius * 1.05,
+		"ringColor": Color(1.0, 0.84, 0.18, 0.88 * alpha),
+		"slashStart": stamp_pos - Vector2(stamp_radius * 0.62, -stamp_radius * 0.54),
+		"slashEnd": stamp_pos + Vector2(stamp_radius * 0.62, -stamp_radius * 0.54),
+		"slashColor": Color(1.0, 0.96, 0.76, 0.94 * alpha),
+		"slashWidth": 4.0,
+		"labelText": "BAN",
+		"labelPos": stamp_pos + Vector2(-stamp_radius * 0.82, stamp_radius * 0.24),
+		"labelWidth": int(stamp_radius * 1.64),
+		"labelSize": int(stamp_radius * 0.66),
+		"labelColor": Color(1.0, 0.96, 0.55, 0.96 * alpha),
+		"spark1Start": stamp_pos - norm_dir * stamp_radius * 0.40,
+		"spark1End": stamp_pos - norm_dir * stamp_radius * (1.15 + 0.20 * burst),
+		"spark1Color": Color(1.0, 0.86, 0.18, 0.74 * alpha),
+		"spark1Width": 3.0,
+		"spark2Start": stamp_pos + side * stamp_radius * 0.16,
+		"spark2End": stamp_pos + side * stamp_radius * (1.05 + 0.22 * burst),
+		"spark2Color": Color(1.0, 0.34, 0.42, 0.60 * alpha),
+		"spark2Width": 2.6,
+		"spark3Start": stamp_pos - side * stamp_radius * 0.20,
+		"spark3End": stamp_pos - side * stamp_radius * (1.02 + 0.18 * burst),
+		"spark3Color": Color(1.0, 0.98, 0.64, 0.58 * alpha),
+		"spark3Width": 2.4,
+		"dotRadius": 2.6 + 2.8 * burst,
+		"dotColor": Color(1.0, 0.82, 0.20, 0.78 * alpha),
+		"dot1Pos": stamp_pos + norm_dir.rotated(0.8) * stamp_radius * 1.12,
+		"dot2Pos": stamp_pos + norm_dir.rotated(-0.9) * stamp_radius * 1.02,
+		"dot3Pos": stamp_pos - norm_dir * stamp_radius * 1.22
 	}
 
 static func wavy_ring_points(pos: Vector2, radius: float, amplitude: float, phase: float, wave_count: float, samples: int = 56) -> PackedVector2Array:
@@ -2220,37 +2476,141 @@ static func mic_wave_fx_data(pos: Vector2, life: float, max_life: float, range: 
 		"dot4Pos": pos + Vector2.RIGHT.rotated(-phase + 5.00) * base_radius * 0.64
 	}
 
-static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float) -> Dictionary:
-	var max_life: float = 0.48
-	var alpha: float = clampf(life / max_life, 0.0, 1.0)
-	var progress: float = clampf(1.0 - life / max_life, 0.0, 1.0)
+static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float = 1.0, size_scale: float = 1.0, distance_ratio: float = 0.0, bounces_left: int = 0) -> Dictionary:
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress: float = clampf(distance_ratio, 0.0, 1.0)
 	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
 	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
-	var chars: int = clampi(1 + int(progress * 6.0), 1, 7)
-	var wave_text: String = ""
-	for i in range(chars):
-		wave_text += "W"
-	var wobble: Vector2 = side * sin(life * 28.0) * 7.0
-	var text_pos: Vector2 = pos + wobble - normalized_dir * (8.0 * float(chars)) + Vector2(-10, 14)
-	return {
+	var wave_points := PackedVector2Array()
+	var wave_length: float = 86.0 * size_scale
+	var wave_amp: float = 7.0 * size_scale
+	for i in range(9):
+		var t: float = float(i) / 8.0
+		var base: Vector2 = pos - normalized_dir * wave_length * (1.0 - t)
+		var wobble: Vector2 = side * sin(t * TAU * 2.0 + progress * TAU * 2.4) * wave_amp
+		wave_points.append(base + wobble)
+	var wave_text: String = "ｗｗｗｗ"
+	var label_size: int = int(round(25.0 * size_scale))
+	var label_width: int = int(round(122.0 * size_scale))
+	var text_pos: Vector2 = pos - Vector2(float(label_width) * 0.5, -float(label_size) * 0.32) + side * sin(life * 20.0) * (4.0 * size_scale)
+	var outline_color: Color = Color(0.95, 1.0, 0.95, 0.92 * alpha)
+	var label_color: Color = Color(0.32, 1.0, 0.34, alpha)
+	var dark_shadow: Color = Color(0.0, 0.26, 0.08, 0.42 * alpha)
+	var bounce_tint: float = clampf(float(bounces_left) / 2.0, 0.0, 1.0)
+	var data: Dictionary = {
 		"kind": "kusa_wave",
-		"trailStart": pos - normalized_dir * (48.0 + 11.0 * float(chars)),
+		"trailStart": pos - normalized_dir * (72.0 * size_scale),
 		"trailEnd": pos,
-		"trailColor": Color(0.0, 0.95, 0.12, 0.62 * alpha),
-		"trailWidth": 13.0,
-		"label": wave_text,
-		"labelPos": text_pos,
-		"labelColor": Color(0.0, 1.0, 0.10, alpha),
-		"labelSize": 34 + int(progress * 8.0),
+		"trailColor": Color(0.28, 1.0, 0.48, 0.42 * alpha),
+		"trailWidth": 11.0 * size_scale,
+		"outlinePoints": wave_points,
+		"outlineColor": outline_color,
+		"outlineWidth": 11.0 * size_scale,
+		"wavePoints": wave_points,
+		"coreColor": Color(0.22, 1.0, 0.34, 0.86 * alpha),
+		"coreWidth": 5.4 * size_scale,
+		"glowPos": pos,
+		"glowRadius": 18.0 * size_scale,
+		"glowColor": Color(0.38, 1.0, 0.55, 0.16 * alpha + 0.06 * bounce_tint),
 		"shadowText": wave_text,
-		"shadowPos": text_pos + Vector2(3, 3),
-		"shadowColor": Color(0.0, 0.12, 0.02, 0.90 * alpha),
-		"shadowSize": 36 + int(progress * 8.0),
-		"burstPos": pos + wobble,
-		"burstRadius": 24.0 + alpha * 18.0,
-		"burstColor": Color(0.0, 0.95, 0.10, 0.34 * alpha),
-		"showBurst": true,
+		"shadowPos": text_pos + Vector2(2.0, 2.0),
+		"shadowColor": dark_shadow,
+		"shadowSize": label_size,
+		"shadowWidth": label_width,
+		"outline1Text": wave_text,
+		"outline1Pos": text_pos + Vector2(-2.0, 0.0),
+		"outline1Color": outline_color,
+		"outline1Size": label_size,
+		"outline1Width": label_width,
+		"outline2Text": wave_text,
+		"outline2Pos": text_pos + Vector2(2.0, 0.0),
+		"outline2Color": outline_color,
+		"outline2Size": label_size,
+		"outline2Width": label_width,
+		"outline3Text": wave_text,
+		"outline3Pos": text_pos + Vector2(0.0, -2.0),
+		"outline3Color": outline_color,
+		"outline3Size": label_size,
+		"outline3Width": label_width,
+		"outline4Text": wave_text,
+		"outline4Pos": text_pos + Vector2(0.0, 2.0),
+		"outline4Color": outline_color,
+		"outline4Size": label_size,
+		"outline4Width": label_width,
+		"labelText": wave_text,
+		"labelPos": text_pos,
+		"labelColor": label_color,
+		"labelSize": label_size,
+		"labelWidth": label_width,
 		"showHammer": false
+	}
+	var glyph_count: int = 6
+	var glyph_text: String = wave_text.substr(0, 1)
+	var glyph_spacing: float = 15.5 * size_scale
+	var glyph_width: int = int(round(44.0 * size_scale))
+	var glyph_size_base: int = int(round(28.0 * size_scale))
+	data["glyphCount"] = glyph_count
+	for glyph_index in range(glyph_count):
+		var t: float = float(glyph_index) / maxf(1.0, float(glyph_count - 1))
+		var glyph_center: Vector2 = pos - normalized_dir * glyph_spacing * float(glyph_index)
+		glyph_center += side * sin(t * TAU * 1.7 + progress * TAU * 2.0) * (5.5 * size_scale)
+		glyph_center += normalized_dir * sin(progress * TAU * 2.0 + float(glyph_index) * 0.7) * (1.8 * size_scale)
+		var glyph_alpha: float = alpha * lerpf(1.0, 0.46, t)
+		var glyph_size: int = glyph_size_base + (1 if glyph_index % 2 == 0 else -1)
+		var glyph_pos: Vector2 = glyph_center - Vector2(float(glyph_width) * 0.5, -float(glyph_size) * 0.32)
+		var prefix: String = "glyph%d" % glyph_index
+		data[prefix + "ShadowText"] = glyph_text
+		data[prefix + "ShadowPos"] = glyph_pos + Vector2(2.0, 2.0)
+		data[prefix + "ShadowColor"] = Color(0.0, 0.22, 0.08, 0.34 * glyph_alpha)
+		data[prefix + "ShadowSize"] = glyph_size
+		data[prefix + "ShadowWidth"] = glyph_width
+		for outline_index in range(4):
+			var outline_offset: Vector2 = [Vector2(-2.0, 0.0), Vector2(2.0, 0.0), Vector2(0.0, -2.0), Vector2(0.0, 2.0)][outline_index] * maxf(0.75, size_scale)
+			var outline_prefix: String = "%sOutline%d" % [prefix, outline_index + 1]
+			data[outline_prefix + "Text"] = glyph_text
+			data[outline_prefix + "Pos"] = glyph_pos + outline_offset
+			data[outline_prefix + "Color"] = Color(0.96, 1.0, 0.92, 0.90 * glyph_alpha)
+			data[outline_prefix + "Size"] = glyph_size
+			data[outline_prefix + "Width"] = glyph_width
+		data[prefix + "LabelText"] = glyph_text
+		data[prefix + "LabelPos"] = glyph_pos
+		data[prefix + "LabelColor"] = Color(0.30, 1.0, 0.34, glyph_alpha)
+		data[prefix + "LabelSize"] = glyph_size
+		data[prefix + "LabelWidth"] = glyph_width
+	return data
+
+static func kusa_wave_bounce_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float = 0.22, size_scale: float = 1.0, depleted: bool = false) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var normalized_dir: Vector2 = dir.normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
+	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
+	var radius: float = (15.0 + 15.0 * progress) * size_scale
+	var pop_color: Color = Color(0.44, 1.0, 0.42, 0.36 * alpha) if not depleted else Color(0.78, 1.0, 0.70, 0.30 * alpha)
+	return {
+		"kind": "kusa_wave_bounce",
+		"softPos": pos,
+		"softRadius": radius,
+		"softColor": pop_color,
+		"ringPos": pos,
+		"ringRadius": radius * 0.82,
+		"ringColor": Color(0.88, 1.0, 0.84, 0.58 * alpha),
+		"spark1Start": pos - normalized_dir * radius * 0.25,
+		"spark1End": pos + normalized_dir * radius * 0.75,
+		"spark1Color": Color(0.38, 1.0, 0.32, 0.82 * alpha),
+		"spark1Width": 3.0 * size_scale,
+		"spark2Start": pos - side * radius * 0.18,
+		"spark2End": pos + side * radius * 0.62,
+		"spark2Color": Color(0.92, 1.0, 0.72, 0.72 * alpha),
+		"spark2Width": 2.4 * size_scale,
+		"dotRadius": 2.8 * size_scale,
+		"dotColor": Color(0.50, 1.0, 0.42, 0.74 * alpha),
+		"dot1Pos": pos + normalized_dir.rotated(0.9) * radius * 0.62,
+		"dot2Pos": pos + normalized_dir.rotated(-1.1) * radius * 0.72,
+		"dot3Pos": pos - normalized_dir * radius * 0.48
 	}
 
 static func spotlight_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
@@ -2875,6 +3235,15 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 				float(fx_item.get("width", 96.0))
 			))
 			continue
+		if String(fx_item.get("kind", "")) == "ban_judgement_hit":
+			items.append(ban_judgement_hit_fx_data(
+				Vector2(fx_item["pos"]),
+				Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.26)),
+				bool(fx_item.get("bossHit", false))
+			))
+			continue
 		if String(fx_item.get("kind", "")) == "mic_wave":
 			items.append(mic_wave_fx_data(
 				Vector2(fx_item["pos"]),
@@ -2885,7 +3254,25 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 			))
 			continue
 		if String(fx_item.get("kind", "")) == "kusa_wave":
-			items.append(kusa_wave_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), float(fx_item["life"])))
+			items.append(kusa_wave_fx_data(
+				Vector2(fx_item["pos"]),
+				Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 1.0)),
+				float(fx_item.get("sizeScale", 1.0)),
+				float(fx_item.get("distanceTraveled", 0.0)) / maxf(1.0, float(fx_item.get("maxDistance", fx_item.get("range", 450.0)))),
+				int(fx_item.get("bouncesLeft", 0))
+			))
+			continue
+		if String(fx_item.get("kind", "")) == "kusa_wave_bounce":
+			items.append(kusa_wave_bounce_fx_data(
+				Vector2(fx_item["pos"]),
+				Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.22)),
+				float(fx_item.get("sizeScale", 1.0)),
+				bool(fx_item.get("depleted", false))
+			))
 			continue
 		if String(fx_item.get("kind", "")) == "spotlight":
 			items.append(spotlight_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.55)), float(fx_item.get("range", 72.0))))
@@ -2906,11 +3293,34 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 		data["showHammer"] = bool(fx_item.get("hammer", false))
 		data["hammerSprite"] = "ban_judgement" if is_judgement_hammer else "ban_hammer"
 		if is_judgement_hammer:
-			data["hammerSize"] = (data["hammerSize"] as Vector2) * 1.28
-			data["sparkSize"] = float(data.get("sparkSize", 10.0)) * 1.18
-			for image_item in (data.get("hammerAfterImages", []) as Array):
-				var image_data: Dictionary = image_item as Dictionary
-				image_data["size"] = (image_data["size"] as Vector2) * 1.28
+			var judgement_scale: float = 1.82
+			var fx_pos: Vector2 = Vector2(fx_item["pos"])
+			var fx_dir: Vector2 = Vector2(fx_item["dir"]).normalized()
+			if fx_dir.length() < 0.1:
+				fx_dir = Vector2.RIGHT
+			var fx_range: float = float(fx_item["range"])
+			var fx_life: float = float(fx_item["life"])
+			var fx_arc_angle: float = float(fx_item.get("arcAngle", 120.0))
+			var fx_half_arc: float = deg_to_rad(fx_arc_angle * 0.5)
+			var fx_swing_progress: float = clampf(1.0 - fx_life / 0.24, 0.0, 1.0)
+			var fx_angle: float = fx_dir.angle()
+			var judgement_after_images: Array = []
+			for ghost_index in range(5):
+				var ghost_progress: float = clampf(fx_swing_progress - 0.075 * float(ghost_index + 1), 0.0, 1.0)
+				var ghost_angle: float = fx_angle + lerpf(-fx_half_arc, fx_half_arc, ghost_progress)
+				judgement_after_images.append({
+					"pos": fx_pos + Vector2.RIGHT.rotated(ghost_angle) * fx_range * 0.66,
+					"size": Vector2(70, 70) * judgement_scale * (0.95 - 0.08 * float(ghost_index)),
+					"angle": ghost_angle + deg_to_rad(38.0),
+					"alpha": clampf(0.48 - 0.07 * float(ghost_index), 0.12, 0.48) * float(data.get("hammerAlpha", 1.0))
+				})
+			data["hammerAfterImages"] = judgement_after_images
+			data["hammerSize"] = (data["hammerSize"] as Vector2) * judgement_scale
+			data["hammerAlpha"] = clampf(float(data.get("hammerAlpha", 1.0)) * 1.15, 0.0, 1.0)
+			data["sparkSize"] = float(data.get("sparkSize", 10.0)) * 1.55
+			data["trailGlowWidth"] = float(data.get("trailGlowWidth", 24.0)) * 1.20
+			data["trailHotWidth"] = float(data.get("trailHotWidth", 18.0)) * 1.20
+			data["trailCoreWidth"] = float(data.get("trailCoreWidth", 8.0)) * 1.18
 		items.append(data)
 	return items
 
@@ -3002,12 +3412,38 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		]
 	if String(data.get("kind", "")) == "ban_judgement_shockwave":
 		return [
-			{"kind": "polygon", "pointsKey": "shockwavePoints", "colorsKey": "shockwaveColors"},
-			{"kind": "line", "prefix": "glow"},
-			{"kind": "line", "prefix": "core"},
-			{"kind": "line", "prefix": "edge1"},
-			{"kind": "line", "prefix": "edge2"},
-			{"kind": "circle", "prefix": "ring", "filled": false, "width": 5.0},
+			{"kind": "circle", "prefix": "backGlow"},
+			{"kind": "polygon", "pointsKey": "aftershockPoints", "colorsKey": "aftershockColors"},
+			{"kind": "circle", "prefix": "impactGlow"},
+			{"kind": "polygon", "pointsKey": "shard1Points", "colorsKey": "shard1Colors"},
+			{"kind": "polygon", "pointsKey": "shard2Points", "colorsKey": "shard2Colors"},
+			{"kind": "polygon", "pointsKey": "shard3Points", "colorsKey": "shard3Colors"},
+			{"kind": "polygon", "pointsKey": "burstPoints", "colorsKey": "burstColors"},
+			{"kind": "circle", "prefix": "impactRingOuter", "filled": false, "width": 5.0},
+			{"kind": "circle", "prefix": "impactRingInner", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "impactCore"},
+			{"kind": "line", "prefix": "crack1"},
+			{"kind": "line", "prefix": "crack2"},
+			{"kind": "line", "prefix": "crack3"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot5Pos"] as Vector2}
+		]
+	if String(data.get("kind", "")) == "ban_judgement_hit":
+		return [
+			{"kind": "line", "prefix": "push1"},
+			{"kind": "line", "prefix": "push2"},
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "burst"},
+			{"kind": "circle", "prefix": "stamp"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0},
+			{"kind": "line", "prefix": "slash"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "line", "prefix": "spark3"},
 			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
@@ -3032,11 +3468,30 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 			{"kind": "dot", "pos": data["dot4Pos"] as Vector2}
 		]
 	if String(data.get("kind", "")) == "kusa_wave":
-		return [
+		var parts: Array = [
 			{"kind": "line", "prefix": "trail"},
-			{"kind": "circle", "prefix": "burst"},
-			{"kind": "text", "prefix": "shadow"},
-			{"kind": "text", "prefix": "label"}
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "polyline", "pointsKey": "outlinePoints", "colorKey": "outlineColor", "widthKey": "outlineWidth"},
+			{"kind": "polyline", "pointsKey": "wavePoints", "colorKey": "coreColor", "widthKey": "coreWidth"}
+		]
+		for glyph_index in range(int(data.get("glyphCount", 0))):
+			var prefix: String = "glyph%d" % glyph_index
+			parts.append({"kind": "text", "prefix": prefix + "Shadow", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+			parts.append({"kind": "text", "prefix": prefix + "Outline1", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+			parts.append({"kind": "text", "prefix": prefix + "Outline2", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+			parts.append({"kind": "text", "prefix": prefix + "Outline3", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+			parts.append({"kind": "text", "prefix": prefix + "Outline4", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+			parts.append({"kind": "text", "prefix": prefix + "Label", "alignment": HORIZONTAL_ALIGNMENT_CENTER})
+		return parts
+	if String(data.get("kind", "")) == "kusa_wave_bounce":
+		return [
+			{"kind": "circle", "prefix": "soft"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
 		]
 	if String(data.get("kind", "")) == "banana_slip":
 		return [

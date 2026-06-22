@@ -234,6 +234,7 @@ static func apply_initial_values(target: Node, initial: Dictionary) -> void:
 	target.set("dash_enter_down", false)
 	target.set("invincible", 0.0)
 	target.set("debug_invincible", false)
+	target.set("debug_rare_comment_boost", false)
 	target.set("hammer_damage", float(initial["hammerDamage"]))
 	target.set("hammer_range", float(initial["hammerRange"]))
 	target.set("hammer_interval", float(initial["hammerInterval"]))

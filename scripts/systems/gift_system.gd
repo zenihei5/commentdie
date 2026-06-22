@@ -47,42 +47,34 @@ static func mini_humidifier_heal_amount(level: int) -> int:
 
 static func arrival_text(gift_hype: int) -> String:
 	if gift_hype >= 90:
-		return "神ギフトの予感……！"
+		return "大当たりギフトの予感……！"
 	if gift_hype >= 70:
 		return "豪華ギフトが届いた！"
 	if gift_hype >= 40:
-		return "いいギフトが届いた！"
+		return "当たりギフトが届いた！"
 	return "ギフトが届いた！"
 
 static func build_offer(context: Dictionary) -> Array:
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	var gift_hype: int = int(context["giftHype"])
-	var gift_time: float = float(context["giftTime"])
-	var rarities: Array[String] = []
-	for i in range(3):
-		rarities.append(roll_rarity(gift_hype, gift_time, rng))
-	if gift_time >= 60.0 and gift_hype >= 90 and not (rarities.has("god") or rarities.has("flame")):
-		rarities[2] = "god" if rng.randf() < 0.65 else "flame"
-	elif gift_hype >= 70 and not (rarities.has("rare") or rarities.has("god") or rarities.has("flame")):
-		rarities[2] = "rare"
-	elif gift_hype >= 40 and not rarities.has("rare"):
-		rarities[2] = "rare"
 	var result: Array = []
 	var evolution_gift: Dictionary = context.get("evolutionGift", {}) as Dictionary
 	if not evolution_gift.is_empty():
 		result.append(evolution_gift)
-	for rarity in rarities:
+	var level_gains: Array[int] = build_level_gain_slots(gift_hype, rng, 3 - result.size())
+	for level_gain in level_gains:
 		if result.size() >= 3:
 			break
-		result.append(pick_gift(context, rarity, result))
+		result.append(pick_gift_by_level_gain(context, level_gain, result))
 	while result.size() < 3:
-		result.append(pick_gift(context, "common", result))
+		result.append(pick_gift_by_level_gain(context, 1, result))
 	return result
 
-static func build_forced_offer(context: Dictionary, rarity: String, count: int = 3) -> Array:
+static func build_forced_offer(context: Dictionary, quality: String, count: int = 3) -> Array:
 	var result: Array = []
+	var level_gain: int = level_gain_for_quality_key(quality)
 	for i in range(count):
-		result.append(pick_gift(context, rarity, result))
+		result.append(pick_gift_by_level_gain(context, level_gain, result))
 	return result
 
 static func build_offer_context_for_target(target: Node, gifts: Array, gift_time: float, rng: RandomNumberGenerator) -> Dictionary:
@@ -98,6 +90,8 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"giftTime": gift_time,
 		"availableIds": available_gift_ids_for_target(target, gifts, gift_time),
 		"initialWeaponId": initial_weapon_id,
+		"playerWeapons": target.get("player_weapons"),
+		"playerAccessories": target.get("player_accessories"),
 		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
 		"rng": rng
 	}
@@ -117,29 +111,204 @@ static func start_offer_ui_for_target(target: Node, gifts: Array, rng: RandomNum
 	choice_box.visible = true
 	return result
 
-static func roll_rarity(gift_hype: int, gift_time: float, rng: RandomNumberGenerator) -> String:
+static func build_level_gain_slots(gift_hype: int, rng: RandomNumberGenerator, count: int) -> Array[int]:
+	var result: Array[int] = []
+	for i in range(maxi(0, count)):
+		result.append(roll_level_gain(gift_hype, rng))
+	if result.is_empty():
+		return result
+	if gift_hype >= 90 and not result.has(3):
+		result[result.size() - 1] = 3
+	elif gift_hype >= 70 and not (result.has(2) or result.has(3)):
+		result[result.size() - 1] = 2
+	elif gift_hype >= 40 and not result.has(2):
+		result[result.size() - 1] = 2
+	return result
+
+static func roll_level_gain(gift_hype: int, rng: RandomNumberGenerator) -> int:
 	var roll: float = rng.randf()
 	if gift_hype < 40:
-		return "rare" if roll < 0.15 else "common"
-	if gift_hype < 70 or gift_time < 60.0:
-		return "rare" if roll < 0.35 else "common"
+		return 1
+	if gift_hype < 70:
+		return 2 if roll < 0.35 else 1
 	if gift_hype < 90:
-		if roll < 0.35:
-			return "common"
-		if roll < 0.80:
-			return "rare"
-		if roll < 0.95:
-			return "god"
-		return "flame"
-	if roll < 0.20:
-		return "common"
-	if roll < 0.60:
-		return "rare"
+		if roll < 0.15:
+			return 3
+		if roll < 0.70:
+			return 2
+		return 1
+	if roll < 0.50:
+		return 3
 	if roll < 0.85:
-		return "god"
-	return "flame"
+		return 2
+	return 1
 
-static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dictionary:
+static func level_gain_for_quality_key(quality: String) -> int:
+	if quality == "big_hit" or quality == "god" or quality == "flame":
+		return 3
+	if quality == "hit" or quality == "rare":
+		return 2
+	return 1
+
+static func gift_level_gain(gift: Dictionary) -> int:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return 0
+	return clampi(int(gift.get("levelGain", 1)), 1, 3)
+
+static func gift_quality(gift: Dictionary) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return "evolution"
+	var level_gain: int = gift_level_gain(gift)
+	if level_gain >= 3:
+		return "big_hit"
+	if level_gain >= 2:
+		return "hit"
+	return "normal"
+
+static func gift_quality_label(gift: Dictionary) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return "進化！"
+	if EquipmentSystem.is_instant(gift):
+		return ""
+	var level_gain: int = gift_level_gain(gift)
+	if level_gain >= 3:
+		return "大当たり！\nLv+3"
+	if level_gain >= 2:
+		return "当たり！\nLv+2"
+	return ""
+
+static func gift_quality_color(gift: Dictionary) -> Color:
+	var quality: String = gift_quality(gift)
+	if quality == "evolution":
+		return Color("#ff68b3")
+	if quality == "big_hit":
+		return Color("#ff5fb8")
+	if quality == "hit":
+		return Color("#ffb84d")
+	return Color("#ff9bcf")
+
+static func gift_category_tag(gift: Dictionary) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return "進化"
+	if EquipmentSystem.is_weapon(gift):
+		return "武器"
+	if EquipmentSystem.is_accessory(gift):
+		return "アクセ"
+	if String(gift.get("effectType", "")) == "heal":
+		return "回復"
+	return "特殊"
+
+static func gift_card_summary(gift: Dictionary) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		var base_name: String = String(gift.get("baseDisplayName", gift.get("displayName", "武器")))
+		return "%sが進化" % base_name
+	match String(gift.get("id", "")):
+		"ban_hammer":
+			return "前方を広く攻撃"
+		"superchat_shot":
+			return "近い敵に弾を発射"
+		"comment_boomerang":
+			return "周囲を回る弾を飛ばす"
+		"mic_barrier":
+			return "周囲に音波バリア"
+		"spotlight":
+			return "敵付近を照らして攻撃"
+		"kusa_wave":
+			return "前方へ草の波を出す"
+		"comment_pin":
+			return "敵を遅くする"
+		"emote_mine":
+			return "足元に爆発罠を置く"
+		"ng_word_laser":
+			return "前方へ貫通レーザー"
+		"listener_summon":
+			return "味方が敵を追う"
+		"stream_power":
+			return "全武器の威力アップ"
+		"bullet_support":
+			return "弾数・生成数アップ"
+		"high_speed_connection":
+			return "攻撃間隔を短縮"
+		"wide_angle":
+			return "範囲・射程アップ"
+		"light_sneakers":
+			return "移動とダッシュ強化"
+		"sweet_tooth":
+			return "マシュマロ効果強化"
+		"mental_care":
+			return "最大HPアップ"
+		"notification_bell":
+			return "獲得EXPアップ"
+		"comment_radar":
+			return "アイテムを拾いやすくなる"
+		"mini_humidifier":
+			return "時間経過で少し回復"
+		"rest":
+			return "メンタルを回復"
+		"heart_mark":
+			return "次の指示コメを甘くする"
+		"gift_hype_boost":
+			return "ギフト期待度アップ"
+		"viewer_burst":
+			return "同時視聴者数アップ"
+	return _fallback_card_summary(String(gift.get("description", "")))
+
+static func gift_level_change_text(gift: Dictionary, current_level: int) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return "進化！"
+	if EquipmentSystem.is_instant(gift):
+		return "すぐ発動"
+	var max_level: int = maxi(1, int(gift.get("maxLevel", 1)))
+	var next_level: int = mini(max_level, maxi(0, current_level) + gift_level_gain(gift))
+	if current_level <= 0:
+		return "入手時 Lv%d" % next_level
+	if next_level >= max_level:
+		return "Lv%d → LvMAX" % current_level
+	return "Lv%d → Lv%d" % [current_level, next_level]
+
+static func gift_level_status_text(gift: Dictionary, current_level: int) -> String:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		return "進化専用"
+	if EquipmentSystem.is_instant(gift):
+		return "%sギフト" % gift_category_tag(gift)
+	var max_level: int = maxi(1, int(gift.get("maxLevel", 1)))
+	if current_level <= 0:
+		return "未所持 / 最大 Lv%d" % max_level
+	if current_level >= max_level:
+		return "現在 LvMAX"
+	return "現在 Lv%d/%d" % [current_level, max_level]
+
+static func _fallback_card_summary(description: String) -> String:
+	var summary: String = description.strip_edges()
+	summary = summary.replace("。", " ")
+	summary = summary.replace("、", " ")
+	summary = summary.replace(" / Lv", "")
+	var parts: PackedStringArray = summary.split(" ", false)
+	if parts.size() > 0:
+		summary = String(parts[0])
+	if summary.length() > 13:
+		return summary.substr(0, 12) + "…"
+	return summary
+
+static func pick_gift_by_level_gain(context: Dictionary, level_gain: int, used: Array) -> Dictionary:
+	var target_gain: int = clampi(level_gain, 1, 3)
+	var pool: Array = _gift_candidate_pool(context, target_gain, used, target_gain > 1, true)
+	if pool.is_empty() and target_gain > 1:
+		pool = _gift_candidate_pool(context, target_gain, used, true, false)
+	if pool.is_empty():
+		target_gain = 1
+		pool = _gift_candidate_pool(context, target_gain, used, false, false)
+	if pool.is_empty():
+		return {"id": "rest", "displayName": "休憩", "description": "メンタルを回復", "rarity": "common", "maxLevel": 0, "effectType": "heal", "weight": 1, "levelGain": 1, "giftQuality": "normal"}
+	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
+	var selected: Dictionary = (pool[rng.randi_range(0, pool.size() - 1)] as Dictionary).duplicate(true)
+	if EquipmentSystem.is_instant(selected):
+		target_gain = 1
+	selected["levelGain"] = target_gain
+	selected["giftQuality"] = gift_quality(selected)
+	return selected
+
+static func _gift_candidate_pool(context: Dictionary, level_gain: int, used: Array, equipment_only: bool, strict_remaining: bool) -> Array:
 	var pool: Array = []
 	var gifts: Array = context["gifts"] as Array
 	var available_ids: Array = context["availableIds"] as Array
@@ -147,8 +316,6 @@ static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dicti
 	var used_ids: Array[String] = _used_gift_ids(used)
 	for item in gifts:
 		var gift: Dictionary = item as Dictionary
-		if String(gift["rarity"]) != rarity:
-			continue
 		if not _data_allowed_for_frame(frame, gift, "giftPoolTags"):
 			continue
 		var gift_id: String = String(gift["id"])
@@ -156,18 +323,27 @@ static func pick_gift(context: Dictionary, rarity: String, used: Array) -> Dicti
 			continue
 		if not available_ids.has(gift_id):
 			continue
+		var is_equipment: bool = EquipmentSystem.is_weapon(gift) or EquipmentSystem.is_accessory(gift)
+		if equipment_only and not is_equipment:
+			continue
+		if strict_remaining and is_equipment and _gift_remaining_level(context, gift) < level_gain:
+			continue
+		if strict_remaining and not is_equipment:
+			continue
 		for i in range(_gift_pick_weight(context, gift)):
 			pool.append(gift)
-	if pool.is_empty():
-		for item in gifts:
-			var fallback: Dictionary = item as Dictionary
-			var fallback_id: String = String(fallback["id"])
-			if _data_allowed_for_frame(frame, fallback, "giftPoolTags") and available_ids.has(fallback_id) and not used_ids.has(fallback_id):
-				pool.append(fallback)
-	if pool.is_empty():
-		return {"id": "rest", "displayName": "休憩", "description": "メンタルを回復", "rarity": "common", "maxLevel": 0, "effectType": "heal", "weight": 1}
-	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
-	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+	return pool
+
+static func _gift_remaining_level(context: Dictionary, gift: Dictionary) -> int:
+	if EquipmentSystem.is_instant(gift):
+		return 0
+	var max_level: int = int(gift.get("maxLevel", 1))
+	var current_level: int = 0
+	if EquipmentSystem.is_weapon(gift):
+		current_level = EquipmentSystem.level(context.get("playerWeapons", []) as Array, String(gift.get("id", "")))
+	elif EquipmentSystem.is_accessory(gift):
+		current_level = EquipmentSystem.level(context.get("playerAccessories", []) as Array, String(gift.get("id", "")))
+	return maxi(0, max_level - current_level)
 
 static func _used_gift_ids(used: Array) -> Array[String]:
 	var result: Array[String] = []
@@ -184,13 +360,14 @@ static func _gift_pick_weight(context: Dictionary, gift: Dictionary) -> int:
 		return weight * 3
 	return weight
 
-static func consume_for_rarity(rarity: String) -> int:
-	if rarity == "evolution":
+static func consume_for_gift(gift: Dictionary) -> int:
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		return 0
-	if rarity == "rare":
-		return 40
-	if rarity == "god" or rarity == "flame":
+	var level_gain: int = gift_level_gain(gift)
+	if level_gain >= 3:
 		return 70
+	if level_gain >= 2:
+		return 45
 	return 20
 
 static func available_gift_ids_for_target(target: Node, gifts: Array, gift_time: float) -> Array:
@@ -218,7 +395,7 @@ static func choose_gift_for_target(target: Node, gift: Dictionary) -> Dictionary
 	var names: Array = target.get("taken_gift_names") as Array
 	names.append(_taken_name_for_target(target, gift))
 	target.set("gifts_taken", int(target.get("gifts_taken")) + 1)
-	var consume: int = consume_for_rarity(String(gift["rarity"]))
+	var consume: int = consume_for_gift(gift)
 	target.set("gift_hype", maxi(0, int(target.get("gift_hype")) - consume))
 	if bool(result.get("heartPendingDuplicate", false)):
 		var bonus_hype: int = clampi(int(target.get("gift_hype")) + 15, 0, 100)
@@ -303,7 +480,7 @@ static func apply_equipment_to_target(target: Node, gift: Dictionary) -> Diction
 	var items: Array = target.get("player_accessories") as Array
 	if equipment_type == "weapon":
 		items = target.get("player_weapons") as Array
-	EquipmentSystem.add_or_level(items, String(gift["id"]), int(gift.get("maxLevel", 1)))
+	EquipmentSystem.add_or_level(items, String(gift["id"]), int(gift.get("maxLevel", 1)), gift_level_gain(gift))
 	if equipment_type == "weapon":
 		target.set("player_weapons", items)
 	else:

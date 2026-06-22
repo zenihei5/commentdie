@@ -13,14 +13,20 @@ static func build_offer(context: Dictionary) -> Array:
 	var result: Array = []
 	var comments: Array = context["comments"] as Array
 	var comment_time: float = float(context["commentTime"])
-	if _should_offer_do_everything(comments, context, comment_time):
-		var special_offer: Array = _build_do_everything_offer(comments, context, comment_time)
+	var pick_time: float = _debug_rare_comment_time(context, comment_time)
+	if _should_offer_do_everything(comments, context, pick_time):
+		var special_offer: Array = _build_do_everything_offer(comments, context, pick_time)
 		if not special_offer.is_empty():
 			return special_offer
-	result.append(_pick_for_slot(comments, context, comment_time, 1, 2, result))
-	result.append(_pick_for_slot(comments, context, comment_time, 2, 3, result))
-	var max_risk: int = 4 if comment_time >= 60.0 else (3 if comment_time >= 30.0 else 2)
-	result.append(_pick_for_slot(comments, context, comment_time, 1, max_risk, result))
+	if _debug_rare_comment_boost(context):
+		result.append(_pick_for_slot(comments, context, pick_time, 2, 4, result))
+		result.append(_pick_for_slot(comments, context, pick_time, 3, 4, result))
+		result.append(_pick_for_slot(comments, context, pick_time, 3, 4, result))
+		return result
+	result.append(_pick_for_slot(comments, context, pick_time, 1, 2, result))
+	result.append(_pick_for_slot(comments, context, pick_time, 2, 3, result))
+	var max_risk: int = 4 if pick_time >= 60.0 else (3 if pick_time >= 30.0 else 2)
+	result.append(_pick_for_slot(comments, context, pick_time, 1, max_risk, result))
 	return result
 
 static func build_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
@@ -36,6 +42,7 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"bossActive": target.get("boss_active"),
 		"bossSummonCount": target.get("boss_summon_count"),
 		"doEverythingOfferCount": target.get("do_everything_offer_count"),
+		"debugRareCommentBoost": target.get("debug_rare_comment_boost"),
 		"rng": rng
 	})
 	if _offer_has_do_everything(offer):
@@ -317,7 +324,7 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 			var category: String = String(comment.get("category", "default"))
 			if String(recent_categories[0]) == category and String(recent_categories[1]) == category:
 				continue
-		for i in range(int(comment["weight"])):
+		for i in range(_comment_pick_weight(comment, context)):
 			if yes_listener and int(comment["riskLevel"]) >= 3:
 				pool.append(comment)
 			pool.append(comment)
@@ -331,6 +338,27 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
 
+static func _debug_rare_comment_boost(context: Dictionary) -> bool:
+	return bool(context.get("debugRareCommentBoost", false))
+
+static func _debug_rare_comment_time(context: Dictionary, comment_time: float) -> float:
+	if _debug_rare_comment_boost(context):
+		return maxf(comment_time, 90.0)
+	return comment_time
+
+static func _comment_pick_weight(comment: Dictionary, context: Dictionary) -> int:
+	var weight: int = maxi(1, int(comment.get("weight", 1)))
+	if not _debug_rare_comment_boost(context):
+		return weight
+	var risk: int = int(comment.get("riskLevel", 1))
+	if risk >= 4:
+		return weight * 12
+	if risk >= 3:
+		return weight * 4
+	if weight <= 5:
+		return weight * 3
+	return weight
+
 static func _should_offer_do_everything(comments: Array, context: Dictionary, comment_time: float) -> bool:
 	var comment: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
 	if comment.is_empty():
@@ -342,7 +370,10 @@ static func _should_offer_do_everything(comments: Array, context: Dictionary, co
 	if bool(context.get("bossRequested", false)) or bool(context.get("bossActive", false)):
 		return false
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
-	return rng.randf() < float(comment.get("offerChance", DO_EVERYTHING_OFFER_CHANCE))
+	var offer_chance: float = float(comment.get("offerChance", DO_EVERYTHING_OFFER_CHANCE))
+	if _debug_rare_comment_boost(context):
+		offer_chance = maxf(offer_chance, 0.45)
+	return rng.randf() < offer_chance
 
 static func _build_do_everything_offer(comments: Array, context: Dictionary, comment_time: float) -> Array:
 	var result: Array = []
@@ -403,7 +434,7 @@ static func _pick_from_id_pool(ids: Array, comments: Array, context: Dictionary,
 			continue
 		if comment_time < float(comment.get("minTime", 0.0)):
 			continue
-		for i in range(int(comment.get("weight", 1))):
+		for i in range(_comment_pick_weight(comment, context)):
 			if yes_listener and int(comment.get("riskLevel", 1)) >= 3:
 				pool.append(comment)
 			pool.append(comment)

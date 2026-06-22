@@ -19,6 +19,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_P, "hype_100")
 	_add_if_pressed(actions, latch, KEY_F6, "heart_pending_on")
 	_add_if_pressed(actions, latch, KEY_U, "unlock_stream_frames")
+	_add_if_pressed(actions, latch, KEY_H, "toggle_rare_comment_boost")
 	_add_if_pressed(actions, latch, KEY_K, "clear_enemies")
 	_add_if_pressed(actions, latch, KEY_I, "toggle_invincible")
 	_add_if_pressed(actions, latch, KEY_1, "comment_no_stop")
@@ -222,6 +223,10 @@ static func apply_resource_action_for_target(target: Node, action: String) -> Di
 	if hype >= 0:
 		target.set("gift_hype", hype)
 		target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), hype))
+	if action == "toggle_rare_comment_boost":
+		var enabled: bool = not bool(target.get("debug_rare_comment_boost"))
+		target.set("debug_rare_comment_boost", enabled)
+		chats.append("DEBUG: rare instruction comments %s" % ("ON" if enabled else "OFF"))
 	return {"chats": chats}
 
 static func apply_world_action_for_target(target: Node, action: String) -> Dictionary:
@@ -282,7 +287,8 @@ static func force_gift_choice_for_target(target: Node, gifts: Array, rarity: Str
 	var gift_time: float = elapsed * (3.0 if quick_test else 1.0)
 	var context: Dictionary = GiftSystem.build_offer_context_for_target(target, gifts, gift_time, rng)
 	target.set("offered_gifts", GiftSystem.build_forced_offer(context, rarity))
-	return {"chat": DisplayTextSystem.rarity_label(rarity) + "ギフトを強制抽選"}
+	var level_gain: int = GiftSystem.level_gain_for_quality_key(rarity)
+	return {"chat": "Lv+%dギフトを強制抽選" % level_gain}
 
 static func force_gift_choice_ui_for_target(target: Node, gifts: Array, rarity: String, rng: RandomNumberGenerator, choice_box: Control) -> Dictionary:
 	var result: Dictionary = force_gift_choice_for_target(target, gifts, rarity, rng)

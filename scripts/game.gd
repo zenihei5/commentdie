@@ -96,6 +96,7 @@ const LEVEL_UP_SE_PATH := "res://assets/audio/level_up.mp3"
 const PLAYER_DAMAGE_SE_PATH := "res://assets/audio/player_damage.mp3"
 const MENTAL_BREAKDOWN_SE_PATH := "res://assets/audio/mental_breakdown.mp3"
 const STREAM_COMPLETE_CLEAR_SE_PATH := "res://assets/audio/stream_complete_clear.mp3"
+const LIVE_START_SE_PATH := "res://assets/audio/live_start_air_horn.mp3"
 const BOSS_WARNING_SE_PATH := "res://assets/audio/boss_warning.mp3"
 const ENEMY_DAMAGE_SE_PATH := "res://assets/audio/enemy_damage.mp3"
 const ENEMY_DEFEAT_SE_PATH := "res://assets/audio/enemy_defeat.mp3"
@@ -112,6 +113,7 @@ const STREAM_COMPLETE_MARON_IMAGE := "res://assets/generated/game_clear_cutin_v1
 const COMMENT_BOOMERANG_IMAGE := "res://assets/generated/comment_boomerang_sprite_v1/comment_boomerang.png"
 const STREAM_START_INTRO_DURATION := 1.90
 const STREAM_START_INTRO_SKIP_DELAY := 0.30
+const STREAM_START_LIVE_START_TIME := 0.90
 const GAME_OVER_INTRO_MENTAL_DURATION := 2.5
 const GAME_OVER_INTRO_COMPLETE_DURATION := 2.8
 const GAME_OVER_INTRO_SKIP_DELAY := 0.5
@@ -126,6 +128,33 @@ const COMMENT_PANEL_BG_V25 := "res://assets/generated/ui_parts_v2/comment_panel_
 const HUD_ICON_BANRI_IMAGE := "res://assets/generated/hud_character_icons_v1/banri_hud_icon.png"
 const HUD_ICON_SUPANA_IMAGE := "res://assets/generated/hud_character_icons_v1/supana_hud_icon.png"
 const HUD_ICON_MARON_IMAGE := "res://assets/generated/hud_character_icons_v1/maron_hud_icon.png"
+const HUD_UI_TOP_CARD_STREAM_IMAGE := "res://assets/generated/hud_ui_parts_gen_v1/top_card_stream_198x80.png"
+const HUD_UI_TOP_CARD_TIME_IMAGE := "res://assets/generated/hud_ui_parts_gen_v1/top_card_time_198x80.png"
+const HUD_UI_TOP_CARD_BUZZ_IMAGE := "res://assets/generated/hud_ui_parts_gen_v1/top_card_buzz_220x80.png"
+const HUD_UI_TOP_CARD_VIEWER_IMAGE := "res://assets/generated/hud_ui_parts_gen_v1/top_card_viewer_278x80.png"
+const HUD_UI_TOP_CARD_CHARACTER_IMAGE := "res://assets/generated/hud_ui_parts_gen_v1/top_card_character_258x80.png"
+const HUD_UI_METRIC_MENTAL_IMAGE := "res://assets/generated/hud_ui_parts_v2/metric_mental_226x62.png"
+const HUD_UI_METRIC_EXP_IMAGE := "res://assets/generated/hud_ui_parts_v2/metric_exp_260x62.png"
+const HUD_UI_METRIC_GIFT_IMAGE := "res://assets/generated/hud_ui_parts_v2/metric_gift_170x54.png"
+const HUD_UI_METRIC_HEART_IMAGE := "res://assets/generated/hud_ui_parts_v2/metric_heart_160x54.png"
+const HUD_UI_INSTRUCTION_NORMAL_IMAGE := "res://assets/generated/hud_ui_parts_v2/instruction_panel_normal_1200x76.png"
+const HUD_UI_INSTRUCTION_DANGER_IMAGE := "res://assets/generated/hud_ui_parts_v2/instruction_panel_danger_1200x76.png"
+const HUD_UI_COMMENT_PANEL_IMAGE := "res://assets/generated/hud_ui_parts_v5/comment_panel_320x752.png"
+const HUD_UI_BOTTOM_BASE_IMAGE := "res://assets/generated/hud_ui_parts_v2/bottom_hud_base_1560x90.png"
+const HUD_UI_EQUIPMENT_WEAPON_PANEL_IMAGE := "res://assets/generated/hud_ui_parts_v2/equipment_weapon_panel_304x70.png"
+const HUD_UI_EQUIPMENT_ACCESSORY_PANEL_IMAGE := "res://assets/generated/hud_ui_parts_v2/equipment_accessory_panel_322x70.png"
+const HUD_UI_SLOT_WEAPON_EMPTY_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_weapon_empty_34x34.png"
+const HUD_UI_SLOT_WEAPON_FILLED_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_weapon_filled_34x34.png"
+const HUD_UI_SLOT_ACCESSORY_EMPTY_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_accessory_empty_34x34.png"
+const HUD_UI_SLOT_ACCESSORY_FILLED_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_accessory_filled_34x34.png"
+const HUD_METRIC_ICON_MENTAL_IMAGE := "res://assets/generated/hud_metric_icons_v1/mental.png"
+const HUD_METRIC_ICON_EXP_IMAGE := "res://assets/generated/hud_metric_icons_v1/exp.png"
+const HUD_METRIC_ICON_GIFT_IMAGE := "res://assets/generated/hud_metric_icons_v1/gift_hype.png"
+const HUD_METRIC_ICON_HEART_IMAGE := "res://assets/generated/field_pickup_icons_v1/icons/heart_drop.png"
+const HUD_DASH_ICON_IMAGE := "res://assets/generated/hud_dash_icons_v1/dash_tight.png"
+const GIFT_STAMP_HIT_IMAGE := "res://assets/generated/gift_quality_stamps_v1/hit_stamp.png"
+const GIFT_STAMP_BIG_HIT_IMAGE := "res://assets/generated/gift_quality_stamps_v1/big_hit_stamp.png"
+const GIFT_STAMP_EVOLUTION_IMAGE := "res://assets/generated/gift_quality_stamps_v1/evolution_stamp.png"
 const TITLE_SCREEN_RECT := Rect2(Vector2.ZERO, Vector2(1600, 900))
 const TITLE_SUPANA_RECT := Rect2(Vector2(-210, 160), Vector2(580, 845))
 const TITLE_MARON_RECT := Rect2(Vector2(1155, 185), Vector2(460, 822))
@@ -145,7 +174,7 @@ const FIELD_VIEW := Rect2(Vector2(20, 190), Vector2(1200, 590))
 const ARENA := Rect2(Vector2(20, 120), Vector2(2200, 1500))
 const SIDE := Rect2(Vector2(1210, 174), Vector2(370, 606))
 const COMMENT_PANEL_RECT_V25 := Rect2(Vector2(1240, 18), Vector2(320, 752))
-const HUD := Rect2(Vector2(20, 790), Vector2(1560, 90))
+const HUD := Rect2(Vector2(18, 788), Vector2(1564, 98))
 const CLICK_MOVE_ARRIVE_DISTANCE := 22.0
 const CLICK_MOVE_PLAYER_RADIUS := 24.0
 const NORMAL_RUN_LENGTH := 180.0
@@ -421,6 +450,7 @@ var move_slow_timer := 0.0
 var spawn_rate_timer := 0.0
 var support_attack_timer := 0.0
 var next_genre_event_time := 35.0
+var debug_rare_comment_boost := false
 var genre_event_timer := 0.0
 var active_genre_event := ""
 var next_known_genre_event := ""
@@ -479,6 +509,7 @@ var level_up_se_player: AudioStreamPlayer
 var player_damage_se_player: AudioStreamPlayer
 var mental_breakdown_se_player: AudioStreamPlayer
 var stream_complete_clear_se_player: AudioStreamPlayer
+var live_start_se_player: AudioStreamPlayer
 var boss_warning_se_player: AudioStreamPlayer
 var enemy_damage_se_player: AudioStreamPlayer
 var enemy_defeat_se_player: AudioStreamPlayer
@@ -488,6 +519,7 @@ var listener_attack_se_played_frame := -1
 var stream_start_intro_timer := 0.0
 var stream_start_intro_duration := STREAM_START_INTRO_DURATION
 var stream_start_intro_skip_down := false
+var stream_start_intro_live_start_se_played := false
 var game_over_intro_timer := 0.0
 var game_over_intro_duration := 0.0
 var result_drop_timer := 0.0
@@ -528,6 +560,7 @@ func _ready() -> void:
 	_setup_player_damage_se()
 	_setup_mental_breakdown_se()
 	_setup_stream_complete_clear_se()
+	_setup_live_start_se()
 	_setup_boss_warning_se()
 	_setup_enemy_damage_se()
 	_setup_enemy_defeat_se()
@@ -769,6 +802,13 @@ func _setup_stream_complete_clear_se() -> void:
 	stream_complete_clear_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	stream_complete_clear_se_player.stream = _load_audio_stream(STREAM_COMPLETE_CLEAR_SE_PATH, false)
 	add_child(stream_complete_clear_se_player)
+
+func _setup_live_start_se() -> void:
+	live_start_se_player = AudioStreamPlayer.new()
+	live_start_se_player.name = "LiveStartSePlayer"
+	live_start_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	live_start_se_player.stream = _load_audio_stream(LIVE_START_SE_PATH, false)
+	add_child(live_start_se_player)
 
 func _setup_boss_warning_se() -> void:
 	boss_warning_se_player = AudioStreamPlayer.new()
@@ -1153,6 +1193,14 @@ func _play_stream_complete_clear_se() -> void:
 		stream_complete_clear_se_player.stop()
 	stream_complete_clear_se_player.play()
 
+func _play_live_start_se() -> void:
+	if live_start_se_player == null or live_start_se_player.stream == null:
+		return
+	live_start_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if live_start_se_player.playing:
+		live_start_se_player.stop()
+	live_start_se_player.play()
+
 func _play_boss_warning_se() -> void:
 	if boss_warning_se_player == null or boss_warning_se_player.stream == null:
 		return
@@ -1507,6 +1555,7 @@ func _start_stream_start_intro() -> void:
 	stream_start_intro_duration = float(stream_start_intro_config.get("duration", STREAM_START_INTRO_DURATION))
 	stream_start_intro_timer = stream_start_intro_duration
 	stream_start_intro_skip_down = _stream_start_intro_confirm_down()
+	stream_start_intro_live_start_se_played = false
 	choice_box.visible = false
 	result_panel.visible = false
 	queue_redraw()
@@ -1532,8 +1581,17 @@ func _reset_retry_bgm_from_start() -> void:
 func _update_stream_start_intro(delta: float) -> void:
 	var skip_pressed := _stream_start_intro_skip_pressed()
 	stream_start_intro_timer = maxf(0.0, stream_start_intro_timer - delta)
+	_maybe_play_stream_start_live_start_se()
 	if stream_start_intro_timer <= 0.0 or skip_pressed:
 		_restart()
+
+func _maybe_play_stream_start_live_start_se() -> void:
+	if stream_start_intro_live_start_se_played:
+		return
+	if _stream_start_intro_elapsed() < STREAM_START_LIVE_START_TIME:
+		return
+	stream_start_intro_live_start_se_played = true
+	_play_live_start_se()
 
 func _start_game_over_intro(reason: String) -> void:
 	_start_ending_cutin(reason, "mental_breakdown")
@@ -3521,6 +3579,7 @@ func _restart() -> void:
 	chat_lines = RunStateSystemScript.reset_run_ui_and_seed_chat(result_panel, choice_box, heart_cards, chat_lines, chat_box)
 	BossSystemScript.reset_for_target(self)
 	_reset_time_announcements()
+	_suppress_dash_button_after_ui_confirm()
 
 func _prepare_relay_start() -> void:
 	quick_test_mode = false
@@ -3903,26 +3962,31 @@ func _draw_player_dash_status_icon() -> void:
 	var back_color := Color(1.0, 1.0, 1.0, 0.78)
 	var ring_color := Color("#62e7d8")
 	var icon_color := Color("#1cae9f")
-	var label := "OK"
 	if banned:
 		back_color = Color(1.0, 0.92, 0.96, 0.82)
 		ring_color = Color("#ff4f78")
 		icon_color = Color("#d9315f")
-		label = "NG"
 	elif not ready:
 		back_color = Color(0.96, 0.94, 0.90, 0.72)
 		ring_color = Color("#ffd166")
 		icon_color = Color("#8f8793")
-		label = "CT"
-	draw_circle(center + Vector2(0, 3), 18.0, Color(0.24, 0.15, 0.28, 0.14))
-	draw_circle(center, 16.0, back_color)
-	_draw_fixed_arc(center, 18.0, -PI * 0.5, PI * 1.5, 40, Color(0.80, 0.78, 0.84, 0.40), 2.0)
+	draw_circle(center + Vector2(0, 2), 15.0, Color(0.24, 0.15, 0.28, 0.14))
+	draw_circle(center, 13.0, back_color)
+	_draw_fixed_arc(center, 15.0, -PI * 0.5, PI * 1.5, 36, Color(0.80, 0.78, 0.84, 0.40), 1.8)
 	var ring_end := -PI * 0.5 + TAU * (1.0 if ready or banned else cooldown_ratio)
-	_draw_fixed_arc(center, 18.0, -PI * 0.5, ring_end, 40, ring_color, 3.0)
-	_draw_text_item({"pos": center + Vector2(-11, 8), "text": "足", "width": 22, "size": 16, "color": icon_color, "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_text_item({"pos": center + Vector2(-18, 30), "text": label, "width": 36, "size": 9, "color": icon_color, "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_fixed_arc(center, 15.0, -PI * 0.5, ring_end, 36, ring_color, 2.6)
+	var dash_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, HUD_DASH_ICON_IMAGE)
+	if dash_icon != null:
+		var icon_tint := Color(1.0, 1.0, 1.0, 0.96)
+		if banned:
+			icon_tint = Color(1.0, 0.72, 0.82, 0.92)
+		elif not ready:
+			icon_tint = Color(0.78, 0.78, 0.82, 0.68)
+		draw_texture_rect(dash_icon, Rect2(center - Vector2(14.0, 10.0), Vector2(28.0, 20.0)), false, icon_tint)
+	else:
+		_draw_text_item({"pos": center + Vector2(-9, 7), "text": "足", "width": 18, "size": 14, "color": icon_color, "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
 	if banned:
-		draw_line(center + Vector2(-10, -10), center + Vector2(10, 10), ring_color, 3.0, true)
+		draw_line(center + Vector2(-8, -8), center + Vector2(8, 8), ring_color, 2.6, true)
 
 func _draw_enemies() -> void:
 	EnemyDrawSystemScript.draw_enemies(self, enemies)
@@ -4248,25 +4312,30 @@ func _draw_field_view_frame_v25() -> void:
 
 func _draw_comment_panel_v25() -> void:
 	var rect := COMMENT_PANEL_RECT_V25
-	_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.62), Color(1.0, 0.64, 0.82, 0.34), 24, 1, true)
-	var header := Rect2(rect.position + Vector2(14, 14), Vector2(rect.size.x - 28, 44))
-	_draw_ranking_panel(header, Color(1.0, 0.96, 0.995, 0.54), Color(0.76, 0.42, 1.0, 0.16), 20, 1, false)
-	draw_circle(rect.position + Vector2(38, 36), 15, Color(1.0, 0.33, 0.64, 0.76))
-	_draw_text_item({"pos": rect.position + Vector2(30, 43), "text": "…", "width": 18, "size": 17, "color": Color.WHITE})
-	_draw_text_item({"pos": rect.position + Vector2(64, 41), "text": "COMMENT", "width": 150, "size": 22, "color": Color("#9a55d9")})
-	_draw_text_item({"pos": rect.position + Vector2(246, 40), "text": "コメント", "width": 62, "size": 12, "color": Color("#9d7a99")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	var image_drawn := _draw_hud_ui_texture_v25(HUD_UI_COMMENT_PANEL_IMAGE, rect)
+	if not image_drawn:
+		_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.62), Color(1.0, 0.64, 0.82, 0.34), 24, 1, true)
+		var header := Rect2(rect.position + Vector2(14, 14), Vector2(rect.size.x - 28, 44))
+		_draw_ranking_panel(header, Color(1.0, 0.96, 0.995, 0.54), Color(0.76, 0.42, 1.0, 0.16), 20, 1, false)
+		draw_circle(rect.position + Vector2(38, 36), 15, Color(1.0, 0.33, 0.64, 0.76))
+	_draw_text_item({"pos": rect.position + Vector2(30, 48), "text": "…", "width": 18, "size": 17, "color": Color.WHITE})
+	_draw_text_item({"pos": rect.position + Vector2(64, 46), "text": "COMMENT", "width": 150, "size": 22, "color": Color("#9a55d9")})
 	_draw_comment_input_panel_v25()
 
 func _draw_comment_input_panel_v25() -> void:
 	var panel := COMMENT_PANEL_RECT_V25
-	var input_rect := Rect2(panel.position + Vector2(16, panel.size.y - 56), Vector2(panel.size.x - 68, 38))
-	var send_rect := Rect2(Vector2(input_rect.end.x + 10, input_rect.position.y), Vector2(42, 40))
-	_draw_ranking_panel(input_rect, Color(1.0, 1.0, 1.0, 0.72), Color(0.72, 0.85, 1.0, 0.58), 11, 1, false)
-	_draw_text_item({"pos": input_rect.position + Vector2(16, 26), "text": "コメントを入力...", "width": int(input_rect.size.x - 30), "size": 15, "color": Color("#7b8798")})
-	_draw_ranking_panel(send_rect, Color(1.0, 0.94, 0.985, 0.76), Color("#ff9bc8"), 12, 1, false)
-	_draw_text_item({"pos": send_rect.position + Vector2(13, 27), "text": "▶", "width": 20, "size": 20, "color": Color("#ff4f92")})
+	var input_rect := Rect2(panel.position + Vector2(16, panel.size.y - 56), Vector2(panel.size.x - 92, 38))
+	var send_rect := Rect2(Vector2(input_rect.end.x + 8, panel.position.y + panel.size.y - 60), Vector2(46, 46))
+	if not _has_hud_ui_texture_v25(HUD_UI_COMMENT_PANEL_IMAGE):
+		_draw_ranking_panel(input_rect, Color(1.0, 1.0, 1.0, 0.72), Color(0.72, 0.85, 1.0, 0.58), 11, 1, false)
+	_draw_text_item({"pos": input_rect.position + Vector2(16, 24), "text": "コメントを入力...", "width": int(input_rect.size.x - 30), "size": 15, "color": Color("#7b8798")})
+	if not _has_hud_ui_texture_v25(HUD_UI_COMMENT_PANEL_IMAGE):
+		_draw_ranking_panel(send_rect, Color(1.0, 0.94, 0.985, 0.76), Color("#ff9bc8"), 12, 1, false)
+	_draw_text_item({"pos": send_rect.position + Vector2(0, 31), "text": "▶", "width": int(send_rect.size.x), "size": 22, "color": Color("#ff4f92")}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_comment_row_lines_v25() -> void:
+	if _has_hud_ui_texture_v25(HUD_UI_COMMENT_PANEL_IMAGE):
+		return
 	var panel := COMMENT_PANEL_RECT_V25
 	var x1: float = panel.position.x + 16.0
 	var x2: float = panel.end.x - 16.0
@@ -4279,30 +4348,92 @@ func _draw_comment_row_lines_v25() -> void:
 func _draw_soft_card_shadow_v25(rect: Rect2, radius: int) -> void:
 	_draw_ranking_panel(Rect2(rect.position + Vector2(0, 4), rect.size), Color(0.67, 0.59, 0.75, 0.12), Color(1, 1, 1, 0), radius, 0, false)
 
-func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "", border_color: Color = Color("#ffc1da"), border_width: int = 2) -> void:
+func _draw_hud_ui_texture_v25(path: String, rect: Rect2, color: Color = Color.WHITE) -> bool:
+	if path == "":
+		return false
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	if texture == null:
+		return false
+	draw_texture_rect(texture, rect, false, color)
+	return true
+
+func _draw_hud_metric_icon_v25(path: String, rect: Rect2) -> bool:
+	if path == "":
+		return false
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	if texture == null:
+		return false
+	var icon_rect := _fit_texture_rect(rect, texture.get_size())
+	draw_texture_rect(texture, icon_rect, false)
+	return true
+
+func _has_hud_ui_texture_v25(path: String) -> bool:
+	if path == "":
+		return false
+	return TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path) != null
+
+func _color_near_v25(a: Color, b: Color, tolerance: float = 0.025) -> bool:
+	return absf(a.r - b.r) <= tolerance and absf(a.g - b.g) <= tolerance and absf(a.b - b.b) <= tolerance
+
+func _ui_card_image_path_v25(rect: Rect2, accent: Color) -> String:
+	var width := int(round(rect.size.x))
+	var height := int(round(rect.size.y))
+	if width == 198 and height == 80:
+		if _color_near_v25(accent, Color("#fff45c")):
+			return HUD_UI_TOP_CARD_TIME_IMAGE
+		return HUD_UI_TOP_CARD_STREAM_IMAGE
+	if width == 278 and height == 80:
+		return HUD_UI_TOP_CARD_VIEWER_IMAGE
+	if width == 260 and height == 62:
+		return HUD_UI_METRIC_EXP_IMAGE
+	if width == 170 and height == 54:
+		return HUD_UI_METRIC_GIFT_IMAGE
+	if width == 160 and height == 54:
+		return HUD_UI_METRIC_HEART_IMAGE
+	return ""
+
+func _draw_ui_card_background_v25(rect: Rect2, accent: Color, border_color: Color, border_width: int) -> bool:
 	_draw_soft_card_shadow_v25(rect, 6)
+	var image_path := _ui_card_image_path_v25(rect, accent)
+	if _draw_hud_ui_texture_v25(image_path, rect):
+		return true
 	_draw_ranking_panel(rect, Color("#fcfbfe"), border_color, 6, border_width, false)
 	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	return false
+
+func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "", border_color: Color = Color("#ffc1da"), border_width: int = 2, icon_path: String = "") -> void:
+	var image_drawn := _draw_ui_card_background_v25(rect, accent, border_color, border_width)
 	if rect.size.y <= 64.0:
-		_draw_compact_ui_card_text_v25(rect, label, value, accent, icon_text)
+		_draw_compact_ui_card_text_v25(rect, label, value, accent, icon_text, icon_path)
 		return
-	if icon_text != "":
+	if icon_path != "":
+		_draw_hud_metric_icon_v25(icon_path, Rect2(rect.position + Vector2(14, 15), Vector2(38, 38)))
+	elif icon_text != "" and not image_drawn:
 		_draw_text_item({"pos": rect.position + Vector2(18, 47), "text": icon_text, "width": 42, "size": 31, "color": accent})
-	var text_x: float = rect.position.x + (58.0 if icon_text != "" else 16.0)
+	var has_icon := icon_text != "" or icon_path != ""
+	var text_x: float = rect.position.x + (58.0 if has_icon else 16.0)
+	if image_drawn and int(round(rect.size.x)) == 278:
+		text_x = rect.position.x + 86.0
+	elif image_drawn and int(round(rect.size.x)) == 198:
+		text_x = rect.position.x + 66.0
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 30), "text": label, "width": int(rect.size.x - 30), "size": 15, "color": Color("#101420")})
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 65), "text": value, "width": int(rect.size.x - 28), "size": 27, "color": Color("#101420")})
 
 func _draw_buzz_status_card_v25(rect: Rect2) -> void:
 	var accent := Color("#b46cff")
 	_draw_soft_card_shadow_v25(rect, 6)
-	_draw_ranking_panel(rect, Color("#fcfbfe"), Color("#e2d3fb"), 6, 1, false)
-	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
-	_draw_text_item({"pos": rect.position + Vector2(16, 47), "text": "↗", "width": 42, "size": 31, "color": accent})
-	_draw_text_item({"pos": rect.position + Vector2(36, 24), "text": "✦", "width": 24, "size": 14, "color": Color("#ff8fd0")})
-	var text_x := rect.position.x + 58.0
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28), "text": "バズ度", "width": int(rect.size.x - 72), "size": 15, "color": Color("#51316c")})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 53), "text": "%d / 10" % burn_combo, "width": int(rect.size.x - 72), "size": 25, "color": Color("#2b1738")})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 74), "text": "撃破スコア +%d%%" % (burn_combo * 10), "width": int(rect.size.x - 72), "size": 13, "color": Color("#9a55d9")})
+	var image_drawn := _draw_hud_ui_texture_v25(HUD_UI_TOP_CARD_BUZZ_IMAGE, rect)
+	if not image_drawn:
+		_draw_ranking_panel(rect, Color("#fcfbfe"), Color("#e2d3fb"), 6, 1, false)
+		draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	if not image_drawn:
+		_draw_text_item({"pos": rect.position + Vector2(16, 47), "text": "↗", "width": 42, "size": 31, "color": accent})
+		_draw_text_item({"pos": rect.position + Vector2(36, 24), "text": "✦", "width": 24, "size": 14, "color": Color("#ff8fd0")})
+	var text_x := rect.position.x + (72.0 if image_drawn else 58.0)
+	var text_width := int(rect.end.x - text_x - 14.0)
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28), "text": "バズ度", "width": text_width, "size": 15, "color": Color("#51316c")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 53), "text": "%d / 10" % burn_combo, "width": text_width, "size": 25, "color": Color("#2b1738")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 74), "text": "撃破スコア +%d%%" % (burn_combo * 10), "width": text_width, "size": 13, "color": Color("#9a55d9")})
 
 func _draw_mental_breakdown_viewer_card(rect: Rect2) -> void:
 	var clock := float(Time.get_ticks_msec()) / 1000.0
@@ -4328,9 +4459,10 @@ func _draw_mental_breakdown_hud_card(rect: Rect2) -> void:
 	draw_rect(card, Color(1.0, 0.90, 0.95, 0.96), true)
 	_draw_rect_outline(card, Color("#ff5a96"), 3)
 	draw_rect(Rect2(card.position + Vector2(0, card.size.y - 5), Vector2(card.size.x, 5)), Color("#ff477f"), true)
-	_draw_text_item({"pos": card.position + Vector2(14, 24), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
-	_draw_text_item({"pos": card.position + Vector2(54, 52), "text": "0%", "width": int(card.size.x - 68), "size": 26, "color": Color("#ff2f78")})
-	_draw_text_item({"pos": card.position + Vector2(18, 53), "text": "♡", "width": 28, "size": 26, "color": Color("#ff2f78")})
+	if not _draw_hud_metric_icon_v25(HUD_METRIC_ICON_MENTAL_IMAGE, Rect2(card.position + Vector2(11, 10), Vector2(38, 38))):
+		_draw_text_item({"pos": card.position + Vector2(18, 51), "text": "♡", "width": 28, "size": 26, "color": Color("#ff2f78")})
+	_draw_text_item({"pos": card.position + Vector2(58, 32), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
+	_draw_text_item({"pos": card.position + Vector2(card.size.x - 64, 32), "text": "0%", "width": 48, "size": 15, "color": Color("#ff2f78")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 	var crack := card.position + Vector2(34, 29)
 	draw_line(crack + Vector2(-3, 0), crack + Vector2(2, 7), Color.WHITE, 2.0)
 	draw_line(crack + Vector2(2, 7), crack + Vector2(-1, 14), Color.WHITE, 2.0)
@@ -4341,11 +4473,27 @@ func _draw_mental_breakdown_hud_card(rect: Rect2) -> void:
 			var pos := card.position + Vector2(38, 36) + Vector2(cos(angle), sin(angle)) * (18.0 + float(i % 2) * 7.0) * (1.0 - reaction)
 			draw_circle(pos, 2.5, Color(1.0, 0.36, 0.68, 0.72 * reaction))
 
-func _draw_compact_ui_card_text_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "") -> void:
+func _draw_compact_ui_card_text_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "", icon_path: String = "") -> void:
 	var tight := rect.size.y <= 56.0
-	if icon_text != "":
+	if icon_path != "":
+		var icon_size := 34.0 if tight else 38.0
+		var icon_offset := Vector2(14, 11 if tight else 10)
+		if icon_path == HUD_METRIC_ICON_EXP_IMAGE:
+			icon_offset.x = 9.0
+		elif icon_path == HUD_METRIC_ICON_GIFT_IMAGE:
+			icon_size = 38.0
+			icon_offset = Vector2(12, 8)
+		elif icon_path == HUD_METRIC_ICON_HEART_IMAGE:
+			icon_offset.x = 10.0
+		_draw_hud_metric_icon_v25(icon_path, Rect2(rect.position + icon_offset, Vector2(icon_size, icon_size)))
+	elif icon_text != "":
 		_draw_text_item({"pos": rect.position + Vector2(18, 38 if tight else 42), "text": icon_text, "width": 38, "size": 24 if tight else 28, "color": accent})
-	var text_x: float = rect.position.x + (58.0 if icon_text != "" else 14.0)
+	var has_icon := icon_text != "" or icon_path != ""
+	var text_x: float = rect.position.x + (58.0 if has_icon else 14.0)
+	if label.strip_edges() == "":
+		if value != "":
+			_draw_text_item({"pos": Vector2(text_x, rect.position.y + (38 if tight else 42)), "text": value, "width": int(rect.size.x - 30), "size": 23 if tight else 27, "color": Color("#101420")})
+		return
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + (20 if tight else 24)), "text": label, "width": int(rect.size.x - 28), "size": 13 if tight else 14, "color": Color("#101420")})
 	if value != "":
 		_draw_text_item({"pos": Vector2(text_x, rect.position.y + (44 if tight else 52)), "text": value, "width": int(rect.size.x - 30), "size": 21 if tight else 25, "color": Color("#101420")})
@@ -4356,7 +4504,7 @@ func _draw_equipment_panel_v25(rect: Rect2, label: String, accent: Color) -> voi
 	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	var tab := Rect2(rect.position + Vector2(10, -1), Vector2(72, 23))
 	draw_rect(tab, accent, true)
-	_draw_text_item({"pos": tab.position + Vector2(12, 17), "text": label, "width": 54, "size": 14, "color": Color("#101420")})
+	_draw_text_item({"pos": tab.position + Vector2(0, 17), "text": label, "width": int(tab.size.x), "size": 14, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _viewer_hud_text() -> String:
 	return "%s人視聴中" % DrawDataSystemScript.format_viewer_count(score)
@@ -4415,8 +4563,9 @@ func _draw_top_status_v25() -> void:
 func _draw_character_status_card_v25(rect: Rect2) -> void:
 	var accent := Color("#ff8fc7")
 	_draw_soft_card_shadow_v25(rect, 6)
-	_draw_ranking_panel(rect, Color("#fcfbfe"), Color("#ead7e9"), 6, 1, false)
-	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	if not _draw_hud_ui_texture_v25(HUD_UI_TOP_CARD_CHARACTER_IMAGE, rect):
+		_draw_ranking_panel(rect, Color("#fcfbfe"), Color("#ead7e9"), 6, 1, false)
+		draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	var avatar_rect := Rect2(rect.position + Vector2(12, 9), Vector2(62, 62))
 	_draw_ranking_panel(avatar_rect, Color(1.0, 0.94, 0.98, 0.90), Color(1.0, 0.56, 0.76, 0.34), 8, 1, false)
 	var hud_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _current_character_hud_icon_path_v25())
@@ -4429,8 +4578,7 @@ func _draw_character_status_card_v25(rect: Rect2) -> void:
 			_draw_character_hud_icon_texture_v25(tex, avatar_rect.grow(-3))
 	var text_x := rect.position.x + 86.0
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 24), "text": "使用キャラ", "width": int(rect.size.x - 98), "size": 13, "color": Color("#8a6b82")})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 50), "text": String(current_character.get("displayName", "")), "width": int(rect.size.x - 98), "size": 22, "color": Color("#101420")})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 72), "text": _current_character_role_tag_v25(), "width": int(rect.size.x - 98), "size": 12, "color": Color("#d64e98")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 56), "text": String(current_character.get("displayName", "")), "width": int(rect.size.x - 98), "size": 22, "color": Color("#101420")})
 
 func _current_character_hud_icon_path_v25() -> String:
 	if current_character_id == "superchat_chan" or current_character_id == "supana":
@@ -4438,13 +4586,6 @@ func _current_character_hud_icon_path_v25() -> String:
 	if current_character_id == "maro_chan" or current_character_id == "maron":
 		return HUD_ICON_MARON_IMAGE
 	return HUD_ICON_BANRI_IMAGE
-
-func _current_character_role_tag_v25() -> String:
-	if current_character_id == "superchat_chan" or current_character_id == "supana":
-		return "遠距離火力"
-	if current_character_id == "maro_chan" or current_character_id == "maron":
-		return "回収支援"
-	return "近距離バランス"
 
 func _draw_character_hud_icon_texture_v25(texture: Texture2D, rect: Rect2) -> void:
 	var focus := Vector2(0.50, 0.30)
@@ -4474,8 +4615,12 @@ func _draw_instruction_countdown_v25() -> void:
 	if urgent:
 		var flash := 0.5 + sin(elapsed * 12.0) * 0.5
 		border = Color("#ff3f78").lerp(Color("#ffc1da"), flash * 0.34)
-	_draw_ranking_panel(rect, fill, border, 18, 3 if risk >= 4 or urgent else 2, true)
-	draw_line(rect.position + Vector2(18, 40), rect.position + Vector2(rect.size.x - 18, 40), Color(1.0, 0.72, 0.86, 0.40), 1.0)
+	var panel_image := HUD_UI_INSTRUCTION_DANGER_IMAGE if risk >= 4 or urgent else HUD_UI_INSTRUCTION_NORMAL_IMAGE
+	if not _draw_hud_ui_texture_v25(panel_image, rect):
+		_draw_ranking_panel(rect, fill, border, 18, 3 if risk >= 4 or urgent else 2, true)
+		draw_line(rect.position + Vector2(18, 40), rect.position + Vector2(rect.size.x - 18, 40), Color(1.0, 0.72, 0.86, 0.40), 1.0)
+	elif risk >= 4 or urgent:
+		_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.0), border, 18, 2, false)
 	var current_text := _short_pause_text(_current_instruction_panel_text_v25(), 33)
 	var current_color := Color("#101420") if current_text != "なし" else Color("#817184")
 	_draw_text_item({"pos": rect.position + Vector2(24, 25), "text": "現在の指示コメ", "width": 126, "size": 14, "color": Color("#e73783")})
@@ -4566,24 +4711,27 @@ func _draw_active_sub_instruction_panel_rows_v25(rect: Rect2) -> void:
 		}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_bottom_hud_v25() -> void:
-	_draw_ranking_panel(HUD, Color(0.985, 0.99, 1.0, 0.91), Color("#b8d9ff"), 10, 3, false)
+	if not _draw_hud_ui_texture_v25(HUD_UI_BOTTOM_BASE_IMAGE, HUD):
+		_draw_ranking_panel(HUD, Color(0.985, 0.99, 1.0, 0.91), Color("#b8d9ff"), 10, 3, false)
 	var mental_rect := Rect2(34, 806, 226, 62)
 	if _is_mental_breakdown_intro():
 		_draw_mental_breakdown_hud_card(mental_rect)
 	else:
 		_draw_mental_hud_card_v25(mental_rect)
 	var exp_need: int = maxi(1, ExpSystemScript.current_need(exp_level))
-	_draw_ui_card_v25(Rect2(274, 806, 260, 62), "EXP", "Lv.%d  %d/%d" % [exp_level, exp_value, exp_need], Color("#27c4d9"), "★", Color("#b8d9ff"), 2)
-	_draw_ui_card_v25(Rect2(548, 810, 170, 54), "ギフト期待度", "%d%%" % gift_hype, Color("#ff7ea8"), "▣", Color("#f2d7e6"), 1)
-	_draw_ui_card_v25(Rect2(730, 810, 160, 54), "♡ 状態", "待機" if heart_pending else "なし", Color("#ffabd5"), "♥", Color("#f2d7e6"), 1)
+	_draw_ui_card_v25(Rect2(274, 806, 260, 62), "EXP", "Lv.%d  %d/%d" % [exp_level, exp_value, exp_need], Color("#27c4d9"), "★", Color("#b8d9ff"), 2, HUD_METRIC_ICON_EXP_IMAGE)
+	_draw_ui_card_v25(Rect2(548, 810, 170, 54), "ギフト期待度", "%d%%" % gift_hype, Color("#ff7ea8"), "▣", Color("#f2d7e6"), 1, HUD_METRIC_ICON_GIFT_IMAGE)
+	_draw_ui_card_v25(Rect2(730, 810, 160, 54), "", "待機" if heart_pending else "なし", Color("#ffabd5"), "♥", Color("#f2d7e6"), 1, HUD_METRIC_ICON_HEART_IMAGE)
 	_draw_equipment_panel_v25(Rect2(910, 802, 304, 70), "武器", Color("#fff45c"))
-	_draw_equipment_panel_v25(Rect2(1230, 802, 322, 70), "アクセ", Color("#8df7ff"))
+	_draw_equipment_panel_v25(Rect2(1230, 802, 304, 70), "アクセ", Color("#8df7ff"))
 	var exp_ratio: float = clampf(float(exp_value) / float(exp_need), 0.0, 1.0)
 	var hype_ratio: float = clampf(float(gift_hype) / 100.0, 0.0, 1.0)
-	draw_rect(Rect2(Vector2(290, 861), Vector2(224, 7)), Color("#d8ecff"), true)
-	draw_rect(Rect2(Vector2(290, 861), Vector2(224 * exp_ratio, 7)), Color("#24c7d9"), true)
-	draw_rect(Rect2(Vector2(564, 858), Vector2(138, 5)), Color("#ffe1eb"), true)
-	draw_rect(Rect2(Vector2(564, 858), Vector2(138 * hype_ratio, 5)), DrawDataSystemScript.gift_hype_color(hype_ratio), true)
+	var exp_gauge := Rect2(Vector2(332, 860), Vector2(184, 6))
+	_draw_ranking_panel(exp_gauge, Color("#d8ecff"), Color(1, 1, 1, 0), 4, 0, false)
+	_draw_ranking_panel(Rect2(exp_gauge.position, Vector2(exp_gauge.size.x * exp_ratio, exp_gauge.size.y)), Color("#24c7d9"), Color(1, 1, 1, 0), 4, 0, false)
+	var hype_gauge := Rect2(Vector2(606, 858), Vector2(96, 5))
+	_draw_ranking_panel(hype_gauge, Color("#ffe1eb"), Color(1, 1, 1, 0), 4, 0, false)
+	_draw_ranking_panel(Rect2(hype_gauge.position, Vector2(hype_gauge.size.x * hype_ratio, hype_gauge.size.y)), DrawDataSystemScript.gift_hype_color(hype_ratio), Color(1, 1, 1, 0), 4, 0, false)
 
 func _mental_hud_text() -> String:
 	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
@@ -4609,13 +4757,17 @@ func _mental_hud_fill_color(ratio: float) -> Color:
 func _draw_mental_hud_card_v25(rect: Rect2) -> void:
 	var ratio := _mental_hud_ratio()
 	var accent := _mental_hud_fill_color(ratio)
-	_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.94), Color("#ffc1da"), 6, 2, false)
-	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
-	_draw_text_item({"pos": rect.position + Vector2(16, 12), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
-	_draw_text_item({"pos": rect.position + Vector2(rect.size.x - 64, 12), "text": _mental_hud_text(), "width": 48, "size": 15, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
-	var gauge := Rect2(rect.position + Vector2(16, 34), Vector2(rect.size.x - 32, 16))
-	draw_rect(gauge, Color("#e7f7ee"), true)
-	draw_rect(Rect2(gauge.position, Vector2(gauge.size.x * ratio, gauge.size.y)), accent, true)
+	var image_drawn := _draw_hud_ui_texture_v25(HUD_UI_METRIC_MENTAL_IMAGE, rect)
+	if not image_drawn:
+		_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.94), Color("#ffc1da"), 6, 2, false)
+		draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
+	if not _draw_hud_metric_icon_v25(HUD_METRIC_ICON_MENTAL_IMAGE, Rect2(rect.position + Vector2(11, 10), Vector2(38, 38))):
+		_draw_text_item({"pos": rect.position + Vector2(18, 51), "text": "♡", "width": 28, "size": 26, "color": accent})
+	_draw_text_item({"pos": rect.position + Vector2(58, 32), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
+	_draw_text_item({"pos": rect.position + Vector2(rect.size.x - 64, 32), "text": _mental_hud_text(), "width": 48, "size": 15, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	var gauge := Rect2(rect.position + Vector2(58, 37), Vector2(rect.size.x - 74, 12))
+	_draw_ranking_panel(gauge, Color("#e7f7ee"), Color(1, 1, 1, 0), 5, 0, false)
+	_draw_ranking_panel(Rect2(gauge.position, Vector2(gauge.size.x * ratio, gauge.size.y)), accent, Color(1, 1, 1, 0), 5, 0, false)
 	_draw_rect_outline(gauge, Color("#b9e8cb"), 1)
 
 func _draw_ui_part(path: String, pos: Vector2) -> bool:
@@ -4636,12 +4788,12 @@ func _load_ui_part(path: String) -> Texture2D:
 	return TextureCacheSystemScript.load_resource_texture(ui_part_cache, path)
 
 func _draw_equipment_icons() -> void:
-	_draw_equipment_icon_row(player_weapons, weapons, Vector2(1014, 823), true)
-	_draw_equipment_icon_row(player_accessories, gifts, Vector2(1326, 823), false)
+	_draw_equipment_icon_row(player_weapons, weapons, Vector2(992, 821), true)
+	_draw_equipment_icon_row(player_accessories, gifts, Vector2(1312, 821), false)
 
 func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, is_weapon: bool) -> void:
-	var slot_size := Vector2(34, 34)
-	var step := 39.0
+	var slot_size := Vector2(38, 38)
+	var step := 41.0
 	var accent := Color("#ffd15a") if is_weapon else Color("#55d8ec")
 	var empty_border := Color(0.72, 0.67, 0.82, 0.42)
 	var fill := Color("#fffdf3") if is_weapon else Color("#f2fdff")
@@ -4649,11 +4801,17 @@ func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, 
 	for i in range(5):
 		var slot_rect := Rect2(start + Vector2(i * step, 0), slot_size)
 		var filled := i < items.size()
-		draw_rect(slot_rect, Color(fill.r, fill.g, fill.b, 0.96 if filled else 0.50), true)
-		_draw_rect_outline(slot_rect, accent if filled else empty_border, 2 if filled else 1)
+		var slot_image := ""
+		if is_weapon:
+			slot_image = HUD_UI_SLOT_WEAPON_FILLED_IMAGE if filled else HUD_UI_SLOT_WEAPON_EMPTY_IMAGE
+		else:
+			slot_image = HUD_UI_SLOT_ACCESSORY_FILLED_IMAGE if filled else HUD_UI_SLOT_ACCESSORY_EMPTY_IMAGE
+		if not _draw_hud_ui_texture_v25(slot_image, slot_rect):
+			draw_rect(slot_rect, Color(fill.r, fill.g, fill.b, 0.96 if filled else 0.50), true)
+			_draw_rect_outline(slot_rect, accent if filled else empty_border, 2 if filled else 1)
 		if i >= items.size():
 			_draw_text_item({
-				"pos": slot_rect.position + Vector2(0, 25),
+				"pos": slot_rect.position + Vector2(0, 28),
 				"text": empty_mark,
 				"width": int(slot_rect.size.x),
 				"size": 17,
@@ -4665,20 +4823,35 @@ func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, 
 		var data: Dictionary = _find_equipment_icon_data(source_data, id)
 		var texture: Texture2D = _load_equipment_icon(String(data.get("iconPath", "")))
 		if texture != null:
-			var icon_rect := _fit_texture_rect(slot_rect.grow(-1), texture.get_size())
-			_draw_ranking_panel(icon_rect.grow(1.5), Color(1.0, 1.0, 1.0, 0.78), Color(1.0, 1.0, 1.0, 0.62), 7, 1, false)
+			var icon_rect := _fit_texture_rect(slot_rect.grow(0.5), texture.get_size())
+			_draw_ranking_panel(icon_rect.grow(1.0), Color(1.0, 1.0, 1.0, 0.70), Color(1.0, 1.0, 1.0, 0.50), 7, 1, false)
 			draw_texture_rect(texture, icon_rect, false)
 		else:
 			var fallback_text: String = DrawDataSystemScript.equipment_icon(id, is_weapon)
-			_draw_text_item({"pos": slot_rect.position + Vector2(9, 24), "text": fallback_text, "width": 22, "size": 14, "color": Color("#1f2a3a")})
-		var level_text: String = "進" if EquipmentSystem.is_evolved_entry(entry) else str(EquipmentSystem.entry_level(entry))
+			_draw_text_item({"pos": slot_rect.position + Vector2(8, 27), "text": fallback_text, "width": 26, "size": 16, "color": Color("#1f2a3a")})
+		var evolved_level := EquipmentSystem.is_evolved_entry(entry)
+		var level_text: String = "進" if evolved_level else str(EquipmentSystem.entry_level(entry))
+		var badge_width := 23.0 if level_text.length() >= 2 else 18.0
+		var badge_rect := Rect2(slot_rect.end - Vector2(badge_width, 15.0), Vector2(badge_width, 15.0))
+		var badge_fill := Color("#ffd15a") if evolved_level else Color("#ff4f92")
+		var badge_text_color := Color("#6a3a00") if evolved_level else Color.WHITE
+		_draw_ranking_panel(badge_rect, Color(badge_fill.r, badge_fill.g, badge_fill.b, 0.92), Color(1, 1, 1, 0.86), 5, 1, false)
 		_draw_text_item({
-			"pos": slot_rect.position + Vector2(22, 31),
+			"pos": badge_rect.position + Vector2(1, 13),
 			"text": level_text,
-			"width": 20,
-			"size": 11,
-			"color": Color("#e73763")
-		})
+			"width": int(badge_rect.size.x),
+			"size": 12,
+			"color": Color(0, 0, 0, 0.24),
+			"fontWeight": "black"
+		}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text_item({
+			"pos": badge_rect.position + Vector2(0, 12),
+			"text": level_text,
+			"width": int(badge_rect.size.x),
+			"size": 12,
+			"color": badge_text_color,
+			"fontWeight": "black"
+		}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _find_equipment_icon_data(source_data: Array, id: String) -> Dictionary:
 	for item in source_data:
@@ -6516,15 +6689,15 @@ func _draw_stream_start_intro_overlay_v2() -> void:
 		draw_texture_rect(icon_texture, _fit_texture_rect(icon_rect, icon_texture.get_size()), false, Color(1, 1, 1, alpha))
 	_draw_ranking_text("今日の配信枠", panel.position + Vector2(152, 74), 24, _stream_start_intro_alpha(Color("#9b5a95"), 0.92 * alpha), 260)
 	_draw_ranking_text(_stream_start_intro_frame_title(frame_config), panel.position + Vector2(152, 122), 42, _stream_start_intro_alpha(Color("#4f3149"), alpha), 560)
+	var start_callout_rect := Rect2(panel.position + Vector2(72, 220), Vector2(678, 138))
 	var ready_alpha := smoothstep(0.30, 0.46, elapsed_intro) * (1.0 - smoothstep(0.88, 1.02, elapsed_intro)) * alpha
 	if ready_alpha > 0.01:
 		var ready_glow := 0.45 + sin(clock * 8.0) * 0.16
-		_draw_ranking_panel(Rect2(panel.position + Vector2(70, 190), Vector2(300, 82)), Color(1, 1, 1, 0.72 * ready_alpha), Color(sub_color.r, sub_color.g, sub_color.b, (0.40 + ready_glow * 0.30) * ready_alpha), 30, 3, false)
-		_draw_ranking_text("READY", panel.position + Vector2(70, 252), 50, _stream_start_intro_alpha(Color("#7a56c8"), ready_alpha), 300, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_panel(start_callout_rect, Color(1, 1, 1, 0.72 * ready_alpha), Color(sub_color.r, sub_color.g, sub_color.b, (0.40 + ready_glow * 0.30) * ready_alpha), 36, 3, false)
+		_draw_ranking_text("READY", start_callout_rect.position + Vector2(0, 94), 72, _stream_start_intro_alpha(Color("#7a56c8"), ready_alpha), start_callout_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var live_alpha := smoothstep(0.90, 1.08, elapsed_intro) * alpha
 	var live_scale := 0.84 + 0.16 * smoothstep(0.90, 1.14, elapsed_intro) + sin(clock * 6.8) * 0.012
-	var live_rect_base := Rect2(panel.position + Vector2(72, 220), Vector2(678, 138))
-	var live_rect := live_rect_base.grow((live_scale - 1.0) * 84.0)
+	var live_rect := start_callout_rect.grow((live_scale - 1.0) * 84.0)
 	if live_alpha > 0.01:
 		_draw_stream_start_live_fx(panel, clock, live_alpha, accent, sub_color)
 		_draw_ranking_panel(live_rect, Color(1.0, 0.965, 0.995, 0.94 * live_alpha), Color(accent.r, accent.g, accent.b, 0.76 * live_alpha), 36, 3, false)
@@ -7086,38 +7259,133 @@ func _draw_gift_choice_card_contents() -> void:
 			_draw_gift_choice_cursor(rect)
 		var center_x: float = rect.position.x + rect.size.x * 0.5
 		var gift_level: int = GiftSystemScript.gift_level_for_target(self, String(gift["id"]))
-		var category: String = EquipmentSystem.category_label_for_card(gift, gift_level)
+		var category: String = GiftSystemScript.gift_category_tag(gift)
 		var display_name: String = EquipmentSystem.display_name_for_card(gift, gift_level)
-		var description: String = String(gift["description"])
+		var quality_label: String = GiftSystemScript.gift_quality_label(gift)
+		var quality: String = GiftSystemScript.gift_quality(gift)
+		var quality_color: Color = GiftSystemScript.gift_quality_color(gift)
 		var text_color: Color = Color("#101420")
 		var sub_color: Color = Color("#273247")
+		if quality_label != "":
+			_draw_gift_quality_stamp(rect, quality_label, quality)
+		_draw_gift_category_tag(_gift_choice_category_tag_rect(rect), category)
+		_draw_three_choice_number_badge(_three_choice_number_badge_rect(rect), i + 1)
 		var texture: Texture2D = _load_equipment_icon(String(gift.get("iconPath", "")))
 		if texture != null:
-			draw_texture_rect(texture, Rect2(Vector2(center_x - 30.0, rect.position.y + 72.0), Vector2(60.0, 60.0)), false)
+			draw_texture_rect(texture, Rect2(Vector2(center_x - 34.0, rect.position.y + 76.0), Vector2(68.0, 68.0)), false)
 		elif not EquipmentSystem.is_instant(gift):
 			var fallback_icon: String = DrawDataSystemScript.equipment_icon(String(gift.get("id", "")), EquipmentSystem.is_weapon(gift))
-			_draw_centered_card_text(fallback_icon, center_x, rect.position.y + 116.0, rect.size.x - 28.0, 30, Color("#e73763"))
-		_draw_centered_card_text("[%d]" % [i + 1], center_x, rect.position.y + 64.0, rect.size.x - 28.0, 18, text_color)
-		_draw_centered_card_text("[%s]" % category, center_x, rect.position.y + 142.0, rect.size.x - 28.0, 18, text_color)
-		var name_lines: Array[String] = _split_card_text(display_name, 8)
-		var name_y: float = rect.position.y + 170.0
-		for line in name_lines.slice(0, 2):
-			_draw_centered_card_text(String(line), center_x, name_y, rect.size.x - 28.0, 18, text_color)
-			name_y += 24.0
-		var desc_lines: Array[String] = _split_card_text(description, 9)
-		var desc_y: float = name_y + 2.0
-		for line in desc_lines.slice(0, 2):
-			_draw_centered_card_text(String(line), center_x, desc_y, rect.size.x - 28.0, 16, sub_color)
-			desc_y += 21.0
-		if EquipmentSystem.is_evolution_gift(gift):
-			_draw_centered_card_text("進化", center_x, rect.position.y + 246.0, rect.size.x - 28.0, 18, text_color)
-		elif not EquipmentSystem.is_instant(gift):
-			_draw_centered_card_text("Lv %d/%d" % [gift_level, int(gift["maxLevel"])], center_x, rect.position.y + 246.0, rect.size.x - 28.0, 18, text_color)
+			_draw_centered_card_text(fallback_icon, center_x, rect.position.y + 110.0, rect.size.x - 28.0, 34, Color("#e73763"))
+		_draw_gift_card_name(display_name, center_x, rect.position.y + 160.0, rect.size.x - 24.0, text_color)
+		var level_y: float = rect.position.y + 196.0
+		var level_text: String = GiftSystemScript.gift_level_change_text(gift, gift_level)
+		var level_color: Color = quality_color if quality != "normal" else Color("#273247")
+		_draw_centered_card_text_with_outline(level_text, center_x, level_y, rect.size.x - 26.0, 20, level_color, Color(1.0, 1.0, 1.0, 0.94))
+		var summary_lines: Array[String] = _split_card_text(GiftSystemScript.gift_card_summary(gift), 10)
+		var summary_y: float = rect.position.y + 226.0
+		for line in summary_lines.slice(0, 2):
+			_draw_centered_card_text(String(line), center_x, summary_y, rect.size.x - 28.0, 16, sub_color)
+			summary_y += 20.0
+		_draw_centered_card_text(GiftSystemScript.gift_level_status_text(gift, gift_level), center_x, rect.position.y + 259.0, rect.size.x - 28.0, 15, Color("#6b7280"))
+
+func _gift_choice_category_tag_rect(rect: Rect2) -> Rect2:
+	return Rect2(rect.position + Vector2(16.0, 54.0), Vector2(54.0, 24.0))
+
+func _three_choice_number_badge_rect(rect: Rect2) -> Rect2:
+	return Rect2(rect.position + Vector2(rect.size.x * 0.5 - 16.0, 18.0), Vector2(32.0, 24.0))
+
+func _draw_three_choice_number_badge(badge_rect: Rect2, number: int, accent: Color = Color("#ff9bcf")) -> void:
+	_draw_ranking_panel(badge_rect, Color(1.0, 0.96, 0.99, 0.94), accent, 9, 1, false)
+	_draw_text_item({
+		"pos": badge_rect.position + Vector2(0.0, 17.0),
+		"text": str(number),
+		"width": int(badge_rect.size.x),
+		"size": 15,
+		"color": Color("#7b405e"),
+		"fontWeight": "black"
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_gift_quality_stamp(rect: Rect2, label: String, quality: String) -> void:
+	var stamp_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _gift_quality_stamp_image_path(quality))
+	if stamp_texture != null:
+		var image_rect: Rect2 = _gift_quality_stamp_image_rect(rect, quality)
+		var fitted_rect: Rect2 = _fit_texture_rect(image_rect, stamp_texture.get_size())
+		_draw_rotated_texture(stamp_texture, fitted_rect.position + fitted_rect.size * 0.5, fitted_rect.size, _gift_quality_stamp_angle(quality), 0.98)
+		return
+	var stamp_size: Vector2 = Vector2(82.0, 34.0)
+	if quality == "big_hit":
+		stamp_size = Vector2(92.0, 38.0)
+	elif quality == "evolution":
+		stamp_size = Vector2(78.0, 34.0)
+	var stamp_rect: Rect2 = Rect2(rect.position + Vector2(-10.0, -5.0), stamp_size)
+	var fill: Color = Color(1.0, 0.94, 0.78, 0.94)
+	var border: Color = Color("#ffb84d")
+	var text_color: Color = Color("#a85400")
+	if quality == "big_hit":
+		fill = Color(1.0, 0.84, 0.93, 0.96)
+		border = Color("#ff5fb8")
+		text_color = Color("#b01868")
+	elif quality == "evolution":
+		fill = Color(0.98, 0.88, 1.0, 0.96)
+		border = Color("#ff68b3")
+		text_color = Color("#9333a4")
+	draw_rect(stamp_rect, fill)
+	draw_rect(stamp_rect, border, false, 2.0)
+	var lines: PackedStringArray = label.split("\n", false)
+	var text_y: float = stamp_rect.position.y + (6.0 if lines.size() >= 2 else 8.0)
+	for line in lines:
+		_draw_centered_card_text(String(line), stamp_rect.position.x + stamp_rect.size.x * 0.5, text_y, stamp_rect.size.x - 8.0, 14 if lines.size() >= 2 else 16, text_color)
+		text_y += 17.0
+	if quality == "big_hit":
+		_draw_centered_card_text("★", stamp_rect.position.x + 8.0, stamp_rect.position.y - 3.0, 18.0, 15, Color("#ffd84d"))
+		_draw_centered_card_text("★", stamp_rect.position.x + stamp_rect.size.x - 8.0, stamp_rect.position.y + stamp_rect.size.y - 15.0, 18.0, 15, Color("#ffd84d"))
+
+func _gift_quality_stamp_image_path(quality: String) -> String:
+	if quality == "big_hit":
+		return GIFT_STAMP_BIG_HIT_IMAGE
+	if quality == "hit":
+		return GIFT_STAMP_HIT_IMAGE
+	if quality == "evolution":
+		return GIFT_STAMP_EVOLUTION_IMAGE
+	return ""
+
+func _gift_quality_stamp_image_rect(rect: Rect2, quality: String) -> Rect2:
+	if quality == "big_hit":
+		return Rect2(rect.position + Vector2(-2.0, -34.0), Vector2(92.0, 92.0))
+	if quality == "evolution":
+		return Rect2(rect.position + Vector2(-6.0, -40.0), Vector2(100.0, 100.0))
+	return Rect2(rect.position + Vector2(0.0, -31.0), Vector2(84.0, 84.0))
+
+func _gift_quality_stamp_angle(quality: String) -> float:
+	if quality == "big_hit":
+		return -0.08
+	if quality == "evolution":
+		return -0.07
+	return -0.09
+
+func _draw_gift_category_tag(tag_rect: Rect2, category: String) -> void:
+	var border: Color = Color("#ff9bcf")
+	var fill: Color = Color(1.0, 0.93, 0.97, 0.90)
+	if category == "武器":
+		border = Color("#ffd84d")
+		fill = Color(1.0, 0.97, 0.78, 0.90)
+	elif category == "アクセ":
+		border = Color("#70e4f2")
+		fill = Color(0.88, 1.0, 1.0, 0.90)
+	elif category == "進化":
+		border = Color("#ff68b3")
+		fill = Color(1.0, 0.89, 0.97, 0.92)
+	elif category == "回復":
+		border = Color("#64d987")
+		fill = Color(0.90, 1.0, 0.92, 0.90)
+	draw_rect(tag_rect, fill)
+	draw_rect(tag_rect, border, false, 1.6)
+	_draw_centered_card_text(category, tag_rect.position.x + tag_rect.size.x * 0.5, tag_rect.position.y + 17.0, tag_rect.size.x - 8.0, 13, Color("#4b3142"))
 
 func _draw_gift_choice_cursor(rect: Rect2) -> void:
 	var cursor_rect: Rect2 = rect.grow(1.0)
-	draw_rect(cursor_rect.grow(4.0), Color(0.36, 1.0, 0.58, 0.14))
-	draw_rect(cursor_rect, Color("#5cf48a"), false, 4.0)
+	draw_rect(cursor_rect.grow(6.0), Color(1.0, 0.45, 0.72, 0.18))
+	draw_rect(cursor_rect, Color("#ff7ab8"), false, 4.0)
 
 func _draw_comment_choice_card_contents() -> void:
 	if choice_timer <= 5.0:
@@ -7140,18 +7408,21 @@ func _draw_comment_choice_card_contents() -> void:
 		var metric_color: Color = Color("#ff8a36")
 		if risk >= 4:
 			metric_color = Color("#ff5a5a")
-		_draw_centered_card_text("[%d]" % [i + 1], center_x, rect.position.y + 32.0, rect.size.x - 28.0, 28, Color.WHITE)
+		_draw_three_choice_number_badge(_three_choice_number_badge_rect(rect), i + 1, _comment_choice_badge_accent(risk))
+		var comment_id: String = String(comment.get("id", ""))
+		var icon: Texture2D = _load_instruction_comment_icon(comment_id)
+		var icon_rect: Rect2 = Rect2()
+		if icon != null:
+			icon_rect = _instruction_comment_icon_rect(rect, center_x, comment_id)
+			_draw_instruction_comment_icon_backdrop(rect, icon_rect, risk)
 		var title_lines: Array[String] = _split_card_text(String(view["displayName"]) if view.has("displayName") else "", 8)
 		var title_y: float = rect.position.y + 66.0
 		for line in title_lines.slice(0, 2):
 			_draw_centered_card_text(String(line), center_x, title_y, rect.size.x - 34.0, 27, title_color)
 			title_y += 32.0
 		var desc_lines: Array[String] = _split_card_text(String(view["description"]) if view.has("description") else "", 9)
-		var icon: Texture2D = _load_instruction_comment_icon(String(comment.get("id", "")))
 		if icon != null:
-			var icon_size: Vector2 = Vector2(118.0, 118.0)
-			var icon_rect: Rect2 = Rect2(Vector2(center_x - icon_size.x * 0.5, rect.position.y + 112.0), icon_size)
-			draw_texture_rect(icon, icon_rect, false)
+			_draw_instruction_comment_icon(icon, icon_rect, comment_id)
 			for line in desc_lines.slice(0, 1):
 				_draw_centered_card_text(String(line), center_x, rect.position.y + 232.0, rect.size.x - 42.0, 20, sub_color)
 		else:
@@ -7162,8 +7433,8 @@ func _draw_comment_choice_card_contents() -> void:
 		draw_line(rect.position + Vector2(42.0, 248.0), rect.position + Vector2(rect.size.x - 42.0, 248.0), Color(1, 1, 1, 0.25), 2.0)
 		var multiplier: float = float(view["multiplier"]) if view.has("multiplier") else 1.0
 		var gift_hype_on_select: int = int(view["giftHypeOnSelect"]) if view.has("giftHypeOnSelect") else 0
-		_draw_centered_card_text("倍率 x%.1f" % [multiplier], center_x, rect.position.y + 257.0, rect.size.x - 38.0, 26, metric_color)
-		_draw_centered_card_text("ギフト期待 +%d" % [gift_hype_on_select], center_x, rect.position.y + 289.0, rect.size.x - 38.0, 21, Color("#ffd46a"))
+		_draw_centered_card_text("倍率 x%.1f" % [multiplier], center_x, rect.position.y + 270.0, rect.size.x - 42.0, 22, metric_color)
+		_draw_centered_card_text("ギフト期待 +%d" % [gift_hype_on_select], center_x, rect.position.y + 299.0, rect.size.x - 42.0, 18, Color("#ffd46a"))
 	if _comment_choice_has_special_card():
 		var special_comment: Dictionary = offered_comments[3] as Dictionary
 		var special_heart: bool = 3 < heart_cards.size() and bool(heart_cards[3])
@@ -7185,13 +7456,16 @@ func _draw_do_everything_special_card(rect: Rect2, view: Dictionary) -> void:
 	_draw_text_item({"pos": rect.position + Vector2(638.0, 40.0), "text": "x%.1f / +%d" % [float(view.get("multiplier", 5.0)), int(view.get("giftHypeOnSelect", 70))], "width": 150, "size": 24, "color": Color("#ff8a36")})
 
 func _draw_comment_choice_cursor(rect: Rect2, risk: int) -> void:
-	var color: Color = Color("#8df7ff")
-	if risk >= 4:
-		color = Color("#ffe45c")
-	elif risk >= 3:
-		color = Color("#ff783a")
+	var color: Color = _comment_choice_badge_accent(risk)
 	draw_rect(rect.grow(5.0), Color(color.r, color.g, color.b, 0.15))
 	draw_rect(rect.grow(1.0), color, false, 4.0)
+
+func _comment_choice_badge_accent(risk: int) -> Color:
+	if risk >= 4:
+		return Color("#ffe45c")
+	if risk >= 3:
+		return Color("#ff783a")
+	return Color("#8df7ff")
 
 func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 	var path: String = ""
@@ -7215,6 +7489,8 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/split_enemy_icon.png"
 	elif comment_id == "short_range":
 		path = "res://assets/generated/instruction_comment_icons_v1/short_range_icon.png"
+	elif comment_id == "takeback":
+		path = "res://assets/generated/instruction_comment_icons_v1/takeback_icon.png"
 	elif comment_id == "attack_right_only":
 		path = "res://assets/generated/instruction_comment_icons_v1/attack_right_only_icon.png"
 	elif comment_id == "weapon_mute":
@@ -7227,6 +7503,8 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/hide_hp_icon.png"
 	elif comment_id == "comment_barrage":
 		path = "res://assets/generated/instruction_comment_icons_v1/comment_barrage_icon.png"
+	elif comment_id == "kamiyoyaku":
+		path = "res://assets/generated/instruction_comment_icons_v1/kamiyoyaku_icon.png"
 	elif comment_id == "camera_zoom":
 		path = "res://assets/generated/instruction_comment_icons_v1/camera_zoom_icon.png"
 	elif comment_id == "summon_boss":
@@ -7234,6 +7512,48 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 	if path == "":
 		return null
 	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)
+
+func _instruction_comment_icon_rect(card_rect: Rect2, center_x: float, comment_id: String) -> Rect2:
+	var icon_size: Vector2 = Vector2(118.0, 118.0)
+	var y_offset: float = 96.0
+	if comment_id == "split_enemy":
+		icon_size = Vector2(162.0, 126.0)
+		y_offset = 88.0
+	elif comment_id == "reverse_control":
+		icon_size = Vector2(144.0, 136.0)
+		y_offset = 86.0
+	elif comment_id == "short_range":
+		icon_size = Vector2(148.0, 148.0)
+		y_offset = 82.0
+	elif comment_id == "takeback" or comment_id == "kamiyoyaku":
+		icon_size = Vector2(136.0, 136.0)
+		y_offset = 88.0
+	return Rect2(Vector2(center_x - icon_size.x * 0.5, card_rect.position.y + y_offset), icon_size)
+
+func _draw_instruction_comment_icon_backdrop(card_rect: Rect2, icon_rect: Rect2, risk: int) -> void:
+	var backdrop_rect: Rect2 = icon_rect.grow_individual(16.0, 12.0, 16.0, 8.0)
+	var min_y: float = card_rect.position.y + 76.0
+	var max_bottom: float = card_rect.position.y + 230.0
+	backdrop_rect.position.y = maxf(backdrop_rect.position.y, min_y)
+	backdrop_rect.size.y = maxf(78.0, minf(backdrop_rect.end.y, max_bottom) - backdrop_rect.position.y)
+	var accent: Color = _comment_choice_badge_accent(risk)
+	var fill_color: Color = Color(1.0, 0.92, 0.965, 0.18)
+	var border_color: Color = Color(accent.r, accent.g, accent.b, 0.18)
+	_draw_ranking_panel(backdrop_rect, fill_color, border_color, 20, 1, false)
+
+func _draw_instruction_comment_icon(icon: Texture2D, icon_rect: Rect2, comment_id: String) -> void:
+	if comment_id == "split_enemy":
+		var tex_size: Vector2 = icon.get_size()
+		var source_rect: Rect2 = Rect2(Vector2(tex_size.x * 0.03, tex_size.y * 0.30), Vector2(tex_size.x * 0.94, tex_size.y * 0.45))
+		var fitted_rect: Rect2 = _fit_texture_rect(icon_rect, source_rect.size)
+		draw_texture_rect_region(icon, fitted_rect, source_rect)
+		return
+	var fitted_icon_rect: Rect2 = _fit_texture_rect(icon_rect, icon.get_size())
+	if comment_id == "no_dash" or comment_id == "no_brake":
+		draw_texture_rect(icon, fitted_icon_rect, false, Color(0.95, 0.90, 0.90, 0.98))
+		draw_texture_rect(icon, fitted_icon_rect, false, Color(0.15, 0.03, 0.04, 0.08))
+		return
+	draw_texture_rect(icon, fitted_icon_rect, false)
 
 func _draw_comment_choice_alert_overlay() -> void:
 	var ui_time: float = float(Time.get_ticks_msec()) / 1000.0
@@ -7246,14 +7566,33 @@ func _draw_comment_choice_alert_overlay() -> void:
 func _draw_comment_choice_footer() -> void:
 	if _comment_choice_has_special_card():
 		return
-	var footer_rect: Rect2 = Rect2(Vector2(530.0, 668.0) + _comment_choice_drop_offset(), Vector2(410.0, 32.0))
-	draw_rect(footer_rect.grow(-3.0), Color(0.0, 0.0, 0.0, 0.82))
+	var footer_rect: Rect2 = Rect2(Vector2(530.0, 654.0) + _comment_choice_drop_offset(), Vector2(410.0, 32.0))
 	var remain: float = maxf(0.0, choice_timer)
-	var text_color: Color = Color.WHITE
+	var border_color: Color = Color("#ff9bcf")
+	var fill_color: Color = Color(1.0, 0.94, 0.985, 0.94)
+	var text_color: Color = Color("#7b405e")
 	if choice_timer <= 5.0:
-		text_color = Color("#ff3232")
-		draw_rect(footer_rect.grow(-2.0), Color(0.35, 0.0, 0.0, 0.82))
-	_draw_centered_card_text("自動選択まで %.1fs　　1 / 2 / 3 で選択" % [remain], footer_rect.position.x + footer_rect.size.x * 0.5, footer_rect.position.y + 7.0, footer_rect.size.x - 18.0, 20, text_color)
+		border_color = Color("#ff4f78")
+		fill_color = Color(1.0, 0.90, 0.96, 0.96)
+		text_color = Color("#d9315f")
+	_draw_ranking_panel(footer_rect, fill_color, border_color, 12, 2, false)
+	_draw_centered_card_text("自動選択まで %.1fs　　1 / 2 / 3 で選択" % [remain], footer_rect.position.x + footer_rect.size.x * 0.5, footer_rect.position.y + 21.0, footer_rect.size.x - 18.0, 19, text_color)
+
+func _draw_gift_card_name(display_name: String, center_x: float, y: float, width: float, color: Color) -> void:
+	var text_length: int = display_name.length()
+	if text_length <= 12:
+		var font_size: int = 20
+		if text_length >= 9:
+			font_size = 18
+		if text_length >= 11:
+			font_size = 17
+		_draw_centered_card_text(display_name, center_x, y, width, font_size, color)
+		return
+	var name_lines: Array[String] = _split_card_text(display_name, 9)
+	var line_y: float = y - 9.0
+	for line in name_lines.slice(0, 2):
+		_draw_centered_card_text(String(line), center_x, line_y, width, 18, color)
+		line_y += 20.0
 
 func _draw_centered_card_text(text: String, center_x: float, y: float, width: float, size: int, color: Color) -> void:
 	_draw_text_item({
@@ -7262,6 +7601,36 @@ func _draw_centered_card_text(text: String, center_x: float, y: float, width: fl
 		"width": width,
 		"size": size,
 		"color": color
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_centered_card_text_with_outline(text: String, center_x: float, y: float, width: float, size: int, color: Color, outline_color: Color) -> void:
+	var pos := Vector2(center_x - width * 0.5, y)
+	var offsets: Array[Vector2] = [
+		Vector2(-1.2, 0.0),
+		Vector2(1.2, 0.0),
+		Vector2(0.0, -1.2),
+		Vector2(0.0, 1.2),
+		Vector2(-0.9, -0.9),
+		Vector2(0.9, -0.9),
+		Vector2(-0.9, 0.9),
+		Vector2(0.9, 0.9)
+	]
+	for offset in offsets:
+		_draw_text_item({
+			"pos": pos + offset,
+			"text": text,
+			"width": width,
+			"size": size,
+			"color": outline_color,
+			"fontWeight": "black"
+		}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({
+		"pos": pos,
+		"text": text,
+		"width": width,
+		"size": size,
+		"color": color,
+		"fontWeight": "black"
 	}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _split_card_text(text: String, max_chars: int) -> Array[String]:

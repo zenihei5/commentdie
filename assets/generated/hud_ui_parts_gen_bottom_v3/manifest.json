@@ -1,0 +1,26 @@
+{
+  "version": "hud_ui_parts_gen_bottom_v3",
+  "source": "assets/generated/hud_ui_parts_gen_bottom_v3/generated_bottom_hud_kit_source.png",
+  "built_in_image_gen_prompt_summary": "minimal blank pastel bottom HUD frame sheet, no decoration, chroma-key background",
+  "notes": [
+    "Generated with built-in image_gen and converted into exact Godot candidate parts.",
+    "Not wired into game.gd yet; current game uses hud_ui_parts_v2.",
+    "This is the clean candidate after rejecting gen_bottom_v2 preview."
+  ],
+  "assets": [
+    "bottom_hud_base_1560x90.png",
+    "equipment_accessory_panel_322x70.png",
+    "equipment_weapon_panel_304x70.png",
+    "generated_bottom_hud_kit_source.png",
+    "metric_exp_260x62.png",
+    "metric_gift_170x54.png",
+    "metric_heart_160x54.png",
+    "metric_mental_226x62.png",
+    "preview_bottom_layout.png",
+    "preview_contact_sheet.png",
+    "slot_accessory_empty_34x34.png",
+    "slot_accessory_filled_34x34.png",
+    "slot_weapon_empty_34x34.png",
+    "slot_weapon_filled_34x34.png"
+  ]
+}

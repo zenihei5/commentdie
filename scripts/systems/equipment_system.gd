@@ -90,25 +90,20 @@ static func category_label_for_card(item: Dictionary, current_level: int) -> Str
 		return "アクセサリ強化" if current_level > 0 else "アクセサリ"
 	return "即時"
 
-static func display_name_for_card(item: Dictionary, current_level: int) -> String:
+static func display_name_for_card(item: Dictionary, _current_level: int) -> String:
 	if is_evolution_gift(item):
 		return String(item.get("evolvedDisplayName", item.get("displayName", "武器進化")))
-	if current_level <= 0 or is_instant(item):
-		return String(item.get("displayName", "ギフト"))
-	return "%s Lv%d → Lv%d" % [
-		String(item.get("displayName", "装備")),
-		current_level,
-		current_level + 1
-	]
+	return String(item.get("displayName", "ギフト"))
 
-static func add_or_level(items: Array, id: String, max_level: int) -> Dictionary:
+static func add_or_level(items: Array, id: String, max_level: int, level_gain: int = 1) -> Dictionary:
+	var gain: int = maxi(1, level_gain)
 	for i in range(items.size()):
 		var entry: Dictionary = items[i] as Dictionary
 		if String(entry.get("id", "")) == id:
-			entry["level"] = mini(max_level, entry_level(entry) + 1)
+			entry["level"] = mini(max_level, entry_level(entry) + gain)
 			items[i] = entry
 			return entry
-	var new_entry: Dictionary = {"id": id, "level": 1}
+	var new_entry: Dictionary = {"id": id, "level": mini(max_level, gain)}
 	items.append(new_entry)
 	return new_entry
 

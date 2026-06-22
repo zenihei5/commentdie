@@ -19,8 +19,10 @@ const ENEMY_WALL_AVOIDANCE_BLEND := 0.62
 const ENEMY_WALL_AVOIDANCE_FALLBACK_DISTANCE := 420.0
 const ENEMY_WALL_AVOIDANCE_MIN_FORWARD_DOT := 0.28
 const ENEMY_WALL_AVOIDANCE_ROUTE_TURN_THRESHOLD := 160.0
-const BOSS_WALL_NAVIGATION_RADIUS_RATE := 0.62
-const BOSS_WALL_NAVIGATION_RADIUS_MIN := 56.0
+const ENEMY_WALL_NAVIGATION_RADIUS_RATE := 0.72
+const ENEMY_WALL_NAVIGATION_RADIUS_MIN := 14.0
+const BOSS_WALL_NAVIGATION_RADIUS_RATE := 0.56
+const BOSS_WALL_NAVIGATION_RADIUS_MIN := 46.0
 const BOSS_WALL_UNSTICK_STEP_RATE := 0.58
 
 static func spawn_interval(context: Dictionary) -> float:
@@ -241,6 +243,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"canBeKnockedBack": bool(data.get("canBeKnockedBack", can_knockback_kind(kind, is_boss_kind))),
 		"contactDamage": int(data.get("contactDamage", contact_damage_for_kind(kind, is_boss_kind))),
 		"knockbackVelocity": Vector2.ZERO,
+		"stunTimer": 0.0,
 		"defeatPending": false,
 		"defeatDelay": 0.0,
 		"defeatResolved": false
@@ -344,7 +347,7 @@ static func apply_knockback_motion(enemy: Dictionary, enemy_pos: Vector2, previo
 		return enemy_pos
 	enemy_pos += velocity * delta
 	enemy_pos = clamp_enemy_pos_to_arena(enemy_pos, arena)
-	enemy_pos = PlayerSystem.resolve_wall_collision(enemy_pos, previous_enemy_pos, float(enemy["radius"]), effect_walls, stream_frame_id)
+	enemy_pos = PlayerSystem.resolve_wall_collision(enemy_pos, previous_enemy_pos, wall_navigation_radius(enemy), effect_walls, stream_frame_id)
 	enemy_pos = clamp_enemy_pos_to_arena(enemy_pos, arena)
 	velocity *= exp(-KNOCKBACK_DECAY_RATE * delta)
 	if velocity.length() <= KNOCKBACK_STOP_SPEED:
@@ -356,7 +359,7 @@ static func wall_navigation_radius(enemy: Dictionary) -> float:
 	var radius := float(enemy.get("radius", 22.0))
 	if bool(enemy.get("isBoss", false)):
 		return minf(radius, maxf(BOSS_WALL_NAVIGATION_RADIUS_MIN, radius * BOSS_WALL_NAVIGATION_RADIUS_RATE))
-	return radius
+	return minf(radius, maxf(ENEMY_WALL_NAVIGATION_RADIUS_MIN, radius * ENEMY_WALL_NAVIGATION_RADIUS_RATE))
 
 static func movement_wall_rects(effect_walls: Array, stream_frame_id: String) -> Array:
 	var frame_id := stream_frame_id
@@ -731,6 +734,12 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy_pos = apply_knockback_motion(enemy, enemy_pos, previous_enemy_pos, delta, arena, effect_walls, stream_frame_id)
 			enemy["pos"] = enemy_pos
 			enemy["defeatDelay"] = maxf(0.0, float(enemy.get("defeatDelay", 0.0)) - delta)
+			continue
+		var stun_timer: float = float(enemy.get("stunTimer", 0.0))
+		if stun_timer > 0.0:
+			enemy["stunTimer"] = maxf(0.0, stun_timer - delta)
+			enemy_pos = apply_knockback_motion(enemy, enemy_pos, previous_enemy_pos, delta, arena, effect_walls, stream_frame_id)
+			enemy["pos"] = enemy_pos
 			continue
 		var behavior: String = String(enemy["behavior"])
 		var to_player: Vector2 = player_pos - enemy_pos

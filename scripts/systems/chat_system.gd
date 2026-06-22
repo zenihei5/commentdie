@@ -2,6 +2,7 @@ class_name ChatSystem
 extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+const CHAT_VISIBLE_LINE_LIMIT := 18
 
 static func next_interval(state: String, kuso_chat_timer: float, rng: RandomNumberGenerator) -> float:
 	var fast: bool = state == "comment_choice" or kuso_chat_timer > 0.0
@@ -105,8 +106,8 @@ static func append_line(lines: Array[String], text: String, limit: int = 20) -> 
 static func display_items(lines: Array[String]) -> Array:
 	var items: Array = []
 	var visible_lines: Array[String] = lines
-	if visible_lines.size() > 20:
-		visible_lines = visible_lines.slice(visible_lines.size() - 20, visible_lines.size())
+	if visible_lines.size() > CHAT_VISIBLE_LINE_LIMIT:
+		visible_lines = visible_lines.slice(visible_lines.size() - CHAT_VISIBLE_LINE_LIMIT, visible_lines.size())
 	for line in visible_lines:
 		items.append({
 			"text": prefix(line) + " " + line,

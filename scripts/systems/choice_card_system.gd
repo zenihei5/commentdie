@@ -171,26 +171,26 @@ static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_t
 	}
 
 static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictionary:
-	var rarity: String = String(gift["rarity"])
-	var category: String = EquipmentSystem.category_label_for_card(gift, gift_level)
+	var quality_label: String = GiftSystem.gift_quality_label(gift).replace("\n", " ")
+	var category: String = GiftSystem.gift_category_tag(gift)
 	var display_name: String = EquipmentSystem.display_name_for_card(gift, gift_level)
-	var level_text: String = ""
-	if EquipmentSystem.is_evolution_gift(gift):
-		level_text = "\n進化"
-	elif not EquipmentSystem.is_instant(gift):
-		level_text = "\nLv %d/%d" % [gift_level, int(gift["maxLevel"])]
+	var stamp_line: String = "%s\n" % quality_label if quality_label != "" else ""
+	var level_text: String = GiftSystem.gift_level_change_text(gift, gift_level)
+	var summary: String = GiftSystem.gift_card_summary(gift)
+	var status: String = GiftSystem.gift_level_status_text(gift, gift_level)
 	return {
-		"text": "[%d]\n[%s]\n%s\n%s\n\n%s%s" % [
+		"text": "[%d]\n%s[%s]\n%s\n%s\n%s\n%s" % [
 			index + 1,
+			stamp_line,
 			category,
-			DisplayTextSystem.rarity_label(rarity),
 			display_name,
-			String(gift["description"]),
-			level_text
+			level_text,
+			summary,
+			status
 		],
 		"fill": Color(1.0, 1.0, 1.0, 0.98),
-		"border": DisplayTextSystem.rarity_color(rarity),
-		"styleKey": "gift_%s" % rarity
+		"border": GiftSystem.gift_quality_color(gift),
+		"styleKey": "gift_quality"
 	}
 
 static func refresh_buttons(buttons: Array, cards: Array, selected_index: int) -> void:

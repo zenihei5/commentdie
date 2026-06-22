@@ -2,6 +2,7 @@
 class_name WeaponSystem
 
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
+const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
 const DEFEAT_KNOCKBACK_MULTIPLIER := 2.4
 const SHORT_RANGE_MIN_PROJECTILE_RANGE := 165.0
 const SHORT_RANGE_MIN_AREA_RADIUS := 66.0
@@ -12,6 +13,16 @@ const STARLIGHT_SHOT_COUNTER_KEY := "__starlight_superchat_shot_count"
 const MARO_PULSE_INDEX_KEY := "__maro_comment_pulse_index"
 const MARO_PULSE_UNTIL_KEY := "__maro_comment_pulse_until"
 const MARO_FLASH_UNTIL_KEY := "__maro_comment_flash_until"
+const KUSA_WAVE_DAMAGE_BY_LEVEL := [5.0, 7.0, 8.0, 10.0, 12.0]
+const KUSA_WAVE_INTERVAL_BY_LEVEL := [1.40, 1.35, 1.30, 1.25, 1.20]
+const KUSA_WAVE_SIZE_BY_LEVEL := [1.0, 1.0, 1.25, 1.25, 1.45]
+const KUSA_WAVE_DISTANCE_BY_LEVEL := [450.0, 520.0, 580.0, 650.0, 750.0]
+const KUSA_WAVE_BOUNCES_BY_LEVEL := [1, 1, 1, 2, 2]
+const KUSA_WAVE_SPEED := 440.0
+const KUSA_WAVE_HIT_COOLDOWN := 0.30
+const KUSA_WAVE_MIN_LIFE := 0.40
+const BAN_JUDGEMENT_STUN_DURATION := 0.18
+const BAN_JUDGEMENT_HEAVY_STUN_DURATION := 0.12
 
 static func find_weapon(weapons: Array, id: String, fallback: Dictionary) -> Dictionary:
 	for item in weapons:
@@ -216,6 +227,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"timers": context["equipmentWeaponTimers"],
 		"playerPos": context["playerPos"],
 		"facingDir": context["facingDir"],
+		"playerVel": context.get("playerVel", Vector2.ZERO),
 		"rng": context["rng"],
 		"attackRightOnly": context["attackRightOnly"],
 		"attackRightOnlyRate": context["attackRightOnlyRate"],
@@ -250,6 +262,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"superchatTimer": target.get("superchat_timer"),
 		"lastDir": target.get("last_hammer_dir"),
 		"facingDir": Vector2(float(target.get("player_facing_x")), 0.0),
+		"playerVel": target.get("player_vel"),
 		"supportAttack": float(target.get("support_attack_timer")) > 0.0,
 		"weaponMute": ModifierSystem.has_effect_for_target(target, "weapon_mute"),
 		"weaponMuteRate": ModifierSystem.effect_rate_for_target(target, "weapon_mute"),
@@ -412,6 +425,57 @@ static func _apply_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2
 	_append_killed_once(enemy, killed_enemies)
 	return true
 
+static func _is_boss_enemy(enemy: Dictionary) -> bool:
+	var kind: String = String(enemy.get("kind", ""))
+	return bool(enemy.get("isBoss", false)) or kind.begins_with("boss_")
+
+static func _ban_judgement_knockback_rate(enemy: Dictionary) -> float:
+	if _is_boss_enemy(enemy):
+		return 0.0
+	var kind: String = String(enemy.get("kind", ""))
+	var radius: float = float(enemy.get("radius", 20.0))
+	var max_hp: float = float(enemy.get("max_hp", enemy.get("maxHp", enemy.get("hp", 0.0))))
+	if radius >= 58.0 or max_hp >= 120.0:
+		return 0.35
+	if radius >= 38.0:
+		return 0.62
+	if kind == "clipper" or kind == "ghost_comment":
+		return 0.85
+	return 1.0
+
+static func _ban_judgement_stun_duration(enemy: Dictionary, normal_duration: float, heavy_duration: float) -> float:
+	if _is_boss_enemy(enemy) or not bool(enemy.get("canBeKnockedBack", true)):
+		return 0.0
+	var kind: String = String(enemy.get("kind", ""))
+	var radius: float = float(enemy.get("radius", 20.0))
+	if radius >= 38.0 or kind == "long_comment_guy" or kind == "clipper" or kind == "ghost_comment":
+		return heavy_duration
+	return normal_duration
+
+static func _ban_judgement_hit_fx(pos: Vector2, dir: Vector2, boss_hit: bool = false) -> Dictionary:
+	return {
+		"kind": "ban_judgement_hit",
+		"pos": pos,
+		"dir": dir,
+		"life": 0.26 if not boss_hit else 0.18,
+		"maxLife": 0.26 if not boss_hit else 0.18,
+		"bossHit": boss_hit
+	}
+
+static func _apply_ban_judgement_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2, knockback: float, stun_duration: float, heavy_stun_duration: float, killed_enemies: Array, hit_effects: Array) -> bool:
+	var enemy_pos: Vector2 = Vector2(enemy.get("pos", Vector2.ZERO))
+	var boss_hit: bool = _is_boss_enemy(enemy)
+	var applied_knockback: float = knockback * _ban_judgement_knockback_rate(enemy)
+	if not _apply_enemy_hit(enemy, damage, push_dir, applied_knockback, killed_enemies, hit_effects):
+		return false
+	var stun: float = _ban_judgement_stun_duration(enemy, stun_duration, heavy_stun_duration)
+	if stun > 0.0:
+		enemy["stunTimer"] = maxf(float(enemy.get("stunTimer", 0.0)), stun)
+	elif boss_hit:
+		enemy["hitFlashTimer"] = maxf(float(enemy.get("hitFlashTimer", 0.0)), 0.10)
+	hit_effects.append(_ban_judgement_hit_fx(enemy_pos, push_dir, boss_hit))
+	return true
+
 static func _damage_number_fx(pos: Vector2, damage: float) -> Dictionary:
 	return {
 		"kind": "damage_number",
@@ -526,6 +590,8 @@ static func _apply_ban_judgement_attack(
 	var closest_hit: Vector2 = player_pos + norm_dir * swing_range
 	var closest_swing_hit: Vector2 = closest_hit
 	var arc_dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
+	var stun_duration: float = float(weapon.get("stunDuration", BAN_JUDGEMENT_STUN_DURATION))
+	var heavy_stun_duration: float = float(weapon.get("heavyStunDuration", BAN_JUDGEMENT_HEAVY_STUN_DURATION))
 
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
@@ -536,10 +602,7 @@ static func _apply_ban_judgement_attack(
 		var enemy_radius: float = float(enemy.get("radius", 20.0))
 		var range_padding: float = enemy_radius * 0.65 + 12.0
 		if to_enemy.length() <= swing_range + range_padding and (to_enemy.length() <= 0.1 or norm_dir.dot(to_enemy.normalized()) >= arc_dot_threshold):
-			var push_dir: Vector2 = to_enemy.normalized()
-			if push_dir.length() < 0.1:
-				push_dir = norm_dir
-			if _apply_enemy_hit(enemy, swing_damage, push_dir, swing_knockback, killed_enemies, hit_effects):
+			if _apply_ban_judgement_enemy_hit(enemy, swing_damage, norm_dir, swing_knockback, stun_duration, heavy_stun_duration, killed_enemies, hit_effects):
 				hit_ids.append(_attack_target_id("enemy", enemy))
 				hits += 1
 				swing_hits += 1
@@ -580,17 +643,6 @@ static func _apply_ban_judgement_attack(
 	var shockwave_origin: Vector2 = player_pos + norm_dir * 18.0
 
 	hit_effects.append({
-		"pos": player_pos,
-		"dir": norm_dir,
-		"life": 0.26,
-		"range": swing_range * 0.92,
-		"arcAngle": arc_angle,
-		"hammer": true,
-		"judgement": true,
-		"hit": closest_swing_hit,
-		"count": swing_hits
-	})
-	hit_effects.append({
 		"kind": "ban_judgement_shockwave",
 		"pos": shockwave_origin,
 		"dir": norm_dir,
@@ -602,8 +654,24 @@ static func _apply_ban_judgement_attack(
 		"width": shockwave_width,
 		"damage": shockwave_damage,
 		"knockback": shockwave_knockback,
+		"stunDuration": stun_duration,
+		"heavyStunDuration": heavy_stun_duration,
+		"screenShakePower": float(weapon.get("screenShakePower", 0.0)) * 0.72,
+		"screenShakeDuration": float(weapon.get("screenShakeDuration", 0.10)),
+		"hitStop": float(weapon.get("hitStop", 0.0)) * 0.72,
 		"hitIds": hit_ids.duplicate(),
 		"count": shockwave_hits
+	})
+	hit_effects.append({
+		"pos": player_pos,
+		"dir": norm_dir,
+		"life": 0.26,
+		"range": swing_range * 0.92,
+		"arcAngle": arc_angle,
+		"hammer": true,
+		"judgement": true,
+		"hit": closest_swing_hit,
+		"count": swing_hits
 	})
 	return {
 		"hits": hits,
@@ -979,6 +1047,10 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 		var damage: float = (float(weapon.get("damage", 4.0)) + float(level_value - 1) * 1.5) * float(context["damageRate"])
 		var range_value: float = range_base(weapon) * float(context["rangeRate"])
 		var interval: float = attack_interval(weapon, 1.0) * float(context["intervalRate"])
+		if weapon_id == "kusa_wave":
+			damage = _kusa_wave_damage_for_level(level_value) * float(context["damageRate"])
+			range_value = _kusa_wave_distance_for_level(level_value) * float(context["rangeRate"])
+			interval = _kusa_wave_interval_for_level(level_value) * float(context["intervalRate"])
 		range_value = _short_range_range_for_weapon(weapon_id, weapon, range_value, context)
 		var spawn_support_level: int = support_level if String(weapon.get("attribute", "")) == "bullet" else 0
 		timers[weapon_id] = maxf(0.18, interval)
@@ -1025,25 +1097,37 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			_request_weapon_hit_reaction(result, weapon, enemy_hits, enemy_hits)
 			hit_effects.append({"kind": "spotlight", "pos": center, "dir": Vector2.RIGHT, "life": 0.55, "maxLife": 0.55, "range": spotlight_radius, "arcAngle": 360.0, "hit": center, "count": 1})
 		elif weapon_id == "kusa_wave":
-			hit_effects.append({
-				"kind": "kusa_wave",
-				"pos": player_pos + attack_dir * 34.0,
-				"dir": attack_dir,
-				"vel": attack_dir * 430.0,
-				"life": 0.48,
-				"maxLife": 0.48,
-				"range": range_value,
-				"arcAngle": float(weapon.get("arcAngle", 80.0)),
-				"hit": player_pos + attack_dir * range_value,
-				"count": 1,
-				"damage": damage,
-				"knockback": float(context["knockback"]),
-				"screenShakePower": float(weapon.get("screenShakePower", 0.0)),
-				"screenShakeDuration": float(weapon.get("screenShakeDuration", 0.10)),
-				"hitStop": float(weapon.get("hitStop", 0.0)),
-				"hitRadius": 30.0 + 12.0 * float(context["rangeRate"]),
-				"hitIds": []
-			})
+			var base_fire_dir: Vector2 = _kusa_wave_fire_direction(Vector2(context.get("playerVel", Vector2.ZERO)), facing_dir, context)
+			var fire_dirs: Array = _kusa_wave_supported_directions(base_fire_dir, support_level)
+			var size_scale: float = _kusa_wave_size_for_level(level_value)
+			var max_distance: float = range_value
+			var max_life: float = maxf(KUSA_WAVE_MIN_LIFE, max_distance / KUSA_WAVE_SPEED + 0.35)
+			for fire_dir_item in fire_dirs:
+				var fire_dir: Vector2 = Vector2(fire_dir_item).normalized()
+				if fire_dir.length() < 0.1:
+					continue
+				var start_pos: Vector2 = player_pos + fire_dir * (28.0 + 8.0 * size_scale) + Vector2(0.0, -4.0)
+				hit_effects.append({
+					"kind": "kusa_wave",
+					"pos": start_pos,
+					"dir": fire_dir,
+					"vel": fire_dir * KUSA_WAVE_SPEED,
+					"life": max_life,
+					"maxLife": max_life,
+					"range": max_distance,
+					"maxDistance": max_distance,
+					"distanceTraveled": 0.0,
+					"bouncesLeft": _kusa_wave_bounces_for_level(level_value),
+					"sizeScale": size_scale,
+					"count": 1,
+					"damage": damage,
+					"knockback": float(context["knockback"]) * 0.45,
+					"screenShakePower": float(weapon.get("screenShakePower", 0.0)),
+					"screenShakeDuration": float(weapon.get("screenShakeDuration", 0.10)),
+					"hitStop": float(weapon.get("hitStop", 0.0)),
+					"hitRadius": 18.0 * size_scale,
+					"hitCooldowns": {}
+				})
 		elif weapon_id == "comment_pin":
 			_spawn_comment_pin_projectiles(weapon, level_value, spawn_support_level, player_pos, attack_dir, enemies, range_value, damage, hit_effects)
 		elif weapon_id == "emote_mine":
@@ -1073,6 +1157,69 @@ static func _direction_with_attack_right_only(base_dir: Vector2, context: Dictio
 		if should_force_right:
 			dir = Vector2.RIGHT
 	return dir
+
+static func _level_table_float(table: Array, level_value: int, fallback: float) -> float:
+	if table.is_empty():
+		return fallback
+	return float(table[clampi(level_value - 1, 0, table.size() - 1)])
+
+static func _level_table_int(table: Array, level_value: int, fallback: int) -> int:
+	if table.is_empty():
+		return fallback
+	return int(table[clampi(level_value - 1, 0, table.size() - 1)])
+
+static func _kusa_wave_damage_for_level(level_value: int) -> float:
+	return _level_table_float(KUSA_WAVE_DAMAGE_BY_LEVEL, level_value, 5.0)
+
+static func _kusa_wave_interval_for_level(level_value: int) -> float:
+	return _level_table_float(KUSA_WAVE_INTERVAL_BY_LEVEL, level_value, 1.4)
+
+static func _kusa_wave_size_for_level(level_value: int) -> float:
+	return _level_table_float(KUSA_WAVE_SIZE_BY_LEVEL, level_value, 1.0)
+
+static func _kusa_wave_distance_for_level(level_value: int) -> float:
+	return _level_table_float(KUSA_WAVE_DISTANCE_BY_LEVEL, level_value, 450.0)
+
+static func _kusa_wave_bounces_for_level(level_value: int) -> int:
+	return _level_table_int(KUSA_WAVE_BOUNCES_BY_LEVEL, level_value, 1)
+
+static func _kusa_wave_fire_direction(player_vel: Vector2, facing_dir: Vector2, context: Dictionary) -> Vector2:
+	var horizontal: float = 1.0
+	if player_vel.x > 18.0:
+		horizontal = 1.0
+	elif player_vel.x < -18.0:
+		horizontal = -1.0
+	elif facing_dir.x < -0.1:
+		horizontal = -1.0
+	if bool(context.get("attackRightOnly", false)) and float(context.get("attackRightOnlyRate", 1.0)) >= 0.95:
+		horizontal = 1.0
+	return Vector2(horizontal, 1.0).normalized()
+
+static func _kusa_wave_supported_directions(base_dir: Vector2, support_level: int) -> Array:
+	var base: Vector2 = base_dir.normalized()
+	if base.length() < 0.1:
+		base = Vector2(1.0, 1.0).normalized()
+	var horizontal: float = 1.0 if base.x >= 0.0 else -1.0
+	var directions: Array = [Vector2(horizontal, 1.0).normalized()]
+	var extra_count: int = support_level
+	if extra_count < 0:
+		extra_count = 0
+	var pattern: Array = [
+		Vector2(-horizontal, 1.0).normalized(),
+		Vector2(0.0, 1.0),
+		Vector2(horizontal, 0.0),
+		Vector2(-horizontal, 0.0),
+		Vector2(horizontal, -1.0).normalized(),
+		Vector2(-horizontal, -1.0).normalized(),
+	]
+	for index in range(extra_count):
+		var dir: Vector2 = Vector2(pattern[index % pattern.size()]).normalized()
+		if index >= pattern.size():
+			var cycle: int = int(index / pattern.size())
+			var angle_sign: float = 1.0 if cycle % 2 == 1 else -1.0
+			dir = dir.rotated(deg_to_rad(8.0 * angle_sign * float(cycle))).normalized()
+		directions.append(dir)
+	return directions
 
 static func _level_duration(base_duration: float, level_value: int) -> float:
 	return base_duration * (1.20 if level_value >= 3 else 1.0)
@@ -1448,83 +1595,174 @@ static func _apply_arc_damage_to_boxes(destructibles: Array, origin: Vector2, di
 			hits += 1
 	return hits
 
-static func update_kusa_wave_damage(fx: Dictionary, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
-	var pos: Vector2 = Vector2(fx["pos"])
-	var dir: Vector2 = Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
-	if dir.length() < 0.1:
-		dir = Vector2.RIGHT
-	var side: Vector2 = Vector2(-dir.y, dir.x)
-	var life: float = float(fx.get("life", 0.0))
-	var max_life: float = maxf(0.01, float(fx.get("maxLife", 0.48)))
-	var progress: float = clampf(1.0 - life / max_life, 0.0, 1.0)
-	var chars: int = clampi(1 + int(progress * 6.0), 1, 7)
-	var hit_radius: float = float(fx.get("hitRadius", 38.0))
+static func _tick_kusa_wave_hit_cooldowns(fx: Dictionary, delta: float) -> Dictionary:
+	var source: Dictionary = fx.get("hitCooldowns", {}) as Dictionary
+	var result: Dictionary = {}
+	for key in source.keys():
+		var remaining: float = float(source[key]) - delta
+		if remaining > 0.0:
+			result[key] = remaining
+	fx["hitCooldowns"] = result
+	return result
+
+static func _kusa_wave_collision_radius(fx: Dictionary) -> float:
+	return float(fx.get("hitRadius", 18.0))
+
+static func _kusa_wave_rect_normal(from_pos: Vector2, to_pos: Vector2, rect: Rect2) -> Vector2:
+	if from_pos.x <= rect.position.x:
+		return Vector2.LEFT
+	if from_pos.x >= rect.end.x:
+		return Vector2.RIGHT
+	if from_pos.y <= rect.position.y:
+		return Vector2.UP
+	if from_pos.y >= rect.end.y:
+		return Vector2.DOWN
+	var left_distance: float = absf(to_pos.x - rect.position.x)
+	var right_distance: float = absf(to_pos.x - rect.end.x)
+	var top_distance: float = absf(to_pos.y - rect.position.y)
+	var bottom_distance: float = absf(to_pos.y - rect.end.y)
+	var min_distance: float = minf(minf(left_distance, right_distance), minf(top_distance, bottom_distance))
+	if min_distance == left_distance:
+		return Vector2.LEFT
+	if min_distance == right_distance:
+		return Vector2.RIGHT
+	if min_distance == top_distance:
+		return Vector2.UP
+	return Vector2.DOWN
+
+static func _kusa_wave_wall_collision(from_pos: Vector2, to_pos: Vector2, radius: float, walls: Array) -> Dictionary:
+	for wall_item in walls:
+		if not (wall_item is Rect2):
+			continue
+		var wall: Rect2 = wall_item
+		var grown: Rect2 = wall.grow(radius)
+		if EnemySystem.segment_intersects_rect(from_pos, to_pos, grown):
+			var normal: Vector2 = _kusa_wave_rect_normal(from_pos, to_pos, grown)
+			return {"hit": true, "normal": normal, "pos": to_pos}
+	return {"hit": false}
+
+static func _kusa_wave_arena_collision(from_pos: Vector2, to_pos: Vector2, radius: float, arena: Rect2) -> Dictionary:
+	if arena.size.x <= 0.0 or arena.size.y <= 0.0:
+		return {"hit": false}
+	var normal: Vector2 = Vector2.ZERO
+	var resolved: Vector2 = to_pos
+	if to_pos.x < arena.position.x + radius:
+		normal = Vector2.RIGHT
+		resolved.x = arena.position.x + radius
+	elif to_pos.x > arena.end.x - radius:
+		normal = Vector2.LEFT
+		resolved.x = arena.end.x - radius
+	if to_pos.y < arena.position.y + radius:
+		normal = Vector2.DOWN
+		resolved.y = arena.position.y + radius
+	elif to_pos.y > arena.end.y - radius:
+		normal = Vector2.UP
+		resolved.y = arena.end.y - radius
+	if normal.length() < 0.1:
+		return {"hit": false}
+	if from_pos.distance_to(resolved) > from_pos.distance_to(to_pos) + radius:
+		resolved = to_pos
+	return {"hit": true, "normal": normal.normalized(), "pos": resolved}
+
+static func _kusa_wave_reflect_velocity(velocity: Vector2, normal: Vector2) -> Vector2:
+	var n: Vector2 = normal.normalized()
+	if n.length() < 0.1:
+		return -velocity
+	return velocity - n * (2.0 * velocity.dot(n))
+
+static func _kusa_wave_bounce_fx(pos: Vector2, dir: Vector2, size_scale: float, depleted: bool = false) -> Dictionary:
+	return {
+		"kind": "kusa_wave_bounce",
+		"pos": pos,
+		"dir": dir.normalized() if dir.length() > 0.1 else Vector2.RIGHT,
+		"life": 0.22 if not depleted else 0.18,
+		"maxLife": 0.22 if not depleted else 0.18,
+		"sizeScale": size_scale,
+		"depleted": depleted
+	}
+
+static func _kusa_wave_reflect_or_finish(fx: Dictionary, normal: Vector2, collision_pos: Vector2, hit_effects: Array, depleted: bool = false) -> bool:
+	var bounces_left: int = int(fx.get("bouncesLeft", 0))
+	var size_scale: float = float(fx.get("sizeScale", 1.0))
+	var velocity: Vector2 = Vector2(fx.get("vel", Vector2.RIGHT * KUSA_WAVE_SPEED))
+	if bounces_left <= 0 or depleted:
+		fx["pos"] = collision_pos
+		fx["life"] = 0.0
+		hit_effects.append(_kusa_wave_bounce_fx(collision_pos, Vector2(fx.get("dir", Vector2.RIGHT)), size_scale, true))
+		return false
+	var reflected: Vector2 = _kusa_wave_reflect_velocity(velocity, normal)
+	if reflected.length() < 0.1:
+		reflected = -velocity
+	var reflected_dir: Vector2 = reflected.normalized()
+	fx["bouncesLeft"] = bounces_left - 1
+	fx["vel"] = reflected_dir * maxf(KUSA_WAVE_SPEED * 0.55, velocity.length())
+	fx["dir"] = reflected_dir
+	fx["pos"] = collision_pos + reflected_dir * (4.0 + 2.0 * size_scale)
+	hit_effects.append(_kusa_wave_bounce_fx(collision_pos, reflected_dir, size_scale, false))
+	return true
+
+static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, _enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = []) -> void:
+	var pos: Vector2 = Vector2(fx.get("pos", Vector2.ZERO))
+	var velocity: Vector2 = Vector2(fx.get("vel", Vector2.RIGHT * KUSA_WAVE_SPEED))
+	if velocity.length() < 0.1:
+		velocity = Vector2.RIGHT * KUSA_WAVE_SPEED
+	var dir: Vector2 = velocity.normalized()
+	fx["dir"] = dir
+	var hit_radius: float = _kusa_wave_collision_radius(fx)
+	var move: Vector2 = velocity * delta
+	var next_pos: Vector2 = pos + move
+	var distance_traveled: float = float(fx.get("distanceTraveled", 0.0)) + move.length()
+	fx["distanceTraveled"] = distance_traveled
+	if distance_traveled >= float(fx.get("maxDistance", fx.get("range", 450.0))):
+		fx["pos"] = next_pos
+		fx["life"] = 0.0
+		return
+	var arena_hit: Dictionary = _kusa_wave_arena_collision(pos, next_pos, hit_radius, arena)
+	if bool(arena_hit.get("hit", false)):
+		_kusa_wave_reflect_or_finish(fx, arena_hit["normal"] as Vector2, arena_hit["pos"] as Vector2, hit_effects)
+		return
+	var wall_hit: Dictionary = _kusa_wave_wall_collision(pos, next_pos, hit_radius, walls)
+	if bool(wall_hit.get("hit", false)):
+		_kusa_wave_reflect_or_finish(fx, wall_hit["normal"] as Vector2, wall_hit["pos"] as Vector2, hit_effects)
+		return
+	pos = next_pos
+	fx["pos"] = pos
+	var cooldowns: Dictionary = _tick_kusa_wave_hit_cooldowns(fx, delta)
 	var damage: float = float(fx.get("damage", 0.0))
 	var knockback: float = float(fx.get("knockback", 0.0))
-	var hit_ids: Array = fx.get("hitIds", []) as Array
-	var hit_points: Array = []
-	var hit_count: int = 0
-	for i in range(chars):
-		var centered_index: float = float(i) - float(chars - 1) * 0.5
-		var wobble: Vector2 = side * sin(life * 28.0 + float(i) * 0.8) * 7.0
-		hit_points.append(pos - dir * centered_index * 16.0 + wobble)
-	for bullet_item in enemy_bullets:
-		var bullet: Dictionary = bullet_item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0:
-			continue
-		var bullet_pos: Vector2 = Vector2(bullet["pos"])
-		for point_item in hit_points:
-			var point: Vector2 = Vector2(point_item)
-			if bullet_pos.distance_to(point) <= float(bullet.get("hitRadius", 16.0)) + hit_radius:
-				bullet["life"] = -1.0
-				hit_effects.append(_bullet_pop_fx(bullet_pos))
-				break
 	for enemy_item in enemies:
-		var enemy: Dictionary = enemy_item
-		if float(enemy["hp"]) <= 0.0:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if float(enemy.get("hp", 0.0)) <= 0.0:
 			continue
-		var uid: String = "%s_%d" % [String(enemy.get("kind", "")), int(enemy.get("uid", 0))]
-		if hit_ids.has(uid):
+		var target_id: String = _attack_target_id("enemy", enemy)
+		if float(cooldowns.get(target_id, 0.0)) > 0.0:
 			continue
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
-		var did_hit: bool = false
-		for point in hit_points:
-			if enemy_pos.distance_to(point) <= float(enemy.get("radius", 20.0)) + hit_radius:
-				did_hit = true
-				break
-		if not did_hit:
+		if pos.distance_to(enemy_pos) > float(enemy.get("radius", 20.0)) + hit_radius:
 			continue
-		var push_dir: Vector2 = (enemy_pos - pos).normalized()
-		if push_dir.length() < 0.1:
-			push_dir = dir
-		hit_ids.append(uid)
-		if _apply_enemy_hit(enemy, damage, push_dir, knockback, killed_enemies, hit_effects):
-			hit_count += 1
-	if hit_count > 0:
-		_merge_reaction_result(feedback, {
-			"enemyDamaged": true,
-			"screenShakePower": float(fx.get("screenShakePower", 0.0)),
-			"screenShakeDuration": float(fx.get("screenShakeDuration", 0.10)),
-			"hitStop": float(fx.get("hitStop", 0.0))
-		})
+		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects):
+			cooldowns[target_id] = KUSA_WAVE_HIT_COOLDOWN
+			fx["hitCooldowns"] = cooldowns
+			_merge_reaction_result(feedback, {
+				"enemyDamaged": true,
+				"screenShakePower": float(fx.get("screenShakePower", 0.0)),
+				"screenShakeDuration": float(fx.get("screenShakeDuration", 0.10)),
+				"hitStop": float(fx.get("hitStop", 0.0))
+			})
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
 			continue
-		var box_uid: String = "box_%d" % int(box.get("uid", 0))
-		if hit_ids.has(box_uid):
+		var target_id: String = _attack_target_id("box", box)
+		if float(cooldowns.get(target_id, 0.0)) > 0.0:
 			continue
 		var box_pos: Vector2 = Vector2(box["pos"])
-		var box_hit: bool = false
-		for point in hit_points:
-			if box_pos.distance_to(point) <= float(box.get("radius", 24.0)) + hit_radius:
-				box_hit = true
-				break
-		if not box_hit:
+		if pos.distance_to(box_pos) > float(box.get("radius", 24.0)) + hit_radius:
 			continue
 		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
-		hit_ids.append(box_uid)
-	fx["hitIds"] = hit_ids
+		cooldowns[target_id] = KUSA_WAVE_HIT_COOLDOWN
+		fx["hitCooldowns"] = cooldowns
+	fx["hitCooldowns"] = cooldowns
 
 static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
 	var pos: Vector2 = Vector2(fx["pos"])
@@ -1535,6 +1773,8 @@ static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array
 	var width_value: float = float(fx.get("width", 96.0))
 	var damage: float = float(fx.get("damage", 0.0))
 	var knockback: float = float(fx.get("knockback", 0.0))
+	var stun_duration: float = float(fx.get("stunDuration", BAN_JUDGEMENT_STUN_DURATION))
+	var heavy_stun_duration: float = float(fx.get("heavyStunDuration", BAN_JUDGEMENT_HEAVY_STUN_DURATION))
 	var hit_ids: Array = fx.get("hitIds", []) as Array
 	var hit_count: int = 0
 	for enemy_item in enemies:
@@ -1547,11 +1787,16 @@ static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
 		if not _is_forward_shockwave_hit(pos, dir, range_value, width_value, enemy_pos, float(enemy.get("radius", 20.0))):
 			continue
-		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects):
+		if _apply_ban_judgement_enemy_hit(enemy, damage, dir, knockback, stun_duration, heavy_stun_duration, killed_enemies, hit_effects):
 			hit_ids.append(target_id)
 			hit_count += 1
 	if hit_count > 0:
-		_merge_reaction_result(feedback, {"enemyDamaged": true})
+		_merge_reaction_result(feedback, {
+			"enemyDamaged": true,
+			"screenShakePower": float(fx.get("screenShakePower", 0.0)),
+			"screenShakeDuration": float(fx.get("screenShakeDuration", 0.10)),
+			"hitStop": float(fx.get("hitStop", 0.0))
+		})
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
@@ -1671,7 +1916,7 @@ static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies:
 	})
 	fx["hitTimer"] = float(fx.get("hitCooldown", 0.70))
 
-static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], destructibles: Array = [], enemy_bullets: Array = [], killed_enemies: Array = [], destroyed_boxes: Array = [], feedback: Dictionary = {}) -> Array:
+static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], destructibles: Array = [], enemy_bullets: Array = [], killed_enemies: Array = [], destroyed_boxes: Array = [], feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = []) -> Array:
 	var appended_fx: Array = []
 	for fx_item in hit_fx:
 		var fx: Dictionary = fx_item
@@ -1679,20 +1924,21 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 		if delay > 0.0:
 			fx["delay"] = maxf(0.0, delay - delta)
 			continue
-		if fx.has("vel"):
+		var kind: String = String(fx.get("kind", ""))
+		if fx.has("vel") and kind != "kusa_wave":
 			var move: Vector2 = Vector2(fx["vel"]) * delta
 			fx["pos"] = Vector2(fx["pos"]) + move
 			if fx.has("hit"):
 				fx["hit"] = Vector2(fx["hit"]) + move
-		if String(fx.get("kind", "")) == "kusa_wave":
-			update_kusa_wave_damage(fx, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
-		elif String(fx.get("kind", "")) == "ban_judgement_shockwave":
+		if kind == "kusa_wave":
+			update_kusa_wave_damage(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback, arena, walls)
+		elif kind == "ban_judgement_shockwave":
 			update_ban_judgement_shockwave_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
-		elif String(fx.get("kind", "")) == "comment_pin":
+		elif kind == "comment_pin":
 			update_comment_pin_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
-		elif String(fx.get("kind", "")) == "emote_mine":
+		elif kind == "emote_mine":
 			update_emote_mine_damage(fx, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
-		elif String(fx.get("kind", "")) == "listener_summon":
+		elif kind == "listener_summon":
 			update_listener_summon_damage(fx, delta, enemies, killed_enemies, appended_fx, feedback)
 		fx["life"] = float(fx["life"]) - delta
 	var remaining: Array = hit_fx.filter(func(f): return float(f["life"]) > 0.0)
@@ -1708,7 +1954,17 @@ static func update_hit_fx_for_target(target: Node, delta: float, arena: Rect2, r
 	var enemies: Array = target.get("enemies") as Array
 	var destructibles: Array = target.get("destructibles") as Array
 	var enemy_bullets: Array = target.get("enemy_bullets") as Array
-	target.set("hit_fx", update_hit_fx(target.get("hit_fx") as Array, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, feedback))
+	var stream_frame_id: String = String(target.get("current_stream_frame_id"))
+	if stream_frame_id == "":
+		stream_frame_id = "zatsudan"
+	var map_data: Dictionary = MapBackgroundSystemScript.background_data_for_stream_frame(stream_frame_id)
+	var walls: Array = MapBackgroundSystemScript.static_wall_rects_for_data(map_data)
+	var effect_walls_value: Variant = target.get("effect_walls")
+	if effect_walls_value is Array:
+		for wall_item in (effect_walls_value as Array):
+			if wall_item is Rect2:
+				walls.append(wall_item)
+	target.set("hit_fx", update_hit_fx(target.get("hit_fx") as Array, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, feedback, arena, walls))
 	target.set("enemy_bullets", enemy_bullets.filter(func(b): return float(b.get("life", 0.0)) > 0.0))
 	for item in killed_enemies:
 		var enemy: Dictionary = item

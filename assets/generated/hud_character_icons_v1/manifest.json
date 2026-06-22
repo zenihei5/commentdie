@@ -1,40 +1,73 @@
 {
-  "version": "hud_character_icons_v1",
-  "purpose": "Small character portraits for the top in-game HUD character card.",
-  "chromaKey": "Bright green screen pixels are removed while preserving mint/blue accessory colors.",
+  "version": "hud_character_icons_v2_gameplay_face",
+  "purpose": "Small top-HUD character portraits cropped from the actual controllable gameplay sprites.",
+  "outputSize": [
+    256,
+    256
+  ],
   "items": [
     {
       "id": "banri",
-      "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\小ばんちゃん.png",
+      "source": "res://assets/generated/ban_chan_idle_generated_feet_together_v1/sheet-transparent.png",
       "output": "res://assets/generated/hud_character_icons_v1/banri_hud_icon.png",
-      "size": [
-        1254,
-        1254
+      "frame": [
+        0,
+        0,
+        128,
+        128
       ],
-      "removedPixels": 799602,
-      "softenedPixels": 559
+      "crop": [
+        28,
+        4,
+        100,
+        76
+      ],
+      "target": [
+        236,
+        236
+      ]
     },
     {
       "id": "supana",
-      "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\小すぱな.png",
+      "source": "res://assets/generated/supana_gameplay_sprites_v1/idle-sheet-transparent.png",
       "output": "res://assets/generated/hud_character_icons_v1/supana_hud_icon.png",
-      "size": [
-        1254,
-        1254
+      "frame": [
+        0,
+        0,
+        128,
+        128
       ],
-      "removedPixels": 752521,
-      "softenedPixels": 558
+      "crop": [
+        28,
+        4,
+        100,
+        76
+      ],
+      "target": [
+        236,
+        236
+      ]
     },
     {
       "id": "maron",
-      "source": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\小まろん.png",
+      "source": "res://assets/generated/maron_gameplay_sprites_v2/idle-sheet-transparent.png",
       "output": "res://assets/generated/hud_character_icons_v1/maron_hud_icon.png",
-      "size": [
-        1254,
-        1254
+      "frame": [
+        0,
+        0,
+        128,
+        128
       ],
-      "removedPixels": 444529,
-      "softenedPixels": 361
+      "crop": [
+        16,
+        0,
+        112,
+        96
+      ],
+      "target": [
+        238,
+        238
+      ]
     }
   ]
 }

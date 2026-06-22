@@ -1,0 +1,241 @@
+{
+  "version": "hud_ui_parts_gen_v1",
+  "source": "res://assets/generated/hud_ui_parts_gen_v1/generated_hud_ui_kit_source.png",
+  "promptUse": "Generated pastel livestream HUD UI kit; cropped, chroma-keyed, and resized to exact game HUD dimensions.",
+  "items": [
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/top_card_stream_198x80.png",
+      "sourceBox": [
+        34,
+        39,
+        292,
+        146
+      ],
+      "size": [
+        198,
+        80
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/top_card_time_198x80.png",
+      "sourceBox": [
+        306,
+        39,
+        566,
+        146
+      ],
+      "size": [
+        198,
+        80
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/top_card_buzz_220x80.png",
+      "sourceBox": [
+        580,
+        39,
+        842,
+        146
+      ],
+      "size": [
+        220,
+        80
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/top_card_viewer_278x80.png",
+      "sourceBox": [
+        851,
+        39,
+        1134,
+        146
+      ],
+      "size": [
+        278,
+        80
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/top_card_character_258x80.png",
+      "sourceBox": [
+        1141,
+        39,
+        1494,
+        146
+      ],
+      "size": [
+        258,
+        80
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/instruction_panel_normal_1200x76.png",
+      "sourceBox": [
+        33,
+        184,
+        1083,
+        307
+      ],
+      "size": [
+        1200,
+        76
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/instruction_panel_danger_1200x76.png",
+      "sourceBox": [
+        33,
+        184,
+        1083,
+        307
+      ],
+      "size": [
+        1200,
+        76
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/comment_panel_320x752.png",
+      "sourceBox": [
+        1105,
+        177,
+        1509,
+        981
+      ],
+      "size": [
+        320,
+        752
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/bottom_hud_base_1560x90.png",
+      "sourceBox": [
+        29,
+        843,
+        1083,
+        980
+      ],
+      "size": [
+        1560,
+        90
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/equipment_weapon_panel_304x70.png",
+      "sourceBox": [
+        35,
+        359,
+        392,
+        806
+      ],
+      "size": [
+        304,
+        70
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/equipment_accessory_panel_322x70.png",
+      "sourceBox": [
+        426,
+        336,
+        787,
+        806
+      ],
+      "size": [
+        322,
+        70
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/slot_weapon_empty_34x34.png",
+      "sourceBox": [
+        823,
+        463,
+        936,
+        573
+      ],
+      "size": [
+        34,
+        34
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/slot_weapon_filled_34x34.png",
+      "sourceBox": [
+        957,
+        463,
+        1070,
+        573
+      ],
+      "size": [
+        34,
+        34
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/slot_accessory_empty_34x34.png",
+      "sourceBox": [
+        823,
+        587,
+        936,
+        694
+      ],
+      "size": [
+        34,
+        34
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/slot_accessory_filled_34x34.png",
+      "sourceBox": [
+        957,
+        587,
+        1070,
+        694
+      ],
+      "size": [
+        34,
+        34
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/metric_exp_260x62.png",
+      "sourceBox": [
+        34,
+        39,
+        292,
+        146
+      ],
+      "size": [
+        260,
+        62
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/metric_gift_170x54.png",
+      "sourceBox": [
+        113,
+        718,
+        180,
+        778
+      ],
+      "size": [
+        170,
+        54
+      ]
+    },
+    {
+      "path": "res://assets/generated/hud_ui_parts_gen_v1/metric_heart_160x54.png",
+      "sourceBox": [
+        956,
+        843,
+        1082,
+        980
+      ],
+      "size": [
+        160,
+        54
+      ]
+    }
+  ]
+}
