@@ -1,0 +1,4 @@
+source=C:\Users\zenih\Documents\Codex\2026-05-29\commentdie\work\genre_banner_sources\bullet_hell.png
+source_size=1774x887
+process=green_chroma_key_and_crop
+output_size=1758x495

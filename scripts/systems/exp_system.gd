@@ -3,6 +3,9 @@ extends RefCounted
 
 const EXP_NEEDS := [5, 10, 18, 30, 45, 65, 90, 120, 155, 195]
 const EXTRA_LEVEL_GROWTH_RATE := 1.18
+const MAX_EXP_ORBS := 220
+const EXP_ORB_MERGE_RADIUS := 56.0
+const EXP_PICKUP_RADIUS := 24.0
 
 static func current_need(level: int) -> int:
 	var idx := maxi(0, level - 1)
@@ -16,12 +19,41 @@ static func current_need(level: int) -> int:
 static func drop_from_enemy_for_target(target: Node, enemy: Dictionary) -> void:
 	var orbs: Array = target.get("exp_orbs") as Array
 	var value: int = maxi(1, int(enemy.get("expValue", enemy.get("exp", 1))))
+	var pos := Vector2(enemy["pos"])
+	if orbs.size() >= MAX_EXP_ORBS:
+		_merge_exp_drop(orbs, pos, value)
+		return
 	orbs.append({
-		"pos": Vector2(enemy["pos"]),
+		"pos": pos,
 		"value": value,
 		"visualType": visual_type_for_value(value),
 		"life": 20.0
 	})
+
+static func _merge_exp_drop(orbs: Array, pos: Vector2, value: int) -> void:
+	var best_index := -1
+	var best_distance := INF
+	var oldest_index := 0
+	var oldest_life := INF
+	var merge_radius_sq := EXP_ORB_MERGE_RADIUS * EXP_ORB_MERGE_RADIUS
+	for i in range(orbs.size()):
+		var orb: Dictionary = orbs[i]
+		var orb_life := float(orb.get("life", 0.0))
+		if orb_life < oldest_life:
+			oldest_life = orb_life
+			oldest_index = i
+		var distance_sq := Vector2(orb.get("pos", pos)).distance_squared_to(pos)
+		if distance_sq < best_distance and distance_sq <= merge_radius_sq:
+			best_distance = distance_sq
+			best_index = i
+	if best_index < 0:
+		best_index = oldest_index
+	var target_orb: Dictionary = orbs[best_index]
+	var merged_value := int(target_orb.get("value", 1)) + value
+	target_orb["value"] = merged_value
+	target_orb["visualType"] = visual_type_for_value(merged_value)
+	target_orb["life"] = maxf(float(target_orb.get("life", 0.0)), 12.0)
+	target_orb["pos"] = Vector2(target_orb.get("pos", pos)).lerp(pos, 0.35)
 
 static func visual_type_for_value(value: int) -> String:
 	if value <= 1:
@@ -36,25 +68,32 @@ static func update_orbs(context: Dictionary) -> Dictionary:
 	var orbs: Array = context["orbs"] as Array
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var magnet_range: float = float(context["magnetRange"])
+	var magnet_range_sq := magnet_range * magnet_range
+	var pickup_radius_sq := EXP_PICKUP_RADIUS * EXP_PICKUP_RADIUS
 	var magnet_speed_rate: float = maxf(0.1, float(context.get("magnetSpeedRate", 1.0)))
 	var delta: float = float(context["delta"])
 	var collected_exp: int = 0
 	var collected_count: int = 0
 	var attracted_count: int = 0
+	var kept_orbs: Array = []
 	for orb_item in orbs:
 		var orb: Dictionary = orb_item
 		var pos: Vector2 = Vector2(orb["pos"])
-		orb["life"] = float(orb["life"]) - delta
-		if pos.distance_to(player_pos) <= magnet_range:
+		var life := float(orb["life"]) - delta
+		if life <= 0.0:
+			continue
+		orb["life"] = life
+		if pos.distance_squared_to(player_pos) <= magnet_range_sq:
 			attracted_count += 1
 			pos = pos.lerp(player_pos, minf(1.0, delta * 7.5 * magnet_speed_rate))
 		orb["pos"] = pos
-		if pos.distance_to(player_pos) < 24.0:
-			orb["life"] = -1.0
+		if pos.distance_squared_to(player_pos) < pickup_radius_sq:
 			collected_count += 1
 			collected_exp += int(orb["value"])
+			continue
+		kept_orbs.append(orb)
 	return {
-		"orbs": orbs.filter(func(o): return float(o["life"]) > 0.0),
+		"orbs": kept_orbs,
 		"collectedExp": collected_exp,
 		"collectedCount": collected_count,
 		"attractedCount": attracted_count

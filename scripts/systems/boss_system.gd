@@ -3,6 +3,7 @@ extends RefCounted
 
 const BOSS_SUPER_LONG_COMMENT := "boss_super_long_comment"
 const BOSS_KUSO_MARO_KING := "boss_kuso_maro_king"
+const BOSS_BUGGED_FINAL_BOSS := "bugged_final_boss"
 const BOSS_KIND := BOSS_SUPER_LONG_COMMENT
 const WARNING_DURATION := 3.0
 const DEFAULT_MAX_SUMMONS := 1
@@ -15,6 +16,15 @@ const BOSS_SPAWN_WALL_RADIUS_MIN := 56.0
 const BOSS_DEFEAT_BANNER := "大荒れ突破！"
 const BOSS_DEFEAT_FX_LIFE := 1.65
 const BOSS_DEFEAT_GIFT_DELAY := 0.45
+const BUGGED_STATE_NORMAL := "normal"
+const BUGGED_STATE_TELEGRAPH := "genre_telegraph"
+const BUGGED_STATE_GENRE := "genre"
+const BUGGED_STATE_STUN := "glitch_stun"
+const BUGGED_GENRE_DURATION := 12.0
+const BUGGED_GENRE_TELEGRAPH := 1.0
+const BUGGED_STUN_DURATION := 1.2
+const BUGGED_STUN_DAMAGE_RATE := 1.2
+const BUGGED_GENRES: Array[String] = ["race", "bullet_hell", "horror"]
 const BOSS_DEFEAT_COMMON_CHATS: Array[String] = [
 	"ボス撃破きた！",
 	"神回",
@@ -66,6 +76,8 @@ static func reset_for_target(target: Node, reset_count: bool = true) -> void:
 	target.set("boss_reward_viewers", 0)
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
+	if target.get("boss_guide_lines") != null:
+		(target.get("boss_guide_lines") as Array).clear()
 
 static func comment_available(context: Dictionary, comment: Dictionary, comment_time: float) -> bool:
 	if String(comment.get("effectType", "")) != "summon_boss" and String(comment.get("id", "")) != "summon_boss":
@@ -112,8 +124,16 @@ static func request_summon_for_target(target: Node, view: Dictionary, has_heart:
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	var chats: Array[String] = []
 	var toasts: Array[String] = []
-	var feedback: Dictionary = {"chats": chats, "toasts": toasts}
+	var damage_events: Array = []
+	var comment_event_ids: Array[String] = []
+	var feedback: Dictionary = {
+		"chats": chats,
+		"toasts": toasts,
+		"damageEvents": damage_events,
+		"commentEventIds": comment_event_ids
+	}
 	update_slow_fields_for_target(target, delta)
+	update_guide_lines_for_target(target, delta, damage_events)
 	if bool(target.get("boss_requested")):
 		var timer: float = maxf(0.0, float(target.get("boss_warning_timer")) - delta)
 		target.set("boss_warning_timer", timer)
@@ -140,7 +160,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 					toasts.append(String(item))
 				merge_reaction_feedback(feedback, retreat_result)
 			else:
-				update_boss_attacks_for_target(target, boss, delta, arena, rng, chats, toasts)
+				update_boss_attacks_for_target(target, boss, delta, arena, rng, chats, toasts, damage_events, comment_event_ids)
 	return feedback
 
 static func merge_reaction_feedback(target: Dictionary, source: Dictionary) -> void:
@@ -203,6 +223,8 @@ static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenera
 		"canBeKnockedBack": bool(data.get("canBeKnockedBack", false)),
 		"knockbackVelocity": Vector2.ZERO
 	}
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		initialize_bugged_final_boss_state(boss, rng)
 	var enemies: Array = target.get("enemies") as Array
 	enemies.append(boss)
 	target.set("enemies", enemies)
@@ -242,6 +264,7 @@ static func retreat_for_target(target: Node) -> Dictionary:
 	target.set("boss_last_result", "retreated")
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
+	clear_bugged_boss_state_for_target(target)
 	return {
 		"chats": [retreat_chat_for_boss(boss_name)],
 		"toasts": ["ボスに逃げられた…"]
@@ -280,6 +303,7 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 	target.set("boss_reward_viewers", int(target.get("boss_reward_viewers")) + viewer_reward)
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
+	clear_bugged_boss_state_for_target(target)
 	append_boss_defeat_fx_for_target(target, boss, boss_id, readable_name, viewer_reward)
 	var celebration_chats: Array[String] = defeat_chats_for_boss(boss_id, readable_name, viewer_reward, int(target.get("comment_barrage_setting")))
 	return {
@@ -296,6 +320,8 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 static func readable_boss_name(boss_id: String, fallback: String) -> String:
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return "クソマロキング"
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		return "バグったラスボス"
 	if boss_id == BOSS_SUPER_LONG_COMMENT:
 		return "超長文ニキ"
 	return fallback
@@ -303,6 +329,8 @@ static func readable_boss_name(boss_id: String, fallback: String) -> String:
 static func defeat_effect_type_for_boss(boss_id: String) -> String:
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return "maro"
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		return "bugged"
 	return "long_comment"
 
 static func append_boss_defeat_fx_for_target(target: Node, boss: Dictionary, boss_id: String, boss_name: String, viewer_reward: int) -> void:
@@ -328,6 +356,8 @@ static func defeat_chats_for_boss(boss_id: String, boss_name: String, viewer_rew
 	var specific: Array[String] = []
 	if boss_id == BOSS_KUSO_MARO_KING:
 		specific = ["クソマロ鎮圧", "マロ欄救われた", "クソマロ成敗", "甘くない勝利"]
+	elif boss_id == BOSS_BUGGED_FINAL_BOSS:
+		specific = ["ラスボス停止！", "ジャンル暴走を止めた", "ゲーム実況枠クリア", "バグ修正完了"]
 	else:
 		specific = ["長文ニキ沈黙", "読まずに勝った", "要約成功", "長文、鎮圧！"]
 	var target_total: int = defeat_comment_total_for_setting(comment_barrage_setting)
@@ -368,6 +398,8 @@ static func boss_data_for_target(target: Node, boss_id: String) -> Dictionary:
 static func boss_id_for_target(target: Node) -> String:
 	if String(target.get("current_stream_frame_id")) == "zatsudan":
 		return BOSS_KUSO_MARO_KING
+	if String(target.get("current_stream_frame_id")) == "gameplay":
+		return BOSS_BUGGED_FINAL_BOSS
 	return BOSS_SUPER_LONG_COMMENT
 
 static func boss_speed(data: Dictionary) -> float:
@@ -381,32 +413,48 @@ static func warning_text_for_boss(data: Dictionary, boss_id: String) -> String:
 		return String(data["warningText"])
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return "クソマロキング出現！"
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		return "バグったラスボス出現！"
 	return "大荒れイベント発生！"
 
 static func request_chats_for_boss(boss_id: String, warning_text: String) -> Array[String]:
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return [
 			"WARNING! %s" % warning_text,
-			"コメント欄：クソマロ王きた",
-			"コメント欄：マロ欄終わった"
+			"クソマロ王きた",
+			"マロ欄終わった"
+		]
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		return [
+			"WARNING! %s" % warning_text,
+			"ラスボス戦きた",
+			"ジャンル変わりすぎ注意"
 		]
 	return [
 		"WARNING! %s" % warning_text,
-		"コメント欄：ボスきたｗ"
+		"ボスきたｗ"
 	]
 
 static func spawn_chats_for_boss(boss_id: String, boss_name: String) -> Array[String]:
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return [
 			"%sが出現！" % boss_name,
-			"コメント欄：読むな読むな",
-			"コメント欄：これは荒れる"
+			"読むな読むな",
+			"これは荒れる"
 		]
-	return ["%sが出現！" % boss_name, "コメント欄：逃げるな"]
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		return [
+			"%sが出現！" % boss_name,
+			"ゲーム壊れた？",
+			"ジャンルチェンジ連打してくるぞ"
+		]
+	return ["%sが出現！" % boss_name, "逃げるな"]
 
 static func speech_text_for_boss(boss_id: String) -> String:
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return "未読にするな"
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		return "ジャンル変更"
 	return "戦え戦え"
 
 static func retreat_chat_for_boss(_boss_name: String) -> String:
@@ -431,8 +479,107 @@ static func initial_attack_timers(data: Dictionary, interval_rate: float) -> Dic
 			timers[attack_id] = 6.0 * interval_rate
 	return timers
 
-static func update_boss_attacks_for_target(target: Node, boss: Dictionary, delta: float, arena: Rect2, rng: RandomNumberGenerator, chats: Array[String], _toasts: Array[String]) -> void:
-	if String(boss.get("bossId", "")) != BOSS_KUSO_MARO_KING:
+static func initialize_bugged_final_boss_state(boss: Dictionary, rng: RandomNumberGenerator) -> void:
+	boss["baseSpeed"] = float(boss.get("speed", 52.0))
+	boss["buggedState"] = BUGGED_STATE_NORMAL
+	boss["buggedStateTimer"] = bugged_normal_duration(boss, rng)
+	boss["buggedTelegraphGenre"] = ""
+	boss["buggedLastGenre"] = ""
+	boss["buggedUsedGenres"] = []
+	boss["buggedGenreCursor"] = rng.randi_range(0, BUGGED_GENRES.size() - 1)
+	boss["buggedSpoilerTimer"] = rng.randf_range(1.1, 1.8)
+	boss["buggedGuideLineTimer"] = rng.randf_range(2.4, 3.4)
+	boss["buggedLagWarpTimer"] = rng.randf_range(4.4, 6.2)
+	boss["buggedLagWarpWarning"] = 0.0
+	boss["buggedLagWarpTarget"] = Vector2.ZERO
+	boss["buggedBulletPatternTimer"] = 1.6
+	boss["buggedRaceLineTimer"] = 2.1
+	boss["damageTakenRate"] = 1.0
+	boss["ignoreMovementWalls"] = true
+
+static func bugged_hp_phase(boss: Dictionary) -> int:
+	var max_hp: float = maxf(1.0, float(boss.get("max_hp", 1.0)))
+	var ratio: float = clampf(float(boss.get("hp", max_hp)) / max_hp, 0.0, 1.0)
+	if ratio <= 0.40:
+		return 3
+	if ratio <= 0.70:
+		return 2
+	return 1
+
+static func bugged_normal_duration(boss: Dictionary, rng: RandomNumberGenerator) -> float:
+	if bugged_hp_phase(boss) >= 3:
+		return rng.randf_range(4.0, 5.5)
+	return rng.randf_range(6.0, 8.0)
+
+static func choose_bugged_genre(boss: Dictionary, rng: RandomNumberGenerator) -> String:
+	var last_genre: String = String(boss.get("buggedLastGenre", ""))
+	var phase: int = bugged_hp_phase(boss)
+	var pool: Array[String] = []
+	var used: Array = boss.get("buggedUsedGenres", []) as Array
+	if phase >= 2:
+		if used.size() >= BUGGED_GENRES.size():
+			used.clear()
+		for genre in BUGGED_GENRES:
+			if genre != last_genre and not used.has(genre):
+				pool.append(genre)
+	if pool.is_empty():
+		for genre in BUGGED_GENRES:
+			if genre != last_genre:
+				pool.append(genre)
+	if pool.is_empty():
+		pool = BUGGED_GENRES.duplicate()
+	var selected := ""
+	if phase >= 3:
+		var cursor: int = int(boss.get("buggedGenreCursor", 0))
+		for _i in range(BUGGED_GENRES.size() * 2):
+			var candidate: String = BUGGED_GENRES[cursor % BUGGED_GENRES.size()]
+			cursor += 1
+			if candidate != last_genre:
+				selected = candidate
+				break
+		boss["buggedGenreCursor"] = cursor
+	if selected == "":
+		selected = pool[rng.randi_range(0, pool.size() - 1)]
+	used.append(selected)
+	boss["buggedUsedGenres"] = used
+	boss["buggedLastGenre"] = selected
+	return selected
+
+static func bugged_genre_short_label(genre: String) -> String:
+	if genre == "race":
+		return "レースゲー"
+	if genre == "bullet_hell":
+		return "弾幕STG"
+	if genre == "horror":
+		return "ホラゲ"
+	return GenreEventSystem.label(genre)
+
+static func clear_bugged_boss_state_for_target(target: Node) -> void:
+	if target.get("boss_guide_lines") != null:
+		(target.get("boss_guide_lines") as Array).clear()
+	if String(target.get("genre_event_source")) == "boss":
+		GenreEventSystem.clear_temp_objects_for_target(target)
+		target.set("active_genre_event", "")
+		target.set("genre_event_timer", 0.0)
+		target.set("genre_event_duration", GenreEventSystem.GENRE_EVENT_DURATION)
+		target.set("genre_event_source", "")
+
+static func update_boss_attacks_for_target(
+	target: Node,
+	boss: Dictionary,
+	delta: float,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	toasts: Array[String],
+	damage_events: Array,
+	comment_event_ids: Array[String]
+) -> void:
+	var boss_id := String(boss.get("bossId", ""))
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		update_bugged_final_boss_for_target(target, boss, delta, arena, rng, chats, toasts, damage_events, comment_event_ids)
+		return
+	if boss_id != BOSS_KUSO_MARO_KING:
 		return
 	var data: Dictionary = boss_data_for_target(target, String(boss.get("bossId", "")))
 	var timers: Dictionary = boss.get("bossAttackTimers", {}) as Dictionary
@@ -448,6 +595,289 @@ static func update_boss_attacks_for_target(target: Node, boss: Dictionary, delta
 				break
 	boss["bossAttackTimers"] = timers
 	boss["bossAttackCooldown"] = cooldown
+
+static func update_bugged_final_boss_for_target(
+	target: Node,
+	boss: Dictionary,
+	delta: float,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	toasts: Array[String],
+	_damage_events: Array,
+	comment_event_ids: Array[String]
+) -> void:
+	boss["ignoreMovementWalls"] = true
+	boss["pos"] = EnemySystem.clamp_enemy_pos_to_arena_for_enemy(boss, Vector2(boss.get("pos", Vector2.ZERO)), arena)
+	var base_speed: float = float(boss.get("baseSpeed", boss.get("speed", 52.0)))
+	var state: String = String(boss.get("buggedState", BUGGED_STATE_NORMAL))
+	if state == BUGGED_STATE_STUN:
+		boss["speed"] = 0.0
+		boss["damageTakenRate"] = BUGGED_STUN_DAMAGE_RATE
+		boss["hitFlashTimer"] = maxf(float(boss.get("hitFlashTimer", 0.0)), 0.025)
+		var stun_left := maxf(0.0, float(boss.get("buggedStateTimer", 0.0)) - delta)
+		boss["buggedStateTimer"] = stun_left
+		if stun_left <= 0.0:
+			boss["damageTakenRate"] = 1.0
+			boss["speed"] = base_speed
+			boss["buggedState"] = BUGGED_STATE_NORMAL
+			boss["buggedStateTimer"] = bugged_normal_duration(boss, rng)
+			boss["speechText"] = "再起動"
+		return
+	boss["damageTakenRate"] = 1.0
+	if state == BUGGED_STATE_TELEGRAPH:
+		boss["speed"] = base_speed * 0.36
+		var telegraph_left := maxf(0.0, float(boss.get("buggedStateTimer", 0.0)) - delta)
+		boss["buggedStateTimer"] = telegraph_left
+		if telegraph_left <= 0.0:
+			start_bugged_genre_phase_for_target(target, boss, arena, rng, chats, toasts, comment_event_ids)
+		return
+	if state == BUGGED_STATE_GENRE:
+		boss["speed"] = base_speed * 0.72
+		update_bugged_genre_attacks_for_target(target, boss, delta, arena, rng, chats)
+		var active_genre := String(target.get("active_genre_event"))
+		var state_timer := maxf(0.0, float(boss.get("buggedStateTimer", BUGGED_GENRE_DURATION)) - delta)
+		boss["buggedStateTimer"] = state_timer
+		if active_genre == "" or state_timer <= 0.0:
+			enter_bugged_stun_for_target(target, boss, chats)
+		return
+	boss["speed"] = base_speed
+	if update_bugged_lag_warp_for_target(target, boss, delta, arena):
+		return
+	update_bugged_normal_attacks_for_target(target, boss, delta, arena, rng)
+	var normal_left := maxf(0.0, float(boss.get("buggedStateTimer", 0.0)) - delta)
+	boss["buggedStateTimer"] = normal_left
+	if normal_left <= 0.0:
+		enter_bugged_genre_telegraph(boss, rng, chats, toasts)
+
+static func enter_bugged_genre_telegraph(boss: Dictionary, rng: RandomNumberGenerator, chats: Array[String], toasts: Array[String]) -> void:
+	var genre := choose_bugged_genre(boss, rng)
+	boss["buggedTelegraphGenre"] = genre
+	boss["buggedState"] = BUGGED_STATE_TELEGRAPH
+	boss["buggedStateTimer"] = BUGGED_GENRE_TELEGRAPH
+	boss["speechText"] = "次は%s" % bugged_genre_short_label(genre)
+	chats.append("バグったラスボス：ジャンルを書き換え中……")
+	toasts.append("ジャンルチェンジ予告：%s" % GenreEventSystem.label(genre))
+
+static func start_bugged_genre_phase_for_target(
+	target: Node,
+	boss: Dictionary,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	toasts: Array[String],
+	comment_event_ids: Array[String]
+) -> void:
+	var genre := String(boss.get("buggedTelegraphGenre", ""))
+	if genre == "":
+		genre = choose_bugged_genre(boss, rng)
+	var feedback: Dictionary = GenreEventSystem.start_world_event_for_target(target, genre, arena, rng, BUGGED_GENRE_DURATION, "boss")
+	for item in (feedback.get("chats", []) as Array):
+		chats.append(String(item))
+	for item in (feedback.get("toasts", []) as Array):
+		toasts.append(String(item))
+	for item in (feedback.get("commentEventIds", []) as Array):
+		var event_id := String(item)
+		if event_id != "" and not comment_event_ids.has(event_id):
+			comment_event_ids.append(event_id)
+	boss["buggedState"] = BUGGED_STATE_GENRE
+	boss["buggedStateTimer"] = BUGGED_GENRE_DURATION + 0.2
+	boss["buggedBulletPatternTimer"] = 1.2
+	boss["buggedRaceLineTimer"] = 1.4
+	boss["speechText"] = GenreEventSystem.label(genre)
+
+static func enter_bugged_stun_for_target(target: Node, boss: Dictionary, chats: Array[String]) -> void:
+	clear_bugged_boss_state_for_target(target)
+	boss["buggedState"] = BUGGED_STATE_STUN
+	boss["buggedStateTimer"] = BUGGED_STUN_DURATION
+	boss["speed"] = 0.0
+	boss["damageTakenRate"] = BUGGED_STUN_DAMAGE_RATE
+	boss["hitFlashTimer"] = maxf(float(boss.get("hitFlashTimer", 0.0)), 0.16)
+	boss["speechText"] = "停止中"
+	append_bugged_status_text_for_target(target, Vector2(boss.get("pos", Vector2.ZERO)), "BUG STOP")
+	chats.append("バグったラスボスが停止した！")
+
+static func update_bugged_normal_attacks_for_target(target: Node, boss: Dictionary, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> void:
+	var phase: int = bugged_hp_phase(boss)
+	var spoiler_timer := float(boss.get("buggedSpoilerTimer", 1.2)) - delta
+	if spoiler_timer <= 0.0:
+		var count := 4 if phase >= 3 else 3
+		spawn_bugged_spoiler_bullets_for_target(target, boss, rng, count)
+		spoiler_timer = rng.randf_range(1.05, 1.55) if phase >= 3 else rng.randf_range(1.45, 2.15)
+	boss["buggedSpoilerTimer"] = spoiler_timer
+	var line_timer := float(boss.get("buggedGuideLineTimer", 3.0)) - delta
+	if line_timer <= 0.0:
+		var count := 2 if phase >= 3 else 1
+		spawn_bugged_guide_lines_for_target(target, boss, arena, rng, count, 0.72, 58.0)
+		line_timer = rng.randf_range(3.1, 4.1) if phase >= 3 else rng.randf_range(4.0, 5.2)
+	boss["buggedGuideLineTimer"] = line_timer
+	var warp_timer := float(boss.get("buggedLagWarpTimer", 5.0)) - delta
+	if warp_timer <= 0.0:
+		start_bugged_lag_warp_for_target(target, boss, arena, rng)
+		warp_timer = rng.randf_range(7.2, 9.2)
+	boss["buggedLagWarpTimer"] = warp_timer
+
+static func update_bugged_genre_attacks_for_target(target: Node, boss: Dictionary, delta: float, arena: Rect2, rng: RandomNumberGenerator, _chats: Array[String]) -> void:
+	var active_genre := String(target.get("active_genre_event"))
+	if active_genre == "race":
+		var race_timer := float(boss.get("buggedRaceLineTimer", 1.4)) - delta
+		if race_timer <= 0.0:
+			spawn_bugged_guide_lines_for_target(target, boss, arena, rng, 1, 0.80, 72.0)
+			race_timer = rng.randf_range(2.6, 3.5)
+		boss["buggedRaceLineTimer"] = race_timer
+	elif active_genre == "bullet_hell":
+		var bullet_timer := float(boss.get("buggedBulletPatternTimer", 1.2)) - delta
+		if bullet_timer <= 0.0:
+			spawn_bugged_boss_pattern_bullets_for_target(target, boss, rng)
+			bullet_timer = 2.0
+		boss["buggedBulletPatternTimer"] = bullet_timer
+
+static func spawn_bugged_spoiler_bullets_for_target(target: Node, boss: Dictionary, rng: RandomNumberGenerator, count: int) -> void:
+	var bullets: Array = target.get("enemy_bullets") as Array
+	if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+		return
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var to_player := Vector2(target.get("player_pos")) - boss_pos
+	var base_dir := to_player.normalized()
+	if base_dir.length() < 0.1:
+		base_dir = Vector2.RIGHT
+	var spread := 0.34
+	for i in range(maxi(1, count)):
+		if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+			break
+		var offset := 0.0
+		if count > 1:
+			offset = lerpf(-spread, spread, float(i) / float(count - 1))
+		var dir := base_dir.rotated(offset + rng.randf_range(-0.035, 0.035)).normalized()
+		bullets.append({
+			"pos": boss_pos + dir * float(boss.get("radius", 96.0)) * 0.42,
+			"vel": dir * 250.0,
+			"life": 3.4,
+			"hitRadius": 17.0,
+			"source": "boss_bullet",
+			"damage": 22,
+			"visualKind": "wiki_comment"
+		})
+	target.set("enemy_bullets", bullets)
+
+static func spawn_bugged_boss_pattern_bullets_for_target(target: Node, boss: Dictionary, rng: RandomNumberGenerator) -> void:
+	var bullets: Array = target.get("enemy_bullets") as Array
+	if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+		return
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var to_player := Vector2(target.get("player_pos")) - boss_pos
+	var base_dir := to_player.normalized()
+	if base_dir.length() < 0.1:
+		base_dir = Vector2.DOWN
+	for angle in [-0.34, 0.0, 0.34]:
+		if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+			break
+		var dir := base_dir.rotated(angle + rng.randf_range(-0.02, 0.02)).normalized()
+		bullets.append({
+			"pos": boss_pos + dir * 52.0,
+			"vel": dir * 235.0,
+			"life": 3.0,
+			"hitRadius": 15.0,
+			"source": "boss_bullet",
+			"damage": 18,
+			"visualKind": "drone_bullet"
+		})
+	target.set("enemy_bullets", bullets)
+
+static func start_bugged_lag_warp_for_target(target: Node, boss: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> void:
+	var player_pos := Vector2(target.get("player_pos"))
+	var angle := rng.randf_range(0.0, TAU)
+	var distance := rng.randf_range(210.0, 270.0)
+	var target_pos := player_pos + Vector2(cos(angle), sin(angle)) * distance
+	var radius := float(boss.get("radius", 96.0))
+	target_pos.x = clampf(target_pos.x, arena.position.x + radius + 16.0, arena.end.x - radius - 16.0)
+	target_pos.y = clampf(target_pos.y, arena.position.y + radius + 16.0, arena.end.y - radius - 16.0)
+	boss["buggedLagWarpTarget"] = target_pos
+	boss["buggedLagWarpWarning"] = 0.40
+	boss["speechText"] = "ラグ発生"
+
+static func update_bugged_lag_warp_for_target(target: Node, boss: Dictionary, delta: float, _arena: Rect2) -> bool:
+	var warning := float(boss.get("buggedLagWarpWarning", 0.0))
+	if warning <= 0.0:
+		return false
+	warning = maxf(0.0, warning - delta)
+	boss["buggedLagWarpWarning"] = warning
+	boss["speed"] = float(boss.get("baseSpeed", boss.get("speed", 52.0))) * 0.20
+	if warning <= 0.0:
+		var next_pos := Vector2(boss.get("buggedLagWarpTarget", boss.get("pos", Vector2.ZERO)))
+		boss["pos"] = next_pos
+		boss["hitFlashTimer"] = maxf(float(boss.get("hitFlashTimer", 0.0)), 0.11)
+		append_bugged_status_text_for_target(target, next_pos, "LAG")
+		boss["speechText"] = "ワープ"
+	return true
+
+static func spawn_bugged_guide_lines_for_target(target: Node, boss: Dictionary, arena: Rect2, rng: RandomNumberGenerator, count: int, telegraph: float, width: float) -> void:
+	var lines: Array = target.get("boss_guide_lines") as Array
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var player_pos := Vector2(target.get("player_pos"))
+	var base_dir := (player_pos - boss_pos).normalized()
+	if base_dir.length() < 0.1:
+		base_dir = Vector2.RIGHT
+	var length := maxf(arena.size.x, arena.size.y) * 1.55
+	for i in range(maxi(1, count)):
+		var dir := base_dir.rotated(rng.randf_range(-0.25, 0.25) + (float(i) - float(count - 1) * 0.5) * 0.28).normalized()
+		var center := player_pos + dir * rng.randf_range(-80.0, 72.0)
+		lines.append({
+			"from": center - dir * length * 0.5,
+			"to": center + dir * length * 0.5,
+			"timer": telegraph,
+			"maxTimer": telegraph,
+			"flashLife": 0.16,
+			"width": width,
+			"damage": DamageSystem.BOSS_ATTACK_DAMAGE,
+			"hit": false
+		})
+	target.set("boss_guide_lines", lines)
+
+static func update_guide_lines_for_target(target: Node, delta: float, damage_events: Array) -> void:
+	if target.get("boss_guide_lines") == null:
+		return
+	var player_pos := Vector2(target.get("player_pos"))
+	var kept: Array = []
+	for item in (target.get("boss_guide_lines") as Array):
+		var line: Dictionary = item as Dictionary
+		var timer := float(line.get("timer", 0.0)) - delta
+		line["timer"] = timer
+		if timer <= 0.0 and not bool(line.get("hit", false)):
+			line["hit"] = true
+			var from_pos := Vector2(line.get("from", Vector2.ZERO))
+			var to_pos := Vector2(line.get("to", Vector2.ZERO))
+			var hit_width := float(line.get("width", 58.0)) * 0.5 + 13.0
+			if distance_to_segment(player_pos, from_pos, to_pos) <= hit_width:
+				damage_events.append({"source": "boss_attack", "damage": int(line.get("damage", DamageSystem.BOSS_ATTACK_DAMAGE))})
+		if bool(line.get("hit", false)):
+			line["flashLife"] = float(line.get("flashLife", 0.16)) - delta
+			if float(line.get("flashLife", 0.0)) > 0.0:
+				kept.append(line)
+		else:
+			kept.append(line)
+	target.set("boss_guide_lines", kept)
+
+static func distance_to_segment(point: Vector2, from_pos: Vector2, to_pos: Vector2) -> float:
+	var segment := to_pos - from_pos
+	var length_sq := segment.length_squared()
+	if length_sq <= 0.01:
+		return point.distance_to(from_pos)
+	var t := clampf((point - from_pos).dot(segment) / length_sq, 0.0, 1.0)
+	return point.distance_to(from_pos + segment * t)
+
+static func append_bugged_status_text_for_target(target: Node, pos: Vector2, text: String) -> void:
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos + Vector2(0.0, -64.0),
+		"vel": Vector2(0.0, -28.0),
+		"life": 0.58,
+		"maxLife": 0.58,
+		"text": text,
+		"color": Color("#84f7ff")
+	})
+	target.set("hit_fx", hit_fx)
 
 static func perform_boss_attack_for_target(target: Node, boss: Dictionary, data: Dictionary, attack_id: String, arena: Rect2, rng: RandomNumberGenerator, chats: Array[String]) -> void:
 	if attack_id == ATTACK_KUSO_MARO_BARRAGE:

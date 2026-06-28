@@ -1,0 +1,8644 @@
+{
+  "meta": {
+    "version": 1,
+    "description": "Live comment sidebar text pools"
+  },
+  "settings": {
+    "max_lines": 20,
+    "visible_lines": 18,
+    "normal_interval_min": 0.5,
+    "normal_interval_max": 1,
+    "fast_interval_min": 0.15,
+    "fast_interval_max": 0.35,
+    "recent_duplicate_block": 12,
+    "max_same_category_streak": 3
+  },
+  "prefix_rules": {
+    "system_notice": "*",
+    "warning": "!",
+    "positive": "+",
+    "joke": "ｗ",
+    "normal": ">"
+  },
+  "pools": {
+    "normal": [
+      {
+        "text": "今のうまい",
+        "type": "normal",
+        "weight": 10,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "草",
+        "type": "joke",
+        "weight": 9,
+        "tags": [
+          "normal",
+          "joke"
+        ]
+      },
+      {
+        "text": "右いけ右",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "そっち危なくない？",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "いい感じ",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "まだいける",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "ギフト欲しい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift_hint"
+        ]
+      },
+      {
+        "text": "回収して",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "pickup_hint"
+        ]
+      },
+      {
+        "text": "そのルートあり",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "なんか始まった",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "joke"
+        ]
+      },
+      {
+        "text": "敵寄ってきてる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "danger_hint"
+        ]
+      },
+      {
+        "text": "無理しないで",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "その動き好き",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "画面忙しいな",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "今の避け方いい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "その立ち回り好き",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "コメント欄、見てるぞ",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "今日調子いい？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "なんか安定してる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "敵多くない？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "normal",
+          "danger_hint"
+        ]
+      },
+      {
+        "text": "まだ序盤だぞ",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "normal"
+        ]
+      },
+      {
+        "text": "その回収ルートうまい",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "pickup_hint"
+        ]
+      },
+      {
+        "text": "そろそろレベル上げたい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "exp"
+        ]
+      },
+      {
+        "text": "ギフト期待度ためたい",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "gift_hint"
+        ]
+      },
+      {
+        "text": "今の敵の避け方草",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "normal",
+          "joke"
+        ]
+      },
+      {
+        "text": "配信者って大変だな",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "normal",
+          "joke"
+        ]
+      },
+      {
+        "text": "コメント欄は悪くない",
+        "type": "joke",
+        "weight": 3,
+        "tags": [
+          "normal",
+          "joke"
+        ]
+      },
+      {
+        "text": "たぶんコメントのせい",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "normal",
+          "joke"
+        ]
+      },
+      {
+        "text": "今のは神回ポイント",
+        "type": "positive",
+        "weight": 4,
+        "tags": [
+          "normal",
+          "buzz"
+        ]
+      }
+    ],
+    "danger": [
+      {
+        "text": "近い近い",
+        "type": "warning",
+        "weight": 10,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "囲まれてる",
+        "type": "warning",
+        "weight": 10,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "距離取って",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "下がれ下がれ",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "そこ危ない",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "机で回れ",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "danger",
+          "map_hint"
+        ]
+      },
+      {
+        "text": "これは詰みかけ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "danger",
+          "joke"
+        ]
+      },
+      {
+        "text": "メンタル守って",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "danger",
+          "mental"
+        ]
+      },
+      {
+        "text": "ダッシュ使える？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "danger",
+          "dash"
+        ]
+      },
+      {
+        "text": "抜け道探して",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "右から来てる",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "左も危ない",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "上に逃げろ",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "下が詰まってる",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "そのままだと囲まれる",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "敵の圧すごい",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "机使って回避しろ",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "danger",
+          "map_hint"
+        ]
+      },
+      {
+        "text": "抜けるなら今",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "ダッシュ温存したい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "danger",
+          "dash"
+        ]
+      },
+      {
+        "text": "まだ逃げ道ある",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "danger"
+        ]
+      },
+      {
+        "text": "これはコメント欄も焦る",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "danger",
+          "joke"
+        ]
+      },
+      {
+        "text": "見てるだけで怖い",
+        "type": "joke",
+        "weight": 3,
+        "tags": [
+          "danger",
+          "joke"
+        ]
+      }
+    ],
+    "low_mental": [
+      {
+        "text": "メンタル危ない",
+        "type": "warning",
+        "weight": 10,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "回復ほしい",
+        "type": "warning",
+        "weight": 9,
+        "tags": [
+          "mental",
+          "heal"
+        ]
+      },
+      {
+        "text": "いったん逃げよう",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "無理しないで",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "コメント欄のせい",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "mental",
+          "joke"
+        ]
+      },
+      {
+        "text": "これ以上食らうな",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "ミニ加湿器ほしい",
+        "type": "normal",
+        "weight": 3,
+        "tags": [
+          "mental",
+          "accessory"
+        ]
+      },
+      {
+        "text": "休憩どこ",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "mental",
+          "gift"
+        ]
+      },
+      {
+        "text": "立て直して",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "まだ舞える",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "mental",
+          "joke"
+        ]
+      },
+      {
+        "text": "メンタルあと少し",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "一発もらったら危ない",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "回復アイテム探して",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "mental",
+          "heal"
+        ]
+      },
+      {
+        "text": "無理に攻めないで",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "逃げ配信に切り替えろ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "mental",
+          "joke"
+        ]
+      },
+      {
+        "text": "今コメント読むな",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "加湿器ほしい場面",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "mental",
+          "accessory"
+        ]
+      },
+      {
+        "text": "メンタルケア取っておけば……",
+        "type": "normal",
+        "weight": 3,
+        "tags": [
+          "mental",
+          "accessory"
+        ]
+      },
+      {
+        "text": "ここ耐えたら偉い",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "mental"
+        ]
+      },
+      {
+        "text": "コメント欄、静かに見守れ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "mental",
+          "joke"
+        ]
+      }
+    ],
+    "high_buzz": [
+      {
+        "text": "今かなりバズってる",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "同接伸びてる",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "神回の匂い",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "buzz",
+          "joke"
+        ]
+      },
+      {
+        "text": "攻めるなら今",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "撃破スコアうまい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "コメント欄あったまってきた",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "これ切り抜かれる",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "buzz",
+          "joke"
+        ]
+      },
+      {
+        "text": "いい流れ",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "バズってきた",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "今の流れ熱い",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "同接の伸び方えぐい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "これはおすすめに乗る",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "buzz",
+          "joke"
+        ]
+      },
+      {
+        "text": "コメント欄も加速してる",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "攻めた指示が効いてる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "buzz",
+          "instruction"
+        ]
+      },
+      {
+        "text": "ここから神回",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "バズ度うまい",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "buzz"
+        ]
+      },
+      {
+        "text": "コメント欄、責任取れよ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "buzz",
+          "joke"
+        ]
+      }
+    ],
+    "endgame": [
+      {
+        "text": "もう少し",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "あと少し耐えろ",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "完走見えてる",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "ここまで来た",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "最後に事故るなよ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "endgame",
+          "joke"
+        ]
+      },
+      {
+        "text": "逃げ切れ",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "コメント欄も祈ってる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "これ完走ある",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "endgame"
+        ]
+      },
+      {
+        "text": "油断するな",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "endgame"
+        ]
+      }
+    ],
+    "instruction_selecting": [
+      {
+        "text": "早く選べ",
+        "type": "warning",
+        "weight": 9,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "残り時間ないぞ",
+        "type": "warning",
+        "weight": 9,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "コメント欄を信じろ",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "日和るな",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "instruction",
+          "joke"
+        ]
+      },
+      {
+        "text": "全部やれ",
+        "type": "warning",
+        "weight": 3,
+        "tags": [
+          "instruction",
+          "high_risk"
+        ]
+      },
+      {
+        "text": "それはやめとけ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "右のやつ強そう",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "どうせ地獄",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "instruction",
+          "joke"
+        ]
+      },
+      {
+        "text": "無難にいこう",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "攻めろ攻めろ",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "その指示、事故るぞ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "バズ狙える",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "instruction",
+          "buzz"
+        ]
+      },
+      {
+        "text": "左は安定",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "真ん中が怪しい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "右はロマン",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "高倍率いこう",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "instruction",
+          "buzz"
+        ]
+      },
+      {
+        "text": "安全に行こう",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "それ選んだら荒れるぞ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "instruction",
+          "joke"
+        ]
+      },
+      {
+        "text": "コメント欄、責任重大",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "instruction",
+          "joke"
+        ]
+      },
+      {
+        "text": "一番やばいやつ選べ",
+        "type": "warning",
+        "weight": 3,
+        "tags": [
+          "instruction",
+          "high_risk"
+        ]
+      },
+      {
+        "text": "それは配信映えする",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "instruction",
+          "buzz"
+        ]
+      },
+      {
+        "text": "今は守りたい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "instruction"
+        ]
+      },
+      {
+        "text": "押すなよ？",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "instruction",
+          "joke"
+        ]
+      },
+      {
+        "text": "押せということか",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "instruction",
+          "joke"
+        ]
+      }
+    ],
+    "gift_selecting": [
+      {
+        "text": "火力ほしい",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "gift"
+        ]
+      },
+      {
+        "text": "回復しろｗ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "heal"
+        ]
+      },
+      {
+        "text": "進化狙おう",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "gift",
+          "evolution"
+        ]
+      },
+      {
+        "text": "それ育てたい",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "gift"
+        ]
+      },
+      {
+        "text": "武器枠埋めたい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "weapon"
+        ]
+      },
+      {
+        "text": "アクセも大事",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "accessory"
+        ]
+      },
+      {
+        "text": "迷うやつ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "joke"
+        ]
+      },
+      {
+        "text": "今は耐久ほしい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "mental"
+        ]
+      },
+      {
+        "text": "攻撃間隔ほしい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "cooldown"
+        ]
+      },
+      {
+        "text": "回収ほしい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "pickup"
+        ]
+      },
+      {
+        "text": "当たり枠見ろ",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "gift"
+        ]
+      },
+      {
+        "text": "Lv+2はでかい",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "gift"
+        ]
+      },
+      {
+        "text": "Lv+3なら即決",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "gift"
+        ]
+      },
+      {
+        "text": "進化条件見よう",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "evolution"
+        ]
+      },
+      {
+        "text": "武器足りてる？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "weapon"
+        ]
+      },
+      {
+        "text": "アクセ育てたい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "accessory"
+        ]
+      },
+      {
+        "text": "火力か耐久か",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift"
+        ]
+      },
+      {
+        "text": "今は範囲ほしい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "gift",
+          "range"
+        ]
+      },
+      {
+        "text": "経験値伸ばそう",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "gift",
+          "exp"
+        ]
+      },
+      {
+        "text": "回収強化もあり",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "gift",
+          "pickup"
+        ]
+      },
+      {
+        "text": "コメント欄、割れてます",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "gift",
+          "joke"
+        ]
+      },
+      {
+        "text": "これは宗教戦争",
+        "type": "joke",
+        "weight": 3,
+        "tags": [
+          "gift",
+          "joke"
+        ]
+      }
+    ],
+    "boss_kusomaro": [
+      {
+        "text": "読むな読むな",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "マロ欄終わった",
+        "type": "joke",
+        "weight": 8,
+        "tags": [
+          "boss",
+          "kusomaro",
+          "joke"
+        ]
+      },
+      {
+        "text": "ブロックしろ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "未読増えてる",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "これは荒れる",
+        "type": "joke",
+        "weight": 7,
+        "tags": [
+          "boss",
+          "kusomaro",
+          "joke"
+        ]
+      },
+      {
+        "text": "近づくな",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "長文来るぞ",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "未読マロ増やすな",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "要約してくれ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "boss",
+          "kusomaro",
+          "joke"
+        ]
+      },
+      {
+        "text": "読む前に倒せ",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "boss",
+          "kusomaro"
+        ]
+      },
+      {
+        "text": "これはモデレーター案件",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "boss",
+          "kusomaro",
+          "joke"
+        ]
+      },
+      {
+        "text": "マロ欄が泣いてる",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "boss",
+          "kusomaro",
+          "joke"
+        ]
+      }
+    ],
+    "result_clear": [
+      {
+        "text": "完走おめ！",
+        "type": "positive",
+        "weight": 10,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "888888",
+        "type": "positive",
+        "weight": 10,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "神回だった",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "ナイス配信！",
+        "type": "normal",
+        "weight": 8,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "コメントのせいで勝った",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "切り抜き確定",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "次枠ある？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "おつかれ！",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "完走えらい",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "コメント欄も拍手",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "最後までよく耐えた",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "これは神回認定",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "アーカイブ残して",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "次も見る",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      }
+    ],
+    "result_collapse": [
+      {
+        "text": "あっ",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "終わった",
+        "type": "joke",
+        "weight": 7,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "メンタルが……",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "コメントのせいだ",
+        "type": "joke",
+        "weight": 8,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "戦犯どれ？",
+        "type": "normal",
+        "weight": 3,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "配信止まった？",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "次いこう",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "事故配信",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "コメント欄、反省しろ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "これは事故です",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "次は勝てる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "ギリギリだった",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "result"
+        ]
+      },
+      {
+        "text": "コメントが悪いよコメントが",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "これは切り抜けない",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "result",
+          "joke"
+        ]
+      },
+      {
+        "text": "おつかれ……",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "result"
+        ]
+      }
+    ],
+    "boss": [
+      {
+        "text": "ボスの圧がすごい",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "boss"
+        ]
+      },
+      {
+        "text": "ここで削りたい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "boss"
+        ]
+      },
+      {
+        "text": "距離管理大事",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "boss"
+        ]
+      },
+      {
+        "text": "逃げながら殴れ",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "boss"
+        ]
+      },
+      {
+        "text": "ギフト期待度うまいぞ",
+        "type": "positive",
+        "weight": 4,
+        "tags": [
+          "boss",
+          "gift"
+        ]
+      },
+      {
+        "text": "これ倒せたら熱い",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "boss"
+        ]
+      },
+      {
+        "text": "コメント欄も殴れ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "boss",
+          "joke"
+        ]
+      }
+    ]
+  },
+  "events": {
+    "instruction_warning": {
+      "notice": [
+        {
+          "text": "あと5秒で指示コメが来る",
+          "type": "warning",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "コメント欄、加速中",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "ざわついてきた",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "そろそろ来るぞ",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "次の指示に備えて",
+          "type": "warning",
+          "weight": 5
+        },
+        {
+          "text": "何が来るかな",
+          "type": "normal",
+          "weight": 5
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "instruction_arrived": {
+      "notice": [
+        {
+          "text": "指示コメが来た！",
+          "type": "warning",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "どれにする？",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "地獄の3択",
+          "type": "joke",
+          "weight": 6
+        },
+        {
+          "text": "コメント欄を信じろ",
+          "type": "normal",
+          "weight": 5
+        },
+        {
+          "text": "迷うな",
+          "type": "warning",
+          "weight": 5
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "instruction_selected": {
+      "notice": [
+        {
+          "text": "{modifier_name} を選択",
+          "type": "system_notice",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "それ行くのか",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "事故りそう",
+          "type": "joke",
+          "weight": 4
+        },
+        {
+          "text": "バズ狙える",
+          "type": "positive",
+          "weight": 5
+        },
+        {
+          "text": "覚悟決まった",
+          "type": "normal",
+          "weight": 4
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "instruction_clear": {
+      "notice": [
+        {
+          "text": "指示コメ完走ボーナス！",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "よく耐えた",
+          "type": "positive",
+          "weight": 7
+        },
+        {
+          "text": "あれ完走できるんだ",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "今のはうまい",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "ギフト期待度うまい",
+          "type": "positive",
+          "weight": 6
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gift_arrived": {
+      "notice": [
+        {
+          "text": "ギフトが届いた！",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "いいギフト来い",
+          "type": "normal",
+          "weight": 8
+        },
+        {
+          "text": "ここで回復引け",
+          "type": "joke",
+          "weight": 4
+        },
+        {
+          "text": "火力ほしい",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "進化狙いたい",
+          "type": "normal",
+          "weight": 5
+        },
+        {
+          "text": "期待度たまってる",
+          "type": "positive",
+          "weight": 5
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gift_lucky": {
+      "notice": [
+        {
+          "text": "当たりギフト来た！",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "Lv+2うまい",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "これは取るしかない",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "一気に育つぞ",
+          "type": "normal",
+          "weight": 6
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gift_big_lucky": {
+      "notice": [
+        {
+          "text": "大当たりきた！",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "Lv+3は熱い",
+          "type": "positive",
+          "weight": 9
+        },
+        {
+          "text": "豪華ギフトうまい",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "これは取るしかない",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "一気に育つぞ",
+          "type": "normal",
+          "weight": 6
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gift_taken": {
+      "notice": [
+        {
+          "text": "{gift_name} を取得",
+          "type": "system_notice",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "いい選択",
+          "type": "positive",
+          "weight": 7
+        },
+        {
+          "text": "それ強い",
+          "type": "positive",
+          "weight": 6
+        },
+        {
+          "text": "ビルド見えてきた",
+          "type": "normal",
+          "weight": 5
+        },
+        {
+          "text": "コメント欄の勝ち",
+          "type": "joke",
+          "weight": 4
+        },
+        {
+          "text": "次は進化狙おう",
+          "type": "normal",
+          "weight": 5
+        }
+      ],
+      "reaction_count_min": 0,
+      "reaction_count_max": 2
+    },
+    "heart_taken": {
+      "notice": [
+        {
+          "text": "♡を受け取った！",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "次の指示が甘くなる",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "コメント欄が優しい",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "これは助かる",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "保険できた",
+          "type": "positive",
+          "weight": 6
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "evolution": {
+      "notice": [
+        {
+          "text": "武器進化！ {base_weapon} → {evolved_weapon}",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "進化きた！",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "ここから本番",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "これは熱い",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "一気に強くなった",
+          "type": "normal",
+          "weight": 6
+        }
+      ],
+      "reaction_count_min": 2,
+      "reaction_count_max": 3
+    },
+    "boss_spawn_normal": {
+      "notice": [
+        {
+          "text": "{boss_name}が出現！",
+          "type": "warning",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "ボスきた！",
+          "type": "warning",
+          "weight": 8
+        },
+        {
+          "text": "距離取れ",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "火力足りる？",
+          "type": "normal",
+          "weight": 5
+        },
+        {
+          "text": "逃げるな",
+          "type": "joke",
+          "weight": 4
+        },
+        {
+          "text": "倒せばギフトだ",
+          "type": "positive",
+          "weight": 5
+        }
+      ],
+      "reaction_count_min": 2,
+      "reaction_count_max": 4
+    },
+    "boss_spawn_kusomaro": {
+      "notice": [
+        {
+          "text": "クソマロキングが出現！",
+          "type": "warning",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "読むな読むな",
+          "type": "warning",
+          "weight": 8
+        },
+        {
+          "text": "マロ欄終わった",
+          "type": "joke",
+          "weight": 8
+        },
+        {
+          "text": "ブロックしろ",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "未読増えてる",
+          "type": "warning",
+          "weight": 7
+        },
+        {
+          "text": "これは荒れる",
+          "type": "joke",
+          "weight": 7
+        },
+        {
+          "text": "近づくな",
+          "type": "normal",
+          "weight": 6
+        }
+      ],
+      "reaction_count_min": 3,
+      "reaction_count_max": 5
+    },
+    "boss_defeated": {
+      "notice": [
+        {
+          "text": "大荒れ突破！ {boss_name}撃破！",
+          "type": "positive",
+          "weight": 10
+        }
+      ],
+      "reactions": [
+        {
+          "text": "ボス撃破きた！",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "888888",
+          "type": "positive",
+          "weight": 8
+        },
+        {
+          "text": "神回",
+          "type": "positive",
+          "weight": 7
+        },
+        {
+          "text": "これは切り抜き",
+          "type": "normal",
+          "weight": 6
+        },
+        {
+          "text": "よく倒した",
+          "type": "joke",
+          "weight": 5
+        },
+        {
+          "text": "今の熱い",
+          "type": "normal",
+          "weight": 7
+        }
+      ],
+      "reaction_count_min": 2,
+      "reaction_count_max": 4
+    },
+    "gameplay_genre_change_common": {
+      "notice": [
+        {
+          "text": "ジャンルチェンジ！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_genre_change_common",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "また別ゲー始まった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_genre_change_common",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "ルール変わった？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_genre_change_common",
+            "reaction"
+          ]
+        },
+        {
+          "text": "急にジャンル変えるな",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_genre_change_common",
+            "reaction"
+          ]
+        },
+        {
+          "text": "今度は何？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_genre_change_common",
+            "reaction"
+          ]
+        },
+        {
+          "text": "配信者も困惑してる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_genre_change_common",
+            "reaction",
+            "joke"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_race_start": {
+      "notice": [
+        {
+          "text": "ジャンルチェンジ：レースゲーム風！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "走れ走れ！",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "止まるな！",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "急にレースゲー",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "スピード感出てきた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "コイン拾っていこう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "ダッシュ床踏める？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "免許持ってる？",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "外周回るのあり",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "いいライン取り",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "加速していけ！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_start",
+            "reaction",
+            "hype"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gameplay_race_dash_pad_spawn": {
+      "notice": [
+        {
+          "text": "ダッシュ床が出現！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_spawn",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "あの床踏もう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "ブーストチャンス",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_spawn",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "加速できるぞ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "床が急かしてくる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_spawn",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "ダッシュ床つないでいこう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_spawn",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_race_dash_pad_used": {
+      "notice": [
+        {
+          "text": "ダッシュ！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_used",
+            "notice",
+            "hype"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "いい加速！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_used",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "速すぎ",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_used",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "今のブーストうまい",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_used",
+            "reaction"
+          ]
+        },
+        {
+          "text": "その勢いでコイン取ろう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_used",
+            "reaction"
+          ]
+        },
+        {
+          "text": "走行ボーナス伸びる！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_dash_pad_used",
+            "reaction",
+            "hype"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_race_coin_spawn": {
+      "notice": [
+        {
+          "text": "コイン出現！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_race_coin_spawn",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "コイン回収タイム",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_coin_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "稼ぎどころ",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_coin_spawn",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "急に金策",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_coin_spawn",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "ルート取り大事",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_coin_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "欲張りすぎ注意",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_coin_spawn",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_race_coin_collected": {
+      "notice": [
+        {
+          "text": "コイン回収！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_coin_collected",
+            "notice",
+            "hype"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "ナイス回収",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_coin_collected",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "うまい",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_coin_collected",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "拾い方うま",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_coin_collected",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "そのまま走れ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_coin_collected",
+            "reaction"
+          ]
+        },
+        {
+          "text": "スコア伸びてる",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_coin_collected",
+            "reaction",
+            "hype"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_race_finish": {
+      "notice": [
+        {
+          "text": "レースゲーム風 終了",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_race_finish",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "完走した",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_finish",
+            "reaction"
+          ]
+        },
+        {
+          "text": "いい走りだった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_race_finish",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "ちゃんとレースしてた",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_race_finish",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "コインおいしかった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_finish",
+            "reaction"
+          ]
+        },
+        {
+          "text": "通常戦闘に戻った",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_race_finish",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_bullet_start": {
+      "notice": [
+        {
+          "text": "ジャンルチェンジ：弾幕シューティング風！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "敵増えてきた",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction",
+            "danger"
+          ]
+        },
+        {
+          "text": "弾幕注意",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "急にSTG",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "自機になってる？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "撃て撃て撃て",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "ショット追加きた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "避けながら撃とう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "画面がシューティングしてる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "そこ安地ある？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "弾見て避けて",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_start",
+            "reaction",
+            "danger"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gameplay_bullet_player_transform": {
+      "notice": [
+        {
+          "text": "プレイヤーがSTG形態に変化！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_bullet_player_transform",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "飛行機になった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_bullet_player_transform",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "自機モードきた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_player_transform",
+            "reaction"
+          ]
+        },
+        {
+          "text": "かっこいい",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_player_transform",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "当たり判定どこ？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_player_transform",
+            "reaction"
+          ]
+        },
+        {
+          "text": "その形態で押し切れ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_player_transform",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_bullet_shot_added": {
+      "notice": [
+        {
+          "text": "特殊ショット追加！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_shot_added",
+            "notice",
+            "hype"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "撃ちまくれ",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_shot_added",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "ショット強い",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_shot_added",
+            "reaction"
+          ]
+        },
+        {
+          "text": "別ゲーすぎる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_bullet_shot_added",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "前方意識しよう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_shot_added",
+            "reaction"
+          ]
+        },
+        {
+          "text": "弾幕には弾幕で返せ",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_shot_added",
+            "reaction",
+            "hype"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_bullet_enemy_increase": {
+      "notice": [
+        {
+          "text": "敵の出現数アップ！",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_enemy_increase",
+            "notice",
+            "danger"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "多い多い",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_enemy_increase",
+            "reaction",
+            "danger"
+          ]
+        },
+        {
+          "text": "敵増えたぞ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_enemy_increase",
+            "reaction"
+          ]
+        },
+        {
+          "text": "無理に突っ込むな",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_enemy_increase",
+            "reaction"
+          ]
+        },
+        {
+          "text": "処理落ちしそうな勢い",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_bullet_enemy_increase",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "ショットで削ろう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_enemy_increase",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_bullet_finish": {
+      "notice": [
+        {
+          "text": "弾幕シューティング風 終了",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_bullet_finish",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "戻った",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_finish",
+            "reaction"
+          ]
+        },
+        {
+          "text": "よく避けた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_bullet_finish",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "STG配信おつ",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_bullet_finish",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "今の20秒濃かった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_finish",
+            "reaction"
+          ]
+        },
+        {
+          "text": "通常戦闘の安心感",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_bullet_finish",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_horror_start": {
+      "notice": [
+        {
+          "text": "ジャンルチェンジ：ホラーゲーム風！",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "なんか雰囲気変わった",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction",
+            "danger"
+          ]
+        },
+        {
+          "text": "後ろ後ろ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "音量注意",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "急にホラー",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "その箱あやしくない？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "近づくな",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction",
+            "danger"
+          ]
+        },
+        {
+          "text": "コメント欄まで怖い",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "ビビり実況助かる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "影から来そう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction"
+          ]
+        },
+        {
+          "text": "ギフトに見えても油断するな",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_start",
+            "reaction",
+            "danger"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gameplay_horror_fake_gift_spawn": {
+      "notice": [
+        {
+          "text": "ギフトボックスが出現……？",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_spawn",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "それ本物？",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "なんか箱あやしい",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "拾えるやつ？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_spawn",
+            "reaction"
+          ]
+        },
+        {
+          "text": "絶対ミミック",
+          "type": "joke",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_spawn",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "触るな……いや攻撃もするな？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_spawn",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gameplay_horror_fake_gift_trigger": {
+      "notice": [
+        {
+          "text": "偽ギフトボックスが敵化！",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_trigger",
+            "notice",
+            "danger"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "やっぱりミミック",
+          "type": "joke",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_trigger",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "ギフトじゃなくて敵だった",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_trigger",
+            "reaction"
+          ]
+        },
+        {
+          "text": "逃げて",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_trigger",
+            "reaction"
+          ]
+        },
+        {
+          "text": "近い近い",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_trigger",
+            "reaction",
+            "danger"
+          ]
+        },
+        {
+          "text": "先に倒そう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_trigger",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 3
+    },
+    "gameplay_horror_fake_gift_defeated": {
+      "notice": [
+        {
+          "text": "偽ギフトボックス撃破！",
+          "type": "positive",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_defeated",
+            "notice",
+            "hype"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "ナイス処理",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_defeated",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "よく倒した",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_defeated",
+            "reaction"
+          ]
+        },
+        {
+          "text": "箱にも勝てる配信者",
+          "type": "joke",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_defeated",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "本物のギフトくれ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_defeated",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_horror_finish": {
+      "notice": [
+        {
+          "text": "ホラーゲーム風 終了",
+          "type": "system_notice",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_horror_finish",
+            "notice"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "明るくなった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_finish",
+            "reaction"
+          ]
+        },
+        {
+          "text": "生き残った",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_finish",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "ホラー枠おつ",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_horror_finish",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "箱が一番怖かった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_finish",
+            "reaction"
+          ]
+        },
+        {
+          "text": "通常画面が安心する",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_finish",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "gameplay_result_clear": {
+      "notice": [
+        {
+          "text": "ゲーム実況枠 完走！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "notice",
+            "hype"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "いい実況だった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "ジャンル変化を乗り切った",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "何本ゲームやったんだ",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "レースも弾幕もホラーもあったな",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction"
+          ]
+        },
+        {
+          "text": "完走おめ！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "これはゲーム実況枠らしい",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction"
+          ]
+        },
+        {
+          "text": "見どころ多かった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction",
+            "hype"
+          ]
+        },
+        {
+          "text": "切り抜き多そう",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_result_clear",
+            "reaction",
+            "joke"
+          ]
+        }
+      ],
+      "reaction_count_min": 2,
+      "reaction_count_max": 3
+    },
+    "gameplay_result_collapse": {
+      "notice": [
+        {
+          "text": "ゲーム実況枠 メンタル崩壊",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "notice",
+            "danger"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "ジャンル変化に飲まれた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction"
+          ]
+        },
+        {
+          "text": "別ゲーに振り回された",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "これは難しかった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction"
+          ]
+        },
+        {
+          "text": "弾幕の圧がきつかった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction"
+          ]
+        },
+        {
+          "text": "ホラー箱が悪い",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction"
+          ]
+        },
+        {
+          "text": "次はレースで稼ごう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction"
+          ]
+        },
+        {
+          "text": "コメント欄も荒れてる",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction",
+            "danger"
+          ]
+        },
+        {
+          "text": "リベンジしよう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_result_collapse",
+            "reaction"
+          ]
+        }
+      ],
+      "reaction_count_min": 2,
+      "reaction_count_max": 3
+    },
+    "gameplay_horror_fake_gift_hit": {
+      "notice": [
+        {
+          "text": "偽ギフトボックスが反応した！",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_hit",
+            "notice",
+            "danger"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "今、箱を殴った？",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_hit",
+            "reaction"
+          ]
+        },
+        {
+          "text": "それ攻撃しちゃダメなやつでは",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_hit",
+            "reaction"
+          ]
+        },
+        {
+          "text": "自分で起こした",
+          "type": "joke",
+          "weight": 6,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_hit",
+            "reaction",
+            "joke"
+          ]
+        },
+        {
+          "text": "箱が開くぞ",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "gameplay_horror_fake_gift_hit",
+            "reaction",
+            "danger"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    }
+  },
+  "weapon_reactions": {
+    "ban_hammer": [
+      {
+        "text": "BAN命中！",
+        "type": "normal",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "今のBANうまい",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "制裁きた",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "BANで道作った",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "ハンマー気持ちいい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "今の吹き飛ばし助かる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "制裁の時間",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      }
+    ],
+    "ban_judgement": [
+      {
+        "text": "BANジャッジメント！",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "吹き飛んだ",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "道が開いた",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "いい制裁",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "BANで道作った",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "ハンマー気持ちいい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "今の吹き飛ばし助かる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "制裁の時間",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      }
+    ],
+    "starlight_superchat": [
+      {
+        "text": "スパチャ刺さった！",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "星きれい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "高額スパチャきた",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "投げ銭で倒した",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "星弾きれい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "スターライト映える",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "敵にスパチャ飛んでる",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "撃破エフェクトいい",
+        "type": "positive",
+        "weight": 4,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "星が仕事してる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "superchat_shot": [
+      {
+        "text": "スパチャ刺さった！",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "投げ銭つよい",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "maro_comment_ring": [
+      {
+        "text": "コメントリング助かる",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "守られてる",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "まろコメ強い",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "弾消しうまい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "コメントが守ってる",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "応援リング助かる",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "弾消し偉い",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "まろんちゃん要塞",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "コメント欄が物理になった",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      }
+    ],
+    "grass_wave": [
+      {
+        "text": "草生えた",
+        "type": "joke",
+        "weight": 8,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "草が仕事してる",
+        "type": "joke",
+        "weight": 7,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "反射うまい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "貫通草つよい",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "kusa_wave": [
+      {
+        "text": "草生えた",
+        "type": "joke",
+        "weight": 8,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "草が仕事してる",
+        "type": "joke",
+        "weight": 7,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "貫通草つよい",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "貫通する草",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "草の角度うまい",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "壁で跳ねてる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "草が画面を横切った",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "草ウェーブ地味に強い",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "ng_word_laser": [
+      {
+        "text": "NG処理中",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "検閲レーザーきた",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "黒塗りで草",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "ミュート助かる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "検閲助かる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "NGワード処理中",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "スキャン入った",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "黒塗り仕事してる",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "コメント欄にも欲しい",
+        "type": "joke",
+        "weight": 3,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      }
+    ],
+    "listener_summon": [
+      {
+        "text": "リスナー助っ人",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "援軍きた",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "一緒に殴ってる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "リスナー召喚きた",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "リスナー参戦！",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "リスナーが戦ってる",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "みんなで押せ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "リスナー頼もしい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "コメント欄、物理参戦",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "数で押せてる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "リスナー仕事してる",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "視聴者参加型始まった",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      }
+    ],
+    "emote_mine": [
+      {
+        "text": "地雷置いた",
+        "type": "normal",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "踏ませろ",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "今の爆発うまい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "comment_boomerang": [
+      {
+        "text": "ブーメラン帰ってきた",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "コメント回ってる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "それ刺さる",
+        "type": "positive",
+        "weight": 4,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "コメントブーメラン助かる",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "戻りも当たってる",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "コメントが帰ってきた",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "ブーメランうまい",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "往復ヒット偉い",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "まろんちゃんらしい武器",
+        "type": "normal",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "maron"
+        ]
+      },
+      {
+        "text": "コメント投げるなｗ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "地味に削ってる",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "mic": [
+      {
+        "text": "マイク助かる",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "音波で押し返してる",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "声量で勝ってる",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "音波バリアいいね",
+        "type": "positive",
+        "weight": 7,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "近づかせないの偉い",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "マイクで殴るなｗ",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "配信者の武器って感じ",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "声が通ってる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      }
+    ],
+    "comment_pin": [
+      {
+        "text": "ピン留め助かる",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "敵を固定してる",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "そのコメント固定で",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "ピン留めうまい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "動き止められるの偉い",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "固定コメント強い",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "敵、固定されてる",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      },
+      {
+        "text": "逃げ道作れてる",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "weapon"
+        ]
+      },
+      {
+        "text": "コメント欄の圧で止めた",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "weapon",
+          "joke"
+        ]
+      }
+    ]
+  },
+  "modifier_reactions": {
+    "banana_floor": [
+      {
+        "text": "床終わった",
+        "type": "joke",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "滑る滑る",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "バナナ多すぎ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "dash_disabled": [
+      {
+        "text": "ダッシュ封印きつい",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "歩きで避けろ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "甘えじゃなかった",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "weapon_mute": [
+      {
+        "text": "武器止まってる",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "攻撃出ないぞ",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "ミュート中で草",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "kami_kai_yoyaku": [
+      {
+        "text": "神回予約きた",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "敵も予約された",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "これは盛り上がる",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "ima_no_nashi": [
+      {
+        "text": "入力乱れてる",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "今のなしって何",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "攻撃どこ行った",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "落ち着け",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "range_down": [
+      {
+        "text": "射程短いぞ",
+        "type": "warning",
+        "weight": 8,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "近づかないと当たらない",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "近すぎる",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "接近戦だ",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "camera_zoom": [
+      {
+        "text": "画角終わった",
+        "type": "joke",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "近い近い近い",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "見えないのきつい",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "配信画面事故ってる",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "temp_walls": [
+      {
+        "text": "壁ありがたい？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "通路ふさがった",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "壁職人きた",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "逃げ道確認して",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "comment_barrage": [
+      {
+        "text": "弾幕きた",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "コメント多すぎ",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "読めない読めない",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "避けろ避けろ",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "giant_enemies": [
+      {
+        "text": "でかいって",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "当たり判定すごい",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "圧が強い",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "神ではない",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "enemy_spawn_up": [
+      {
+        "text": "数が多い",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "物量きた",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "コメント欄、敵増やすな",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "処理落ちするぞ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ],
+    "split_enemy": [
+      {
+        "text": "数が多い",
+        "type": "warning",
+        "weight": 7,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "物量きた",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "コメント欄、敵増やすな",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "modifier"
+        ]
+      },
+      {
+        "text": "処理落ちするぞ",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "modifier"
+        ]
+      }
+    ]
+  },
+  "marshmallow_reactions": {
+    "god": [
+      {
+        "text": "神マロきた！",
+        "type": "positive",
+        "weight": 8,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "これはでかい",
+        "type": "positive",
+        "weight": 6,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "運いいな",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "良マロ祈願",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "神マロなら勝ち",
+        "type": "positive",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      }
+    ],
+    "good": [
+      {
+        "text": "いいマロ",
+        "type": "normal",
+        "weight": 6,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "拾ったのうまい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "今のタイミングいい",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "マロ読む？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "このマロ大丈夫？",
+        "type": "normal",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "開けるの怖い",
+        "type": "joke",
+        "weight": 5,
+        "tags": [
+          "marshmallow",
+          "joke"
+        ]
+      },
+      {
+        "text": "甘党が見てる",
+        "type": "joke",
+        "weight": 4,
+        "tags": [
+          "marshmallow",
+          "joke"
+        ]
+      }
+    ],
+    "bad": [
+      {
+        "text": "クソマロｗ",
+        "type": "joke",
+        "weight": 6,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "ブロックして",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "いったん落ち着け",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "それは読むな",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      }
+    ],
+    "unread": [
+      {
+        "text": "未読マロ来た",
+        "type": "warning",
+        "weight": 6,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "マロ溜めるな",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "未読化したぞ",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      },
+      {
+        "text": "未読マロ溜めるな",
+        "type": "warning",
+        "weight": 5,
+        "tags": [
+          "marshmallow"
+        ]
+      }
+    ]
+  },
+  "character_reactions": {
+    "banri": {
+      "normal": [
+        {
+          "text": "ばんちゃん前出るね",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "近距離うまい",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "ハンマーの圧がすごい",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "ばんちゃんらしい立ち回り",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "その突っ込み方すき",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "BANで道作ろう",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "前線配信者すぎる",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "banri",
+            "joke"
+          ]
+        },
+        {
+          "text": "敵との距離近いって",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "banri",
+            "joke"
+          ]
+        },
+        {
+          "text": "ばんちゃん今日も強気",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        },
+        {
+          "text": "そのBAN判断いい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "ばんちゃん下がって",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "character",
+            "banri",
+            "danger"
+          ]
+        },
+        {
+          "text": "前出すぎかも",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "banri",
+            "danger"
+          ]
+        },
+        {
+          "text": "近距離きついぞ",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "banri",
+            "danger"
+          ]
+        },
+        {
+          "text": "BANする前に囲まれてる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "danger",
+            "joke"
+          ]
+        },
+        {
+          "text": "ハンマー届く距離だけど危ない",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "danger"
+          ]
+        },
+        {
+          "text": "一回距離取ろう",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri",
+            "danger"
+          ]
+        }
+      ],
+      "low_mental": [
+        {
+          "text": "ばんちゃんメンタル守って",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "character",
+            "banri",
+            "mental"
+          ]
+        },
+        {
+          "text": "強気すぎたかも",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "mental"
+          ]
+        },
+        {
+          "text": "今はBANより回避",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri",
+            "mental"
+          ]
+        },
+        {
+          "text": "ばんちゃん一回落ち着いて",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri",
+            "mental"
+          ]
+        },
+        {
+          "text": "前線配信、危険です",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "banri",
+            "mental",
+            "joke"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "ばんちゃん無双きた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "banri",
+            "hype"
+          ]
+        },
+        {
+          "text": "今のBAN気持ちいい",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "banri",
+            "hype"
+          ]
+        },
+        {
+          "text": "制裁配信始まった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "hype",
+            "joke"
+          ]
+        },
+        {
+          "text": "ばんちゃんの時間",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri",
+            "hype"
+          ]
+        },
+        {
+          "text": "敵がきれいに飛んだ",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "ばんちゃん完走おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "character",
+            "banri",
+            "result"
+          ]
+        },
+        {
+          "text": "BAN完了！",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "character",
+            "banri",
+            "result"
+          ]
+        },
+        {
+          "text": "最後まで強気だった",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri",
+            "result"
+          ]
+        },
+        {
+          "text": "ばんちゃんらしい勝ち方",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "banri",
+            "result"
+          ]
+        },
+        {
+          "text": "制裁完了配信",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "result",
+            "joke"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "ばんちゃんが止まった……",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "banri",
+            "collapse"
+          ]
+        },
+        {
+          "text": "前に出すぎたか",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "banri",
+            "collapse"
+          ]
+        },
+        {
+          "text": "BANしきれなかった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "強気配信の代償",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "banri",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次は勝てる、ばんちゃん",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "banri",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "supana": {
+      "normal": [
+        {
+          "text": "すぱなちゃん遠距離うまい",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "星飛んでるのかわいい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "距離管理いいね",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "すぱなちゃんの弾幕きれい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "遠くから削れてる",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "スパチャの圧で押してる",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "supana",
+            "joke"
+          ]
+        },
+        {
+          "text": "すぱなちゃん今日も明るい",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "星アクセかわいい",
+          "type": "normal",
+          "weight": 4,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        },
+        {
+          "text": "その位置取りいい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "すぱなちゃん近づかれてる",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "character",
+            "supana",
+            "danger"
+          ]
+        },
+        {
+          "text": "距離取って",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "supana",
+            "danger"
+          ]
+        },
+        {
+          "text": "遠距離型だから無理しないで",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "danger"
+          ]
+        },
+        {
+          "text": "そこは近すぎる",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "supana",
+            "danger"
+          ]
+        },
+        {
+          "text": "スパチャ届く距離で戦おう",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "danger"
+          ]
+        },
+        {
+          "text": "すぱなちゃん逃げて",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "danger"
+          ]
+        }
+      ],
+      "low_mental": [
+        {
+          "text": "すぱなちゃんメンタル危ない",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "character",
+            "supana",
+            "mental"
+          ]
+        },
+        {
+          "text": "ここは距離を取ろう",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "supana",
+            "mental"
+          ]
+        },
+        {
+          "text": "弾幕で時間稼ごう",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "mental"
+          ]
+        },
+        {
+          "text": "無理に前出ないで",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "mental"
+          ]
+        },
+        {
+          "text": "星投げて逃げよう",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "supana",
+            "mental",
+            "joke"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "すぱなちゃんの弾幕きた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "supana",
+            "hype"
+          ]
+        },
+        {
+          "text": "スターライト映える",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "supana",
+            "hype"
+          ]
+        },
+        {
+          "text": "スパチャ祭りだ",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "hype",
+            "joke"
+          ]
+        },
+        {
+          "text": "星が画面を埋めてる",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "hype"
+          ]
+        },
+        {
+          "text": "遠距離火力出てる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "すぱなちゃん完走おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "character",
+            "supana",
+            "result"
+          ]
+        },
+        {
+          "text": "星投げ切った",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "result"
+          ]
+        },
+        {
+          "text": "スパチャ完走配信",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "result",
+            "joke"
+          ]
+        },
+        {
+          "text": "最後まで明るかった",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "result"
+          ]
+        },
+        {
+          "text": "すぱなちゃんナイス！",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "character",
+            "supana",
+            "result"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "すぱなちゃんが落ちた……",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "supana",
+            "collapse"
+          ]
+        },
+        {
+          "text": "近づかれすぎたか",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "supana",
+            "collapse"
+          ]
+        },
+        {
+          "text": "距離管理ミスった",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "collapse"
+          ]
+        },
+        {
+          "text": "スパチャが足りなかった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次は星で押し切ろう",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "supana",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "maron": {
+      "normal": [
+        {
+          "text": "まろんちゃん安定してる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "回収うまい",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "まろんちゃんらしい動き",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "コメント拾うのうまい",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "支援役って感じ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "まろんちゃん癒し枠",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "ふわっと避けてる",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "マロ管理うまい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        },
+        {
+          "text": "コメント欄が守ってる",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "まろんちゃん囲まれてる",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "character",
+            "maron",
+            "danger"
+          ]
+        },
+        {
+          "text": "回収しすぎ注意",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "danger"
+          ]
+        },
+        {
+          "text": "欲張らないで",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "maron",
+            "danger"
+          ]
+        },
+        {
+          "text": "一回下がろう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "danger"
+          ]
+        },
+        {
+          "text": "支援型でも無理はだめ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron",
+            "danger"
+          ]
+        },
+        {
+          "text": "まろんちゃん逃げて",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "danger"
+          ]
+        }
+      ],
+      "low_mental": [
+        {
+          "text": "まろんちゃんメンタル危ない",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "character",
+            "maron",
+            "mental"
+          ]
+        },
+        {
+          "text": "回復拾いたい",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "maron",
+            "mental"
+          ]
+        },
+        {
+          "text": "無理に拾わないで",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "mental"
+          ]
+        },
+        {
+          "text": "守りに入ろう",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "mental"
+          ]
+        },
+        {
+          "text": "まろんちゃん耐えて",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "mental"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "まろんちゃんの安定感",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "maron",
+            "hype"
+          ]
+        },
+        {
+          "text": "回収で差がついてる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "hype"
+          ]
+        },
+        {
+          "text": "まろコメリング助かる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "hype"
+          ]
+        },
+        {
+          "text": "コメントの守護神",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron",
+            "hype",
+            "joke"
+          ]
+        },
+        {
+          "text": "支援で勝ってる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "まろんちゃん完走おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "character",
+            "maron",
+            "result"
+          ]
+        },
+        {
+          "text": "最後までやさしい配信だった",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "result"
+          ]
+        },
+        {
+          "text": "回収型の勝利",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "result"
+          ]
+        },
+        {
+          "text": "まろんちゃん安定勝ち",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "character",
+            "maron",
+            "result"
+          ]
+        },
+        {
+          "text": "コメント欄も癒された",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron",
+            "result",
+            "joke"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "まろんちゃんが崩れた……",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "character",
+            "maron",
+            "collapse"
+          ]
+        },
+        {
+          "text": "拾いすぎたかも",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "character",
+            "maron",
+            "collapse"
+          ]
+        },
+        {
+          "text": "やさしさだけでは無理だった",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "character",
+            "maron",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "コメント欄、守れず",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次はもっと安定させよう",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "character",
+            "maron",
+            "collapse"
+          ]
+        }
+      ]
+    }
+  },
+  "stream_slot_reactions": {
+    "zatsudan": {
+      "normal": [
+        {
+          "text": "雑談枠なのに忙しい",
+          "type": "joke",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "joke"
+          ]
+        },
+        {
+          "text": "雑談とは",
+          "type": "joke",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "joke"
+          ]
+        },
+        {
+          "text": "コメント拾って",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan"
+          ]
+        },
+        {
+          "text": "マロ読む余裕ある？",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "marshmallow"
+          ]
+        },
+        {
+          "text": "今日の雑談濃いな",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan"
+          ]
+        },
+        {
+          "text": "リスナーとの距離近い",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan"
+          ]
+        },
+        {
+          "text": "コメント欄が主役",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "joke"
+          ]
+        },
+        {
+          "text": "ゆるい枠のはずでは",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "joke"
+          ]
+        },
+        {
+          "text": "話題が渋滞してる",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan"
+          ]
+        },
+        {
+          "text": "雑談枠らしい荒れ方",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "joke"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "雑談してる場合じゃない",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "danger"
+          ]
+        },
+        {
+          "text": "コメント読むな今は逃げろ",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "danger"
+          ]
+        },
+        {
+          "text": "マロどころじゃない",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "danger"
+          ]
+        },
+        {
+          "text": "雑談枠が戦場になってる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "danger",
+            "joke"
+          ]
+        },
+        {
+          "text": "話題より敵を見て",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "danger"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "雑談でここまで盛り上がるの草",
+          "type": "joke",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "hype"
+          ]
+        },
+        {
+          "text": "コメント欄あったまってきた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "hype"
+          ]
+        },
+        {
+          "text": "この雑談、神回です",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "hype"
+          ]
+        },
+        {
+          "text": "マロ欄まで盛り上がってる",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "hype"
+          ]
+        },
+        {
+          "text": "雑談枠で同接伸びるの強い",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "雑談完走おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "result"
+          ]
+        },
+        {
+          "text": "いい雑談だった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "result"
+          ]
+        },
+        {
+          "text": "コメント欄も満足",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "result"
+          ]
+        },
+        {
+          "text": "雑談枠なのに熱かった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "result",
+            "joke"
+          ]
+        },
+        {
+          "text": "これは切り抜き雑談",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "result"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "雑談枠、崩壊",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "collapse"
+          ]
+        },
+        {
+          "text": "コメント拾いすぎたか",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "collapse"
+          ]
+        },
+        {
+          "text": "話題が重すぎた",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "マロ欄が悪い",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次は平和に雑談しよう",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "zatsudan",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "game": {
+      "normal": [
+        {
+          "text": "ゲーム実況っぽくなってきた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "game"
+          ]
+        },
+        {
+          "text": "操作うまい",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game"
+          ]
+        },
+        {
+          "text": "今の回避ナイス",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game"
+          ]
+        },
+        {
+          "text": "初見プレイかな？",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "game",
+            "joke"
+          ]
+        },
+        {
+          "text": "実況してる余裕ある？",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "joke"
+          ]
+        },
+        {
+          "text": "攻略見たい動き",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game"
+          ]
+        },
+        {
+          "text": "視聴者の指示が多い",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game"
+          ]
+        },
+        {
+          "text": "それは攻略法",
+          "type": "positive",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "game"
+          ]
+        },
+        {
+          "text": "コントローラー壊れてない？",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "game",
+            "joke"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "ゲームオーバー近いぞ",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "game",
+            "danger"
+          ]
+        },
+        {
+          "text": "操作ミスったら終わる",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game",
+            "danger"
+          ]
+        },
+        {
+          "text": "今は実況より回避",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game",
+            "danger"
+          ]
+        },
+        {
+          "text": "攻略ルート崩れてる",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "danger"
+          ]
+        },
+        {
+          "text": "これは難所",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "game",
+            "danger"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "今のプレイ神",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "game",
+            "hype"
+          ]
+        },
+        {
+          "text": "攻略うますぎ",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game",
+            "hype"
+          ]
+        },
+        {
+          "text": "ゲーム実況映えしてる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "game",
+            "hype"
+          ]
+        },
+        {
+          "text": "RTAみたいな動き",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "hype",
+            "joke"
+          ]
+        },
+        {
+          "text": "コメント欄も攻略班",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "hype",
+            "joke"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "ゲーム実況完走！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "game",
+            "result"
+          ]
+        },
+        {
+          "text": "ナイスクリア",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "game",
+            "result"
+          ]
+        },
+        {
+          "text": "攻略成功",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game",
+            "result"
+          ]
+        },
+        {
+          "text": "これは上手い実況",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "game",
+            "result"
+          ]
+        },
+        {
+          "text": "次は縛りプレイ？",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "result",
+            "joke"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "ゲームオーバーです",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "game",
+            "collapse"
+          ]
+        },
+        {
+          "text": "攻略失敗",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "collapse"
+          ]
+        },
+        {
+          "text": "今のは難しかった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "game",
+            "collapse"
+          ]
+        },
+        {
+          "text": "コメ欄の指示が悪い",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次のリトライ見たい",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "game",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "song": {
+      "normal": [
+        {
+          "text": "歌枠なのに戦ってる",
+          "type": "joke",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "joke"
+          ]
+        },
+        {
+          "text": "声出てる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song"
+          ]
+        },
+        {
+          "text": "音程より回避",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "joke"
+          ]
+        },
+        {
+          "text": "今のリズムいい",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song"
+          ]
+        },
+        {
+          "text": "弾幕がコールに見える",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "song",
+            "joke"
+          ]
+        },
+        {
+          "text": "コメント欄、合いの手入れて",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song"
+          ]
+        },
+        {
+          "text": "サビ前みたいな緊張感",
+          "type": "normal",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "song"
+          ]
+        },
+        {
+          "text": "マイク武器ほしい",
+          "type": "normal",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "song",
+            "weapon"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "歌ってる場合じゃない",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "danger"
+          ]
+        },
+        {
+          "text": "音程より命",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "danger"
+          ]
+        },
+        {
+          "text": "コールが悲鳴になってる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "danger",
+            "joke"
+          ]
+        },
+        {
+          "text": "ここ高音より高難度",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "song",
+            "danger",
+            "joke"
+          ]
+        },
+        {
+          "text": "息継ぎして逃げて",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "danger"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "歌枠盛り上がってる",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "hype"
+          ]
+        },
+        {
+          "text": "コメント欄コール中",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "hype"
+          ]
+        },
+        {
+          "text": "サビ来た",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "hype",
+            "joke"
+          ]
+        },
+        {
+          "text": "ペンライト振りたい",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "hype",
+            "joke"
+          ]
+        },
+        {
+          "text": "これはライブ会場",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "歌い切った！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "song",
+            "result"
+          ]
+        },
+        {
+          "text": "歌枠完走おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "song",
+            "result"
+          ]
+        },
+        {
+          "text": "アンコール！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "result"
+          ]
+        },
+        {
+          "text": "888888",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "result"
+          ]
+        },
+        {
+          "text": "いいライブだった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "result"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "歌い切れなかったか",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "collapse"
+          ]
+        },
+        {
+          "text": "マイク落ちた？",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "ライブ中断",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "collapse"
+          ]
+        },
+        {
+          "text": "次はアンコールで",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "collapse"
+          ]
+        },
+        {
+          "text": "コメント欄、静かに拍手",
+          "type": "normal",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "song",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "drawing": {
+      "normal": [
+        {
+          "text": "お絵かき枠始まった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing"
+          ]
+        },
+        {
+          "text": "線が荒れてる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "joke"
+          ]
+        },
+        {
+          "text": "今の避け方、構図いい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing"
+          ]
+        },
+        {
+          "text": "ラフの段階です",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "joke"
+          ]
+        },
+        {
+          "text": "色味かわいい",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing"
+          ]
+        },
+        {
+          "text": "コメント欄、添削するな",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "joke"
+          ]
+        },
+        {
+          "text": "筆が速い",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing"
+          ]
+        },
+        {
+          "text": "お題が多すぎる",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "描いてる場合じゃない",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "drawing",
+            "danger"
+          ]
+        },
+        {
+          "text": "線が震えてる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "danger",
+            "joke"
+          ]
+        },
+        {
+          "text": "キャンバスが敵で埋まった",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing",
+            "danger"
+          ]
+        },
+        {
+          "text": "下描きより回避",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing",
+            "danger"
+          ]
+        },
+        {
+          "text": "修正指示が多すぎる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "danger",
+            "joke"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "完成度上がってきた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "drawing",
+            "hype"
+          ]
+        },
+        {
+          "text": "これは神絵",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "drawing",
+            "hype"
+          ]
+        },
+        {
+          "text": "コメント欄、拍手",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing",
+            "hype"
+          ]
+        },
+        {
+          "text": "筆が乗ってる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing",
+            "hype"
+          ]
+        },
+        {
+          "text": "切り抜きサムネ確定",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "hype",
+            "joke"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "完成おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "drawing",
+            "result"
+          ]
+        },
+        {
+          "text": "お絵かき枠完走！",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "drawing",
+            "result"
+          ]
+        },
+        {
+          "text": "神絵だった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "drawing",
+            "result"
+          ]
+        },
+        {
+          "text": "サムネにしよう",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "result",
+            "joke"
+          ]
+        },
+        {
+          "text": "コメント欄も満足",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing",
+            "result"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "未完成で終了",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "drawing",
+            "collapse"
+          ]
+        },
+        {
+          "text": "ラフで終わった",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "保存してなかった？",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次回完成予定",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "collapse"
+          ]
+        },
+        {
+          "text": "修正指示が多すぎた",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "drawing",
+            "collapse",
+            "joke"
+          ]
+        }
+      ]
+    },
+    "collab": {
+      "normal": [
+        {
+          "text": "コラボ枠きた",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab"
+          ]
+        },
+        {
+          "text": "相方どこ？",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab"
+          ]
+        },
+        {
+          "text": "掛け合い助かる",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab"
+          ]
+        },
+        {
+          "text": "コメント欄も混線してる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "joke"
+          ]
+        },
+        {
+          "text": "コラボの空気ある",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab"
+          ]
+        },
+        {
+          "text": "相方コメント強い",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab"
+          ]
+        },
+        {
+          "text": "ツッコミ待ち",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "joke"
+          ]
+        },
+        {
+          "text": "息合ってる",
+          "type": "positive",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "コラボ事故りかけ",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "collab",
+            "danger"
+          ]
+        },
+        {
+          "text": "相方助けて",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "danger"
+          ]
+        },
+        {
+          "text": "連携崩れてる",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "danger"
+          ]
+        },
+        {
+          "text": "コメント欄が二倍うるさい",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "danger",
+            "joke"
+          ]
+        },
+        {
+          "text": "今はボケてる場合じゃない",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "danger"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "コラボ盛り上がってる",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "collab",
+            "hype"
+          ]
+        },
+        {
+          "text": "掛け合い神",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "hype"
+          ]
+        },
+        {
+          "text": "これは名コラボ",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "hype"
+          ]
+        },
+        {
+          "text": "コメント欄も大集合",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "hype"
+          ]
+        },
+        {
+          "text": "相方視点も見たい",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "コラボ完走おめ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "collab",
+            "result"
+          ]
+        },
+        {
+          "text": "いいコラボだった",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "collab",
+            "result"
+          ]
+        },
+        {
+          "text": "相方にも拍手",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "result"
+          ]
+        },
+        {
+          "text": "またコラボして",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "collab",
+            "result"
+          ]
+        },
+        {
+          "text": "これは切り抜き複数本",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "result",
+            "joke"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "コラボ事故った",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "collab",
+            "collapse"
+          ]
+        },
+        {
+          "text": "連携ミスか",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "collapse"
+          ]
+        },
+        {
+          "text": "相方も困ってそう",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "コラボの洗礼",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "次はリベンジコラボ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "collab",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "relay": {
+      "normal": [
+        {
+          "text": "配信リレー始まった",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay"
+          ]
+        },
+        {
+          "text": "次枠まで持つ？",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay"
+          ]
+        },
+        {
+          "text": "体力配分大事",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay"
+          ]
+        },
+        {
+          "text": "長時間配信の気配",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "joke"
+          ]
+        },
+        {
+          "text": "ここで消耗したくない",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay"
+          ]
+        },
+        {
+          "text": "次枠に繋げろ",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay"
+          ]
+        },
+        {
+          "text": "リレー勢見てるぞ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay"
+          ]
+        },
+        {
+          "text": "まだ一枠目の顔してる",
+          "type": "joke",
+          "weight": 4,
+          "tags": [
+            "stream",
+            "relay",
+            "joke"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "ここで崩れるな",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "relay",
+            "danger"
+          ]
+        },
+        {
+          "text": "次枠前にメンタルが危ない",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "relay",
+            "danger"
+          ]
+        },
+        {
+          "text": "リレー止まるぞ",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "relay",
+            "danger"
+          ]
+        },
+        {
+          "text": "温存したいのに敵が多い",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "danger"
+          ]
+        },
+        {
+          "text": "次枠のこと考えて逃げろ",
+          "type": "warning",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay",
+            "danger"
+          ]
+        }
+      ],
+      "hype": [
+        {
+          "text": "リレー盛り上がってる",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "relay",
+            "hype"
+          ]
+        },
+        {
+          "text": "次枠への期待値上がった",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay",
+            "hype"
+          ]
+        },
+        {
+          "text": "ここでバズるの強い",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay",
+            "hype"
+          ]
+        },
+        {
+          "text": "リレーの流れ来てる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay",
+            "hype"
+          ]
+        },
+        {
+          "text": "コメント欄も次枠待機",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "hype"
+          ]
+        }
+      ],
+      "clear": [
+        {
+          "text": "次枠へ繋いだ！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "relay",
+            "result"
+          ]
+        },
+        {
+          "text": "リレー成功",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "relay",
+            "result"
+          ]
+        },
+        {
+          "text": "いいバトン渡し",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "relay",
+            "result"
+          ]
+        },
+        {
+          "text": "次枠も見る",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay",
+            "result"
+          ]
+        },
+        {
+          "text": "長時間配信の始まり",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "result",
+            "joke"
+          ]
+        }
+      ],
+      "collapse": [
+        {
+          "text": "リレー途切れた……",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "relay",
+            "collapse"
+          ]
+        },
+        {
+          "text": "次枠まで持たなかった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "relay",
+            "collapse"
+          ]
+        },
+        {
+          "text": "バトン落とした",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "collapse",
+            "joke"
+          ]
+        },
+        {
+          "text": "これは休憩が必要",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "collapse"
+          ]
+        },
+        {
+          "text": "次回リレーでリベンジ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "relay",
+            "collapse"
+          ]
+        }
+      ]
+    },
+    "gameplay": {
+      "normal": [
+        {
+          "text": "ゲーム実況枠きた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "今日は何のゲーム？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "操作うまくない？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "その動き助かる",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "ちゃんと実況して",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "今の回避よかった",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "画面忙しくなってきた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "ゲーム画面とコメント欄が戦ってる",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "急にゲームうまそうに見える",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal",
+            "joke"
+          ]
+        },
+        {
+          "text": "それはさすがにゴリ押し",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal",
+            "joke"
+          ]
+        },
+        {
+          "text": "初見です、今北",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "そこ危なくない？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "いい感じに盛り上がってきた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "その敵やばそう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "ゲーム実況っぽくなってきた",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "今の判断いいね",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "コメント欄が攻略本になってる",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal",
+            "joke"
+          ]
+        },
+        {
+          "text": "そのルートで合ってる？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "落ち着いていこう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        },
+        {
+          "text": "ここからが本番",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "normal"
+          ]
+        }
+      ],
+      "danger": [
+        {
+          "text": "画面がごちゃついてきた",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "敵多くない？",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "右から来てる",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "左危ない",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "逃げ道なくなりそう",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "そこ挟まれそう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "回避優先で",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "欲張ると危ない",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "いったん距離取ろう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger"
+          ]
+        },
+        {
+          "text": "事故ポイントきた",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "danger",
+            "joke"
+          ]
+        }
+      ],
+      "low_mental": [
+        {
+          "text": "メンタル危ない",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental",
+            "danger"
+          ]
+        },
+        {
+          "text": "ここで崩れたらまずい",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental",
+            "danger"
+          ]
+        },
+        {
+          "text": "一回落ち着こう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental"
+          ]
+        },
+        {
+          "text": "回復ほしい",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental"
+          ]
+        },
+        {
+          "text": "無理に攻めなくていい",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental"
+          ]
+        },
+        {
+          "text": "ゲームよりコメント欄が強敵",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental",
+            "joke"
+          ]
+        },
+        {
+          "text": "まだ立て直せる",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental"
+          ]
+        },
+        {
+          "text": "被弾だけ避けよう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental"
+          ]
+        },
+        {
+          "text": "逃げ場確保して",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental",
+            "danger"
+          ]
+        },
+        {
+          "text": "ここ耐えたらえらい",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "low_mental"
+          ]
+        }
+      ],
+      "high_buzz": [
+        {
+          "text": "いい盛り上がり！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "hype"
+          ]
+        },
+        {
+          "text": "今のプレイ映えた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "hype"
+          ]
+        },
+        {
+          "text": "神回っぽくなってきた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "hype"
+          ]
+        },
+        {
+          "text": "視聴者増えてる！",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "hype"
+          ]
+        },
+        {
+          "text": "今の切り抜きポイント",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz"
+          ]
+        },
+        {
+          "text": "急に名人芸",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "joke"
+          ]
+        },
+        {
+          "text": "コメント欄あったまってきた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "hype"
+          ]
+        },
+        {
+          "text": "これは実況向き",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz"
+          ]
+        },
+        {
+          "text": "いいリアクション",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz",
+            "hype"
+          ]
+        },
+        {
+          "text": "今の流れかなり良い",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "high_buzz"
+          ]
+        }
+      ],
+      "endgame": [
+        {
+          "text": "終盤だ、集中",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame",
+            "danger"
+          ]
+        },
+        {
+          "text": "あと少し走り切れ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame"
+          ]
+        },
+        {
+          "text": "ここ耐えたら完走",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame"
+          ]
+        },
+        {
+          "text": "最後まで見届ける",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame",
+            "hype"
+          ]
+        },
+        {
+          "text": "ラス前で別ゲー始まるのやめて",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame",
+            "joke"
+          ]
+        },
+        {
+          "text": "もう事故るなよ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame"
+          ]
+        },
+        {
+          "text": "終了間際が一番危ない",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame",
+            "danger"
+          ]
+        },
+        {
+          "text": "このまま完走いける",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame",
+            "hype"
+          ]
+        },
+        {
+          "text": "ラストスパート！",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame"
+          ]
+        },
+        {
+          "text": "ここで決めよう",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "gameplay",
+            "endgame"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,4 @@
+source=C:\Users\zenih\Documents\Codex\2026-05-29\commentdie\work\genre_map_sources\race.png
+source_size=1536x1024
+resize=cover_center_crop
+target_size=2200x1500

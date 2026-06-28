@@ -81,5 +81,30 @@
         "radius": 1.6
       }
     }
+  },
+  {
+    "id": "bugged_final_boss",
+    "displayName": "バグったラスボス",
+    "description": "ゲーム実況枠のジャンル変化を暴走させる専用ボス。レース、弾幕、ホラーを強制的に切り替えてくる。",
+    "warningText": "バグったラスボス出現！",
+    "stageId": "gameplay",
+    "role": "gameplay_stage_boss",
+    "hp": 1000.0,
+    "speed": 52.0,
+    "radius": 96.0,
+    "contactDamage": 34,
+    "expValue": 28,
+    "viewerValue": 4200,
+    "giftHypeReward": 28,
+    "lifetime": 110.0,
+    "hitFlashDuration": 0.06,
+    "knockbackResistance": 1.0,
+    "canBeKnockedBack": false,
+    "attacks": [
+      "bug_spoiler_bullet",
+      "bug_guide_line",
+      "bug_lag_warp",
+      "bug_genre_change"
+    ]
   }
 ]

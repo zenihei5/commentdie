@@ -44,7 +44,13 @@ static func spawn_kinds(context: Dictionary) -> Dictionary:
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	var kinds: Array = []
 	for i in range(int(step["spawnCount"])):
-		kinds.append(EnemySystem.pick_wave_enemy(float(context["elapsed"]), bool(context["quickTestMode"]), rng))
+		kinds.append(EnemySystem.pick_wave_enemy(
+			float(context["elapsed"]),
+			bool(context["quickTestMode"]),
+			rng,
+			String(context.get("streamFrameId", "")),
+			String(context.get("activeGenreEvent", ""))
+		))
 	return {
 		"spawnTimer": step["spawnTimer"],
 		"kinds": kinds
@@ -64,7 +70,9 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 		"godReservation": ModifierSystem.has_effect_for_target(target, "god_reservation"),
 		"godReservationPower": ModifierSystem.effect_rate_for_target(target, "god_reservation"),
 		"flameMarketing": target.get("flame_marketing"),
-		"spawnRateTimer": target.get("spawn_rate_timer")
+		"spawnRateTimer": target.get("spawn_rate_timer"),
+		"streamFrameId": target.get("current_stream_frame_id"),
+		"activeGenreEvent": target.get("active_genre_event")
 	}
 
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:

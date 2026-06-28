@@ -99,10 +99,7 @@ static func banner_text(context: Dictionary) -> String:
 	if state == "pause":
 		return ""
 	if String(context.get("activeGenreEvent", "")) != "":
-		return "%s  %.1fs" % [
-			String(context.get("activeGenreLabel", "")),
-			float(context.get("genreEventTimer", 0.0))
-		]
+		return ""
 	if bool(context.get("strategyWiki", false)) and String(context.get("nextKnownGenreEvent", "")) != "":
 		return "次のゲーム変化：%s" % String(context.get("nextKnownGenreLabel", ""))
 	return ""

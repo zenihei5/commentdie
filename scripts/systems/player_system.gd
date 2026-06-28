@@ -39,7 +39,7 @@ static func friction(banana_power: float, no_brake_power: float, input: Vector2,
 		value = minf(value, 6.0 + resist)
 	return value
 
-static func speed_rate(move_slow_timer: float, active_genre_event: String, banana_power: float, no_brake_power: float, field_slow_rate: float = 0.0) -> float:
+static func speed_rate(move_slow_timer: float, active_genre_event: String, banana_power: float, no_brake_power: float, field_slow_rate: float = 0.0, race_dash_boost_timer: float = 0.0) -> float:
 	var value: float = 0.92 if move_slow_timer > 0.0 else 1.0
 	if field_slow_rate > 0.0:
 		value *= 1.0 - clampf(field_slow_rate, 0.0, 0.85)
@@ -49,6 +49,8 @@ static func speed_rate(move_slow_timer: float, active_genre_event: String, banan
 		value *= lerpf(1.0, 1.08, no_brake_power)
 	if active_genre_event == "race":
 		value *= 1.15
+		if race_dash_boost_timer > 0.0:
+			value *= GenreEventSystem.RACE_DASH_MOVE_SPEED_MULTIPLIER
 	return value
 
 static func no_brake_sliding(no_brake_power: float, input: Vector2, player_vel: Vector2) -> bool:
@@ -171,7 +173,7 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var no_brake_sliding_value: bool = no_brake_sliding(no_brake_power, input, player_vel)
 	var player_speed: float = float(context["playerSpeed"])
 	var friction_value: float = friction(banana_power, no_brake_power, input, player_vel, String(context["activeGenreEvent"]), int(context["kusogeResistLevel"]))
-	var speed_rate_value: float = speed_rate(float(context["moveSlowTimer"]), String(context["activeGenreEvent"]), banana_power, no_brake_power, float(context.get("fieldSlowRate", 0.0)))
+	var speed_rate_value: float = speed_rate(float(context["moveSlowTimer"]), String(context["activeGenreEvent"]), banana_power, no_brake_power, float(context.get("fieldSlowRate", 0.0)), float(context.get("raceDashBoostTimer", 0.0)))
 	player_vel = player_vel.lerp(input * player_speed * speed_rate_value, minf(1.0, delta * friction_value))
 	player_vel = banana_floor_drift(player_vel, banana_power, elapsed, Vector2(context["playerPos"]), delta)
 
@@ -279,6 +281,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"moveSlowTimer": target.get("move_slow_timer"),
 		"fieldSlowRate": boss_field_slow_rate(Vector2(target.get("player_pos")), target.get("boss_slow_fields") as Array),
 		"activeGenreEvent": target.get("active_genre_event"),
+		"raceDashBoostTimer": target.get("genre_race_dash_boost_timer"),
 		"kusogeResistLevel": target.get("kusoge_resist_level"),
 		"playerVel": target.get("player_vel"),
 		"playerPos": target.get("player_pos"),

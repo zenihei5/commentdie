@@ -10,9 +10,17 @@ const USE_TRIAL_FIELD_BACKGROUND := true
 const TRIAL_FIELD_DIR := "res://assets/generated/maps/trial_field_v1"
 const TRIAL_FIELD_BG := TRIAL_FIELD_DIR + "/field_trial_cover_2200x1500.png"
 const TRIAL_FIELD_COLLISION_PREVIEW := TRIAL_FIELD_DIR + "/field_trial_collision_preview_2200x1500.png"
+const GAMEPLAY_ARENA_DIR := "res://assets/generated/maps/gameplay_arena_v1"
+const GAMEPLAY_ARENA_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_user_2200x1500.png"
+const GAMEPLAY_ARENA_RACE_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_race_2200x1500.png"
+const GAMEPLAY_ARENA_BULLET_HELL_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_bullet_hell_2200x1500.png"
+const GAMEPLAY_ARENA_HORROR_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_horror_2200x1500.png"
+const GAMEPLAY_ARENA_COLLISION_PREVIEW := GAMEPLAY_ARENA_DIR + "/gameplay_arena_user_collision_preview_2200x1500.png"
 
 const ZATSUDAN_STUDIO_SIZE := Vector2(2200, 1500)
 const ZATSUDAN_STUDIO_WORLD_RECT := Rect2(Vector2(20, 120), ZATSUDAN_STUDIO_SIZE)
+const GAMEPLAY_ARENA_SIZE := Vector2(2200, 1500)
+const GAMEPLAY_ARENA_WORLD_RECT := Rect2(Vector2(20, 120), GAMEPLAY_ARENA_SIZE)
 const ZATSUDAN_STUDIO_COLLISION_RECTS := [
 	{"id": "bench_left_top", "rect": Rect2(619, 413, 351, 55)},
 	{"id": "bench_right_mid", "rect": Rect2(1388, 717, 312, 44)},
@@ -59,6 +67,15 @@ const TRIAL_FIELD_COLLISION_RECTS := [
 	{"id": "top_wall_decor_copy", "rect": Rect2(15, 28, 585, 220)},
 	{"id": "top_wall_decor_copy_copy", "rect": Rect2(1602, 37, 585, 220)}
 ]
+const GAMEPLAY_ARENA_COLLISION_RECTS := [
+	{"id": "top_decor_band", "rect": Rect2(0, 0, 2200, 168)},
+	{"id": "bottom_decor_band", "rect": Rect2(0, 1324, 2200, 176)},
+	{"id": "left_decor_band", "rect": Rect2(0, 0, 150, 1500)},
+	{"id": "right_decor_band", "rect": Rect2(2050, 0, 150, 1500)},
+	{"id": "center_arcade_cabinet", "rect": Rect2(1064, 415, 118, 190)},
+	{"id": "lower_left_game_desk", "rect": Rect2(740, 790, 196, 185)},
+	{"id": "lower_right_tv_stand", "rect": Rect2(1282, 804, 214, 170)}
+]
 
 static func zatsudan_background_data() -> Dictionary:
 	if USE_TRIAL_FIELD_BACKGROUND:
@@ -88,12 +105,36 @@ static func trial_field_background_data() -> Dictionary:
 		"propCollisionRects": []
 	}
 
-static func background_data_for_stream_frame(frame_id: String) -> Dictionary:
+static func gameplay_arena_background_path_for_genre(genre_event: String = "") -> String:
+	match genre_event:
+		"race":
+			return GAMEPLAY_ARENA_RACE_BG
+		"bullet_hell":
+			return GAMEPLAY_ARENA_BULLET_HELL_BG
+		"horror":
+			return GAMEPLAY_ARENA_HORROR_BG
+	return GAMEPLAY_ARENA_BG
+
+static func gameplay_arena_background_data(genre_event: String = "") -> Dictionary:
+	var background_path := gameplay_arena_background_path_for_genre(genre_event)
+	return {
+		"id": "gameplay_arena_%s" % (genre_event if genre_event != "" else "base"),
+		"size": GAMEPLAY_ARENA_SIZE,
+		"worldRect": GAMEPLAY_ARENA_WORLD_RECT,
+		"assembledPath": background_path,
+		"floorPath": background_path,
+		"propsPath": "",
+		"collisionPreviewPath": GAMEPLAY_ARENA_COLLISION_PREVIEW,
+		"collisionRects": GAMEPLAY_ARENA_COLLISION_RECTS,
+		"propCollisionRects": []
+	}
+
+static func background_data_for_stream_frame(frame_id: String, genre_event: String = "") -> Dictionary:
 	match frame_id:
 		"zatsudan":
 			return zatsudan_background_data()
 		"gameplay":
-			return zatsudan_background_data()
+			return gameplay_arena_background_data(genre_event)
 		_:
 			return zatsudan_background_data()
 

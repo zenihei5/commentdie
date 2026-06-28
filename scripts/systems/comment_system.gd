@@ -42,6 +42,7 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"bossActive": target.get("boss_active"),
 		"bossSummonCount": target.get("boss_summon_count"),
 		"doEverythingOfferCount": target.get("do_everything_offer_count"),
+		"activeGenreEvent": target.get("active_genre_event"),
 		"debugRareCommentBoost": target.get("debug_rare_comment_boost"),
 		"rng": rng
 	})
@@ -63,6 +64,7 @@ static func build_forced_do_everything_offer_for_target(target: Node, comments: 
 		"bossActive": false,
 		"bossSummonCount": target.get("boss_summon_count"),
 		"doEverythingOfferCount": 0,
+		"activeGenreEvent": target.get("active_genre_event"),
 		"rng": rng
 	}
 	var offer: Array = _build_do_everything_offer(comments, context, comment_time)
@@ -158,6 +160,10 @@ static func choose_comment_with_feedback_for_target(
 	for item in (modifier_feedback.get("toasts", []) as Array):
 		toasts.append(String(item))
 	feedback["toasts"] = toasts
+	for key in modifier_feedback.keys():
+		if key == "chats" or key == "toasts":
+			continue
+		feedback[key] = modifier_feedback[key]
 	feedback["selected"] = true
 	return feedback
 
@@ -466,6 +472,8 @@ static func _is_special_only_comment(comment: Dictionary) -> bool:
 	return _is_do_everything_comment(comment) or bool(comment.get("isSpecialChoice", false)) or bool(comment.get("excludedFromNormalChoices", false))
 
 static func _comment_allowed_for_context(comment: Dictionary, context: Dictionary, comment_time: float) -> bool:
+	if _is_matching_active_genre_comment(comment, context):
+		return false
 	if String(comment.get("effectType", "")) != "summon_boss" and String(comment.get("id", "")) != "summon_boss":
 		return true
 	if comment_time < float(comment.get("minTime", 60.0)):
@@ -477,6 +485,19 @@ static func _comment_allowed_for_context(comment: Dictionary, context: Dictionar
 	if bool(context.get("bossRequested", false)) or bool(context.get("bossActive", false)):
 		return false
 	return true
+
+static func _is_matching_active_genre_comment(comment: Dictionary, context: Dictionary) -> bool:
+	var active_event := String(context.get("activeGenreEvent", ""))
+	if active_event == "":
+		return false
+	var comment_id := String(comment.get("id", ""))
+	if comment_id == "force_race":
+		return active_event == "race"
+	if comment_id == "force_bullet_hell":
+		return active_event == "bullet_hell"
+	if comment_id == "force_horror":
+		return active_event == "horror"
+	return false
 
 static func _data_allowed_for_frame(frame: Dictionary, data: Dictionary, tag_key: String) -> bool:
 	var item_tags: Array = []

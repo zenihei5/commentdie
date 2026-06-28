@@ -10,6 +10,7 @@ var characters: Array = []
 var weapons: Array = []
 var bosses: Array = []
 var stream_start_intro_config: Dictionary = {}
+var comment_pools: Dictionary = {}
 
 static func loaded() -> DataRepository:
 	var repository: DataRepository = DataRepository.new()
@@ -26,6 +27,7 @@ func load_all() -> void:
 	weapons = _load_array("res://data/weapons.json")
 	bosses = _load_array("res://data/bosses.json", true)
 	stream_start_intro_config = _load_dictionary("res://data/stream_start_intro.json", true)
+	comment_pools = _load_dictionary("res://data/comment_pools.json", true)
 
 func apply_to_target(target: Node) -> void:
 	target.set("comments", comments)
@@ -37,6 +39,7 @@ func apply_to_target(target: Node) -> void:
 	target.set("weapons", weapons)
 	target.set("bosses", bosses)
 	target.set("stream_start_intro_config", stream_start_intro_config)
+	target.set("comment_pools", comment_pools)
 
 func find_by_id(list: Array, id: String) -> Dictionary:
 	for item in list:

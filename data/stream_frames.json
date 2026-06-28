@@ -45,10 +45,11 @@
     "initialUnlocked": false,
     "unlockCondition": {"type": "clear_stream_frame", "targetFrameId": "zatsudan"},
     "nextUnlockFrameId": "singing",
-    "events": ["game_genre_event"],
+    "events": ["game_genre_event", "marshmallow"],
     "commentPoolTags": ["default", "gameplay"],
     "giftPoolTags": ["default", "gameplay"],
-    "resultStats": ["genre_event"]
+    "resultStats": ["genre_event"],
+    "bgmPath": "res://assets/audio/gameplay_base_bgm.mp3"
   },
   {
     "id": "singing",

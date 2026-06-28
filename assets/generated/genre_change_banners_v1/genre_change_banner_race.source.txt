@@ -1,0 +1,4 @@
+source=C:\Users\zenih\Documents\Codex\2026-05-29\commentdie\work\genre_banner_sources\race.png
+source_size=2508x627
+process=green_chroma_key_and_crop
+output_size=2484x533

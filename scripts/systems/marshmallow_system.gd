@@ -2,6 +2,15 @@ extends RefCounted
 class_name MarshmallowSystem
 
 const PICKUP_BASE_RANGE := 40.0
+const DEFAULT_AUTO_PICKUP_LIMIT := 2
+const GAMEPLAY_AUTO_PICKUP_LIMIT := 1
+const GAMEPLAY_DROP_PICKUP_LIMIT := 3
+const DEFAULT_SPAWN_INTERVAL_MIN := 35.0
+const DEFAULT_SPAWN_INTERVAL_MAX := 45.0
+const GAMEPLAY_SPAWN_INTERVAL_MIN := 30.0
+const GAMEPLAY_SPAWN_INTERVAL_MAX := 45.0
+const GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MIN := 42.0
+const GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MAX := 58.0
 
 static func pick_data(context: Dictionary) -> Dictionary:
 	var pool: Array = []
@@ -74,36 +83,118 @@ static func random_speech(data: Dictionary, rng: RandomNumberGenerator) -> Strin
 		return ""
 	return lines[rng.randi_range(0, lines.size() - 1)]
 
-static func spawn_pickup_for_target(target: Node, data: Dictionary, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> bool:
+static func spawn_pickup_for_target(target: Node, data: Dictionary, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array, spawn_pos: Vector2 = Vector2.INF, source: String = "auto", reschedule: bool = true) -> bool:
 	if data.is_empty():
 		return false
-	var pos: Vector2 = find_position({
-		"rng": rng,
-		"arena": arena,
-		"playerPos": target.get("player_pos"),
-		"effectWalls": effect_walls,
-		"streamFrameId": target.get("current_stream_frame_id")
-	})
+	var stream_frame_id := String(target.get("current_stream_frame_id"))
+	var pos: Vector2 = spawn_pos
+	if pos == Vector2.INF:
+		pos = find_position({
+			"rng": rng,
+			"arena": arena,
+			"playerPos": target.get("player_pos"),
+			"effectWalls": effect_walls,
+			"streamFrameId": stream_frame_id
+		})
+	else:
+		pos.x = clampf(pos.x, arena.position.x + 60.0, arena.end.x - 60.0)
+		pos.y = clampf(pos.y, arena.position.y + 60.0, arena.end.y - 60.0)
+		if point_in_wall(pos, effect_walls, stream_frame_id):
+			pos = find_position({
+				"rng": rng,
+				"arena": arena,
+				"playerPos": target.get("player_pos"),
+				"effectWalls": effect_walls,
+				"streamFrameId": stream_frame_id
+			})
 	var pickups: Array = target.get("marshmallows") as Array
 	var read_bonus: float = float(target.get("read_manager_level")) * 5.0
 	var speech_text: String = random_speech(data, rng)
-	pickups.append({"pos": pos, "time": 12.0 + read_bonus, "data": data, "speechText": speech_text})
-	target.set("next_mallow_time", float(target.get("elapsed")) + rng.randf_range(35.0, 45.0))
+	pickups.append({
+		"pos": pos,
+		"time": 12.0 + read_bonus,
+		"data": data,
+		"speechText": speech_text,
+		"pickupType": "marshmallow",
+		"itemTag": "sweet",
+		"displayName": pickup_display_name_for_target(target),
+		"source": source
+	})
+	if reschedule:
+		target.set("next_mallow_time", float(target.get("elapsed")) + next_spawn_interval_for_target(target, rng))
 	return true
 
 static func spawn_random_for_target(target: Node, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> bool:
 	var data: Dictionary = pick_data_for_target(target, data_list, rng)
 	return spawn_pickup_for_target(target, data, rng, arena, effect_walls)
 
+static func pickup_display_name_for_target(target: Node) -> String:
+	if String(target.get("current_stream_frame_id")) == "gameplay":
+		return "差し入れマシュマロ"
+	return "マシュマロ"
+
+static func next_spawn_interval_for_target(target: Node, rng: RandomNumberGenerator) -> float:
+	if String(target.get("current_stream_frame_id")) != "gameplay":
+		return rng.randf_range(DEFAULT_SPAWN_INTERVAL_MIN, DEFAULT_SPAWN_INTERVAL_MAX)
+	if String(target.get("active_genre_event")) == "bullet_hell":
+		return rng.randf_range(GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MIN, GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MAX)
+	return rng.randf_range(GAMEPLAY_SPAWN_INTERVAL_MIN, GAMEPLAY_SPAWN_INTERVAL_MAX)
+
+static func active_pickup_limit_for_target(target: Node) -> int:
+	if String(target.get("current_stream_frame_id")) == "gameplay":
+		return GAMEPLAY_AUTO_PICKUP_LIMIT
+	return DEFAULT_AUTO_PICKUP_LIMIT
+
+static func pick_supply_data(data_list: Array, rng: RandomNumberGenerator) -> Dictionary:
+	var pool: Array = []
+	for item in data_list:
+		var data: Dictionary = item as Dictionary
+		if String(data.get("type", "")) != "good":
+			continue
+		if String(data.get("rarity", "normal")) == "god":
+			continue
+		for i in range(maxi(1, int(data.get("weight", 1)))):
+			pool.append(data)
+	if pool.is_empty():
+		for item in data_list:
+			var fallback: Dictionary = item as Dictionary
+			if String(fallback.get("type", "")) == "good":
+				pool.append(fallback)
+	if pool.is_empty():
+		return {}
+	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
+
+static func spawn_supply_pickup_for_target(target: Node, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array, pos: Vector2) -> bool:
+	if String(target.get("current_stream_frame_id")) != "gameplay":
+		return false
+	var pickups: Array = target.get("marshmallows") as Array
+	if pickups.size() >= GAMEPLAY_DROP_PICKUP_LIMIT:
+		return false
+	var data: Dictionary = pick_supply_data(data_list, rng)
+	return spawn_pickup_for_target(target, data, rng, arena, effect_walls, pos, "gameplay_supply", false)
+
+static func spawn_supply_drop_requests_for_target(target: Node, data_list: Array, requests: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
+	var spawned := 0
+	for item in requests:
+		var request: Dictionary = item as Dictionary
+		if spawn_supply_pickup_for_target(target, data_list, rng, arena, effect_walls, Vector2(request.get("pos", Vector2.ZERO))):
+			spawned += 1
+	return {"spawned": spawned}
+
 static func update_auto_spawn_for_target(target: Node, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
 	if float(target.get("elapsed")) < float(target.get("next_mallow_time")):
 		return {"spawned": false, "chat": ""}
 	var pickups: Array = target.get("marshmallows") as Array
-	if pickups.size() >= 2:
+	if pickups.size() >= active_pickup_limit_for_target(target):
 		return {"spawned": false, "chat": ""}
 	if spawn_random_for_target(target, data_list, rng, arena, effect_walls):
-		return {"spawned": true, "chat": "マシュマロが届いた！"}
+		return {"spawned": true, "chat": auto_spawn_chat_for_target(target)}
 	return {"spawned": false, "chat": ""}
+
+static func auto_spawn_chat_for_target(target: Node) -> String:
+	if String(target.get("current_stream_frame_id")) == "gameplay":
+		return "差し入れマシュマロが届いた！"
+	return "マシュマロが届いた！"
 
 static func update_auto_spawn_if_enabled_for_target(target: Node, frame: Dictionary, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
 	if not StreamFrameSystem.has_event(frame, "marshmallow"):

@@ -2,6 +2,7 @@ class_name RunStateSystem
 extends RefCounted
 
 const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
+const GenreEventSystemScript := preload("res://scripts/systems/genre_event_system.gd")
 
 static func run_length(quick_test_mode: bool, quick_length: float, normal_length: float) -> float:
 	return quick_length if quick_test_mode else normal_length
@@ -25,13 +26,15 @@ static func load_boot_data_for_target(target: Node, sprite_cache: Dictionary) ->
 	SettingsSystem.load_for_target(target)
 	return repository
 
-static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary) -> Dictionary:
+static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary, start_arena: Rect2 = Rect2()) -> Dictionary:
 	var max_hp: int = _scaled_player_hp(int(stats.get("hp", character.get("initialHp", 100))))
 	var move_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", character.get("moveSpeed", 5.0))))
 	var weapon_range: float = WeaponSystem.range_base(weapon)
 	var weapon_interval: float = WeaponSystem.attack_interval(weapon, 0.85)
 	var pickup_rate: float = float(stats.get("pickupRange", 1.0))
-	var start_pos: Vector2 = MapBackgroundSystemScript.zatsudan_world_rect().get_center()
+	if start_arena.size == Vector2.ZERO:
+		start_arena = MapBackgroundSystemScript.zatsudan_world_rect()
+	var start_pos: Vector2 = start_arena.get_center()
 	return {
 		"playerPos": start_pos,
 		"playerVel": Vector2.ZERO,
@@ -157,13 +160,24 @@ static func marshmallow_state() -> Dictionary:
 
 static func genre_state() -> Dictionary:
 	return {
-		"nextGenreEventTime": 35.0,
+		"nextGenreEventTime": GenreEventSystemScript.FIRST_GENRE_EVENT_TIME,
 		"genreEventTimer": 0.0,
+		"genreEventDuration": GenreEventSystemScript.GENRE_EVENT_DURATION,
+		"genreEventSource": "",
 		"activeGenreEvent": "",
 		"nextKnownGenreEvent": "",
 		"genreEventHurt": false,
 		"genreRaceMoveTimer": 0.0,
 		"genreBulletTimer": 0.0,
+		"genreRaceDashBoostTimer": 0.0,
+		"genreStgShotTimer": 0.0,
+		"genreStgSpawnTimer": 0.0,
+		"genreStgLastDir": Vector2.RIGHT,
+		"genreResultCoinCount": 0,
+		"genreResultDashPadCount": 0,
+		"genreEventStartKills": 0,
+		"genreResultStgShotKillCount": 0,
+		"genreResultFakeGiftDefeatCount": 0,
 		"genreEventCount": 0,
 		"raceEventCount": 0,
 		"bulletHellEventCount": 0,
@@ -176,7 +190,9 @@ static func genre_state() -> Dictionary:
 	}
 
 static func start_run_for_target(target: Node, character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary) -> Dictionary:
-	var initial: Dictionary = initial_values(character, weapon, stats, resources)
+	var frame_id := String(target.get("current_stream_frame_id"))
+	var map_data := MapBackgroundSystemScript.background_data_for_stream_frame(frame_id)
+	var initial: Dictionary = initial_values(character, weapon, stats, resources, MapBackgroundSystemScript.world_rect(map_data))
 	apply_initial_values(target, initial)
 	apply_gift_flags(target, gift_flags())
 	clear_run_collections(target)
@@ -340,11 +356,22 @@ static func apply_marshmallow_state(target: Node, defaults: Dictionary) -> void:
 static func apply_genre_state(target: Node, defaults: Dictionary) -> void:
 	target.set("next_genre_event_time", float(defaults["nextGenreEventTime"]))
 	target.set("genre_event_timer", float(defaults["genreEventTimer"]))
+	target.set("genre_event_duration", float(defaults["genreEventDuration"]))
+	target.set("genre_event_source", String(defaults["genreEventSource"]))
 	target.set("active_genre_event", String(defaults["activeGenreEvent"]))
 	target.set("next_known_genre_event", String(defaults["nextKnownGenreEvent"]))
 	target.set("genre_event_hurt", bool(defaults["genreEventHurt"]))
 	target.set("genre_race_move_timer", float(defaults["genreRaceMoveTimer"]))
 	target.set("genre_bullet_timer", float(defaults["genreBulletTimer"]))
+	target.set("genre_race_dash_boost_timer", float(defaults["genreRaceDashBoostTimer"]))
+	target.set("genre_stg_shot_timer", float(defaults["genreStgShotTimer"]))
+	target.set("genre_stg_spawn_timer", float(defaults["genreStgSpawnTimer"]))
+	target.set("genre_stg_last_dir", defaults["genreStgLastDir"] as Vector2)
+	target.set("genre_result_coin_count", int(defaults["genreResultCoinCount"]))
+	target.set("genre_result_dash_pad_count", int(defaults["genreResultDashPadCount"]))
+	target.set("genre_event_start_kills", int(defaults["genreEventStartKills"]))
+	target.set("genre_result_stg_shot_kill_count", int(defaults["genreResultStgShotKillCount"]))
+	target.set("genre_result_fake_gift_defeat_count", int(defaults["genreResultFakeGiftDefeatCount"]))
 	target.set("genre_event_count", int(defaults["genreEventCount"]))
 	target.set("race_event_count", int(defaults["raceEventCount"]))
 	target.set("bullet_hell_event_count", int(defaults["bulletHellEventCount"]))
@@ -375,6 +402,12 @@ static func clear_run_collections(target: Node) -> void:
 		(target.get("destructibles") as Array).clear()
 	if target.get("drop_items") != null:
 		(target.get("drop_items") as Array).clear()
+	if target.get("genre_race_dash_pads") != null:
+		(target.get("genre_race_dash_pads") as Array).clear()
+	if target.get("genre_race_coins") != null:
+		(target.get("genre_race_coins") as Array).clear()
+	if target.get("genre_horror_fake_gifts") != null:
+		(target.get("genre_horror_fake_gifts") as Array).clear()
 	target.set("next_destructible_uid", 1)
 	target.set("next_care_package_time", 15.0)
 

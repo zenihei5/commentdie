@@ -127,6 +127,30 @@ static func comment_barrage_label(setting: int) -> String:
 	return "通常"
 
 static func enemy_display_name(kind: String) -> String:
+	if kind == "enemy_spoiler_comment":
+		return "ネタバレコメント"
+	if kind == "enemy_backseat_controller":
+		return "指示厨コントローラー"
+	if kind == "enemy_armchair_strategist":
+		return "エアプ軍師"
+	if kind == "enemy_dot_invader":
+		return "ドットインベーダー"
+	if kind == "enemy_fake_gift_box":
+		return "偽ギフトボックス"
+	if kind == "enemy_lag_comment":
+		return "ラグコメント"
+	if kind == "enemy_strategy_wiki_ojisan":
+		return "攻略Wikiおじさん"
+	if kind == "enemy_fake_first_timer":
+		return "初見詐欺"
+	if kind == "enemy_wrong_way_kart":
+		return "逆走カート"
+	if kind == "enemy_jammer_cone":
+		return "じゃまコーン"
+	if kind == "enemy_bullet_drone":
+		return "弾幕ドローン"
+	if kind == "enemy_noise_ghost_comment":
+		return "ノイズ幽霊コメント"
 	if kind == "fast":
 		return "連投マン"
 	if kind == "shooter":
@@ -143,6 +167,8 @@ static func enemy_display_name(kind: String) -> String:
 		return "超長文ニキ"
 	if kind == "boss_kuso_maro_king":
 		return "クソマロキング"
+	if kind == "bugged_final_boss":
+		return "バグったラスボス"
 	if kind == "troll":
 		return "荒らし"
 	return kind

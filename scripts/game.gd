@@ -73,6 +73,7 @@ const BOSS_BATTLE_BGM_PATH := "res://assets/audio/boss_battle_bgm.mp3"
 const GAME_OVER_RESULT_BGM_PATH := "res://assets/audio/game_over_result_bgm.mp3"
 const STREAM_COMPLETE_RESULT_BGM_PATH := "res://assets/audio/stream_complete_result_bgm.mp3"
 const BOSS_BGM_FADE_DURATION := 0.75
+const GAMEPLAY_FRAME_BGM_VOLUME_SCALE := 0.82
 const CURSOR_MOVE_SE_PATH := "res://assets/audio/cursor_move.mp3"
 const CONFIRM_SELECT_SE_PATH := "res://assets/audio/confirm_select.mp3"
 const PAUSE_OPEN_SE_PATH := "res://assets/audio/pause_open.mp3"
@@ -83,23 +84,30 @@ const LASER_SHOT_SE_PATH := "res://assets/audio/laser_shot.mp3"
 const BAN_HAMMER_SWING_SE_PATH := "res://assets/audio/ban_hammer_swing.mp3"
 const BAN_JUDGEMENT_ATTACK_SE_PATH := "res://assets/audio/ban_judgement_attack.mp3"
 const SUPERCHAT_SHOT_SE_PATH := "res://assets/audio/superchat_shot.mp3"
+const STARLIGHT_SUPERCHAT_DEFEAT_SE_PATH := "res://assets/audio/starlight_superchat_defeat.mp3"
 const SPOTLIGHT_ATTACK_SE_PATH := "res://assets/audio/spotlight_attack.mp3"
 const KUSA_WAVE_SHOT_SE_PATH := "res://assets/audio/kusa_wave_shot.mp3"
 const COMMENT_PIN_THROW_SE_PATH := "res://assets/audio/comment_pin_throw.mp3"
+const COMMENT_BOOMERANG_SWING_SE_PATH := "res://assets/audio/comment_boomerang_swing.mp3"
 const LISTENER_ATTACK_SE_PATH := "res://assets/audio/listener_attack.mp3"
 const MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/marshmallow_pickup.mp3"
 const KUSO_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/kuso_marshmallow_pickup.mp3"
 const GOD_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/god_marshmallow_pickup.mp3"
 const EXP_PICKUP_SE_PATH := "res://assets/audio/exp_pickup.mp3"
 const GIFT_BOX_ITEM_PICKUP_SE_PATH := "res://assets/audio/gift_box_item_pickup.mp3"
+const GENRE_RACE_COIN_PICKUP_SE_PATH := "res://assets/audio/genre_race_coin_pickup.mp3"
+const GENRE_RACE_DASH_PAD_SE_PATH := "res://assets/audio/genre_race_dash_pad.mp3"
 const LEVEL_UP_SE_PATH := "res://assets/audio/level_up.mp3"
 const PLAYER_DAMAGE_SE_PATH := "res://assets/audio/player_damage.mp3"
 const MENTAL_BREAKDOWN_SE_PATH := "res://assets/audio/mental_breakdown.mp3"
 const STREAM_COMPLETE_CLEAR_SE_PATH := "res://assets/audio/stream_complete_clear.mp3"
+const STREAM_END_WHISTLE_SE_PATH := "res://assets/audio/stream_end_whistle.mp3"
+const STREAM_START_READY_SE_PATH := "res://assets/audio/stream_start_ready.mp3"
 const LIVE_START_SE_PATH := "res://assets/audio/live_start_air_horn.mp3"
 const BOSS_WARNING_SE_PATH := "res://assets/audio/boss_warning.mp3"
 const ENEMY_DAMAGE_SE_PATH := "res://assets/audio/enemy_damage.mp3"
 const ENEMY_DEFEAT_SE_PATH := "res://assets/audio/enemy_defeat.mp3"
+const EMOTE_MINE_PLACE_SE_PATH := "res://assets/audio/emote_mine_place.mp3"
 const EMOTE_MINE_EXPLOSION_SE_PATH := "res://assets/audio/emote_mine_explosion.mp3"
 const MENTAL_BREAKDOWN_BANRI_IMAGE := "res://assets/generated/game_over_cutin_v1/banri_mental_breakdown.png"
 const MENTAL_BREAKDOWN_SUPANA_IMAGE := "res://assets/generated/game_over_cutin_v1/supana_mental_breakdown.png"
@@ -111,17 +119,32 @@ const STREAM_COMPLETE_BANRI_IMAGE := "res://assets/generated/game_clear_cutin_v1
 const STREAM_COMPLETE_SUPANA_IMAGE := "res://assets/generated/game_clear_cutin_v1/supana_stream_complete.png"
 const STREAM_COMPLETE_MARON_IMAGE := "res://assets/generated/game_clear_cutin_v1/maron_stream_complete.png"
 const COMMENT_BOOMERANG_IMAGE := "res://assets/generated/comment_boomerang_sprite_v1/comment_boomerang.png"
+const GENRE_CHANGE_BANNER_RACE_IMAGE := "res://assets/generated/genre_change_banners_v1/genre_change_banner_race.png"
+const GENRE_CHANGE_BANNER_BULLET_HELL_IMAGE := "res://assets/generated/genre_change_banners_v1/genre_change_banner_bullet_hell.png"
+const GENRE_CHANGE_BANNER_HORROR_IMAGE := "res://assets/generated/genre_change_banners_v1/genre_change_banner_horror.png"
+const GENRE_EVENT_DASH_PAD_IMAGE := "res://assets/generated/gameplay_event_objects_v1/dash_pad.png"
+const GENRE_EVENT_COIN_IMAGE := "res://assets/generated/gameplay_event_objects_v1/coin.png"
+const GENRE_EVENT_STG_PLAYER_OVERLAY_IMAGE := "res://assets/generated/gameplay_event_objects_v1/stg_player_overlay.png"
+const GENRE_EVENT_FAKE_GIFT_IMAGE := "res://assets/generated/gameplay_event_objects_v1/fake_gift_box.png"
+const GENRE_RESULT_CARD_DURATION := 1.55
 const STREAM_START_INTRO_DURATION := 1.90
 const STREAM_START_INTRO_SKIP_DELAY := 0.30
-const STREAM_START_LIVE_START_TIME := 0.90
+const STREAM_START_READY_TIME := 0.30
+const STREAM_START_LIVE_START_TIME := 1.05
 const GAME_OVER_INTRO_MENTAL_DURATION := 2.5
 const GAME_OVER_INTRO_COMPLETE_DURATION := 2.8
 const GAME_OVER_INTRO_SKIP_DELAY := 0.5
+const STREAM_COMPLETE_CELEBRATION_DURATION := 1.85
+const STREAM_COMPLETE_CRACKER_DURATION := 1.45
 const MENTAL_BREAKDOWN_SHAKE_POWER := 0.35
 const MENTAL_BREAKDOWN_SHAKE_DURATION := 0.22
 const MENTAL_BREAKDOWN_FLASH_DURATION := 0.18
 const MENTAL_BREAKDOWN_REACTION_DURATION := 1.10
 const MENTAL_BREAKDOWN_BGM_FADE_DURATION := 2.20
+const END_COUNTDOWN_START_SECONDS := 5
+const END_COUNTDOWN_TOAST_SECONDS := 10.0
+const STREAM_END_BANNER_DURATION := 0.72
+const GENRE_CHANGE_BANNER_DURATION := 1.38
 const RESULT_DROP_DURATION := 0.48
 const RESULT_DROP_START_Y := -860.0
 const COMMENT_PANEL_BG_V25 := "res://assets/generated/ui_parts_v2/comment_panel_bg_v1_370x606.png"
@@ -195,12 +218,16 @@ var characters: Array = []
 var weapons: Array = []
 var bosses: Array = []
 var stream_start_intro_config: Dictionary = {}
+var comment_pools: Dictionary = {}
 var stream_frame_progress: Dictionary = {}
 var relay_mode_unlocked := false
 var current_stream_frame: Dictionary = {}
 var current_character: Dictionary = {}
 var current_weapon: Dictionary = {}
 var current_stream_frame_id := "zatsudan"
+var cached_map_frame_id := ""
+var cached_map_genre_event := ""
+var cached_map_data: Dictionary = {}
 var current_character_id := "ban_chan"
 var current_weapon_id := "ban_hammer"
 var player_sprite: Texture2D
@@ -248,11 +275,14 @@ var boss_last_name := ""
 var boss_last_result := ""
 var boss_reward_viewers := 0
 var boss_slow_fields: Array = []
+var boss_guide_lines: Array = []
 var exp_orbs: Array = []
 var player_bullets: Array = []
 var boomerang_hits: Dictionary = {}
 var equipment_weapon_timers: Dictionary = {}
 var hit_fx: Array = []
+var genre_change_banner_event := ""
+var genre_change_banner_timer := 0.0
 var banana_slip_fx_timer := 0.0
 var banana_floor_appear_timer := 0.0
 var banana_floor_rollback_timer := 0.0
@@ -263,6 +293,9 @@ var next_destructible_uid := 1
 var player_weapons: Array = []
 var player_accessories: Array = []
 var chat_lines: Array[String] = []
+var comment_storm_slot_texts: Array[String] = []
+var comment_storm_slot_cycles: Array[int] = []
+var comment_storm_sample_cursor := 0
 var active_effects: Array[String] = []
 var active_effect_rates: Dictionary = {}
 var active_sub_comment_ids: Array[String] = []
@@ -431,6 +464,7 @@ var ranking_reset_confirm_visible := false
 var ranking_reset_confirm_index := 1
 var debug_key_latch: Dictionary = {}
 var pause_escape_down := false
+var pause_escape_release_blocked := false
 var pause_menu_index := 0
 var pause_confirm_action := ""
 var pause_confirm_index := 1
@@ -444,19 +478,39 @@ var toast_text := ""
 var toast_timer := 0.0
 var time_announcement_flags: Dictionary = {}
 var last_countdown_announcement_second := -1
+var stream_end_banner_timer := 0.0
+var stream_end_banner_duration := STREAM_END_BANNER_DURATION
 var kuso_chat_timer := 0.0
 var attack_jitter_timer := 0.0
 var move_slow_timer := 0.0
 var spawn_rate_timer := 0.0
 var support_attack_timer := 0.0
-var next_genre_event_time := 35.0
+var next_genre_event_time := GenreEventSystemScript.FIRST_GENRE_EVENT_TIME
 var debug_rare_comment_boost := false
 var genre_event_timer := 0.0
+var genre_event_duration := GenreEventSystemScript.GENRE_EVENT_DURATION
+var genre_event_source := ""
 var active_genre_event := ""
 var next_known_genre_event := ""
 var genre_event_hurt := false
 var genre_race_move_timer := 0.0
 var genre_bullet_timer := 0.0
+var genre_race_dash_pads: Array = []
+var genre_race_coins: Array = []
+var genre_horror_fake_gifts: Array = []
+var genre_race_dash_boost_timer := 0.0
+var genre_race_enemy_spawn_timer := 0.0
+var genre_stg_shot_timer := 0.0
+var genre_stg_spawn_timer := 0.0
+var genre_stg_last_dir := Vector2.RIGHT
+var genre_result_coin_count := 0
+var genre_result_dash_pad_count := 0
+var genre_event_start_kills := 0
+var genre_result_stg_shot_kill_count := 0
+var genre_result_fake_gift_defeat_count := 0
+var genre_result_card_timer := 0.0
+var genre_result_card_duration := GENRE_RESULT_CARD_DURATION
+var genre_result_card_data: Dictionary = {}
 var genre_event_count := 0
 var race_event_count := 0
 var bullet_hell_event_count := 0
@@ -496,29 +550,38 @@ var laser_se_player: AudioStreamPlayer
 var ban_hammer_se_player: AudioStreamPlayer
 var ban_judgement_se_player: AudioStreamPlayer
 var superchat_shot_se_player: AudioStreamPlayer
+var starlight_superchat_defeat_se_player: AudioStreamPlayer
 var spotlight_attack_se_player: AudioStreamPlayer
 var kusa_wave_se_player: AudioStreamPlayer
 var comment_pin_se_player: AudioStreamPlayer
+var comment_boomerang_se_player: AudioStreamPlayer
 var listener_attack_se_player: AudioStreamPlayer
 var marshmallow_pickup_se_player: AudioStreamPlayer
 var kuso_marshmallow_pickup_se_player: AudioStreamPlayer
 var god_marshmallow_pickup_se_player: AudioStreamPlayer
 var exp_pickup_se_player: AudioStreamPlayer
 var gift_box_item_pickup_se_player: AudioStreamPlayer
+var genre_race_coin_pickup_se_player: AudioStreamPlayer
+var genre_race_dash_pad_se_player: AudioStreamPlayer
 var level_up_se_player: AudioStreamPlayer
 var player_damage_se_player: AudioStreamPlayer
 var mental_breakdown_se_player: AudioStreamPlayer
 var stream_complete_clear_se_player: AudioStreamPlayer
+var stream_end_whistle_se_player: AudioStreamPlayer
+var stream_start_ready_se_player: AudioStreamPlayer
 var live_start_se_player: AudioStreamPlayer
 var boss_warning_se_player: AudioStreamPlayer
 var enemy_damage_se_player: AudioStreamPlayer
 var enemy_defeat_se_player: AudioStreamPlayer
+var emote_mine_place_se_player: AudioStreamPlayer
 var emote_mine_explosion_se_player: AudioStreamPlayer
 var enemy_damage_se_played_frame := -1
 var listener_attack_se_played_frame := -1
+var starlight_superchat_defeat_se_played_frame := -1
 var stream_start_intro_timer := 0.0
 var stream_start_intro_duration := STREAM_START_INTRO_DURATION
 var stream_start_intro_skip_down := false
+var stream_start_intro_ready_se_played := false
 var stream_start_intro_live_start_se_played := false
 var game_over_intro_timer := 0.0
 var game_over_intro_duration := 0.0
@@ -547,23 +610,30 @@ func _ready() -> void:
 	_setup_ban_hammer_se()
 	_setup_ban_judgement_se()
 	_setup_superchat_shot_se()
+	_setup_starlight_superchat_defeat_se()
 	_setup_spotlight_attack_se()
 	_setup_kusa_wave_se()
 	_setup_comment_pin_se()
+	_setup_comment_boomerang_se()
 	_setup_listener_attack_se()
 	_setup_marshmallow_pickup_se()
 	_setup_kuso_marshmallow_pickup_se()
 	_setup_god_marshmallow_pickup_se()
 	_setup_exp_pickup_se()
 	_setup_gift_box_item_pickup_se()
+	_setup_genre_race_coin_pickup_se()
+	_setup_genre_race_dash_pad_se()
 	_setup_level_up_se()
 	_setup_player_damage_se()
 	_setup_mental_breakdown_se()
 	_setup_stream_complete_clear_se()
+	_setup_stream_end_whistle_se()
+	_setup_stream_start_ready_se()
 	_setup_live_start_se()
 	_setup_boss_warning_se()
 	_setup_enemy_damage_se()
 	_setup_enemy_defeat_se()
+	_setup_emote_mine_place_se()
 	_setup_emote_mine_explosion_se()
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
 	_build_ui()
@@ -579,6 +649,8 @@ func _process(delta: float) -> void:
 	_update_world_zoom(delta)
 	_update_screen_shake(delta)
 	_update_screen_flash(delta)
+	_update_genre_change_banner(delta)
+	_update_genre_result_card(delta)
 	_update_title_logo_drop(delta)
 	_update_title_character_appear(delta)
 	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro":
@@ -607,6 +679,19 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 func _update_pause_input_with_se() -> void:
+	var escape_down := Input.is_key_pressed(KEY_ESCAPE)
+	if pause_escape_release_blocked:
+		pause_escape_down = escape_down
+		if not escape_down:
+			pause_escape_release_blocked = false
+		return
+	if state == "pause" and pause_confirm_action != "":
+		var was_escape_down := pause_escape_down
+		pause_escape_down = escape_down
+		if was_escape_down and not escape_down:
+			_play_back_transition_se()
+			_close_pause_confirm()
+		return
 	var before_state := state
 	StateFlowSystemScript.update_pause_input_for_target(self)
 	if before_state != "pause" and state == "pause":
@@ -712,6 +797,13 @@ func _setup_superchat_shot_se() -> void:
 	superchat_shot_se_player.stream = _load_audio_stream(SUPERCHAT_SHOT_SE_PATH, false)
 	add_child(superchat_shot_se_player)
 
+func _setup_starlight_superchat_defeat_se() -> void:
+	starlight_superchat_defeat_se_player = AudioStreamPlayer.new()
+	starlight_superchat_defeat_se_player.name = "StarlightSuperchatDefeatSePlayer"
+	starlight_superchat_defeat_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	starlight_superchat_defeat_se_player.stream = _load_audio_stream(STARLIGHT_SUPERCHAT_DEFEAT_SE_PATH, false)
+	add_child(starlight_superchat_defeat_se_player)
+
 func _setup_spotlight_attack_se() -> void:
 	spotlight_attack_se_player = AudioStreamPlayer.new()
 	spotlight_attack_se_player.name = "SpotlightAttackSePlayer"
@@ -732,6 +824,13 @@ func _setup_comment_pin_se() -> void:
 	comment_pin_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	comment_pin_se_player.stream = _load_audio_stream(COMMENT_PIN_THROW_SE_PATH, false)
 	add_child(comment_pin_se_player)
+
+func _setup_comment_boomerang_se() -> void:
+	comment_boomerang_se_player = AudioStreamPlayer.new()
+	comment_boomerang_se_player.name = "CommentBoomerangSePlayer"
+	comment_boomerang_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	comment_boomerang_se_player.stream = _load_audio_stream(COMMENT_BOOMERANG_SWING_SE_PATH, false)
+	add_child(comment_boomerang_se_player)
 
 func _setup_listener_attack_se() -> void:
 	listener_attack_se_player = AudioStreamPlayer.new()
@@ -775,6 +874,20 @@ func _setup_gift_box_item_pickup_se() -> void:
 	gift_box_item_pickup_se_player.stream = _load_audio_stream(GIFT_BOX_ITEM_PICKUP_SE_PATH, false)
 	add_child(gift_box_item_pickup_se_player)
 
+func _setup_genre_race_coin_pickup_se() -> void:
+	genre_race_coin_pickup_se_player = AudioStreamPlayer.new()
+	genre_race_coin_pickup_se_player.name = "GenreRaceCoinPickupSePlayer"
+	genre_race_coin_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	genre_race_coin_pickup_se_player.stream = _load_audio_stream(GENRE_RACE_COIN_PICKUP_SE_PATH, false)
+	add_child(genre_race_coin_pickup_se_player)
+
+func _setup_genre_race_dash_pad_se() -> void:
+	genre_race_dash_pad_se_player = AudioStreamPlayer.new()
+	genre_race_dash_pad_se_player.name = "GenreRaceDashPadSePlayer"
+	genre_race_dash_pad_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	genre_race_dash_pad_se_player.stream = _load_audio_stream(GENRE_RACE_DASH_PAD_SE_PATH, false)
+	add_child(genre_race_dash_pad_se_player)
+
 func _setup_level_up_se() -> void:
 	level_up_se_player = AudioStreamPlayer.new()
 	level_up_se_player.name = "LevelUpSePlayer"
@@ -802,6 +915,20 @@ func _setup_stream_complete_clear_se() -> void:
 	stream_complete_clear_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	stream_complete_clear_se_player.stream = _load_audio_stream(STREAM_COMPLETE_CLEAR_SE_PATH, false)
 	add_child(stream_complete_clear_se_player)
+
+func _setup_stream_end_whistle_se() -> void:
+	stream_end_whistle_se_player = AudioStreamPlayer.new()
+	stream_end_whistle_se_player.name = "StreamEndWhistleSePlayer"
+	stream_end_whistle_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	stream_end_whistle_se_player.stream = _load_audio_stream(STREAM_END_WHISTLE_SE_PATH, false)
+	add_child(stream_end_whistle_se_player)
+
+func _setup_stream_start_ready_se() -> void:
+	stream_start_ready_se_player = AudioStreamPlayer.new()
+	stream_start_ready_se_player.name = "StreamStartReadySePlayer"
+	stream_start_ready_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	stream_start_ready_se_player.stream = _load_audio_stream(STREAM_START_READY_SE_PATH, false)
+	add_child(stream_start_ready_se_player)
 
 func _setup_live_start_se() -> void:
 	live_start_se_player = AudioStreamPlayer.new()
@@ -831,6 +958,13 @@ func _setup_enemy_defeat_se() -> void:
 	enemy_defeat_se_player.stream = _load_audio_stream(ENEMY_DEFEAT_SE_PATH, false)
 	add_child(enemy_defeat_se_player)
 
+func _setup_emote_mine_place_se() -> void:
+	emote_mine_place_se_player = AudioStreamPlayer.new()
+	emote_mine_place_se_player.name = "EmoteMinePlaceSePlayer"
+	emote_mine_place_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	emote_mine_place_se_player.stream = _load_audio_stream(EMOTE_MINE_PLACE_SE_PATH, false)
+	add_child(emote_mine_place_se_player)
+
 func _setup_emote_mine_explosion_se() -> void:
 	emote_mine_explosion_se_player = AudioStreamPlayer.new()
 	emote_mine_explosion_se_player.name = "EmoteMineExplosionSePlayer"
@@ -839,13 +973,13 @@ func _setup_emote_mine_explosion_se() -> void:
 	add_child(emote_mine_explosion_se_player)
 
 func _load_audio_stream(path: String, loop: bool = false) -> AudioStream:
+	if path.get_extension().to_lower() == "mp3" and FileAccess.file_exists(path):
+		var fallback_stream := AudioStreamMP3.new()
+		fallback_stream.data = FileAccess.get_file_as_bytes(path)
+		fallback_stream.loop = loop
+		return fallback_stream
 	var loaded: AudioStream = ResourceLoader.load(path) as AudioStream
 	if loaded == null:
-		if path.get_extension().to_lower() == "mp3" and FileAccess.file_exists(path):
-			var fallback_stream := AudioStreamMP3.new()
-			fallback_stream.data = FileAccess.get_file_as_bytes(path)
-			fallback_stream.loop = loop
-			return fallback_stream
 		return null
 	var stream: AudioStream = loaded.duplicate() as AudioStream
 	if stream == null:
@@ -989,9 +1123,14 @@ func _resume_gameplay_bgm_after_boss() -> void:
 func _apply_bgm_volumes() -> void:
 	var ending_scale := _mental_breakdown_bgm_fade_scale()
 	if gameplay_bgm_player != null:
-		gameplay_bgm_player.volume_db = _bgm_volume_db_for_scale((1.0 - boss_bgm_mix) * ending_scale)
+		gameplay_bgm_player.volume_db = _bgm_volume_db_for_scale((1.0 - boss_bgm_mix) * ending_scale * _stream_frame_bgm_volume_scale())
 	if boss_bgm_player != null:
 		boss_bgm_player.volume_db = _bgm_volume_db_for_scale(boss_bgm_mix * ending_scale)
+
+func _stream_frame_bgm_volume_scale() -> float:
+	if current_stream_frame_id == "gameplay":
+		return GAMEPLAY_FRAME_BGM_VOLUME_SCALE
+	return 1.0
 
 func _mental_breakdown_bgm_fade_scale() -> float:
 	if not _is_mental_breakdown_intro():
@@ -1085,6 +1224,18 @@ func _play_superchat_shot_se() -> void:
 		superchat_shot_se_player.stop()
 	superchat_shot_se_player.play()
 
+func _play_starlight_superchat_defeat_se_once_per_frame() -> void:
+	if starlight_superchat_defeat_se_player == null or starlight_superchat_defeat_se_player.stream == null:
+		return
+	var current_frame: int = Engine.get_process_frames()
+	if starlight_superchat_defeat_se_played_frame == current_frame:
+		return
+	starlight_superchat_defeat_se_played_frame = current_frame
+	starlight_superchat_defeat_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if starlight_superchat_defeat_se_player.playing:
+		starlight_superchat_defeat_se_player.stop()
+	starlight_superchat_defeat_se_player.play()
+
 func _play_spotlight_attack_se() -> void:
 	if spotlight_attack_se_player == null or spotlight_attack_se_player.stream == null:
 		return
@@ -1108,6 +1259,14 @@ func _play_comment_pin_se() -> void:
 	if comment_pin_se_player.playing:
 		comment_pin_se_player.stop()
 	comment_pin_se_player.play()
+
+func _play_comment_boomerang_se() -> void:
+	if comment_boomerang_se_player == null or comment_boomerang_se_player.stream == null:
+		return
+	comment_boomerang_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if comment_boomerang_se_player.playing:
+		comment_boomerang_se_player.stop()
+	comment_boomerang_se_player.play()
 
 func _play_listener_attack_se_once_per_frame() -> void:
 	if listener_attack_se_player == null or listener_attack_se_player.stream == null:
@@ -1161,6 +1320,22 @@ func _play_gift_box_item_pickup_se() -> void:
 		gift_box_item_pickup_se_player.stop()
 	gift_box_item_pickup_se_player.play()
 
+func _play_genre_race_coin_pickup_se() -> void:
+	if genre_race_coin_pickup_se_player == null or genre_race_coin_pickup_se_player.stream == null:
+		return
+	genre_race_coin_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if genre_race_coin_pickup_se_player.playing:
+		genre_race_coin_pickup_se_player.stop()
+	genre_race_coin_pickup_se_player.play()
+
+func _play_genre_race_dash_pad_se() -> void:
+	if genre_race_dash_pad_se_player == null or genre_race_dash_pad_se_player.stream == null:
+		return
+	genre_race_dash_pad_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if genre_race_dash_pad_se_player.playing:
+		genre_race_dash_pad_se_player.stop()
+	genre_race_dash_pad_se_player.play()
+
 func _play_level_up_se() -> void:
 	if level_up_se_player == null or level_up_se_player.stream == null:
 		return
@@ -1192,6 +1367,22 @@ func _play_stream_complete_clear_se() -> void:
 	if stream_complete_clear_se_player.playing:
 		stream_complete_clear_se_player.stop()
 	stream_complete_clear_se_player.play()
+
+func _play_stream_end_whistle_se() -> void:
+	if stream_end_whistle_se_player == null or stream_end_whistle_se_player.stream == null:
+		return
+	stream_end_whistle_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if stream_end_whistle_se_player.playing:
+		stream_end_whistle_se_player.stop()
+	stream_end_whistle_se_player.play()
+
+func _play_stream_start_ready_se() -> void:
+	if stream_start_ready_se_player == null or stream_start_ready_se_player.stream == null:
+		return
+	stream_start_ready_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if stream_start_ready_se_player.playing:
+		stream_start_ready_se_player.stop()
+	stream_start_ready_se_player.play()
 
 func _play_live_start_se() -> void:
 	if live_start_se_player == null or live_start_se_player.stream == null:
@@ -1229,6 +1420,14 @@ func _play_enemy_defeat_se() -> void:
 		enemy_defeat_se_player.stop()
 	enemy_defeat_se_player.play()
 
+func _play_emote_mine_place_se() -> void:
+	if emote_mine_place_se_player == null or emote_mine_place_se_player.stream == null:
+		return
+	emote_mine_place_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if emote_mine_place_se_player.playing:
+		emote_mine_place_se_player.stop()
+	emote_mine_place_se_player.play()
+
 func _play_emote_mine_explosion_se() -> void:
 	if emote_mine_explosion_se_player == null or emote_mine_explosion_se_player.stream == null:
 		return
@@ -1237,53 +1436,50 @@ func _play_emote_mine_explosion_se() -> void:
 		emote_mine_explosion_se_player.stop()
 	emote_mine_explosion_se_player.play()
 
-func _cursor_sound_snapshot() -> Dictionary:
-	return {
-		"state": state,
-		"titleMenu": title_menu_index,
-		"optionMenu": option_menu_index,
-		"character": selected_character_index,
-		"characterFocus": character_select_focus_area,
-		"streamFrame": selected_stream_frame_index,
-		"streamFrameFocus": stream_frame_select_focus_area,
-		"rankingTab": ranking_tab_index,
-		"rankingSelected": ranking_selected_index,
-		"rankingFocus": ranking_focus_area,
-		"rankingResetConfirmIndex": ranking_reset_confirm_index,
-		"pauseMenu": pause_menu_index,
-		"pauseFocus": pause_focus_area,
-		"pauseEquipRow": pause_equipment_row,
-		"pauseWeaponSlot": pause_weapon_slot_index,
-		"pauseAccessorySlot": pause_accessory_slot_index,
-		"choiceCard": selected_card,
-		"resultHover": result_hover_button
-	}
+func _cursor_sound_snapshot() -> Array:
+	return [
+		state,
+		title_menu_index,
+		option_menu_index,
+		selected_character_index,
+		character_select_focus_area,
+		selected_stream_frame_index,
+		stream_frame_select_focus_area,
+		ranking_tab_index,
+		ranking_selected_index,
+		ranking_focus_area,
+		ranking_reset_confirm_index,
+		pause_menu_index,
+		pause_focus_area,
+		pause_equipment_row,
+		pause_weapon_slot_index,
+		pause_accessory_slot_index,
+		selected_card,
+		result_hover_button
+	]
 
-func _cursor_sound_snapshot_changed(before: Dictionary) -> bool:
-	if String(before.get("state", "")) != state:
+func _cursor_sound_snapshot_changed(before: Array) -> bool:
+	if before.size() < 18 or String(before[0]) != state:
 		return false
-	for key in [
-		"titleMenu",
-		"optionMenu",
-		"character",
-		"characterFocus",
-		"streamFrame",
-		"streamFrameFocus",
-		"rankingTab",
-		"rankingSelected",
-		"rankingFocus",
-		"rankingResetConfirmIndex",
-		"pauseMenu",
-		"pauseFocus",
-		"pauseEquipRow",
-		"pauseWeaponSlot",
-		"pauseAccessorySlot",
-		"choiceCard",
-		"resultHover"
-	]:
-		if before.get(key) != _cursor_sound_snapshot().get(key):
-			return true
-	return false
+	return (
+		int(before[1]) != title_menu_index
+		or int(before[2]) != option_menu_index
+		or int(before[3]) != selected_character_index
+		or String(before[4]) != character_select_focus_area
+		or int(before[5]) != selected_stream_frame_index
+		or String(before[6]) != stream_frame_select_focus_area
+		or int(before[7]) != ranking_tab_index
+		or int(before[8]) != ranking_selected_index
+		or String(before[9]) != ranking_focus_area
+		or int(before[10]) != ranking_reset_confirm_index
+		or int(before[11]) != pause_menu_index
+		or String(before[12]) != pause_focus_area
+		or int(before[13]) != pause_equipment_row
+		or int(before[14]) != pause_weapon_slot_index
+		or int(before[15]) != pause_accessory_slot_index
+		or int(before[16]) != selected_card
+		or String(before[17]) != result_hover_button
+	)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if state == "game_over_intro":
@@ -1347,8 +1543,9 @@ func _set_click_move_target_from_screen(pos: Vector2) -> bool:
 	if not FIELD_VIEW.has_point(pos):
 		return false
 	var target: Vector2 = _world_pos_from_screen(pos)
-	target.x = clampf(target.x, ARENA.position.x + CLICK_MOVE_PLAYER_RADIUS, ARENA.end.x - CLICK_MOVE_PLAYER_RADIUS)
-	target.y = clampf(target.y, ARENA.position.y + CLICK_MOVE_PLAYER_RADIUS, ARENA.end.y - CLICK_MOVE_PLAYER_RADIUS)
+	var arena := _current_arena()
+	target.x = clampf(target.x, arena.position.x + CLICK_MOVE_PLAYER_RADIUS, arena.end.x - CLICK_MOVE_PLAYER_RADIUS)
+	target.y = clampf(target.y, arena.position.y + CLICK_MOVE_PLAYER_RADIUS, arena.end.y - CLICK_MOVE_PLAYER_RADIUS)
 	target = PlayerSystemScript.resolve_wall_collision(target, player_pos, CLICK_MOVE_PLAYER_RADIUS, effect_walls, current_stream_frame_id)
 	click_move_target = target
 	click_move_active = true
@@ -1555,6 +1752,7 @@ func _start_stream_start_intro() -> void:
 	stream_start_intro_duration = float(stream_start_intro_config.get("duration", STREAM_START_INTRO_DURATION))
 	stream_start_intro_timer = stream_start_intro_duration
 	stream_start_intro_skip_down = _stream_start_intro_confirm_down()
+	stream_start_intro_ready_se_played = false
 	stream_start_intro_live_start_se_played = false
 	choice_box.visible = false
 	result_panel.visible = false
@@ -1581,9 +1779,18 @@ func _reset_retry_bgm_from_start() -> void:
 func _update_stream_start_intro(delta: float) -> void:
 	var skip_pressed := _stream_start_intro_skip_pressed()
 	stream_start_intro_timer = maxf(0.0, stream_start_intro_timer - delta)
+	_maybe_play_stream_start_ready_se()
 	_maybe_play_stream_start_live_start_se()
 	if stream_start_intro_timer <= 0.0 or skip_pressed:
 		_restart()
+
+func _maybe_play_stream_start_ready_se() -> void:
+	if stream_start_intro_ready_se_played:
+		return
+	if _stream_start_intro_elapsed() < STREAM_START_READY_TIME:
+		return
+	stream_start_intro_ready_se_played = true
+	_play_stream_start_ready_se()
 
 func _maybe_play_stream_start_live_start_se() -> void:
 	if stream_start_intro_live_start_se_played:
@@ -1617,6 +1824,8 @@ func _start_ending_cutin(reason: String, end_type: String) -> void:
 		_start_mental_breakdown_impact()
 	elif end_type == "completed":
 		_play_stream_complete_clear_se()
+		_request_screen_flash(Color(1.0, 0.92, 0.62, 0.16), 0.18)
+		_request_screen_shake(0.055, 0.12)
 	var reaction_lines: Array[String] = _ending_cutin_reaction_lines(end_type)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": reaction_lines}, chat_box)
 	queue_redraw()
@@ -1841,17 +2050,18 @@ func _result_next_button() -> void:
 	_move_result_button(1)
 
 func _update_active_state(delta: float) -> void:
-	var cursor_before: Dictionary = _cursor_sound_snapshot()
-	StateFlowSystemScript.apply_active_update(state, {
-		"comment_choice": Callable(self, "_update_comment_choice").bind(delta),
-		"gift_choice": Callable(self, "_update_gift_choice"),
-		"world": Callable(self, "_update_world").bind(delta)
-	})
+	var cursor_before: Array = _cursor_sound_snapshot()
+	if state == "comment_choice":
+		_update_comment_choice(delta)
+	elif state == "gift_choice":
+		_update_gift_choice()
+	else:
+		_update_world(delta)
 	if _cursor_sound_snapshot_changed(cursor_before):
 		_play_cursor_move_se()
 
 func _update_front_state(delta: float) -> bool:
-	var cursor_before: Dictionary = _cursor_sound_snapshot()
+	var cursor_before: Array = _cursor_sound_snapshot()
 	if state == "pause":
 		_update_pause_menu(delta)
 		if _cursor_sound_snapshot_changed(cursor_before):
@@ -1944,8 +2154,9 @@ func _draw_modal_dim() -> void:
 
 func _world_camera_offset() -> Vector2:
 	var desired: Vector2 = player_pos - FIELD_VIEW.get_center()
-	var min_offset: Vector2 = ARENA.position - FIELD_VIEW.position
-	var max_offset: Vector2 = ARENA.end - FIELD_VIEW.end
+	var arena := _current_arena()
+	var min_offset: Vector2 = arena.position - FIELD_VIEW.position
+	var max_offset: Vector2 = arena.end - FIELD_VIEW.end
 	return Vector2(
 		roundf(clampf(desired.x, min_offset.x, max_offset.x)),
 		roundf(clampf(desired.y, min_offset.y, max_offset.y))
@@ -2066,6 +2277,13 @@ func _world_pos_from_screen(screen_pos: Vector2) -> Vector2:
 	var transform_pos: Vector2 = center - (camera_offset + center) * world_zoom + _screen_shake_offset()
 	return (screen_pos - transform_pos) / world_zoom
 
+func _visible_world_rect_for_spawning() -> Rect2:
+	var top_left := _world_pos_from_screen(FIELD_VIEW.position)
+	var bottom_right := _world_pos_from_screen(FIELD_VIEW.end)
+	var min_pos := Vector2(minf(top_left.x, bottom_right.x), minf(top_left.y, bottom_right.y))
+	var max_pos := Vector2(maxf(top_left.x, bottom_right.x), maxf(top_left.y, bottom_right.y))
+	return Rect2(min_pos, max_pos - min_pos)
+
 func _draw_field_clip_masks() -> void:
 	var fill: Color = (DrawDataSystemScript.screen_backdrop_data()["color"] as Color)
 	draw_rect(Rect2(Vector2.ZERO, Vector2(1600.0, FIELD_VIEW.position.y)), fill, true)
@@ -2080,6 +2298,9 @@ func _draw() -> void:
 		_draw_world_layer()
 	_draw_overlay_layer()
 	_draw_screen_flash()
+	_draw_genre_change_banner()
+	_draw_genre_event_timer()
+	_draw_genre_result_card()
 	_draw_toast()
 
 func _draws_title_only() -> bool:
@@ -2092,8 +2313,11 @@ func _draw_world_layer() -> void:
 	_apply_world_transform()
 	_draw_arena()
 	_draw_boss_slow_fields()
-	_draw_hit_fx(true)
+	_draw_boss_guide_lines()
+	var hit_fx_draw_items: Array = DrawDataSystemScript.hit_fx_draw_data(hit_fx)
+	_draw_hit_fx(true, hit_fx_draw_items)
 	_draw_click_move_marker()
+	_draw_genre_event_objects()
 	_draw_exp()
 	_draw_mallow()
 	_draw_drop_items()
@@ -2103,7 +2327,7 @@ func _draw_world_layer() -> void:
 	_draw_enemies()
 	_draw_boomerang()
 	_draw_player()
-	_draw_hit_fx(false)
+	_draw_hit_fx(false, hit_fx_draw_items)
 	_draw_map_foreground()
 	world_draw_active = false
 	_reset_world_transform()
@@ -2116,8 +2340,12 @@ func _draw_overlay_layer() -> void:
 	var special_overlays: Array[String] = []
 	if not title_only:
 		special_overlays = DrawDataSystemScript.special_overlay_views(self)
+	if not special_overlays.has("comment_storm"):
+		_reset_comment_storm_slots()
 	if modal_overlay_active and special_overlays.has("comment_storm"):
 		_draw_comment_storm()
+	if modal_overlay_active and special_overlays.has("horror"):
+		_draw_horror_mask()
 	if modal_overlay_active:
 		_draw_modal_dim()
 	var overlay_view: String = StateFlowSystemScript.overlay_view(state)
@@ -2151,12 +2379,15 @@ func _draw_overlay_layer() -> void:
 				if not modal_overlay_active:
 					_draw_comment_storm()
 			elif String(special_overlay) == "horror":
-				_draw_horror_mask()
+				if not modal_overlay_active:
+					_draw_horror_mask()
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if state == "playing":
 		_draw_boss_overlay()
 	if StateFlowSystemScript.shows_comment_countdown(state):
 		_draw_comment_countdown()
+	if state == "playing":
+		_draw_stream_end_countdown_overlay()
 	if state == "result" and result_showing_ranking:
 		_draw_ranking_overlay()
 	elif state == "result":
@@ -2178,15 +2409,21 @@ func _build_ui() -> void:
 
 func _update_world(delta: float) -> void:
 	var run_length := RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH)
+	if stream_end_banner_timer > 0.0:
+		stream_end_banner_timer = maxf(0.0, stream_end_banner_timer - delta)
+		if stream_end_banner_timer <= 0.0:
+			_finish_stream_end_banner()
+		_update_ui()
+		return
 	var previous_remaining := maxf(0.0, run_length - elapsed)
 	elapsed += delta
-	if elapsed >= run_length:
-		if relay_mode:
-			_advance_relay_frame()
-			return
-		_start_stream_complete_intro("配信成功！3分間生き残った。")
-		return
+	var remaining := maxf(0.0, run_length - elapsed)
 	_update_time_announcements(previous_remaining, run_length)
+	_update_stream_end_countdown_feedback(remaining)
+	if elapsed >= run_length:
+		elapsed = run_length
+		_start_stream_end_banner()
+		return
 
 	var had_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
 	var effect_result: Dictionary = ModifierSystemScript.update_effect_timer_for_target(self, delta)
@@ -2224,13 +2461,39 @@ func _update_time_announcements(previous_remaining: float, run_length: float) ->
 	var remaining := maxf(0.0, run_length - elapsed)
 	_maybe_time_mark_announcement("2min", previous_remaining, remaining, run_length, 120.0, "【アナウンス】配信終了まで残り2分！")
 	_maybe_time_mark_announcement("1min", previous_remaining, remaining, run_length, 60.0, "【アナウンス】配信終了まで残り1分！")
-	if remaining > 10.0:
+	_maybe_time_toast_announcement("10sec", previous_remaining, remaining, run_length, END_COUNTDOWN_TOAST_SECONDS, "終了まで10秒", 1.6)
+
+func _update_stream_end_countdown_feedback(remaining: float) -> void:
+	if remaining <= 0.0 or remaining > float(END_COUNTDOWN_START_SECONDS):
 		return
 	var second := int(ceil(remaining))
-	if second < 1 or second > 10 or second == last_countdown_announcement_second:
+	if second < 1 or second > END_COUNTDOWN_START_SECONDS or second == last_countdown_announcement_second:
 		return
 	last_countdown_announcement_second = second
-	_push_time_announcement("【カウントダウン】終了まで %d！" % second, 0.92)
+	if second == 1:
+		_play_confirm_se()
+		_request_screen_shake(0.055, 0.10)
+		_request_screen_flash(Color(1.0, 0.70, 0.94, 0.08), 0.08)
+	else:
+		_play_cursor_move_se()
+		_request_screen_shake(0.025, 0.07)
+
+func _start_stream_end_banner() -> void:
+	if stream_end_banner_timer > 0.0:
+		return
+	stream_end_banner_duration = STREAM_END_BANNER_DURATION
+	stream_end_banner_timer = stream_end_banner_duration
+	_play_stream_end_whistle_se()
+	_request_screen_shake(0.08, 0.13)
+	_request_screen_flash(Color(0.76, 0.92, 1.0, 0.10), 0.12)
+	queue_redraw()
+
+func _finish_stream_end_banner() -> void:
+	stream_end_banner_timer = 0.0
+	if relay_mode:
+		_advance_relay_frame()
+		return
+	_start_stream_complete_intro("配信成功！3分間生き残った。")
 
 func _maybe_time_mark_announcement(key: String, previous_remaining: float, remaining: float, run_length: float, mark: float, text: String) -> void:
 	if run_length <= mark or bool(time_announcement_flags.get(key, false)):
@@ -2239,8 +2502,18 @@ func _maybe_time_mark_announcement(key: String, previous_remaining: float, remai
 		time_announcement_flags[key] = true
 		_push_time_announcement(text, 1.5)
 
+func _maybe_time_toast_announcement(key: String, previous_remaining: float, remaining: float, run_length: float, mark: float, text: String, toast_seconds: float) -> void:
+	if run_length <= mark or bool(time_announcement_flags.get(key, false)):
+		return
+	if previous_remaining >= mark and remaining < mark:
+		time_announcement_flags[key] = true
+		_push_time_toast(text, toast_seconds)
+
 func _push_time_announcement(text: String, toast_seconds: float) -> void:
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [text], "toasts": [text]}, chat_box, toast_seconds)
+
+func _push_time_toast(text: String, toast_seconds: float) -> void:
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"toasts": [text]}, chat_box, toast_seconds)
 
 func _clear_toast() -> void:
 	toast_text = ""
@@ -2249,28 +2522,32 @@ func _clear_toast() -> void:
 func _reset_time_announcements() -> void:
 	time_announcement_flags.clear()
 	last_countdown_announcement_second = -1
+	stream_end_banner_timer = 0.0
+	stream_end_banner_duration = STREAM_END_BANNER_DURATION
 
 func _update_stream_frame_events(delta: float) -> void:
-	var marshmallow_feedback: Dictionary = MarshmallowSystemScript.update_auto_spawn_if_enabled_for_target(self, current_stream_frame, marshmallow_data, rng, ARENA, effect_walls)
+	var arena := _current_arena()
+	var marshmallow_feedback: Dictionary = MarshmallowSystemScript.update_auto_spawn_if_enabled_for_target(self, current_stream_frame, marshmallow_data, rng, arena, effect_walls)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, marshmallow_feedback, chat_box)
 	_update_genre_event(delta)
 
 func _update_world_systems(delta: float) -> void:
+	var arena := _current_arena()
 	_update_gift_choice_delay(delta)
-	_update_player(delta)
+	_update_player(delta, arena)
 	if state != "playing":
 		return
 	_update_accessory_effects(delta)
-	_apply_damage_feedback(ModifierSystemScript.update_stage_hazard_damage_for_target(self, ARENA))
+	_apply_damage_feedback(ModifierSystemScript.update_stage_hazard_damage_for_target(self, arena))
 	if state != "playing":
 		return
-	_update_spawning(delta)
-	_update_boss(delta)
-	_update_enemies(delta)
+	_update_spawning(delta, arena)
+	_update_boss(delta, arena)
+	_update_enemies(delta, arena)
 	if state != "playing":
 		return
-	_update_destructibles(delta)
-	_update_weapons(delta)
+	_update_destructibles(delta, arena)
+	_update_weapons(delta, arena)
 	var exp_result: Dictionary = ExpSystemScript.update_world_for_target(self, delta)
 	if int(exp_result.get("collectedExp", 0)) > 0:
 		_play_exp_pickup_se()
@@ -2278,8 +2555,8 @@ func _update_world_systems(delta: float) -> void:
 		pending_gift_choices += int(exp_result.get("levelUps", 1))
 		if gift_choice_delay_timer <= 0.0:
 			_start_gift_choice()
-	_update_marshmallow(delta)
-	var hit_fx_feedback: Dictionary = WeaponSystemScript.update_hit_fx_for_target(self, delta, ARENA, rng)
+	_update_marshmallow(delta, arena)
+	var hit_fx_feedback: Dictionary = WeaponSystemScript.update_hit_fx_for_target(self, delta, arena, rng)
 	_apply_hit_reaction_feedback(hit_fx_feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, hit_fx_feedback, chat_box)
 	if state == "playing" and pending_gift_choices > 0 and gift_choice_delay_timer <= 0.0:
@@ -2290,9 +2567,12 @@ func _update_gift_choice_delay(delta: float) -> void:
 		return
 	gift_choice_delay_timer = maxf(0.0, gift_choice_delay_timer - delta)
 
-func _update_boss(delta: float) -> void:
-	var feedback: Dictionary = BossSystemScript.update_for_target(self, delta, ARENA, rng)
+func _update_boss(delta: float, arena: Rect2) -> void:
+	var before_event := String(active_genre_event)
+	var feedback: Dictionary = BossSystemScript.update_for_target(self, delta, arena, rng)
 	_apply_hit_reaction_feedback(feedback)
+	_maybe_start_genre_change_banner(before_event)
+	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, feedback.get("damageEvents", []) as Array))
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
 func _update_accessory_effects(delta: float) -> void:
@@ -2346,8 +2626,66 @@ func _append_mini_humidifier_heal_fx(amount: int) -> void:
 	})
 
 func _update_genre_event(delta: float) -> void:
-	var feedback: Dictionary = GenreEventSystemScript.update_world_if_enabled_for_target(self, current_stream_frame, delta, genre_events, ARENA, rng)
+	var before_event := String(active_genre_event)
+	var feedback: Dictionary = GenreEventSystemScript.update_world_if_enabled_for_target(self, current_stream_frame, delta, genre_events, _current_arena(), rng)
+	if _feedback_has_comment_event(feedback, "gameplay_race_coin_collected"):
+		_play_genre_race_coin_pickup_se()
+	if _feedback_has_comment_event(feedback, "gameplay_race_dash_pad_used"):
+		_play_genre_race_dash_pad_se()
+	_maybe_start_genre_change_banner(before_event)
+	_maybe_start_genre_result_card(feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
+
+func _feedback_has_comment_event(feedback: Dictionary, event_id: String) -> bool:
+	for item in (feedback.get("commentEventIds", []) as Array):
+		if String(item) == event_id:
+			return true
+	var single_event_id := String(feedback.get("commentEventId", ""))
+	return single_event_id == event_id
+
+func _maybe_start_genre_change_banner(before_event: String) -> void:
+	var after_event := String(active_genre_event)
+	if current_stream_frame_id != "gameplay" or after_event == "" or after_event == before_event:
+		return
+	if _genre_change_banner_path(after_event) == "":
+		return
+	genre_change_banner_event = after_event
+	genre_change_banner_timer = GENRE_CHANGE_BANNER_DURATION
+
+func _update_genre_change_banner(delta: float) -> void:
+	if genre_change_banner_timer <= 0.0:
+		return
+	genre_change_banner_timer = maxf(0.0, genre_change_banner_timer - delta)
+	if genre_change_banner_timer <= 0.0:
+		genre_change_banner_event = ""
+
+func _maybe_start_genre_result_card(feedback: Dictionary) -> void:
+	var result_value: Variant = feedback.get("genreResult", {})
+	if not (result_value is Dictionary):
+		return
+	var data: Dictionary = result_value as Dictionary
+	if data.is_empty():
+		return
+	genre_result_card_data = data.duplicate(true)
+	genre_result_card_duration = clampf(float(data.get("duration", GENRE_RESULT_CARD_DURATION)), 1.2, 1.8)
+	genre_result_card_timer = genre_result_card_duration
+
+func _update_genre_result_card(delta: float) -> void:
+	if genre_result_card_timer <= 0.0:
+		return
+	genre_result_card_timer = maxf(0.0, genre_result_card_timer - delta)
+	if genre_result_card_timer <= 0.0:
+		genre_result_card_data.clear()
+
+func _genre_change_banner_path(event_id: String) -> String:
+	match event_id:
+		"race":
+			return GENRE_CHANGE_BANNER_RACE_IMAGE
+		"bullet_hell":
+			return GENRE_CHANGE_BANNER_BULLET_HELL_IMAGE
+		"horror":
+			return GENRE_CHANGE_BANNER_HORROR_IMAGE
+	return ""
 
 func _start_character_select() -> void:
 	var result: Dictionary = CharacterSystemScript.start_selection_for_target(self, choice_box, result_panel, characters)
@@ -2672,6 +3010,7 @@ func _refresh_options_screen() -> void:
 func _back_from_front_screen() -> void:
 	if state == "options" and options_return_state == "pause":
 		state = "pause"
+		pause_escape_release_blocked = true
 		result_label.text = ""
 		result_panel.visible = false
 		return
@@ -2693,12 +3032,13 @@ func _back_to_title() -> void:
 	banana_floor_appear_timer = 0.0
 	banana_floor_rollback_timer = 0.0
 	banana_floor_was_active = false
+	_reset_time_announcements()
 	choice_box.visible = false
 	result_panel.visible = false
 	_update_title_screen_visibility()
 
-func _update_player(delta: float) -> void:
-	var result: Dictionary = PlayerSystemScript.update_for_target(self, delta, ARENA)
+func _update_player(delta: float, arena: Rect2) -> void:
+	var result: Dictionary = PlayerSystemScript.update_for_target(self, delta, arena)
 	if bool(result.get("dashStarted", false)):
 		_play_dash_se()
 	if bool(result["stoppedDamage"]):
@@ -2763,17 +3103,20 @@ func _banana_floor_rollback_progress() -> float:
 		return 1.0
 	return clampf(1.0 - banana_floor_rollback_timer / BANANA_FLOOR_ROLLBACK_DURATION, 0.0, 1.0)
 
-func _update_spawning(delta: float) -> void:
-	SpawnerSystemScript.update_for_target(self, delta, ARENA, rng)
+func _update_spawning(delta: float, arena: Rect2) -> void:
+	SpawnerSystemScript.update_for_target(self, delta, arena, rng)
 
-func _update_enemies(delta: float) -> void:
-	var result: Dictionary = EnemySystemScript.update_world_for_target(self, delta, rng, ARENA)
+func _update_enemies(delta: float, arena: Rect2) -> void:
+	var result: Dictionary = EnemySystemScript.update_world_for_target(self, delta, rng, arena)
+	var marshmallow_drop_requests: Array = result.get("marshmallowDropRequests", []) as Array
+	if not marshmallow_drop_requests.is_empty():
+		MarshmallowSystemScript.spawn_supply_drop_requests_for_target(self, marshmallow_data, marshmallow_drop_requests, rng, arena, effect_walls)
 	_apply_hit_reaction_feedback(result)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, result.get("damageEvents", []) as Array))
 
-func _update_weapons(delta: float) -> void:
-	var result: Dictionary = WeaponSystemScript.update_for_target(self, delta, ARENA, rng)
+func _update_weapons(delta: float, arena: Rect2) -> void:
+	var result: Dictionary = WeaponSystemScript.update_for_target(self, delta, arena, rng)
 	if _weapon_update_has_fx(result, "ng_word_laser"):
 		_play_laser_se()
 	if _weapon_update_has_ban_judgement_swing(result):
@@ -2782,13 +3125,19 @@ func _update_weapons(delta: float) -> void:
 		_play_ban_hammer_se()
 	if bool(result.get("superchatShotFired", false)):
 		_play_superchat_shot_se()
+	if _weapon_update_has_fx(result, "starlight_defeat"):
+		_play_starlight_superchat_defeat_se_once_per_frame()
 	if _weapon_update_has_fx(result, "spotlight"):
 		_play_spotlight_attack_se()
 	if _weapon_update_has_fx(result, "kusa_wave"):
 		_play_kusa_wave_se()
 	if _weapon_update_has_fx(result, "comment_pin"):
 		_play_comment_pin_se()
-	var feedback: Dictionary = WeaponSystemScript.apply_update_result_for_target(self, result, ARENA, rng)
+	if bool(result.get("boomerangOrbitSe", false)):
+		_play_comment_boomerang_se()
+	if _weapon_update_has_fx(result, "emote_mine"):
+		_play_emote_mine_place_se()
+	var feedback: Dictionary = WeaponSystemScript.apply_update_result_for_target(self, result, arena, rng)
 	_apply_hit_reaction_feedback(feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
 
@@ -2840,9 +3189,11 @@ func _update_comment_choice(delta: float) -> void:
 
 func _choose_comment(index: int) -> void:
 	var had_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
-	var result: Dictionary = CommentSystemScript.choose_comment_with_feedback_for_target(self, index, rng, ARENA, COMMENT_INTERVAL, choice_box, genre_events)
+	var before_genre_event := String(active_genre_event)
+	var result: Dictionary = CommentSystemScript.choose_comment_with_feedback_for_target(self, index, rng, _current_arena(), COMMENT_INTERVAL, choice_box, genre_events)
 	if not bool(result["selected"]):
 		return
+	_maybe_start_genre_change_banner(before_genre_event)
 	_play_confirm_se()
 	_suppress_dash_button_after_ui_confirm()
 	if bool(result.get("bossWarningStarted", false)):
@@ -2882,8 +3233,8 @@ func _choose_gift(index: int) -> void:
 func _suppress_dash_button_after_ui_confirm() -> void:
 	dash_enter_down = Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_SPACE)
 
-func _update_marshmallow(delta: float) -> void:
-	var feedback: Dictionary = MarshmallowSystemScript.update_world_for_target(self, delta, ARENA, rng)
+func _update_marshmallow(delta: float, arena: Rect2) -> void:
+	var feedback: Dictionary = MarshmallowSystemScript.update_world_for_target(self, delta, arena, rng)
 	if bool(feedback.get("godPickupSe", false)):
 		_play_god_marshmallow_pickup_se()
 	elif bool(feedback.get("kusoPickupSe", false)):
@@ -2897,8 +3248,8 @@ func _update_marshmallow(delta: float) -> void:
 			_start_gift_choice()
 	MarshmallowSystemScript.update_effect_timers_for_target(self, delta)
 
-func _update_destructibles(delta: float) -> void:
-	var feedback: Dictionary = DestructibleSystemScript.update_world_for_target(self, delta, ARENA, rng, effect_walls)
+func _update_destructibles(delta: float, arena: Rect2) -> void:
+	var feedback: Dictionary = DestructibleSystemScript.update_world_for_target(self, delta, arena, rng, effect_walls)
 	if bool(feedback.get("dropPickupSe", false)):
 		_play_gift_box_item_pickup_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
@@ -3117,6 +3468,7 @@ func _apply_pause_confirm_navigation(nav: int) -> void:
 	_play_cursor_move_se()
 
 func _open_pause_confirm(action: String) -> void:
+	_play_confirm_se()
 	pause_confirm_action = action
 	pause_confirm_index = 1
 	pause_nav_repeat_timer = 0.0
@@ -3167,6 +3519,7 @@ func _resume_from_pause() -> void:
 	state = previous_state if previous_state != "" and previous_state != "pause" else "playing"
 
 func _open_pause_options() -> void:
+	_play_confirm_se()
 	_close_pause_confirm()
 	options_return_state = "pause"
 	state = "options"
@@ -3671,8 +4024,28 @@ func _start_next_relay_segment() -> void:
 	next_care_package_time = 15.0
 	active_genre_event = ""
 	genre_event_timer = 0.0
+	genre_event_duration = GenreEventSystemScript.GENRE_EVENT_DURATION
+	genre_event_source = ""
 	genre_bullet_timer = 0.0
 	genre_event_hurt = false
+	genre_race_dash_pads.clear()
+	genre_race_coins.clear()
+	genre_horror_fake_gifts.clear()
+	genre_race_dash_boost_timer = 0.0
+	genre_race_enemy_spawn_timer = 0.0
+	genre_stg_shot_timer = 0.0
+	genre_stg_spawn_timer = 0.0
+	genre_stg_last_dir = Vector2.RIGHT
+	genre_result_coin_count = 0
+	genre_result_dash_pad_count = 0
+	genre_event_start_kills = 0
+	genre_result_stg_shot_kill_count = 0
+	genre_result_fake_gift_defeat_count = 0
+	genre_result_card_timer = 0.0
+	genre_result_card_duration = GENRE_RESULT_CARD_DURATION
+	genre_result_card_data.clear()
+	genre_change_banner_event = ""
+	genre_change_banner_timer = 0.0
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["次の配信枠へ！ " + String(current_stream_frame.get("displayName", "配信枠"))]}, chat_box)
 
 func _handle_debug_keys() -> void:
@@ -3702,10 +4075,10 @@ func _apply_debug_action(action: String) -> void:
 		_apply_forced_comment_debug(forced_heart_id, true)
 	var marshmallow_kind: String = DebugSystemScript.marshmallow_kind(action)
 	if marshmallow_kind != "" and state == "playing":
-		var marshmallow_result: Dictionary = DebugSystemScript.force_marshmallow_for_target(self, marshmallow_data, marshmallow_kind, rng, ARENA, effect_walls)
+		var marshmallow_result: Dictionary = DebugSystemScript.force_marshmallow_for_target(self, marshmallow_data, marshmallow_kind, rng, _current_arena(), effect_walls)
 		if bool(marshmallow_result["spawned"]):
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(marshmallow_result["chat"])]}, chat_box)
-	var result: Dictionary = DebugSystemScript.apply_general_action_for_target(self, action, quick_test_mode, ARENA, rng)
+	var result: Dictionary = DebugSystemScript.apply_general_action_for_target(self, action, quick_test_mode, _current_arena(), rng)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 
 func _apply_forced_comment_debug(comment_id: String, has_heart: bool) -> void:
@@ -3789,21 +4162,33 @@ func _draw_banana_roll_edge(data: Dictionary) -> void:
 		var y := arena.position.y + fmod(float(i) * 193.0 + elapsed * 62.0, arena.size.y)
 		draw_line(Vector2(edge_x - 16.0, y), Vector2(edge_x + 16.0, y + 8.0), Color(1.0, 0.93, 0.45, 0.25 if mode == "rollback" else 0.16), 2.0)
 
+func _current_map_data() -> Dictionary:
+	var genre_event := String(active_genre_event) if current_stream_frame_id == "gameplay" else ""
+	if cached_map_frame_id != current_stream_frame_id or cached_map_genre_event != genre_event or cached_map_data.is_empty():
+		cached_map_frame_id = current_stream_frame_id
+		cached_map_genre_event = genre_event
+		cached_map_data = MapBackgroundSystemScript.background_data_for_stream_frame(current_stream_frame_id, genre_event)
+	return cached_map_data
+
+func _current_arena() -> Rect2:
+	return MapBackgroundSystemScript.world_rect(_current_map_data())
+
 func _draw_arena() -> void:
-	var map_data: Dictionary = MapBackgroundSystemScript.background_data_for_stream_frame(current_stream_frame_id)
+	var map_data: Dictionary = _current_map_data()
 	var map_rect: Rect2 = MapBackgroundSystemScript.world_rect(map_data)
+	var arena := _current_arena()
 	var has_image_background := false
 	if not _draw_map_background_image(MapBackgroundSystemScript.floor_path(map_data), map_rect):
 		if _draw_map_background_image(MapBackgroundSystemScript.background_path(map_data), map_rect):
 			has_image_background = true
 		else:
-			var background: Dictionary = DrawDataSystemScript.arena_background_data(ARENA)
+			var background: Dictionary = DrawDataSystemScript.arena_background_data(arena)
 			for part in DrawDataSystemScript.arena_background_parts(background):
 				_draw_arena_part(part as Dictionary)
 	else:
 		has_image_background = true
 	var has_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
-	var arena_effects: Dictionary = DrawDataSystemScript.arena_effect_data(ARENA, has_banana_floor, effect_pits, _banana_floor_rollback_progress(), _banana_floor_appear_progress())
+	var arena_effects: Dictionary = DrawDataSystemScript.arena_effect_data(arena, has_banana_floor, effect_pits, _banana_floor_rollback_progress(), _banana_floor_appear_progress())
 	for part in DrawDataSystemScript.arena_effect_parts(arena_effects):
 		_draw_arena_part(part as Dictionary)
 	for wall in DrawDataSystemScript.arena_wall_draw_list(effect_walls, not has_image_background):
@@ -3859,7 +4244,7 @@ func _draw_pit_image(data: Dictionary) -> void:
 	draw_texture_rect(texture, Rect2(pos - size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
 
 func _draw_map_foreground() -> void:
-	var map_data: Dictionary = MapBackgroundSystemScript.background_data_for_stream_frame(current_stream_frame_id)
+	var map_data: Dictionary = _current_map_data()
 	_draw_map_background_image(MapBackgroundSystemScript.props_path(map_data), MapBackgroundSystemScript.world_rect(map_data))
 
 func _draw_click_move_marker() -> void:
@@ -3876,15 +4261,159 @@ func _draw_click_move_marker() -> void:
 	draw_line(center + Vector2(0.0, -10.0), center + Vector2(0.0, 10.0), Color(1.0, 1.0, 1.0, 0.82), 2.0, true)
 	draw_circle(center, 3.8 + pulse * 1.2, Color(1.0, 0.94, 0.35, 0.92))
 
+func _rotated_rect_points(center: Vector2, size: Vector2, angle: float) -> PackedVector2Array:
+	var dir := Vector2(cos(angle), sin(angle))
+	var side := Vector2(-dir.y, dir.x)
+	var half_w := size.x * 0.5
+	var half_h := size.y * 0.5
+	return PackedVector2Array([
+		center - dir * half_w - side * half_h,
+		center + dir * half_w - side * half_h,
+		center + dir * half_w + side * half_h,
+		center - dir * half_w + side * half_h
+	])
+
+func _draw_polyline(points: PackedVector2Array, color: Color, width: float) -> void:
+	if points.size() < 2:
+		return
+	for i in range(points.size()):
+		draw_line(points[i], points[(i + 1) % points.size()], color, width, true)
+
+func _draw_genre_event_objects() -> void:
+	if current_stream_frame_id != "gameplay":
+		return
+	for pad_item in genre_race_dash_pads:
+		_draw_genre_race_dash_pad(pad_item as Dictionary)
+	for coin_item in genre_race_coins:
+		_draw_genre_race_coin(coin_item as Dictionary)
+
+func _draw_genre_race_dash_pad(pad: Dictionary) -> void:
+	var pos := Vector2(pad.get("pos", Vector2.ZERO))
+	var angle := float(pad.get("angle", 0.0))
+	var pulse := 0.5 + 0.5 * sin(elapsed * 8.0 + float(pad.get("seed", 0.0)))
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, GENRE_EVENT_DASH_PAD_IMAGE)
+	if texture != null:
+		var image_size := Vector2(122.0, 110.0) * (1.0 + pulse * 0.025)
+		_draw_shadow(pos + Vector2(0.0, 18.0), Vector2(92.0, 26.0), 0.18)
+		draw_colored_polygon(_rotated_rect_points(pos, image_size * Vector2(0.90, 0.46), angle), Color(1.0, 0.72, 0.16, 0.08 + pulse * 0.07))
+		_draw_rotated_texture(texture, pos, image_size, angle, 0.98)
+		if genre_race_dash_boost_timer > 0.0:
+			var boost_alpha := clampf(genre_race_dash_boost_timer / GenreEventSystemScript.RACE_DASH_BUFF_DURATION, 0.0, 1.0)
+			draw_arc(pos, 56.0 + pulse * 5.0, elapsed * 5.0, elapsed * 5.0 + TAU * 0.72, 32, Color(1.0, 0.84, 0.20, 0.26 * boost_alpha), 4.0, true)
+		return
+	var size := Vector2(94.0, 42.0)
+	var dir := Vector2(cos(angle), sin(angle))
+	var side := Vector2(-dir.y, dir.x)
+	var points := _rotated_rect_points(pos, size, angle)
+	_draw_shadow(pos + Vector2(0.0, 12.0), Vector2(82.0, 22.0), 0.18)
+	draw_colored_polygon(_rotated_rect_points(pos, size + Vector2(18.0, 15.0), angle), Color(1.0, 0.68, 0.10, 0.10 + pulse * 0.08))
+	draw_colored_polygon(points, Color("#fff0a0"))
+	_draw_polyline(points, Color("#ff9b21"), 4.0)
+	_draw_polyline(_rotated_rect_points(pos, size - Vector2(12.0, 12.0), angle), Color(1.0, 1.0, 1.0, 0.60), 2.0)
+	for i in range(3):
+		var arrow_center := pos + dir * (-26.0 + float(i) * 24.0)
+		var tip := arrow_center + dir * (12.0 + pulse * 2.0)
+		var back := arrow_center - dir * 10.0
+		draw_line(back, tip, Color("#ff7a00"), 5.0, true)
+		draw_line(tip, tip - dir * 10.0 + side * 8.0, Color("#ff7a00"), 5.0, true)
+		draw_line(tip, tip - dir * 10.0 - side * 8.0, Color("#ff7a00"), 5.0, true)
+	if genre_race_dash_boost_timer > 0.0:
+		var alpha := clampf(genre_race_dash_boost_timer / GenreEventSystemScript.RACE_DASH_BUFF_DURATION, 0.0, 1.0)
+		draw_arc(pos, 56.0 + pulse * 5.0, elapsed * 5.0, elapsed * 5.0 + TAU * 0.72, 32, Color(1.0, 0.84, 0.20, 0.26 * alpha), 4.0, true)
+
+func _draw_genre_race_coin(coin: Dictionary) -> void:
+	var pos := Vector2(coin.get("pos", Vector2.ZERO))
+	var pulse := 0.5 + 0.5 * sin(elapsed * 7.5 + float(coin.get("seed", 0.0)))
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, GENRE_EVENT_COIN_IMAGE)
+	if texture != null:
+		var image_size := Vector2.ONE * (43.0 + pulse * 4.0)
+		_draw_shadow(pos + Vector2(0.0, 13.0), Vector2(31.0, 9.0), 0.16)
+		draw_circle(pos, 25.0 + pulse * 5.0, Color(1.0, 0.78, 0.14, 0.10 + pulse * 0.07))
+		_draw_rotated_texture(texture, pos, image_size, sin(elapsed * 4.0 + float(coin.get("seed", 0.0))) * 0.08, 0.98)
+		return
+	var radius := 15.0 + pulse * 2.5
+	_draw_shadow(pos + Vector2(0.0, 12.0), Vector2(30.0, 9.0), 0.16)
+	draw_circle(pos, radius + 10.0, Color(1.0, 0.78, 0.14, 0.12 + pulse * 0.08))
+	draw_circle(pos, radius, Color("#ffcc35"))
+	draw_circle(pos - Vector2(3.0, 4.0), radius * 0.62, Color("#fff18c"))
+	draw_arc(pos, radius + 2.0, 0.0, TAU, 28, Color("#c87805"), 3.0, true)
+	_draw_text_item({"label": "C", "labelPos": pos + Vector2(-8.0, 7.0), "labelColor": Color("#a86400"), "labelSize": 18, "labelWidth": -1}, "label")
+
+func _draw_genre_horror_fake_gift(gift: Dictionary) -> void:
+	var pos := Vector2(gift.get("pos", Vector2.ZERO))
+	var seed := float(gift.get("seed", 0.0))
+	var wobble := sin(elapsed * 8.0 + seed) * 2.0
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, GENRE_EVENT_FAKE_GIFT_IMAGE)
+	if texture != null:
+		var draw_pos := pos + Vector2(0.0, wobble - 4.0)
+		var image_size := Vector2(58.0, 58.0) * (1.0 + sin(elapsed * 5.5 + seed) * 0.015)
+		_draw_shadow(pos + Vector2(0.0, 18.0), Vector2(45.0, 13.0), 0.23)
+		draw_circle(pos + Vector2(0.0, wobble), 36.0, Color(0.38, 0.20, 0.60, 0.10))
+		_draw_rotated_texture(texture, draw_pos, image_size, sin(elapsed * 3.0 + seed) * 0.035, 0.98)
+		if int(elapsed * 5.0 + seed) % 3 == 0:
+			draw_circle(pos + Vector2(9.0, -5.0 + wobble), 2.4, Color(0.10, 0.02, 0.05, 0.68))
+			draw_circle(pos + Vector2(-9.0, -5.0 + wobble), 2.4, Color(0.10, 0.02, 0.05, 0.68))
+		return
+	var body := Rect2(pos + Vector2(-21.0, -18.0 + wobble), Vector2(42.0, 36.0))
+	var lid := Rect2(pos + Vector2(-25.0, -28.0 + wobble), Vector2(50.0, 12.0))
+	_draw_shadow(pos + Vector2(0.0, 17.0), Vector2(46.0, 13.0), 0.26)
+	draw_circle(pos + Vector2(0.0, wobble), 40.0, Color(0.38, 0.20, 0.60, 0.12))
+	draw_rect(body, Color("#c59ce9"), true)
+	draw_rect(lid, Color("#f0d9ff"), true)
+	_draw_rect_outline(body, Color("#62406f"), 3)
+	_draw_rect_outline(lid, Color("#62406f"), 3)
+	draw_rect(Rect2(pos + Vector2(-5.0, -28.0 + wobble), Vector2(10.0, 46.0)), Color("#7660c9"), true)
+	draw_rect(Rect2(pos + Vector2(-21.0, -4.0 + wobble), Vector2(42.0, 8.0)), Color("#7660c9"), true)
+	draw_line(pos + Vector2(-15.0, -28.0 + wobble), pos + Vector2(0.0, -40.0 + wobble), Color("#e0c7ff"), 4.0, true)
+	draw_line(pos + Vector2(15.0, -28.0 + wobble), pos + Vector2(0.0, -40.0 + wobble), Color("#e0c7ff"), 4.0, true)
+	if int(elapsed * 5.0 + seed) % 3 == 0:
+		draw_circle(pos + Vector2(9.0, -5.0 + wobble), 2.5, Color("#3b254f"))
+		draw_circle(pos + Vector2(-9.0, -5.0 + wobble), 2.5, Color("#3b254f"))
+
+func _draw_genre_stg_player_overlay() -> void:
+	if active_genre_event != "bullet_hell":
+		return
+	var dir := Vector2(genre_stg_last_dir)
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT if player_facing_x >= 0.0 else Vector2.LEFT
+	dir = dir.normalized()
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, GENRE_EVENT_STG_PLAYER_OVERLAY_IMAGE)
+	if texture != null:
+		var center := player_pos + dir * 5.0 + Vector2(0.0, -3.0)
+		var pulse := 0.5 + 0.5 * sin(elapsed * 10.0)
+		var image_size := Vector2(92.0, 89.0) * (1.0 + pulse * 0.025)
+		var glow_alpha := 0.13 + pulse * 0.04
+		draw_circle(center, 43.0 + pulse * 4.0, Color(0.28, 0.90, 1.0, glow_alpha))
+		_draw_rotated_texture(texture, center, image_size, dir.angle() + PI * 0.5, 0.94)
+		draw_line(center - dir * 34.0, center - dir * 52.0 + Vector2(-dir.y, dir.x) * 9.0, Color(0.40, 0.78, 1.0, 0.25), 5.0, true)
+		draw_line(center - dir * 34.0, center - dir * 52.0 - Vector2(-dir.y, dir.x) * 9.0, Color(0.40, 0.78, 1.0, 0.25), 5.0, true)
+		return
+	var side := Vector2(-dir.y, dir.x)
+	var center := player_pos + dir * 4.0
+	var nose := center + dir * 34.0
+	var tail := center - dir * 25.0
+	var wing_left := center - dir * 4.0 + side * 28.0
+	var wing_right := center - dir * 4.0 - side * 28.0
+	var glow_alpha := 0.14 + sin(elapsed * 11.0) * 0.03
+	draw_circle(center, 38.0, Color(0.28, 0.90, 1.0, glow_alpha))
+	draw_colored_polygon(PackedVector2Array([nose, wing_left, tail, wing_right]), Color(0.62, 0.96, 1.0, 0.32))
+	draw_line(tail, nose, Color(1.0, 1.0, 1.0, 0.72), 4.0, true)
+	draw_line(wing_left, nose, Color("#7deeff"), 3.0, true)
+	draw_line(wing_right, nose, Color("#7deeff"), 3.0, true)
+	draw_line(tail, tail - dir * 18.0 + side * 8.0, Color(0.40, 0.78, 1.0, 0.28), 5.0, true)
+	draw_line(tail, tail - dir * 18.0 - side * 8.0, Color(0.40, 0.78, 1.0, 0.28), 5.0, true)
+
 func _draw_player() -> void:
 	if player_sprite != null:
 		_draw_player_sprite()
+		_draw_genre_stg_player_overlay()
 		_draw_player_no_brake_sweat()
 		_draw_invincible_label()
 		_draw_player_hp_bar()
 		_draw_player_dash_status_icon()
 		return
 	_draw_player_fallback()
+	_draw_genre_stg_player_overlay()
 	_draw_player_no_brake_sweat()
 	_draw_invincible_label()
 	_draw_player_hp_bar()
@@ -4017,6 +4546,9 @@ func _draw_destructibles() -> void:
 		var box: Dictionary = item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
 			continue
+		if String(box.get("id", "")) == "horror_fake_gift":
+			_draw_genre_horror_fake_gift(box)
+			continue
 		_draw_care_package_box(box)
 
 func _draw_care_package_box(box: Dictionary) -> void:
@@ -4096,8 +4628,97 @@ func _draw_boss_slow_fields() -> void:
 		draw_circle(pos + Vector2(-radius * 0.28, -radius * 0.16), radius * 0.13, Color(0.22, 0.04, 0.26, 0.22 * alpha), true)
 		draw_circle(pos + Vector2(radius * 0.30, radius * 0.12), radius * 0.10, Color(0.95, 0.20, 0.62, 0.24 * alpha), true)
 
+func _draw_boss_guide_lines() -> void:
+	for item in boss_guide_lines:
+		var line: Dictionary = item as Dictionary
+		var from_pos := Vector2(line.get("from", Vector2.ZERO))
+		var to_pos := Vector2(line.get("to", Vector2.ZERO))
+		var width := float(line.get("width", 58.0))
+		var dir := to_pos - from_pos
+		var length := dir.length()
+		if length <= 0.1:
+			continue
+		dir /= length
+		var side := Vector2(-dir.y, dir.x)
+		if bool(line.get("hit", false)):
+			var flash_life := clampf(float(line.get("flashLife", 0.0)) / 0.16, 0.0, 1.0)
+			_draw_boss_guide_line_hit(from_pos, to_pos, dir, side, width, flash_life)
+			continue
+		var timer := float(line.get("timer", 0.0))
+		var max_timer := maxf(0.01, float(line.get("maxTimer", 0.72)))
+		var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
+		_draw_boss_guide_line_warning(from_pos, to_pos, dir, side, width, progress)
+
+func _draw_boss_guide_beam_body(from_pos: Vector2, to_pos: Vector2, side: Vector2, half_width: float, alpha: float, hot: bool = false) -> void:
+	var points := PackedVector2Array([
+		from_pos - side * half_width,
+		to_pos - side * half_width * 0.92,
+		to_pos + side * half_width * 0.92,
+		from_pos + side * half_width
+	])
+	var colors := PackedColorArray([
+		Color(0.16, 0.00, 0.08, 0.08 * alpha),
+		Color(1.0, 0.04, 0.24, (0.38 if hot else 0.24) * alpha),
+		Color(1.0, 0.28, 0.68, (0.34 if hot else 0.22) * alpha),
+		Color(0.10, 0.00, 0.12, 0.08 * alpha)
+	])
+	draw_polygon(points, colors)
+
+func _draw_boss_guide_line_warning(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, progress: float) -> void:
+	var pulse := 0.5 + 0.5 * sin(elapsed * 18.0)
+	var alpha := 0.48 + progress * 0.34
+	var half_width := width * (0.39 + progress * 0.10)
+	draw_line(from_pos, to_pos, Color(0.02, 0.00, 0.05, 0.34 + progress * 0.22), width * (1.66 + progress * 0.20), true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.04, 0.24, 0.18 + progress * 0.22), width * (1.24 + progress * 0.22), true)
+	_draw_boss_guide_beam_body(from_pos, to_pos, side, half_width, alpha, false)
+	draw_line(from_pos - side * half_width * 0.78, to_pos - side * half_width * 0.72, Color(1.0, 0.13, 0.24, 0.56 * alpha), 3.4 + pulse * 1.4, true)
+	draw_line(from_pos + side * half_width * 0.78, to_pos + side * half_width * 0.72, Color(0.72, 0.92, 1.0, 0.34 * alpha), 2.6 + pulse * 1.1, true)
+	draw_line(from_pos, to_pos, Color(0.80, 0.98, 1.0, (0.36 + pulse * 0.18) * alpha), maxf(4.5, width * (0.09 + progress * 0.035)), true)
+	_draw_boss_guide_scans(from_pos, to_pos, dir, side, width, alpha, progress, false)
+
+func _draw_boss_guide_line_hit(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, flash_life: float) -> void:
+	var burst := sin(flash_life * PI)
+	var half_width := width * (0.58 + burst * 0.10)
+	draw_line(from_pos, to_pos, Color(0.01, 0.00, 0.03, 0.56 * flash_life), width * (2.18 + burst * 0.26), true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.02, 0.18, 0.48 * flash_life), width * (1.50 + burst * 0.18), true)
+	_draw_boss_guide_beam_body(from_pos, to_pos, side, half_width, flash_life, true)
+	draw_line(from_pos - side * half_width * 0.76, to_pos - side * half_width * 0.72, Color(1.0, 0.07, 0.12, 0.86 * flash_life), 5.2 + burst * 2.0, true)
+	draw_line(from_pos + side * half_width * 0.76, to_pos + side * half_width * 0.72, Color(1.0, 0.42, 0.74, 0.64 * flash_life), 4.2 + burst * 1.6, true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.08, 0.40, 0.95 * flash_life), maxf(7.0, width * (0.24 + burst * 0.05)), true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.96, 0.98, 0.82 * flash_life), maxf(2.8, width * 0.075), true)
+	_draw_boss_guide_scans(from_pos, to_pos, dir, side, width, flash_life, 1.0 - flash_life, true)
+	_draw_boss_guide_sparks((from_pos + to_pos) * 0.5, dir, side, width, flash_life, burst)
+
+func _draw_boss_guide_scans(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, progress: float, hit: bool) -> void:
+	var center := (from_pos + to_pos) * 0.5
+	var span := 1280.0
+	var count := 9 if hit else 7
+	for i in range(count):
+		var offset := (float(i) - float(count - 1) * 0.5) * (span / float(maxi(1, count - 1)))
+		offset += sin(elapsed * 5.5 + float(i) * 1.3) * 24.0 + progress * 72.0
+		var p := center + dir * offset
+		var length := width * (0.52 if hit else 0.42)
+		var scan_alpha := (0.22 if hit else 0.13) * alpha
+		var color := Color(1.0, 0.88, 0.92, scan_alpha) if i % 2 == 0 else Color(0.58, 0.96, 1.0, scan_alpha * 0.85)
+		draw_line(p - side * length - dir * width * 0.15, p + side * length + dir * width * 0.15, color, 2.4 if hit else 1.8, true)
+
+func _draw_boss_guide_sparks(center: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, burst: float) -> void:
+	for i in range(6):
+		var p := center + dir * ((float(i) - 2.5) * width * 1.6) + side * sin(elapsed * 7.0 + float(i)) * width * 0.36
+		var spark_dir := (dir * (0.52 + burst * 0.20) + side * (0.58 if i % 2 == 0 else -0.58)).normalized()
+		var size := width * (0.18 + 0.08 * burst)
+		var color := Color(1.0, 0.92, 0.58, 0.44 * alpha)
+		draw_line(p - spark_dir * size, p + spark_dir * size * 1.6, color, 2.0 + burst * 1.2, true)
+		draw_line(p - side * size * 0.62, p + side * size * 0.62, Color(0.78, 0.96, 1.0, 0.30 * alpha), 1.5 + burst * 0.8, true)
+
 func _draw_player_bullets() -> void:
-	WeaponDrawSystemScript.draw_bullets(self, player_bullets, true)
+	WeaponDrawSystemScript.draw_bullets(
+		self,
+		player_bullets,
+		true,
+		Callable(self, "_draw_rotated_texture"),
+		Callable(self, "_load_raw_png_texture")
+	)
 
 func _draw_boomerang() -> void:
 	WeaponDrawSystemScript.draw_boomerangs(
@@ -4110,8 +4731,12 @@ func _draw_boomerang() -> void:
 		comment_boomerang_sprite,
 		Callable(self, "_draw_rotated_texture"),
 		equipment_weapon_timers,
-		equipment_bullet_support_level
+		equipment_bullet_support_level,
+		Callable(self, "_load_raw_png_texture")
 	)
+
+func _load_raw_png_texture(path: String) -> Texture2D:
+	return TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
 
 func _draw_boss_overlay() -> void:
 	if boss_requested:
@@ -4168,8 +4793,13 @@ func _draw_boss_hp_overlay() -> void:
 	_draw_text_item({"pos": rect.position + Vector2(18, 34), "text": String(boss.get("displayName", "超長文ニキ")), "width": 132, "size": 20, "color": name_color})
 	_draw_text_item({"pos": rect.position + Vector2(516, 20), "text": "%d/%d" % [maxi(0, int(ceil(float(boss.get("hp", 0.0))))), int(ceil(max_hp))], "width": 108, "size": 14, "color": name_color})
 
-func _draw_hit_fx(field_layer: bool = false) -> void:
-	for fx in DrawDataSystemScript.hit_fx_draw_data(hit_fx):
+func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null) -> void:
+	var fx_draw_items: Array = []
+	if draw_items is Array:
+		fx_draw_items = draw_items as Array
+	else:
+		fx_draw_items = DrawDataSystemScript.hit_fx_draw_data(hit_fx)
+	for fx in fx_draw_items:
 		var data := fx as Dictionary
 		var is_field_fx := String(data.get("kind", "")) == "emote_mine"
 		if is_field_fx != field_layer:
@@ -4401,7 +5031,7 @@ func _draw_ui_card_background_v25(rect: Rect2, accent: Color, border_color: Colo
 	draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	return false
 
-func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "", border_color: Color = Color("#ffc1da"), border_width: int = 2, icon_path: String = "") -> void:
+func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color, icon_text: String = "", border_color: Color = Color("#ffc1da"), border_width: int = 2, icon_path: String = "", value_alignment: int = HORIZONTAL_ALIGNMENT_LEFT, value_size_override: int = -1) -> void:
 	var image_drawn := _draw_ui_card_background_v25(rect, accent, border_color, border_width)
 	if rect.size.y <= 64.0:
 		_draw_compact_ui_card_text_v25(rect, label, value, accent, icon_text, icon_path)
@@ -4414,10 +5044,13 @@ func _draw_ui_card_v25(rect: Rect2, label: String, value: String, accent: Color,
 	var text_x: float = rect.position.x + (58.0 if has_icon else 16.0)
 	if image_drawn and int(round(rect.size.x)) == 278:
 		text_x = rect.position.x + 86.0
+		value_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	elif image_drawn and int(round(rect.size.x)) == 198:
 		text_x = rect.position.x + 66.0
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 30), "text": label, "width": int(rect.size.x - 30), "size": 15, "color": Color("#101420")})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 65), "text": value, "width": int(rect.size.x - 28), "size": 27, "color": Color("#101420")})
+	var text_width: int = maxi(24, int(rect.end.x - text_x - 18.0))
+	var value_size := value_size_override if value_size_override > 0 else 27
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 30), "text": label, "width": text_width, "size": 15, "color": Color("#101420")})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 65), "text": value, "width": text_width, "size": value_size, "color": Color("#101420")}, "", value_alignment)
 
 func _draw_buzz_status_card_v25(rect: Rect2) -> void:
 	var accent := Color("#b46cff")
@@ -4433,7 +5066,12 @@ func _draw_buzz_status_card_v25(rect: Rect2) -> void:
 	var text_width := int(rect.end.x - text_x - 14.0)
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28), "text": "バズ度", "width": text_width, "size": 15, "color": Color("#51316c")})
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 53), "text": "%d / 10" % burn_combo, "width": text_width, "size": 25, "color": Color("#2b1738")})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 74), "text": "撃破スコア +%d%%" % (burn_combo * 10), "width": text_width, "size": 13, "color": Color("#9a55d9")})
+	var bonus_text := "撃破スコア +%d%%" % (burn_combo * 10)
+	var bonus_rect := Rect2(Vector2(text_x - 18.0, rect.position.y + 58.0), Vector2(float(text_width) + 23.0, 18.0))
+	_draw_ranking_panel(bonus_rect, Color(1.0, 1.0, 1.0, 0.70), Color(1.0, 0.58, 0.86, 0.46), 8, 1, false)
+	draw_line(bonus_rect.position + Vector2(7.0, 3.0), bonus_rect.position + Vector2(bonus_rect.size.x - 7.0, 3.0), Color(0.72, 0.94, 1.0, 0.34), 1.0)
+	_draw_text_item({"pos": Vector2(text_x + 1.0, rect.position.y + 74.0), "text": bonus_text, "width": text_width, "size": 13, "color": Color(0.34, 0.12, 0.48, 0.26)})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 73.0), "text": bonus_text, "width": text_width, "size": 13, "color": Color("#8a37cf")})
 
 func _draw_mental_breakdown_viewer_card(rect: Rect2) -> void:
 	var clock := float(Time.get_ticks_msec()) / 1000.0
@@ -4507,7 +5145,7 @@ func _draw_equipment_panel_v25(rect: Rect2, label: String, accent: Color) -> voi
 	_draw_text_item({"pos": tab.position + Vector2(0, 17), "text": label, "width": int(tab.size.x), "size": 14, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _viewer_hud_text() -> String:
-	return "%s人視聴中" % DrawDataSystemScript.format_viewer_count(score)
+	return "%s人" % DrawDataSystemScript.format_viewer_count(score)
 
 func _time_hud_text() -> String:
 	var remaining: int = maxi(0, int(ceil(RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH) - elapsed)))
@@ -4550,7 +5188,7 @@ func _current_instruction_risk_v25() -> int:
 	return int(view.get("riskLevel", 0))
 
 func _draw_top_status_v25() -> void:
-	_draw_ui_card_v25(Rect2(20, 18, 198, 80), "配信枠", String(current_stream_frame.get("displayName", "雑談枠")), Color("#6ee7f0"), "▣", Color("#d8eaf4"), 1)
+	_draw_ui_card_v25(Rect2(20, 18, 198, 80), "配信枠", String(current_stream_frame.get("displayName", "雑談枠")), Color("#6ee7f0"), "▣", Color("#d8eaf4"), 1, "", HORIZONTAL_ALIGNMENT_LEFT, 19)
 	_draw_ui_card_v25(Rect2(230, 18, 198, 80), "残り時間", _time_hud_text(), Color("#fff45c"), "◷", Color("#eadf9a"), 1)
 	_draw_buzz_status_card_v25(Rect2(440, 18, 220, 80))
 	var viewer_rect := Rect2(672, 18, 278, 80)
@@ -4887,6 +5525,113 @@ func _draw_comment_countdown() -> void:
 	var data: Dictionary = DrawDataSystemScript.comment_countdown_data(left, COMMENT_INTERVAL, elapsed)
 	for part in DrawDataSystemScript.comment_countdown_parts(data):
 		_draw_simple_draw_part(data, part as Dictionary)
+
+func _draw_stream_end_countdown_overlay() -> void:
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if stream_end_banner_timer > 0.0:
+		var banner_progress := clampf(1.0 - stream_end_banner_timer / maxf(0.01, stream_end_banner_duration), 0.0, 1.0)
+		_draw_stream_end_banner_overlay(banner_progress)
+		return
+	var run_length := RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH)
+	var remaining := maxf(0.0, run_length - elapsed)
+	if remaining <= 0.0 or remaining > float(END_COUNTDOWN_START_SECONDS):
+		return
+	var second := int(ceil(remaining))
+	if second < 1 or second > END_COUNTDOWN_START_SECONDS:
+		return
+	var progress := clampf(float(second) - remaining, 0.0, 1.0)
+	_draw_stream_end_number_overlay(str(second), progress, second == 1)
+
+func _draw_stream_end_number_overlay(text: String, progress: float, emphasized: bool) -> void:
+	var center := Vector2(TITLE_SCREEN_RECT.size.x * 0.5, FIELD_VIEW.position.y + FIELD_VIEW.size.y * 0.46)
+	var pop_t := clampf(progress / 0.22, 0.0, 1.0)
+	var pop_eased := 1.0 - pow(1.0 - pop_t, 3.0)
+	var scale := lerpf(1.38 if emphasized else 1.30, 1.0, pop_eased) + sin(progress * PI) * (0.055 if emphasized else 0.035)
+	var fade_t := clampf((progress - 0.70) / 0.30, 0.0, 1.0)
+	var alpha := clampf(1.0 - fade_t, 0.0, 1.0)
+	var base_size := 178 if emphasized else 158
+	var size := maxi(40, int(round(float(base_size) * scale)))
+	var glow_radius := (128.0 if emphasized else 112.0) * scale
+	_draw_stream_end_glow(center, glow_radius, alpha, progress, emphasized)
+	_draw_stream_end_countdown_text(text, center, 520.0, size, alpha, emphasized)
+
+func _draw_stream_end_banner_overlay(progress: float) -> void:
+	var center := Vector2(TITLE_SCREEN_RECT.size.x * 0.5, FIELD_VIEW.position.y + FIELD_VIEW.size.y * 0.46)
+	var enter := clampf(progress / 0.22, 0.0, 1.0)
+	var exit := clampf((progress - 0.74) / 0.26, 0.0, 1.0)
+	var alpha := clampf(minf(enter / 0.85, 1.0 - exit), 0.0, 1.0)
+	var scale := lerpf(1.18, 1.0, 1.0 - pow(1.0 - enter, 3.0))
+	_draw_stream_end_glow(center, 156.0 * scale, alpha, progress, true)
+	_draw_stream_end_countdown_text("LIVE END", center, 760.0, int(round(88.0 * scale)), alpha, true)
+
+func _draw_stream_end_glow(center: Vector2, radius: float, alpha: float, progress: float, emphasized: bool) -> void:
+	if alpha <= 0.0:
+		return
+	draw_circle(center, radius * 1.10, Color(1.0, 0.46, 0.74, 0.13 * alpha))
+	draw_circle(center, radius * 0.78, Color(0.57, 0.92, 1.0, 0.12 * alpha))
+	draw_circle(center, radius * 0.48, Color(0.78, 0.64, 1.0, 0.10 * alpha))
+	var ring_alpha := (0.34 if emphasized else 0.25) * alpha
+	draw_arc(center, radius * 0.92, -PI * 0.15 + progress * TAU * 0.35, PI * 1.55 + progress * TAU * 0.35, 72, Color(1.0, 0.58, 0.82, ring_alpha), 5.0)
+	draw_arc(center, radius * 0.70, PI * 0.15 - progress * TAU * 0.28, PI * 1.75 - progress * TAU * 0.28, 72, Color(0.53, 0.88, 1.0, ring_alpha * 0.78), 3.5)
+	for i in range(8):
+		var angle := progress * TAU * 0.18 + float(i) * TAU / 8.0
+		var sparkle_center := center + Vector2(cos(angle), sin(angle)) * radius * (0.80 + 0.05 * sin(progress * TAU + float(i)))
+		var sparkle_size := (8.0 if emphasized else 6.0) * alpha
+		var sparkle_color := Color(1.0, 0.98, 1.0, 0.30 * alpha)
+		draw_line(sparkle_center + Vector2(-sparkle_size, 0.0), sparkle_center + Vector2(sparkle_size, 0.0), sparkle_color, 2.0, true)
+		draw_line(sparkle_center + Vector2(0.0, -sparkle_size), sparkle_center + Vector2(0.0, sparkle_size), sparkle_color, 2.0, true)
+
+func _draw_stream_end_countdown_text(text: String, center: Vector2, width: float, size: int, alpha: float, emphasized: bool) -> void:
+	var pos := Vector2(center.x - width * 0.5, center.y + float(size) * 0.35)
+	var outer_color := Color(0.95, 0.26, 0.58, 0.88 * alpha)
+	var mid_color := Color(0.42, 0.86, 1.0, 0.82 * alpha)
+	var inner_color := Color(0.73, 0.54, 1.0, 0.72 * alpha)
+	if emphasized:
+		outer_color = Color(1.0, 0.22, 0.55, 0.96 * alpha)
+		mid_color = Color(0.38, 0.90, 1.0, 0.90 * alpha)
+		inner_color = Color(0.90, 0.68, 1.0, 0.82 * alpha)
+	var offsets: Array[Vector2] = [
+		Vector2(-1.0, 0.0),
+		Vector2(1.0, 0.0),
+		Vector2(0.0, -1.0),
+		Vector2(0.0, 1.0),
+		Vector2(-0.72, -0.72),
+		Vector2(0.72, -0.72),
+		Vector2(-0.72, 0.72),
+		Vector2(0.72, 0.72)
+	]
+	_draw_stream_end_text_layer(text, pos, width, size, offsets, 10.0 if emphasized else 8.0, outer_color)
+	_draw_stream_end_text_layer(text, pos, width, size, offsets, 6.0 if emphasized else 5.0, mid_color)
+	_draw_stream_end_text_layer(text, pos, width, size, offsets, 3.0, inner_color)
+	_draw_text_item({
+		"pos": pos + Vector2(0.0, 4.0),
+		"text": text,
+		"width": int(width),
+		"size": size,
+		"color": Color(0.12, 0.05, 0.15, 0.20 * alpha),
+		"fontWeight": "black"
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({
+		"pos": pos,
+		"text": text,
+		"width": int(width),
+		"size": size,
+		"color": Color(1.0, 1.0, 1.0, 0.98 * alpha),
+		"fontWeight": "black"
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_end_text_layer(text: String, pos: Vector2, width: float, size: int, offsets: Array[Vector2], radius: float, color: Color) -> void:
+	if color.a <= 0.0:
+		return
+	for offset in offsets:
+		_draw_text_item({
+			"pos": pos + offset * radius,
+			"text": text,
+			"width": int(width),
+			"size": size,
+			"color": color,
+			"fontWeight": "black"
+		}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_title_image_overlay() -> bool:
 	var background: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, TITLE_BACK_IMAGE)
@@ -5781,15 +6526,18 @@ func _draw_result_header(panel: Rect2, data: Dictionary) -> void:
 	var rank_rect := Rect2(panel.position + Vector2(482, 26), Vector2(392, 86))
 	if mental_breakdown or completed:
 		rank_rect = Rect2(panel.position + Vector2(430, 28), Vector2(392, 86))
-	_draw_ranking_panel(rank_rect, Color(1, 1, 1, 0.88), Color("#ffd46a") if completed else (Color("#ffc0dc") if mental_breakdown else Color("#d7c5ff")), 20, 2, false)
-	if mental_breakdown:
+	if completed:
+		_draw_result_clear_rank_panel(rank_rect, data)
+	elif mental_breakdown:
+		_draw_ranking_panel(rank_rect, Color(1, 1, 1, 0.88), Color("#ffc0dc"), 20, 2, false)
 		_draw_ranking_text("今回の配信評価", rank_rect.position + Vector2(24, 54), 20, Color("#c74187"), 150)
-	elif completed:
-		_draw_ranking_text("配信完走評価", rank_rect.position + Vector2(24, 54), 20, Color("#c97813"), 150)
+		_draw_ranking_text(String(data.get("kamiRank", "D")), rank_rect.position + Vector2(154, 63), 54, _result_rank_color(String(data.get("kamiRank", "D"))), 70, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text("%d pt" % int(data.get("kamiPoint", 0)), rank_rect.position + Vector2(244, 58), 34, Color("#7a56c8"), 130)
 	else:
+		_draw_ranking_panel(rank_rect, Color(1, 1, 1, 0.88), Color("#d7c5ff"), 20, 2, false)
 		_draw_ranking_text("神回度", rank_rect.position + Vector2(30, 54), 24, Color("#7a56c8"), 116)
-	_draw_ranking_text(String(data.get("kamiRank", "D")), rank_rect.position + Vector2(154, 63), 54, _result_rank_color(String(data.get("kamiRank", "D"))), 70, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("%d pt" % int(data.get("kamiPoint", 0)), rank_rect.position + Vector2(244, 58), 34, Color("#7a56c8"), 130)
+		_draw_ranking_text(String(data.get("kamiRank", "D")), rank_rect.position + Vector2(154, 63), 54, _result_rank_color(String(data.get("kamiRank", "D"))), 70, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text("%d pt" % int(data.get("kamiPoint", 0)), rank_rect.position + Vector2(244, 58), 34, Color("#7a56c8"), 130)
 	var summary_line: String = String(data.get("summaryLine", "これはコメントが悪い。たぶん。"))
 	if not mental_breakdown and not completed:
 		var summary_rect := Rect2(panel.position + Vector2(196, 128), Vector2(700, 46))
@@ -5812,13 +6560,13 @@ func _draw_result_summary_panel(rect: Rect2, data: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.88), Color("#ffd2e5"), 20, 2, false)
 	_draw_result_ribbon(rect.position + Vector2(70, -18), "配信サマリー", Color("#ff6fa8"))
 	var rows: Array = [
-		{"icon": "配", "label": "配信者", "value": String(data.get("characterName", "配信者"))},
-		{"icon": "枠", "label": "配信枠", "value": String(data.get("streamFrameName", "配信枠"))},
-		{"icon": "人", "label": "最大同時視聴者数", "value": "%s 人" % _result_number(int(data.get("viewerCount", data.get("score", 0))))},
-		{"icon": "時", "label": "生存時間", "value": ResultSystemScript.format_time(float(data.get("survivalTime", 0.0)))},
-		{"icon": "V", "label": "最大ボルテージ", "value": "x%.1f" % float(data.get("maxVoltage", data.get("maxMultiplier", 1.0)))},
-		{"icon": "話", "label": "最大バズ度", "value": str(int(data.get("maxBurnCombo", 0)))},
-		{"icon": "贈", "label": "ギフト", "value": str(int(data.get("giftCount", 0)))}
+		{"icon": "person", "label": "配信者", "value": String(data.get("characterName", "配信者")), "tone": Color("#ff8fc2")},
+		{"icon": "chat", "label": "配信枠", "value": String(data.get("streamFrameName", "配信枠")), "tone": Color("#82dff2")},
+		{"icon": "viewers", "label": "最大同時視聴者数", "value": "%s 人" % _result_number(int(data.get("viewerCount", data.get("score", 0)))), "tone": Color("#ff5aa5"), "primary": true},
+		{"icon": "time", "label": "生存時間", "value": ResultSystemScript.format_time(float(data.get("survivalTime", 0.0))), "tone": Color("#a875e8"), "emphasis": true},
+		{"icon": "voltage", "label": "最大ボルテージ", "value": "x%.1f" % float(data.get("maxVoltage", data.get("maxMultiplier", 1.0))), "tone": Color("#ffb433"), "emphasis": true},
+		{"icon": "buzz", "label": "最大バズ度", "value": str(int(data.get("maxBurnCombo", 0))), "tone": Color("#6ccbe8")},
+		{"icon": "gift", "label": "ギフト", "value": str(int(data.get("giftCount", 0))), "tone": Color("#ff9fbc")}
 	]
 	for index in range(rows.size()):
 		var row_rect := Rect2(rect.position + Vector2(22, 48 + float(index) * 58.0), Vector2(rect.size.x - 44, 46))
@@ -5826,19 +6574,163 @@ func _draw_result_summary_panel(rect: Rect2, data: Dictionary) -> void:
 
 func _draw_result_summary_row(rect: Rect2, row: Dictionary) -> void:
 	var label_text: String = String(row.get("label", ""))
-	var emphasized := label_text in ["最大同時視聴者数", "生存時間", "最大ボルテージ"]
-	var fill := Color(1, 0.985, 0.995, 0.94) if emphasized else Color(1, 1, 1, 0.88)
-	var border := Color("#ffacd0") if emphasized else Color("#f4d5e6")
-	_draw_ranking_panel(rect, fill, border, 12, 2 if emphasized else 1, false)
-	draw_circle(rect.position + Vector2(24, 23), 16, Color("#fff0f8"))
-	_draw_ranking_text(String(row.get("icon", "")), rect.position + Vector2(14, 29), 16, Color("#f05aa5"), 20, HORIZONTAL_ALIGNMENT_CENTER)
+	var primary := bool(row.get("primary", false))
+	var emphasized := primary or bool(row.get("emphasis", false))
+	var tone: Color = row.get("tone", Color("#f05aa5")) as Color
+	var fill := Color(1, 0.98, 0.995, 0.96) if primary else (Color(1, 0.992, 0.972, 0.94) if emphasized else Color(1, 1, 1, 0.88))
+	var border := Color("#ff78b6") if primary else (Color("#ffc36b") if emphasized else Color("#f4d5e6"))
+	_draw_ranking_panel(rect, fill, border, 12, 3 if primary else (2 if emphasized else 1), false)
+	var icon_rect := Rect2(rect.position + Vector2(9, 8), Vector2(32, 32))
+	_draw_result_summary_icon(icon_rect, String(row.get("icon", "")), tone)
 	var label_width := 178.0
 	var value_x := 214.0
 	if label_text.length() <= 4:
 		label_width = 92.0
 		value_x = 154.0
+	var value_color := Color("#e72f88") if primary else (Color("#c97813") if emphasized else Color("#f05aa5"))
 	_draw_ranking_text(label_text, rect.position + Vector2(50, 30), 17, Color("#4f3149"), label_width)
-	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 16), rect.position + Vector2(value_x, 31), 23 if emphasized else 21, Color("#ee3e8f") if emphasized else Color("#f05aa5"), rect.size.x - value_x - 14.0, HORIZONTAL_ALIGNMENT_RIGHT)
+	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 16), rect.position + Vector2(value_x, 31), 25 if primary else (23 if emphasized else 21), value_color, rect.size.x - value_x - 14.0, HORIZONTAL_ALIGNMENT_RIGHT)
+
+func _draw_result_clear_rank_panel(rect: Rect2, data: Dictionary) -> void:
+	_draw_ranking_panel(rect, Color("#fffdf4"), Color("#ffd46a"), 20, 3, false)
+	var clock := float(Time.get_ticks_msec()) / 1000.0
+	for i in range(6):
+		var pos := rect.position + Vector2(166.0 + float(i) * 32.0, 22.0 + sin(clock * 1.8 + float(i)) * 5.0)
+		_draw_stream_start_sparkle(pos, 4.5 + float(i % 2) * 1.8, Color(1.0, 0.62, 0.16, 0.30))
+	_draw_ranking_panel(Rect2(rect.position + Vector2(140, 12), Vector2(96, 62)), Color(1.0, 0.78, 0.16, 0.12), Color(1, 1, 1, 0), 22, 0, false)
+	_draw_ranking_text("配信完走評価", rect.position + Vector2(24, 30), 18, Color("#c97813"), 138)
+	_draw_ranking_text(String(data.get("kamiRank", "D")), rect.position + Vector2(146, 70), 64, _result_rank_color(String(data.get("kamiRank", "D"))), 92, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("%d pt" % int(data.get("kamiPoint", 0)), rect.position + Vector2(252, 61), 29, Color("#7a56c8"), 118, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_result_summary_icon(rect: Rect2, kind: String, tone: Color) -> void:
+	var center := rect.get_center()
+	var bg := Color(tone.r, tone.g, tone.b, 0.16)
+	draw_circle(center, rect.size.x * 0.5, bg)
+	draw_arc(center, rect.size.x * 0.43, 0.0, TAU, 28, Color(tone.r, tone.g, tone.b, 0.42), 1.6, true)
+	match kind:
+		"person":
+			draw_circle(center + Vector2(0, -6), 5.0, tone)
+			draw_circle(center + Vector2(0, 7), 8.0, Color(tone.r, tone.g, tone.b, 0.78))
+		"chat":
+			var bubble := Rect2(rect.position + Vector2(7, 8), Vector2(18, 13))
+			_draw_ranking_panel(bubble, Color(tone.r, tone.g, tone.b, 0.72), Color(1, 1, 1, 0), 5, 0, false)
+			draw_colored_polygon(PackedVector2Array([bubble.position + Vector2(5, 12), bubble.position + Vector2(9, 18), bubble.position + Vector2(12, 12)]), Color(tone.r, tone.g, tone.b, 0.72))
+		"viewers":
+			for offset in [Vector2(-7, -4), Vector2(0, -7), Vector2(7, -4)]:
+				draw_circle(center + offset, 3.5, tone)
+			draw_rect(Rect2(center + Vector2(-12, 4), Vector2(24, 7)), Color(tone.r, tone.g, tone.b, 0.72), true)
+		"time":
+			draw_arc(center, 9.0, 0.0, TAU, 24, tone, 2.2, true)
+			draw_line(center, center + Vector2(0, -6), tone, 2.0, true)
+			draw_line(center, center + Vector2(5, 3), tone, 2.0, true)
+		"voltage":
+			draw_colored_polygon(PackedVector2Array([
+				center + Vector2(1, -13),
+				center + Vector2(-8, 2),
+				center + Vector2(-1, 1),
+				center + Vector2(-4, 13),
+				center + Vector2(9, -3),
+				center + Vector2(2, -2)
+			]), tone)
+		"buzz":
+			draw_line(center + Vector2(-8, 8), center + Vector2(7, -7), tone, 3.0, true)
+			draw_line(center + Vector2(7, -7), center + Vector2(7, 2), tone, 3.0, true)
+			draw_line(center + Vector2(7, -7), center + Vector2(-2, -7), tone, 3.0, true)
+			_draw_stream_start_sparkle(center + Vector2(-8, -6), 3.5, Color(tone.r, tone.g, tone.b, 0.72))
+		"gift":
+			var box := Rect2(center + Vector2(-8, -2), Vector2(16, 12))
+			var lid := Rect2(center + Vector2(-10, -8), Vector2(20, 7))
+			_draw_ranking_panel(lid, tone, Color(1, 1, 1, 0), 3, 0, false)
+			_draw_ranking_panel(box, Color(tone.r, tone.g, tone.b, 0.62), Color(1, 1, 1, 0), 3, 0, false)
+			draw_rect(Rect2(box.position + Vector2(7, 0), Vector2(2, 12)), Color(1, 1, 1, 0.60), true)
+		_:
+			_draw_stream_start_sparkle(center, 8.0, tone)
+
+func _draw_result_highlight_row(rect: Rect2, row: Dictionary) -> void:
+	var accent := bool(row.get("accent", false))
+	_draw_ranking_panel(rect, Color("#fff8ea") if accent else Color(1, 1, 1, 0.72), Color("#ffd98a") if accent else Color("#f0dfca"), 9, 1, false)
+	var tone := Color("#ff9f1c") if accent else Color("#a875e8")
+	_draw_result_highlight_icon(Rect2(rect.position + Vector2(5, 4), Vector2(16, 16)), String(row.get("icon", "")), tone)
+	_draw_ranking_text(String(row.get("label", "")), rect.position + Vector2(26, 17), 12, Color("#9a6a2a"), 100)
+	_draw_ranking_text(_short_pause_text(String(row.get("value", "")), 28), rect.position + Vector2(124, 18), 14, Color("#4f3149") if not accent else Color("#d77b10"), rect.size.x - 132)
+
+func _draw_result_highlight_icon(rect: Rect2, kind: String, tone: Color) -> void:
+	var center := rect.get_center()
+	draw_circle(center, rect.size.x * 0.5, Color(tone.r, tone.g, tone.b, 0.18))
+	match kind:
+		"check":
+			draw_line(center + Vector2(-5, 0), center + Vector2(-1, 5), tone, 2.2, true)
+			draw_line(center + Vector2(-1, 5), center + Vector2(6, -5), tone, 2.2, true)
+		"comment":
+			_draw_ranking_panel(Rect2(rect.position + Vector2(3, 4), Vector2(10, 8)), Color(tone.r, tone.g, tone.b, 0.72), Color(1, 1, 1, 0), 3, 0, false)
+		"boss":
+			draw_colored_polygon(PackedVector2Array([center + Vector2(0, -7), center + Vector2(-7, 6), center + Vector2(7, 6)]), Color(tone.r, tone.g, tone.b, 0.70))
+		_:
+			_draw_stream_start_sparkle(center, 5.5, tone)
+
+func _result_ranking_rank_number(text: String) -> int:
+	var rank_end := text.find("位")
+	if rank_end < 0:
+		return 0
+	var digits := ""
+	for i in range(rank_end - 1, -1, -1):
+		var ch := text.substr(i, 1)
+		if "0123456789".contains(ch):
+			digits = ch + digits
+		elif digits != "":
+			break
+	if digits == "":
+		return 0
+	return int(digits)
+
+func _result_ranking_card_view(text: String) -> Dictionary:
+	var registered := text.contains("ランキング登録")
+	if registered:
+		var rank := ""
+		var rank_start := text.find("：")
+		var rank_end := text.find("位", rank_start + 1)
+		if rank_start >= 0 and rank_end > rank_start:
+			rank = text.substr(rank_start + 1, rank_end - rank_start)
+		if rank == "":
+			rank = "記録"
+		var rank_number := _result_ranking_rank_number(text)
+		var subtitle := "記録を保存！"
+		if rank_number > 0:
+			subtitle = "TOP10入り！" if rank_number <= 10 else "%d位に登録！" % rank_number
+		return {"title": "ランキング登録！", "rank": rank, "subtitle": subtitle}
+	var body := text
+	var separator := body.find("：")
+	if separator >= 0:
+		body = body.substr(separator + 1).strip_edges()
+	if body == "":
+		body = "次はTOP10入りを目指そう！"
+	return {"title": "ランキング圏外", "subtitle": body}
+
+func _draw_result_crown_icon(rect: Rect2, color: Color) -> void:
+	_draw_ranking_panel(rect, Color(color.r, color.g, color.b, 0.15), Color(color.r, color.g, color.b, 0.34), 14, 2, false)
+	var p := rect.position
+	var crown := PackedVector2Array([
+		p + Vector2(9, 31),
+		p + Vector2(13, 17),
+		p + Vector2(22, 25),
+		p + Vector2(30, 12),
+		p + Vector2(38, 25),
+		p + Vector2(44, 17),
+		p + Vector2(40, 31)
+	])
+	draw_colored_polygon(crown, color)
+	draw_rect(Rect2(p + Vector2(11, 31), Vector2(30, 6)), Color("#ffe28a"), true)
+	for dot in [p + Vector2(13, 17), p + Vector2(30, 12), p + Vector2(44, 17)]:
+		draw_circle(dot, 3.0, Color("#fff7c7"))
+
+func _draw_result_podium_icon(rect: Rect2, color: Color, crown: bool = true) -> void:
+	_draw_ranking_panel(rect, Color(color.r, color.g, color.b, 0.12), Color(color.r, color.g, color.b, 0.26), 14, 2, false)
+	var base := rect.position + Vector2(10, 32)
+	draw_rect(Rect2(base + Vector2(0, 2), Vector2(8, 10)), Color(color.r, color.g, color.b, 0.48), true)
+	draw_rect(Rect2(base + Vector2(10, -7), Vector2(10, 19)), color, true)
+	draw_rect(Rect2(base + Vector2(22, -1), Vector2(8, 13)), Color(color.r, color.g, color.b, 0.58), true)
+	if crown:
+		_draw_stream_start_sparkle(rect.position + Vector2(34, 15), 5.5, Color("#ffd15a"))
 
 func _draw_result_detail_panel(rect: Rect2, data: Dictionary) -> void:
 	var completed := String(data.get("endType", "")) == "completed"
@@ -5901,10 +6793,10 @@ func _draw_result_trouble_card(rect: Rect2, data: Dictionary) -> void:
 	var rows: Array = []
 	if completed:
 		rows = [
-			{"text": "完走結果：最後まで配信を走り切った！", "color": Color("#7a4b10")},
-			{"text": "ラスト指示コメ：%s" % String(data.get("lastInstructionComment", "なし")), "color": Color("#4f3149")},
-			{"text": "コメント欄：完走おめ！で大盛り上がり", "color": Color("#4f3149")},
-			{"text": "完走ポイント：最後までメンタルを残して完走", "color": Color("#d77b10")}
+			{"icon": "check", "label": "完走結果", "value": "最後まで配信を走り切った！", "accent": true},
+			{"icon": "comment", "label": "ラスト指示コメ", "value": String(data.get("lastInstructionComment", "なし")), "accent": true},
+			{"icon": "hype", "label": "盛り上がり", "value": "完走おめ！の声で大盛り上がり"},
+			{"icon": "spark", "label": "完走ポイント", "value": "メンタルを残して完走", "accent": true}
 		]
 	elif mental_breakdown:
 		var culprit := String(data.get("culpritInstructionComment", "なし"))
@@ -5926,11 +6818,17 @@ func _draw_result_trouble_card(rect: Rect2, data: Dictionary) -> void:
 		var boss_result: String = "撃破" if bool(data.get("bossDefeated", false)) else ("撤退" if String(data.get("bossResult", "")) == "retreated" else "出現")
 		var reward_text: String = " / +%s人" % _result_number(int(data.get("bossRewardViewer", 0))) if int(data.get("bossRewardViewer", 0)) > 0 else ""
 		var boss_label := "挑戦ボス" if completed else ("出現ボス" if mental_breakdown else "ボス%s" % boss_result)
-		rows.append({"text": "%s：%s%s" % [boss_label, String(data.get("bossName", "ボス")), reward_text], "color": Color("#8d46b5")})
+		if completed:
+			rows.append({"icon": "boss", "label": boss_label, "value": "%s%s" % [String(data.get("bossName", "ボス")), reward_text], "accent": true})
+		else:
+			rows.append({"text": "%s：%s%s" % [boss_label, String(data.get("bossName", "ボス")), reward_text], "color": Color("#8d46b5")})
 	for index in range(rows.size()):
 		var row: Dictionary = rows[index] as Dictionary
-		var y: float = 52.0 + float(index) * (18.0 if rows.size() >= 5 else (20.0 if rows.size() >= 4 else 24.0))
-		_draw_ranking_text(_short_pause_text(String(row.get("text", "")), 66), rect.position + Vector2(18, y), 14 if rows.size() >= 5 else 15, row.get("color", Color("#4f3149")) as Color, rect.size.x - 36)
+		var y: float = 52.0 + float(index) * (24.0 if completed else (18.0 if rows.size() >= 5 else (20.0 if rows.size() >= 4 else 24.0)))
+		if completed and row.has("label"):
+			_draw_result_highlight_row(Rect2(rect.position + Vector2(18, y - 17.0), Vector2(rect.size.x - 36, 24)), row)
+		else:
+			_draw_ranking_text(_short_pause_text(String(row.get("text", "")), 66), rect.position + Vector2(18, y), 14 if rows.size() >= 5 else 15, row.get("color", Color("#4f3149")) as Color, rect.size.x - 36)
 
 func _draw_result_build_card(rect: Rect2, data: Dictionary) -> void:
 	var completed := String(data.get("endType", "")) == "completed"
@@ -6016,26 +6914,30 @@ func _draw_result_present_icon(rect: Rect2) -> void:
 	draw_rect(Rect2(lid.position + Vector2(0, lid.size.y * 0.38), Vector2(lid.size.x, lid.size.y * 0.24)), Color(1, 1, 1, 0.42), true)
 
 func _draw_result_ranking_card(rect: Rect2, data: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color("#fffaf0"), Color("#ffd98a"), 14, 2, false)
 	var text: String = String(data.get("rankingText", ""))
 	if text == "":
 		text = "ランキング対象外"
-	var title := "ランキング登録！" if text.contains("ランキング登録") else ("ランキング対象外" if text.contains("対象外") else "ランキング結果")
-	var body := text
-	body = body.replace("ランキング登録：", "")
-	body = body.replace("配信リレーランキング登録：", "")
-	body = body.replace("ランキング対象外：", "")
+	var registered := text.contains("ランキング登録")
+	var view := _result_ranking_card_view(text)
 	var compact := rect.size.y < 90.0
-	_draw_ranking_text(title, rect.position + Vector2(18, 29 if compact else 31), 16 if compact else 17, Color("#d77b10"), rect.size.x - 36)
-	var first_line := body.strip_edges()
-	var second_line := ""
-	var separator_index := first_line.find(" / ")
-	if separator_index >= 0:
-		second_line = first_line.substr(separator_index + 3).strip_edges()
-		first_line = first_line.substr(0, separator_index).strip_edges()
-	_draw_ranking_text(_short_pause_text(first_line, 24), rect.position + Vector2(18, 56 if compact else 63), 17 if compact else 19, Color("#d77b10"), rect.size.x - 36)
-	if second_line != "" and (not compact or rect.size.y >= 86.0):
-		_draw_ranking_text(_short_pause_text(second_line, 28), rect.position + Vector2(18, 76 if compact else 84), 11 if compact else 13, Color("#6b4a2f"), rect.size.x - 36)
+	var fill := Color("#fff8ea") if registered else Color(1, 1, 1, 0.90)
+	var border := Color("#ffd15a") if registered else Color("#d8cdf7")
+	_draw_ranking_panel(rect, fill, border, 14, 3 if registered else 2, false)
+	var icon_rect := Rect2(rect.position + Vector2(16, 12 if compact else 16), Vector2(48, 48))
+	if registered:
+		_draw_result_crown_icon(icon_rect, Color("#ffb433"))
+	else:
+		_draw_result_podium_icon(icon_rect, Color("#a875e8"), false)
+	var text_x := 78.0
+	if registered:
+		_draw_ranking_text(String(view.get("rank", "記録")), rect.position + Vector2(text_x, 51 if compact else 63), 34 if compact else 42, Color("#d77b10"), 96, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text(String(view.get("title", "ランキング登録！")), rect.position + Vector2(text_x + 112.0, 28 if compact else 34), 16, Color("#c97813"), rect.size.x - text_x - 126.0)
+		_draw_ranking_text(String(view.get("subtitle", "記録を保存！")), rect.position + Vector2(text_x + 112.0, 52 if compact else 61), 16 if compact else 18, Color("#e84f93"), rect.size.x - text_x - 126.0)
+		if not compact:
+			_draw_ranking_text("ランキングを見る ＞", rect.position + Vector2(rect.size.x - 156.0, 86), 12, Color("#8d46b5"), 132, HORIZONTAL_ALIGNMENT_RIGHT)
+	else:
+		_draw_ranking_text(String(view.get("title", "ランキング圏外")), rect.position + Vector2(text_x, 34 if compact else 39), 20, Color("#7a56c8"), rect.size.x - text_x - 22.0)
+		_draw_ranking_text(String(view.get("subtitle", "次はTOP10入りを目指そう！")), rect.position + Vector2(text_x, 57 if compact else 66), 14, Color("#6b4a63"), rect.size.x - text_x - 22.0)
 
 func _draw_result_equipment_slots(items_value: Variant, source_data: Array, start: Vector2, slot_count: int, slot_size: float = 38.0, slot_step: float = 46.0) -> void:
 	var items: Array = []
@@ -6043,26 +6945,52 @@ func _draw_result_equipment_slots(items_value: Variant, source_data: Array, star
 		items = items_value as Array
 	for index in range(slot_count):
 		var slot := Rect2(start + Vector2(float(index) * slot_step, 0), Vector2(slot_size, slot_size))
-		var evolved := false
-		if index < items.size() and items[index] is Dictionary:
-			evolved = EquipmentSystem.is_evolved_entry(items[index] as Dictionary)
-		_draw_ranking_panel(slot, Color("#fff9ec") if evolved else Color("#fbfbff"), Color("#ffd15a") if evolved else Color("#d8cdf7"), 6, 2 if evolved else 1, false)
 		if index >= items.size() or not (items[index] is Dictionary):
+			_draw_ranking_panel(slot, Color(1, 1, 1, 0.34), Color(0.80, 0.76, 0.88, 0.34), 6, 1, false)
+			draw_circle(slot.get_center(), slot.size.x * 0.08, Color(0.62, 0.58, 0.70, 0.22))
 			continue
 		var item: Dictionary = items[index] as Dictionary
 		var data: Dictionary = _find_equipment_icon_data(source_data, String(item.get("id", "")))
-		evolved = evolved or bool(data.get("isEvolved", false))
+		var evolved := EquipmentSystem.is_evolved_entry(item) or bool(data.get("isEvolved", false))
+		var item_level := EquipmentSystem.entry_level(item)
+		var max_level := int(data.get("maxLevel", 0))
+		var high_level := not evolved and max_level > 0 and item_level >= max_level
 		if evolved:
-			_draw_ranking_panel(slot.grow(2.0), Color(1.0, 0.78, 0.16, 0.10), Color("#ffd15a"), 7, 2, false)
+			_draw_ranking_panel(slot.grow(4.0), Color(1.0, 0.78, 0.16, 0.16), Color(1, 1, 1, 0), 9, 0, false)
+		elif high_level:
+			_draw_ranking_panel(slot.grow(2.0), Color(0.66, 0.84, 1.0, 0.14), Color(1, 1, 1, 0), 8, 0, false)
+		_draw_ranking_panel(slot, Color("#fff9ec") if evolved else (Color("#f0fbff") if high_level else Color("#fbfbff")), Color("#ffd15a") if evolved else (Color("#82dff2") if high_level else Color("#d8cdf7")), 6, 3 if evolved else (2 if high_level else 1), false)
 		var icon: Texture2D = _load_equipment_icon(_equipment_icon_path_for_item(item, source_data))
 		if icon != null:
 			draw_texture_rect(icon, slot.grow(-3), false)
 		else:
 			_draw_ranking_text(_short_pause_text(String(item.get("displayName", item.get("id", ""))), 2), slot.position + Vector2(0, slot.size.y * 0.66), 12, Color("#7a56c8"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-		if evolved:
-			var label_rect := Rect2(slot.position + Vector2(1, -10), Vector2(slot.size.x - 2, 14))
-			_draw_ranking_panel(label_rect, Color("#ffd15a"), Color(1, 1, 1, 0), 4, 0, false)
-			_draw_ranking_text("進化", slot.position + Vector2(0, 1), 9, Color("#7a3f00"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var level_label := _result_equipment_level_label(item, data, evolved, high_level)
+		var label_width := minf(slot.size.x, 34.0 if level_label.length() >= 4 else 28.0)
+		var label_rect := Rect2(slot.end - Vector2(label_width + 1.0, 13.0), Vector2(label_width, 13.0))
+		var label_fill := Color("#ffd15a") if evolved else (Color("#49c7e8") if high_level else Color("#ff6fa8"))
+		var label_text_color := Color("#6a3a00") if evolved else Color.WHITE
+		_draw_ranking_panel(label_rect, label_fill, Color(1, 1, 1, 0.74), 4, 1, false)
+		_draw_ranking_text(level_label, label_rect.position + Vector2(0, 10), 8, label_text_color, label_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _result_equipment_level_label(item: Dictionary, data: Dictionary, evolved: bool, high_level: bool) -> String:
+	if evolved:
+		return "進化"
+	if high_level:
+		return "LvMAX"
+	var label := String(item.get("levelLabel", ""))
+	if label != "":
+		return label
+	return "Lv%d" % EquipmentSystem.entry_level(item)
+
+func _result_clear_character_line(character_id: String) -> String:
+	if character_id == "ban_chan" or character_id == "banri":
+		return "やった！最後まで配信できた！"
+	if character_id == "superchat_chan" or character_id == "supana":
+		return "星みたいに輝けたかな！"
+	if character_id == "maro_chan" or character_id == "maron":
+		return "みんなのおかげで完走できたよ〜！"
+	return "最後まで配信できた！"
 
 func _draw_result_buttons(layout: Dictionary) -> void:
 	var mental_breakdown := String(last_result_data.get("endType", "")) == "mental_breakdown"
@@ -6141,6 +7069,9 @@ func _draw_result_stream_complete_character(rect: Rect2, data: Dictionary) -> vo
 		var symbol_color := Color(1.0, 0.68, 0.08, 0.46) if symbol == "★" else Color(1.0, 0.34, 0.60, 0.38)
 		var pos := rect.position + Vector2(20.0 + float(i) * 84.0, 78.0 + sin(clock * 1.6 + float(i)) * 5.0)
 		_draw_ranking_text(symbol, pos, 22, symbol_color, 34, HORIZONTAL_ALIGNMENT_CENTER)
+	var stamp_rect := Rect2(rect.position + Vector2(rect.size.x - 128.0, 62.0), Vector2(104.0, 44.0))
+	_draw_ranking_panel(stamp_rect, Color(1.0, 1.0, 1.0, 0.50), Color("#ff9fbc"), 12, 2, false)
+	_draw_ranking_text("CLEAR!", stamp_rect.position + Vector2(0, 30), 23, Color("#ff5aa5"), stamp_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var offset := Vector2(-44.0, 38.0)
 	var expand := Vector2(88.0, -48.0)
 	if character_id == "superchat_chan" or character_id == "supana":
@@ -6151,6 +7082,10 @@ func _draw_result_stream_complete_character(rect: Rect2, data: Dictionary) -> vo
 		expand = Vector2(136.0, -48.0)
 	var container := Rect2(rect.position + offset + sway, rect.size + expand)
 	draw_texture_rect(texture, _fit_texture_rect(container, texture.get_size()), false)
+	var comment := _result_clear_character_line(character_id)
+	var bubble := Rect2(rect.position + Vector2(20.0, rect.size.y - 78.0), Vector2(rect.size.x - 40.0, 48.0))
+	_draw_ranking_panel(bubble, Color(1.0, 1.0, 1.0, 0.82), Color("#ffd2e5"), 16, 2, false)
+	_draw_ranking_text(_short_pause_text(comment, 18), bubble.position + Vector2(14.0, 30.0), 15, Color("#d94f8d"), bubble.size.x - 28.0, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_result_character_bust(rect: Rect2, character_id: String, character_name: String, mental_breakdown: bool = false) -> void:
 	if mental_breakdown:
@@ -6760,6 +7695,7 @@ func _draw_game_over_intro_overlay() -> void:
 		draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.96, 0.99, lerpf(0.24, 0.46, progress)), true)
 		draw_rect(TITLE_SCREEN_RECT, Color(0.58, 0.92, 1.0, 0.12 + sin(clock * 5.0) * 0.03), true)
 		_draw_stream_complete_cutin_fx(clock, progress)
+		_draw_stream_complete_celebration_back(clock, progress)
 	else:
 		var dim_alpha := lerpf(0.32, 0.58, progress)
 		draw_rect(TITLE_SCREEN_RECT, Color(0.06, 0.02, 0.07, dim_alpha), true)
@@ -6817,6 +7753,7 @@ func _draw_game_over_intro_overlay() -> void:
 		_draw_mental_breakdown_cutin_character(progress, clock)
 	else:
 		_draw_stream_complete_cutin_character(progress, clock)
+		_draw_stream_complete_celebration_front(clock, progress)
 	var bar_pos := panel.position + (Vector2(170, bar_y) if is_completed else Vector2(118, bar_y))
 	var bar_size := Vector2(400, 14) if is_completed else Vector2(330, 14)
 	var bar_back := Rect2(bar_pos, bar_size)
@@ -6852,6 +7789,229 @@ func _draw_stream_complete_cutin_fx(clock: float, progress: float) -> void:
 		var pos := Vector2(120.0 + float(i) * 178.0, 168.0 + sin(clock * 2.2 + float(i)) * 20.0)
 		var text_color := Color(1.0, 0.35, 0.68, 0.30 * alpha) if symbol == "♥" else Color(1.0, 0.78, 0.14, 0.36 * alpha)
 		_draw_ranking_text(symbol, pos, 28, text_color, 42, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_stream_complete_celebration_back(clock: float, progress: float) -> void:
+	var elapsed_intro := _game_over_intro_elapsed()
+	if elapsed_intro > STREAM_COMPLETE_CELEBRATION_DURATION:
+		return
+	var fade_in := smoothstep(0.0, 0.16, elapsed_intro)
+	var fade_out := 1.0 - smoothstep(STREAM_COMPLETE_CELEBRATION_DURATION * 0.78, STREAM_COMPLETE_CELEBRATION_DURATION, elapsed_intro)
+	var alpha := clampf(progress * 2.8, 0.0, 1.0) * fade_in * fade_out
+	if alpha <= 0.0:
+		return
+	_draw_stream_complete_celebration_burst(clock, elapsed_intro, alpha)
+	_draw_stream_complete_confetti_layer(clock, elapsed_intro, alpha, false)
+	_draw_stream_complete_crackers(clock, elapsed_intro, alpha)
+
+func _draw_stream_complete_celebration_front(clock: float, progress: float) -> void:
+	var elapsed_intro := _game_over_intro_elapsed()
+	if elapsed_intro > STREAM_COMPLETE_CELEBRATION_DURATION:
+		return
+	var fade_in := smoothstep(0.08, 0.24, elapsed_intro)
+	var fade_out := 1.0 - smoothstep(STREAM_COMPLETE_CELEBRATION_DURATION * 0.72, STREAM_COMPLETE_CELEBRATION_DURATION, elapsed_intro)
+	var alpha := clampf(progress * 2.2, 0.0, 1.0) * fade_in * fade_out * 0.90
+	if alpha <= 0.0:
+		return
+	_draw_stream_complete_confetti_layer(clock, elapsed_intro, alpha, true)
+	_draw_stream_complete_edge_sparkles(clock, elapsed_intro, alpha)
+
+func _draw_stream_complete_celebration_burst(clock: float, elapsed_intro: float, alpha: float) -> void:
+	var t := clampf(elapsed_intro / 0.95, 0.0, 1.0)
+	var pop := 1.0 - pow(1.0 - t, 3.0)
+	var fade := 1.0 - smoothstep(0.55, 1.0, t)
+	var burst_alpha := alpha * fade
+	if burst_alpha <= 0.0:
+		return
+	var center := Vector2(TITLE_SCREEN_RECT.size.x * 0.50, 402.0)
+	draw_circle(center, 322.0 * pop, Color(1.0, 0.52, 0.78, 0.08 * burst_alpha))
+	draw_circle(center, 238.0 * pop, Color(0.52, 0.90, 1.0, 0.09 * burst_alpha))
+	draw_circle(center, 160.0 * pop, Color(1.0, 0.92, 0.36, 0.09 * burst_alpha))
+	draw_arc(center, 212.0 * pop, -PI * 0.10 + clock * 0.9, PI * 1.45 + clock * 0.9, 72, Color(1.0, 0.48, 0.75, 0.42 * burst_alpha), 8.0, true)
+	draw_arc(center, 274.0 * pop, PI * 0.12 - clock * 0.7, PI * 1.70 - clock * 0.7, 72, Color(0.54, 0.90, 1.0, 0.34 * burst_alpha), 6.0, true)
+	for i in range(18):
+		var angle := -PI * 0.92 + float(i) * PI * 1.84 / 17.0
+		var ray_start := center + Vector2(cos(angle), sin(angle)) * (64.0 + pop * 20.0)
+		var ray_end := center + Vector2(cos(angle), sin(angle)) * (210.0 + pop * 190.0 + float(i % 3) * 18.0)
+		var ray_color := Color(1.0, 0.70, 0.90, 0.18 * burst_alpha) if i % 2 == 0 else Color(0.64, 0.92, 1.0, 0.16 * burst_alpha)
+		draw_line(ray_start, ray_end, ray_color, 6.0 if i % 3 == 0 else 4.0, true)
+	for i in range(8):
+		var angle := clock * 0.25 + float(i) * TAU / 8.0
+		var pos := center + Vector2(cos(angle), sin(angle)) * (148.0 + pop * 182.0 + sin(clock + float(i)) * 12.0)
+		var color := Color(1.0, 0.86, 0.28, 0.46 * burst_alpha) if i % 2 == 0 else Color(1.0, 0.55, 0.80, 0.42 * burst_alpha)
+		_draw_stream_frame_icon_star(pos, 15.0 + float(i % 3) * 4.0, color)
+
+func _draw_stream_complete_confetti_layer(clock: float, elapsed_intro: float, alpha: float, foreground: bool) -> void:
+	var count := 38 if foreground else 128
+	var colors := [
+		Color(1.0, 1.0, 1.0, 1.0),
+		Color("#ff8fbd"),
+		Color("#8de7ff"),
+		Color("#c7a6ff"),
+		Color("#ffe27a"),
+		Color("#ff6fae"),
+		Color("#a6f3ff")
+	]
+	var screen_size := TITLE_SCREEN_RECT.size
+	var fall_span := screen_size.y + 220.0
+	for i in range(count):
+		var seed := float(i)
+		var lane_width := screen_size.x + 160.0
+		var x_seed := fmod(seed * (113.0 if foreground else 97.0), lane_width) - 80.0
+		var speed := (318.0 if foreground else 258.0) + float(i % 7) * (24.0 if foreground else 20.0)
+		var y := -132.0 + fmod(seed * (43.0 if foreground else 61.0) + elapsed_intro * speed, fall_span)
+		var sway := sin(elapsed_intro * (2.0 + float(i % 5) * 0.22) + seed * 0.73) * (28.0 if foreground else 42.0)
+		var pos := Vector2(x_seed + sway, y)
+		var visibility := _stream_complete_confetti_front_visibility(pos) if foreground else 1.0
+		if visibility <= 0.0:
+			continue
+		var base_color: Color = colors[i % colors.size()] as Color
+		var piece_alpha := alpha * (0.70 if foreground else 0.96) * (0.76 + float(i % 4) * 0.09) * visibility
+		if piece_alpha <= 0.025:
+			continue
+		var color := Color(base_color.r, base_color.g, base_color.b, piece_alpha)
+		var size := Vector2(12.0 + float(i % 4) * 2.6, 6.0 + float((i + 2) % 3) * 2.2)
+		if i % 5 == 0:
+			size = Vector2(22.0 + float(i % 3) * 4.0, 5.0)
+		var angle := clock * (1.8 + float(i % 5) * 0.14) + seed * 0.57
+		var shape := 0
+		if i % 13 == 0:
+			shape = 3
+		elif i % 11 == 0:
+			shape = 2
+		elif i % 5 == 0:
+			shape = 4
+		elif i % 3 == 0:
+			shape = 1
+		_draw_stream_complete_confetti_piece(pos, size, angle, color, shape)
+
+func _stream_complete_confetti_front_visibility(pos: Vector2) -> float:
+	var cutin_rect := _stream_complete_cutin_rect()
+	var face_rect := Rect2(cutin_rect.position + Vector2(cutin_rect.size.x * 0.18, cutin_rect.size.y * 0.08), Vector2(cutin_rect.size.x * 0.64, cutin_rect.size.y * 0.38)).grow(48.0)
+	if face_rect.has_point(pos):
+		return 0.0
+	var panel_block := Rect2(Vector2(236.0, 178.0), Vector2(780.0, 468.0))
+	if panel_block.has_point(pos):
+		return 0.28
+	var center_block := Rect2(Vector2(470.0, 150.0), Vector2(720.0, 530.0))
+	if center_block.has_point(pos):
+		return 0.48
+	return 1.0
+
+func _draw_stream_complete_confetti_piece(pos: Vector2, size: Vector2, angle: float, color: Color, shape: int) -> void:
+	if color.a <= 0.0:
+		return
+	if shape == 2:
+		_draw_stream_frame_icon_star(pos, maxf(size.x, size.y) * 0.62, color)
+		return
+	if shape == 3:
+		_draw_stream_frame_icon_heart(pos, maxf(size.x, size.y) * 0.52, color)
+		return
+	if shape == 4:
+		var dir := Vector2(cos(angle), sin(angle))
+		var side := Vector2(-dir.y, dir.x)
+		var ribbon := PackedVector2Array([
+			pos - dir * size.x * 0.55,
+			pos - dir * size.x * 0.16 + side * size.y * 0.90,
+			pos + dir * size.x * 0.22 - side * size.y * 0.58,
+			pos + dir * size.x * 0.56
+		])
+		draw_polyline(ribbon, color, maxf(2.0, size.y * 0.62), true)
+		return
+	_draw_stream_complete_rotated_rect(pos, size, angle, color)
+
+func _draw_stream_complete_rotated_rect(center: Vector2, size: Vector2, angle: float, color: Color) -> void:
+	var axis := Vector2(cos(angle), sin(angle))
+	var normal := Vector2(-axis.y, axis.x)
+	var half_x := size.x * 0.5
+	var half_y := size.y * 0.5
+	var points := PackedVector2Array([
+		center - axis * half_x - normal * half_y,
+		center + axis * half_x - normal * half_y,
+		center + axis * half_x + normal * half_y,
+		center - axis * half_x + normal * half_y
+	])
+	draw_colored_polygon(points, color)
+	draw_line(center - axis * half_x + normal * half_y * 0.15, center + axis * half_x + normal * half_y * 0.15, Color(1.0, 1.0, 1.0, color.a * 0.35), 1.2, true)
+
+func _draw_stream_complete_crackers(clock: float, elapsed_intro: float, base_alpha: float) -> void:
+	if elapsed_intro > STREAM_COMPLETE_CRACKER_DURATION:
+		return
+	var t := clampf(elapsed_intro / maxf(0.01, STREAM_COMPLETE_CRACKER_DURATION), 0.0, 1.0)
+	var pop := 1.0 - pow(1.0 - t, 3.0)
+	var fade := 1.0 - smoothstep(0.78, 1.0, t)
+	var alpha := base_alpha * fade
+	if alpha <= 0.0:
+		return
+	_draw_stream_complete_cracker_side(Vector2(118.0, 716.0), 1.0, clock, t, pop, alpha * 1.18)
+	_draw_stream_complete_cracker_side(Vector2(TITLE_SCREEN_RECT.size.x - 118.0, 716.0), -1.0, clock, t, pop, alpha * 1.18)
+
+func _draw_stream_complete_cracker_side(origin: Vector2, side_sign: float, clock: float, t: float, pop: float, alpha: float) -> void:
+	var dir := Vector2(0.74 * side_sign, -0.67).normalized()
+	var perp := Vector2(-dir.y, dir.x)
+	var body_alpha := clampf(alpha * (1.0 - smoothstep(0.70, 1.0, t)), 0.0, 1.0)
+	var body_color := Color(1.0, 0.78, 0.93, 0.88 * body_alpha)
+	var body_shadow := Color(0.38, 0.12, 0.30, 0.16 * body_alpha)
+	var mouth := origin + dir * 32.0
+	var back := origin - dir * 28.0
+	draw_colored_polygon(PackedVector2Array([
+		back - perp * 12.0 + Vector2(3.0 * side_sign, 5.0),
+		back + perp * 12.0 + Vector2(3.0 * side_sign, 5.0),
+		mouth + perp * 22.0 + Vector2(3.0 * side_sign, 5.0),
+		mouth - perp * 22.0 + Vector2(3.0 * side_sign, 5.0)
+	]), body_shadow)
+	draw_colored_polygon(PackedVector2Array([
+		back - perp * 12.0,
+		back + perp * 12.0,
+		mouth + perp * 22.0,
+		mouth - perp * 22.0
+	]), body_color)
+	draw_line(back - perp * 6.0, mouth + perp * 11.0, Color(0.54, 0.86, 1.0, 0.90 * body_alpha), 5.0, true)
+	draw_line(back + perp * 6.0, mouth - perp * 11.0, Color(1.0, 0.92, 0.36, 0.86 * body_alpha), 5.0, true)
+	draw_circle(mouth, 42.0 * (1.0 - smoothstep(0.16, 0.58, t)), Color(1.0, 0.96, 0.62, 0.24 * alpha))
+	draw_circle(mouth, 24.0 * (1.0 - smoothstep(0.20, 0.64, t)), Color(0.64, 0.92, 1.0, 0.18 * alpha))
+	var colors := [
+		Color("#ffffff"),
+		Color("#ff8fbd"),
+		Color("#8de7ff"),
+		Color("#c7a6ff"),
+		Color("#ffe27a")
+	]
+	for i in range(48):
+		var seed := float(i)
+		var spread := (fmod(seed * 0.618, 1.0) - 0.5) * 1.28
+		var particle_dir := dir.rotated(spread)
+		var distance := lerpf(48.0, 430.0 + float(i % 6) * 24.0, pop) * (0.76 + float(i % 5) * 0.075)
+		var gravity := Vector2(0.0, 62.0 * t * t)
+		var drift := perp * sin(clock * 3.0 + seed * 1.7) * (10.0 + float(i % 3) * 4.0)
+		var pos := origin + particle_dir * distance + gravity + drift
+		var base_color: Color = colors[i % colors.size()] as Color
+		var piece_alpha := alpha * (1.0 - smoothstep(0.76, 1.0, t)) * (0.76 + float(i % 5) * 0.08)
+		if piece_alpha <= 0.025:
+			continue
+		var color := Color(base_color.r, base_color.g, base_color.b, piece_alpha)
+		if i % 5 == 0:
+			var tail := pos - particle_dir * (54.0 + float(i % 3) * 14.0)
+			var mid := (tail + pos) * 0.5 + perp * sin(clock * 4.0 + seed) * 18.0
+			draw_polyline(PackedVector2Array([tail, mid, pos]), color, 5.0, true)
+		else:
+			var size := Vector2(14.0 + float(i % 3) * 4.0, 6.0 + float(i % 2) * 2.4)
+			var shape := 2 if i % 11 == 0 else (3 if i % 13 == 0 else (4 if i % 5 == 0 else 0))
+			_draw_stream_complete_confetti_piece(pos, size, clock * 2.4 + seed * 0.42, color, shape)
+
+func _draw_stream_complete_edge_sparkles(clock: float, elapsed_intro: float, alpha: float) -> void:
+	var fade := 1.0 - smoothstep(1.0, STREAM_COMPLETE_CELEBRATION_DURATION, elapsed_intro)
+	var colors := [
+		Color(1.0, 0.56, 0.78, 0.52 * alpha * fade),
+		Color(0.58, 0.90, 1.0, 0.44 * alpha * fade),
+		Color(1.0, 0.86, 0.26, 0.42 * alpha * fade),
+		Color(0.78, 0.60, 1.0, 0.44 * alpha * fade)
+	]
+	for i in range(18):
+		var side := -1.0 if i % 2 == 0 else 1.0
+		var x := (76.0 + float(i / 2) * 44.0) if side < 0.0 else (TITLE_SCREEN_RECT.size.x - 76.0 - float(i / 2) * 44.0)
+		var y := 136.0 + float(i % 6) * 78.0 + sin(clock * 2.4 + float(i)) * 11.0
+		var color: Color = colors[i % colors.size()] as Color
+		_draw_stream_start_sparkle(Vector2(x, y), 7.0 + float(i % 3) * 3.0, color)
 
 func _draw_stream_complete_cutin_stats(panel: Rect2, clock: float) -> void:
 	var max_viewers := score
@@ -7503,6 +8663,14 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/hide_hp_icon.png"
 	elif comment_id == "comment_barrage":
 		path = "res://assets/generated/instruction_comment_icons_v1/comment_barrage_icon.png"
+	elif comment_id == "genre_change":
+		path = "res://assets/generated/instruction_comment_icons_v1/genre_change_icon.png"
+	elif comment_id == "force_bullet_hell":
+		path = "res://assets/generated/instruction_comment_icons_v1/force_bullet_hell_icon.png"
+	elif comment_id == "force_race":
+		path = "res://assets/generated/instruction_comment_icons_v1/force_race_icon.png"
+	elif comment_id == "force_horror":
+		path = "res://assets/generated/instruction_comment_icons_v1/force_horror_icon.png"
 	elif comment_id == "kamiyoyaku":
 		path = "res://assets/generated/instruction_comment_icons_v1/kamiyoyaku_icon.png"
 	elif comment_id == "camera_zoom":
@@ -7647,8 +8815,9 @@ func _split_card_text(text: String, max_chars: int) -> Array[String]:
 
 func _draw_comment_storm() -> void:
 	_reset_world_transform()
-	var samples: Array[String] = DisplayTextSystemScript.comment_storm_samples()
-	for item in DrawDataSystemScript.comment_storm_draw_data(FIELD_VIEW, elapsed, comment_barrage_setting, kuso_chat_timer > 0.0, samples):
+	var samples: Array[String] = _comment_storm_samples_from_chat_lines()
+	var slot_samples: Array[String] = _comment_storm_slot_samples(samples)
+	for item in DrawDataSystemScript.comment_storm_draw_data(FIELD_VIEW, elapsed, comment_barrage_setting, kuso_chat_timer > 0.0, slot_samples):
 		var data: Dictionary = item as Dictionary
 		var shadow: Dictionary = data.duplicate()
 		var color: Color = data["color"] as Color
@@ -7657,6 +8826,62 @@ func _draw_comment_storm() -> void:
 		_draw_text_item(shadow)
 		_draw_text_item(data)
 	_reset_world_transform()
+
+func _comment_storm_samples_from_chat_lines() -> Array[String]:
+	var max_comment_storm_sample_length := 22
+	var samples: Array[String] = []
+	var source_lines: Array[String] = chat_lines
+	var start_index: int = maxi(0, source_lines.size() - 18)
+	for i in range(start_index, source_lines.size()):
+		var line := ChatSystemScript.sanitize_line(source_lines[i])
+		if line == "" or samples.has(line):
+			continue
+		if line.length() > max_comment_storm_sample_length:
+			line = line.substr(0, max_comment_storm_sample_length) + "..."
+		samples.append(line)
+	var fallback: Array[String] = DisplayTextSystemScript.comment_storm_samples()
+	for line in fallback:
+		if samples.size() >= 8:
+			break
+		if not samples.has(line):
+			samples.append(line)
+	return samples
+
+func _comment_storm_slot_samples(candidates: Array[String]) -> Array[String]:
+	var style: Dictionary = DrawDataSystemScript.comment_storm_style(comment_barrage_setting, kuso_chat_timer > 0.0)
+	var amount := int(style["amount"])
+	if comment_storm_slot_texts.size() > amount:
+		comment_storm_slot_texts.resize(amount)
+		comment_storm_slot_cycles.resize(amount)
+	while comment_storm_slot_texts.size() < amount:
+		var index := comment_storm_slot_texts.size()
+		comment_storm_slot_texts.append(_next_comment_storm_sample(candidates))
+		comment_storm_slot_cycles.append(_comment_storm_cycle_for_slot(index))
+	for i in range(amount):
+		var cycle := _comment_storm_cycle_for_slot(i)
+		if cycle != comment_storm_slot_cycles[i]:
+			comment_storm_slot_cycles[i] = cycle
+			comment_storm_slot_texts[i] = _next_comment_storm_sample(candidates)
+	return comment_storm_slot_texts
+
+func _comment_storm_cycle_for_slot(index: int) -> int:
+	var travel_width := FIELD_VIEW.size.x + 520.0
+	var speed := 118.0 + float(index % 5) * 22.0
+	return int(floor((elapsed * speed + float(index * 181)) / travel_width))
+
+func _next_comment_storm_sample(candidates: Array[String]) -> String:
+	if candidates.is_empty():
+		return "www"
+	var text := candidates[comment_storm_sample_cursor % candidates.size()]
+	comment_storm_sample_cursor += 1
+	return text
+
+func _reset_comment_storm_slots() -> void:
+	if comment_storm_slot_texts.is_empty() and comment_storm_slot_cycles.is_empty() and comment_storm_sample_cursor == 0:
+		return
+	comment_storm_slot_texts.clear()
+	comment_storm_slot_cycles.clear()
+	comment_storm_sample_cursor = 0
 
 func _draw_tutorial_overlay_v2() -> void:
 	var data: Dictionary = DrawDataSystemScript.tutorial_overlay_data()
@@ -7672,6 +8897,203 @@ func _draw_horror_mask() -> void:
 	var data: Dictionary = DrawDataSystemScript.horror_mask_data(elapsed)
 	for part in DrawDataSystemScript.horror_mask_parts(data, FIELD_VIEW):
 		_draw_overlay_part(part as Dictionary)
+
+func _draw_genre_change_banner() -> void:
+	if genre_change_banner_timer <= 0.0 or genre_change_banner_event == "":
+		return
+	var path := _genre_change_banner_path(genre_change_banner_event)
+	if path == "":
+		return
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	if texture == null:
+		return
+	var age := GENRE_CHANGE_BANNER_DURATION - genre_change_banner_timer
+	var appear := smoothstep(0.0, 0.18, age)
+	var fade := 1.0 - smoothstep(GENRE_CHANGE_BANNER_DURATION - 0.28, GENRE_CHANGE_BANNER_DURATION, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var settle := smoothstep(0.08, 0.34, age)
+	var pop_scale := lerpf(0.90, 1.03, appear)
+	var scale := lerpf(pop_scale, 1.0, settle)
+	var banner_area := Rect2(Vector2(FIELD_VIEW.get_center().x - 340.0, FIELD_VIEW.position.y + 38.0), Vector2(680.0, 150.0))
+	var base_rect := _fit_texture_rect(banner_area, texture.get_size())
+	var rect := Rect2(base_rect.get_center() - base_rect.size * scale * 0.5, base_rect.size * scale)
+	var shadow_rect := Rect2(rect.position + Vector2(0.0, 10.0), rect.size).grow(5.0)
+	draw_texture_rect(texture, shadow_rect, false, Color(0.12, 0.02, 0.10, 0.20 * alpha))
+	draw_texture_rect(texture, rect, false, Color(1.0, 1.0, 1.0, alpha))
+	_draw_genre_change_rule_panel(genre_change_banner_event, rect, alpha, appear)
+
+func _draw_genre_change_rule_panel(event_id: String, banner_rect: Rect2, alpha: float, appear: float) -> void:
+	var rule_text := _genre_change_rule_text(event_id)
+	if rule_text == "":
+		return
+	var accent := _genre_event_timer_accent_color(event_id)
+	var panel_scale := lerpf(0.96, 1.0, appear)
+	var base_rect := Rect2(
+		Vector2(FIELD_VIEW.get_center().x - 250.0, banner_rect.end.y - 2.0),
+		Vector2(500.0, 48.0)
+	)
+	var rect := Rect2(base_rect.get_center() - base_rect.size * panel_scale * 0.5, base_rect.size * panel_scale)
+	var rule_color := Color("#5b3a5d")
+	rule_color.a = 0.96 * alpha
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(20.0, 10.0), 0.14 * alpha)
+	draw_rect(rect.grow(3.0), Color(1.0, 0.72, 0.90, 0.18 * alpha), true)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.88 * alpha), true)
+	draw_rect(rect, Color(accent.r, accent.g, accent.b, 0.76 * alpha), false, 3)
+	draw_rect(rect.grow(-6.0), Color(1.0, 0.78, 0.94, 0.20 * alpha), false, 1)
+	_draw_text_item(
+		{
+			"pos": rect.position + Vector2(0.0, 31.0),
+			"text": rule_text,
+			"width": int(rect.size.x),
+			"size": 18,
+			"fontWeight": "black",
+			"color": rule_color
+		},
+		"",
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+
+func _genre_change_rule_text(event_id: String) -> String:
+	if event_id == "race":
+		return "走り続けて、コインを集めろ！"
+	if event_id == "bullet_hell":
+		return "ショットで敵を倒せ！"
+	if event_id == "horror":
+		return "ギフト大量発生！偽物に気を付けろ！"
+	return ""
+
+func _draw_genre_event_timer() -> void:
+	if active_genre_event == "" or genre_event_timer <= 0.0:
+		return
+	if state != "playing" and state != "comment_choice" and state != "gift_choice":
+		return
+	var remaining := ceili(maxf(0.0, genre_event_timer))
+	var duration := maxf(0.01, genre_event_duration)
+	var progress := clampf(genre_event_timer / duration, 0.0, 1.0)
+	var rect := Rect2(Vector2(FIELD_VIEW.position.x + 10.0, FIELD_VIEW.position.y + 14.0), Vector2(246.0, 56.0))
+	var accent := _genre_event_timer_accent_color(active_genre_event)
+	var urgent := genre_event_timer <= 3.0
+	var pulse := (0.5 + 0.5 * sin(elapsed * 9.0)) if urgent else 0.0
+	var alpha := 0.92 + pulse * 0.08
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(20.0, 10.0), 0.16 * alpha)
+	draw_rect(rect.grow(3.0), Color(1.0, 0.78, 0.90, 0.16 * alpha), true)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.88 * alpha), true)
+	draw_rect(rect, Color(accent.r, accent.g, accent.b, (0.76 + pulse * 0.18) * alpha), false, 3)
+	draw_rect(rect.grow(-5.0), Color(1.0, 0.75, 0.92, 0.18 * alpha), false, 1)
+	_draw_text_item(
+		{
+			"pos": rect.position + Vector2(14.0, 24.0),
+			"text": "ジャンル終了まで",
+			"width": 142,
+			"size": 15,
+			"fontWeight": "bold",
+			"color": Color("#8b6a87")
+		}
+	)
+	_draw_text_item(
+		{
+			"pos": rect.position + Vector2(156.0, 38.0),
+			"text": "%02ds" % remaining,
+			"width": 72,
+			"size": 30,
+			"fontWeight": "black",
+			"color": Color("#ffffff")
+		},
+		"",
+		HORIZONTAL_ALIGNMENT_CENTER,
+		Color(0.30, 0.16, 0.36, 0.34 * alpha)
+	)
+	_draw_text_item(
+		{
+			"pos": rect.position + Vector2(154.0, 36.0),
+			"text": "%02ds" % remaining,
+			"width": 76,
+			"size": 30,
+			"fontWeight": "black",
+			"color": Color(accent.r, accent.g, accent.b, 1.0)
+		},
+		"",
+		HORIZONTAL_ALIGNMENT_CENTER
+	)
+	var bar_back := Rect2(rect.position + Vector2(14.0, 43.0), Vector2(rect.size.x - 28.0, 7.0))
+	var bar_fill := Rect2(bar_back.position, Vector2(bar_back.size.x * progress, bar_back.size.y))
+	draw_rect(bar_back, Color(0.92, 0.88, 0.97, 0.80 * alpha), true)
+	draw_rect(bar_fill, Color(accent.r, accent.g, accent.b, 0.82 * alpha), true)
+	draw_rect(bar_back, Color(1.0, 1.0, 1.0, 0.64 * alpha), false, 1)
+
+func _draw_genre_result_card() -> void:
+	if genre_result_card_timer <= 0.0 or genre_result_card_data.is_empty():
+		return
+	if state != "playing":
+		return
+	var event_id := String(genre_result_card_data.get("eventId", ""))
+	var title := String(genre_result_card_data.get("title", "ジャンルイベント 終了！"))
+	var lines_value: Variant = genre_result_card_data.get("lines", [])
+	var lines: Array = []
+	if lines_value is Array:
+		lines = lines_value as Array
+	var duration := maxf(0.1, genre_result_card_duration)
+	var age := duration - genre_result_card_timer
+	var appear := smoothstep(0.0, 0.16, age)
+	var fade := 1.0 - smoothstep(duration - 0.30, duration, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var accent := _genre_event_timer_accent_color(event_id)
+	var line_count := mini(lines.size(), 3)
+	var card_size := Vector2(330.0, 58.0 + float(line_count) * 20.0)
+	var card_x := clampf(FIELD_VIEW.position.x + FIELD_VIEW.size.x * 0.64, FIELD_VIEW.position.x + 340.0, FIELD_VIEW.end.x - card_size.x - 28.0)
+	var card_y := FIELD_VIEW.position.y + 18.0 + lerpf(-8.0, 0.0, appear)
+	var rect := Rect2(Vector2(card_x, card_y), card_size)
+	var fill := Color(1.0, 1.0, 1.0, 0.90 * alpha)
+	var accent_soft := Color(accent.r, accent.g, accent.b, 0.18 * alpha)
+	var accent_main := Color(accent.r, accent.g, accent.b, 0.82 * alpha)
+	var text_color := Color("#6f5374")
+	text_color.a = alpha
+	var sub_text_color := Color("#8d748d")
+	sub_text_color.a = 0.92 * alpha
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(20.0, 12.0), 0.13 * alpha)
+	draw_rect(rect.grow(3.0), accent_soft, true)
+	draw_rect(rect, fill, true)
+	draw_rect(Rect2(rect.position, Vector2(8.0, rect.size.y)), accent_main, true)
+	draw_rect(Rect2(rect.position, Vector2(rect.size.x, 5.0)), Color(accent.r, accent.g, accent.b, 0.42 * alpha), true)
+	draw_rect(rect, Color(accent.r, accent.g, accent.b, 0.64 * alpha), false, 2)
+	draw_rect(rect.grow(-5.0), Color(1.0, 0.78, 0.92, 0.18 * alpha), false, 1)
+	_draw_text_item(
+		{
+			"pos": rect.position + Vector2(20.0, 28.0),
+			"text": title,
+			"width": int(rect.size.x - 40.0),
+			"size": 17,
+			"fontWeight": "black",
+			"color": text_color
+		}
+	)
+	for i in range(line_count):
+		var line_text := String(lines[i])
+		var line_pos := rect.position + Vector2(30.0, 52.0 + float(i) * 20.0)
+		draw_circle(line_pos + Vector2(-12.0, -5.0), 3.6, Color(accent.r, accent.g, accent.b, 0.72 * alpha))
+		_draw_text_item(
+			{
+				"pos": line_pos,
+				"text": line_text,
+				"width": int(rect.size.x - 54.0),
+				"size": 15,
+				"fontWeight": "bold",
+				"color": sub_text_color
+			}
+		)
+
+func _genre_event_timer_accent_color(event_id: String) -> Color:
+	if event_id == "race":
+		return Color("#ffb84d")
+	if event_id == "bullet_hell":
+		return Color("#63dfff")
+	if event_id == "horror":
+		return Color("#ba93ff")
+	return Color("#ff79ad")
 
 func _draw_toast() -> void:
 	if toast_timer <= 0.0:

@@ -24,9 +24,14 @@ static func special_overlay_views(target: Node) -> Array[String]:
 		views.append("comment_storm")
 	if ModifierSystem.has_effect_for_target(target, "zoom_in"):
 		views.append("zoom_in")
-	if String(target.get("active_genre_event")) == "horror":
+	if _should_draw_horror_mask_for_target(target):
 		views.append("horror")
 	return views
+
+static func _should_draw_horror_mask_for_target(target: Node) -> bool:
+	if String(target.get("state")) != "playing":
+		return false
+	return String(target.get("active_genre_event")) == "horror"
 
 static func title_panel_rect() -> Rect2:
 	return Rect2(Vector2(230, 150), Vector2(740, 560))
@@ -527,6 +532,8 @@ static func comment_storm_color(index: int, alpha: float, kuso_active: bool) -> 
 	return color
 
 static func comment_storm_draw_data(arena: Rect2, elapsed: float, setting: int, kuso_active: bool, samples: Array[String]) -> Array:
+	if samples.is_empty():
+		samples = ["www"]
 	var style: Dictionary = comment_storm_style(setting, kuso_active)
 	var amount: int = int(style["amount"])
 	var alpha: float = float(style["alpha"])
@@ -1245,6 +1252,30 @@ static func invincible_label_data(pos: Vector2) -> Dictionary:
 	}
 
 static func enemy_color(kind: String) -> Color:
+	if kind == "enemy_spoiler_comment":
+		return Color("#fff0fb")
+	if kind == "enemy_backseat_controller":
+		return Color("#b9efff")
+	if kind == "enemy_armchair_strategist":
+		return Color("#f3e7ff")
+	if kind == "enemy_dot_invader":
+		return Color("#6ee7ff")
+	if kind == "enemy_fake_gift_box":
+		return Color("#ffd452")
+	if kind == "enemy_lag_comment":
+		return Color("#93f4ff")
+	if kind == "enemy_strategy_wiki_ojisan":
+		return Color("#ffe8a7")
+	if kind == "enemy_fake_first_timer":
+		return Color("#fff7fb")
+	if kind == "enemy_wrong_way_kart":
+		return Color("#ffb84a")
+	if kind == "enemy_jammer_cone":
+		return Color("#ffcc4d")
+	if kind == "enemy_bullet_drone":
+		return Color("#79d7ff")
+	if kind == "enemy_noise_ghost_comment":
+		return Color(0.62, 0.80, 1.0, 0.62)
 	if kind == "shooter":
 		return Color("#3498ff")
 	if kind == "long_comment_guy":
@@ -1259,6 +1290,8 @@ static func enemy_color(kind: String) -> Color:
 		return Color("#332255")
 	if kind == "boss_kuso_maro_king":
 		return Color("#5b294f")
+	if kind == "bugged_final_boss" or kind == "bugged_final_boss_stun":
+		return Color("#5d2cc8")
 	return Color("#7650bd")
 
 static func enemy_shadow_data(pos: Vector2, radius: float) -> Dictionary:
@@ -1269,6 +1302,30 @@ static func enemy_shadow_data(pos: Vector2, radius: float) -> Dictionary:
 	}
 
 static func enemy_sprite_path(kind: String) -> String:
+	if kind == "enemy_spoiler_comment":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_spoiler_comment.png"
+	if kind == "enemy_backseat_controller":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_backseat_controller.png"
+	if kind == "enemy_armchair_strategist":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_armchair_strategist.png"
+	if kind == "enemy_lag_comment":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_lag_comment.png"
+	if kind == "enemy_strategy_wiki_ojisan":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_strategy_wiki_ojisan.png"
+	if kind == "enemy_fake_first_timer":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_fake_first_timer.png"
+	if kind == "enemy_wrong_way_kart":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_wrong_way_kart.png"
+	if kind == "enemy_jammer_cone":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_jammer_cone.png"
+	if kind == "enemy_dot_invader":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_dot_invader.png"
+	if kind == "enemy_bullet_drone":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_bullet_drone.png"
+	if kind == "enemy_noise_ghost_comment":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_noise_ghost_comment.png"
+	if kind == "enemy_fake_gift_box":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_fake_gift_box_active.png"
 	if kind == "troll":
 		return "res://assets/generated/enemy_sprites_v1/troll.png"
 	if kind == "fast":
@@ -1287,6 +1344,10 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/super_long_comment_boss.png"
 	if kind == "boss_kuso_maro_king":
 		return "res://assets/generated/enemy_sprites_v1/kuso_maro_king.png"
+	if kind == "bugged_final_boss":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss.png"
+	if kind == "bugged_final_boss_stun":
+		return "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss_stun.png"
 	return ""
 
 static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color, flash_color: Color = Color.TRANSPARENT, flash_strength: float = 0.0) -> Dictionary:
@@ -1341,6 +1402,129 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 			"lensRect": Rect2(cam.position + Vector2(radius * 1.55, radius * 0.22), Vector2(radius * 0.65, radius * 0.48)),
 			"lensColor": Color("#2a1518")
 		}
+	if kind == "enemy_spoiler_comment":
+		var bubble_rect: Rect2 = Rect2(pos - Vector2(radius * 1.32, radius * 0.72), Vector2(radius * 2.64, radius * 1.42))
+		var tail_points := PackedVector2Array([
+			pos + Vector2(-radius * 0.20, radius * 0.50),
+			pos + Vector2(radius * 0.28, radius * 0.50),
+			pos + Vector2(radius * 0.12, radius * 0.92)
+		])
+		return {
+			"kind": "gameplay_spoiler",
+			"shadowRect": bubble_rect.grow(5.0),
+			"shadowColor": Color(0.23, 0.09, 0.23, 0.26),
+			"tailPoints": tail_points,
+			"tailColors": PackedColorArray([body_color, body_color, body_color]),
+			"rect": bubble_rect,
+			"color": body_color,
+			"topRect": Rect2(bubble_rect.position, Vector2(bubble_rect.size.x, 7.0)),
+			"topColor": Color("#ff8ac3").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
+			"markText": "罠",
+			"markPos": pos + Vector2(-radius * 0.62, radius * 0.22),
+			"markWidth": int(radius * 1.24),
+			"markSize": int(maxf(14.0, radius * 0.76)),
+			"markColor": Color("#8a2c80")
+		}
+	if kind == "enemy_backseat_controller":
+		var pad_rect: Rect2 = Rect2(pos - Vector2(radius * 0.98, radius * 0.54), Vector2(radius * 1.96, radius * 1.08))
+		return {
+			"kind": "gameplay_controller",
+			"shadowRect": pad_rect.grow(5.0),
+			"shadowColor": Color(0.06, 0.13, 0.20, 0.27),
+			"leftGripPos": pos + Vector2(-radius * 0.82, radius * 0.25),
+			"leftGripRadius": radius * 0.42,
+			"leftGripColor": Color("#90ddff").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
+			"rightGripPos": pos + Vector2(radius * 0.82, radius * 0.25),
+			"rightGripRadius": radius * 0.42,
+			"rightGripColor": Color("#f6a9ff").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
+			"rect": pad_rect,
+			"color": body_color,
+			"dpadHStart": pos + Vector2(-radius * 0.62, -radius * 0.08),
+			"dpadHEnd": pos + Vector2(-radius * 0.26, -radius * 0.08),
+			"dpadHColor": Color("#2c4a73"),
+			"dpadHWidth": 4.0,
+			"dpadVStart": pos + Vector2(-radius * 0.44, -radius * 0.26),
+			"dpadVEnd": pos + Vector2(-radius * 0.44, radius * 0.10),
+			"dpadVColor": Color("#2c4a73"),
+			"dpadVWidth": 4.0,
+			"button1Pos": pos + Vector2(radius * 0.42, -radius * 0.10),
+			"button1Radius": radius * 0.13,
+			"button1Color": Color("#ff70ad"),
+			"button2Pos": pos + Vector2(radius * 0.66, radius * 0.08),
+			"button2Radius": radius * 0.13,
+			"button2Color": Color("#5de5ff"),
+			"markText": "!",
+			"markPos": pos + Vector2(-radius * 0.11, radius * 0.28),
+			"markWidth": int(radius * 0.35),
+			"markSize": int(maxf(15.0, radius * 0.76)),
+			"markColor": Color("#3f2b73")
+		}
+	if kind == "enemy_armchair_strategist":
+		var note_rect: Rect2 = Rect2(pos - Vector2(radius * 1.08, radius * 0.70), Vector2(radius * 2.16, radius * 1.40))
+		return {
+			"kind": "gameplay_strategist",
+			"shadowRect": note_rect.grow(5.0),
+			"shadowColor": Color(0.16, 0.09, 0.22, 0.28),
+			"rect": note_rect,
+			"color": body_color,
+			"topRect": Rect2(note_rect.position, Vector2(note_rect.size.x, 6.0)),
+			"topColor": Color("#b78cff").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
+			"leftLensPos": pos + Vector2(-radius * 0.30, -radius * 0.16),
+			"leftLensRadius": radius * 0.19,
+			"leftLensColor": Color("#3e2b5b"),
+			"rightLensPos": pos + Vector2(radius * 0.30, -radius * 0.16),
+			"rightLensRadius": radius * 0.19,
+			"rightLensColor": Color("#3e2b5b"),
+			"bridgeStart": pos + Vector2(-radius * 0.12, -radius * 0.16),
+			"bridgeEnd": pos + Vector2(radius * 0.12, -radius * 0.16),
+			"bridgeColor": Color("#3e2b5b"),
+			"bridgeWidth": 3.0,
+			"markText": "違",
+			"markPos": pos + Vector2(-radius * 0.54, radius * 0.34),
+			"markWidth": int(radius * 1.08),
+			"markSize": int(maxf(13.0, radius * 0.62)),
+			"markColor": Color("#6d3fc5")
+		}
+	if kind == "enemy_dot_invader":
+		var unit: float = radius * 0.30
+		return {
+			"kind": "gameplay_invader",
+			"shadowRect": Rect2(pos - Vector2(radius * 1.10, radius * 0.42) + Vector2(0.0, radius * 0.78), Vector2(radius * 2.20, radius * 0.42)),
+			"shadowColor": Color(0.02, 0.12, 0.25, 0.28),
+			"rect": Rect2(pos - Vector2(unit * 1.5, unit * 1.0), Vector2(unit * 3.0, unit * 2.0)),
+			"color": body_color,
+			"headRect": Rect2(pos - Vector2(unit, unit * 2.0), Vector2(unit * 2.0, unit)),
+			"headColor": Color("#dff9ff").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
+			"leftArmRect": Rect2(pos + Vector2(-unit * 2.4, -unit * 0.2), Vector2(unit, unit * 1.6)),
+			"leftArmColor": Color("#73c7ff"),
+			"rightArmRect": Rect2(pos + Vector2(unit * 1.4, -unit * 0.2), Vector2(unit, unit * 1.6)),
+			"rightArmColor": Color("#73c7ff"),
+			"leftEyeRect": Rect2(pos + Vector2(-unit * 0.84, -unit * 0.45), Vector2(unit * 0.44, unit * 0.44)),
+			"leftEyeColor": Color("#173469"),
+			"rightEyeRect": Rect2(pos + Vector2(unit * 0.40, -unit * 0.45), Vector2(unit * 0.44, unit * 0.44)),
+			"rightEyeColor": Color("#173469")
+		}
+	if kind == "enemy_fake_gift_box":
+		var box_rect: Rect2 = Rect2(pos - Vector2(radius * 0.86, radius * 0.62), Vector2(radius * 1.72, radius * 1.34))
+		return {
+			"kind": "gameplay_fake_gift",
+			"shadowRect": box_rect.grow(5.0),
+			"shadowColor": Color(0.18, 0.09, 0.16, 0.32),
+			"rect": box_rect,
+			"color": body_color,
+			"lidRect": Rect2(box_rect.position + Vector2(-3.0, -radius * 0.20), Vector2(box_rect.size.x + 6.0, radius * 0.38)),
+			"lidColor": Color("#ff77b4").lerp(flash_color, clampf(flash_strength * 0.45, 0.0, 0.45)),
+			"ribbonVRect": Rect2(pos + Vector2(-radius * 0.12, -radius * 0.62), Vector2(radius * 0.24, radius * 1.34)),
+			"ribbonVColor": Color("#ff4b9c"),
+			"ribbonHRect": Rect2(pos + Vector2(-radius * 0.86, -radius * 0.06), Vector2(radius * 1.72, radius * 0.20)),
+			"ribbonHColor": Color("#ff4b9c"),
+			"leftEyePos": pos + Vector2(-radius * 0.34, -radius * 0.18),
+			"leftEyeRadius": radius * 0.08,
+			"leftEyeColor": Color("#241021"),
+			"rightEyePos": pos + Vector2(radius * 0.34, -radius * 0.18),
+			"rightEyeRadius": radius * 0.08,
+			"rightEyeColor": Color("#241021")
+		}
 	return {
 		"kind": "round",
 		"shadowPos": pos + Vector2(0, 3),
@@ -1357,6 +1541,8 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 static func enemy_hit_flash_color(kind: String) -> Color:
 	if kind.begins_with("boss_"):
 		return Color("#a3262d")
+	if kind == "bugged_final_boss" or kind == "bugged_final_boss_stun":
+		return Color("#ff4fd8")
 	if kind == "long_comment_guy":
 		return Color("#ff6348")
 	return Color("#ff3f2d")
@@ -1385,12 +1571,38 @@ static func enemy_hp_bar_data(pos: Vector2, radius: float, hp: float, max_hp: fl
 	if max_hp > 0.0:
 		ratio = clampf(hp / max_hp, 0.0, 1.0)
 	var origin: Vector2 = pos + Vector2(-bar_w / 2, radius + 8)
+	var label_pos := pos + Vector2(-34, -radius - 12)
 	return {
 		"backRect": Rect2(origin, Vector2(bar_w, 6)),
 		"fillRect": Rect2(origin, Vector2(bar_w * ratio, 6)),
 		"backColor": Color("#2a1118"),
 		"fillColor": Color("#ff3246"),
-		"labelPos": pos + Vector2(-34, -radius - 12),
+		"labelOutlineA": "",
+		"labelOutlineAPos": label_pos + Vector2(-1.6, 0.0),
+		"labelOutlineAWidth": -1,
+		"labelOutlineASize": 15,
+		"labelOutlineAColor": Color(0.05, 0.04, 0.07, 0.88),
+		"labelOutlineB": "",
+		"labelOutlineBPos": label_pos + Vector2(1.6, 0.0),
+		"labelOutlineBWidth": -1,
+		"labelOutlineBSize": 15,
+		"labelOutlineBColor": Color(0.05, 0.04, 0.07, 0.88),
+		"labelOutlineC": "",
+		"labelOutlineCPos": label_pos + Vector2(0.0, -1.6),
+		"labelOutlineCWidth": -1,
+		"labelOutlineCSize": 15,
+		"labelOutlineCColor": Color(0.05, 0.04, 0.07, 0.88),
+		"labelOutlineD": "",
+		"labelOutlineDPos": label_pos + Vector2(0.0, 1.6),
+		"labelOutlineDWidth": -1,
+		"labelOutlineDSize": 15,
+		"labelOutlineDColor": Color(0.05, 0.04, 0.07, 0.88),
+		"labelShadow": "",
+		"labelShadowPos": label_pos + Vector2(1.2, 2.2),
+		"labelShadowWidth": -1,
+		"labelShadowSize": 15,
+		"labelShadowColor": Color(0.02, 0.02, 0.03, 0.46),
+		"labelPos": label_pos,
 		"labelWidth": -1,
 		"labelSize": 15,
 		"labelColor": Color.WHITE
@@ -1423,8 +1635,18 @@ static func speech_bubble_data(pos: Vector2, text: String, y_offset: float, widt
 		"color": Color("#1f2937")
 	}
 
+static func enemy_has_custom_body_face(kind: String) -> bool:
+	return kind == "enemy_spoiler_comment" or kind == "enemy_backseat_controller" or kind == "enemy_armchair_strategist" or kind == "enemy_dot_invader" or kind == "enemy_fake_gift_box"
+
+static func enemy_visual_kind(enemy: Dictionary) -> String:
+	var kind := String(enemy.get("kind", ""))
+	if kind == "bugged_final_boss" and String(enemy.get("buggedState", "")) == "glitch_stun":
+		return "bugged_final_boss_stun"
+	return kind
+
 static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var kind: String = String(enemy["kind"])
+	var body_kind: String = enemy_visual_kind(enemy)
 	var pos: Vector2 = Vector2(enemy["pos"])
 	var radius: float = float(enemy["radius"])
 	var is_boss: bool = bool(enemy.get("isBoss", false)) or kind.begins_with("boss_")
@@ -1436,17 +1658,17 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 		var shake: float = lerpf(5.0, 1.2, progress)
 		pos += Vector2(sin(clock * 56.0), cos(clock * 47.0)) * shake
 		radius *= 1.0 + sin(progress * PI) * 0.055
-	var color: Color = enemy_color(kind)
+	var color: Color = enemy_color(body_kind)
 	var speech_text: String = String(enemy.get("speechText", ""))
 	var flash_strength: float = enemy_hit_flash_strength(enemy)
-	var flash_color: Color = enemy.get("hitFlashColor", enemy_hit_flash_color(kind)) as Color
+	var flash_color: Color = enemy.get("hitFlashColor", enemy_hit_flash_color(body_kind)) as Color
 	return {
 		"kind": kind,
 		"pos": pos,
 		"radius": radius,
 		"shadow": enemy_shadow_data(pos, radius),
-		"body": enemy_body_data(kind, pos, radius, color, flash_color, flash_strength),
-		"face": {} if kind == "long_comment_guy" or kind == "boss_super_long_comment" or enemy_sprite_path(kind) != "" else enemy_face_data(pos),
+		"body": enemy_body_data(body_kind, pos, radius, color, flash_color, flash_strength),
+		"face": {} if body_kind == "long_comment_guy" or body_kind == "boss_super_long_comment" or enemy_sprite_path(body_kind) != "" or enemy_has_custom_body_face(body_kind) else enemy_face_data(pos),
 		"bar": enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"])),
 		"speech": speech_bubble_data(pos, speech_text, -radius - 54.0)
 	}
@@ -1461,6 +1683,11 @@ static func enemy_face_parts() -> Array:
 static func enemy_hp_bar_parts() -> Array:
 	return [
 		{"kind": "bar"},
+		{"kind": "text", "prefix": "labelShadow"},
+		{"kind": "text", "prefix": "labelOutlineA"},
+		{"kind": "text", "prefix": "labelOutlineB"},
+		{"kind": "text", "prefix": "labelOutlineC"},
+		{"kind": "text", "prefix": "labelOutlineD"},
 		{"kind": "text", "prefix": "label"}
 	]
 
@@ -1513,6 +1740,56 @@ static func enemy_body_parts(body: Dictionary) -> Array:
 			{"kind": "rect", "prefix": ""},
 			{"kind": "rect", "prefix": "lens"}
 		]
+	if body_kind == "gameplay_spoiler":
+		return [
+			{"kind": "rect", "prefix": "shadow"},
+			{"kind": "polygon", "pointsKey": "tailPoints", "colorsKey": "tailColors"},
+			{"kind": "rect", "prefix": ""},
+			{"kind": "rect", "prefix": "top"},
+			{"kind": "text", "prefix": "mark", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if body_kind == "gameplay_controller":
+		return [
+			{"kind": "rect", "prefix": "shadow"},
+			{"kind": "circle", "prefix": "leftGrip"},
+			{"kind": "circle", "prefix": "rightGrip"},
+			{"kind": "rect", "prefix": ""},
+			{"kind": "line", "prefix": "dpadH"},
+			{"kind": "line", "prefix": "dpadV"},
+			{"kind": "circle", "prefix": "button1"},
+			{"kind": "circle", "prefix": "button2"},
+			{"kind": "text", "prefix": "mark", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if body_kind == "gameplay_strategist":
+		return [
+			{"kind": "rect", "prefix": "shadow"},
+			{"kind": "rect", "prefix": ""},
+			{"kind": "rect", "prefix": "top"},
+			{"kind": "circle", "prefix": "leftLens", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "rightLens", "filled": false, "width": 3.0},
+			{"kind": "line", "prefix": "bridge"},
+			{"kind": "text", "prefix": "mark", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if body_kind == "gameplay_invader":
+		return [
+			{"kind": "rect", "prefix": "shadow"},
+			{"kind": "rect", "prefix": "head"},
+			{"kind": "rect", "prefix": "leftArm"},
+			{"kind": "rect", "prefix": "rightArm"},
+			{"kind": "rect", "prefix": ""},
+			{"kind": "rect", "prefix": "leftEye"},
+			{"kind": "rect", "prefix": "rightEye"}
+		]
+	if body_kind == "gameplay_fake_gift":
+		return [
+			{"kind": "rect", "prefix": "shadow"},
+			{"kind": "rect", "prefix": ""},
+			{"kind": "rect", "prefix": "lid"},
+			{"kind": "rect", "prefix": "ribbonV"},
+			{"kind": "rect", "prefix": "ribbonH"},
+			{"kind": "circle", "prefix": "leftEye"},
+			{"kind": "circle", "prefix": "rightEye"}
+		]
 	return [
 		{"kind": "circle", "prefix": "shadow"},
 		{"kind": "circle", "prefix": ""},
@@ -1527,6 +1804,11 @@ static func enemy_draw_parts(enemy_draw: Dictionary) -> Array:
 		parts.append({"kind": "face", "data": enemy_draw["face"] as Dictionary})
 	var bar: Dictionary = enemy_draw["bar"] as Dictionary
 	bar["label"] = DisplayTextSystem.enemy_display_name(String(enemy_draw["kind"]))
+	bar["labelShadow"] = bar["label"]
+	bar["labelOutlineA"] = bar["label"]
+	bar["labelOutlineB"] = bar["label"]
+	bar["labelOutlineC"] = bar["label"]
+	bar["labelOutlineD"] = bar["label"]
 	parts.append({"kind": "bar", "data": bar})
 	if not (enemy_draw["speech"] as Dictionary).is_empty():
 		parts.append({"kind": "speech", "data": enemy_draw["speech"] as Dictionary})
@@ -1714,30 +1996,30 @@ static func bullet_visual(player_owned: bool, bullet_item: Dictionary = {}) -> D
 		var visual_kind: String = String(bullet_item.get("visualKind", ""))
 		if visual_kind == "high_superchat":
 			return {
-				"trailLength": 44.0,
-				"trailColor": Color(1.0, 0.64, 0.20, 0.50),
-				"trailWidth": 13.0,
-				"outerRadius": 15.0,
-				"outerColor": Color("#ffb52e"),
+				"trailLength": 58.0,
+				"trailColor": Color(1.0, 0.58, 0.18, 0.54),
+				"trailWidth": 15.0,
+				"outerRadius": 16.0,
+				"outerColor": Color("#ffbf32"),
 				"innerRadius": 8.0,
-				"innerColor": Color("#fff8d8"),
-				"glowRadius": 22.0,
-				"glowColor": Color(1.0, 0.86, 0.24, 0.26),
-				"starColor": Color(1.0, 0.98, 0.42, 0.82),
+				"innerColor": Color("#fffdf0"),
+				"glowRadius": 30.0,
+				"glowColor": Color(1.0, 0.78, 0.24, 0.30),
+				"starColor": Color(1.0, 0.94, 0.22, 0.92),
 				"label": "￥"
 			}
 		if visual_kind == "starlight_superchat":
 			return {
-				"trailLength": 32.0,
-				"trailColor": Color(0.58, 0.96, 1.0, 0.34),
-				"trailWidth": 8.0,
-				"outerRadius": 10.0,
-				"outerColor": Color("#fff45c"),
-				"innerRadius": 4.5,
-				"innerColor": Color.WHITE,
-				"glowRadius": 15.0,
-				"glowColor": Color(0.45, 0.88, 1.0, 0.18),
-				"starColor": Color(1.0, 0.96, 0.36, 0.76),
+				"trailLength": 42.0,
+				"trailColor": Color(1.0, 0.68, 0.30, 0.42),
+				"trailWidth": 10.0,
+				"outerRadius": 12.0,
+				"outerColor": Color("#ffd94d"),
+				"innerRadius": 5.5,
+				"innerColor": Color("#fffdf8"),
+				"glowRadius": 22.0,
+				"glowColor": Color(1.0, 0.58, 0.86, 0.20),
+				"starColor": Color(1.0, 0.92, 0.20, 0.86),
 				"label": ""
 			}
 		return {
@@ -1758,6 +2040,15 @@ static func bullet_visual(player_owned: bool, bullet_item: Dictionary = {}) -> D
 		"innerRadius": 4.0,
 		"innerColor": Color("#ffd0d8")
 	}
+
+static func starlight_superchat_bullet_image_path() -> String:
+	return "res://assets/generated/weapon_fx_v1/starlight_superchat_bullet.png"
+
+static func starlight_superchat_defeat_image_path() -> String:
+	return "res://assets/generated/weapon_fx_v1/starlight_superchat_defeat.png"
+
+static func ban_judgement_defeat_image_path() -> String:
+	return "res://assets/generated/weapon_fx_v1/ban_judgement_defeat.png"
 
 static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 	var items: Array = []
@@ -1794,54 +2085,147 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 		}
 		if visual_kind == "starlight_superchat" or visual_kind == "high_superchat":
 			var star_color: Color = visual["starColor"] as Color
+			var center_scale: float = 1.10 if bool(bullet_item.get("centerShot", true)) else 0.90
+			var premium_scale: float = 1.20 if visual_kind == "high_superchat" else 1.0
+			var scale: float = center_scale * premium_scale
+			var seed: float = float(bullet_item.get("starlightSeed", 0.0))
+			var seed_angle: float = seed * TAU
+			var image_size := Vector2(128.0, 76.0) * scale
+			item["trailStart"] = pos - vel * float(visual["trailLength"]) * scale
+			item["trailWidth"] = float(visual["trailWidth"]) * scale
+			item["outerRadius"] = float(visual["outerRadius"]) * scale
+			item["innerRadius"] = float(visual["innerRadius"]) * scale
+			item["trailGlowStart"] = pos - vel * float(visual["trailLength"]) * scale * 1.08 + side * sin(seed_angle) * 2.0
+			item["trailGlowEnd"] = pos - vel * 3.0
+			item["trailGlowColor"] = Color(1.0, 0.44, 0.78, 0.24 if visual_kind == "starlight_superchat" else 0.30)
+			item["trailGlowWidth"] = float(visual["trailWidth"]) * scale * 1.75
+			item["trailHotStart"] = pos - vel * float(visual["trailLength"]) * scale * 0.78
+			item["trailHotEnd"] = pos - vel * 2.0
+			item["trailHotColor"] = Color(1.0, 0.95, 0.38, 0.52)
+			item["trailHotWidth"] = maxf(2.6, float(visual["trailWidth"]) * scale * 0.42)
+			item["sideTrailStart"] = pos - vel * float(visual["trailLength"]) * scale * 0.60 - side * 4.5 * scale
+			item["sideTrailEnd"] = pos - vel * 8.0 + side * 2.0 * scale
+			item["sideTrailColor"] = Color(0.58, 0.92, 1.0, 0.28)
+			item["sideTrailWidth"] = maxf(2.0, 3.0 * scale)
 			item["glowPos"] = pos
-			item["glowRadius"] = float(visual["glowRadius"])
+			item["glowRadius"] = float(visual["glowRadius"]) * scale
 			item["glowColor"] = visual["glowColor"] as Color
+			item["imagePath"] = starlight_superchat_bullet_image_path()
+			item["imagePos"] = pos - vel * image_size.x * 0.22
+			item["imageSize"] = image_size
+			item["imageAngle"] = vel.angle() + PI
+			item["imageAlpha"] = 1.0 if visual_kind == "high_superchat" else 0.96
+			item["auraPos"] = pos
+			item["auraRadius"] = float(visual["outerRadius"]) * scale * 1.42
+			item["auraColor"] = Color(1.0, 0.86, 0.32, 0.70 if visual_kind == "high_superchat" else 0.58)
+			var core_size: int = int(round(25.0 * scale))
+			var core_width: int = int(round(34.0 * scale))
+			item["coreStarShadowText"] = "★"
+			item["coreStarShadowPos"] = pos + Vector2(float(-core_width) * 0.5 - 2.0, float(core_size) * 0.40 + 2.0)
+			item["coreStarShadowWidth"] = core_width + 6
+			item["coreStarShadowSize"] = core_size + 5
+			item["coreStarShadowColor"] = Color(1.0, 0.38, 0.70, 0.86)
+			item["coreStarText"] = "★"
+			item["coreStarPos"] = pos + Vector2(float(-core_width) * 0.5, float(core_size) * 0.40)
+			item["coreStarWidth"] = core_width
+			item["coreStarSize"] = core_size
+			item["coreStarColor"] = Color(1.0, 0.98, 0.76, 0.98)
 			item["star1Text"] = "★"
-			item["star1Pos"] = pos - vel * 18.0 + side * 7.0 + Vector2(-8.0, 6.0)
-			item["star1Width"] = 20
-			item["star1Size"] = 15
+			item["star1Pos"] = pos - vel * (18.0 * scale) + side * (8.0 + sin(seed_angle) * 2.0) + Vector2(-8.0, 6.0)
+			item["star1Width"] = int(round(20.0 * scale))
+			item["star1Size"] = int(round(15.0 * scale))
 			item["star1Color"] = star_color
-			item["star2Text"] = "★"
-			item["star2Pos"] = pos - vel * 34.0 - side * 6.0 + Vector2(-7.0, 5.0)
-			item["star2Width"] = 18
-			item["star2Size"] = 11
-			item["star2Color"] = Color(star_color.r, star_color.g, star_color.b, star_color.a * 0.72)
+			item["star2Text"] = "☆"
+			item["star2Pos"] = pos - vel * (36.0 * scale) - side * (7.0 + cos(seed_angle) * 2.0) + Vector2(-7.0, 5.0)
+			item["star2Width"] = int(round(18.0 * scale))
+			item["star2Size"] = int(round(12.0 * scale))
+			item["star2Color"] = Color(1.0, 0.56, 0.82, 0.68)
+			item["sparkDot1Pos"] = pos - vel * (26.0 * scale) + side * (13.0 + sin(seed_angle * 1.7) * 3.0)
+			item["sparkDot1Radius"] = 2.2 * scale
+			item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.72)
+			item["sparkDot2Pos"] = pos - vel * (46.0 * scale) - side * (10.0 + cos(seed_angle * 1.3) * 3.0)
+			item["sparkDot2Radius"] = 1.8 * scale
+			item["sparkDot2Color"] = Color(0.62, 0.94, 1.0, 0.56)
+			var chip_size: Vector2 = Vector2(7.0, 4.0) * scale
+			var chip1_center: Vector2 = pos - vel * (24.0 * scale) - side * (12.0 * scale)
+			var chip2_center: Vector2 = pos - vel * (40.0 * scale) + side * (10.0 * scale)
+			item["chip1Rect"] = Rect2(chip1_center - chip_size * 0.5, chip_size)
+			item["chip1Color"] = Color(1.0, 0.50, 0.76, 0.42)
+			item["chip2Rect"] = Rect2(chip2_center - chip_size * 0.5, chip_size * 0.85)
+			item["chip2Color"] = Color(1.0, 0.86, 0.25, 0.45)
 			if visual_kind == "high_superchat":
 				item["star3Text"] = "★"
-				item["star3Pos"] = pos - vel * 48.0 + side * 12.0 + Vector2(-7.0, 5.0)
-				item["star3Width"] = 18
-				item["star3Size"] = 12
-				item["star3Color"] = Color(1.0, 0.86, 0.22, 0.72)
+				item["star3Pos"] = pos - vel * (54.0 * scale) + side * (14.0 * scale) + Vector2(-7.0, 5.0)
+				item["star3Width"] = int(round(20.0 * scale))
+				item["star3Size"] = int(round(13.0 * scale))
+				item["star3Color"] = Color(1.0, 0.86, 0.22, 0.78)
 				item["labelText"] = String(visual["label"])
-				item["labelPos"] = pos + Vector2(-8.0, 6.0)
-				item["labelWidth"] = 18
-				item["labelSize"] = 15
-				item["labelColor"] = Color("#7a2d00")
+				item["labelPos"] = pos + Vector2(-8.0 * scale, 6.0 * scale)
+				item["labelWidth"] = int(round(18.0 * scale))
+				item["labelSize"] = int(round(14.0 * scale))
+				item["labelColor"] = Color("#8a3100")
 		items.append(item)
 	return items
 
 static func bullet_parts(data: Dictionary = {}) -> Array:
 	var visual_kind: String = String(data.get("visualKind", ""))
 	if visual_kind == "high_superchat":
+		if String(data.get("imagePath", "")) != "":
+			return [
+				{"kind": "circle", "prefix": "glow"},
+				{"kind": "line", "prefix": "trailGlow"},
+				{"kind": "line", "prefix": "sideTrail"},
+				{"kind": "line", "prefix": "trailHot"},
+				{"kind": "circle", "prefix": "sparkDot2"},
+				{"kind": "circle", "prefix": "sparkDot1"}
+			]
 		return [
 			{"kind": "circle", "prefix": "glow"},
+			{"kind": "line", "prefix": "trailGlow"},
+			{"kind": "line", "prefix": "sideTrail"},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "line", "prefix": "trailHot"},
+			{"kind": "rect", "prefix": "chip1"},
+			{"kind": "rect", "prefix": "chip2"},
+			{"kind": "circle", "prefix": "sparkDot2"},
 			{"kind": "text", "prefix": "star3", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
 			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
 			{"kind": "text", "prefix": "star1", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
-			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "sparkDot1"},
+			{"kind": "circle", "prefix": "aura", "filled": false, "width": 2.4},
 			{"kind": "circle", "prefix": "outer"},
 			{"kind": "circle", "prefix": "inner"},
+			{"kind": "text", "prefix": "coreStarShadow", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "coreStar", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
 			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if visual_kind == "starlight_superchat":
+		if String(data.get("imagePath", "")) != "":
+			return [
+				{"kind": "circle", "prefix": "glow"},
+				{"kind": "line", "prefix": "trailGlow"},
+				{"kind": "line", "prefix": "sideTrail"},
+				{"kind": "line", "prefix": "trailHot"},
+				{"kind": "circle", "prefix": "sparkDot2"},
+				{"kind": "circle", "prefix": "sparkDot1"}
+			]
 		return [
 			{"kind": "circle", "prefix": "glow"},
+			{"kind": "line", "prefix": "trailGlow"},
+			{"kind": "line", "prefix": "sideTrail"},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "line", "prefix": "trailHot"},
+			{"kind": "rect", "prefix": "chip1"},
+			{"kind": "rect", "prefix": "chip2"},
+			{"kind": "circle", "prefix": "sparkDot2"},
 			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
 			{"kind": "text", "prefix": "star1", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
-			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "sparkDot1"},
+			{"kind": "circle", "prefix": "aura", "filled": false, "width": 2.0},
 			{"kind": "circle", "prefix": "outer"},
-			{"kind": "circle", "prefix": "inner"}
+			{"kind": "circle", "prefix": "inner"},
+			{"kind": "text", "prefix": "coreStarShadow", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "coreStar", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	return [
 		{"kind": "line", "prefix": "trail"},
@@ -1862,73 +2246,100 @@ static func boomerang_visual() -> Dictionary:
 		"textureSize": Vector2(42.0, 64.0)
 	}
 
-static func maro_comment_ring_label(index: int) -> String:
-	var labels: Array[String] = ["まろ", "888", "♡", "草", "GG", "すき"]
-	return labels[index % labels.size()]
+static func maro_comment_ring_badge_image_path(index: int) -> String:
+	var paths: Array[String] = [
+		"res://assets/generated/weapon_fx_v1/maro_comment_ring_badges/maro_comment_ring_0_clap.png",
+		"res://assets/generated/weapon_fx_v1/maro_comment_ring_badges/maro_comment_ring_1_gj.png",
+		"res://assets/generated/weapon_fx_v1/maro_comment_ring_badges/maro_comment_ring_2_suki.png",
+		"res://assets/generated/weapon_fx_v1/maro_comment_ring_badges/maro_comment_ring_3_heart.png",
+		"res://assets/generated/weapon_fx_v1/maro_comment_ring_badges/maro_comment_ring_4_star.png",
+		"res://assets/generated/weapon_fx_v1/maro_comment_ring_badges/maro_comment_ring_5_music.png"
+	]
+	return paths[index % paths.size()]
 
-static func maro_comment_ring_bubble(center: Vector2, angle: float, index: int, flash_strength: float) -> Dictionary:
-	var size := Vector2(50.0, 30.0)
-	var rect := Rect2(center - size * 0.5, size)
-	var tail_tip: Vector2 = center + Vector2.DOWN.rotated(angle) * 18.0
-	var tail := PackedVector2Array([
-		center + Vector2(-8.0, size.y * 0.42),
-		center + Vector2(8.0, size.y * 0.42),
-		tail_tip
-	])
-	var fill := Color(1.0, 0.96, 0.99, 0.94)
-	var border := Color("#ff91c8").lerp(Color("#fff45c"), flash_strength * 0.45)
+static func maro_comment_ring_halo_image_path() -> String:
+	return "res://assets/generated/weapon_fx_v1/maro_comment_ring_halo.png"
+
+static func maro_comment_bullet_clear_image_path() -> String:
+	return "res://assets/generated/weapon_fx_v1/maro_comment_ring_bullet_clear.png"
+
+static func maro_comment_ring_badge(center: Vector2, angle: float, index: int, flash_strength: float, pulse_strength: float) -> Dictionary:
+	var pop := maxf(flash_strength, pulse_strength)
+	var size := Vector2(86.0, 64.5) + Vector2(10.0, 7.5) * pop
+	var tangent := Vector2(-sin(angle), cos(angle)).normalized()
+	var outward := Vector2(cos(angle), sin(angle)).normalized()
 	return {
-		"rect": rect,
-		"tail": tail,
-		"fill": fill,
-		"border": border,
-		"borderWidth": 3,
-		"text": maro_comment_ring_label(index),
-		"pos": rect.position + Vector2(0.0, 21.0),
-		"width": int(size.x),
-		"size": 16,
-		"color": Color("#7a3a67")
+		"visualKind": "maro_comment_ring_bubble",
+		"pos": center,
+		"shadowPos": center + Vector2(0.0, 17.0),
+		"shadowSize": Vector2(size.x * 0.82, 13.0),
+		"shadowAlpha": 0.24,
+		"trailStart": center - tangent * (43.0 + 13.0 * pop) - outward * 2.0,
+		"trailEnd": center - tangent * 10.0 + outward * 2.0,
+		"trailColor": Color(0.70, 0.95, 1.0, 0.26 + 0.22 * flash_strength),
+		"trailWidth": 6.0 + 4.0 * pop,
+		"glowPos": center,
+		"glowRadius": 36.0 + 14.0 * pop,
+		"glowColor": Color(1.0, 0.74, 0.90, 0.15 + flash_strength * 0.22 + pulse_strength * 0.14),
+		"imagePath": maro_comment_ring_badge_image_path(index),
+		"imagePos": center,
+		"imageSize": size,
+		"imageAngle": sin(angle + float(index) * 1.7) * 0.075,
+		"imageAlpha": 0.98
 	}
 
 static func maro_comment_ring_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float, pulse_strength: float, flash_strength: float) -> Array:
 	var items: Array = []
 	var phase: float = elapsed_time * orbit_speed
-	var halo_alpha: float = 0.16 + pulse_strength * 0.18 + flash_strength * 0.26
-	items.append({
+	var halo_alpha: float = 0.22 + pulse_strength * 0.22 + flash_strength * 0.30
+	var halo := {
 		"visualKind": "maro_comment_ring_halo",
 		"pos": player_pos,
 		"softPos": player_pos,
-		"softRadius": radius + 18.0 + pulse_strength * 12.0,
-		"softColor": Color(1.0, 0.74, 0.90, halo_alpha * 0.46),
+		"softRadius": radius + 42.0 + pulse_strength * 24.0,
+		"softColor": Color(1.0, 0.74, 0.90, halo_alpha * 0.40),
+		"imagePath": maro_comment_ring_halo_image_path(),
+		"imagePos": player_pos,
+		"imageSize": Vector2.ONE * ((radius + 62.0 + pulse_strength * 24.0 + flash_strength * 18.0) * 2.0),
+		"imageAngle": phase * 0.018,
+		"imageAlpha": 0.86 + flash_strength * 0.12,
 		"ringPos": player_pos,
 		"ringRadius": radius,
-		"ringColor": Color(1.0, 0.92, 0.98, halo_alpha),
-		"wavePoints": wavy_ring_points(player_pos, radius, 2.0 + 5.0 * maxf(pulse_strength, flash_strength), phase, 6.0),
-		"waveColor": Color(0.90, 0.98, 1.0, 0.28 + flash_strength * 0.28 + pulse_strength * 0.24),
-		"waveWidth": 3.0 + pulse_strength * 4.0 + flash_strength * 2.0
-	})
+		"ringColor": Color(1.0, 0.94, 0.99, halo_alpha),
+		"innerPos": player_pos,
+		"innerRadius": radius - 15.0,
+		"innerColor": Color(0.74, 1.0, 0.94, halo_alpha * 0.52),
+		"wavePoints": wavy_ring_points(player_pos, radius, 2.2 + 4.0 * maxf(pulse_strength, flash_strength), phase, 6.0),
+		"waveColor": Color(0.78, 0.98, 1.0, 0.36 + flash_strength * 0.32 + pulse_strength * 0.26),
+		"waveWidth": 4.0 + pulse_strength * 4.0 + flash_strength * 2.4,
+		"dotRadius": 3.0 + maxf(pulse_strength, flash_strength) * 2.2,
+		"dotColor": Color(1.0, 0.86, 0.96, 0.58 + flash_strength * 0.24)
+	}
+	for i in range(6):
+		var trail_angle: float = phase + TAU * float(i) / 6.0
+		var trail_pos: Vector2 = player_pos + Vector2(cos(trail_angle), sin(trail_angle)) * radius
+		var trail_tangent := Vector2(-sin(trail_angle), cos(trail_angle)).normalized()
+		halo["trail%dStart" % (i + 1)] = trail_pos - trail_tangent * (34.0 + flash_strength * 18.0)
+		halo["trail%dEnd" % (i + 1)] = trail_pos - trail_tangent * 6.0
+		halo["trail%dColor" % (i + 1)] = Color(0.74, 0.96, 1.0, 0.22 + flash_strength * 0.16)
+		halo["trail%dWidth" % (i + 1)] = 4.0 + flash_strength * 3.0
+	for i in range(6):
+		var sparkle_angle: float = -phase * 0.45 + TAU * (float(i) + 0.5) / 6.0
+		var sparkle_pos: Vector2 = player_pos + Vector2(cos(sparkle_angle), sin(sparkle_angle)) * (radius + 30.0 + sin(elapsed_time * 3.0 + float(i)) * 5.0)
+		var prefix := "spark%d" % (i + 1)
+		halo[prefix + "Text"] = "♡" if i % 2 == 0 else "☆"
+		halo[prefix + "Pos"] = sparkle_pos + Vector2(-9.0, 7.0)
+		halo[prefix + "Width"] = 18
+		halo[prefix + "Size"] = 13 + int(4.0 * maxf(pulse_strength, flash_strength))
+		halo[prefix + "Color"] = Color(1.0, 0.60, 0.82, 0.42 + flash_strength * 0.30) if i % 2 == 0 else Color(0.66, 0.92, 1.0, 0.40 + pulse_strength * 0.26)
+	items.append(halo)
 	if count <= 0:
 		return items
+	count = mini(count, 6)
 	for i in range(count):
 		var angle: float = phase + TAU * float(i) / float(count)
 		var pos: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * radius
-		var bubble: Dictionary = maro_comment_ring_bubble(pos, angle, i, flash_strength)
-		items.append({
-			"visualKind": "maro_comment_ring_bubble",
-			"pos": pos,
-			"shadowPos": pos + Vector2(0.0, 14.0),
-			"shadowSize": Vector2(42.0, 10.0),
-			"shadowAlpha": 0.20,
-			"glowPos": pos,
-			"glowRadius": 22.0 + 7.0 * maxf(pulse_strength, flash_strength),
-			"glowColor": Color(1.0, 0.78, 0.92, 0.10 + flash_strength * 0.18 + pulse_strength * 0.10),
-			"bubble": bubble,
-			"sparkText": "☆",
-			"sparkPos": pos + Vector2.RIGHT.rotated(-angle * 0.7 + float(i)) * 22.0 + Vector2(-7.0, 5.0),
-			"sparkWidth": 16,
-			"sparkSize": 12 + int(4.0 * maxf(pulse_strength, flash_strength)),
-			"sparkColor": Color(1.0, 0.92, 0.98, 0.52 + flash_strength * 0.36)
-		})
+		items.append(maro_comment_ring_badge(pos, angle, i, flash_strength, pulse_strength))
 	return items
 
 static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float) -> Array:
@@ -1959,12 +2370,13 @@ static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, 
 
 static func boomerang_draw_data_for_weapon(player_pos: Vector2, weapon: Dictionary, boomerang_level: int, weapon_range: float, elapsed_time: float, weapon_state: Dictionary = {}, bullet_support_level: int = 0) -> Array:
 	var is_main_orbit: bool = WeaponSystem.attack_type(weapon) == "orbit"
+	var is_maro_ring: bool = String(weapon.get("id", "")) == "maro_comment_ring"
 	var count: int = WeaponSystem.orbit_count(weapon, boomerang_level)
-	if count > 0:
+	if count > 0 and not is_maro_ring:
 		count += bullet_support_level
 	var radius: float = weapon_range if is_main_orbit else 78.0
 	var orbit_speed: float = WeaponSystem.orbit_speed(weapon)
-	if String(weapon.get("id", "")) == "maro_comment_ring":
+	if is_maro_ring:
 		var pulse_until: float = float(weapon_state.get("__maro_comment_pulse_until", 0.0))
 		var flash_until: float = float(weapon_state.get("__maro_comment_flash_until", 0.0))
 		var pulse_duration: float = maxf(0.05, float(weapon.get("pulseDuration", 0.25)))
@@ -1983,16 +2395,13 @@ static func boomerang_parts(data: Dictionary = {}) -> Array:
 	var visual_kind: String = String(data.get("visualKind", ""))
 	if visual_kind == "maro_comment_ring_halo":
 		return [
-			{"kind": "circle", "prefix": "soft"},
-			{"kind": "circle", "prefix": "ring", "filled": false, "width": 4.0},
-			{"kind": "polyline", "pointsKey": "wavePoints", "colorKey": "waveColor", "widthKey": "waveWidth"}
+			{"kind": "circle", "prefix": "soft"}
 		]
 	if visual_kind == "maro_comment_ring_bubble":
 		return [
 			{"kind": "shadow"},
-			{"kind": "circle", "prefix": "glow"},
-			{"kind": "speech", "data": data["bubble"] as Dictionary},
-			{"kind": "text", "prefix": "spark", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "glow"}
 		]
 	return [
 		{"kind": "arc", "prefix": "outer"},
@@ -2006,6 +2415,13 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 	var inner_radius: float = maxf(34.0, range * 0.42)
 	var fx_duration := 0.24
 	var swing_progress: float = clampf(1.0 - life / fx_duration, 0.0, 1.0)
+	var burst_alpha: float = clampf(life / 0.18, 0.0, 1.0)
+	var burst_pop: float = sin(swing_progress * PI)
+	var burst_radius: float = 20.0 + swing_progress * 12.0 + burst_pop * 2.0
+	var burst_dir: Vector2 = dir.normalized()
+	if burst_dir.length() < 0.1:
+		burst_dir = Vector2.RIGHT
+	var burst_side: Vector2 = Vector2(-burst_dir.y, burst_dir.x)
 	var swing_angle: float = angle + lerpf(-half_arc, half_arc, swing_progress)
 	var hammer_pos: Vector2 = pos + Vector2.RIGHT.rotated(swing_angle) * range * 0.66
 	var trail_alpha: float = clampf(life / 0.20, 0.0, 1.0)
@@ -2067,9 +2483,23 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 		"trailEdgePoints": 8,
 		"trailEdgeColor": Color(1.0, 0.96, 0.36, 0.82 * trail_alpha),
 		"trailEdgeWidth": 5.0,
+		"burstGlowPos": hit_pos,
+		"burstGlowRadius": burst_radius + 9.0,
+		"burstGlowColor": Color(1.0, 0.62, 0.12, 0.14 * burst_alpha),
 		"burstPos": hit_pos,
-		"burstRadius": 24.0 + life * 30.0,
-		"burstColor": Color(1.0, 0.95, 0.22, 0.35),
+		"burstRadius": burst_radius,
+		"burstColor": Color(1.0, 0.92, 0.20, 0.24 * burst_alpha),
+		"burstRingPos": hit_pos,
+		"burstRingRadius": burst_radius + 2.0,
+		"burstRingColor": Color(1.0, 0.98, 0.45, 0.58 * burst_alpha),
+		"burstSpark1Start": hit_pos + burst_dir * (burst_radius * 0.35),
+		"burstSpark1End": hit_pos + burst_dir * (burst_radius + 9.0),
+		"burstSpark1Color": Color(1.0, 0.98, 0.52, 0.46 * burst_alpha),
+		"burstSpark1Width": 2.0,
+		"burstSpark2Start": hit_pos - burst_side * (burst_radius * 0.32),
+		"burstSpark2End": hit_pos - burst_side * (burst_radius + 7.0),
+		"burstSpark2Color": Color(1.0, 0.58, 0.28, 0.34 * burst_alpha),
+		"burstSpark2Width": 1.6,
 		"hammerPos": hammer_pos,
 		"hammerSize": Vector2(70, 70) * (0.94 + 0.06 * sin(swing_progress * PI)),
 		"hammerAngle": swing_angle + deg_to_rad(38.0),
@@ -2081,8 +2511,12 @@ static func hit_fx_data(pos: Vector2, dir: Vector2, hit_pos: Vector2, range: flo
 		"sparkAlpha": trail_alpha,
 		"label": "BAN!",
 		"labelPos": hit_pos + Vector2(-22, -28),
-		"labelColor": Color("#fff45c"),
-		"labelSize": 20
+		"labelColor": Color(1.0, 0.98, 0.34, 0.96 * burst_alpha),
+		"labelSize": 20,
+		"labelShadowText": "BAN!",
+		"labelShadowPos": hit_pos + Vector2(-20, -26),
+		"labelShadowColor": Color(0.22, 0.06, 0.02, 0.42 * burst_alpha),
+		"labelShadowSize": 20
 	}
 
 static func ban_judgement_shockwave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, range: float, width: float) -> Dictionary:
@@ -2391,6 +2825,34 @@ static func ban_judgement_hit_fx_data(pos: Vector2, dir: Vector2, life: float, m
 		"dot3Pos": stamp_pos - norm_dir * stamp_radius * 1.22
 	}
 
+static func ban_judgement_defeat_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, radius: float, boss_hit: bool = false) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	var fade_in: float = clampf(progress / 0.12, 0.0, 1.0)
+	var norm_dir: Vector2 = dir.normalized()
+	if norm_dir.length() < 0.1:
+		norm_dir = Vector2.RIGHT
+	var min_size: float = 112.0 if not boss_hit else 160.0
+	var max_size: float = 170.0 if not boss_hit else 270.0
+	var size_base: float = clampf(radius * (3.85 if not boss_hit else 3.35), min_size, max_size)
+	var image_scale: float = (size_base / 130.0) * (0.88 + 0.24 * burst + 0.04 * progress)
+	var image_pos: Vector2 = pos - norm_dir * radius * 0.10 + Vector2(0.0, -radius * 0.16)
+	return {
+		"kind": "ban_judgement_defeat",
+		"imagePath": ban_judgement_defeat_image_path(),
+		"imagePos": image_pos,
+		"imageSize": Vector2(130.0, 125.0) * image_scale,
+		"imageRotation": -0.08 + sin(progress * PI * 1.25) * 0.05,
+		"imageAlpha": 0.94 * alpha * (0.42 + 0.58 * fade_in),
+		"glowPos": image_pos,
+		"glowRadius": size_base * (0.48 + 0.18 * burst),
+		"glowColor": Color(1.0, 0.06, 0.10, 0.20 * alpha),
+		"ringPos": image_pos,
+		"ringRadius": size_base * (0.30 + 0.16 * progress),
+		"ringColor": Color(1.0, 0.82, 0.22, 0.42 * alpha)
+	}
+
 static func wavy_ring_points(pos: Vector2, radius: float, amplitude: float, phase: float, wave_count: float, samples: int = 56) -> PackedVector2Array:
 	var points := PackedVector2Array()
 	for i in range(samples + 1):
@@ -2482,20 +2944,17 @@ static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life:
 	var normalized_dir: Vector2 = dir.normalized()
 	if normalized_dir.length() < 0.1:
 		normalized_dir = Vector2.RIGHT
-	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
 	var wave_points := PackedVector2Array()
 	var wave_length: float = 86.0 * size_scale
-	var wave_amp: float = 7.0 * size_scale
 	for i in range(9):
 		var t: float = float(i) / 8.0
 		var base: Vector2 = pos - normalized_dir * wave_length * (1.0 - t)
-		var wobble: Vector2 = side * sin(t * TAU * 2.0 + progress * TAU * 2.4) * wave_amp
-		wave_points.append(base + wobble)
+		wave_points.append(base)
 	var wave_text: String = "ｗｗｗｗ"
 	var label_size: int = int(round(25.0 * size_scale))
 	var label_width: int = int(round(122.0 * size_scale))
-	var text_pos: Vector2 = pos - Vector2(float(label_width) * 0.5, -float(label_size) * 0.32) + side * sin(life * 20.0) * (4.0 * size_scale)
-	var outline_color: Color = Color(0.95, 1.0, 0.95, 0.92 * alpha)
+	var text_pos: Vector2 = pos - Vector2(float(label_width) * 0.5, -float(label_size) * 0.32)
+	var outline_color: Color = Color(0.03, 0.06, 0.03, 0.76 * alpha)
 	var label_color: Color = Color(0.32, 1.0, 0.34, alpha)
 	var dark_shadow: Color = Color(0.0, 0.26, 0.08, 0.42 * alpha)
 	var bounce_tint: float = clampf(float(bounces_left) / 2.0, 0.0, 1.0)
@@ -2503,14 +2962,14 @@ static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life:
 		"kind": "kusa_wave",
 		"trailStart": pos - normalized_dir * (72.0 * size_scale),
 		"trailEnd": pos,
-		"trailColor": Color(0.28, 1.0, 0.48, 0.42 * alpha),
-		"trailWidth": 11.0 * size_scale,
+		"trailColor": Color(0.28, 1.0, 0.48, 0.16 * alpha),
+		"trailWidth": 6.0 * size_scale,
 		"outlinePoints": wave_points,
 		"outlineColor": outline_color,
-		"outlineWidth": 11.0 * size_scale,
+		"outlineWidth": 6.0 * size_scale,
 		"wavePoints": wave_points,
-		"coreColor": Color(0.22, 1.0, 0.34, 0.86 * alpha),
-		"coreWidth": 5.4 * size_scale,
+		"coreColor": Color(0.22, 1.0, 0.34, 0.36 * alpha),
+		"coreWidth": 2.6 * size_scale,
 		"glowPos": pos,
 		"glowRadius": 18.0 * size_scale,
 		"glowColor": Color(0.38, 1.0, 0.55, 0.16 * alpha + 0.06 * bounce_tint),
@@ -2548,30 +3007,28 @@ static func kusa_wave_fx_data(pos: Vector2, dir: Vector2, life: float, max_life:
 	}
 	var glyph_count: int = 6
 	var glyph_text: String = wave_text.substr(0, 1)
-	var glyph_spacing: float = 15.5 * size_scale
-	var glyph_width: int = int(round(44.0 * size_scale))
-	var glyph_size_base: int = int(round(28.0 * size_scale))
+	var glyph_spacing: float = 23.0 * size_scale
+	var glyph_width: int = int(round(38.0 * size_scale))
+	var glyph_size_base: int = int(round(30.0 * size_scale))
 	data["glyphCount"] = glyph_count
 	for glyph_index in range(glyph_count):
 		var t: float = float(glyph_index) / maxf(1.0, float(glyph_count - 1))
 		var glyph_center: Vector2 = pos - normalized_dir * glyph_spacing * float(glyph_index)
-		glyph_center += side * sin(t * TAU * 1.7 + progress * TAU * 2.0) * (5.5 * size_scale)
-		glyph_center += normalized_dir * sin(progress * TAU * 2.0 + float(glyph_index) * 0.7) * (1.8 * size_scale)
 		var glyph_alpha: float = alpha * lerpf(1.0, 0.46, t)
-		var glyph_size: int = glyph_size_base + (1 if glyph_index % 2 == 0 else -1)
+		var glyph_size: int = glyph_size_base
 		var glyph_pos: Vector2 = glyph_center - Vector2(float(glyph_width) * 0.5, -float(glyph_size) * 0.32)
 		var prefix: String = "glyph%d" % glyph_index
 		data[prefix + "ShadowText"] = glyph_text
 		data[prefix + "ShadowPos"] = glyph_pos + Vector2(2.0, 2.0)
-		data[prefix + "ShadowColor"] = Color(0.0, 0.22, 0.08, 0.34 * glyph_alpha)
+		data[prefix + "ShadowColor"] = Color(0.0, 0.0, 0.0, 0.40 * glyph_alpha)
 		data[prefix + "ShadowSize"] = glyph_size
 		data[prefix + "ShadowWidth"] = glyph_width
 		for outline_index in range(4):
-			var outline_offset: Vector2 = [Vector2(-2.0, 0.0), Vector2(2.0, 0.0), Vector2(0.0, -2.0), Vector2(0.0, 2.0)][outline_index] * maxf(0.75, size_scale)
+			var outline_offset: Vector2 = [Vector2(-3.0, 0.0), Vector2(3.0, 0.0), Vector2(0.0, -3.0), Vector2(0.0, 3.0)][outline_index] * maxf(0.75, size_scale)
 			var outline_prefix: String = "%sOutline%d" % [prefix, outline_index + 1]
 			data[outline_prefix + "Text"] = glyph_text
 			data[outline_prefix + "Pos"] = glyph_pos + outline_offset
-			data[outline_prefix + "Color"] = Color(0.96, 1.0, 0.92, 0.90 * glyph_alpha)
+			data[outline_prefix + "Color"] = Color(0.02, 0.03, 0.02, 0.96 * glyph_alpha)
 			data[outline_prefix + "Size"] = glyph_size
 			data[outline_prefix + "Width"] = glyph_width
 		data[prefix + "LabelText"] = glyph_text
@@ -2617,50 +3074,108 @@ static func spotlight_fx_data(pos: Vector2, life: float, max_life: float, radius
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var pulse: float = sin(progress * PI)
-	var visual_radius: float = radius * lerpf(1.15, 1.55, progress)
-	var top: Vector2 = pos + Vector2(0.0, -visual_radius * 2.15)
-	return {
+	var visual_radius: float = radius * lerpf(1.06, 1.44, progress)
+	var top: Vector2 = pos + Vector2(0.0, -visual_radius * 2.35)
+	var cone_left: Vector2 = pos + Vector2(-visual_radius * (0.92 + pulse * 0.10), visual_radius * 0.28)
+	var cone_right: Vector2 = pos + Vector2(visual_radius * (0.92 + pulse * 0.10), visual_radius * 0.28)
+	var cone_points := PackedVector2Array([
+		top + Vector2(-visual_radius * 0.16, 0.0),
+		cone_left,
+		pos + Vector2(0.0, visual_radius * 0.40),
+		cone_right,
+		top + Vector2(visual_radius * 0.16, 0.0)
+	])
+	var cone_colors := PackedColorArray([
+		Color(1.0, 1.0, 0.82, 0.05 * alpha),
+		Color(1.0, 0.92, 0.30, 0.16 * alpha),
+		Color(1.0, 1.0, 0.90, 0.24 * alpha),
+		Color(0.50, 0.92, 1.0, 0.12 * alpha),
+		Color(1.0, 1.0, 0.92, 0.04 * alpha)
+	])
+	var inner_cone_points := PackedVector2Array([
+		top + Vector2(-visual_radius * 0.07, visual_radius * 0.18),
+		pos + Vector2(-visual_radius * 0.42, visual_radius * 0.17),
+		pos + Vector2(0.0, visual_radius * 0.28),
+		pos + Vector2(visual_radius * 0.42, visual_radius * 0.17),
+		top + Vector2(visual_radius * 0.07, visual_radius * 0.18)
+	])
+	var inner_cone_colors := PackedColorArray([
+		Color(1.0, 1.0, 1.0, 0.05 * alpha),
+		Color(1.0, 0.98, 0.72, 0.22 * alpha),
+		Color(1.0, 1.0, 0.96, 0.34 * alpha),
+		Color(0.72, 0.96, 1.0, 0.18 * alpha),
+		Color(1.0, 1.0, 1.0, 0.05 * alpha)
+	])
+	var data := {
 		"kind": "spotlight",
 		"pos": pos,
+		"conePoints": cone_points,
+		"coneColors": cone_colors,
+		"innerConePoints": inner_cone_points,
+		"innerConeColors": inner_cone_colors,
 		"beamGlowStart": top + Vector2(-visual_radius * 0.58, 0.0),
 		"beamGlowEnd": pos + Vector2(-visual_radius * 0.18, visual_radius * 0.26),
-		"beamGlowColor": Color(1.0, 0.95, 0.42, 0.22 * alpha),
-		"beamGlowWidth": visual_radius * 0.72,
+		"beamGlowColor": Color(1.0, 0.94, 0.28, 0.30 * alpha),
+		"beamGlowWidth": visual_radius * (0.80 + pulse * 0.08),
 		"beamCoreStart": top + Vector2(visual_radius * 0.26, -visual_radius * 0.18),
 		"beamCoreEnd": pos + Vector2(visual_radius * 0.10, visual_radius * 0.18),
-		"beamCoreColor": Color(1.0, 1.0, 1.0, 0.36 * alpha),
-		"beamCoreWidth": visual_radius * 0.34,
+		"beamCoreColor": Color(1.0, 1.0, 0.94, 0.48 * alpha),
+		"beamCoreWidth": visual_radius * (0.32 + pulse * 0.05),
 		"beamSideStart": top + Vector2(visual_radius * 0.92, visual_radius * 0.10),
 		"beamSideEnd": pos + Vector2(visual_radius * 0.38, visual_radius * 0.28),
-		"beamSideColor": Color(0.46, 0.92, 1.0, 0.20 * alpha),
-		"beamSideWidth": visual_radius * 0.24,
-		"glowRadius": visual_radius * 0.92,
-		"glowColor": Color(1.0, 0.96, 0.45, 0.20 * alpha),
-		"haloRadius": visual_radius * (0.88 + pulse * 0.22),
-		"haloColor": Color(1.0, 0.84, 0.12, 0.54 * alpha),
-		"outerRadius": visual_radius * (1.20 + progress * 0.12),
-		"outerColor": Color(0.55, 0.94, 1.0, 0.34 * alpha),
-		"coreRadius": radius * (0.34 + pulse * 0.16),
-		"coreColor": Color(1.0, 1.0, 0.92, 0.60 * alpha),
-		"sparkStart": pos + Vector2.RIGHT.rotated(progress * TAU + 0.30) * visual_radius * 0.42,
-		"sparkEnd": pos + Vector2.RIGHT.rotated(progress * TAU + 0.30) * visual_radius * 0.72,
-		"sparkColor": Color(1.0, 1.0, 1.0, 0.82 * alpha),
-		"sparkWidth": 3.0,
-		"crossStart": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.55 + 2.2) * visual_radius * 0.50,
-		"crossEnd": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.55 + 2.2) * visual_radius * 0.78,
-		"crossColor": Color(1.0, 0.48, 0.86, 0.58 * alpha),
-		"crossWidth": 3.0,
+		"beamSideColor": Color(0.42, 0.90, 1.0, 0.26 * alpha),
+		"beamSideWidth": visual_radius * (0.28 + pulse * 0.04),
+		"floorGlowPos": pos + Vector2(0.0, visual_radius * 0.18),
+		"floorGlowRadius": visual_radius * (1.05 + pulse * 0.18),
+		"floorGlowColor": Color(1.0, 0.94, 0.36, 0.18 * alpha),
+		"glowRadius": visual_radius * (0.82 + pulse * 0.10),
+		"glowColor": Color(1.0, 0.96, 0.45, 0.28 * alpha),
+		"haloRadius": visual_radius * (0.78 + pulse * 0.24),
+		"haloColor": Color(1.0, 0.86, 0.12, 0.70 * alpha),
+		"halo2Radius": visual_radius * (0.52 + pulse * 0.18),
+		"halo2Color": Color(0.64, 0.94, 1.0, 0.48 * alpha),
+		"outerRadius": visual_radius * (1.08 + progress * 0.10),
+		"outerColor": Color(0.55, 0.94, 1.0, 0.38 * alpha),
+		"coreRadius": radius * (0.28 + pulse * 0.18),
+		"coreColor": Color(1.0, 1.0, 0.92, 0.72 * alpha),
+		"hotRadius": radius * (0.13 + pulse * 0.08),
+		"hotColor": Color(1.0, 1.0, 1.0, 0.72 * alpha),
+		"sparkStart": pos + Vector2.RIGHT.rotated(progress * TAU + 0.30) * visual_radius * 0.38,
+		"sparkEnd": pos + Vector2.RIGHT.rotated(progress * TAU + 0.30) * visual_radius * 0.80,
+		"sparkColor": Color(1.0, 1.0, 1.0, 0.92 * alpha),
+		"sparkWidth": 3.4 + pulse * 1.5,
+		"crossStart": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.55 + 2.2) * visual_radius * 0.44,
+		"crossEnd": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.55 + 2.2) * visual_radius * 0.82,
+		"crossColor": Color(1.0, 0.48, 0.86, 0.66 * alpha),
+		"crossWidth": 3.0 + pulse * 1.2,
+		"ray1Start": pos + Vector2.RIGHT.rotated(progress * TAU * 0.45 + 1.25) * visual_radius * 0.22,
+		"ray1End": pos + Vector2.RIGHT.rotated(progress * TAU * 0.45 + 1.25) * visual_radius * 0.98,
+		"ray1Color": Color(1.0, 0.98, 0.58, 0.34 * alpha),
+		"ray1Width": 2.0 + pulse * 1.6,
+		"ray2Start": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.58 + 4.10) * visual_radius * 0.18,
+		"ray2End": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.58 + 4.10) * visual_radius * 0.92,
+		"ray2Color": Color(0.62, 0.94, 1.0, 0.32 * alpha),
+		"ray2Width": 1.8 + pulse * 1.4,
+		"lens1Pos": top + Vector2(-visual_radius * 0.10, visual_radius * 0.16),
+		"lens1Radius": visual_radius * (0.12 + pulse * 0.03),
+		"lens1Color": Color(1.0, 1.0, 0.86, 0.38 * alpha),
+		"lens2Pos": top + Vector2(visual_radius * 0.18, visual_radius * 0.36),
+		"lens2Radius": visual_radius * (0.07 + pulse * 0.02),
+		"lens2Color": Color(0.64, 0.94, 1.0, 0.30 * alpha),
 		"dot1Pos": pos + Vector2.RIGHT.rotated(progress * TAU + 0.90) * visual_radius * 0.82,
 		"dot2Pos": pos + Vector2.RIGHT.rotated(-progress * TAU * 0.85 + 2.75) * visual_radius * 0.70,
 		"dot3Pos": pos + Vector2.RIGHT.rotated(progress * TAU * 0.62 + 4.40) * visual_radius * 0.55,
 		"dot4Pos": pos + Vector2.RIGHT.rotated(-progress * TAU + 5.25) * visual_radius * 0.96,
-		"dotRadius": 3.5 + 4.0 * pulse,
-		"dotColor": Color(1.0, 0.92, 0.25, 0.72 * alpha),
+		"dot5Pos": pos + Vector2.RIGHT.rotated(progress * TAU * 1.12 + 3.35) * visual_radius * 0.46,
+		"dot6Pos": pos + Vector2.RIGHT.rotated(-progress * TAU * 1.05 + 0.55) * visual_radius * 1.02,
+		"dotRadius": 3.4 + 4.2 * pulse,
+		"dotColor": Color(1.0, 0.92, 0.25, 0.80 * alpha),
 		"label": "LIVE!",
 		"labelPos": pos + Vector2(-34.0, -visual_radius * 0.30),
 		"labelColor": Color(1.0, 0.98, 0.54, 0.78 * alpha),
 		"labelSize": 18 + int(4.0 * pulse)
 	}
+	return data
 
 static func damage_number_fx_data(pos: Vector2, life: float, max_life: float, damage: float) -> Dictionary:
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
@@ -2700,31 +3215,52 @@ static func starlight_hit_fx_data(pos: Vector2, life: float, max_life: float, pr
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var burst: float = sin(progress * PI)
-	var radius_scale: float = 1.28 if premium else 1.0
+	var radius_scale: float = 1.34 if premium else 1.0
 	return {
 		"kind": "starlight_hit",
 		"glowPos": pos,
-		"glowRadius": (18.0 + progress * 18.0) * radius_scale,
-		"glowColor": Color(0.46, 0.94, 1.0, 0.18 * alpha),
+		"glowRadius": (22.0 + progress * 24.0) * radius_scale,
+		"glowColor": Color(1.0, 0.56, 0.86, 0.22 * alpha),
 		"ringPos": pos,
-		"ringRadius": (10.0 + progress * 24.0) * radius_scale,
-		"ringColor": Color(1.0, 0.94, 0.26, 0.64 * alpha),
+		"ringRadius": (11.0 + progress * 28.0) * radius_scale,
+		"ringColor": Color(1.0, 0.86, 0.22, 0.76 * alpha),
+		"ring2Pos": pos,
+		"ring2Radius": (7.0 + progress * 18.0 + burst * 4.0) * radius_scale,
+		"ring2Color": Color(0.58, 0.92, 1.0, 0.44 * alpha),
 		"corePos": pos,
-		"coreRadius": (5.0 + burst * 6.0) * radius_scale,
-		"coreColor": Color(1.0, 1.0, 1.0, 0.62 * alpha),
+		"coreRadius": (6.0 + burst * 8.0) * radius_scale,
+		"coreColor": Color(1.0, 0.98, 0.82, 0.68 * alpha),
 		"spark1Start": pos + Vector2.LEFT * (10.0 + progress * 14.0),
 		"spark1End": pos + Vector2.RIGHT * (10.0 + progress * 14.0),
 		"spark1Color": Color(1.0, 1.0, 1.0, 0.72 * alpha),
-		"spark1Width": 2.6,
+		"spark1Width": 3.0,
 		"spark2Start": pos + Vector2.UP * (10.0 + progress * 14.0),
 		"spark2End": pos + Vector2.DOWN * (10.0 + progress * 14.0),
-		"spark2Color": Color(1.0, 0.82, 0.20, 0.62 * alpha),
-		"spark2Width": 2.4,
+		"spark2Color": Color(1.0, 0.78, 0.20, 0.70 * alpha),
+		"spark2Width": 2.8,
+		"spark3Start": pos + Vector2(-9.0, -9.0) * radius_scale,
+		"spark3End": pos + Vector2(-24.0 - progress * 9.0, -23.0 - progress * 9.0) * radius_scale,
+		"spark3Color": Color(1.0, 0.48, 0.78, 0.54 * alpha),
+		"spark3Width": 2.2,
+		"spark4Start": pos + Vector2(8.0, -7.0) * radius_scale,
+		"spark4End": pos + Vector2(25.0 + progress * 9.0, -19.0 - progress * 7.0) * radius_scale,
+		"spark4Color": Color(0.62, 0.94, 1.0, 0.46 * alpha),
+		"spark4Width": 2.0,
 		"starText": "★",
-		"starPos": pos + Vector2(-17.0, 11.0 - progress * 8.0),
-		"starWidth": 34,
-		"starSize": 22 + int(5.0 * burst),
-		"starColor": Color(1.0, 0.96, 0.30, 0.88 * alpha)
+		"starPos": pos + Vector2(-19.0, 12.0 - progress * 10.0),
+		"starWidth": 38,
+		"starSize": 24 + int(7.0 * burst),
+		"starColor": Color(1.0, 0.94, 0.20, 0.94 * alpha),
+		"star2Text": "☆",
+		"star2Pos": pos + Vector2(13.0 + progress * 8.0, -8.0 - progress * 10.0),
+		"star2Width": 24,
+		"star2Size": 16 + int(4.0 * burst),
+		"star2Color": Color(0.72, 0.94, 1.0, 0.62 * alpha),
+		"heartText": "♡",
+		"heartPos": pos + Vector2(-30.0 - progress * 6.0, -5.0 - progress * 7.0),
+		"heartWidth": 24,
+		"heartSize": 16 + int(4.0 * burst),
+		"heartColor": Color(1.0, 0.44, 0.72, (0.62 if premium else 0.42) * alpha)
 	}
 
 static func starlight_burst_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
@@ -2732,57 +3268,174 @@ static func starlight_burst_fx_data(pos: Vector2, life: float, max_life: float, 
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var burst: float = sin(progress * PI)
 	var wave_radius: float = lerpf(18.0, radius, progress)
+	var gift_size: Vector2 = Vector2(10.0 + burst * 4.0, 5.0 + burst * 2.0)
+	var gift_distance: float = wave_radius * (0.38 + burst * 0.28)
 	var data := {
 		"kind": "starlight_burst",
 		"rangePos": pos,
 		"rangeRadius": wave_radius,
-		"rangeColor": Color(1.0, 0.82, 0.18, 0.20 * alpha),
+		"rangeColor": Color(1.0, 0.76, 0.22, 0.24 * alpha),
 		"ringPos": pos,
-		"ringRadius": wave_radius * (0.82 + burst * 0.18),
-		"ringColor": Color(0.62, 0.96, 1.0, 0.46 * alpha),
+		"ringRadius": wave_radius * (0.82 + burst * 0.20),
+		"ringColor": Color(1.0, 0.58, 0.82, 0.54 * alpha),
+		"ring2Pos": pos,
+		"ring2Radius": wave_radius * (0.58 + burst * 0.18),
+		"ring2Color": Color(0.58, 0.94, 1.0, 0.42 * alpha),
 		"corePos": pos,
-		"coreRadius": 10.0 + burst * 18.0,
-		"coreColor": Color(1.0, 1.0, 0.84, 0.56 * alpha),
-		"wavePoints": wavy_ring_points(pos, wave_radius, 2.0 + burst * 5.0, progress * TAU, 5.0),
-		"waveColor": Color(1.0, 0.95, 0.30, 0.58 * alpha),
-		"waveWidth": 4.0 + burst * 4.0,
-		"dotRadius": 3.0 + burst * 4.0,
+		"coreRadius": 12.0 + burst * 22.0,
+		"coreColor": Color(1.0, 0.98, 0.82, 0.64 * alpha),
+		"wavePoints": wavy_ring_points(pos, wave_radius, 3.0 + burst * 6.5, progress * TAU, 5.0),
+		"waveColor": Color(1.0, 0.90, 0.24, 0.66 * alpha),
+		"waveWidth": 5.0 + burst * 5.0,
+		"dotRadius": 3.0 + burst * 4.4,
 		"dotColor": Color(1.0, 1.0, 1.0, 0.78 * alpha),
 		"starText": "★",
-		"starPos": pos + Vector2(-22.0, 14.0 - progress * 16.0),
-		"starWidth": 44,
-		"starSize": 28 + int(7.0 * burst),
-		"starColor": Color(1.0, 0.90, 0.18, 0.90 * alpha)
+		"starPos": pos + Vector2(-26.0, 16.0 - progress * 18.0),
+		"starWidth": 52,
+		"starSize": 32 + int(9.0 * burst),
+		"starColor": Color(1.0, 0.90, 0.18, 0.94 * alpha),
+		"star2Text": "☆",
+		"star2Pos": pos + Vector2(20.0 + progress * 12.0, -12.0 - progress * 14.0),
+		"star2Width": 34,
+		"star2Size": 24 + int(6.0 * burst),
+		"star2Color": Color(0.68, 0.94, 1.0, 0.70 * alpha),
+		"heartText": "♡",
+		"heartPos": pos + Vector2(-40.0 - progress * 16.0, -10.0 - progress * 10.0),
+		"heartWidth": 32,
+		"heartSize": 23 + int(5.0 * burst),
+		"heartColor": Color(1.0, 0.42, 0.72, 0.62 * alpha),
+		"yenText": "￥",
+		"yenPos": pos + Vector2(-11.0, 8.0),
+		"yenWidth": 22,
+		"yenSize": 18 + int(4.0 * burst),
+		"yenColor": Color(0.52, 0.18, 0.00, 0.78 * alpha),
+		"gift1Rect": Rect2(pos + Vector2.RIGHT.rotated(progress * TAU + 0.32) * gift_distance - gift_size * 0.5, gift_size),
+		"gift1Color": Color(1.0, 0.46, 0.72, 0.50 * alpha),
+		"gift2Rect": Rect2(pos + Vector2.RIGHT.rotated(progress * TAU + 2.35) * gift_distance - gift_size * 0.5, gift_size * 0.88),
+		"gift2Color": Color(1.0, 0.86, 0.22, 0.54 * alpha),
+		"gift3Rect": Rect2(pos + Vector2.RIGHT.rotated(progress * TAU + 4.15) * gift_distance - gift_size * 0.5, gift_size * 0.82),
+		"gift3Color": Color(0.62, 0.94, 1.0, 0.46 * alpha)
 	}
-	for i in range(4):
+	for i in range(6):
 		var idx: int = i + 1
-		var angle: float = progress * TAU * 0.38 + float(i) * TAU / 4.0
+		var angle: float = progress * TAU * 0.42 + float(i) * TAU / 6.0
 		var dir: Vector2 = Vector2.RIGHT.rotated(angle)
 		data["spark%dStart" % idx] = pos + dir * (wave_radius * 0.32)
 		data["spark%dEnd" % idx] = pos + dir * (wave_radius * (0.82 + burst * 0.16))
-		var spark_color: Color = [Color("#fff45c"), Color("#65e9ff"), Color("#ffffff"), Color("#ff91c8")][i]
+		var spark_color: Color = [Color("#fff45c"), Color("#65e9ff"), Color("#ffffff"), Color("#ff91c8"), Color("#ffd166"), Color("#f7b2ff")][i]
 		spark_color.a = 0.72 * alpha
 		data["spark%dColor" % idx] = spark_color
 		data["spark%dWidth" % idx] = 3.0 + burst * 2.0
 		data["dot%dPos" % idx] = pos + Vector2.RIGHT.rotated(angle + 0.38) * wave_radius * (0.58 + 0.20 * burst)
 	return data
 
+static func starlight_defeat_fx_data(pos: Vector2, life: float, max_life: float, radius: float, tier: int, premium: bool) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	var tier_scale: float = 1.0 + float(tier) * 0.24 + (0.10 if premium else 0.0)
+	var burst_radius: float = (maxf(34.0, radius * 1.45) + float(tier) * 16.0) * tier_scale
+	var wave_radius: float = lerpf(12.0, burst_radius, progress)
+	var gift_size: Vector2 = Vector2(8.0 + burst * 4.0, 5.0 + burst * 2.0) * tier_scale
+	var image_scale: float = tier_scale * (0.90 + burst * 0.16 + progress * 0.08)
+	var data := {
+		"kind": "starlight_defeat",
+		"imagePath": starlight_superchat_defeat_image_path(),
+		"imagePos": pos,
+		"imageSize": Vector2(138.0, 130.0) * image_scale,
+		"imageRotation": sin(progress * PI * 1.2) * 0.05,
+		"imageAlpha": 0.92 * alpha,
+		"glowPos": pos,
+		"glowRadius": wave_radius * (0.82 + burst * 0.22),
+		"glowColor": Color(1.0, 0.62, 0.86, 0.18 * alpha),
+		"ringPos": pos,
+		"ringRadius": wave_radius,
+		"ringColor": Color(1.0, 0.82, 0.22, 0.56 * alpha),
+		"ring2Pos": pos,
+		"ring2Radius": wave_radius * (0.62 + burst * 0.18),
+		"ring2Color": Color(0.58, 0.94, 1.0, 0.38 * alpha),
+		"corePos": pos,
+		"coreRadius": (7.0 + burst * 12.0) * tier_scale,
+		"coreColor": Color(1.0, 0.98, 0.86, 0.62 * alpha),
+		"dotRadius": (2.5 + burst * 3.2) * tier_scale,
+		"dotColor": Color(1.0, 1.0, 1.0, 0.72 * alpha),
+		"starText": "★",
+		"starPos": pos + Vector2(-24.0, 14.0 - progress * 18.0) * tier_scale,
+		"starWidth": int(round(48.0 * tier_scale)),
+		"starSize": int(round((29.0 + burst * 8.0) * tier_scale)),
+		"starColor": Color(1.0, 0.90, 0.16, 0.92 * alpha),
+		"star2Text": "☆",
+		"star2Pos": pos + Vector2(18.0 + progress * 12.0, -10.0 - progress * 12.0) * tier_scale,
+		"star2Width": int(round(32.0 * tier_scale)),
+		"star2Size": int(round((21.0 + burst * 5.0) * tier_scale)),
+		"star2Color": Color(0.68, 0.94, 1.0, 0.64 * alpha),
+		"heartText": "♡",
+		"heartPos": pos + Vector2(-35.0 - progress * 10.0, -9.0 - progress * 8.0) * tier_scale,
+		"heartWidth": int(round(28.0 * tier_scale)),
+		"heartSize": int(round((19.0 + burst * 5.0) * tier_scale)),
+		"heartColor": Color(1.0, 0.42, 0.72, 0.54 * alpha),
+		"yenText": "￥",
+		"yenPos": pos + Vector2(-9.0, 7.0) * tier_scale,
+		"yenWidth": int(round(20.0 * tier_scale)),
+		"yenSize": int(round((16.0 + burst * 3.0) * tier_scale)),
+		"yenColor": Color(0.54, 0.18, 0.00, 0.64 * alpha)
+	}
+	for i in range(6):
+		var idx: int = i + 1
+		var angle: float = progress * TAU * 0.34 + float(i) * TAU / 6.0
+		var dir: Vector2 = Vector2.RIGHT.rotated(angle)
+		var start_radius: float = wave_radius * (0.18 + 0.05 * float(i % 2))
+		var end_radius: float = wave_radius * (0.72 + burst * 0.20)
+		data["spark%dStart" % idx] = pos + dir * start_radius
+		data["spark%dEnd" % idx] = pos + dir * end_radius
+		var spark_color: Color = [Color("#fff45c"), Color("#ffffff"), Color("#ff91c8"), Color("#65e9ff"), Color("#ffd166"), Color("#e7c7ff")][i]
+		spark_color.a = 0.68 * alpha
+		data["spark%dColor" % idx] = spark_color
+		data["spark%dWidth" % idx] = (2.4 + burst * 1.8) * tier_scale
+		data["dot%dPos" % idx] = pos + Vector2.RIGHT.rotated(angle + 0.34) * wave_radius * (0.46 + 0.12 * float(i % 3) + 0.10 * burst)
+	for i in range(4):
+		var idx: int = i + 1
+		var angle: float = progress * TAU * -0.24 + float(i) * TAU / 4.0 + 0.32
+		var center: Vector2 = pos + Vector2.RIGHT.rotated(angle) * wave_radius * (0.36 + burst * 0.22)
+		data["gift%dRect" % idx] = Rect2(center - gift_size * 0.5, gift_size)
+		var gift_color: Color = [Color("#ff78ae"), Color("#ffd84a"), Color("#a9f4ff"), Color("#f0c6ff")][i]
+		gift_color.a = 0.46 * alpha
+		data["gift%dColor" % idx] = gift_color
+	return data
+
 static func maro_comment_hit_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
 	return {
 		"kind": "maro_comment_hit",
+		"softPos": pos,
+		"softRadius": 18.0 + progress * 24.0,
+		"softColor": Color(1.0, 0.78, 0.92, 0.18 * alpha),
 		"bubblePos": pos,
-		"bubbleRadius": 10.0 + progress * 16.0,
-		"bubbleColor": Color(1.0, 0.72, 0.88, 0.32 * alpha),
+		"bubbleRadius": 12.0 + progress * 20.0,
+		"bubbleColor": Color(0.78, 1.0, 0.94, 0.20 * alpha),
 		"corePos": pos,
-		"coreRadius": 5.0 + sin(progress * PI) * 5.0,
-		"coreColor": Color(1.0, 0.98, 1.0, 0.54 * alpha),
+		"coreRadius": 6.0 + burst * 7.0,
+		"coreColor": Color(1.0, 0.98, 1.0, 0.58 * alpha),
+		"spark1Start": pos + Vector2(-8.0, 2.0),
+		"spark1End": pos + Vector2(-24.0 - progress * 10.0, -10.0 - progress * 10.0),
+		"spark1Color": Color(1.0, 0.62, 0.82, 0.50 * alpha),
+		"spark1Width": 2.4 + burst * 1.0,
+		"spark2Start": pos + Vector2(7.0, -1.0),
+		"spark2End": pos + Vector2(24.0 + progress * 10.0, -12.0 - progress * 8.0),
+		"spark2Color": Color(0.62, 0.92, 1.0, 0.46 * alpha),
+		"spark2Width": 2.4 + burst * 1.0,
 		"labelText": "♡",
-		"labelPos": pos + Vector2(-12.0, 8.0 - progress * 10.0),
-		"labelWidth": 24,
-		"labelSize": 20,
-		"labelColor": Color(1.0, 0.36, 0.66, 0.84 * alpha)
+		"labelPos": pos + Vector2(-15.0, 9.0 - progress * 16.0),
+		"labelWidth": 30,
+		"labelSize": 24 + int(4.0 * burst),
+		"labelColor": Color(1.0, 0.36, 0.66, 0.86 * alpha),
+		"starText": "☆",
+		"starPos": pos + Vector2(10.0 + progress * 8.0, -8.0 - progress * 10.0),
+		"starWidth": 24,
+		"starSize": 17 + int(4.0 * burst),
+		"starColor": Color(0.66, 0.92, 1.0, 0.72 * alpha)
 	}
 
 static func maro_bullet_clear_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
@@ -2792,27 +3445,53 @@ static func maro_bullet_clear_fx_data(pos: Vector2, dir: Vector2, life: float, m
 	if normalized_dir.length() < 0.1:
 		normalized_dir = Vector2.RIGHT
 	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
+	var burst: float = sin(progress * PI)
+	var enter: float = clampf(progress / 0.18, 0.0, 1.0)
+	var image_scale: float = lerpf(0.74, 1.08, 1.0 - pow(1.0 - enter, 3.0)) + burst * 0.10
+	var image_size: float = (102.0 + progress * 28.0) * image_scale
 	return {
 		"kind": "maro_bullet_clear",
+		"softPos": pos,
+		"softRadius": 18.0 + progress * 26.0,
+		"softColor": Color(1.0, 0.86, 0.96, 0.18 * alpha),
+		"imagePath": maro_comment_bullet_clear_image_path(),
+		"imagePos": pos,
+		"imageSize": Vector2.ONE * image_size,
+		"imageRotation": normalized_dir.angle() * 0.16 + sin(progress * PI * 1.4) * 0.08,
+		"imageAlpha": 0.90 * alpha,
 		"outerPos": pos,
-		"outerRadius": 12.0 + progress * 18.0,
-		"outerColor": Color(1.0, 0.72, 0.90, 0.30 * alpha),
+		"outerRadius": 14.0 + progress * 22.0,
+		"outerColor": Color(1.0, 0.70, 0.90, 0.36 * alpha),
 		"innerPos": pos,
-		"innerRadius": 6.0 + progress * 8.0,
-		"innerColor": Color(1.0, 1.0, 1.0, 0.50 * alpha),
+		"innerRadius": 7.0 + burst * 8.0,
+		"innerColor": Color(1.0, 1.0, 1.0, 0.56 * alpha),
 		"pop1Start": pos - normalized_dir * 6.0,
-		"pop1End": pos + normalized_dir * (18.0 + progress * 12.0),
-		"pop1Color": Color(1.0, 0.88, 0.96, 0.68 * alpha),
-		"pop1Width": 3.0,
+		"pop1End": pos + normalized_dir * (24.0 + progress * 16.0),
+		"pop1Color": Color(1.0, 0.88, 0.96, 0.74 * alpha),
+		"pop1Width": 3.0 + burst,
 		"pop2Start": pos - side * 5.0,
-		"pop2End": pos + side * (16.0 + progress * 10.0),
-		"pop2Color": Color(1.0, 0.54, 0.78, 0.58 * alpha),
-		"pop2Width": 2.6,
+		"pop2End": pos + side * (20.0 + progress * 14.0),
+		"pop2Color": Color(1.0, 0.54, 0.78, 0.64 * alpha),
+		"pop2Width": 2.8 + burst,
+		"pop3Start": pos + normalized_dir * 3.0,
+		"pop3End": pos - normalized_dir.rotated(0.72) * (18.0 + progress * 13.0),
+		"pop3Color": Color(0.68, 0.95, 1.0, 0.54 * alpha),
+		"pop3Width": 2.4 + burst * 0.8,
+		"dotRadius": 2.8 + burst * 2.4,
+		"dotColor": Color(1.0, 0.76, 0.92, 0.72 * alpha),
+		"dot1Pos": pos + side * (14.0 + progress * 10.0),
+		"dot2Pos": pos - side * (14.0 + progress * 12.0) - normalized_dir * 6.0,
+		"dot3Pos": pos + normalized_dir * (18.0 + progress * 14.0) - side * 8.0,
 		"labelText": "♡",
-		"labelPos": pos + Vector2(-11.0, 8.0 - progress * 8.0),
-		"labelWidth": 22,
-		"labelSize": 18,
-		"labelColor": Color(1.0, 0.44, 0.72, 0.82 * alpha)
+		"labelPos": pos + Vector2(-13.0, 8.0 - progress * 13.0),
+		"labelWidth": 26,
+		"labelSize": 21 + int(4.0 * burst),
+		"labelColor": Color(1.0, 0.44, 0.72, 0.86 * alpha),
+		"starText": "☆",
+		"starPos": pos + side * (16.0 + progress * 8.0) + Vector2(-10.0, 8.0 - progress * 10.0),
+		"starWidth": 22,
+		"starSize": 14 + int(4.0 * burst),
+		"starColor": Color(0.62, 0.92, 1.0, 0.70 * alpha)
 	}
 
 static func maro_comment_pulse_fx_data(pos: Vector2, life: float, max_life: float, radius: float, pulled_exp: int) -> Dictionary:
@@ -3016,23 +3695,108 @@ static func emote_burst_fx_data(pos: Vector2, life: float, max_life: float, radi
 		"innerColor": Color(0.74, 0.95, 0.92, 0.38 * alpha)
 	}
 
-static func ng_word_laser_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, range_value: float, width: float) -> Dictionary:
-	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+static func ng_word_laser_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, range_value: float, width: float, hit_count: int = 0) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var fade_in: float = clampf(progress / 0.12, 0.0, 1.0)
+	fade_in = fade_in * fade_in * (3.0 - 2.0 * fade_in)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0) * (0.34 + 0.66 * fade_in)
+	var burst: float = sin(progress * PI)
 	var normalized_dir: Vector2 = dir.normalized()
 	if normalized_dir.length() < 0.1:
 		normalized_dir = Vector2.RIGHT
-	var end_pos: Vector2 = pos + normalized_dir * range_value
-	return {
+	var side: Vector2 = Vector2(-normalized_dir.y, normalized_dir.x)
+	var start_pos: Vector2 = pos - normalized_dir * (8.0 + 8.0 * burst)
+	var end_pos: Vector2 = pos + normalized_dir * range_value * (0.95 + 0.05 * fade_in)
+	var half_width: float = width * (0.50 + 0.08 * burst)
+	var tip_half_width: float = width * (0.34 + 0.06 * burst)
+	var body_points := PackedVector2Array([
+		start_pos - side * half_width,
+		end_pos - side * tip_half_width,
+		end_pos + side * tip_half_width,
+		start_pos + side * half_width
+	])
+	var body_colors := PackedColorArray([
+		Color(0.20, 0.00, 0.05, 0.06 * alpha),
+		Color(1.0, 0.06, 0.26, 0.42 * alpha),
+		Color(1.0, 0.18, 0.58, 0.34 * alpha),
+		Color(0.20, 0.00, 0.05, 0.06 * alpha)
+	])
+	var hit_boost: float = 1.0 + minf(float(hit_count), 4.0) * 0.12
+	var data := {
 		"kind": "ng_word_laser",
-		"trailStart": pos,
-		"trailEnd": end_pos,
-		"trailColor": Color(0.92, 0.02, 0.22, 0.62 * alpha),
-		"trailWidth": width,
-		"coreStart": pos,
-		"coreEnd": end_pos,
-		"coreColor": Color(1.0, 0.04, 0.50, 0.95 * alpha),
-		"coreWidth": maxf(5.0, width * 0.28)
+		"backGlowStart": start_pos - normalized_dir * 4.0,
+		"backGlowEnd": end_pos + normalized_dir * 16.0,
+		"backGlowColor": Color(1.0, 0.02, 0.12, 0.12 * alpha),
+		"backGlowWidth": width * (2.15 + 0.28 * burst),
+		"glowStart": start_pos,
+		"glowEnd": end_pos,
+		"glowColor": Color(1.0, 0.05, 0.30, 0.34 * alpha),
+		"glowWidth": width * (1.28 + 0.16 * burst),
+		"beamPoints": body_points,
+		"beamColors": body_colors,
+		"edge1Start": start_pos - side * half_width * 0.78,
+		"edge1End": end_pos - side * tip_half_width * 0.94,
+		"edge1Color": Color(0.98, 0.10, 0.18, 0.62 * alpha),
+		"edge1Width": 3.2 + 2.2 * burst,
+		"edge2Start": start_pos + side * half_width * 0.78,
+		"edge2End": end_pos + side * tip_half_width * 0.94,
+		"edge2Color": Color(1.0, 0.42, 0.70, 0.46 * alpha),
+		"edge2Width": 2.6 + 2.0 * burst,
+		"coreStart": start_pos + normalized_dir * 8.0,
+		"coreEnd": end_pos + normalized_dir * 6.0,
+		"coreColor": Color(1.0, 0.07, 0.42, 0.92 * alpha),
+		"coreWidth": maxf(5.0, width * (0.23 + 0.04 * burst)),
+		"hotStart": start_pos + normalized_dir * 14.0,
+		"hotEnd": end_pos + normalized_dir * 4.0,
+		"hotColor": Color(1.0, 0.94, 0.96, 0.82 * alpha),
+		"hotWidth": maxf(2.4, width * 0.075),
+		"muzzleGlowPos": pos,
+		"muzzleGlowRadius": width * (0.78 + 0.18 * burst),
+		"muzzleGlowColor": Color(1.0, 0.06, 0.28, 0.26 * alpha),
+		"muzzleRingPos": pos,
+		"muzzleRingRadius": width * (0.42 + 0.16 * progress),
+		"muzzleRingColor": Color(1.0, 0.86, 0.92, 0.56 * alpha),
+		"muzzleCorePos": pos,
+		"muzzleCoreRadius": width * (0.14 + 0.08 * burst),
+		"muzzleCoreColor": Color(1.0, 0.96, 1.0, 0.72 * alpha),
+		"impactGlowPos": end_pos,
+		"impactGlowRadius": width * (0.52 + 0.22 * burst) * hit_boost,
+		"impactGlowColor": Color(1.0, 0.06, 0.18, 0.18 * alpha * hit_boost),
+		"impactRingPos": end_pos,
+		"impactRingRadius": width * (0.28 + 0.16 * progress) * hit_boost,
+		"impactRingColor": Color(1.0, 0.90, 0.72, 0.44 * alpha),
+		"impactCorePos": end_pos,
+		"impactCoreRadius": width * (0.08 + 0.07 * burst) * hit_boost,
+		"impactCoreColor": Color(1.0, 0.98, 0.88, 0.68 * alpha),
+		"sealShadowText": "NG",
+		"sealShadowPos": pos - side * width * 0.36 + Vector2(-21.0, 12.0),
+		"sealShadowWidth": 42,
+		"sealShadowSize": 20,
+		"sealShadowColor": Color(0.18, 0.00, 0.03, 0.34 * alpha),
+		"sealText": "NG",
+		"sealPos": pos - side * width * 0.36 + Vector2(-22.0, 11.0),
+		"sealWidth": 42,
+		"sealSize": 20,
+		"sealColor": Color(1.0, 0.94, 0.98, 0.76 * alpha)
 	}
+	for i in range(5):
+		var ratio: float = 0.16 + float(i) * 0.17
+		var center: Vector2 = start_pos.lerp(end_pos, ratio) + side * sin(progress * TAU + float(i) * 1.7) * width * 0.09
+		var scan_prefix := "scan%d" % (i + 1)
+		data[scan_prefix + "Start"] = center - side * width * (0.34 + 0.05 * burst) - normalized_dir * width * 0.09
+		data[scan_prefix + "End"] = center + side * width * (0.34 + 0.05 * burst) + normalized_dir * width * 0.09
+		data[scan_prefix + "Color"] = Color(1.0, 0.84, 0.90, (0.16 + 0.06 * float(i % 2)) * alpha)
+		data[scan_prefix + "Width"] = 2.0 + 1.2 * burst
+	for i in range(4):
+		var ratio: float = 0.22 + float(i) * 0.21
+		var spark_center: Vector2 = start_pos.lerp(end_pos, ratio)
+		var spark_dir: Vector2 = (normalized_dir * 0.55 + side * (0.45 if i % 2 == 0 else -0.45)).normalized()
+		var spark_prefix := "spark%d" % (i + 1)
+		data[spark_prefix + "Start"] = spark_center - spark_dir * width * 0.18
+		data[spark_prefix + "End"] = spark_center + spark_dir * width * (0.28 + 0.08 * burst)
+		data[spark_prefix + "Color"] = Color(1.0, 0.92, 0.78, (0.22 + 0.08 * burst) * alpha)
+		data[spark_prefix + "Width"] = 1.7 + 1.0 * burst
+	return data
 
 static func listener_summon_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
@@ -3073,16 +3837,31 @@ static func listener_burst_fx_data(pos: Vector2, life: float, max_life: float) -
 static func enemy_defeat_fx_data(pos: Vector2, life: float, max_life: float, radius: float, is_boss: bool) -> Dictionary:
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
-	var burst_radius: float = lerpf(radius * 0.35, radius * (1.65 if is_boss else 1.15), progress)
+	var burst: float = sin(progress * PI)
+	var burst_radius: float = lerpf(radius * 0.42, radius * (1.72 if is_boss else 1.22), progress)
 	var dot_distance: float = radius * (0.45 + progress * (1.3 if is_boss else 0.9))
 	return {
 		"kind": "enemy_defeat",
+		"softPos": pos,
+		"softRadius": radius * (0.58 + burst * 0.38),
+		"softColor": Color(1.0, 0.78, 0.18, 0.16 * alpha),
 		"outerPos": pos,
 		"outerRadius": burst_radius,
-		"outerColor": Color(1.0, 0.32, 0.74, 0.22 * alpha),
+		"outerColor": Color(1.0, 0.86, 0.18, 0.48 * alpha),
+		"ringPos": pos,
+		"ringRadius": radius * (0.58 + progress * 0.46),
+		"ringColor": Color(1.0, 1.0, 0.78, 0.32 * alpha),
 		"innerPos": pos,
-		"innerRadius": maxf(4.0, radius * (0.32 + progress * 0.22)),
-		"innerColor": Color(0.82, 0.62, 1.0, 0.34 * alpha),
+		"innerRadius": maxf(4.0, radius * (0.26 + burst * 0.16)),
+		"innerColor": Color(1.0, 0.94, 0.36, 0.24 * alpha),
+		"spark1Start": pos + Vector2.RIGHT.rotated(-0.45) * radius * 0.38,
+		"spark1End": pos + Vector2.RIGHT.rotated(-0.45) * radius * (0.92 + progress * 0.28),
+		"spark1Color": Color(1.0, 0.98, 0.46, 0.35 * alpha),
+		"spark1Width": 1.8,
+		"spark2Start": pos + Vector2.RIGHT.rotated(2.75) * radius * 0.32,
+		"spark2End": pos + Vector2.RIGHT.rotated(2.75) * radius * (0.82 + progress * 0.22),
+		"spark2Color": Color(1.0, 0.58, 0.28, 0.24 * alpha),
+		"spark2Width": 1.5,
 		"dot1Pos": pos + Vector2.RIGHT.rotated(0.2) * dot_distance,
 		"dot2Pos": pos + Vector2.RIGHT.rotated(2.35) * dot_distance * 0.82,
 		"dot3Pos": pos + Vector2.RIGHT.rotated(4.35) * dot_distance * 0.72,
@@ -3172,7 +3951,7 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 			items.append(emote_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.28)), float(fx_item.get("radius", 120.0))))
 			continue
 		if String(fx_item.get("kind", "")) == "ng_word_laser":
-			items.append(ng_word_laser_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.25)), float(fx_item.get("range", 640.0)), float(fx_item.get("width", 44.0))))
+			items.append(ng_word_laser_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.25)), float(fx_item.get("range", 640.0)), float(fx_item.get("width", 44.0)), int(fx_item.get("count", 0))))
 			continue
 		if String(fx_item.get("kind", "")) == "listener_summon":
 			items.append(listener_summon_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 6.0))))
@@ -3207,11 +3986,21 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 		if String(fx_item.get("kind", "")) == "starlight_burst":
 			items.append(starlight_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.38)), float(fx_item.get("radius", 70.0))))
 			continue
+		if String(fx_item.get("kind", "")) == "starlight_defeat":
+			items.append(starlight_defeat_fx_data(
+				Vector2(fx_item["pos"]),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.46)),
+				float(fx_item.get("radius", 22.0)),
+				int(fx_item.get("tier", 0)),
+				bool(fx_item.get("premium", false))
+			))
+			continue
 		if String(fx_item.get("kind", "")) == "maro_comment_hit":
-			items.append(maro_comment_hit_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
+			items.append(maro_comment_hit_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.26))))
 			continue
 		if String(fx_item.get("kind", "")) == "maro_bullet_clear":
-			items.append(maro_bullet_clear_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.24))))
+			items.append(maro_bullet_clear_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.28))))
 			continue
 		if String(fx_item.get("kind", "")) == "maro_comment_pulse":
 			items.append(maro_comment_pulse_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.36)), float(fx_item.get("radius", 130.0)), int(fx_item.get("pulledExp", 0))))
@@ -3224,6 +4013,16 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 			continue
 		if String(fx_item.get("kind", "")) == "mini_humidifier_heal":
 			items.append(mini_humidifier_heal_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.58)), int(fx_item.get("amount", 0))))
+			continue
+		if String(fx_item.get("kind", "")) == "ban_judgement_defeat":
+			items.append(ban_judgement_defeat_fx_data(
+				Vector2(fx_item["pos"]),
+				Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.42)),
+				float(fx_item.get("radius", 22.0)),
+				bool(fx_item.get("boss", false))
+			))
 			continue
 		if String(fx_item.get("kind", "")) == "ban_judgement_shockwave":
 			items.append(ban_judgement_shockwave_fx_data(
@@ -3339,40 +4138,89 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "circle", "prefix": "glow"},
 			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "ring2", "filled": false, "width": 2.0},
 			{"kind": "circle", "prefix": "core"},
 			{"kind": "line", "prefix": "spark1"},
 			{"kind": "line", "prefix": "spark2"},
+			{"kind": "line", "prefix": "spark3"},
+			{"kind": "line", "prefix": "spark4"},
+			{"kind": "text", "prefix": "heart", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
 			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "starlight_burst":
 		return [
 			{"kind": "circle", "prefix": "range"},
 			{"kind": "circle", "prefix": "ring", "filled": false, "width": 5.0},
+			{"kind": "circle", "prefix": "ring2", "filled": false, "width": 3.0},
 			{"kind": "circle", "prefix": "core"},
 			{"kind": "polyline", "pointsKey": "wavePoints", "colorKey": "waveColor", "widthKey": "waveWidth"},
+			{"kind": "rect", "prefix": "gift1"},
+			{"kind": "rect", "prefix": "gift2"},
+			{"kind": "rect", "prefix": "gift3"},
 			{"kind": "line", "prefix": "spark1"},
 			{"kind": "line", "prefix": "spark2"},
 			{"kind": "line", "prefix": "spark3"},
 			{"kind": "line", "prefix": "spark4"},
+			{"kind": "line", "prefix": "spark5"},
+			{"kind": "line", "prefix": "spark6"},
 			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
-			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+			{"kind": "dot", "pos": data["dot5Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot6Pos"] as Vector2},
+			{"kind": "text", "prefix": "heart", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "yen", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "starlight_defeat":
+		if String(data.get("imagePath", "")) != "":
+			return [
+				{"kind": "circle", "prefix": "glow"},
+				{"kind": "circle", "prefix": "ring", "filled": false, "width": 4.0},
+				{"kind": "circle", "prefix": "ring2", "filled": false, "width": 2.5}
+			]
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 4.0},
+			{"kind": "circle", "prefix": "ring2", "filled": false, "width": 2.5},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "rect", "prefix": "gift1"},
+			{"kind": "rect", "prefix": "gift2"},
+			{"kind": "rect", "prefix": "gift3"},
+			{"kind": "rect", "prefix": "gift4"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "line", "prefix": "spark3"},
+			{"kind": "line", "prefix": "spark4"},
+			{"kind": "line", "prefix": "spark5"},
+			{"kind": "line", "prefix": "spark6"},
+			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot5Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot6Pos"] as Vector2},
+			{"kind": "text", "prefix": "heart", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star2", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "yen", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "maro_comment_hit":
 		return [
+			{"kind": "circle", "prefix": "soft"},
 			{"kind": "circle", "prefix": "bubble"},
 			{"kind": "circle", "prefix": "core"},
-			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "star", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "maro_bullet_clear":
 		return [
-			{"kind": "circle", "prefix": "outer", "filled": false, "width": 3.0},
-			{"kind": "circle", "prefix": "inner"},
-			{"kind": "line", "prefix": "pop1"},
-			{"kind": "line", "prefix": "pop2"},
-			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+			{"kind": "circle", "prefix": "soft"}
 		]
 	if String(data.get("kind", "")) == "maro_comment_pulse":
 		var parts: Array = [
@@ -3409,6 +4257,11 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 			{"kind": "circle", "prefix": "mist2"},
 			{"kind": "text", "prefix": "heart", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
 			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
+		]
+	if String(data.get("kind", "")) == "ban_judgement_defeat":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.5}
 		]
 	if String(data.get("kind", "")) == "ban_judgement_shockwave":
 		return [
@@ -3503,19 +4356,30 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		]
 	if String(data.get("kind", "")) == "spotlight":
 		return [
+			{"kind": "polygon", "pointsKey": "conePoints", "colorsKey": "coneColors"},
+			{"kind": "polygon", "pointsKey": "innerConePoints", "colorsKey": "innerConeColors"},
 			{"kind": "line", "prefix": "beamGlow"},
 			{"kind": "line", "prefix": "beamCore"},
 			{"kind": "line", "prefix": "beamSide"},
+			{"kind": "circle", "prefix": "floorGlow"},
 			{"kind": "circle", "prefix": "glow"},
 			{"kind": "circle", "prefix": "halo", "filled": false, "width": 10.0},
+			{"kind": "circle", "prefix": "halo2", "filled": false, "width": 4.0},
 			{"kind": "circle", "prefix": "outer", "filled": false, "width": 6.0},
 			{"kind": "circle", "prefix": "core"},
+			{"kind": "circle", "prefix": "hot"},
+			{"kind": "circle", "prefix": "lens1"},
+			{"kind": "circle", "prefix": "lens2"},
+			{"kind": "line", "prefix": "ray1"},
+			{"kind": "line", "prefix": "ray2"},
 			{"kind": "line", "prefix": "spark"},
 			{"kind": "line", "prefix": "cross"},
 			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot3Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot4Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot5Pos"] as Vector2},
+			{"kind": "dot", "pos": data["dot6Pos"] as Vector2},
 			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "comment_pin":
@@ -3529,8 +4393,12 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		]
 	if String(data.get("kind", "")) == "enemy_defeat":
 		return [
+			{"kind": "circle", "prefix": "soft"},
 			{"kind": "circle", "prefix": "outer", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.0},
 			{"kind": "circle", "prefix": "inner"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
 			{"kind": "dot", "pos": data["dot1Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot2Pos"] as Vector2},
 			{"kind": "dot", "pos": data["dot3Pos"] as Vector2}
@@ -3565,8 +4433,30 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		]
 	if String(data.get("kind", "")) == "ng_word_laser":
 		return [
-			{"kind": "line", "prefix": "trail"},
-			{"kind": "line", "prefix": "core"}
+			{"kind": "line", "prefix": "backGlow"},
+			{"kind": "line", "prefix": "glow"},
+			{"kind": "polygon", "pointsKey": "beamPoints", "colorsKey": "beamColors"},
+			{"kind": "circle", "prefix": "muzzleGlow"},
+			{"kind": "circle", "prefix": "impactGlow"},
+			{"kind": "line", "prefix": "edge1"},
+			{"kind": "line", "prefix": "edge2"},
+			{"kind": "line", "prefix": "scan1"},
+			{"kind": "line", "prefix": "scan2"},
+			{"kind": "line", "prefix": "scan3"},
+			{"kind": "line", "prefix": "scan4"},
+			{"kind": "line", "prefix": "scan5"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "line", "prefix": "spark3"},
+			{"kind": "line", "prefix": "spark4"},
+			{"kind": "line", "prefix": "core"},
+			{"kind": "line", "prefix": "hot"},
+			{"kind": "circle", "prefix": "muzzleRing", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "muzzleCore"},
+			{"kind": "circle", "prefix": "impactRing", "filled": false, "width": 2.4},
+			{"kind": "circle", "prefix": "impactCore"},
+			{"kind": "text", "prefix": "sealShadow", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "seal", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "listener_summon":
 		return [
@@ -3583,6 +4473,11 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		parts.append({"kind": "arc", "prefix": "main"})
 		parts.append({"kind": "arc", "prefix": "core"})
 	if bool(data["showBurst"]):
+		parts.append({"kind": "circle", "prefix": "burstGlow"})
 		parts.append({"kind": "circle", "prefix": "burst"})
+		parts.append({"kind": "circle", "prefix": "burstRing", "filled": false, "width": 2.5})
+		parts.append({"kind": "line", "prefix": "burstSpark1"})
+		parts.append({"kind": "line", "prefix": "burstSpark2"})
+		parts.append({"kind": "text", "prefix": "labelShadow"})
 		parts.append({"kind": "text", "prefix": "label"})
 	return parts

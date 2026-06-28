@@ -2,8 +2,10 @@ class_name DestructibleSystem
 extends RefCounted
 
 const BOX_MAX_COUNT := 3
+const HORROR_BOX_MAX_COUNT := 6
 const BOX_FIRST_TIME := 15.0
 const BOX_INTERVAL := 20.0
+const HORROR_BOX_INTERVAL := 7.0
 const DROP_LIFE := 15.0
 const DROP_ATTRACT_RANGE := 96.0
 const DROP_PICKUP_RANGE := 30.0
@@ -31,15 +33,15 @@ static func _update_box_spawn_for_target(target: Node, arena: Rect2, rng: Random
 	var next_time: float = float(target.get("next_care_package_time"))
 	if elapsed < next_time:
 		return
-	target.set("next_care_package_time", next_time + BOX_INTERVAL)
+	target.set("next_care_package_time", next_time + _box_interval_for_target(target))
 	var boxes: Array = target.get("destructibles") as Array
-	if _alive_box_count(boxes) >= BOX_MAX_COUNT:
+	if _alive_box_count(boxes) >= _box_limit_for_target(target):
 		return
 	spawn_box_for_target(target, arena, rng, effect_walls)
 
 static func spawn_box_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator, effect_walls: Array) -> bool:
 	var boxes: Array = target.get("destructibles") as Array
-	if _alive_box_count(boxes) >= BOX_MAX_COUNT:
+	if _alive_box_count(boxes) >= _box_limit_for_target(target):
 		return false
 	var pos: Vector2 = find_spawn_position(target, arena, rng, effect_walls)
 	var uid: int = int(target.get("next_destructible_uid"))
@@ -55,10 +57,18 @@ static func spawn_box_for_target(target: Node, arena: Rect2, rng: RandomNumberGe
 	})
 	return true
 
+static func _box_limit_for_target(target: Node) -> int:
+	return HORROR_BOX_MAX_COUNT if String(target.get("active_genre_event")) == "horror" else BOX_MAX_COUNT
+
+static func _box_interval_for_target(target: Node) -> float:
+	return HORROR_BOX_INTERVAL if String(target.get("active_genre_event")) == "horror" else BOX_INTERVAL
+
 static func _alive_box_count(boxes: Array) -> int:
 	var count: int = 0
 	for item in boxes:
 		var box: Dictionary = item as Dictionary
+		if String(box.get("id", "care_package_box")) != "care_package_box":
+			continue
 		if float(box.get("hp", 0.0)) > 0.0:
 			count += 1
 	return count
@@ -66,6 +76,7 @@ static func _alive_box_count(boxes: Array) -> int:
 static func find_spawn_position(target: Node, arena: Rect2, rng: RandomNumberGenerator, effect_walls: Array) -> Vector2:
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
 	var enemies: Array = target.get("enemies") as Array
+	var boxes: Array = target.get("destructibles") as Array
 	for i in range(20):
 		var angle: float = rng.randf_range(0.0, TAU)
 		var dist: float = rng.randf_range(150.0, 470.0)
@@ -78,8 +89,19 @@ static func find_spawn_position(target: Node, arena: Rect2, rng: RandomNumberGen
 			continue
 		if _near_enemy_cluster(p, enemies):
 			continue
+		if _near_alive_box(p, boxes):
+			continue
 		return p
 	return arena.get_center() + Vector2(rng.randf_range(-180.0, 180.0), rng.randf_range(-120.0, 120.0))
+
+static func _near_alive_box(p: Vector2, boxes: Array) -> bool:
+	for item in boxes:
+		var box: Dictionary = item as Dictionary
+		if float(box.get("hp", 0.0)) <= 0.0:
+			continue
+		if p.distance_to(Vector2(box.get("pos", Vector2.ZERO))) < 86.0:
+			return true
+	return false
 
 static func _near_enemy_cluster(p: Vector2, enemies: Array) -> bool:
 	var nearby: int = 0
@@ -108,29 +130,56 @@ static func damage_box(box: Dictionary, damage: float, destroyed: Array, hit_eff
 		return false
 	box["hp"] = float(box.get("hp", 0.0)) - maxf(1.0, damage)
 	var pos: Vector2 = Vector2(box["pos"])
+	var is_fake_gift := String(box.get("id", "")) == "horror_fake_gift"
 	hit_effects.append({
 		"kind": "pickup_text",
 		"pos": pos + Vector2(-24.0, -32.0),
 		"vel": Vector2(0.0, -42.0),
 		"life": 0.55,
 		"maxLife": 0.55,
-		"text": "BREAK!",
-		"color": Color("#ffdf5a")
+		"text": "!? " if is_fake_gift else "BREAK!",
+		"color": Color("#ba93ff") if is_fake_gift else Color("#ffdf5a")
 	})
 	if float(box["hp"]) <= 0.0:
 		destroyed.append(box)
 		return true
 	return false
 
+static func spawn_fake_gift_mimic_for_target(target: Node, pos: Vector2, rng: RandomNumberGenerator) -> void:
+	var enemies: Array = target.get("enemies") as Array
+	var next_uid := int(target.get("next_enemy_uid"))
+	var speech_text := EnemySystem.random_speech("enemy_fake_gift_box", rng)
+	var enemy := EnemySystem.build_enemy("enemy_fake_gift_box", pos, next_uid, 1.0, 0.0, speech_text)
+	enemy["source"] = "fake_gift"
+	enemy["genreEventEnemy"] = true
+	enemies.append(enemy)
+	target.set("enemies", enemies)
+	target.set("next_enemy_uid", next_uid + 1)
+
 static func apply_destroyed_for_target(target: Node, destroyed: Array, rng: RandomNumberGenerator) -> Dictionary:
 	if destroyed.is_empty():
-		return {"chats": [], "toasts": []}
+		return {"chats": [], "toasts": [], "commentEventIds": []}
 	var drops: Array = target.get("drop_items") as Array
 	var hit_fx: Array = target.get("hit_fx") as Array
 	var chats: Array = []
+	var comment_event_ids: Array[String] = []
 	for item in destroyed:
 		var box: Dictionary = item as Dictionary
 		var pos: Vector2 = Vector2(box["pos"])
+		if String(box.get("id", "")) == "horror_fake_gift":
+			spawn_fake_gift_mimic_for_target(target, pos, rng)
+			hit_fx.append({
+				"kind": "pickup_text",
+				"pos": pos + Vector2(-18.0, -32.0),
+				"vel": Vector2(rng.randf_range(-10.0, 10.0), -54.0),
+				"life": 0.70,
+				"maxLife": 0.70,
+				"text": "!? ",
+				"color": Color("#ba93ff")
+			})
+			comment_event_ids.append("gameplay_horror_fake_gift_hit")
+			comment_event_ids.append("gameplay_horror_fake_gift_trigger")
+			continue
 		var drop_id: String = pick_drop_id_for_target(target, rng)
 		drops.append({
 			"id": drop_id,
@@ -155,7 +204,7 @@ static func apply_destroyed_for_target(target: Node, destroyed: Array, rng: Rand
 		if float(box.get("hp", 0.0)) > 0.0:
 			alive_boxes.append(box)
 	target.set("destructibles", alive_boxes)
-	return {"chats": chats, "toasts": []}
+	return {"chats": chats, "toasts": [], "commentEventIds": comment_event_ids}
 
 static func pick_drop_id_for_target(target: Node, rng: RandomNumberGenerator) -> String:
 	var hp_full: bool = int(target.get("player_hp")) >= int(target.get("player_max_hp"))
