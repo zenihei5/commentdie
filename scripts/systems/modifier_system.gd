@@ -161,14 +161,54 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 	var recent: Array[String] = target.get("recent_comment_categories") as Array[String]
 	target.set("recent_comment_categories", updated_recent_categories(recent, String(comment.get("category", "default"))))
 	apply_choice_numbers_to_target(target, view)
-	target.set("effect_timer", maxf(5.0, float(comment["duration"]) - float(target.get("moderator_level"))))
+	target.set("effect_timer", _effect_duration_for_target(target, comment))
 	if int(target.get("reentry_barrier_level")) > 0:
 		var barrier_time: float = 0.8 + 0.3 * float(target.get("reentry_barrier_level"))
 		target.set("invincible", maxf(float(target.get("invincible")), barrier_time))
 	var feedback: Dictionary = {"chats": [], "toasts": []}
 	if String(comment.get("effectType", "")) == "summon_boss" or String(comment.get("id", "")) == "summon_boss":
 		feedback = BossSystemScript.request_summon_for_target(target, view, has_heart)
+	elif String(comment.get("effectType", "")) == "song_instruction":
+		var event_id := _song_instruction_event_id(String(comment.get("id", "")))
+		if event_id != "":
+			feedback["commentEventIds"] = [event_id]
+	elif String(comment.get("effectType", "")) == "drawing_instruction":
+		var event_id := _drawing_instruction_event_id(String(comment.get("id", "")))
+		if event_id != "":
+			feedback["commentEventIds"] = [event_id]
 	return {"commentId": String(comment["id"]), "feedback": feedback}
+
+static func _song_instruction_event_id(comment_id: String) -> String:
+	match comment_id:
+		"song_tempo_up":
+			return "song_instruction_tempo_up"
+		"song_force_chorus":
+			return "song_instruction_force_chorus"
+		"song_mic_howling":
+			return "song_instruction_mic_howling"
+		"song_lighting_mistake":
+			return "song_instruction_lighting_mistake"
+		"song_lyrics_lost":
+			return "song_instruction_lyrics_lost"
+	return ""
+
+static func _drawing_instruction_event_id(comment_id: String) -> String:
+	match comment_id:
+		"drawing_paint_rush":
+			return "drawing_instruction_paint_rush"
+		"drawing_fix_here":
+			return "drawing_instruction_fix_here"
+		"drawing_clean_screen":
+			return "drawing_instruction_clean_screen"
+	return ""
+
+static func _effect_duration_for_target(target: Node, comment: Dictionary) -> float:
+	var duration := float(comment["duration"])
+	var comment_id := String(comment.get("id", ""))
+	if comment_id == "song_lyrics_lost":
+		var params: Dictionary = comment.get("params", {}) as Dictionary
+		return maxf(duration, float(params.get("lyricsCardLifetime", duration)))
+	return maxf(5.0, duration - float(target.get("moderator_level")))
 
 static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var walls: Array = target.get("effect_walls") as Array
@@ -230,6 +270,8 @@ static func update_effect_timer_for_target(target: Node, delta: float) -> Dictio
 	target.set("effect_timer", timer)
 	if timer > 0.0:
 		return {"cleared": false, "clearBonus": false}
+	if target.has_method("_should_suppress_instruction_clear_bonus") and bool(target.call("_should_suppress_instruction_clear_bonus")):
+		target.set("active_comment_hurt", true)
 	var clear_result: Dictionary = clear_state_for_target(target)
 	return {
 		"cleared": true,

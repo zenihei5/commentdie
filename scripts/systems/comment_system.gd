@@ -8,6 +8,8 @@ const DO_EVERYTHING_BUCKETS := [
 	["banana_floor", "damage_pits", "temp_walls", "camera_zoom", "hide_hp", "weapon_mute", "comment_barrage"],
 	["enemy_speed_up", "giant_enemies", "enemy_spawn_up", "split_enemy"]
 ]
+const SONG_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.6
+const DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
 
 static func build_offer(context: Dictionary) -> Array:
 	var result: Array = []
@@ -43,6 +45,7 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"bossSummonCount": target.get("boss_summon_count"),
 		"doEverythingOfferCount": target.get("do_everything_offer_count"),
 		"activeGenreEvent": target.get("active_genre_event"),
+		"songChorusActive": float(target.get("song_chorus_timer")) > 0.0 or float(target.get("song_chorus_telegraph_timer")) > 0.0,
 		"debugRareCommentBoost": target.get("debug_rare_comment_boost"),
 		"rng": rng
 	})
@@ -164,6 +167,7 @@ static func choose_comment_with_feedback_for_target(
 		if key == "chats" or key == "toasts":
 			continue
 		feedback[key] = modifier_feedback[key]
+	feedback["commentId"] = String(result["commentId"])
 	feedback["selected"] = true
 	return feedback
 
@@ -354,6 +358,10 @@ static func _debug_rare_comment_time(context: Dictionary, comment_time: float) -
 
 static func _comment_pick_weight(comment: Dictionary, context: Dictionary) -> int:
 	var weight: int = maxi(1, int(comment.get("weight", 1)))
+	if _should_boost_song_instruction_weight(comment, context):
+		weight = maxi(weight + 1, ceili(float(weight) * SONG_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
+	if _should_boost_drawing_instruction_weight(comment, context):
+		weight = maxi(weight + 1, ceili(float(weight) * DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
 	if not _debug_rare_comment_boost(context):
 		return weight
 	var risk: int = int(comment.get("riskLevel", 1))
@@ -364,6 +372,14 @@ static func _comment_pick_weight(comment: Dictionary, context: Dictionary) -> in
 	if weight <= 5:
 		return weight * 3
 	return weight
+
+static func _should_boost_song_instruction_weight(comment: Dictionary, context: Dictionary) -> bool:
+	var frame: Dictionary = context.get("streamFrame", {}) as Dictionary
+	return String(frame.get("id", "")) == "singing" and String(comment.get("effectType", "")) == "song_instruction"
+
+static func _should_boost_drawing_instruction_weight(comment: Dictionary, context: Dictionary) -> bool:
+	var frame: Dictionary = context.get("streamFrame", {}) as Dictionary
+	return String(frame.get("id", "")) == "drawing" and String(comment.get("effectType", "")) == "drawing_instruction"
 
 static func _should_offer_do_everything(comments: Array, context: Dictionary, comment_time: float) -> bool:
 	var comment: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
@@ -473,6 +489,8 @@ static func _is_special_only_comment(comment: Dictionary) -> bool:
 
 static func _comment_allowed_for_context(comment: Dictionary, context: Dictionary, comment_time: float) -> bool:
 	if _is_matching_active_genre_comment(comment, context):
+		return false
+	if String(comment.get("id", "")) == "song_force_chorus" and bool(context.get("songChorusActive", false)):
 		return false
 	if String(comment.get("effectType", "")) != "summon_boss" and String(comment.get("id", "")) != "summon_boss":
 		return true

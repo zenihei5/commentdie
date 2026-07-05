@@ -86,6 +86,10 @@ const BAN_JUDGEMENT_ATTACK_SE_PATH := "res://assets/audio/ban_judgement_attack.m
 const SUPERCHAT_SHOT_SE_PATH := "res://assets/audio/superchat_shot.mp3"
 const STARLIGHT_SUPERCHAT_DEFEAT_SE_PATH := "res://assets/audio/starlight_superchat_defeat.mp3"
 const SPOTLIGHT_ATTACK_SE_PATH := "res://assets/audio/spotlight_attack.mp3"
+const SONG_PENLIGHT_BIT_ATTACK_SE_PATH := "res://assets/audio/song_penlight_bit_attack.mp3"
+const SONG_AUDIENCE_CALL_WAVE_SE_PATH := "res://assets/audio/song_audience_call_wave.mp3"
+const SONG_SPOTLIGHT_BENEFIT_SE_PATH := "res://assets/audio/song_spotlight_benefit.mp3"
+const SONG_LYRICS_CARD_PICKUP_SE_PATH := "res://assets/audio/song_lyrics_card_pickup.mp3"
 const KUSA_WAVE_SHOT_SE_PATH := "res://assets/audio/kusa_wave_shot.mp3"
 const COMMENT_PIN_THROW_SE_PATH := "res://assets/audio/comment_pin_throw.mp3"
 const COMMENT_BOOMERANG_SWING_SE_PATH := "res://assets/audio/comment_boomerang_swing.mp3"
@@ -109,6 +113,16 @@ const ENEMY_DAMAGE_SE_PATH := "res://assets/audio/enemy_damage.mp3"
 const ENEMY_DEFEAT_SE_PATH := "res://assets/audio/enemy_defeat.mp3"
 const EMOTE_MINE_PLACE_SE_PATH := "res://assets/audio/emote_mine_place.mp3"
 const EMOTE_MINE_EXPLOSION_SE_PATH := "res://assets/audio/emote_mine_explosion.mp3"
+const SONG_SCALE_NOTE_SE_PATHS := [
+	"res://assets/audio/song_scale_do1.mp3",
+	"res://assets/audio/song_scale_re.mp3",
+	"res://assets/audio/song_scale_mi.mp3",
+	"res://assets/audio/song_scale_fa.mp3",
+	"res://assets/audio/song_scale_so.mp3",
+	"res://assets/audio/song_scale_la.mp3",
+	"res://assets/audio/song_scale_si.mp3",
+	"res://assets/audio/song_scale_do2.mp3"
+]
 const MENTAL_BREAKDOWN_BANRI_IMAGE := "res://assets/generated/game_over_cutin_v1/banri_mental_breakdown.png"
 const MENTAL_BREAKDOWN_SUPANA_IMAGE := "res://assets/generated/game_over_cutin_v1/supana_mental_breakdown.png"
 const MENTAL_BREAKDOWN_MARON_IMAGE := "res://assets/generated/game_over_cutin_v1/maron_mental_breakdown.png"
@@ -126,7 +140,189 @@ const GENRE_EVENT_DASH_PAD_IMAGE := "res://assets/generated/gameplay_event_objec
 const GENRE_EVENT_COIN_IMAGE := "res://assets/generated/gameplay_event_objects_v1/coin.png"
 const GENRE_EVENT_STG_PLAYER_OVERLAY_IMAGE := "res://assets/generated/gameplay_event_objects_v1/stg_player_overlay.png"
 const GENRE_EVENT_FAKE_GIFT_IMAGE := "res://assets/generated/gameplay_event_objects_v1/fake_gift_box.png"
+const SONG_NOTE_ORB_IMAGES := [
+	"res://assets/generated/song_note_orbs_v1/song_note_orb_1.png",
+	"res://assets/generated/song_note_orbs_v1/song_note_orb_2.png",
+	"res://assets/generated/song_note_orbs_v1/song_note_orb_3.png",
+]
+const SONG_PENLIGHT_BIT_IMAGES := [
+	"res://assets/generated/song_penlight_bits_v1/penlight_bit_blue.png",
+	"res://assets/generated/song_penlight_bits_v1/penlight_bit_pink.png",
+]
+const SONG_LIVE_GIFT_IMAGE := "res://assets/generated/song_live_gifts_v1/live_gift.png"
+const SONG_SPECIAL_LIVE_GIFT_IMAGE := "res://assets/generated/song_live_gifts_v1/special_live_gift.png"
+const SONG_LYRICS_CARD_IMAGE := "res://assets/generated/song_lyrics_card_v1/lyrics_card.png"
+const SONG_LIVE_HEAT_HUD_IMAGE := "res://assets/generated/song_live_heat_hud_v1/live_heat_panel.png"
+const SONG_SPOTLIGHT_FLOOR_ACTIVE_IMAGE := "res://assets/generated/song_spotlight_floor_v1/spotlight_floor_active.png"
+const SONG_SPOTLIGHT_FLOOR_OCCUPIED_IMAGE := "res://assets/generated/song_spotlight_floor_v1/spotlight_floor_occupied.png"
+const SONG_SPOTLIGHT_FLOOR_EXPIRING_IMAGE := "res://assets/generated/song_spotlight_floor_v1/spotlight_floor_expiring.png"
+const SONG_SPOTLIGHT_SPARKLE_PARTICLES_IMAGE := "res://assets/generated/song_spotlight_floor_v1/spotlight_sparkle_particles.png"
 const GENRE_RESULT_CARD_DURATION := 1.55
+const SONG_CHORUS_FIRST_DELAY := 30.0
+const SONG_CHORUS_INTERVAL_MIN := 38.0
+const SONG_CHORUS_INTERVAL_MAX := 48.0
+const SONG_CHORUS_TELEGRAPH_DURATION := 1.5
+const SONG_CHORUS_DURATION := 12.0
+const SONG_CHORUS_BANNER_DURATION := 1.5
+const SONG_CHORUS_RESULT_CARD_DURATION := 1.55
+const SONG_NOTE_COUNT_MIN := 9
+const SONG_NOTE_COUNT_MAX := 15
+const SONG_SCALE_NOTE_COUNT := 8
+const SONG_SCALE_NOTE_QUEUE_INTERVAL := 0.075
+const SONG_AMBIENT_NOTE_INTERVAL_MIN := 9.0
+const SONG_AMBIENT_NOTE_INTERVAL_MAX := 14.0
+const SONG_AMBIENT_NOTE_LIFETIME := 16.0
+const SONG_LIVE_GIFT_LIFETIME := 18.0
+const SONG_NOTE_OBSTACLE_CLEARANCE := 80.0
+const SONG_SPOTLIGHT_OBSTACLE_CLEARANCE := 160.0
+const SONG_LYRICS_CARD_OBSTACLE_CLEARANCE := 80.0
+const SONG_LIVE_HEAT_LEVEL_NOTICE_DURATION := 2.0
+const SONG_NOTICE_STACK_BASE_TOP := 82.0
+const SONG_NOTICE_STACK_RESULT_TOP := 134.0
+const SONG_NOTICE_STACK_CHORUS_TOP := 154.0
+const SONG_NOTICE_STACK_LANE_GAP := 132.0
+const SONG_LIVE_HEAT_LV1_MOVE_RATE := 1.05
+const SONG_LIVE_HEAT_LV1_PICKUP_RATE := 1.10
+const SONG_LIVE_HEAT_LV5_MOVE_RATE := 1.08
+const SONG_LIVE_HEAT_LV5_PICKUP_RATE := 1.25
+const SONG_LIVE_HEAT_LV4_DAMAGE_RATE := 0.90
+const SONG_LIVE_HEAT_LV4_COOLDOWN_RATE := 0.95
+const SONG_LIVE_HEAT_LV5_COOLDOWN_RATE := 0.92
+const SONG_PENLIGHT_BIT_COUNT := 2
+const SONG_PENLIGHT_BIT_SHOT_INTERVAL := 2.5
+const SONG_PENLIGHT_BIT_SHOT_DAMAGE := 3.0
+const SONG_PENLIGHT_BIT_SHOT_RANGE := 460.0
+const SONG_PENLIGHT_BIT_SHOT_KNOCKBACK := 36.0
+const SONG_NOTE_EXTRA_SHOT_DAMAGE := 2.5
+const SONG_NOTE_EXTRA_SHOT_RANGE := 360.0
+const SONG_HARMONY_WAVE_INTERVAL := 6.0
+const SONG_HARMONY_WAVE_RADIUS := 180.0
+const SONG_HARMONY_WAVE_DAMAGE := 5.0
+const SONG_HARMONY_WAVE_KNOCKBACK := 48.0
+const SONG_AUDIENCE_CALL_WAVE_INTERVAL := 8.0
+const SONG_AUDIENCE_CALL_WAVE_WIDTH := 220.0
+const SONG_AUDIENCE_CALL_WAVE_DURATION := 1.05
+const SONG_AUDIENCE_CALL_WAVE_DAMAGE := 5.0
+const SONG_AUDIENCE_CALL_WAVE_KNOCKBACK := 90.0
+const SONG_MAX_OCTAVE_AUDIENCE_CALL_WAVE_COOLDOWN := 2.0
+const SONG_NOTE_VOLTAGE_GAIN := 0.08
+const SONG_NOTE_VIEWER_GAIN := 120
+const SONG_OCTAVE_BONUS_LIVE_HEAT_GAIN := 5.0
+const SONG_OCTAVE_BONUS_VIEWER_GAIN := 500
+const SONG_OCTAVE_BONUS_GIFT_HYPE_GAIN := 1
+const SONG_OCTAVE_BONUS_RADIUS := 150.0
+const SONG_OCTAVE_BONUS_DAMAGE := 0.8
+const SONG_OCTAVE_BONUS_KNOCKBACK := 0.3
+const SONG_OCTAVE_BONUS_NOTICE_DURATION := 1.75
+const SONG_SPOTLIGHT_COUNT_MIN := 2
+const SONG_SPOTLIGHT_COUNT_MAX := 3
+const SONG_SPOTLIGHT_DURATION := 6.0
+const SONG_SPOTLIGHT_RADIUS := 140.0
+const SONG_SPOTLIGHT_VOLTAGE_RATE := 0.026
+const SONG_SPOTLIGHT_VIEWER_GAIN_PER_SECOND := 24.0
+const SONG_SPOTLIGHT_BENEFIT_SE_INTERVAL := 1.15
+const SONG_CHORUS_EXTRA_ENEMY_INTERVAL_MIN := 3.2
+const SONG_CHORUS_EXTRA_ENEMY_INTERVAL_MAX := 4.2
+const SONG_LIVE_HEAT_MAX := 100.0
+const SONG_LIVE_HEAT_NOTE_GAIN := 2.2
+const SONG_LIVE_HEAT_CHORUS_NOTE_GAIN := 2.8
+const SONG_LIVE_HEAT_SPOTLIGHT_GAIN_PER_SECOND := 0.8
+const SONG_LIVE_HEAT_ENEMY_SMALL_GAIN := 0.15
+const SONG_LIVE_HEAT_ENEMY_MEDIUM_GAIN := 0.5
+const SONG_LIVE_HEAT_ENEMY_LARGE_GAIN := 1.2
+const SONG_LIVE_HEAT_CHORUS_FINISH_GAIN := 3.0
+const SONG_LIVE_HEAT_CHORUS_GOOD_GAIN := 5.0
+const SONG_LIVE_HEAT_NO_DAMAGE_STREAK_GAIN := 1.0
+const SONG_NO_DAMAGE_STREAK_INTERVAL := 12.0
+const SONG_CHORUS_LIVE_HEAT_MULTIPLIER := 1.4
+const SONG_CHORUS_VOLTAGE_GAIN_MULTIPLIER := 1.25
+const SONG_CHORUS_VIEWER_GAIN_MULTIPLIER := 1.2
+const SONG_PITCH_WAVE_TELEGRAPH_DURATION := 0.7
+const SONG_PITCH_WAVE_ACTIVE_DURATION := 0.4
+const SONG_PITCH_WAVE_DAMAGE := 12
+const SONG_PITCH_WAVE_WIDTH := 165.0
+const SONG_HOWLING_EMITTER_COUNT := 2
+const SONG_HOWLING_WAVE_INTERVAL := 2.8
+const SONG_HOWLING_TELEGRAPH_DURATION := 0.45
+const SONG_HOWLING_WAVE_EXPAND_DURATION := 0.75
+const SONG_HOWLING_WAVE_START_RADIUS := 30.0
+const SONG_HOWLING_WAVE_END_RADIUS := 260.0
+const SONG_HOWLING_WAVE_THICKNESS := 34.0
+const SONG_HOWLING_DAMAGE := 12
+const SONG_HOWLING_PLAYER_KNOCKBACK := 170.0
+const SONG_HOWLING_SPEAKER_IMAGE := "res://assets/generated/song_howling_props_v1/howling_speaker.png"
+const SONG_BAD_LIGHT_COUNT := 2
+const SONG_BAD_LIGHT_RADIUS := 135.0
+const SONG_BAD_LIGHT_LIFETIME := 3.0
+const SONG_BAD_LIGHT_RESPAWN_DELAY := 0.4
+const SONG_BAD_LIGHT_DISABLE_NORMAL_WEAPONS := true
+const SONG_BAD_LIGHT_DISABLE_LIVE_HEAT_SUPPORT := false
+const SONG_LYRICS_CARD_LIFETIME := 15.0
+const SONG_LYRICS_CARD_PICKUP_RADIUS := 48.0
+const SONG_LYRICS_CARD_MIN_DISTANCE := 420.0
+const SONG_LYRICS_CARD_MAX_DISTANCE := 760.0
+const SONG_ENCORE_TRIGGER_REMAINING := 30.0
+const SONG_ENCORE_DURATION := 15.0
+const SONG_ENCORE_LIVE_HEAT_MULTIPLIER := 1.4
+const SONG_ENCORE_VIEWER_GAIN_MULTIPLIER := 1.35
+const SONG_ENCORE_VOLTAGE_GAIN_MULTIPLIER := 1.35
+const SONG_ENCORE_CLEAR_BONUS_MULTIPLIER := 1.1
+const DRAWING_PAINT_COLOR_IDS := ["pink", "cyan"]
+const DRAWING_PAINT_DURATION := 8.0
+const DRAWING_PAINT_ORB_INTERVAL_MIN := 7.0
+const DRAWING_PAINT_ORB_INTERVAL_MAX := 11.0
+const DRAWING_PAINT_ORB_LIFETIME := 18.0
+const DRAWING_PAINT_ORB_MAX := 5
+const DRAWING_PAINT_ORB_RADIUS := 28.0
+const DRAWING_TRAIL_LIFETIME := 12.0
+const DRAWING_TRAIL_WIDTH := 56.0
+const DRAWING_TRAIL_STAMP_INTERVAL := 0.08
+const DRAWING_TRAIL_MIN_DISTANCE := 14.0
+const DRAWING_TRAIL_MAX_SAMPLES := 230
+const DRAWING_CELL_SIZE := 32.0
+const DRAWING_MIN_FILL_CELLS := 12
+const DRAWING_MAX_FILL_CELLS := 180
+const DRAWING_MAX_ACTIVE_REGIONS := 3
+const DRAWING_REGION_LIFETIME := 10.0
+const DRAWING_REGION_TICK_INTERVAL := 0.5
+const DRAWING_PINK_DAMAGE_PER_TICK := 0.8
+const DRAWING_CYAN_SLOW_RATE := 0.30
+const DRAWING_CYAN_SLOW_TIMER := 0.85
+const DRAWING_REGION_KNOCKBACK := 18.0
+const DRAWING_CORRECTION_INTERVAL_MIN := 22.0
+const DRAWING_CORRECTION_INTERVAL_MAX := 34.0
+const DRAWING_CORRECTION_MAX := 2
+const DRAWING_CORRECTION_RADIUS := 34.0
+const DRAWING_CORRECTION_LIFETIME := 20.0
+const DRAWING_CORRECTION_DIRECT_PAINT_TIME := 1.5
+const DRAWING_CORRECTION_VIEWER_GAIN := 600
+const DRAWING_CORRECTION_GIFT_HYPE_GAIN := 5
+const DRAWING_CORRECTION_SPAWN_PAINT_ORB_CHANCE := 0.35
+const DRAWING_CORRECTION_HEAL_MENTAL_CHANCE := 0.15
+const DRAWING_CORRECTION_HEAL_AMOUNT := 5
+const DRAWING_ERASER_INTERVAL_MIN := 35.0
+const DRAWING_ERASER_INTERVAL_MAX := 50.0
+const DRAWING_ERASER_LIFETIME := 16.0
+const DRAWING_ERASER_RADIUS := 190.0
+const DRAWING_ERASER_DAMAGE := 1.0
+const DRAWING_ERASER_KNOCKBACK := 90.0
+const DRAWING_PROGRESS_FILL_GAIN := 1.5
+const DRAWING_PROGRESS_LARGE_FILL_BONUS := 2.0
+const DRAWING_PROGRESS_LARGE_FILL_MIN_CELLS := 64
+const DRAWING_PROGRESS_CORRECTION_GAIN := 5.0
+const DRAWING_PROGRESS_ERASER_GAIN := 1.0
+const DRAWING_PROGRESS_ENEMY_SMALL_GAIN := 0.25
+const DRAWING_PROGRESS_ENEMY_MEDIUM_GAIN := 0.55
+const DRAWING_PROGRESS_ENEMY_LARGE_GAIN := 1.0
+const DRAWING_COMPLETE_VIEWER_REWARD := 1800
+const DRAWING_COMPLETE_GIFT_HYPE_REWARD := 15
+const DRAWING_FOCUS_SPOT_INTERVAL_MIN := 24.0
+const DRAWING_FOCUS_SPOT_INTERVAL_MAX := 34.0
+const DRAWING_FOCUS_SPOT_LIFETIME := 13.0
+const DRAWING_FOCUS_SPOT_RADIUS := 118.0
+const DRAWING_FOCUS_TRAIL_WIDTH_RATE := 1.16
+const DRAWING_FOCUS_CORRECTION_SPEED_RATE := 1.25
+const DRAWING_TOAST_DURATION := 1.45
 const STREAM_START_INTRO_DURATION := 1.90
 const STREAM_START_INTRO_SKIP_DELAY := 0.30
 const STREAM_START_READY_TIME := 0.30
@@ -246,6 +442,7 @@ var equipment_icon_cache: Dictionary = {}
 var ui_part_cache: Dictionary = {}
 var field_pickup_icon_cache: Dictionary = {}
 var raw_png_texture_cache: Dictionary = {}
+var song_note_gray_texture_cache: Dictionary = {}
 var offered_comments: Array = []
 var offered_gifts: Array = []
 var pending_gift_choices := 0
@@ -283,6 +480,108 @@ var equipment_weapon_timers: Dictionary = {}
 var hit_fx: Array = []
 var genre_change_banner_event := ""
 var genre_change_banner_timer := 0.0
+var song_chorus_next_time := SONG_CHORUS_FIRST_DELAY
+var song_chorus_telegraph_timer := 0.0
+var song_chorus_timer := 0.0
+var song_chorus_banner_timer := 0.0
+var song_chorus_result_timer := 0.0
+var song_chorus_result_duration := SONG_CHORUS_RESULT_CARD_DURATION
+var song_chorus_result_data: Dictionary = {}
+var song_chorus_notes_collected := 0
+var song_chorus_spotlight_time := 0.0
+var song_chorus_enemy_spawn_timer := 0.0
+var song_chorus_viewer_accum := 0.0
+var song_chorus_current_duration := SONG_CHORUS_DURATION
+var song_forced_chorus_active := false
+var song_chorus_reward_multiplier := 1.0
+var song_howling_emitters: Array = []
+var song_howling_waves: Array = []
+var song_bad_lights: Array = []
+var song_bad_light_respawn_timer := 0.0
+var song_bad_light_inside := false
+var song_lyrics_cards: Array = []
+var song_lyrics_card_locked_pos := Vector2.ZERO
+var song_lyrics_card_has_locked_pos := false
+var song_lyrics_lost_card_collected := false
+var song_spotlight_inside_last_frame := false
+var song_spotlight_benefit_se_cooldown := 0.0
+var song_spotlight_benefit_flash_timer := 0.0
+var song_notes: Array = []
+var song_ambient_note_timer := SONG_AMBIENT_NOTE_INTERVAL_MIN
+var song_spotlights: Array = []
+var song_chorus_count := 0
+var song_total_notes_collected := 0
+var song_note_scale_index := 0
+var song_note_total_collected := 0
+var song_octave_bonus_count := 0
+var song_scale_note_queue: Array = []
+var song_scale_note_queue_timer := 0.0
+var song_octave_bonus_notice_timer := 0.0
+var song_octave_bonus_notice_duration := 0.0
+var song_octave_bonus_notice_hits := 0
+var song_octave_bonus_notice_call_wave := false
+var song_total_spotlight_time := 0.0
+var song_live_heat := 0.0
+var song_live_heat_level := 0
+var song_max_live_heat := 0.0
+var song_max_live_heat_level := 0
+var song_live_heat_level_flash_timer := 0.0
+var song_live_heat_reward_claimed: Dictionary = {}
+var song_live_heat_level_notice_queue: Array = []
+var song_live_heat_level_notice_timer := 0.0
+var song_live_heat_level_notice_duration := 0.0
+var song_live_heat_level_notice_data: Dictionary = {}
+var song_penlight_bit_shot_timer := 0.0
+var song_harmony_wave_timer := 0.0
+var song_audience_call_wave_timer := 0.0
+var song_max_octave_audience_call_wave_cooldown := 0.0
+var song_note_trail_timer := 0.0
+var song_live_heat_fx: Array = []
+var song_no_damage_streak_timer := 0.0
+var song_pitch_wave_cooldown := 0.0
+var song_pitch_waves: Array = []
+var song_boss_chorus_judge_busy := false
+var song_boss_chorus_judge_active := false
+var song_boss_chorus_judge_required := 0
+var song_boss_chorus_judge_collected := 0
+var song_boss_chorus_judge_timer := 0.0
+var song_boss_chorus_judge_duration := 0.0
+var song_boss_chorus_judge_notice_timer := 0.0
+var song_boss_chorus_judge_notice_duration := 0.0
+var song_boss_chorus_judge_notice_title := ""
+var song_boss_chorus_judge_notice_subtitle := ""
+var song_boss_chorus_judge_notice_success := false
+var song_boss_megaphone_waves: Array = []
+var song_encore_timer := 0.0
+var song_encore_triggered := false
+var song_encore_completed := false
+var song_encore_unlocked := false
+var drawing_paint_orbs: Array = []
+var drawing_paint_trails: Array = []
+var drawing_paint_regions: Array = []
+var drawing_correction_points: Array = []
+var drawing_erasers: Array = []
+var drawing_focus_spots: Array = []
+var drawing_active_paint_color := ""
+var drawing_active_paint_timer := 0.0
+var drawing_orb_spawn_timer := 1.8
+var drawing_correction_spawn_timer := 8.0
+var drawing_eraser_spawn_timer := 15.0
+var drawing_focus_spawn_timer := 6.0
+var drawing_trail_stamp_timer := 0.0
+var drawing_last_trail_stamp_pos := Vector2.ZERO
+var drawing_has_last_trail_stamp := false
+var drawing_focus_inside_last_frame := false
+var drawing_next_region_id := 1
+var drawing_progress := 0.0
+var drawing_complete_reward_claimed := false
+var drawing_fill_count := 0
+var drawing_correction_complete_count := 0
+var drawing_eraser_used_count := 0
+var drawing_filled_cell_keys: Dictionary = {}
+var drawing_toast_timer := 0.0
+var drawing_toast_title := ""
+var drawing_toast_subtitle := ""
 var banana_slip_fx_timer := 0.0
 var banana_floor_appear_timer := 0.0
 var banana_floor_rollback_timer := 0.0
@@ -421,7 +720,22 @@ var heart_stock := 0
 var heart_pending := false
 var heart_used_count := 0
 
+const VIEWER_COUNTUP_CATCHUP_TIME := 0.65
+const VIEWER_COUNTUP_MIN_RATE := 90.0
+const VIEWER_COUNTUP_MAX_RATE := 5200.0
+const MENTAL_GAUGE_DISPLAY_MIN_RATE := 0.65
+const MENTAL_GAUGE_DISPLAY_CATCHUP_RATE := 7.0
+const LIVE_HEAT_GAUGE_DISPLAY_MIN_RATE := 18.0
+const LIVE_HEAT_GAUGE_DISPLAY_CATCHUP_RATE := 7.0
+
 var score := 0
+var displayed_viewer_score := 0
+var displayed_viewer_score_remainder := 0.0
+var viewer_score_countup_initialized := false
+var displayed_mental_ratio := 1.0
+var mental_gauge_display_initialized := false
+var displayed_song_live_heat := 0.0
+var song_live_heat_gauge_display_initialized := false
 var kills := 0
 var exp_level := 1
 var exp_value := 0
@@ -552,6 +866,10 @@ var ban_judgement_se_player: AudioStreamPlayer
 var superchat_shot_se_player: AudioStreamPlayer
 var starlight_superchat_defeat_se_player: AudioStreamPlayer
 var spotlight_attack_se_player: AudioStreamPlayer
+var song_penlight_bit_attack_se_player: AudioStreamPlayer
+var song_audience_call_wave_se_player: AudioStreamPlayer
+var song_spotlight_benefit_se_player: AudioStreamPlayer
+var song_lyrics_card_pickup_se_player: AudioStreamPlayer
 var kusa_wave_se_player: AudioStreamPlayer
 var comment_pin_se_player: AudioStreamPlayer
 var comment_boomerang_se_player: AudioStreamPlayer
@@ -575,6 +893,8 @@ var enemy_damage_se_player: AudioStreamPlayer
 var enemy_defeat_se_player: AudioStreamPlayer
 var emote_mine_place_se_player: AudioStreamPlayer
 var emote_mine_explosion_se_player: AudioStreamPlayer
+var song_scale_note_se_player: AudioStreamPlayer
+var song_scale_note_streams: Array = []
 var enemy_damage_se_played_frame := -1
 var listener_attack_se_played_frame := -1
 var starlight_superchat_defeat_se_played_frame := -1
@@ -612,6 +932,10 @@ func _ready() -> void:
 	_setup_superchat_shot_se()
 	_setup_starlight_superchat_defeat_se()
 	_setup_spotlight_attack_se()
+	_setup_song_penlight_bit_attack_se()
+	_setup_song_audience_call_wave_se()
+	_setup_song_spotlight_benefit_se()
+	_setup_song_lyrics_card_pickup_se()
 	_setup_kusa_wave_se()
 	_setup_comment_pin_se()
 	_setup_comment_boomerang_se()
@@ -635,6 +959,7 @@ func _ready() -> void:
 	_setup_enemy_defeat_se()
 	_setup_emote_mine_place_se()
 	_setup_emote_mine_explosion_se()
+	_setup_song_scale_note_se()
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
 	_build_ui()
 	ChatSystemScript.seed_box_for_target(self, chat_box, "normal")
@@ -649,8 +974,12 @@ func _process(delta: float) -> void:
 	_update_world_zoom(delta)
 	_update_screen_shake(delta)
 	_update_screen_flash(delta)
+	_update_viewer_score_countup(delta)
+	_update_display_gauge_values(delta)
 	_update_genre_change_banner(delta)
 	_update_genre_result_card(delta)
+	_update_song_chorus_overlay_timers(delta)
+	_update_song_scale_note_se_queue(delta)
 	_update_title_logo_drop(delta)
 	_update_title_character_appear(delta)
 	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro":
@@ -677,6 +1006,67 @@ func _process(delta: float) -> void:
 	_sync_boss_bgm(delta)
 	_sync_result_bgm()
 	queue_redraw()
+
+func _update_viewer_score_countup(delta: float) -> void:
+	var target_score: int = maxi(0, score)
+	if not viewer_score_countup_initialized:
+		_sync_viewer_score_countup()
+		return
+	if target_score <= displayed_viewer_score:
+		displayed_viewer_score = target_score
+		displayed_viewer_score_remainder = 0.0
+		return
+	var diff: int = target_score - displayed_viewer_score
+	var rate: float = clampf(float(diff) / VIEWER_COUNTUP_CATCHUP_TIME, VIEWER_COUNTUP_MIN_RATE, VIEWER_COUNTUP_MAX_RATE)
+	displayed_viewer_score_remainder += rate * delta
+	var step := int(floor(displayed_viewer_score_remainder))
+	if step <= 0:
+		return
+	step = mini(step, diff)
+	displayed_viewer_score += step
+	displayed_viewer_score_remainder -= float(step)
+
+func _sync_viewer_score_countup() -> void:
+	displayed_viewer_score = maxi(0, score)
+	displayed_viewer_score_remainder = 0.0
+	viewer_score_countup_initialized = true
+
+func _update_display_gauge_values(delta: float) -> void:
+	_update_mental_gauge_display(delta)
+	_update_song_live_heat_gauge_display(delta)
+
+func _update_mental_gauge_display(delta: float) -> void:
+	var target_ratio := _mental_hud_ratio()
+	if not mental_gauge_display_initialized:
+		displayed_mental_ratio = target_ratio
+		mental_gauge_display_initialized = true
+		return
+	displayed_mental_ratio = _approach_display_float(displayed_mental_ratio, target_ratio, delta, MENTAL_GAUGE_DISPLAY_MIN_RATE, MENTAL_GAUGE_DISPLAY_CATCHUP_RATE)
+
+func _update_song_live_heat_gauge_display(delta: float) -> void:
+	var target_heat := clampf(song_live_heat, 0.0, SONG_LIVE_HEAT_MAX)
+	if not song_live_heat_gauge_display_initialized:
+		displayed_song_live_heat = target_heat
+		song_live_heat_gauge_display_initialized = true
+		return
+	displayed_song_live_heat = _approach_display_float(displayed_song_live_heat, target_heat, delta, LIVE_HEAT_GAUGE_DISPLAY_MIN_RATE, LIVE_HEAT_GAUGE_DISPLAY_CATCHUP_RATE)
+
+func _approach_display_float(current_value: float, target_value: float, delta: float, min_rate: float, catchup_rate: float) -> float:
+	if delta <= 0.0:
+		return current_value
+	var diff := target_value - current_value
+	if absf(diff) <= 0.001:
+		return target_value
+	var step := maxf(min_rate, absf(diff) * catchup_rate) * delta
+	if absf(diff) <= step:
+		return target_value
+	return current_value + (1.0 if diff > 0.0 else -1.0) * step
+
+func _sync_display_gauge_values() -> void:
+	displayed_mental_ratio = _mental_hud_ratio()
+	mental_gauge_display_initialized = true
+	displayed_song_live_heat = clampf(song_live_heat, 0.0, SONG_LIVE_HEAT_MAX)
+	song_live_heat_gauge_display_initialized = true
 
 func _update_pause_input_with_se() -> void:
 	var escape_down := Input.is_key_pressed(KEY_ESCAPE)
@@ -810,6 +1200,34 @@ func _setup_spotlight_attack_se() -> void:
 	spotlight_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	spotlight_attack_se_player.stream = _load_audio_stream(SPOTLIGHT_ATTACK_SE_PATH, false)
 	add_child(spotlight_attack_se_player)
+
+func _setup_song_penlight_bit_attack_se() -> void:
+	song_penlight_bit_attack_se_player = AudioStreamPlayer.new()
+	song_penlight_bit_attack_se_player.name = "SongPenlightBitAttackSePlayer"
+	song_penlight_bit_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	song_penlight_bit_attack_se_player.stream = _load_audio_stream(SONG_PENLIGHT_BIT_ATTACK_SE_PATH, false)
+	add_child(song_penlight_bit_attack_se_player)
+
+func _setup_song_audience_call_wave_se() -> void:
+	song_audience_call_wave_se_player = AudioStreamPlayer.new()
+	song_audience_call_wave_se_player.name = "SongAudienceCallWaveSePlayer"
+	song_audience_call_wave_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume) - 3.0
+	song_audience_call_wave_se_player.stream = _load_audio_stream(SONG_AUDIENCE_CALL_WAVE_SE_PATH, false)
+	add_child(song_audience_call_wave_se_player)
+
+func _setup_song_spotlight_benefit_se() -> void:
+	song_spotlight_benefit_se_player = AudioStreamPlayer.new()
+	song_spotlight_benefit_se_player.name = "SongSpotlightBenefitSePlayer"
+	song_spotlight_benefit_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume) - 5.0
+	song_spotlight_benefit_se_player.stream = _load_audio_stream(SONG_SPOTLIGHT_BENEFIT_SE_PATH, false)
+	add_child(song_spotlight_benefit_se_player)
+
+func _setup_song_lyrics_card_pickup_se() -> void:
+	song_lyrics_card_pickup_se_player = AudioStreamPlayer.new()
+	song_lyrics_card_pickup_se_player.name = "SongLyricsCardPickupSePlayer"
+	song_lyrics_card_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	song_lyrics_card_pickup_se_player.stream = _load_audio_stream(SONG_LYRICS_CARD_PICKUP_SE_PATH, false)
+	add_child(song_lyrics_card_pickup_se_player)
 
 func _setup_kusa_wave_se() -> void:
 	kusa_wave_se_player = AudioStreamPlayer.new()
@@ -971,6 +1389,15 @@ func _setup_emote_mine_explosion_se() -> void:
 	emote_mine_explosion_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	emote_mine_explosion_se_player.stream = _load_audio_stream(EMOTE_MINE_EXPLOSION_SE_PATH, false)
 	add_child(emote_mine_explosion_se_player)
+
+func _setup_song_scale_note_se() -> void:
+	song_scale_note_se_player = AudioStreamPlayer.new()
+	song_scale_note_se_player.name = "SongScaleNoteSePlayer"
+	song_scale_note_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	add_child(song_scale_note_se_player)
+	song_scale_note_streams.clear()
+	for path in SONG_SCALE_NOTE_SE_PATHS:
+		song_scale_note_streams.append(_load_audio_stream(String(path), false))
 
 func _load_audio_stream(path: String, loop: bool = false) -> AudioStream:
 	if path.get_extension().to_lower() == "mp3" and FileAccess.file_exists(path):
@@ -1244,6 +1671,38 @@ func _play_spotlight_attack_se() -> void:
 		spotlight_attack_se_player.stop()
 	spotlight_attack_se_player.play()
 
+func _play_song_penlight_bit_attack_se() -> void:
+	if song_penlight_bit_attack_se_player == null or song_penlight_bit_attack_se_player.stream == null:
+		return
+	song_penlight_bit_attack_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if song_penlight_bit_attack_se_player.playing:
+		song_penlight_bit_attack_se_player.stop()
+	song_penlight_bit_attack_se_player.play()
+
+func _play_song_audience_call_wave_se() -> void:
+	if song_audience_call_wave_se_player == null or song_audience_call_wave_se_player.stream == null:
+		return
+	song_audience_call_wave_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume) - 3.0
+	if song_audience_call_wave_se_player.playing:
+		song_audience_call_wave_se_player.stop()
+	song_audience_call_wave_se_player.play()
+
+func _play_song_spotlight_benefit_se() -> void:
+	if song_spotlight_benefit_se_player == null or song_spotlight_benefit_se_player.stream == null:
+		return
+	song_spotlight_benefit_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume) - 5.0
+	if song_spotlight_benefit_se_player.playing:
+		song_spotlight_benefit_se_player.stop()
+	song_spotlight_benefit_se_player.play()
+
+func _play_song_lyrics_card_pickup_se() -> void:
+	if song_lyrics_card_pickup_se_player == null or song_lyrics_card_pickup_se_player.stream == null:
+		return
+	song_lyrics_card_pickup_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if song_lyrics_card_pickup_se_player.playing:
+		song_lyrics_card_pickup_se_player.stop()
+	song_lyrics_card_pickup_se_player.play()
+
 func _play_kusa_wave_se() -> void:
 	if kusa_wave_se_player == null or kusa_wave_se_player.stream == null:
 		return
@@ -1435,6 +1894,36 @@ func _play_emote_mine_explosion_se() -> void:
 	if emote_mine_explosion_se_player.playing:
 		emote_mine_explosion_se_player.stop()
 	emote_mine_explosion_se_player.play()
+
+func _enqueue_song_scale_note_se(index: int) -> void:
+	if song_scale_note_streams.is_empty():
+		return
+	song_scale_note_queue.append(clampi(index, 0, SONG_SCALE_NOTE_COUNT - 1))
+	if song_scale_note_queue.size() > 12:
+		song_scale_note_queue.pop_front()
+
+func _update_song_scale_note_se_queue(delta: float) -> void:
+	if song_scale_note_queue_timer > 0.0:
+		song_scale_note_queue_timer = maxf(0.0, song_scale_note_queue_timer - delta)
+	if song_scale_note_queue_timer > 0.0 or song_scale_note_queue.is_empty():
+		return
+	var note_index := int(song_scale_note_queue.pop_front())
+	_play_song_scale_note_se(note_index)
+	song_scale_note_queue_timer = SONG_SCALE_NOTE_QUEUE_INTERVAL
+
+func _play_song_scale_note_se(index: int) -> void:
+	if song_scale_note_se_player == null:
+		return
+	if index < 0 or index >= song_scale_note_streams.size():
+		return
+	var stream: AudioStream = song_scale_note_streams[index] as AudioStream
+	if stream == null:
+		return
+	song_scale_note_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	song_scale_note_se_player.stream = stream
+	if song_scale_note_se_player.playing:
+		song_scale_note_se_player.stop()
+	song_scale_note_se_player.play()
 
 func _cursor_sound_snapshot() -> Array:
 	return [
@@ -1804,6 +2293,8 @@ func _start_game_over_intro(reason: String) -> void:
 	_start_ending_cutin(reason, "mental_breakdown")
 
 func _start_stream_complete_intro(reason: String) -> void:
+	if _is_song_frame() and song_encore_completed:
+		score = int(round(float(score) * SONG_ENCORE_CLEAR_BONUS_MULTIPLIER))
 	_start_ending_cutin(reason, "completed")
 
 func _start_ending_cutin(reason: String, end_type: String) -> void:
@@ -2296,11 +2787,27 @@ func _draw() -> void:
 		_draw_screen_backdrop()
 	else:
 		_draw_world_layer()
-	_draw_overlay_layer()
+	if state == "comment_choice" or state == "gift_choice" or state == "pause":
+		_draw_status_overlay_layer()
+		_draw_overlay_layer()
+	else:
+		_draw_overlay_layer()
+		_draw_status_overlay_layer()
+
+func _draw_status_overlay_layer() -> void:
 	_draw_screen_flash()
 	_draw_genre_change_banner()
 	_draw_genre_event_timer()
 	_draw_genre_result_card()
+	_draw_song_chorus_banner()
+	_draw_song_live_heat_level_notice()
+	_draw_song_octave_bonus_notice()
+	_draw_song_boss_chorus_judge_notice()
+	_draw_song_live_heat_hud()
+	_draw_song_chorus_timer()
+	_draw_song_chorus_result_card()
+	_draw_drawing_stage_hud()
+	_draw_drawing_stage_toast()
 	_draw_toast()
 
 func _draws_title_only() -> bool:
@@ -2309,24 +2816,28 @@ func _draws_title_only() -> bool:
 func _draw_world_layer() -> void:
 	_draw_screen_backdrop()
 	world_camera_offset = _world_camera_offset()
+	var visible_world_rect := _visible_world_rect_for_spawning().grow(260.0)
 	world_draw_active = true
 	_apply_world_transform()
 	_draw_arena()
 	_draw_boss_slow_fields()
 	_draw_boss_guide_lines()
-	var hit_fx_draw_items: Array = DrawDataSystemScript.hit_fx_draw_data(hit_fx)
+	var hit_fx_draw_items: Array = DrawDataSystemScript.hit_fx_draw_data(hit_fx, visible_world_rect)
 	_draw_hit_fx(true, hit_fx_draw_items)
 	_draw_click_move_marker()
-	_draw_genre_event_objects()
-	_draw_exp()
-	_draw_mallow()
-	_draw_drop_items()
-	_draw_destructibles()
-	_draw_enemy_bullets()
-	_draw_player_bullets()
-	_draw_enemies()
+	_draw_genre_event_objects(visible_world_rect)
+	_draw_song_chorus_objects(visible_world_rect)
+	_draw_drawing_stage_objects(visible_world_rect)
+	_draw_exp(visible_world_rect)
+	_draw_mallow(visible_world_rect)
+	_draw_drop_items(visible_world_rect)
+	_draw_destructibles(visible_world_rect)
+	_draw_enemy_bullets(visible_world_rect)
+	_draw_player_bullets(visible_world_rect)
+	_draw_enemies(visible_world_rect)
 	_draw_boomerang()
 	_draw_player()
+	_draw_song_spotlight_labels(visible_world_rect)
 	_draw_hit_fx(false, hit_fx_draw_items)
 	_draw_map_foreground()
 	world_draw_active = false
@@ -2342,7 +2853,8 @@ func _draw_overlay_layer() -> void:
 		special_overlays = DrawDataSystemScript.special_overlay_views(self)
 	if not special_overlays.has("comment_storm"):
 		_reset_comment_storm_slots()
-	if modal_overlay_active and special_overlays.has("comment_storm"):
+	var comment_storm_under_overlay: bool = (modal_overlay_active or state == "game_over_intro") and not title_only
+	if comment_storm_under_overlay and special_overlays.has("comment_storm"):
 		_draw_comment_storm()
 	if modal_overlay_active and special_overlays.has("horror"):
 		_draw_horror_mask()
@@ -2376,7 +2888,7 @@ func _draw_overlay_layer() -> void:
 	if not title_only:
 		for special_overlay in special_overlays:
 			if String(special_overlay) == "comment_storm":
-				if not modal_overlay_active:
+				if not comment_storm_under_overlay:
 					_draw_comment_storm()
 			elif String(special_overlay) == "horror":
 				if not modal_overlay_active:
@@ -2530,6 +3042,7 @@ func _update_stream_frame_events(delta: float) -> void:
 	var marshmallow_feedback: Dictionary = MarshmallowSystemScript.update_auto_spawn_if_enabled_for_target(self, current_stream_frame, marshmallow_data, rng, arena, effect_walls)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, marshmallow_feedback, chat_box)
 	_update_genre_event(delta)
+	_update_song_chorus(delta, arena)
 
 func _update_world_systems(delta: float) -> void:
 	var arena := _current_arena()
@@ -2537,6 +3050,7 @@ func _update_world_systems(delta: float) -> void:
 	_update_player(delta, arena)
 	if state != "playing":
 		return
+	_update_drawing_stage(delta, arena)
 	_update_accessory_effects(delta)
 	_apply_damage_feedback(ModifierSystemScript.update_stage_hazard_damage_for_target(self, arena))
 	if state != "playing":
@@ -3049,14 +3563,15 @@ func _update_banana_slip_fx(delta: float) -> void:
 	if not ModifierSystemScript.has_effect_for_target(self, "banana_floor"):
 		banana_slip_fx_timer = 0.0
 		return
-	if player_vel.length() < 80.0:
+	var speed_sq := player_vel.length_squared()
+	if speed_sq < 6400.0:
 		banana_slip_fx_timer = maxf(0.0, banana_slip_fx_timer - delta)
 		return
 	banana_slip_fx_timer -= delta
 	if banana_slip_fx_timer > 0.0:
 		return
 	banana_slip_fx_timer = 0.07
-	var dir: Vector2 = player_vel.normalized()
+	var dir: Vector2 = player_vel / sqrt(speed_sq)
 	var side: Vector2 = Vector2(-dir.y, dir.x)
 	var foot_pos: Vector2 = player_pos + Vector2(0, 22) - dir * 9.0 + side * rng.randf_range(-9.0, 9.0)
 	hit_fx.append({
@@ -3169,6 +3684,8 @@ func _apply_damage_feedback(feedback: Dictionary) -> void:
 	if state == "game_over_intro" or state == "result":
 		return
 	if bool(feedback.get("damaged", false)):
+		if _is_song_frame():
+			song_no_damage_streak_timer = 0.0
 		_notify_accessory_player_damaged()
 		_request_screen_shake(0.16, 0.10)
 		if not bool(feedback.get("dead", false)):
@@ -3199,6 +3716,8 @@ func _choose_comment(index: int) -> void:
 	if bool(result.get("bossWarningStarted", false)):
 		_play_boss_warning_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
+	_apply_song_instruction_comment(String(result.get("commentId", "")))
+	_apply_drawing_instruction_comment(String(result.get("commentId", "")))
 	if not had_banana_floor and ModifierSystemScript.has_effect_for_target(self, "banana_floor"):
 		_start_banana_floor_appear()
 
@@ -3929,9 +4448,13 @@ func _restart() -> void:
 	)
 	if bool(restart_state["saveSettings"]):
 		SettingsSystemScript.save_for_target(self)
+	_sync_viewer_score_countup()
+	_sync_display_gauge_values()
 	chat_lines = RunStateSystemScript.reset_run_ui_and_seed_chat(result_panel, choice_box, heart_cards, chat_lines, chat_box)
 	BossSystemScript.reset_for_target(self)
 	_reset_time_announcements()
+	_reset_song_chorus_state()
+	_reset_drawing_stage_state()
 	_suppress_dash_button_after_ui_confirm()
 
 func _prepare_relay_start() -> void:
@@ -4046,6 +4569,8 @@ func _start_next_relay_segment() -> void:
 	genre_result_card_data.clear()
 	genre_change_banner_event = ""
 	genre_change_banner_timer = 0.0
+	_reset_song_chorus_state()
+	_reset_drawing_stage_state()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["次の配信枠へ！ " + String(current_stream_frame.get("displayName", "配信枠"))]}, chat_box)
 
 func _handle_debug_keys() -> void:
@@ -4163,11 +4688,15 @@ func _draw_banana_roll_edge(data: Dictionary) -> void:
 		draw_line(Vector2(edge_x - 16.0, y), Vector2(edge_x + 16.0, y + 8.0), Color(1.0, 0.93, 0.45, 0.25 if mode == "rollback" else 0.16), 2.0)
 
 func _current_map_data() -> Dictionary:
-	var genre_event := String(active_genre_event) if current_stream_frame_id == "gameplay" else ""
-	if cached_map_frame_id != current_stream_frame_id or cached_map_genre_event != genre_event or cached_map_data.is_empty():
+	var map_variant := ""
+	if current_stream_frame_id == "gameplay":
+		map_variant = String(active_genre_event)
+	elif _is_song_frame() and (song_chorus_timer > 0.0 or song_encore_timer > 0.0):
+		map_variant = "chorus"
+	if cached_map_frame_id != current_stream_frame_id or cached_map_genre_event != map_variant or cached_map_data.is_empty():
 		cached_map_frame_id = current_stream_frame_id
-		cached_map_genre_event = genre_event
-		cached_map_data = MapBackgroundSystemScript.background_data_for_stream_frame(current_stream_frame_id, genre_event)
+		cached_map_genre_event = map_variant
+		cached_map_data = MapBackgroundSystemScript.background_data_for_stream_frame(current_stream_frame_id, map_variant)
 	return cached_map_data
 
 func _current_arena() -> Rect2:
@@ -4182,15 +4711,24 @@ func _draw_arena() -> void:
 		if _draw_map_background_image(MapBackgroundSystemScript.background_path(map_data), map_rect):
 			has_image_background = true
 		else:
-			var background: Dictionary = DrawDataSystemScript.arena_background_data(arena)
-			for part in DrawDataSystemScript.arena_background_parts(background):
-				_draw_arena_part(part as Dictionary)
+			if _is_song_frame():
+				_draw_song_stage_background(arena)
+			elif _is_drawing_frame():
+				_draw_drawing_stage_background(arena)
+			else:
+				var background: Dictionary = DrawDataSystemScript.arena_background_data(arena)
+				for part in DrawDataSystemScript.arena_background_parts(background):
+					_draw_arena_part(part as Dictionary)
 	else:
 		has_image_background = true
+	if has_image_background and _is_drawing_frame():
+		_draw_drawing_canvas_progress_layer(map_data)
 	var has_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
 	var arena_effects: Dictionary = DrawDataSystemScript.arena_effect_data(arena, has_banana_floor, effect_pits, _banana_floor_rollback_progress(), _banana_floor_appear_progress())
 	for part in DrawDataSystemScript.arena_effect_parts(arena_effects):
 		_draw_arena_part(part as Dictionary)
+	if _is_song_frame():
+		_draw_song_live_heat_background_overlay(arena)
 	for wall in DrawDataSystemScript.arena_wall_draw_list(effect_walls, not has_image_background):
 		var wall_item: Dictionary = wall as Dictionary
 		_draw_arena_wall(wall_item["rect"] as Rect2, bool(wall_item["temporary"]))
@@ -4279,13 +4817,19 @@ func _draw_polyline(points: PackedVector2Array, color: Color, width: float) -> v
 	for i in range(points.size()):
 		draw_line(points[i], points[(i + 1) % points.size()], color, width, true)
 
-func _draw_genre_event_objects() -> void:
+func _draw_genre_event_objects(visible_rect: Rect2) -> void:
 	if current_stream_frame_id != "gameplay":
 		return
 	for pad_item in genre_race_dash_pads:
-		_draw_genre_race_dash_pad(pad_item as Dictionary)
+		var pad: Dictionary = pad_item as Dictionary
+		if not visible_rect.has_point(Vector2(pad.get("pos", Vector2.ZERO))):
+			continue
+		_draw_genre_race_dash_pad(pad)
 	for coin_item in genre_race_coins:
-		_draw_genre_race_coin(coin_item as Dictionary)
+		var coin: Dictionary = coin_item as Dictionary
+		if not visible_rect.has_point(Vector2(coin.get("pos", Vector2.ZERO))):
+			continue
+		_draw_genre_race_coin(coin)
 
 func _draw_genre_race_dash_pad(pad: Dictionary) -> void:
 	var pos := Vector2(pad.get("pos", Vector2.ZERO))
@@ -4404,9 +4948,11 @@ func _draw_genre_stg_player_overlay() -> void:
 	draw_line(tail, tail - dir * 18.0 - side * 8.0, Color(0.40, 0.78, 1.0, 0.28), 5.0, true)
 
 func _draw_player() -> void:
+	_draw_song_spotlight_player_underlay()
 	if player_sprite != null:
 		_draw_player_sprite()
 		_draw_genre_stg_player_overlay()
+		_draw_song_spotlight_player_overlay()
 		_draw_player_no_brake_sweat()
 		_draw_invincible_label()
 		_draw_player_hp_bar()
@@ -4414,10 +4960,49 @@ func _draw_player() -> void:
 		return
 	_draw_player_fallback()
 	_draw_genre_stg_player_overlay()
+	_draw_song_spotlight_player_overlay()
 	_draw_player_no_brake_sweat()
 	_draw_invincible_label()
 	_draw_player_hp_bar()
 	_draw_player_dash_status_icon()
+
+func _song_spotlight_benefit_active() -> bool:
+	return _is_song_frame() and (song_spotlight_inside_last_frame or song_spotlight_benefit_flash_timer > 0.0)
+
+func _draw_song_spotlight_player_underlay() -> void:
+	if not _song_spotlight_benefit_active():
+		return
+	var flash := clampf(song_spotlight_benefit_flash_timer / 0.45, 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(elapsed * 8.0)
+	var alpha := 0.34 + flash * 0.22
+	var base_radius := 46.0 + pulse * 5.0 + flash * 10.0
+	draw_circle(player_pos + Vector2(0.0, -5.0), base_radius + 18.0, Color(1.0, 0.82, 0.20, 0.13 * alpha))
+	draw_circle(player_pos + Vector2(0.0, -8.0), base_radius + 7.0, Color(1.0, 1.0, 1.0, 0.16 * alpha))
+	draw_circle(player_pos + Vector2(0.0, -4.0), base_radius, Color(1.0, 0.72, 0.18, 0.30 * alpha), false, 4.0 + flash * 2.0)
+	draw_circle(player_pos + Vector2(0.0, -4.0), base_radius * 0.68, Color(0.75, 0.92, 1.0, 0.18 * alpha), false, 2.4)
+	for i in range(6):
+		var angle := elapsed * 1.5 + float(i) * TAU / 6.0
+		var from_pos := player_pos + Vector2(cos(angle), sin(angle)) * (base_radius * 0.72)
+		var to_pos := player_pos + Vector2(0.0, -36.0) + Vector2(cos(angle) * 9.0, sin(angle) * 5.0)
+		draw_line(from_pos, to_pos, Color(1.0, 0.88, 0.36, (0.12 + flash * 0.08) * alpha), 2.4, true)
+
+func _draw_song_spotlight_player_overlay() -> void:
+	if not _song_spotlight_benefit_active():
+		return
+	var flash := clampf(song_spotlight_benefit_flash_timer / 0.45, 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(elapsed * 7.0)
+	var aura_alpha := 0.70 + flash * 0.25
+	draw_circle(player_pos + Vector2(0.0, -34.0), 18.0 + pulse * 5.0 + flash * 6.0, Color(1.0, 1.0, 1.0, 0.12 * aura_alpha))
+	draw_circle(player_pos + Vector2(0.0, -34.0), 13.0 + flash * 4.0, Color(1.0, 0.80, 0.24, 0.18 * aura_alpha), false, 2.2)
+	for i in range(7):
+		var phase := elapsed * 2.2 + float(i) * TAU / 7.0
+		var orbit := 30.0 + 12.0 * absf(sin(elapsed * 1.4 + float(i)))
+		var sparkle := player_pos + Vector2(cos(phase) * orbit, -30.0 + sin(phase) * 22.0)
+		var sparkle_color := Color("#ffe177") if i % 2 == 0 else Color("#8eeaff")
+		DrawPrimitiveSystemScript.draw_spark(self, sparkle, 4.2 + pulse * 2.4 + flash * 2.0, Color(sparkle_color.r, sparkle_color.g, sparkle_color.b, (0.56 + flash * 0.28) * aura_alpha))
+	if flash > 0.02:
+		var label_pos := player_pos + Vector2(-48.0, -72.0 - flash * 10.0)
+		_draw_outlined_text(label_pos, "視聴者+", 96, 18, Color(1.0, 0.72, 0.16, 0.92 * flash), Color(1.0, 1.0, 1.0, 0.70 * flash), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_player_fallback() -> void:
 	var fallback: Dictionary = DrawDataSystemScript.fallback_player_draw_data(player_pos, current_character_id, invincible > 0.0)
@@ -4475,7 +5060,7 @@ func _draw_invincible_label() -> void:
 
 func _draw_player_hp_bar() -> void:
 	var hide_hp: bool = ModifierSystemScript.has_effect_for_target(self, "hide_hp")
-	var bar: Dictionary = DrawDataSystemScript.player_hp_bar_data(player_pos, player_hp, player_max_hp, hide_hp, elapsed)
+	var bar: Dictionary = DrawDataSystemScript.player_hp_bar_data(player_pos, player_hp, player_max_hp, hide_hp, elapsed, _displayed_mental_hud_ratio())
 	for part in DrawDataSystemScript.player_hp_bar_parts():
 		_draw_simple_draw_part(bar, part as Dictionary)
 
@@ -4517,15 +5102,20 @@ func _draw_player_dash_status_icon() -> void:
 	if banned:
 		draw_line(center + Vector2(-8, -8), center + Vector2(8, 8), ring_color, 2.6, true)
 
-func _draw_enemies() -> void:
-	EnemyDrawSystemScript.draw_enemies(self, enemies)
+func _draw_enemies(visible_rect: Rect2) -> void:
+	EnemyDrawSystemScript.draw_enemies(self, enemies, visible_rect)
 
-func _draw_exp() -> void:
-	ExpDrawSystemScript.draw_exp_orbs(self, exp_orbs, elapsed)
+func _draw_exp(visible_rect: Rect2) -> void:
+	ExpDrawSystemScript.draw_exp_orbs(self, exp_orbs, elapsed, visible_rect)
 
-func _draw_mallow() -> void:
-	for item in DrawDataSystemScript.marshmallow_draw_list(marshmallows, elapsed, maro_appraisal):
-		_draw_mallow_item(item as Dictionary)
+func _draw_mallow(visible_rect: Rect2) -> void:
+	for item in marshmallows:
+		var mallow: Dictionary = item as Dictionary
+		var pos := Vector2(mallow.get("pos", Vector2.ZERO))
+		if not visible_rect.has_point(pos):
+			continue
+		var data: Dictionary = mallow["data"] as Dictionary
+		_draw_mallow_item(DrawDataSystemScript.marshmallow_draw_data(pos, data, float(mallow["time"]), elapsed, maro_appraisal, String(mallow.get("speechText", ""))))
 
 func _draw_mallow_item(visual: Dictionary) -> void:
 	var icon_path: String = String(visual.get("imagePath", ""))
@@ -4534,17 +5124,19 @@ func _draw_mallow_item(visual: Dictionary) -> void:
 		_draw_field_icon(icon_path, visual["pos"] as Vector2, visual["imageSize"] as Vector2)
 		if bool(visual["warning"]):
 			_draw_text_item(visual, "warning")
-		_draw_text_item(visual, "time", HORIZONTAL_ALIGNMENT_LEFT, null, "%02d" % int(ceil(float(visual["timeLeft"]))))
+		DrawPrimitiveSystemScript.draw_time_text_item(self, visual)
 		if visual.has("speech") and not (visual["speech"] as Dictionary).is_empty():
 			_draw_speech_bubble(visual["speech"] as Dictionary)
 		return
 	for part in DrawDataSystemScript.marshmallow_parts(visual):
 		_draw_simple_draw_part(visual, part as Dictionary)
 
-func _draw_destructibles() -> void:
+func _draw_destructibles(visible_rect: Rect2) -> void:
 	for item in destructibles:
 		var box: Dictionary = item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
+			continue
+		if not visible_rect.has_point(Vector2(box.get("pos", Vector2.ZERO))):
 			continue
 		if String(box.get("id", "")) == "horror_fake_gift":
 			_draw_genre_horror_fake_gift(box)
@@ -4571,9 +5163,11 @@ func _draw_care_package_box(box: Dictionary) -> void:
 		"labelWidth": -1
 	}, "label")
 
-func _draw_drop_items() -> void:
+func _draw_drop_items(visible_rect: Rect2) -> void:
 	for item in drop_items:
 		var drop: Dictionary = item as Dictionary
+		if not visible_rect.has_point(Vector2(drop.get("pos", Vector2.ZERO))):
+			continue
 		_draw_drop_item(drop)
 
 func _draw_drop_item(drop: Dictionary) -> void:
@@ -4581,6 +5175,9 @@ func _draw_drop_item(drop: Dictionary) -> void:
 	var id: String = String(drop["id"])
 	var bob := sin(elapsed * 9.0 + pos.x * 0.02) * 3.0
 	pos.y += bob
+	if id == "song_live_gift" or id == "song_special_live_gift":
+		_draw_song_live_gift_drop(pos, id == "song_special_live_gift")
+		return
 	var icon_path: String = FieldPickupVisualSystemScript.drop_item_icon_path(id)
 	if icon_path != "":
 		if _draw_field_icon(icon_path, pos, Vector2(48, 48)):
@@ -4599,6 +5196,40 @@ func _draw_drop_item(drop: Dictionary) -> void:
 		draw_circle(pos, 11.0, Color("#e8fbff"))
 		_draw_text_item({"label": "+人", "labelPos": pos + Vector2(-16, 6), "labelColor": Color("#006e96"), "labelSize": 14, "labelWidth": -1}, "label")
 
+func _draw_song_live_gift_drop(pos: Vector2, special: bool) -> void:
+	var pulse := 0.5 + 0.5 * sin(elapsed * (7.5 if special else 6.0) + pos.x * 0.01)
+	var texture_path := SONG_SPECIAL_LIVE_GIFT_IMAGE if special else SONG_LIVE_GIFT_IMAGE
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, texture_path)
+	if texture != null:
+		var base_height := 96.0 if special else 84.0
+		var aspect := float(texture.get_width()) / maxf(1.0, float(texture.get_height()))
+		var image_size := Vector2(base_height * aspect, base_height) * (1.0 + pulse * (0.045 if special else 0.035))
+		_draw_shadow(pos + Vector2(0.0, image_size.y * 0.32), Vector2(image_size.x * 0.55, image_size.y * 0.15), 0.20 if special else 0.16)
+		draw_circle(pos, image_size.y * (0.48 + pulse * 0.04), Color(1.0, 0.78, 0.24, 0.12 if special else 0.08), true)
+		draw_texture_rect(texture, Rect2(pos - image_size * 0.5, image_size), false, Color.WHITE)
+		return
+	var size := Vector2(66.0, 62.0) if special else Vector2(56.0, 54.0)
+	var body := Rect2(pos - size * 0.5, size)
+	var accent := Color("#ff6fbd") if special else Color("#58d9f7")
+	var ribbon := Color("#ff73bd") if special else Color("#8eeaff")
+	var label := "SP" if special else "LIVE"
+	var label_color := Color("#ff4fa8") if special else Color("#00a8c8")
+	_draw_shadow(pos + Vector2(0.0, size.y * 0.34), Vector2(size.x * 0.74, 14.0), 0.20 if special else 0.16)
+	draw_circle(pos, 42.0 + pulse * 5.0, Color(1.0, 0.46, 0.86, 0.16 if special else 0.08), true)
+	draw_circle(pos, 30.0 + pulse * 4.0, Color(0.55, 0.92, 1.0, 0.11), true)
+	draw_rect(body, Color("#fff7ff") if special else Color("#f8ffff"), true)
+	_draw_rect_outline(body, accent, 3)
+	draw_rect(Rect2(body.position + Vector2(body.size.x * 0.42, 0.0), Vector2(body.size.x * 0.16, body.size.y)), ribbon, true)
+	draw_rect(Rect2(body.position + Vector2(0.0, body.size.y * 0.40), Vector2(body.size.x, body.size.y * 0.16)), ribbon, true)
+	draw_line(pos + Vector2(-17.0, -size.y * 0.50), pos + Vector2(0.0, -size.y * 0.72), Color("#ff8fd0"), 4.0, true)
+	draw_line(pos + Vector2(17.0, -size.y * 0.50), pos + Vector2(0.0, -size.y * 0.72), Color("#8eeaff"), 4.0, true)
+	_draw_outlined_text(pos + Vector2(-24.0, 8.0), label, 48, 16, label_color, Color(1.0, 1.0, 1.0, 0.78), HORIZONTAL_ALIGNMENT_CENTER)
+	var sparkle_count := 6 if special else 4
+	for i in range(sparkle_count):
+		var angle := elapsed * (1.8 if special else 1.2) + float(i) * TAU / float(sparkle_count)
+		var spark := pos + Vector2(cos(angle), sin(angle)) * (36.0 + pulse * 5.0)
+		draw_circle(spark, 3.0 if special else 2.4, Color(1.0, 1.0, 1.0, 0.72), true)
+
 func _load_field_icon(path: String) -> Texture2D:
 	return TextureCacheSystemScript.load_png_texture(field_pickup_icon_cache, path)
 
@@ -4610,8 +5241,8 @@ func _draw_field_icon(path: String, center: Vector2, size: Vector2, alpha: float
 	draw_texture_rect(texture, Rect2(center - size * 0.5, size), false, Color(1.0, 1.0, 1.0, alpha))
 	return true
 
-func _draw_enemy_bullets() -> void:
-	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false)
+func _draw_enemy_bullets(visible_rect: Rect2) -> void:
+	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false, Callable(), Callable(), visible_rect)
 
 func _draw_boss_slow_fields() -> void:
 	for item in boss_slow_fields:
@@ -4711,16 +5342,19 @@ func _draw_boss_guide_sparks(center: Vector2, dir: Vector2, side: Vector2, width
 		draw_line(p - spark_dir * size, p + spark_dir * size * 1.6, color, 2.0 + burst * 1.2, true)
 		draw_line(p - side * size * 0.62, p + side * size * 0.62, Color(0.78, 0.96, 1.0, 0.30 * alpha), 1.5 + burst * 0.8, true)
 
-func _draw_player_bullets() -> void:
+func _draw_player_bullets(visible_rect: Rect2) -> void:
 	WeaponDrawSystemScript.draw_bullets(
 		self,
 		player_bullets,
 		true,
 		Callable(self, "_draw_rotated_texture"),
-		Callable(self, "_load_raw_png_texture")
+		Callable(self, "_load_raw_png_texture"),
+		visible_rect
 	)
 
 func _draw_boomerang() -> void:
+	if _normal_weapons_disabled_by_song_bad_light():
+		return
 	WeaponDrawSystemScript.draw_boomerangs(
 		self,
 		player_pos,
@@ -5145,7 +5779,7 @@ func _draw_equipment_panel_v25(rect: Rect2, label: String, accent: Color) -> voi
 	_draw_text_item({"pos": tab.position + Vector2(0, 17), "text": label, "width": int(tab.size.x), "size": 14, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _viewer_hud_text() -> String:
-	return "%s人" % DrawDataSystemScript.format_viewer_count(score)
+	return "%s人" % DrawDataSystemScript.format_viewer_count(displayed_viewer_score)
 
 func _time_hud_text() -> String:
 	var remaining: int = maxi(0, int(ceil(RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH) - elapsed)))
@@ -5157,6 +5791,8 @@ func _current_instruction_hud_text() -> String:
 		return "%s　%02d秒\n%s" % [text, maxi(0, int(ceil(effect_timer))), _active_sub_instruction_text()]
 	if text == "" or text == "なし":
 		return "なし"
+	if _song_lighting_mistake_active():
+		return "%s　%02d秒\n暴走ライトを避けろ！ 入ると攻撃停止" % [text, maxi(0, int(ceil(effect_timer)))]
 	if ModifierSystemScript.has_effect_for_target(self, "short_range"):
 		return "%s　%02d秒\n射程短縮中" % [text, maxi(0, int(ceil(effect_timer)))]
 	return "%s　%02d秒" % [text, maxi(0, int(ceil(effect_timer)))]
@@ -5166,6 +5802,8 @@ func _current_instruction_panel_text_v25() -> String:
 	if text == "" or text == "なし" or effect_timer <= 0.0:
 		return "なし"
 	if active_sub_comment_ids.is_empty():
+		if _song_lighting_mistake_active():
+			return "%s / 入ると攻撃停止" % text
 		if ModifierSystemScript.has_effect_for_target(self, "short_range"):
 			return "%s / 射程短縮中" % text
 		return text
@@ -5374,7 +6012,7 @@ func _draw_bottom_hud_v25() -> void:
 func _mental_hud_text() -> String:
 	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
 		return "??%"
-	return "%d%%" % int(round(_mental_hud_ratio() * 100.0))
+	return "%d%%" % int(round(_displayed_mental_hud_ratio() * 100.0))
 
 func _mental_hud_ratio() -> float:
 	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
@@ -5382,6 +6020,11 @@ func _mental_hud_ratio() -> float:
 	if player_max_hp <= 0:
 		return 0.0
 	return clampf(float(player_hp) / float(player_max_hp), 0.0, 1.0)
+
+func _displayed_mental_hud_ratio() -> float:
+	if not mental_gauge_display_initialized:
+		return _mental_hud_ratio()
+	return clampf(displayed_mental_ratio, 0.0, 1.0)
 
 func _mental_hud_fill_color(ratio: float) -> Color:
 	if ModifierSystemScript.has_effect_for_target(self, "hide_hp"):
@@ -5393,7 +6036,7 @@ func _mental_hud_fill_color(ratio: float) -> Color:
 	return Color("#4ade80")
 
 func _draw_mental_hud_card_v25(rect: Rect2) -> void:
-	var ratio := _mental_hud_ratio()
+	var ratio := _displayed_mental_hud_ratio()
 	var accent := _mental_hud_fill_color(ratio)
 	var image_drawn := _draw_hud_ui_texture_v25(HUD_UI_METRIC_MENTAL_IMAGE, rect)
 	if not image_drawn:
@@ -5418,9 +6061,49 @@ func _draw_ui_part(path: String, pos: Vector2) -> bool:
 func _draw_map_background_image(path: String, rect: Rect2) -> bool:
 	var texture: Texture2D = _load_ui_part(path)
 	if texture == null:
+		texture = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	if texture == null:
 		return false
 	draw_texture_rect(texture, rect, false)
 	return true
+
+func _draw_drawing_canvas_progress_layer(map_data: Dictionary) -> void:
+	if not _is_drawing_frame():
+		return
+	var rect_value: Variant = map_data.get("canvasProgressRect", Rect2())
+	if not (rect_value is Rect2):
+		return
+	var paths_value: Variant = map_data.get("canvasProgressPaths", {})
+	if not (paths_value is Dictionary):
+		return
+	var progress_data := _drawing_canvas_progress_layer_data()
+	var progress_key := String(progress_data.get("key", "rough"))
+	var path := String((paths_value as Dictionary).get(progress_key, ""))
+	if path == "":
+		return
+	var texture: Texture2D = _load_ui_part(path)
+	if texture == null:
+		texture = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	if texture == null:
+		return
+	var local_rect: Rect2 = rect_value as Rect2
+	var map_rect: Rect2 = MapBackgroundSystemScript.world_rect(map_data)
+	var canvas_rect := Rect2(map_rect.position + local_rect.position, local_rect.size)
+	var draw_rect := _fit_texture_rect(canvas_rect.grow(-18.0), texture.get_size())
+	var alpha := float(progress_data.get("alpha", 0.22))
+	draw_texture_rect(texture, draw_rect, false, Color(1.0, 1.0, 1.0, alpha))
+
+func _drawing_canvas_progress_layer_data() -> Dictionary:
+	var progress := clampf(drawing_progress, 0.0, 100.0)
+	if progress >= 100.0:
+		return {"key": "complete", "alpha": 0.42}
+	if progress >= 75.0:
+		return {"key": "finish", "alpha": 0.30 + (progress - 75.0) / 25.0 * 0.08}
+	if progress >= 50.0:
+		return {"key": "finish", "alpha": 0.21 + (progress - 50.0) / 25.0 * 0.07}
+	if progress >= 25.0:
+		return {"key": "lineart", "alpha": 0.20 + (progress - 25.0) / 25.0 * 0.05}
+	return {"key": "rough", "alpha": 0.14 + progress / 25.0 * 0.07}
 
 func _load_ui_part(path: String) -> Texture2D:
 	return TextureCacheSystemScript.load_resource_texture(ui_part_cache, path)
@@ -5428,6 +6111,21 @@ func _load_ui_part(path: String) -> Texture2D:
 func _draw_equipment_icons() -> void:
 	_draw_equipment_icon_row(player_weapons, weapons, Vector2(992, 821), true)
 	_draw_equipment_icon_row(player_accessories, gifts, Vector2(1312, 821), false)
+	if _normal_weapons_disabled_by_song_bad_light():
+		_draw_bad_light_weapon_stop_badge()
+
+func _draw_bad_light_weapon_stop_badge() -> void:
+	var rect := Rect2(Vector2(1003, 805), Vector2(184, 24))
+	var blink := 0.74 + 0.26 * sin(elapsed * 20.0)
+	_draw_ranking_panel(rect, Color(1.0, 0.94, 0.99, 0.92), Color(0.95, 0.05, 0.50, 0.92 * blink), 7, 2, false)
+	_draw_text_item({
+		"pos": rect.position + Vector2(0, 18),
+		"text": "通常武器 攻撃停止",
+		"width": int(rect.size.x),
+		"size": 16,
+		"color": Color("#e40068"),
+		"fontWeight": "bold"
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, is_weapon: bool) -> void:
 	var slot_size := Vector2(38, 38)
@@ -8583,14 +9281,17 @@ func _draw_comment_choice_card_contents() -> void:
 		var desc_lines: Array[String] = _split_card_text(String(view["description"]) if view.has("description") else "", 9)
 		if icon != null:
 			_draw_instruction_comment_icon(icon, icon_rect, comment_id)
-			for line in desc_lines.slice(0, 1):
-				_draw_centered_card_text(String(line), center_x, rect.position.y + 232.0, rect.size.x - 42.0, 20, sub_color)
+			var icon_desc_y: float = rect.position.y + 220.0
+			for line in desc_lines.slice(0, 2):
+				_draw_centered_card_text(String(line), center_x, icon_desc_y, rect.size.x - 42.0, 18, sub_color)
+				icon_desc_y += 21.0
 		else:
 			var desc_y: float = rect.position.y + 158.0
 			for line in desc_lines.slice(0, 3):
 				_draw_centered_card_text(String(line), center_x, desc_y, rect.size.x - 42.0, 20, sub_color)
 				desc_y += 25.0
-		draw_line(rect.position + Vector2(42.0, 248.0), rect.position + Vector2(rect.size.x - 42.0, 248.0), Color(1, 1, 1, 0.25), 2.0)
+		var metric_line_y: float = rect.position.y + 257.0
+		draw_line(Vector2(rect.position.x + 42.0, metric_line_y), Vector2(rect.position.x + rect.size.x - 42.0, metric_line_y), Color(1, 1, 1, 0.25), 2.0)
 		var multiplier: float = float(view["multiplier"]) if view.has("multiplier") else 1.0
 		var gift_hype_on_select: int = int(view["giftHypeOnSelect"]) if view.has("giftHypeOnSelect") else 0
 		_draw_centered_card_text("倍率 x%.1f" % [multiplier], center_x, rect.position.y + 270.0, rect.size.x - 42.0, 22, metric_color)
@@ -8677,6 +9378,16 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/camera_zoom_icon.png"
 	elif comment_id == "summon_boss":
 		path = "res://assets/generated/instruction_comment_icons_v1/summon_boss_icon.png"
+	elif comment_id == "song_tempo_up":
+		path = "res://assets/generated/instruction_comment_icons_v1/song_tempo_up_icon.png"
+	elif comment_id == "song_force_chorus":
+		path = "res://assets/generated/instruction_comment_icons_v1/song_force_chorus_icon.png"
+	elif comment_id == "song_mic_howling":
+		path = "res://assets/generated/instruction_comment_icons_v1/song_mic_howling_icon.png"
+	elif comment_id == "song_lighting_mistake":
+		path = "res://assets/generated/instruction_comment_icons_v1/song_lighting_mistake_icon.png"
+	elif comment_id == "song_lyrics_lost":
+		path = "res://assets/generated/instruction_comment_icons_v1/song_lyrics_lost_icon.png"
 	if path == "":
 		return null
 	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)
@@ -8696,6 +9407,12 @@ func _instruction_comment_icon_rect(card_rect: Rect2, center_x: float, comment_i
 	elif comment_id == "takeback" or comment_id == "kamiyoyaku":
 		icon_size = Vector2(136.0, 136.0)
 		y_offset = 88.0
+	elif comment_id == "song_tempo_up":
+		icon_size = Vector2(150.0, 150.0)
+		y_offset = 82.0
+	elif comment_id in ["song_force_chorus", "song_mic_howling", "song_lighting_mistake", "song_lyrics_lost"]:
+		icon_size = Vector2(156.0, 156.0)
+		y_offset = 78.0
 	return Rect2(Vector2(center_x - icon_size.x * 0.5, card_rect.position.y + y_offset), icon_size)
 
 func _draw_instruction_comment_icon_backdrop(card_rect: Rect2, icon_rect: Rect2, risk: int) -> void:
@@ -8803,14 +9520,16 @@ func _draw_centered_card_text_with_outline(text: String, center_x: float, y: flo
 
 func _split_card_text(text: String, max_chars: int) -> Array[String]:
 	var lines: Array[String] = []
-	var current: String = ""
-	for i in range(text.length()):
-		current += text.substr(i, 1)
-		if current.length() >= max_chars:
+	for raw_part in text.split("\n", false):
+		var part: String = String(raw_part)
+		var current: String = ""
+		for i in range(part.length()):
+			current += part.substr(i, 1)
+			if current.length() >= max_chars:
+				lines.append(current)
+				current = ""
+		if current != "":
 			lines.append(current)
-			current = ""
-	if current != "":
-		lines.append(current)
 	return lines
 
 func _draw_comment_storm() -> void:
@@ -9094,6 +9813,3518 @@ func _genre_event_timer_accent_color(event_id: String) -> Color:
 	if event_id == "horror":
 		return Color("#ba93ff")
 	return Color("#ff79ad")
+
+func _is_song_frame() -> bool:
+	return current_stream_frame_id == "singing" or current_stream_frame_id == "song"
+
+func _is_drawing_frame() -> bool:
+	return current_stream_frame_id == "drawing"
+
+func _song_live_heat_level_for(value: float) -> int:
+	if value >= 90.0:
+		return 5
+	if value >= 75.0:
+		return 4
+	if value >= 60.0:
+		return 3
+	if value >= 40.0:
+		return 2
+	if value >= 20.0:
+		return 1
+	return 0
+
+func _song_live_heat_label(level: int) -> String:
+	match clampi(level, 0, 5):
+		0:
+			return "開演直後"
+		1:
+			return "テンポアップ"
+		2:
+			return "ペンライト支援"
+		3:
+			return "ハーモニーウェーブ"
+		4:
+			return "主役スポットライト"
+		5:
+			return "アンコールフィーバー"
+	return "LIVE"
+
+func _song_live_heat_move_speed_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	var value := 1.0
+	if song_live_heat_level >= 1:
+		value *= SONG_LIVE_HEAT_LV1_MOVE_RATE
+	if song_live_heat_level >= 5:
+		value *= SONG_LIVE_HEAT_LV5_MOVE_RATE
+	value *= _song_instruction_multiplier("song_tempo_up", 1.08)
+	return value
+
+func _song_dash_cooldown_recovery_multiplier() -> float:
+	return 1.0
+
+func _song_enemy_move_speed_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	return _song_instruction_multiplier("song_tempo_up", 1.22)
+
+func _song_live_heat_pickup_range_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	var value := 1.0
+	if song_live_heat_level >= 1:
+		value *= SONG_LIVE_HEAT_LV1_PICKUP_RATE
+	if song_live_heat_level >= 5:
+		value *= SONG_LIVE_HEAT_LV5_PICKUP_RATE
+	return value
+
+func _song_live_heat_attack_cooldown_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	var value := 1.0
+	if song_live_heat_level >= 4:
+		value *= SONG_LIVE_HEAT_LV4_COOLDOWN_RATE
+	if song_live_heat_level >= 5:
+		value *= SONG_LIVE_HEAT_LV5_COOLDOWN_RATE
+	return value
+
+func _normal_weapons_disabled_by_song_bad_light() -> bool:
+	return _is_song_frame() and SONG_BAD_LIGHT_DISABLE_NORMAL_WEAPONS and song_bad_light_inside
+
+func _live_heat_support_disabled_by_song_bad_light() -> bool:
+	return _is_song_frame() and SONG_BAD_LIGHT_DISABLE_LIVE_HEAT_SUPPORT and song_bad_light_inside
+
+func _song_live_heat_damage_taken_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	return SONG_LIVE_HEAT_LV4_DAMAGE_RATE if song_live_heat_level >= 4 else 1.0
+
+func _song_comment_speed_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	match clampi(song_live_heat_level, 0, 5):
+		0:
+			return 1.0
+		1:
+			return 1.05
+		2:
+			return 1.15
+		3:
+			return 1.30
+		4:
+			return 1.45
+		5:
+			return 1.60
+	return 1.0
+
+func _song_note_spawn_multiplier() -> float:
+	match clampi(song_live_heat_level, 0, 5):
+		0:
+			return 1.0
+		1:
+			return 1.05
+		2:
+			return 1.15
+		3:
+			return 1.25
+		4:
+			return 1.40
+		5:
+			return 1.60
+	return 1.0
+
+func _song_enemy_spawn_multiplier() -> float:
+	var multiplier_value := 1.0
+	match clampi(song_live_heat_level, 0, 5):
+		2:
+			multiplier_value = 1.05
+		3:
+			multiplier_value = 1.10
+		4:
+			multiplier_value = 1.15
+		5:
+			multiplier_value = 1.22
+	if song_encore_timer > 0.0:
+		multiplier_value *= 1.25
+	multiplier_value *= _song_instruction_enemy_spawn_multiplier()
+	return multiplier_value
+
+func _song_instruction_enemy_spawn_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	var value := 1.0
+	value *= _song_instruction_multiplier("song_tempo_up", 1.15)
+	value *= _song_instruction_multiplier("song_force_chorus", 1.35)
+	return value
+
+func _song_comment_enemy_spawn_bias() -> float:
+	return 0.0
+
+func _song_note_lifetime_multiplier() -> float:
+	if not _is_song_frame():
+		return 1.0
+	return _song_instruction_multiplier("song_tempo_up", 0.80)
+
+func _song_note_live_heat_gain_multiplier() -> float:
+	return 1.0
+
+func _song_instruction_power(comment_id: String) -> float:
+	if not _is_song_frame():
+		return 0.0
+	return clampf(ModifierSystemScript.effect_rate_for_target(self, comment_id), 0.0, 1.0)
+
+func _song_instruction_multiplier(comment_id: String, active_value: float) -> float:
+	var power := _song_instruction_power(comment_id)
+	if power <= 0.0:
+		return 1.0
+	return lerpf(1.0, active_value, power)
+
+func _song_max_spotlights() -> int:
+	var level := clampi(song_live_heat_level, 0, 5)
+	if level <= 0:
+		return 1
+	if level <= 2:
+		return 2
+	if level <= 4:
+		return 3
+	return 4
+
+func _song_live_heat_gain_multiplier() -> float:
+	var value := 1.0
+	if song_chorus_timer > 0.0:
+		value *= SONG_CHORUS_LIVE_HEAT_MULTIPLIER
+	if song_encore_timer > 0.0:
+		value *= SONG_ENCORE_LIVE_HEAT_MULTIPLIER
+	return value
+
+func _song_viewer_gain_multiplier() -> float:
+	var value := 1.0
+	if song_chorus_timer > 0.0:
+		value *= SONG_CHORUS_VIEWER_GAIN_MULTIPLIER
+	if song_encore_timer > 0.0:
+		value *= SONG_ENCORE_VIEWER_GAIN_MULTIPLIER
+	return value
+
+func _song_voltage_gain_multiplier() -> float:
+	var value := 1.0
+	if song_chorus_timer > 0.0:
+		value *= SONG_CHORUS_VOLTAGE_GAIN_MULTIPLIER
+	if song_encore_timer > 0.0:
+		value *= SONG_ENCORE_VOLTAGE_GAIN_MULTIPLIER
+	return value
+
+func _add_song_live_heat(amount: float, _source: String = "") -> void:
+	if not _is_song_frame() or amount <= 0.0:
+		return
+	var previous_level := song_live_heat_level
+	song_live_heat = clampf(song_live_heat + amount, 0.0, SONG_LIVE_HEAT_MAX)
+	song_live_heat_level = _song_live_heat_level_for(song_live_heat)
+	song_max_live_heat = maxf(song_max_live_heat, song_live_heat)
+	song_max_live_heat_level = maxi(song_max_live_heat_level, song_live_heat_level)
+	if song_live_heat_level > previous_level:
+		song_live_heat_level_flash_timer = 1.0
+		screen_flash_timer = 0.10
+		screen_flash_duration = 0.10
+		screen_flash_color = Color(1.0, 0.72, 0.96, 0.14)
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ LIVE HEAT Lv.%d！" % song_live_heat_level, "+ %s" % _song_live_heat_label(song_live_heat_level)]}, chat_box)
+		_apply_song_live_heat_level_rewards(previous_level, song_live_heat_level)
+
+func _apply_song_live_heat_level_rewards(previous_level: int, new_level: int) -> void:
+	if not _is_song_frame():
+		return
+	var arena := _current_arena()
+	for level in range(previous_level + 1, new_level + 1):
+		if level <= 0 or bool(song_live_heat_reward_claimed.get(level, false)):
+			continue
+		song_live_heat_reward_claimed[level] = true
+		_grant_song_live_heat_level_reward(level, arena)
+
+func _grant_song_live_heat_level_reward(level: int, arena: Rect2) -> void:
+	var chats: Array[String] = ["+ LIVE HEAT Lv.%d到達報酬！" % level]
+	var level_label := _song_live_heat_label(level)
+	var toast := "LIVE HEAT Lv.%d %s！" % [level, level_label]
+	match level:
+		1:
+			_spawn_song_notes(3, arena, false, SONG_AMBIENT_NOTE_LIFETIME)
+			score += 300
+			chats.append("+ テンポ上がってきた！")
+			chats.append("> 動きよくなった")
+			chats.append("+ 音符3個出現")
+			chats.append("+ 視聴者 +300")
+			toast += " 移動/回収UP"
+		2:
+			_add_song_gift_hype_reward(5)
+			song_penlight_bit_shot_timer = 0.45
+			chats.append("+ ペンライト支援きた！")
+			chats.append("> ペンライト飛んでる")
+			chats.append("ｗ 客席が攻撃してる")
+			chats.append("+ ギフト期待度 +5")
+			toast += " ペンライトビット"
+		3:
+			_spawn_song_live_gift_drop(arena, false)
+			_add_song_gift_hype_reward(10)
+			song_harmony_wave_timer = 0.55
+			chats.append("+ ハーモニーウェーブ解放！")
+			chats.append("> 音波出てる！")
+			chats.append("ｗ ライブ会場が武器になった")
+			chats.append("+ ライブギフト箱が出現")
+			chats.append("+ ギフト期待度 +10")
+			toast += " 音波リング解放"
+		4:
+			_spawn_song_notes(8, arena, false, SONG_AMBIENT_NOTE_LIFETIME)
+			_spawn_song_spotlights(1, arena)
+			_add_song_gift_hype_reward(15)
+			chats.append("+ 主役スポットライト！")
+			chats.append("> 今めっちゃ映えてる")
+			chats.append("+ 音符回収で少し回復")
+			chats.append("+ 音符8個出現")
+			chats.append("+ スポットライト出現")
+			chats.append("+ ギフト期待度 +15")
+			toast += " 防御/攻撃補助UP"
+		5:
+			_spawn_song_live_gift_drop(arena, true)
+			_add_song_gift_hype_reward(20)
+			song_encore_unlocked = true
+			song_audience_call_wave_timer = 0.65
+			chats.append("+ アンコールフィーバー！")
+			chats.append("> 会場あったまりすぎ")
+			chats.append("ｗ 終われない空気")
+			chats.append("+ スペシャルライブギフト箱が出現")
+			chats.append("+ ギフト期待度 +20")
+			chats.append("+ アンコールチャンス解放！")
+			toast = "LIVE HEAT MAX! アンコールフィーバー！"
+		_:
+			return
+	_queue_song_live_heat_level_notice(level)
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": chats, "toasts": [toast]}, chat_box, 1.5)
+
+func _add_song_gift_hype_reward(amount: int) -> void:
+	gift_hype = clampi(gift_hype + amount, 0, 100)
+	max_gift_hype = maxi(max_gift_hype, gift_hype)
+
+func _song_live_heat_is_max() -> bool:
+	return song_live_heat >= SONG_LIVE_HEAT_MAX - 0.001 or (song_live_heat_level >= 5 and song_live_heat >= SONG_LIVE_HEAT_MAX - 0.001)
+
+func _try_trigger_song_max_octave_audience_call_wave() -> bool:
+	if not _song_live_heat_is_max():
+		return false
+	if song_max_octave_audience_call_wave_cooldown > 0.0:
+		return false
+	var arena := _current_arena()
+	_spawn_song_audience_call_wave(arena)
+	song_max_octave_audience_call_wave_cooldown = SONG_MAX_OCTAVE_AUDIENCE_CALL_WAVE_COOLDOWN
+	song_audience_call_wave_timer = maxf(song_audience_call_wave_timer, SONG_MAX_OCTAVE_AUDIENCE_CALL_WAVE_COOLDOWN)
+	return true
+
+func _spawn_song_live_gift_drop(arena: Rect2, special: bool) -> void:
+	var drop_id := "song_special_live_gift" if special else "song_live_gift"
+	drop_items.append({
+		"id": drop_id,
+		"displayName": "スペシャルライブギフト箱" if special else "ライブギフト箱",
+		"pos": _song_live_gift_position(arena),
+		"life": SONG_LIVE_GIFT_LIFETIME,
+		"age": 0.0,
+		"special": special
+	})
+
+func _song_live_gift_position(arena: Rect2) -> Vector2:
+	var walls := EnemySystemScript.movement_wall_rects(effect_walls, current_stream_frame_id)
+	var rect := arena.grow(-76.0)
+	for i in range(56):
+		var angle := rng.randf_range(0.0, TAU)
+		var distance := rng.randf_range(160.0, 320.0)
+		var pos := player_pos + Vector2(cos(angle), sin(angle)) * distance
+		if not rect.has_point(pos):
+			continue
+		if _song_live_gift_position_blocked(pos, 42.0, walls):
+			continue
+		return pos
+	return _song_event_position(arena, 52.0)
+
+func _song_live_gift_position_blocked(pos: Vector2, radius: float, walls: Array) -> bool:
+	for wall_value in walls:
+		var wall: Rect2 = wall_value as Rect2
+		if wall.grow(radius).has_point(pos):
+			return true
+	for drop_item in drop_items:
+		var drop: Dictionary = drop_item as Dictionary
+		if pos.distance_squared_to(Vector2(drop.get("pos", Vector2.ZERO))) < 7396.0:
+			return true
+	for box_item in destructibles:
+		var box: Dictionary = box_item as Dictionary
+		if float(box.get("hp", 0.0)) > 0.0 and pos.distance_squared_to(Vector2(box.get("pos", Vector2.ZERO))) < 8464.0:
+			return true
+	return false
+
+func _song_add_viewers(amount: float) -> void:
+	var add_viewers := int(round(amount * _song_viewer_gain_multiplier()))
+	if add_viewers > 0:
+		score += add_viewers
+
+func _song_add_voltage(amount: float) -> void:
+	multiplier = minf(5.0, multiplier + amount * _song_voltage_gain_multiplier())
+	max_multiplier = maxf(max_multiplier, multiplier)
+
+func _reset_song_chorus_state() -> void:
+	song_chorus_next_time = SONG_CHORUS_FIRST_DELAY
+	song_chorus_telegraph_timer = 0.0
+	song_chorus_timer = 0.0
+	song_chorus_banner_timer = 0.0
+	song_chorus_result_timer = 0.0
+	song_chorus_result_duration = SONG_CHORUS_RESULT_CARD_DURATION
+	song_chorus_result_data.clear()
+	song_chorus_notes_collected = 0
+	song_chorus_spotlight_time = 0.0
+	song_chorus_enemy_spawn_timer = 0.0
+	song_chorus_viewer_accum = 0.0
+	song_chorus_current_duration = SONG_CHORUS_DURATION
+	song_forced_chorus_active = false
+	song_chorus_reward_multiplier = 1.0
+	song_howling_emitters.clear()
+	song_howling_waves.clear()
+	song_bad_lights.clear()
+	song_bad_light_respawn_timer = 0.0
+	song_bad_light_inside = false
+	song_lyrics_cards.clear()
+	song_lyrics_card_locked_pos = Vector2.ZERO
+	song_lyrics_card_has_locked_pos = false
+	song_lyrics_lost_card_collected = false
+	song_spotlight_inside_last_frame = false
+	song_spotlight_benefit_se_cooldown = 0.0
+	song_spotlight_benefit_flash_timer = 0.0
+	song_notes.clear()
+	song_ambient_note_timer = SONG_AMBIENT_NOTE_INTERVAL_MIN
+	song_spotlights.clear()
+	song_chorus_count = 0
+	song_total_notes_collected = 0
+	song_note_scale_index = 0
+	song_note_total_collected = 0
+	song_octave_bonus_count = 0
+	song_scale_note_queue.clear()
+	song_scale_note_queue_timer = 0.0
+	song_octave_bonus_notice_timer = 0.0
+	song_octave_bonus_notice_duration = 0.0
+	song_octave_bonus_notice_hits = 0
+	song_octave_bonus_notice_call_wave = false
+	song_total_spotlight_time = 0.0
+	song_live_heat = 0.0
+	displayed_song_live_heat = song_live_heat
+	song_live_heat_gauge_display_initialized = true
+	song_live_heat_level = 0
+	song_max_live_heat = 0.0
+	song_max_live_heat_level = 0
+	song_live_heat_level_flash_timer = 0.0
+	song_live_heat_reward_claimed.clear()
+	song_live_heat_level_notice_queue.clear()
+	song_live_heat_level_notice_timer = 0.0
+	song_live_heat_level_notice_duration = 0.0
+	song_live_heat_level_notice_data.clear()
+	song_no_damage_streak_timer = 0.0
+	song_pitch_wave_cooldown = 0.0
+	song_pitch_waves.clear()
+	song_boss_chorus_judge_busy = false
+	song_boss_chorus_judge_active = false
+	song_boss_chorus_judge_required = 0
+	song_boss_chorus_judge_collected = 0
+	song_boss_chorus_judge_timer = 0.0
+	song_boss_chorus_judge_duration = 0.0
+	song_boss_chorus_judge_notice_timer = 0.0
+	song_boss_chorus_judge_notice_duration = 0.0
+	song_boss_chorus_judge_notice_title = ""
+	song_boss_chorus_judge_notice_subtitle = ""
+	song_boss_chorus_judge_notice_success = false
+	song_boss_megaphone_waves.clear()
+	song_encore_timer = 0.0
+	song_encore_triggered = false
+	song_encore_completed = false
+	song_encore_unlocked = false
+	song_penlight_bit_shot_timer = 0.0
+	song_harmony_wave_timer = 0.0
+	song_audience_call_wave_timer = 0.0
+	song_max_octave_audience_call_wave_cooldown = 0.0
+	song_note_trail_timer = 0.0
+	song_live_heat_fx.clear()
+
+func _update_song_chorus_overlay_timers(delta: float) -> void:
+	if song_chorus_banner_timer > 0.0:
+		song_chorus_banner_timer = maxf(0.0, song_chorus_banner_timer - delta)
+	if song_chorus_result_timer > 0.0:
+		song_chorus_result_timer = maxf(0.0, song_chorus_result_timer - delta)
+		if song_chorus_result_timer <= 0.0:
+			song_chorus_result_data.clear()
+	if song_live_heat_level_flash_timer > 0.0:
+		song_live_heat_level_flash_timer = maxf(0.0, song_live_heat_level_flash_timer - delta)
+	if song_octave_bonus_notice_timer > 0.0:
+		song_octave_bonus_notice_timer = maxf(0.0, song_octave_bonus_notice_timer - delta)
+	if song_boss_chorus_judge_notice_timer > 0.0:
+		song_boss_chorus_judge_notice_timer = maxf(0.0, song_boss_chorus_judge_notice_timer - delta)
+	if song_max_octave_audience_call_wave_cooldown > 0.0:
+		song_max_octave_audience_call_wave_cooldown = maxf(0.0, song_max_octave_audience_call_wave_cooldown - delta)
+	_update_song_live_heat_level_notice(delta)
+
+func _queue_song_live_heat_level_notice(level: int) -> void:
+	var data := _song_live_heat_level_notice_content(level)
+	if data.is_empty():
+		return
+	song_live_heat_level_notice_queue.append(data)
+
+func _song_live_heat_level_notice_content(level: int) -> Dictionary:
+	match clampi(level, 1, 5):
+		1:
+			return {
+				"level": 1,
+				"title": "ライブテンション Lv.1",
+				"name": "テンポアップ！",
+				"description": "移動速度・回収範囲UP",
+				"icon": "♪",
+				"accent": Color("#8eeaff")
+			}
+		2:
+			return {
+				"level": 2,
+				"title": "ライブテンション Lv.2",
+				"name": "ペンライト支援！",
+				"description": "ペンライトビットが敵を攻撃",
+				"icon": "✦",
+				"accent": Color("#ff8fc8")
+			}
+		3:
+			return {
+				"level": 3,
+				"title": "ライブテンション Lv.3",
+				"name": "ハーモニーウェーブ解放！",
+				"description": "音波リングで周囲を攻撃",
+				"icon": "◎",
+				"accent": Color("#c6a5ff")
+			}
+		4:
+			return {
+				"level": 4,
+				"title": "ライブテンション Lv.4",
+				"name": "主役スポットライト！",
+				"description": "防御UP・攻撃間隔短縮",
+				"icon": "★",
+				"accent": Color("#ffe177")
+			}
+		5:
+			return {
+				"level": 5,
+				"title": "LIVE HEAT MAX!",
+				"name": "アンコールフィーバー！",
+				"description": "観客コール波・特別ギフト解放",
+				"icon": "♛",
+				"accent": Color("#ffcf4d"),
+				"subAccent": Color("#ff67b3")
+			}
+	return {}
+
+func _song_live_heat_level_notice_blocked() -> bool:
+	if not _is_song_frame():
+		return true
+	if state != "playing":
+		return true
+	if song_chorus_banner_timer > 0.0:
+		return true
+	return false
+
+func _song_live_heat_level_notice_visible() -> bool:
+	return song_live_heat_level_notice_timer > 0.0 and not song_live_heat_level_notice_data.is_empty() and not _song_live_heat_level_notice_blocked()
+
+func _song_notice_stack_top_y() -> float:
+	var top := FIELD_VIEW.position.y + SONG_NOTICE_STACK_BASE_TOP
+	if song_chorus_result_timer > 0.0:
+		top = maxf(top, FIELD_VIEW.position.y + SONG_NOTICE_STACK_RESULT_TOP)
+	if song_chorus_banner_timer > 0.0:
+		top = maxf(top, FIELD_VIEW.position.y + SONG_NOTICE_STACK_CHORUS_TOP)
+	return top
+
+func _song_notice_stack_center_y(height: float, lane: int) -> float:
+	return _song_notice_stack_top_y() + float(maxi(0, lane)) * SONG_NOTICE_STACK_LANE_GAP + height * 0.5
+
+func _update_song_live_heat_level_notice(delta: float) -> void:
+	if not _is_song_frame():
+		song_live_heat_level_notice_queue.clear()
+		song_live_heat_level_notice_timer = 0.0
+		song_live_heat_level_notice_duration = 0.0
+		song_live_heat_level_notice_data.clear()
+		song_octave_bonus_notice_timer = 0.0
+		song_octave_bonus_notice_duration = 0.0
+		song_octave_bonus_notice_hits = 0
+		song_boss_chorus_judge_notice_timer = 0.0
+		song_boss_chorus_judge_notice_duration = 0.0
+		return
+	if _song_live_heat_level_notice_blocked():
+		return
+	if song_live_heat_level_notice_timer > 0.0:
+		song_live_heat_level_notice_timer = maxf(0.0, song_live_heat_level_notice_timer - delta)
+		if song_live_heat_level_notice_timer <= 0.0:
+			song_live_heat_level_notice_data.clear()
+		return
+	if song_live_heat_level_notice_queue.is_empty():
+		return
+	song_live_heat_level_notice_data = song_live_heat_level_notice_queue.pop_front() as Dictionary
+	song_live_heat_level_notice_duration = SONG_LIVE_HEAT_LEVEL_NOTICE_DURATION + (0.25 if int(song_live_heat_level_notice_data.get("level", 0)) >= 5 else 0.0)
+	song_live_heat_level_notice_timer = song_live_heat_level_notice_duration
+
+func _song_next_interval() -> float:
+	var heat_reduction := float(song_live_heat_level) * 1.4
+	return rng.randf_range(
+		maxf(24.0, SONG_CHORUS_INTERVAL_MIN - heat_reduction),
+		maxf(32.0, SONG_CHORUS_INTERVAL_MAX - heat_reduction)
+	)
+
+func _update_song_no_damage_bonus(delta: float) -> void:
+	if not _is_song_frame():
+		song_no_damage_streak_timer = 0.0
+		return
+	if state != "playing" and state != "comment_choice" and state != "gift_choice":
+		return
+	song_no_damage_streak_timer += delta
+	while song_no_damage_streak_timer >= SONG_NO_DAMAGE_STREAK_INTERVAL:
+		song_no_damage_streak_timer -= SONG_NO_DAMAGE_STREAK_INTERVAL
+		_add_song_live_heat(SONG_LIVE_HEAT_NO_DAMAGE_STREAK_GAIN, "no_damage_streak")
+
+func _update_song_chorus(delta: float, arena: Rect2) -> void:
+	if not _is_song_frame():
+		if song_chorus_timer > 0.0 or song_chorus_telegraph_timer > 0.0 or not song_notes.is_empty() or not song_spotlights.is_empty() or not song_live_heat_fx.is_empty() or song_boss_chorus_judge_busy or not song_boss_megaphone_waves.is_empty():
+			_reset_song_chorus_state()
+		return
+	_update_song_no_damage_bonus(delta)
+	_update_song_notes(delta)
+	if not song_boss_chorus_judge_active:
+		_update_song_ambient_notes(delta, arena)
+	_update_song_spotlights(delta)
+	_update_song_live_heat_buffs(delta, arena)
+	_update_song_instruction_effects(delta, arena)
+	_update_song_pitch_waves(delta)
+	_update_song_boss_chorus_judge(delta)
+	_update_song_boss_megaphone_waves(delta)
+	_update_song_encore(delta, arena)
+	if song_chorus_telegraph_timer > 0.0:
+		song_chorus_telegraph_timer = maxf(0.0, song_chorus_telegraph_timer - delta)
+		if song_chorus_telegraph_timer <= 0.0:
+			_start_song_chorus(arena)
+		return
+	if song_chorus_timer > 0.0:
+		song_chorus_timer = maxf(0.0, song_chorus_timer - delta)
+		_update_song_chorus_enemy_spawns(delta, arena)
+		if song_chorus_timer <= 0.0:
+			_finish_song_chorus()
+		return
+	if elapsed >= song_chorus_next_time and not song_boss_chorus_judge_busy:
+		_start_song_chorus_telegraph()
+
+func _apply_song_instruction_comment(comment_id: String) -> void:
+	if not _is_song_frame():
+		return
+	var arena := _current_arena()
+	match comment_id:
+		"song_force_chorus":
+			if song_chorus_timer <= 0.0 and song_chorus_telegraph_timer <= 0.0:
+				_start_song_chorus(arena, true)
+				song_chorus_next_time = maxf(song_chorus_next_time, elapsed + 10.0)
+				_push_time_toast("短縮サビ発生！", 1.2)
+		"song_tempo_up":
+			_push_time_toast("テンポアップ！", 1.1)
+		"song_mic_howling":
+			_start_song_mic_howling(arena)
+			_push_time_toast("ハウリング注意！", 1.2)
+		"song_lighting_mistake":
+			_start_song_lighting_mistake(arena)
+			_push_time_toast("暴走ライト注意！", 1.2)
+		"song_lyrics_lost":
+			_start_song_lyrics_lost(arena)
+			_push_time_toast("歌詞カードを拾って！", 1.25)
+		"song_pitch_police", "song_no_breath", "song_comment_too_fast":
+			_cancel_deprecated_song_instruction(comment_id)
+
+func _apply_drawing_instruction_comment(comment_id: String) -> void:
+	if not _is_drawing_frame():
+		return
+	var arena := _current_arena()
+	match comment_id:
+		"drawing_paint_rush":
+			for i in range(3):
+				if drawing_paint_orbs.size() < DRAWING_PAINT_ORB_MAX:
+					_spawn_drawing_paint_orb(arena)
+			_show_drawing_toast("一気に塗ろう！", "絵の具追加・線が少し太くなります")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 絵の具追加！", "> 一気に塗る流れきた"]}, chat_box)
+		"drawing_fix_here":
+			for i in range(2):
+				if drawing_correction_points.size() < DRAWING_CORRECTION_MAX + 2:
+					_spawn_drawing_correction_point(arena)
+			_show_drawing_toast("そこ修正して！", "修正ポイント追加・修正速度UP")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 修正ポイント追加！", "> 赤字対応タイム"]}, chat_box)
+		"drawing_clean_screen":
+			_spawn_drawing_eraser(arena)
+			_collect_drawing_eraser(player_pos)
+			_show_drawing_toast("画面きれいにして！", "消しゴム出現・周囲を掃除")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 画面掃除！", "> 見やすくなってきた"]}, chat_box)
+
+func _drawing_instruction_power(comment_id: String) -> float:
+	if not _is_drawing_frame():
+		return 0.0
+	return clampf(ModifierSystemScript.effect_rate_for_target(self, comment_id), 0.0, 1.0)
+
+func _drawing_instruction_multiplier(comment_id: String, active_value: float) -> float:
+	var power := _drawing_instruction_power(comment_id)
+	if power <= 0.0:
+		return 1.0
+	return lerpf(1.0, active_value, power)
+
+func _drawing_focus_work_multiplier(active_value: float) -> float:
+	if not drawing_focus_inside_last_frame:
+		return 1.0
+	return active_value
+
+func _drawing_trail_width() -> float:
+	var value := DRAWING_TRAIL_WIDTH
+	value *= _drawing_instruction_multiplier("drawing_paint_rush", 1.22)
+	value *= _drawing_focus_work_multiplier(DRAWING_FOCUS_TRAIL_WIDTH_RATE)
+	return value
+
+func _drawing_correction_speed_multiplier() -> float:
+	var value := _drawing_instruction_multiplier("drawing_fix_here", 1.35)
+	value *= _drawing_focus_work_multiplier(DRAWING_FOCUS_CORRECTION_SPEED_RATE)
+	return value
+
+func _drawing_eraser_radius() -> float:
+	return DRAWING_ERASER_RADIUS * _drawing_instruction_multiplier("drawing_clean_screen", 1.15)
+
+func _update_song_instruction_effects(delta: float, arena: Rect2) -> void:
+	_update_song_howling_instruction(delta, arena)
+	_update_song_bad_lights(delta, arena)
+	_update_song_lyrics_cards(delta, arena)
+
+func _cancel_deprecated_song_instruction(comment_id: String) -> void:
+	if not active_effects.has(comment_id):
+		return
+	active_effects.clear()
+	active_effect_rates.clear()
+	active_sub_comment_ids.clear()
+	effect_timer = 0.0
+	pending_clear_hype = 0
+	active_comment_hurt = false
+	current_comment = "なし"
+	current_death_text = "発動中の指示コメなし"
+	last_comment_id = ""
+
+func _song_mic_howling_active() -> bool:
+	return _song_instruction_power("song_mic_howling") > 0.0
+
+func _song_lighting_mistake_active() -> bool:
+	return _song_instruction_power("song_lighting_mistake") > 0.0
+
+func _song_lyrics_lost_active() -> bool:
+	return last_comment_id == "song_lyrics_lost" and effect_timer > 0.0 and not song_lyrics_lost_card_collected
+
+func _song_notes_locked_by_lyrics_lost() -> bool:
+	return _song_lyrics_lost_active()
+
+func _should_suppress_instruction_clear_bonus() -> bool:
+	return last_comment_id == "song_lyrics_lost" and not song_lyrics_lost_card_collected
+
+func _song_note_orb_texture(orb_index: int, locked: bool) -> Texture2D:
+	var image_path := String(SONG_NOTE_ORB_IMAGES[orb_index])
+	if not locked:
+		return TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, image_path)
+	var gray_key := "%s#lyrics_locked_gray" % image_path
+	if song_note_gray_texture_cache.has(gray_key):
+		return song_note_gray_texture_cache[gray_key] as Texture2D
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, image_path)
+	if texture == null:
+		song_note_gray_texture_cache[gray_key] = null
+		return null
+	var image: Image = texture.get_image()
+	if image == null or image.is_empty():
+		return texture
+	image.convert(Image.FORMAT_RGBA8)
+	image.adjust_bcs(0.88, 0.88, 0.0)
+	var gray_texture: Texture2D = ImageTexture.create_from_image(image)
+	song_note_gray_texture_cache[gray_key] = gray_texture
+	return gray_texture
+
+func _start_song_mic_howling(arena: Rect2) -> void:
+	song_howling_emitters.clear()
+	song_howling_waves.clear()
+	for i in range(SONG_HOWLING_EMITTER_COUNT):
+		song_howling_emitters.append({
+			"pos": _song_instruction_position(arena, 40.0, 260.0, 520.0),
+			"timer": 0.28 + float(i) * 0.72,
+			"phase": rng.randf_range(0.0, TAU)
+		})
+
+func _update_song_howling_instruction(delta: float, arena: Rect2) -> void:
+	if not _song_mic_howling_active():
+		song_howling_emitters.clear()
+		song_howling_waves.clear()
+		return
+	if song_howling_emitters.is_empty():
+		_start_song_mic_howling(arena)
+	for i in range(song_howling_emitters.size()):
+		var emitter: Dictionary = song_howling_emitters[i] as Dictionary
+		emitter["timer"] = float(emitter.get("timer", 0.0)) - delta
+		if float(emitter["timer"]) <= 0.0:
+			_spawn_song_howling_wave(Vector2(emitter.get("pos", player_pos)))
+			emitter["timer"] = SONG_HOWLING_WAVE_INTERVAL + rng.randf_range(-0.18, 0.22)
+		song_howling_emitters[i] = emitter
+	for i in range(song_howling_waves.size() - 1, -1, -1):
+		var wave: Dictionary = song_howling_waves[i] as Dictionary
+		wave["age"] = float(wave.get("age", 0.0)) + delta
+		var age := float(wave.get("age", 0.0))
+		var life := SONG_HOWLING_TELEGRAPH_DURATION + SONG_HOWLING_WAVE_EXPAND_DURATION
+		var active := age >= SONG_HOWLING_TELEGRAPH_DURATION
+		if active and not bool(wave.get("hitPlayer", false)):
+			var progress := clampf((age - SONG_HOWLING_TELEGRAPH_DURATION) / maxf(0.01, SONG_HOWLING_WAVE_EXPAND_DURATION), 0.0, 1.0)
+			var radius := lerpf(SONG_HOWLING_WAVE_START_RADIUS, SONG_HOWLING_WAVE_END_RADIUS, progress)
+			var origin := Vector2(wave.get("pos", player_pos))
+			var dist := player_pos.distance_to(origin)
+			if absf(dist - radius) <= SONG_HOWLING_WAVE_THICKNESS:
+				wave["hitPlayer"] = true
+				var push_dir := player_pos - origin
+				if push_dir.length_squared() > 0.01:
+					player_vel += push_dir.normalized() * SONG_HOWLING_PLAYER_KNOCKBACK
+				_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "song_howling_wave", "damage": SONG_HOWLING_DAMAGE}]))
+		if age >= life:
+			song_howling_waves.remove_at(i)
+		else:
+			song_howling_waves[i] = wave
+
+func _spawn_song_howling_wave(pos: Vector2) -> void:
+	song_howling_waves.append({
+		"pos": pos,
+		"age": 0.0,
+		"hitPlayer": false,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+
+func _start_song_lighting_mistake(arena: Rect2) -> void:
+	song_bad_lights.clear()
+	song_bad_light_respawn_timer = 0.0
+	song_bad_light_inside = false
+	_spawn_song_bad_lights(SONG_BAD_LIGHT_COUNT, arena)
+
+func _update_song_bad_lights(delta: float, arena: Rect2) -> void:
+	if not _song_lighting_mistake_active():
+		song_bad_lights.clear()
+		song_bad_light_respawn_timer = 0.0
+		song_bad_light_inside = false
+		return
+	var was_inside := song_bad_light_inside
+	for i in range(song_bad_lights.size() - 1, -1, -1):
+		var light: Dictionary = song_bad_lights[i] as Dictionary
+		light["time"] = float(light.get("time", 0.0)) - delta
+		if float(light.get("time", 0.0)) <= 0.0:
+			song_bad_lights.remove_at(i)
+		else:
+			song_bad_lights[i] = light
+	if song_bad_lights.size() < SONG_BAD_LIGHT_COUNT:
+		song_bad_light_respawn_timer = maxf(0.0, song_bad_light_respawn_timer - delta)
+		if song_bad_light_respawn_timer <= 0.0:
+			_spawn_song_bad_lights(1, arena)
+			song_bad_light_respawn_timer = SONG_BAD_LIGHT_RESPAWN_DELAY
+	song_bad_light_inside = false
+	for item in song_bad_lights:
+		var light2: Dictionary = item as Dictionary
+		var radius := float(light2.get("radius", SONG_BAD_LIGHT_RADIUS))
+		if player_pos.distance_squared_to(Vector2(light2.get("pos", Vector2.ZERO))) <= radius * radius:
+			song_bad_light_inside = true
+			break
+	if song_bad_light_inside and not was_inside:
+		_show_song_bad_light_attack_stop_notice()
+
+func _show_song_bad_light_attack_stop_notice() -> void:
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": player_pos + Vector2(-44.0, -74.0),
+		"vel": Vector2(0.0, -44.0),
+		"life": 0.8,
+		"maxLife": 0.8,
+		"text": "攻撃停止！",
+		"color": Color("#ff2f8f")
+	})
+
+func _spawn_song_bad_lights(count: int, arena: Rect2) -> void:
+	for i in range(maxi(0, count)):
+		song_bad_lights.append({
+			"pos": _song_instruction_position(arena, SONG_BAD_LIGHT_RADIUS, 180.0, 520.0),
+			"radius": SONG_BAD_LIGHT_RADIUS,
+			"time": SONG_BAD_LIGHT_LIFETIME,
+			"maxTime": SONG_BAD_LIGHT_LIFETIME,
+			"phase": rng.randf_range(0.0, TAU)
+		})
+
+func _start_song_lyrics_lost(arena: Rect2) -> void:
+	song_lyrics_cards.clear()
+	song_lyrics_lost_card_collected = false
+	song_lyrics_card_has_locked_pos = false
+	_spawn_song_lyrics_card(arena)
+
+func _spawn_song_lyrics_card(arena: Rect2) -> void:
+	var card_lifetime := maxf(SONG_LYRICS_CARD_LIFETIME, float(effect_timer))
+	if not song_lyrics_card_has_locked_pos:
+		song_lyrics_card_locked_pos = _song_lyrics_card_position(arena)
+		song_lyrics_card_has_locked_pos = true
+	song_lyrics_cards.append({
+		"pos": song_lyrics_card_locked_pos,
+		"time": card_lifetime,
+		"maxTime": card_lifetime,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+
+func _update_song_lyrics_cards(_delta: float, arena: Rect2) -> void:
+	if not _song_lyrics_lost_active():
+		song_lyrics_cards.clear()
+		return
+	if song_lyrics_cards.is_empty():
+		_spawn_song_lyrics_card(arena)
+	for i in range(song_lyrics_cards.size() - 1, -1, -1):
+		var card: Dictionary = song_lyrics_cards[i] as Dictionary
+		var remaining := maxf(0.0, float(effect_timer))
+		card["time"] = remaining
+		card["maxTime"] = maxf(float(card.get("maxTime", SONG_LYRICS_CARD_LIFETIME)), remaining)
+		var pos := Vector2(card.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) <= SONG_LYRICS_CARD_PICKUP_RADIUS * SONG_LYRICS_CARD_PICKUP_RADIUS:
+			song_lyrics_cards.remove_at(i)
+			_collect_song_lyrics_card(pos)
+			continue
+		song_lyrics_cards[i] = card
+
+func _collect_song_lyrics_card(pos: Vector2) -> void:
+	song_lyrics_lost_card_collected = true
+	_play_song_lyrics_card_pickup_se()
+	ModifierSystemScript.clear_state_for_target(self)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos + Vector2(-64.0, -58.0),
+		"vel": Vector2(0.0, -46.0),
+		"life": 0.78,
+		"maxLife": 0.78,
+		"text": "歌詞カード回収！",
+		"color": Color("#ff5cad")
+	})
+	_push_time_toast("歌詞カード回収！ 音階コンボ再開", 1.4)
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 歌詞カード回収！", "+ 音階コンボ再開", "> 戻ってきた"]}, chat_box)
+
+func _spawn_song_instruction_enemies(kind: String, count: int, arena: Rect2) -> void:
+	for i in range(maxi(0, count)):
+		EnemySystemScript.spawn_enemy_for_target(self, kind, arena, rng)
+
+func _start_song_chorus_telegraph() -> void:
+	song_chorus_telegraph_timer = SONG_CHORUS_TELEGRAPH_DURATION
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["* もうすぐサビ！", "> ペンライト準備", "> 盛り上がってきた"]}, chat_box)
+	_push_time_toast("もうすぐサビ！", 1.1)
+
+func _start_song_chorus(arena: Rect2, forced: bool = false) -> void:
+	song_chorus_count += 1
+	song_forced_chorus_active = forced
+	song_chorus_current_duration = 8.0 if forced else SONG_CHORUS_DURATION
+	song_chorus_reward_multiplier = 0.5 if forced else 1.0
+	song_chorus_timer = song_chorus_current_duration
+	song_chorus_banner_timer = SONG_CHORUS_BANNER_DURATION
+	song_chorus_notes_collected = 0
+	song_chorus_spotlight_time = 0.0
+	song_chorus_enemy_spawn_timer = rng.randf_range(1.0, 1.8)
+	song_chorus_viewer_accum = 0.0
+	song_spotlight_inside_last_frame = false
+	song_notes.clear()
+	song_spotlights.clear()
+	var note_count := int(round(float(rng.randi_range(SONG_NOTE_COUNT_MIN, SONG_NOTE_COUNT_MAX)) * _song_note_spawn_multiplier()))
+	if song_encore_timer > 0.0:
+		note_count = int(round(float(note_count) * 1.8))
+	if forced:
+		note_count = maxi(4, int(round(float(note_count) * 0.85)))
+	_spawn_song_notes(note_count, arena)
+	var spotlight_max := mini(_song_max_spotlights(), SONG_SPOTLIGHT_COUNT_MAX + (1 if song_encore_timer > 0.0 else 0))
+	if forced:
+		spotlight_max = mini(spotlight_max, 1)
+	var spotlight_min := mini(SONG_SPOTLIGHT_COUNT_MIN, spotlight_max)
+	_spawn_song_spotlights(rng.randi_range(spotlight_min, spotlight_max), arena)
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["* サビタイム！", "+ 音符集めろ！", "+ スポットライト入ろう"]}, chat_box)
+	_push_time_toast("サビタイム！", 1.2)
+	screen_flash_timer = 0.12
+	screen_flash_duration = 0.12
+	screen_flash_color = Color(1.0, 0.58, 0.86, 0.12)
+
+func _finish_song_chorus() -> void:
+	var good_result := song_chorus_notes_collected >= 8 or song_chorus_spotlight_time >= 2.2
+	var reward_multiplier := song_chorus_reward_multiplier
+	_add_song_live_heat((SONG_LIVE_HEAT_CHORUS_FINISH_GAIN + (SONG_LIVE_HEAT_CHORUS_GOOD_GAIN if good_result else 0.0)) * _song_live_heat_gain_multiplier() * reward_multiplier, "chorus_finish")
+	song_chorus_result_data = {
+		"title": "サビ成功！" if good_result else "サビタイム RESULT",
+		"lines": [
+			"音符 %d個GET" % song_chorus_notes_collected,
+			"スポットライト %.1f秒" % song_chorus_spotlight_time,
+			"LIVE HEAT Lv.%d" % song_live_heat_level
+		]
+	}
+	song_chorus_result_duration = SONG_CHORUS_RESULT_CARD_DURATION
+	song_chorus_result_timer = song_chorus_result_duration
+	song_chorus_next_time = elapsed + _song_next_interval()
+	if song_forced_chorus_active:
+		song_chorus_next_time = maxf(song_chorus_next_time, elapsed + 10.0)
+	song_notes.clear()
+	song_spotlights.clear()
+	song_spotlight_inside_last_frame = false
+	song_forced_chorus_active = false
+	song_chorus_reward_multiplier = 1.0
+	song_chorus_current_duration = SONG_CHORUS_DURATION
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["* サビタイム終了！", "+ いいサビだった", "> 次のサビもいこう"]}, chat_box)
+
+func _spawn_song_notes(count: int, arena: Rect2, chorus_note: bool = true, lifetime: float = 0.0, note_tag: String = "") -> void:
+	for i in range(count):
+		var pos := _song_event_position(arena, 34.0, SONG_NOTE_OBSTACLE_CLEARANCE)
+		var note_lifetime := lifetime
+		if note_lifetime > 0.0:
+			note_lifetime *= _song_note_lifetime_multiplier()
+		var note := {
+			"pos": pos,
+			"orbIndex": rng.randi_range(0, SONG_NOTE_ORB_IMAGES.size() - 1),
+			"phase": rng.randf_range(0.0, TAU),
+			"chorus": chorus_note,
+			"time": note_lifetime
+		}
+		if note_tag != "":
+			note["noteTag"] = note_tag
+		song_notes.append(note)
+
+func _spawn_song_spotlights(count: int, arena: Rect2) -> void:
+	for i in range(count):
+		song_spotlights.append({
+			"pos": _song_event_position(arena, SONG_SPOTLIGHT_RADIUS + 20.0, SONG_SPOTLIGHT_OBSTACLE_CLEARANCE),
+			"radius": SONG_SPOTLIGHT_RADIUS,
+			"time": SONG_SPOTLIGHT_DURATION,
+			"maxTime": SONG_SPOTLIGHT_DURATION,
+			"phase": rng.randf_range(0.0, TAU)
+		})
+
+func _song_event_position(arena: Rect2, radius: float, obstacle_clearance: float = -1.0) -> Vector2:
+	var walls := EnemySystemScript.movement_wall_rects(effect_walls, current_stream_frame_id)
+	var rect := arena.grow(-(radius + 36.0))
+	for i in range(42):
+		var pos := Vector2(rng.randf_range(rect.position.x, rect.end.x), rng.randf_range(rect.position.y, rect.end.y))
+		if pos.distance_squared_to(player_pos) < 12100.0:
+			continue
+		var blocked := false
+		for wall_value in walls:
+			var wall: Rect2 = wall_value as Rect2
+			if wall.grow(radius + 18.0).has_point(pos):
+				blocked = true
+				break
+		if not blocked and obstacle_clearance > 0.0 and _song_stage_prop_position_blocked(pos, obstacle_clearance):
+			blocked = true
+		if not blocked:
+			return pos
+	for i in range(24):
+		var fallback := arena.get_center() + Vector2(rng.randf_range(-220.0, 220.0), rng.randf_range(-150.0, 150.0))
+		if obstacle_clearance <= 0.0 or not _song_stage_prop_position_blocked(fallback, obstacle_clearance):
+			return fallback
+	return arena.get_center()
+
+func _song_stage_prop_position_blocked(pos: Vector2, clearance: float) -> bool:
+	for rect_value in MapBackgroundSystemScript.prop_collision_rects_for_data(_current_map_data()):
+		var rect: Rect2 = rect_value as Rect2
+		if rect.grow(clearance).has_point(pos):
+			return true
+	return false
+
+func _song_instruction_position(arena: Rect2, radius: float, min_distance: float, max_distance: float) -> Vector2:
+	var walls := EnemySystemScript.movement_wall_rects(effect_walls, current_stream_frame_id)
+	var rect := arena.grow(-(radius + 36.0))
+	var min_sq := min_distance * min_distance
+	var max_dist := maxf(min_distance + 10.0, max_distance)
+	for i in range(56):
+		var angle := rng.randf_range(0.0, TAU)
+		var distance := rng.randf_range(min_distance, max_dist)
+		var pos := player_pos + Vector2(cos(angle), sin(angle)) * distance
+		if not rect.has_point(pos):
+			continue
+		if pos.distance_squared_to(player_pos) < min_sq:
+			continue
+		var blocked := false
+		for wall_value in walls:
+			var wall: Rect2 = wall_value as Rect2
+			if wall.grow(radius + 18.0).has_point(pos):
+				blocked = true
+				break
+		if not blocked and _song_stage_prop_position_blocked(pos, maxf(radius + 18.0, SONG_NOTE_OBSTACLE_CLEARANCE)):
+			blocked = true
+		if not blocked:
+			return pos
+	return _song_event_position(arena, radius)
+
+func _song_position_blocked(pos: Vector2, radius: float) -> bool:
+	var walls := EnemySystemScript.movement_wall_rects(effect_walls, current_stream_frame_id)
+	for wall_value in walls:
+		var wall: Rect2 = wall_value as Rect2
+		if wall.grow(radius + 18.0).has_point(pos):
+			return true
+	if _song_stage_prop_position_blocked(pos, SONG_LYRICS_CARD_OBSTACLE_CLEARANCE):
+		return true
+	return false
+
+func _song_lyrics_card_visible_rect(arena: Rect2) -> Rect2:
+	var visible_rect := _visible_world_rect_for_spawning().intersection(arena).grow(-86.0)
+	if visible_rect.has_area():
+		return visible_rect
+	return arena.grow(-86.0)
+
+func _song_lyrics_card_position(arena: Rect2) -> Vector2:
+	var radius := 48.0
+	var rect := _song_lyrics_card_visible_rect(arena).grow(-radius)
+	if not rect.has_area():
+		rect = arena.grow(-(radius + 36.0))
+	var min_sq := SONG_LYRICS_CARD_MIN_DISTANCE * SONG_LYRICS_CARD_MIN_DISTANCE
+	var max_sq := SONG_LYRICS_CARD_MAX_DISTANCE * SONG_LYRICS_CARD_MAX_DISTANCE
+	var best_pos := Vector2.ZERO
+	var best_dist_sq := -1.0
+	for i in range(120):
+		var pos := Vector2(rng.randf_range(rect.position.x, rect.end.x), rng.randf_range(rect.position.y, rect.end.y))
+		var dist_sq := pos.distance_squared_to(player_pos)
+		if dist_sq < min_sq or dist_sq > max_sq:
+			continue
+		if _song_position_blocked(pos, radius):
+			continue
+		if dist_sq > best_dist_sq:
+			best_pos = pos
+			best_dist_sq = dist_sq
+	if best_dist_sq >= 0.0:
+		return best_pos
+	var fallback_min_sq := min_sq * 0.42
+	for i in range(80):
+		var pos := Vector2(rng.randf_range(rect.position.x, rect.end.x), rng.randf_range(rect.position.y, rect.end.y))
+		var dist_sq := pos.distance_squared_to(player_pos)
+		if dist_sq < fallback_min_sq:
+			continue
+		if _song_position_blocked(pos, radius):
+			continue
+		if dist_sq > best_dist_sq:
+			best_pos = pos
+			best_dist_sq = dist_sq
+	if best_dist_sq >= 0.0:
+		return best_pos
+	return rect.get_center()
+
+func _song_far_instruction_position(arena: Rect2, radius: float, min_distance: float, max_distance: float) -> Vector2:
+	var walls := EnemySystemScript.movement_wall_rects(effect_walls, current_stream_frame_id)
+	var rect := arena.grow(-(radius + 36.0))
+	var min_sq := min_distance * min_distance
+	var max_dist := maxf(min_distance + 10.0, max_distance)
+	var best_pos := Vector2.ZERO
+	var best_dist_sq := -1.0
+	for i in range(96):
+		var angle := rng.randf_range(0.0, TAU)
+		var distance := lerpf(min_distance, max_dist, pow(rng.randf(), 0.35))
+		var pos := player_pos + Vector2(cos(angle), sin(angle)) * distance
+		var dist_sq := pos.distance_squared_to(player_pos)
+		if dist_sq < min_sq or not rect.has_point(pos):
+			continue
+		var blocked := false
+		for wall_value in walls:
+			var wall: Rect2 = wall_value as Rect2
+			if wall.grow(radius + 18.0).has_point(pos):
+				blocked = true
+				break
+		if not blocked and dist_sq > best_dist_sq:
+			best_pos = pos
+			best_dist_sq = dist_sq
+	if best_dist_sq >= 0.0:
+		return best_pos
+	for i in range(72):
+		var pos := Vector2(rng.randf_range(rect.position.x, rect.end.x), rng.randf_range(rect.position.y, rect.end.y))
+		var dist_sq := pos.distance_squared_to(player_pos)
+		if dist_sq < min_sq:
+			continue
+		var blocked := false
+		for wall_value in walls:
+			var wall: Rect2 = wall_value as Rect2
+			if wall.grow(radius + 18.0).has_point(pos):
+				blocked = true
+				break
+		if not blocked and dist_sq > best_dist_sq:
+			best_pos = pos
+			best_dist_sq = dist_sq
+	if best_dist_sq >= 0.0:
+		return best_pos
+	return _song_instruction_position(arena, radius, min_distance, max_distance)
+
+func _reset_song_ambient_note_timer() -> void:
+	song_ambient_note_timer = rng.randf_range(SONG_AMBIENT_NOTE_INTERVAL_MIN, SONG_AMBIENT_NOTE_INTERVAL_MAX) / maxf(0.75, _song_note_spawn_multiplier())
+
+func _update_song_ambient_notes(delta: float, arena: Rect2) -> void:
+	if song_chorus_timer > 0.0 or song_chorus_telegraph_timer > 0.0:
+		return
+	song_ambient_note_timer -= delta
+	if song_ambient_note_timer > 0.0:
+		return
+	_reset_song_ambient_note_timer()
+	var ambient_count := 0
+	for item in song_notes:
+		var note: Dictionary = item as Dictionary
+		if not bool(note.get("chorus", true)):
+			ambient_count += 1
+	if ambient_count < 2:
+		_spawn_song_notes(1, arena, false, SONG_AMBIENT_NOTE_LIFETIME)
+
+func _update_song_notes(delta: float) -> void:
+	var lyrics_locked := _song_notes_locked_by_lyrics_lost()
+	for i in range(song_notes.size() - 1, -1, -1):
+		var note: Dictionary = song_notes[i] as Dictionary
+		if not lyrics_locked and not bool(note.get("chorus", true)) and note.has("time"):
+			note["time"] = float(note.get("time", 0.0)) - delta
+			if float(note["time"]) <= 0.0:
+				song_notes.remove_at(i)
+				continue
+			song_notes[i] = note
+		if lyrics_locked:
+			continue
+		if Vector2(note.get("pos", Vector2.ZERO)).distance_squared_to(player_pos) <= 2304.0:
+			_collect_song_note(i)
+
+func _collect_song_note(index: int) -> void:
+	if index < 0 or index >= song_notes.size():
+		return
+	var note: Dictionary = song_notes[index] as Dictionary
+	song_notes.remove_at(index)
+	var chorus_note := bool(note.get("chorus", song_chorus_timer > 0.0))
+	if chorus_note:
+		song_chorus_notes_collected += 1
+	if song_boss_chorus_judge_active:
+		if song_boss_chorus_judge_required > 0:
+			song_boss_chorus_judge_collected = mini(song_boss_chorus_judge_required, song_boss_chorus_judge_collected + 1)
+		else:
+			song_boss_chorus_judge_collected += 1
+	song_total_notes_collected += 1
+	_handle_song_note_scale_combo()
+	var heat_gain := SONG_LIVE_HEAT_CHORUS_NOTE_GAIN if chorus_note else SONG_LIVE_HEAT_NOTE_GAIN
+	_add_song_live_heat(heat_gain * _song_live_heat_gain_multiplier() * _song_note_live_heat_gain_multiplier(), "chorus_note" if chorus_note else "note")
+	_song_add_viewers(SONG_NOTE_VIEWER_GAIN)
+	_song_add_voltage(SONG_NOTE_VOLTAGE_GAIN)
+	var note_pos := Vector2(note.get("pos", player_pos))
+	hit_fx.append({
+		"kind": "song_note",
+		"pos": note_pos,
+		"life": 0.38,
+		"maxLife": 0.38,
+		"radius": 26.0
+	})
+	if song_live_heat_level >= 2:
+		_fire_song_note_pickup_extra_shot(note_pos)
+	if song_live_heat_level >= 3:
+		song_harmony_wave_timer = maxf(0.0, song_harmony_wave_timer - 0.30)
+	if song_live_heat_level >= 4:
+		_song_live_heat_note_heal(1)
+	if song_live_heat_level >= 5:
+		song_audience_call_wave_timer = maxf(0.0, song_audience_call_wave_timer - 0.40)
+	if chorus_note and (song_chorus_notes_collected == 1 or song_chorus_notes_collected % 4 == 0):
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 音符GET！", "+ ライブテンション上がってる"]}, chat_box)
+	elif not chorus_note:
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 音符GET！", "> いいリズム"]}, chat_box)
+
+func _handle_song_note_scale_combo() -> void:
+	var play_index := clampi(song_note_scale_index, 0, SONG_SCALE_NOTE_COUNT - 1)
+	_enqueue_song_scale_note_se(play_index)
+	song_note_total_collected += 1
+	song_note_scale_index += 1
+	if song_note_scale_index >= SONG_SCALE_NOTE_COUNT:
+		song_note_scale_index = 0
+		song_octave_bonus_count += 1
+		_trigger_song_octave_bonus()
+
+func _handle_song_note_scale_paused() -> void:
+	var play_index := clampi(song_note_scale_index, 0, SONG_SCALE_NOTE_COUNT - 1)
+	_enqueue_song_scale_note_se(play_index)
+	song_note_total_collected += 1
+
+func _trigger_song_octave_bonus() -> void:
+	_add_song_live_heat(SONG_OCTAVE_BONUS_LIVE_HEAT_GAIN, "octave_bonus")
+	score += SONG_OCTAVE_BONUS_VIEWER_GAIN
+	_add_song_gift_hype_reward(SONG_OCTAVE_BONUS_GIFT_HYPE_GAIN)
+	var hits := _spawn_song_live_heat_wave("octave_wave", SONG_OCTAVE_BONUS_RADIUS, SONG_OCTAVE_BONUS_DAMAGE, SONG_OCTAVE_BONUS_KNOCKBACK, Color("#ffe177"), "song_octave_bonus")
+	var call_wave_triggered := _try_trigger_song_max_octave_audience_call_wave()
+	_show_song_octave_bonus_notice(hits, call_wave_triggered)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": player_pos + Vector2(-84.0, -84.0),
+		"vel": Vector2(0.0, -48.0),
+		"life": 0.86,
+		"maxLife": 0.86,
+		"text": "1オクターブ完成！",
+		"color": Color("#ffb33d")
+	})
+	_push_time_toast("1オクターブ完成！ テンション+5 / 視聴者+500 / 期待度+1", 1.55)
+	if call_wave_triggered:
+		_push_time_toast("オクターブMAX！ 観客コール波！", 1.55)
+	var octave_chats: Array[String] = ["+ 1オクターブ完成！", "+ ライブテンション +5 / 視聴者 +500", "+ ギフト期待度 +1", "> 音波ボーナス出た"]
+	if call_wave_triggered:
+		octave_chats.append("+ オクターブMAX！")
+		octave_chats.append("+ 観客コール波！")
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": octave_chats}, chat_box)
+
+func _show_song_octave_bonus_notice(hit_count: int, call_wave_triggered: bool = false) -> void:
+	song_octave_bonus_notice_hits = hit_count
+	song_octave_bonus_notice_call_wave = call_wave_triggered
+	song_octave_bonus_notice_duration = SONG_OCTAVE_BONUS_NOTICE_DURATION
+	song_octave_bonus_notice_timer = song_octave_bonus_notice_duration
+
+func _update_song_spotlights(delta: float) -> void:
+	song_spotlight_benefit_se_cooldown = maxf(0.0, song_spotlight_benefit_se_cooldown - delta)
+	song_spotlight_benefit_flash_timer = maxf(0.0, song_spotlight_benefit_flash_timer - delta)
+	for i in range(song_spotlights.size() - 1, -1, -1):
+		var light: Dictionary = song_spotlights[i] as Dictionary
+		light["time"] = maxf(0.0, float(light.get("time", 0.0)) - delta)
+		if float(light["time"]) <= 0.0:
+			song_spotlights.remove_at(i)
+		else:
+			song_spotlights[i] = light
+	var inside := false
+	for item in song_spotlights:
+		var light: Dictionary = item as Dictionary
+		var radius := float(light.get("radius", SONG_SPOTLIGHT_RADIUS))
+		if player_pos.distance_squared_to(Vector2(light.get("pos", Vector2.ZERO))) <= radius * radius:
+			inside = true
+			break
+	if inside:
+		if song_chorus_timer > 0.0:
+			song_chorus_spotlight_time += delta
+		song_total_spotlight_time += delta
+		_add_song_live_heat(SONG_LIVE_HEAT_SPOTLIGHT_GAIN_PER_SECOND * delta * _song_live_heat_gain_multiplier(), "spotlight")
+		_song_add_voltage(SONG_SPOTLIGHT_VOLTAGE_RATE * delta)
+		song_chorus_viewer_accum += SONG_SPOTLIGHT_VIEWER_GAIN_PER_SECOND * delta * _song_viewer_gain_multiplier()
+		var add_viewers := int(floor(song_chorus_viewer_accum))
+		if add_viewers > 0:
+			score += add_viewers
+			song_chorus_viewer_accum -= float(add_viewers)
+			song_spotlight_benefit_flash_timer = 0.45
+			if song_spotlight_benefit_se_cooldown <= 0.0:
+				_play_song_spotlight_benefit_se()
+				song_spotlight_benefit_se_cooldown = SONG_SPOTLIGHT_BENEFIT_SE_INTERVAL
+	if inside and not song_spotlight_inside_last_frame:
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ スポットライト！", "> 今映えてる"]}, chat_box)
+	song_spotlight_inside_last_frame = inside
+
+func _update_song_chorus_enemy_spawns(delta: float, arena: Rect2) -> void:
+	song_chorus_enemy_spawn_timer -= delta
+	if song_chorus_enemy_spawn_timer > 0.0:
+		return
+	var spawn_multiplier := maxf(0.5, _song_enemy_spawn_multiplier())
+	song_chorus_enemy_spawn_timer = rng.randf_range(SONG_CHORUS_EXTRA_ENEMY_INTERVAL_MIN, SONG_CHORUS_EXTRA_ENEMY_INTERVAL_MAX) / spawn_multiplier
+	EnemySystemScript.spawn_enemy_for_target(self, "fast_call_fan", arena, rng)
+	if rng.randf() < 0.35 + float(song_live_heat_level) * 0.03:
+		EnemySystemScript.spawn_enemy_for_target(self, "pitch_police", arena, rng)
+
+func _song_pitch_wave_interval() -> float:
+	if song_live_heat_level >= 5:
+		return 8.0
+	if song_live_heat_level >= 4:
+		return 10.0
+	return 14.0
+
+# Kept as a reusable attack primitive for future song bosses or enemies.
+func _update_song_pitch_waves(delta: float) -> void:
+	for i in range(song_pitch_waves.size() - 1, -1, -1):
+		var wave: Dictionary = song_pitch_waves[i] as Dictionary
+		wave["time"] = float(wave.get("time", 0.0)) - delta
+		var age := float(wave.get("maxTime", 1.0)) - float(wave.get("time", 0.0))
+		var active := age >= SONG_PITCH_WAVE_TELEGRAPH_DURATION
+		var wave_rect: Rect2 = wave.get("rect", Rect2()) as Rect2
+		if active and not bool(wave.get("hit", false)) and wave_rect.has_point(player_pos):
+			wave["hit"] = true
+			_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "pitch_wave", "damage": SONG_PITCH_WAVE_DAMAGE}]))
+		if float(wave.get("time", 0.0)) <= 0.0:
+			song_pitch_waves.remove_at(i)
+		else:
+			song_pitch_waves[i] = wave
+	if song_pitch_wave_cooldown > 0.0:
+		song_pitch_wave_cooldown = maxf(0.0, song_pitch_wave_cooldown - delta)
+
+func _spawn_song_pitch_wave(arena: Rect2) -> void:
+	var horizontal := rng.randf() < 0.55
+	var rect: Rect2
+	if horizontal:
+		var y := clampf(player_pos.y + rng.randf_range(-130.0, 130.0), arena.position.y + SONG_PITCH_WAVE_WIDTH, arena.end.y - SONG_PITCH_WAVE_WIDTH)
+		rect = Rect2(Vector2(arena.position.x, y - SONG_PITCH_WAVE_WIDTH * 0.5), Vector2(arena.size.x, SONG_PITCH_WAVE_WIDTH))
+	else:
+		var x := clampf(player_pos.x + rng.randf_range(-180.0, 180.0), arena.position.x + SONG_PITCH_WAVE_WIDTH, arena.end.x - SONG_PITCH_WAVE_WIDTH)
+		rect = Rect2(Vector2(x - SONG_PITCH_WAVE_WIDTH * 0.5, arena.position.y), Vector2(SONG_PITCH_WAVE_WIDTH, arena.size.y))
+	song_pitch_waves.append({
+		"rect": rect,
+		"time": SONG_PITCH_WAVE_TELEGRAPH_DURATION + SONG_PITCH_WAVE_ACTIVE_DURATION,
+		"maxTime": SONG_PITCH_WAVE_TELEGRAPH_DURATION + SONG_PITCH_WAVE_ACTIVE_DURATION,
+		"horizontal": horizontal,
+		"hit": false
+	})
+	song_pitch_wave_cooldown = _song_pitch_wave_interval()
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["! 音程ズレ波注意", "> 赤紫のライン避けて"]}, chat_box)
+
+func _show_song_boss_chorus_judge_notice(title: String, subtitle: String, success: bool = false, duration: float = 1.25) -> void:
+	song_boss_chorus_judge_notice_title = title
+	song_boss_chorus_judge_notice_subtitle = subtitle
+	song_boss_chorus_judge_notice_success = success
+	song_boss_chorus_judge_notice_duration = duration
+	song_boss_chorus_judge_notice_timer = duration
+
+func _prepare_song_boss_chorus_judge(required: int, duration: float) -> void:
+	song_boss_chorus_judge_busy = true
+	song_boss_chorus_judge_active = false
+	song_boss_chorus_judge_required = required
+	song_boss_chorus_judge_collected = 0
+	song_boss_chorus_judge_timer = duration
+	song_boss_chorus_judge_duration = duration
+	_remove_song_boss_chorus_judge_notes()
+	song_chorus_telegraph_timer = 0.0
+	song_chorus_banner_timer = 0.0
+	song_chorus_result_timer = 0.0
+	song_chorus_result_data.clear()
+	_show_song_boss_chorus_judge_notice("サビジャッジ予告！", "音符を%d個集めろ！" % required, false, 1.35)
+
+func _start_song_boss_chorus_judge(required: int, duration: float) -> void:
+	song_boss_chorus_judge_busy = true
+	song_boss_chorus_judge_active = true
+	song_boss_chorus_judge_required = required
+	song_boss_chorus_judge_collected = 0
+	song_boss_chorus_judge_timer = duration
+	song_boss_chorus_judge_duration = duration
+	_remove_song_boss_chorus_judge_notes()
+	_show_song_boss_chorus_judge_notice("サビジャッジ中！", "音符を%d個集めろ！" % required, false, 1.0)
+
+func _spawn_song_boss_chorus_judge_notes(count: int, arena: Rect2) -> void:
+	_spawn_song_notes(count, arena, true, 0.0, "chorus_judge_note")
+
+func _finish_song_boss_chorus_judge(success: bool) -> void:
+	song_boss_chorus_judge_active = false
+	song_boss_chorus_judge_busy = false
+	var title := "サビジャッジ成功！" if success else "サビジャッジ未達"
+	var subtitle := "ボス停止・与ダメージUP" if success else "短時間だけ停止"
+	_show_song_boss_chorus_judge_notice(title, subtitle, success, 1.45)
+	_remove_song_boss_chorus_judge_notes()
+
+func _clear_song_boss_chorus_judge() -> void:
+	song_boss_chorus_judge_busy = false
+	song_boss_chorus_judge_active = false
+	song_boss_chorus_judge_required = 0
+	song_boss_chorus_judge_collected = 0
+	song_boss_chorus_judge_timer = 0.0
+	song_boss_chorus_judge_duration = 0.0
+	song_boss_chorus_judge_notice_timer = 0.0
+	song_boss_chorus_judge_notice_duration = 0.0
+	song_boss_chorus_judge_notice_title = ""
+	song_boss_chorus_judge_notice_subtitle = ""
+	song_boss_chorus_judge_notice_success = false
+	_remove_song_boss_chorus_judge_notes()
+	song_boss_megaphone_waves.clear()
+
+func _remove_song_boss_chorus_judge_notes() -> void:
+	for i in range(song_notes.size() - 1, -1, -1):
+		var note: Dictionary = song_notes[i] as Dictionary
+		if String(note.get("noteTag", "")) == "chorus_judge_note":
+			song_notes.remove_at(i)
+
+func _update_song_boss_chorus_judge(delta: float) -> void:
+	if not song_boss_chorus_judge_active:
+		return
+	song_boss_chorus_judge_timer = maxf(0.0, song_boss_chorus_judge_timer - delta)
+
+func _spawn_song_boss_megaphone_wave(origin: Vector2, dir: Vector2, wave_range: float, angle: float, telegraph: float, active_duration: float, damage: int, knockback: float) -> void:
+	var wave_dir := dir.normalized()
+	if wave_dir.length_squared() <= 0.01:
+		wave_dir = Vector2.RIGHT
+	song_boss_megaphone_waves.append({
+		"origin": origin,
+		"dir": wave_dir,
+		"range": wave_range,
+		"angle": angle,
+		"telegraph": telegraph,
+		"activeDuration": active_duration,
+		"time": telegraph + active_duration,
+		"maxTime": telegraph + active_duration,
+		"damage": damage,
+		"knockback": knockback,
+		"hit": false
+	})
+
+func _update_song_boss_megaphone_waves(delta: float) -> void:
+	for i in range(song_boss_megaphone_waves.size() - 1, -1, -1):
+		var wave: Dictionary = song_boss_megaphone_waves[i] as Dictionary
+		wave["time"] = float(wave.get("time", 0.0)) - delta
+		var age := float(wave.get("maxTime", 1.0)) - float(wave.get("time", 0.0))
+		var active := age >= float(wave.get("telegraph", 0.7))
+		if active and not bool(wave.get("hit", false)):
+			var origin := Vector2(wave.get("origin", Vector2.ZERO))
+			var wave_dir := Vector2(wave.get("dir", Vector2.RIGHT)).normalized()
+			var to_player := player_pos - origin
+			var dist := to_player.length()
+			if dist > 0.01 and dist <= float(wave.get("range", 380.0)):
+				var angle_diff := absf(wrapf(to_player.angle() - wave_dir.angle(), -PI, PI))
+				if angle_diff <= float(wave.get("angle", PI / 3.0)) * 0.5:
+					wave["hit"] = true
+					player_vel += to_player.normalized() * float(wave.get("knockback", 0.7)) * 260.0
+					_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "boss_attack", "damage": int(wave.get("damage", 28))}]))
+		if float(wave.get("time", 0.0)) <= 0.0:
+			song_boss_megaphone_waves.remove_at(i)
+		else:
+			song_boss_megaphone_waves[i] = wave
+
+func _update_song_encore(delta: float, arena: Rect2) -> void:
+	if song_encore_timer > 0.0:
+		song_encore_timer = maxf(0.0, song_encore_timer - delta)
+		if song_encore_timer <= 0.0 and song_encore_triggered:
+			song_encore_completed = true
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ アンコール完走！", "888888", "+ 最後まで盛り上がった"]}, chat_box)
+		return
+	if song_encore_triggered or not song_encore_unlocked:
+		return
+	var run_length := RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH)
+	var remaining := run_length - elapsed
+	if remaining <= SONG_ENCORE_TRIGGER_REMAINING and remaining > 3.0:
+		_start_song_encore(arena)
+
+func _start_song_encore(arena: Rect2) -> void:
+	song_encore_triggered = true
+	song_encore_timer = SONG_ENCORE_DURATION
+	_add_song_live_heat(6.0, "encore_start")
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ アンコール！", "+ 最後まで盛り上げろ！", "w 終われない空気"]}, chat_box)
+	_push_time_toast("アンコール！", 1.3)
+	if song_chorus_timer <= 0.0 and song_chorus_telegraph_timer <= 0.0:
+		_start_song_chorus(arena)
+
+func _update_song_live_heat_buffs(delta: float, arena: Rect2) -> void:
+	_update_song_live_heat_fx(delta)
+	_update_song_note_trail(delta)
+	if song_live_heat_level >= 2:
+		_update_song_penlight_bits(delta)
+	else:
+		song_penlight_bit_shot_timer = 0.0
+	if song_live_heat_level >= 3:
+		_update_song_harmony_wave(delta)
+	else:
+		song_harmony_wave_timer = 0.0
+	if song_live_heat_level >= 5:
+		_update_song_audience_call_wave(delta, arena)
+	else:
+		song_audience_call_wave_timer = 0.0
+
+func _update_song_live_heat_fx(delta: float) -> void:
+	for i in range(song_live_heat_fx.size() - 1, -1, -1):
+		var fx: Dictionary = song_live_heat_fx[i] as Dictionary
+		fx["life"] = float(fx.get("life", 0.0)) - delta
+		if float(fx.get("life", 0.0)) <= 0.0:
+			song_live_heat_fx.remove_at(i)
+		else:
+			song_live_heat_fx[i] = fx
+
+func _update_song_note_trail(delta: float) -> void:
+	var speed_sq := player_vel.length_squared()
+	if song_live_heat_level < 1 or speed_sq < 4225.0:
+		return
+	song_note_trail_timer -= delta
+	if song_note_trail_timer > 0.0:
+		return
+	song_note_trail_timer = 0.10 if song_live_heat_level >= 5 else 0.16
+	var colors := [Color("#ff8fc8"), Color("#8eeaff"), Color("#d6b4ff"), Color("#ffe177")]
+	var symbols := ["♪", "♬", "☆", "♡"]
+	song_live_heat_fx.append({
+		"kind": "note_trail",
+		"pos": player_pos - player_vel.normalized() * 24.0 + Vector2(rng.randf_range(-10.0, 10.0), rng.randf_range(-8.0, 8.0)),
+		"life": 0.48,
+		"maxLife": 0.48,
+		"symbol": String(symbols[rng.randi_range(0, symbols.size() - 1)]),
+		"color": colors[rng.randi_range(0, colors.size() - 1)]
+	})
+
+func _update_song_penlight_bits(delta: float) -> void:
+	if song_penlight_bit_shot_timer <= 0.0:
+		song_penlight_bit_shot_timer = SONG_PENLIGHT_BIT_SHOT_INTERVAL
+	song_penlight_bit_shot_timer -= delta
+	if song_penlight_bit_shot_timer > 0.0:
+		return
+	song_penlight_bit_shot_timer = SONG_PENLIGHT_BIT_SHOT_INTERVAL
+	var fired := false
+	for i in range(SONG_PENLIGHT_BIT_COUNT):
+		var bit_pos := _song_penlight_bit_position(i)
+		var target := _song_nearest_enemy(bit_pos, SONG_PENLIGHT_BIT_SHOT_RANGE)
+		if target.is_empty():
+			continue
+		fired = true
+		var target_pos := Vector2(target.get("pos", bit_pos))
+		_song_apply_enemy_damage(target, SONG_PENLIGHT_BIT_SHOT_DAMAGE, bit_pos, SONG_PENLIGHT_BIT_SHOT_KNOCKBACK, "song_penlight_bit")
+		song_live_heat_fx.append({
+			"kind": "penlight_shot",
+			"from": bit_pos,
+			"to": target_pos,
+			"life": 0.24,
+			"maxLife": 0.24,
+			"color": Color("#8eeaff") if i % 2 == 0 else Color("#ff8fc8")
+		})
+	if fired:
+		_play_song_penlight_bit_attack_se()
+
+func _song_penlight_bit_position(index: int) -> Vector2:
+	var angle := elapsed * 1.65 + TAU * float(index) / maxf(1.0, float(SONG_PENLIGHT_BIT_COUNT))
+	var radius := 58.0 + sin(elapsed * 3.4 + float(index)) * 5.0
+	return player_pos + Vector2(cos(angle), sin(angle)) * radius
+
+func _update_song_harmony_wave(delta: float) -> void:
+	if song_harmony_wave_timer <= 0.0:
+		song_harmony_wave_timer = SONG_HARMONY_WAVE_INTERVAL
+	song_harmony_wave_timer -= delta
+	if song_harmony_wave_timer > 0.0:
+		return
+	_spawn_song_live_heat_wave("harmony_wave", SONG_HARMONY_WAVE_RADIUS, SONG_HARMONY_WAVE_DAMAGE, SONG_HARMONY_WAVE_KNOCKBACK, Color("#ff8fc8"), "song_harmony_wave")
+	song_harmony_wave_timer = SONG_HARMONY_WAVE_INTERVAL
+
+func _update_song_audience_call_wave(delta: float, arena: Rect2) -> void:
+	if song_audience_call_wave_timer <= 0.0:
+		song_audience_call_wave_timer = SONG_AUDIENCE_CALL_WAVE_INTERVAL
+	song_audience_call_wave_timer -= delta
+	if song_audience_call_wave_timer > 0.0:
+		return
+	_spawn_song_audience_call_wave(arena)
+	song_audience_call_wave_timer = SONG_AUDIENCE_CALL_WAVE_INTERVAL
+
+func _spawn_song_audience_call_wave(arena: Rect2) -> int:
+	var width := SONG_AUDIENCE_CALL_WAVE_WIDTH
+	var horizontal_lane := rng.randf() < 0.65
+	var forward := rng.randf() < 0.5
+	var lane_rect := Rect2()
+	var origin := Vector2.ZERO
+	var dir := Vector2.RIGHT
+	if horizontal_lane:
+		var y := clampf(player_pos.y + rng.randf_range(-120.0, 120.0), arena.position.y + width * 0.5, arena.end.y - width * 0.5)
+		lane_rect = Rect2(Vector2(arena.position.x, y - width * 0.5), Vector2(arena.size.x, width))
+		dir = Vector2.RIGHT if forward else Vector2.LEFT
+		origin = Vector2(arena.position.x - width if forward else arena.end.x + width, y)
+	else:
+		var x := clampf(player_pos.x + rng.randf_range(-160.0, 160.0), arena.position.x + width * 0.5, arena.end.x - width * 0.5)
+		lane_rect = Rect2(Vector2(x - width * 0.5, arena.position.y), Vector2(width, arena.size.y))
+		dir = Vector2.DOWN if forward else Vector2.UP
+		origin = Vector2(x, arena.position.y - width if forward else arena.end.y + width)
+	var hits := _song_apply_sweep_damage(lane_rect, origin, SONG_AUDIENCE_CALL_WAVE_DAMAGE, SONG_AUDIENCE_CALL_WAVE_KNOCKBACK, "song_audience_call_wave")
+	song_live_heat_fx.append({
+		"kind": "audience_call_wave",
+		"arena": arena,
+		"rect": lane_rect,
+		"dir": dir,
+		"horizontal": horizontal_lane,
+		"width": width,
+		"hits": hits,
+		"life": SONG_AUDIENCE_CALL_WAVE_DURATION,
+		"maxLife": SONG_AUDIENCE_CALL_WAVE_DURATION,
+		"color": Color("#8eeaff")
+	})
+	_play_song_audience_call_wave_se()
+	return hits
+
+func _spawn_song_live_heat_wave(kind: String, radius: float, damage: float, knockback: float, color: Color, source: String) -> int:
+	var hits := _song_apply_area_damage(player_pos, radius, damage, knockback, source)
+	song_live_heat_fx.append({
+		"kind": kind,
+		"pos": player_pos,
+		"radius": radius,
+		"hits": hits,
+		"life": 0.58,
+		"maxLife": 0.58,
+		"color": color
+	})
+	return hits
+
+func _fire_song_note_pickup_extra_shot(origin: Vector2) -> void:
+	var target := _song_nearest_enemy(origin, SONG_NOTE_EXTRA_SHOT_RANGE)
+	if target.is_empty():
+		return
+	var target_pos := Vector2(target.get("pos", origin))
+	_song_apply_enemy_damage(target, SONG_NOTE_EXTRA_SHOT_DAMAGE, origin, 20.0, "song_note_extra_shot")
+	song_live_heat_fx.append({
+		"kind": "penlight_shot",
+		"from": origin,
+		"to": target_pos,
+		"life": 0.18,
+		"maxLife": 0.18,
+		"color": Color("#ffe177")
+	})
+
+func _song_live_heat_note_heal(amount: int) -> void:
+	if amount <= 0 or player_hp >= player_max_hp:
+		return
+	player_hp = mini(player_max_hp, player_hp + amount)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": player_pos + Vector2(-24.0, -54.0),
+		"vel": Vector2(0.0, -48.0),
+		"life": 0.64,
+		"maxLife": 0.64,
+		"text": "+%d" % amount,
+		"color": Color("#ff5cad")
+	})
+
+func _song_apply_area_damage(center: Vector2, radius: float, damage: float, knockback: float, source: String) -> int:
+	var hits := 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		var enemy_radius := maxf(12.0, float(enemy.get("radius", 24.0)))
+		var hit_radius := radius + enemy_radius * 0.65
+		if enemy_pos.distance_squared_to(center) > hit_radius * hit_radius:
+			continue
+		if _song_apply_enemy_damage(enemy, damage, center, knockback, source):
+			hits += 1
+	return hits
+
+func _song_apply_sweep_damage(rect: Rect2, origin: Vector2, damage: float, knockback: float, source: String) -> int:
+	var hits := 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		var enemy_radius := maxf(12.0, float(enemy.get("radius", 24.0)))
+		if not rect.grow(enemy_radius * 0.65).has_point(enemy_pos):
+			continue
+		if _song_apply_enemy_damage(enemy, damage, origin, knockback, source):
+			hits += 1
+	return hits
+
+func _song_nearest_enemy(origin: Vector2, range: float) -> Dictionary:
+	var best: Dictionary = {}
+	var best_dist_sq := range * range
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var dist_sq := Vector2(enemy.get("pos", Vector2.ZERO)).distance_squared_to(origin)
+		if dist_sq >= best_dist_sq:
+			continue
+		best = enemy
+		best_dist_sq = dist_sq
+	return best
+
+func _song_enemy_inactive(enemy: Dictionary) -> bool:
+	return float(enemy.get("hp", 0.0)) <= 0.0 or bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false))
+
+func _song_apply_enemy_damage(enemy: Dictionary, damage: float, origin: Vector2, knockback: float, source: String) -> bool:
+	if _song_enemy_inactive(enemy):
+		return false
+	var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+	var applied_damage := damage * maxf(0.05, float(enemy.get("damageTakenRate", 1.0)))
+	enemy["hp"] = float(enemy.get("hp", 0.0)) - applied_damage
+	enemy["lastHitSource"] = source
+	var flash_duration := maxf(0.08, float(enemy.get("hitFlashDuration", 0.10)))
+	enemy["hitFlashDuration"] = flash_duration
+	enemy["hitFlashTimer"] = flash_duration
+	hit_fx.append({
+		"kind": "damage_number",
+		"pos": enemy_pos + Vector2(rng.randf_range(-8.0, 8.0), -22.0 + rng.randf_range(-5.0, 3.0)),
+		"vel": Vector2(rng.randf_range(-14.0, 14.0), -52.0),
+		"life": 0.44,
+		"maxLife": 0.44,
+		"damage": applied_damage
+	})
+	var defeated := float(enemy.get("hp", 0.0)) <= 0.0
+	if defeated:
+		enemy["defeatSource"] = source
+		EnemySystemScript.queue_defeat_for_enemy(enemy)
+	var knockback_offset := enemy_pos - origin
+	if knockback_offset.length_squared() > 0.01 and knockback > 0.0:
+		var knockback_rate := 1.0
+		if bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")).begins_with("boss_"):
+			knockback_rate = 0.12
+		EnemySystemScript.add_knockback_for_enemy(enemy, knockback_offset.normalized(), knockback * knockback_rate)
+	return true
+
+func _add_drawing_progress(amount: float, _source: String = "", pos: Vector2 = Vector2.INF) -> void:
+	if amount <= 0.0 or not _is_drawing_frame():
+		return
+	var before := drawing_progress
+	drawing_progress = clampf(drawing_progress + amount, 0.0, 100.0)
+	if pos != Vector2.INF and drawing_progress > before:
+		hit_fx.append({
+			"kind": "pickup_text",
+			"pos": pos,
+			"vel": Vector2(0.0, -34.0),
+			"life": 0.50,
+			"maxLife": 0.50,
+			"text": "+%.1f%%" % amount,
+			"color": Color("#ff8fc8")
+		})
+	if before < 100.0 and drawing_progress >= 100.0:
+		_complete_drawing_illustration()
+
+func _add_drawing_progress_from_enemy_defeat(enemy: Dictionary) -> void:
+	var max_hp := float(enemy.get("max_hp", enemy.get("maxHp", enemy.get("hp", 0.0))))
+	var radius := float(enemy.get("radius", 22.0))
+	var gain := DRAWING_PROGRESS_ENEMY_SMALL_GAIN
+	if max_hp >= 28.0 or radius >= 30.0:
+		gain = DRAWING_PROGRESS_ENEMY_LARGE_GAIN
+	elif max_hp >= 15.0 or radius >= 24.0:
+		gain = DRAWING_PROGRESS_ENEMY_MEDIUM_GAIN
+	_add_drawing_progress(gain, "enemy_defeat", Vector2(enemy.get("pos", player_pos)) + Vector2(-18.0, -24.0))
+
+func _complete_drawing_illustration() -> void:
+	if drawing_complete_reward_claimed:
+		return
+	drawing_complete_reward_claimed = true
+	score += DRAWING_COMPLETE_VIEWER_REWARD
+	gift_hype = clampi(gift_hype + DRAWING_COMPLETE_GIFT_HYPE_REWARD, 0, 100)
+	max_gift_hype = maxi(max_gift_hype, gift_hype)
+	_show_drawing_toast("イラスト完成！", "視聴者 +%d / ギフト +%d" % [DRAWING_COMPLETE_VIEWER_REWARD, DRAWING_COMPLETE_GIFT_HYPE_REWARD])
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ イラスト完成！", "888888", "> サムネいける", "+ 視聴者が増えた！"]}, chat_box)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": player_pos + Vector2(-64.0, -96.0),
+		"vel": Vector2(0.0, -52.0),
+		"life": 0.95,
+		"maxLife": 0.95,
+		"text": "COMPLETE!",
+		"color": Color("#ff5cad")
+	})
+	_play_exp_pickup_se()
+
+func _reset_drawing_stage_state() -> void:
+	drawing_paint_orbs.clear()
+	drawing_paint_trails.clear()
+	drawing_paint_regions.clear()
+	drawing_correction_points.clear()
+	drawing_erasers.clear()
+	drawing_focus_spots.clear()
+	drawing_active_paint_color = ""
+	drawing_active_paint_timer = 0.0
+	drawing_orb_spawn_timer = 1.8
+	drawing_correction_spawn_timer = 8.0
+	drawing_eraser_spawn_timer = 15.0
+	drawing_focus_spawn_timer = 6.0
+	drawing_trail_stamp_timer = 0.0
+	drawing_last_trail_stamp_pos = Vector2.ZERO
+	drawing_has_last_trail_stamp = false
+	drawing_focus_inside_last_frame = false
+	drawing_next_region_id = 1
+	drawing_progress = 0.0
+	drawing_complete_reward_claimed = false
+	drawing_fill_count = 0
+	drawing_correction_complete_count = 0
+	drawing_eraser_used_count = 0
+	drawing_filled_cell_keys.clear()
+	drawing_toast_timer = 0.0
+	drawing_toast_title = ""
+	drawing_toast_subtitle = ""
+
+func _update_drawing_stage(delta: float, arena: Rect2) -> void:
+	if not _is_drawing_frame():
+		if not drawing_paint_orbs.is_empty() or not drawing_paint_trails.is_empty() or not drawing_paint_regions.is_empty() or not drawing_focus_spots.is_empty():
+			_reset_drawing_stage_state()
+		return
+	drawing_toast_timer = maxf(0.0, drawing_toast_timer - delta)
+	_update_drawing_focus_spots(delta, arena)
+	if drawing_active_paint_timer > 0.0:
+		drawing_active_paint_timer = maxf(0.0, drawing_active_paint_timer - delta)
+		if drawing_active_paint_timer <= 0.0:
+			drawing_active_paint_color = ""
+			drawing_has_last_trail_stamp = false
+	_update_drawing_regions(delta, arena)
+	_update_drawing_paint_orbs(delta, arena)
+	_update_drawing_correction_points(delta, arena)
+	_update_drawing_erasers(delta, arena)
+	if drawing_active_paint_color != "":
+		_update_drawing_trail(delta, arena)
+	else:
+		drawing_has_last_trail_stamp = false
+
+func _update_drawing_focus_spots(delta: float, arena: Rect2) -> void:
+	for i in range(drawing_focus_spots.size() - 1, -1, -1):
+		var spot: Dictionary = drawing_focus_spots[i] as Dictionary
+		spot["time"] = float(spot.get("time", 0.0)) - delta
+		if float(spot["time"]) <= 0.0:
+			drawing_focus_spots.remove_at(i)
+		else:
+			drawing_focus_spots[i] = spot
+	drawing_focus_spawn_timer -= delta
+	if drawing_focus_spawn_timer <= 0.0:
+		if drawing_focus_spots.size() < 2:
+			_spawn_drawing_focus_spot(arena)
+		drawing_focus_spawn_timer = rng.randf_range(DRAWING_FOCUS_SPOT_INTERVAL_MIN, DRAWING_FOCUS_SPOT_INTERVAL_MAX)
+	var inside := false
+	for spot_value in drawing_focus_spots:
+		var spot: Dictionary = spot_value as Dictionary
+		var pos := Vector2(spot.get("pos", Vector2.ZERO))
+		var radius := float(spot.get("radius", DRAWING_FOCUS_SPOT_RADIUS))
+		if pos.distance_squared_to(player_pos) <= radius * radius:
+			inside = true
+			break
+	if inside and not drawing_focus_inside_last_frame:
+		_show_drawing_toast("集中作業スポット！", "線幅・修正速度UP")
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 集中作業スポット！", "> そこ作業しやすそう"]}, chat_box)
+	drawing_focus_inside_last_frame = inside
+
+func _spawn_drawing_focus_spot(arena: Rect2) -> void:
+	drawing_focus_spots.append({
+		"pos": _drawing_event_position(arena, DRAWING_FOCUS_SPOT_RADIUS, DRAWING_FOCUS_SPOT_RADIUS + 42.0),
+		"radius": DRAWING_FOCUS_SPOT_RADIUS,
+		"time": DRAWING_FOCUS_SPOT_LIFETIME,
+		"maxTime": DRAWING_FOCUS_SPOT_LIFETIME,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+
+func _update_drawing_paint_orbs(delta: float, arena: Rect2) -> void:
+	for i in range(drawing_paint_orbs.size() - 1, -1, -1):
+		var orb: Dictionary = drawing_paint_orbs[i] as Dictionary
+		orb["time"] = float(orb.get("time", 0.0)) - delta
+		if float(orb["time"]) <= 0.0:
+			drawing_paint_orbs.remove_at(i)
+			continue
+		var radius := float(orb.get("radius", DRAWING_PAINT_ORB_RADIUS))
+		if Vector2(orb.get("pos", Vector2.ZERO)).distance_squared_to(player_pos) <= (radius + 28.0) * (radius + 28.0):
+			_collect_drawing_paint_orb(orb)
+			drawing_paint_orbs.remove_at(i)
+	drawing_orb_spawn_timer -= delta
+	if drawing_orb_spawn_timer <= 0.0:
+		if drawing_paint_orbs.size() < DRAWING_PAINT_ORB_MAX:
+			_spawn_drawing_paint_orb(arena)
+		drawing_orb_spawn_timer = rng.randf_range(DRAWING_PAINT_ORB_INTERVAL_MIN, DRAWING_PAINT_ORB_INTERVAL_MAX)
+
+func _spawn_drawing_paint_orb(arena: Rect2) -> void:
+	var color_id: String = DRAWING_PAINT_COLOR_IDS[rng.randi_range(0, DRAWING_PAINT_COLOR_IDS.size() - 1)]
+	drawing_paint_orbs.append({
+		"pos": _drawing_event_position(arena, DRAWING_PAINT_ORB_RADIUS, 82.0),
+		"colorId": color_id,
+		"radius": DRAWING_PAINT_ORB_RADIUS,
+		"time": DRAWING_PAINT_ORB_LIFETIME,
+		"maxTime": DRAWING_PAINT_ORB_LIFETIME,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+
+func _collect_drawing_paint_orb(orb: Dictionary) -> void:
+	drawing_active_paint_color = String(orb.get("colorId", "pink"))
+	drawing_active_paint_timer = DRAWING_PAINT_DURATION
+	drawing_has_last_trail_stamp = false
+	drawing_trail_stamp_timer = 0.0
+	var color_name := _drawing_paint_name(drawing_active_paint_color)
+	_show_drawing_toast("%s絵の具GET！" % color_name, "移動すると線を描けます")
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ %s絵の具を拾った！" % color_name]}, chat_box)
+	_play_exp_pickup_se()
+
+func _update_drawing_trail(delta: float, arena: Rect2) -> void:
+	drawing_trail_stamp_timer = maxf(0.0, drawing_trail_stamp_timer - delta)
+	if drawing_trail_stamp_timer > 0.0:
+		return
+	var trail_width := _drawing_trail_width()
+	if not arena.grow(-24.0).has_point(player_pos):
+		drawing_has_last_trail_stamp = false
+		return
+	if _drawing_position_blocked(player_pos, trail_width * 0.35):
+		drawing_has_last_trail_stamp = false
+		return
+	if drawing_has_last_trail_stamp and player_pos.distance_squared_to(drawing_last_trail_stamp_pos) < DRAWING_TRAIL_MIN_DISTANCE * DRAWING_TRAIL_MIN_DISTANCE:
+		return
+	drawing_trail_stamp_timer = DRAWING_TRAIL_STAMP_INTERVAL
+	var cell := _drawing_world_to_cell(player_pos, arena)
+	var cell_key := _drawing_cell_key(cell)
+	drawing_paint_trails.append({
+		"pos": player_pos,
+		"cell": cell,
+		"cellKey": cell_key,
+		"colorId": drawing_active_paint_color,
+		"width": trail_width,
+		"time": DRAWING_TRAIL_LIFETIME,
+		"maxTime": DRAWING_TRAIL_LIFETIME
+	})
+	drawing_last_trail_stamp_pos = player_pos
+	drawing_has_last_trail_stamp = true
+	while drawing_paint_trails.size() > DRAWING_TRAIL_MAX_SAMPLES:
+		drawing_paint_trails.remove_at(0)
+	_try_drawing_fill_from_trail(cell, drawing_active_paint_color, arena)
+
+func _update_drawing_regions(delta: float, arena: Rect2) -> void:
+	for i in range(drawing_paint_trails.size() - 1, -1, -1):
+		var trail: Dictionary = drawing_paint_trails[i] as Dictionary
+		trail["time"] = float(trail.get("time", 0.0)) - delta
+		if float(trail["time"]) <= 0.0:
+			drawing_paint_trails.remove_at(i)
+	for i in range(drawing_paint_regions.size() - 1, -1, -1):
+		var region: Dictionary = drawing_paint_regions[i] as Dictionary
+		region["time"] = float(region.get("time", 0.0)) - delta
+		region["tick"] = float(region.get("tick", 0.0)) - delta
+		if float(region.get("tick", 0.0)) <= 0.0:
+			region["tick"] = DRAWING_REGION_TICK_INTERVAL
+			_apply_drawing_region_effect(region, arena)
+		if float(region.get("time", 0.0)) <= 0.0:
+			drawing_paint_regions.remove_at(i)
+
+func _try_drawing_fill_from_trail(new_cell: Vector2i, color_id: String, arena: Rect2) -> void:
+	var boundary: Dictionary = {}
+	for trail_item in drawing_paint_trails:
+		var trail: Dictionary = trail_item as Dictionary
+		if String(trail.get("colorId", "")) != color_id:
+			continue
+		boundary[String(trail.get("cellKey", ""))] = true
+	if boundary.size() < 10:
+		return
+	var grid := _drawing_grid_size(arena)
+	if grid.x < 3 or grid.y < 3:
+		return
+	var outside: Dictionary = {}
+	var queue: Array = []
+	for x in range(grid.x):
+		_drawing_enqueue_flood_cell(Vector2i(x, 0), boundary, outside, queue, grid)
+		_drawing_enqueue_flood_cell(Vector2i(x, grid.y - 1), boundary, outside, queue, grid)
+	for y in range(grid.y):
+		_drawing_enqueue_flood_cell(Vector2i(0, y), boundary, outside, queue, grid)
+		_drawing_enqueue_flood_cell(Vector2i(grid.x - 1, y), boundary, outside, queue, grid)
+	var head := 0
+	while head < queue.size():
+		var cell: Vector2i = queue[head] as Vector2i
+		head += 1
+		_drawing_enqueue_flood_cell(cell + Vector2i(1, 0), boundary, outside, queue, grid)
+		_drawing_enqueue_flood_cell(cell + Vector2i(-1, 0), boundary, outside, queue, grid)
+		_drawing_enqueue_flood_cell(cell + Vector2i(0, 1), boundary, outside, queue, grid)
+		_drawing_enqueue_flood_cell(cell + Vector2i(0, -1), boundary, outside, queue, grid)
+	var candidates: Array = []
+	for y in range(1, grid.y - 1):
+		for x in range(1, grid.x - 1):
+			var cell := Vector2i(x, y)
+			var key := _drawing_cell_key(cell)
+			if boundary.has(key) or outside.has(key) or drawing_filled_cell_keys.has(key):
+				continue
+			if _drawing_cell_blocked(cell, arena):
+				continue
+			candidates.append(cell)
+	if candidates.is_empty():
+		return
+	var candidate_set: Dictionary = {}
+	for cell_value in candidates:
+		candidate_set[_drawing_cell_key(cell_value as Vector2i)] = true
+	var visited: Dictionary = {}
+	var best_component: Array = []
+	var best_distance_sq := INF
+	for cell_value in candidates:
+		var start_cell: Vector2i = cell_value as Vector2i
+		var start_key := _drawing_cell_key(start_cell)
+		if visited.has(start_key):
+			continue
+		var component := _drawing_collect_component(start_cell, candidate_set, visited, grid)
+		var size := component.size()
+		if size < DRAWING_MIN_FILL_CELLS or size > DRAWING_MAX_FILL_CELLS:
+			continue
+		var dist_sq := _drawing_component_distance_sq(component, new_cell)
+		if best_component.is_empty() or dist_sq < best_distance_sq:
+			best_component = component
+			best_distance_sq = dist_sq
+	if best_component.is_empty():
+		return
+	_create_drawing_region(best_component, color_id, arena)
+
+func _drawing_enqueue_flood_cell(cell: Vector2i, boundary: Dictionary, outside: Dictionary, queue: Array, grid: Vector2i) -> void:
+	if cell.x < 0 or cell.y < 0 or cell.x >= grid.x or cell.y >= grid.y:
+		return
+	var key := _drawing_cell_key(cell)
+	if boundary.has(key) or outside.has(key):
+		return
+	outside[key] = true
+	queue.append(cell)
+
+func _drawing_collect_component(start_cell: Vector2i, candidate_set: Dictionary, visited: Dictionary, grid: Vector2i) -> Array:
+	var component: Array = []
+	var queue: Array = [start_cell]
+	visited[_drawing_cell_key(start_cell)] = true
+	var head := 0
+	while head < queue.size():
+		var cell: Vector2i = queue[head] as Vector2i
+		head += 1
+		component.append(cell)
+		for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var next_cell: Vector2i = cell + offset
+			if next_cell.x < 0 or next_cell.y < 0 or next_cell.x >= grid.x or next_cell.y >= grid.y:
+				continue
+			var key := _drawing_cell_key(next_cell)
+			if visited.has(key) or not candidate_set.has(key):
+				continue
+			visited[key] = true
+			queue.append(next_cell)
+	return component
+
+func _drawing_component_distance_sq(component: Array, target_cell: Vector2i) -> float:
+	var best := INF
+	for cell_value in component:
+		var cell: Vector2i = cell_value as Vector2i
+		var dist := Vector2(float(cell.x - target_cell.x), float(cell.y - target_cell.y)).length_squared()
+		best = minf(best, dist)
+	return best
+
+func _create_drawing_region(cells: Array, color_id: String, arena: Rect2) -> void:
+	var cell_keys: Dictionary = {}
+	var center := Vector2.ZERO
+	for cell_value in cells:
+		var cell: Vector2i = cell_value as Vector2i
+		var key := _drawing_cell_key(cell)
+		cell_keys[key] = true
+		drawing_filled_cell_keys[key] = true
+		center += _drawing_cell_center(cell, arena)
+	if cells.size() > 0:
+		center /= float(cells.size())
+	drawing_paint_regions.append({
+		"id": drawing_next_region_id,
+		"colorId": color_id,
+		"cells": cells.duplicate(),
+		"cellKeys": cell_keys,
+		"center": center,
+		"time": DRAWING_REGION_LIFETIME,
+		"maxTime": DRAWING_REGION_LIFETIME,
+		"tick": 0.05
+	})
+	drawing_next_region_id += 1
+	while drawing_paint_regions.size() > DRAWING_MAX_ACTIVE_REGIONS:
+		drawing_paint_regions.remove_at(0)
+	var fill_score := cells.size()
+	drawing_fill_count += 1
+	var progress_gain := DRAWING_PROGRESS_FILL_GAIN
+	if fill_score >= DRAWING_PROGRESS_LARGE_FILL_MIN_CELLS:
+		progress_gain += DRAWING_PROGRESS_LARGE_FILL_BONUS
+	var hits := _apply_drawing_region_effect(drawing_paint_regions[drawing_paint_regions.size() - 1] as Dictionary, arena)
+	_complete_drawing_corrections_in_region(cell_keys)
+	_show_drawing_toast("囲い塗り成功！", "%sエリア %dマス / 敵%d体に効果" % [_drawing_paint_name(color_id), fill_score, hits])
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 囲い塗り成功！", "> 塗り範囲できてる"]}, chat_box)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": center,
+		"vel": Vector2(0.0, -44.0),
+		"life": 0.72,
+		"maxLife": 0.72,
+		"text": "PAINT!",
+		"color": _drawing_paint_color(color_id)
+	})
+	_add_drawing_progress(progress_gain, "paint_fill", center)
+
+func _apply_drawing_region_effect(region: Dictionary, arena: Rect2) -> int:
+	var hits := 0
+	var color_id := String(region.get("colorId", "pink"))
+	var cell_keys: Dictionary = region.get("cellKeys", {}) as Dictionary
+	if cell_keys.is_empty():
+		return 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		var cell := _drawing_world_to_cell(enemy_pos, arena)
+		if not cell_keys.has(_drawing_cell_key(cell)):
+			continue
+		if color_id == "pink":
+			if _song_apply_enemy_damage(enemy, DRAWING_PINK_DAMAGE_PER_TICK, Vector2(region.get("center", enemy_pos)), DRAWING_REGION_KNOCKBACK, "drawing_pink_region"):
+				hits += 1
+		else:
+			enemy["slowTimer"] = maxf(float(enemy.get("slowTimer", 0.0)), DRAWING_CYAN_SLOW_TIMER)
+			enemy["slowRate"] = maxf(float(enemy.get("slowRate", 0.0)), DRAWING_CYAN_SLOW_RATE)
+			hits += 1
+	return hits
+
+func _update_drawing_correction_points(delta: float, arena: Rect2) -> void:
+	for i in range(drawing_correction_points.size() - 1, -1, -1):
+		var point: Dictionary = drawing_correction_points[i] as Dictionary
+		point["time"] = float(point.get("time", 0.0)) - delta
+		if float(point["time"]) <= 0.0:
+			drawing_correction_points.remove_at(i)
+			continue
+		if drawing_active_paint_color != "":
+			var point_pos := Vector2(point.get("pos", Vector2.ZERO))
+			var radius := float(point.get("radius", DRAWING_CORRECTION_RADIUS)) + _drawing_trail_width() * 0.42
+			if point_pos.distance_squared_to(player_pos) <= radius * radius:
+				point["paintTime"] = float(point.get("paintTime", 0.0)) + delta * _drawing_correction_speed_multiplier()
+				if float(point["paintTime"]) >= DRAWING_CORRECTION_DIRECT_PAINT_TIME:
+					_complete_drawing_correction_at(i)
+					continue
+			else:
+				point["paintTime"] = maxf(0.0, float(point.get("paintTime", 0.0)) - delta * 0.65)
+	drawing_correction_spawn_timer -= delta
+	if drawing_correction_spawn_timer <= 0.0:
+		if drawing_correction_points.size() < DRAWING_CORRECTION_MAX:
+			_spawn_drawing_correction_point(arena)
+		drawing_correction_spawn_timer = rng.randf_range(DRAWING_CORRECTION_INTERVAL_MIN, DRAWING_CORRECTION_INTERVAL_MAX)
+
+func _spawn_drawing_correction_point(arena: Rect2) -> void:
+	drawing_correction_points.append({
+		"pos": _drawing_event_position(arena, DRAWING_CORRECTION_RADIUS, 120.0),
+		"radius": DRAWING_CORRECTION_RADIUS,
+		"time": DRAWING_CORRECTION_LIFETIME,
+		"maxTime": DRAWING_CORRECTION_LIFETIME,
+		"paintTime": 0.0,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+
+func _complete_drawing_corrections_in_region(cell_keys: Dictionary) -> void:
+	for i in range(drawing_correction_points.size() - 1, -1, -1):
+		var point: Dictionary = drawing_correction_points[i] as Dictionary
+		var cell := _drawing_world_to_cell(Vector2(point.get("pos", Vector2.ZERO)), _current_arena())
+		if not cell_keys.has(_drawing_cell_key(cell)):
+			continue
+		_complete_drawing_correction_at(i)
+
+func _complete_drawing_correction_at(index: int) -> void:
+	if index < 0 or index >= drawing_correction_points.size():
+		return
+	var point: Dictionary = drawing_correction_points[index] as Dictionary
+	var pos := Vector2(point.get("pos", Vector2.ZERO))
+	drawing_correction_points.remove_at(index)
+	drawing_correction_complete_count += 1
+	score += DRAWING_CORRECTION_VIEWER_GAIN
+	gift_hype = clampi(gift_hype + DRAWING_CORRECTION_GIFT_HYPE_GAIN, 0, 100)
+	max_gift_hype = maxi(max_gift_hype, gift_hype)
+	if rng.randf() < DRAWING_CORRECTION_SPAWN_PAINT_ORB_CHANCE and drawing_paint_orbs.size() < DRAWING_PAINT_ORB_MAX:
+		_spawn_drawing_paint_orb(_current_arena())
+	if rng.randf() < DRAWING_CORRECTION_HEAL_MENTAL_CHANCE:
+		_song_live_heat_note_heal(DRAWING_CORRECTION_HEAL_AMOUNT)
+	_show_drawing_toast("修正ポイント完了！", "進捗 +%d%% / 視聴者 +%d / ギフト +%d" % [
+		roundi(DRAWING_PROGRESS_CORRECTION_GAIN),
+		DRAWING_CORRECTION_VIEWER_GAIN,
+		DRAWING_CORRECTION_GIFT_HYPE_GAIN
+	])
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 修正対応完了！", "> そこ直したの助かる"]}, chat_box)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos,
+		"vel": Vector2(0.0, -48.0),
+		"life": 0.62,
+		"maxLife": 0.62,
+		"text": "FIX!",
+		"color": Color("#ff6aa5")
+	})
+	_add_drawing_progress(DRAWING_PROGRESS_CORRECTION_GAIN, "correction", pos)
+
+func _update_drawing_erasers(delta: float, arena: Rect2) -> void:
+	for i in range(drawing_erasers.size() - 1, -1, -1):
+		var eraser: Dictionary = drawing_erasers[i] as Dictionary
+		eraser["time"] = float(eraser.get("time", 0.0)) - delta
+		if float(eraser["time"]) <= 0.0:
+			drawing_erasers.remove_at(i)
+			continue
+		var pos := Vector2(eraser.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) <= 54.0 * 54.0:
+			_collect_drawing_eraser(pos)
+			drawing_erasers.remove_at(i)
+	drawing_eraser_spawn_timer -= delta
+	if drawing_eraser_spawn_timer <= 0.0:
+		_spawn_drawing_eraser(arena)
+		drawing_eraser_spawn_timer = rng.randf_range(DRAWING_ERASER_INTERVAL_MIN, DRAWING_ERASER_INTERVAL_MAX)
+
+func _spawn_drawing_eraser(arena: Rect2) -> void:
+	drawing_erasers.append({
+		"pos": _drawing_event_position(arena, 32.0, 90.0),
+		"time": DRAWING_ERASER_LIFETIME,
+		"maxTime": DRAWING_ERASER_LIFETIME,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+
+func _collect_drawing_eraser(pos: Vector2) -> void:
+	drawing_eraser_used_count += 1
+	var eraser_radius := _drawing_eraser_radius()
+	var removed_bullets := 0
+	for i in range(enemy_bullets.size() - 1, -1, -1):
+		var bullet: Dictionary = enemy_bullets[i] as Dictionary
+		if Vector2(bullet.get("pos", Vector2.ZERO)).distance_squared_to(pos) <= eraser_radius * eraser_radius:
+			enemy_bullets.remove_at(i)
+			removed_bullets += 1
+	var hits := _song_apply_area_damage(pos, eraser_radius, DRAWING_ERASER_DAMAGE, DRAWING_ERASER_KNOCKBACK, "drawing_eraser")
+	var progress_gain := DRAWING_PROGRESS_ERASER_GAIN if removed_bullets > 0 or hits > 0 else 0.0
+	_show_drawing_toast("消しゴム発動！", "敵弾%d個消去 / 敵%d体に効果" % [removed_bullets, hits])
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 消しゴム助かる", "> 画面が少しきれいになった"]}, chat_box)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos,
+		"vel": Vector2(0.0, -50.0),
+		"life": 0.62,
+		"maxLife": 0.62,
+		"text": "ERASE",
+		"color": Color("#7ce8ff")
+	})
+	_add_drawing_progress(progress_gain, "eraser", pos)
+	_play_marshmallow_pickup_se()
+
+func _drawing_event_position(arena: Rect2, radius: float, obstacle_clearance: float = 80.0) -> Vector2:
+	var rect := arena.grow(-(radius + 38.0))
+	for i in range(58):
+		var pos := Vector2(rng.randf_range(rect.position.x, rect.end.x), rng.randf_range(rect.position.y, rect.end.y))
+		if pos.distance_squared_to(player_pos) < 150.0 * 150.0:
+			continue
+		if _drawing_position_blocked(pos, maxf(radius, obstacle_clearance)):
+			continue
+		return pos
+	for i in range(28):
+		var fallback := arena.get_center() + Vector2(rng.randf_range(-360.0, 360.0), rng.randf_range(-230.0, 230.0))
+		if rect.has_point(fallback) and not _drawing_position_blocked(fallback, radius):
+			return fallback
+	return arena.get_center()
+
+func _drawing_position_blocked(pos: Vector2, radius: float) -> bool:
+	var walls := EnemySystemScript.movement_wall_rects(effect_walls, current_stream_frame_id)
+	for wall_value in walls:
+		var wall: Rect2 = wall_value as Rect2
+		if wall.grow(radius + 12.0).has_point(pos):
+			return true
+	for rect_value in MapBackgroundSystemScript.prop_collision_rects_for_data(_current_map_data()):
+		var rect: Rect2 = rect_value as Rect2
+		if rect.grow(radius).has_point(pos):
+			return true
+	return false
+
+func _drawing_world_to_cell(pos: Vector2, arena: Rect2) -> Vector2i:
+	return Vector2i(
+		int(floor((pos.x - arena.position.x) / DRAWING_CELL_SIZE)),
+		int(floor((pos.y - arena.position.y) / DRAWING_CELL_SIZE))
+	)
+
+func _drawing_cell_center(cell: Vector2i, arena: Rect2) -> Vector2:
+	return arena.position + Vector2((float(cell.x) + 0.5) * DRAWING_CELL_SIZE, (float(cell.y) + 0.5) * DRAWING_CELL_SIZE)
+
+func _drawing_cell_key(cell: Vector2i) -> String:
+	return "%d:%d" % [cell.x, cell.y]
+
+func _drawing_grid_size(arena: Rect2) -> Vector2i:
+	return Vector2i(int(ceil(arena.size.x / DRAWING_CELL_SIZE)), int(ceil(arena.size.y / DRAWING_CELL_SIZE)))
+
+func _drawing_cell_blocked(cell: Vector2i, arena: Rect2) -> bool:
+	var center := _drawing_cell_center(cell, arena)
+	if not arena.has_point(center):
+		return true
+	return _drawing_position_blocked(center, DRAWING_CELL_SIZE * 0.35)
+
+func _show_drawing_toast(title: String, subtitle: String) -> void:
+	drawing_toast_title = title
+	drawing_toast_subtitle = subtitle
+	drawing_toast_timer = DRAWING_TOAST_DURATION
+
+func _drawing_paint_name(color_id: String) -> String:
+	if color_id == "cyan":
+		return "水色"
+	return "ピンク"
+
+func _drawing_paint_effect_name(color_id: String) -> String:
+	if color_id == "cyan":
+		return "敵スロー"
+	return "敵ダメージ"
+
+func _drawing_paint_color(color_id: String) -> Color:
+	if color_id == "cyan":
+		return Color("#57dfff")
+	return Color("#ff70b9")
+
+func _drawing_paint_soft_color(color_id: String) -> Color:
+	if color_id == "cyan":
+		return Color(0.35, 0.86, 1.0, 0.25)
+	return Color(1.0, 0.45, 0.73, 0.25)
+
+func _draw_drawing_stage_objects(visible_rect: Rect2) -> void:
+	if not _is_drawing_frame():
+		return
+	for spot_value in drawing_focus_spots:
+		_draw_drawing_focus_spot(spot_value as Dictionary, visible_rect)
+	for region_value in drawing_paint_regions:
+		_draw_drawing_paint_region(region_value as Dictionary, visible_rect)
+	_draw_drawing_trails(visible_rect)
+	for point_value in drawing_correction_points:
+		_draw_drawing_correction_point(point_value as Dictionary, visible_rect)
+	for eraser_value in drawing_erasers:
+		_draw_drawing_eraser(eraser_value as Dictionary, visible_rect)
+	for orb_value in drawing_paint_orbs:
+		_draw_drawing_paint_orb(orb_value as Dictionary, visible_rect)
+
+func _draw_drawing_focus_spot(spot: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(spot.get("pos", Vector2.ZERO))
+	var radius := float(spot.get("radius", DRAWING_FOCUS_SPOT_RADIUS))
+	if not visible_rect.grow(radius + 18.0).has_point(pos):
+		return
+	var life_ratio := clampf(float(spot.get("time", 0.0)) / maxf(0.1, float(spot.get("maxTime", DRAWING_FOCUS_SPOT_LIFETIME))), 0.0, 1.0)
+	var phase := float(spot.get("phase", 0.0))
+	var occupied := pos.distance_squared_to(player_pos) <= radius * radius
+	var pulse := 0.5 + 0.5 * sin(elapsed * 4.2 + phase)
+	var base_alpha := (0.20 + pulse * 0.06) * life_ratio
+	var ring_color := Color("#67e7ff") if occupied else Color("#ff9ed2")
+	draw_circle(pos, radius, Color(ring_color.r, ring_color.g, ring_color.b, base_alpha))
+	draw_circle(pos, radius * 0.70, Color(1.0, 1.0, 1.0, 0.05 * life_ratio))
+	draw_circle(pos, radius, Color(ring_color.r, ring_color.g, ring_color.b, 0.34 * life_ratio), false, 4.0, true)
+	draw_circle(pos, radius * (0.58 + pulse * 0.04), Color(1.0, 1.0, 1.0, 0.14 * life_ratio), false, 2.0, true)
+	_draw_outlined_text(pos + Vector2(-54.0, 8.0), "FOCUS", 108, 15, Color("#ffffff"), Color(ring_color.r, ring_color.g, ring_color.b, 0.90), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_drawing_paint_region(region: Dictionary, visible_rect: Rect2) -> void:
+	var color_id := String(region.get("colorId", "pink"))
+	var time_left := float(region.get("time", 0.0))
+	var max_time := maxf(0.1, float(region.get("maxTime", DRAWING_REGION_LIFETIME)))
+	var life_ratio := clampf(time_left / max_time, 0.0, 1.0)
+	var base_color := _drawing_paint_soft_color(color_id)
+	var edge_color := _drawing_paint_color(color_id)
+	base_color.a *= 0.42 + life_ratio * 0.55
+	edge_color.a = 0.28 + life_ratio * 0.34
+	for cell_value in region.get("cells", []):
+		var cell: Vector2i = cell_value as Vector2i
+		var center := _drawing_cell_center(cell, _current_arena())
+		var rect := Rect2(center - Vector2.ONE * DRAWING_CELL_SIZE * 0.5, Vector2.ONE * DRAWING_CELL_SIZE)
+		if not rect.intersects(visible_rect):
+			continue
+		draw_rect(rect.grow(1.0), base_color, true)
+		if cell.x % 2 == 0 and cell.y % 2 == 0:
+			draw_rect(rect.grow(-5.0), Color(1.0, 1.0, 1.0, 0.06 + 0.06 * life_ratio), true)
+	var center_pos := Vector2(region.get("center", Vector2.ZERO))
+	if visible_rect.has_point(center_pos):
+		draw_circle(center_pos, 22.0 + sin(elapsed * 4.2 + float(region.get("id", 0))) * 2.4, Color(edge_color.r, edge_color.g, edge_color.b, 0.14))
+		_draw_outlined_text(center_pos + Vector2(-52.0, 7.0), _drawing_paint_effect_name(color_id), 104, 14, Color("#ffffff"), Color(edge_color.r, edge_color.g, edge_color.b, 0.86), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_drawing_trails(visible_rect: Rect2) -> void:
+	var previous_by_color: Dictionary = {}
+	for trail_value in drawing_paint_trails:
+		var trail: Dictionary = trail_value as Dictionary
+		var pos := Vector2(trail.get("pos", Vector2.ZERO))
+		var trail_width := float(trail.get("width", _drawing_trail_width()))
+		if not visible_rect.grow(trail_width).has_point(pos):
+			continue
+		var color_id := String(trail.get("colorId", "pink"))
+		var time_left := float(trail.get("time", 0.0))
+		var max_time := maxf(0.1, float(trail.get("maxTime", DRAWING_TRAIL_LIFETIME)))
+		var life_ratio := clampf(time_left / max_time, 0.0, 1.0)
+		var color := _drawing_paint_color(color_id)
+		if previous_by_color.has(color_id):
+			var prev := Vector2(previous_by_color[color_id])
+			if prev.distance_squared_to(pos) < 92.0 * 92.0:
+				draw_line(prev, pos, Color(color.r, color.g, color.b, 0.28 * life_ratio), trail_width * 0.82, true)
+				draw_line(prev, pos, Color(1.0, 1.0, 1.0, 0.10 * life_ratio), trail_width * 0.36, true)
+		draw_circle(pos, trail_width * 0.44, Color(color.r, color.g, color.b, 0.28 * life_ratio))
+		draw_circle(pos, trail_width * 0.22, Color(1.0, 1.0, 1.0, 0.13 * life_ratio))
+		draw_circle(pos, trail_width * 0.45, Color(color.r, color.g, color.b, 0.22 * life_ratio), false, 2.0, true)
+		previous_by_color[color_id] = pos
+
+func _draw_drawing_paint_orb(orb: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(orb.get("pos", Vector2.ZERO))
+	var radius := float(orb.get("radius", DRAWING_PAINT_ORB_RADIUS))
+	if not visible_rect.grow(radius + 32.0).has_point(pos):
+		return
+	var color_id := String(orb.get("colorId", "pink"))
+	var color := _drawing_paint_color(color_id)
+	var phase := float(orb.get("phase", 0.0))
+	var bob := sin(elapsed * 4.6 + phase) * 3.5
+	var center := pos + Vector2(0.0, bob)
+	var time_ratio := clampf(float(orb.get("time", 0.0)) / maxf(0.1, float(orb.get("maxTime", DRAWING_PAINT_ORB_LIFETIME))), 0.0, 1.0)
+	DrawPrimitiveSystemScript.draw_shadow(self, center + Vector2(0.0, radius * 0.85), Vector2(radius * 1.7, radius * 0.46), 0.16 * time_ratio)
+	draw_circle(center, radius + 8.0, Color(color.r, color.g, color.b, 0.18 + 0.10 * sin(elapsed * 5.0 + phase)))
+	draw_circle(center, radius, Color(color.r, color.g, color.b, 0.78))
+	draw_circle(center - Vector2(radius * 0.22, radius * 0.24), radius * 0.45, Color(1.0, 1.0, 1.0, 0.42))
+	draw_circle(center, radius, Color("#ffffff"), false, 3.0, true)
+	_draw_outlined_text(center + Vector2(-22.0, 10.0), "絵具", 44, 13, Color("#ffffff"), Color(color.r, color.g, color.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_drawing_correction_point(point: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(point.get("pos", Vector2.ZERO))
+	var radius := float(point.get("radius", DRAWING_CORRECTION_RADIUS))
+	if not visible_rect.grow(radius + 28.0).has_point(pos):
+		return
+	var phase := float(point.get("phase", 0.0))
+	var pulse := 0.5 + 0.5 * sin(elapsed * 5.4 + phase)
+	var life_ratio := clampf(float(point.get("time", 0.0)) / maxf(0.1, float(point.get("maxTime", DRAWING_CORRECTION_LIFETIME))), 0.0, 1.0)
+	draw_circle(pos, radius + pulse * 7.0, Color(1.0, 0.92, 0.45, 0.16 * life_ratio), false, 3.0, true)
+	draw_circle(pos, radius * 0.72, Color(1.0, 0.96, 0.56, 0.74 * life_ratio))
+	draw_circle(pos, radius * 0.72, Color("#ff80bd"), false, 3.0, true)
+	draw_line(pos + Vector2(-radius * 0.42, 0.0), pos + Vector2(radius * 0.42, 0.0), Color("#ffffff"), 4.0, true)
+	draw_line(pos + Vector2(0.0, -radius * 0.42), pos + Vector2(0.0, radius * 0.42), Color("#ffffff"), 4.0, true)
+	var paint_ratio := clampf(float(point.get("paintTime", 0.0)) / DRAWING_CORRECTION_DIRECT_PAINT_TIME, 0.0, 1.0)
+	if paint_ratio > 0.0:
+		draw_arc(pos, radius + 10.0, -PI * 0.5, -PI * 0.5 + TAU * paint_ratio, 36, Color("#74e7ff"), 4.0, true)
+	_draw_outlined_text(pos + Vector2(-34.0, radius + 17.0), "修正", 68, 13, Color("#ffffff"), Color("#d34f8d"), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_drawing_eraser(eraser: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(eraser.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(62.0).has_point(pos):
+		return
+	var phase := float(eraser.get("phase", 0.0))
+	var bob := sin(elapsed * 4.0 + phase) * 3.0
+	var center := pos + Vector2(0.0, bob)
+	var life_ratio := clampf(float(eraser.get("time", 0.0)) / maxf(0.1, float(eraser.get("maxTime", DRAWING_ERASER_LIFETIME))), 0.0, 1.0)
+	var body := Rect2(center - Vector2(33.0, 19.0), Vector2(66.0, 38.0))
+	DrawPrimitiveSystemScript.draw_shadow(self, center + Vector2(0.0, 31.0), Vector2(76.0, 18.0), 0.15 * life_ratio)
+	draw_rect(body.grow(5.0), Color(0.45, 0.92, 1.0, 0.20 * life_ratio), true)
+	draw_rect(body, Color("#f7fbff"), true)
+	draw_rect(Rect2(body.position, Vector2(body.size.x * 0.42, body.size.y)), Color("#8eeaff"), true)
+	draw_rect(body, Color("#58c8ff"), false, 3.0)
+	_draw_outlined_text(center + Vector2(-34.0, 35.0), "消しゴム", 68, 12, Color("#ffffff"), Color("#3279b5"), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_drawing_stage_hud() -> void:
+	if not _is_drawing_frame():
+		return
+	if state != "playing" and state != "comment_choice" and state != "gift_choice":
+		return
+	var rect := Rect2(FIELD_VIEW.position + Vector2(18.0, 18.0), Vector2(294.0, 92.0))
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(18.0, 10.0), 0.13)
+	draw_rect(rect, Color(1.0, 0.98, 1.0, 0.90), true)
+	draw_rect(rect, Color("#ff9dcc"), false, 3.0)
+	draw_rect(Rect2(rect.position, Vector2(9.0, rect.size.y)), Color("#8eeaff"), true)
+	_draw_text_item({"pos": rect.position + Vector2(18.0, 26.0), "text": "DRAWING", "width": 118, "size": 18, "fontWeight": "black", "color": Color("#e94f9a")})
+	var active_text := "絵具なし"
+	var active_color := Color("#8b7288")
+	if drawing_active_paint_color != "":
+		active_text = "%s %.1fs" % [_drawing_paint_name(drawing_active_paint_color), drawing_active_paint_timer]
+		active_color = _drawing_paint_color(drawing_active_paint_color)
+	_draw_text_item({"pos": rect.position + Vector2(144.0, 28.0), "text": active_text, "width": 132, "size": 16, "fontWeight": "bold", "color": active_color}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	var bar := Rect2(rect.position + Vector2(22.0, 52.0), Vector2(rect.size.x - 44.0, 14.0))
+	draw_rect(bar, Color("#fff0f8"), true)
+	var progress_ratio := clampf(drawing_progress / 100.0, 0.0, 1.0)
+	var fill_rect := Rect2(bar.position, Vector2(bar.size.x * progress_ratio, bar.size.y))
+	if fill_rect.size.x > 0.0:
+		draw_rect(fill_rect, Color("#ff7ec5"), true)
+		draw_rect(Rect2(fill_rect.position, Vector2(fill_rect.size.x, fill_rect.size.y * 0.42)), Color(1.0, 1.0, 1.0, 0.22), true)
+	draw_rect(bar, Color("#ffb7dc"), false, 2.0)
+	_draw_text_item({"pos": rect.position + Vector2(20.0, 82.0), "text": "制作進捗 %d%%" % roundi(drawing_progress), "width": 132, "size": 12, "fontWeight": "bold", "color": Color("#6d5870")})
+	var fill_count := drawing_fill_count
+	_draw_text_item({"pos": rect.position + Vector2(152.0, 82.0), "text": "塗りエリア %d" % fill_count, "width": 122, "size": 12, "fontWeight": "bold", "color": Color("#6d5870")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+
+func _draw_drawing_stage_toast() -> void:
+	if drawing_toast_timer <= 0.0 or drawing_toast_title == "":
+		return
+	var progress := 1.0 - clampf(drawing_toast_timer / DRAWING_TOAST_DURATION, 0.0, 1.0)
+	var alpha := smoothstep(0.0, 0.16, progress) * (1.0 - smoothstep(0.78, 1.0, progress))
+	var rect := Rect2(Vector2(FIELD_VIEW.position.x + FIELD_VIEW.size.x * 0.5 - 185.0, FIELD_VIEW.position.y + 18.0), Vector2(370.0, 74.0))
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(20.0, 12.0), 0.13 * alpha)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.90 * alpha), true)
+	draw_rect(Rect2(rect.position, Vector2(8.0, rect.size.y)), Color(0.55, 0.90, 1.0, 0.78 * alpha), true)
+	draw_rect(rect, Color(1.0, 0.50, 0.78, 0.64 * alpha), false, 2.0)
+	_draw_text_item({"pos": rect.position + Vector2(24.0, 30.0), "text": drawing_toast_title, "width": int(rect.size.x - 48.0), "size": 18, "fontWeight": "black", "color": Color("#e94393", alpha)}, "", HORIZONTAL_ALIGNMENT_LEFT)
+	_draw_text_item({"pos": rect.position + Vector2(24.0, 56.0), "text": drawing_toast_subtitle, "width": int(rect.size.x - 48.0), "size": 13, "fontWeight": "bold", "color": Color("#6f5972", alpha)}, "", HORIZONTAL_ALIGNMENT_LEFT)
+
+func _draw_song_chorus_objects(visible_rect: Rect2) -> void:
+	if not _is_song_frame():
+		return
+	_draw_song_live_heat_player_aura()
+	_draw_song_pitch_waves()
+	_draw_song_boss_megaphone_waves()
+	_draw_song_bad_lights()
+	_draw_song_bad_light_player_glare()
+	_draw_song_howling_effects()
+	_draw_song_live_heat_fx()
+	_draw_song_stage_obstacles(visible_rect)
+	for item in song_spotlights:
+		var spotlight: Dictionary = item as Dictionary
+		if not visible_rect.has_point(Vector2(spotlight.get("pos", Vector2.ZERO))):
+			continue
+		_draw_song_spotlight(spotlight)
+	_draw_song_penlight_bits()
+	for item in song_notes:
+		var note: Dictionary = item as Dictionary
+		if not visible_rect.has_point(Vector2(note.get("pos", Vector2.ZERO))):
+			continue
+		_draw_song_note(note)
+	for item in song_lyrics_cards:
+		var card: Dictionary = item as Dictionary
+		if not visible_rect.has_point(Vector2(card.get("pos", Vector2.ZERO))):
+			continue
+		_draw_song_lyrics_card(card)
+
+func _draw_song_stage_obstacles(visible_rect: Rect2) -> void:
+	var obstacle_items := MapBackgroundSystemScript.obstacle_draw_items_for_data(_current_map_data())
+	for item in obstacle_items:
+		var obstacle: Dictionary = item as Dictionary
+		var center: Vector2 = obstacle.get("center", Vector2.ZERO) as Vector2
+		var size: Vector2 = obstacle.get("size", Vector2(128.0, 128.0)) as Vector2
+		var draw_rect := Rect2(center - size * 0.5, size)
+		if not visible_rect.intersects(draw_rect.grow(48.0)):
+			continue
+		var shadow_offset: Vector2 = obstacle.get("shadowOffset", Vector2(0.0, size.y * 0.30)) as Vector2
+		var shadow_size: Vector2 = obstacle.get("shadowSize", Vector2(size.x * 0.58, size.y * 0.13)) as Vector2
+		_draw_shadow(center + shadow_offset, shadow_size, 0.18)
+		var texture_path := String(obstacle.get("texturePath", ""))
+		var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, texture_path)
+		if texture != null:
+			draw_texture_rect(texture, draw_rect, false, Color(1.0, 1.0, 1.0, 0.99))
+		else:
+			draw_rect(draw_rect.grow(-24.0), Color(0.14, 0.12, 0.18, 0.90))
+			draw_rect(draw_rect.grow(-24.0), Color(0.95, 0.70, 0.95, 0.72), false, 3.0)
+
+func _draw_song_live_heat_player_aura() -> void:
+	if song_live_heat_level < 4:
+		return
+	var pulse := 0.5 + 0.5 * sin(elapsed * 5.4)
+	var radius := 78.0 if song_live_heat_level >= 5 else 62.0
+	draw_circle(player_pos, radius + 15.0 + pulse * 8.0, Color(1.0, 0.62, 0.90, 0.18))
+	draw_circle(player_pos, radius + 6.0 + pulse * 4.0, Color(0.45, 0.88, 1.0, 0.12))
+	draw_circle(player_pos, radius * 0.70, Color(1.0, 1.0, 1.0, 0.10))
+	draw_circle(player_pos, radius + 2.0, Color(1.0, 1.0, 1.0, 0.62), false, 5.0)
+	draw_circle(player_pos, radius, Color("#ff5cad"), false, 4.0)
+	draw_circle(player_pos, radius * 0.56, Color("#20c8ff"), false, 3.0)
+	if song_live_heat_level >= 5:
+		for i in range(10):
+			var angle := -elapsed * 1.7 + float(i) * TAU / 10.0
+			var spark := player_pos + Vector2(cos(angle), sin(angle)) * (radius + 10.0 + pulse * 5.0)
+			var color := Color("#ff8fc8") if i % 2 == 0 else Color("#8eeaff")
+			DrawPrimitiveSystemScript.draw_spark(self, spark, 6.0 + pulse * 3.0, Color(color.r, color.g, color.b, 0.82))
+
+func _draw_song_penlight_bits() -> void:
+	if song_live_heat_level < 2:
+		return
+	for i in range(SONG_PENLIGHT_BIT_COUNT):
+		var pos := _song_penlight_bit_position(i)
+		var color := Color("#8eeaff") if i % 2 == 0 else Color("#ff8fc8")
+		var texture_path := String(SONG_PENLIGHT_BIT_IMAGES[i % SONG_PENLIGHT_BIT_IMAGES.size()])
+		var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, texture_path)
+		if texture != null:
+			var pulse := 0.5 + 0.5 * sin(elapsed * 6.2 + float(i) * 1.7)
+			var image_size := Vector2(62.0, 62.0) * (1.0 + pulse * 0.04)
+			if song_live_heat_level >= 5:
+				image_size *= 1.08
+			_draw_shadow(pos + Vector2(0.0, image_size.y * 0.22), Vector2(image_size.x * 0.42, image_size.y * 0.12), 0.14)
+			draw_circle(pos, 24.0 + pulse * 3.0, Color(color.r, color.g, color.b, 0.14))
+			_draw_rotated_texture(texture, pos, image_size, sin(elapsed * 2.6 + float(i) * 1.3) * 0.08, 0.98)
+			continue
+		draw_circle(pos, 24.0, Color(color.r, color.g, color.b, 0.28))
+		draw_circle(pos, 15.0, Color(1.0, 1.0, 1.0, 0.94))
+		draw_circle(pos, 15.0, Color(0.16, 0.08, 0.26, 0.18), false, 5.0)
+		draw_circle(pos, 15.0, Color(color.r, color.g, color.b, 0.90), false, 4.0)
+		draw_circle(pos, 5.0, Color(color.r, color.g, color.b, 0.95))
+		draw_line(pos + Vector2(-5.0, 7.0), pos + Vector2(8.0, -11.0), Color(0.14, 0.06, 0.22, 0.28), 7.0, true)
+		draw_line(pos + Vector2(-5.0, 7.0), pos + Vector2(8.0, -11.0), Color(1.0, 1.0, 1.0, 0.82), 5.0, true)
+		draw_line(pos + Vector2(-5.0, 7.0), pos + Vector2(8.0, -11.0), Color(color.r, color.g, color.b, 0.95), 2.8, true)
+
+func _draw_song_live_heat_fx() -> void:
+	for item in song_live_heat_fx:
+		var fx: Dictionary = item as Dictionary
+		var life := float(fx.get("life", 0.0))
+		var max_life := maxf(0.01, float(fx.get("maxLife", 1.0)))
+		var ratio := clampf(life / max_life, 0.0, 1.0)
+		var color: Color = fx.get("color", Color("#ff8fc8")) as Color
+		var kind := String(fx.get("kind", ""))
+		if kind == "note_trail":
+			var pos := Vector2(fx.get("pos", Vector2.ZERO))
+			draw_circle(pos, 18.0 * ratio, Color(color.r, color.g, color.b, 0.22 * ratio))
+			draw_circle(pos, 10.0 * ratio, Color(1.0, 1.0, 1.0, 0.20 * ratio))
+			_draw_outlined_text(pos + Vector2(-10.0, 9.0), String(fx.get("symbol", "♪")), 24, 20, Color(color.r, color.g, color.b, 0.94 * ratio), Color(0.16, 0.04, 0.20, 0.62 * ratio), HORIZONTAL_ALIGNMENT_CENTER)
+		elif kind == "penlight_shot":
+			var from_pos := Vector2(fx.get("from", Vector2.ZERO))
+			var to_pos := Vector2(fx.get("to", Vector2.ZERO))
+			var beam_len: float = from_pos.distance_to(to_pos)
+			var beam_dir := Vector2.RIGHT
+			if beam_len > 0.01:
+				beam_dir = (to_pos - from_pos) / beam_len
+			var beam_side := Vector2(-beam_dir.y, beam_dir.x)
+			draw_line(from_pos, to_pos, Color(color.r, color.g, color.b, 0.34 * ratio), 16.0, true)
+			draw_line(from_pos, to_pos, Color(1.0, 1.0, 1.0, 0.64 * ratio), 9.5, true)
+			draw_line(from_pos, to_pos, Color(color.r, color.g, color.b, 0.98 * ratio), 6.0, true)
+			draw_line(from_pos, to_pos, Color(1.0, 1.0, 1.0, 0.94 * ratio), 2.6, true)
+			for offset in [-5.5, 5.5]:
+				draw_line(from_pos + beam_side * offset, to_pos + beam_side * offset, Color(color.r, color.g, color.b, 0.38 * ratio), 2.0, true)
+			var glint_pos := from_pos.lerp(to_pos, 0.58 + sin(elapsed * 18.0 + from_pos.x * 0.03) * 0.10)
+			DrawPrimitiveSystemScript.draw_spark(self, glint_pos, 5.0 + 4.0 * ratio, Color(1.0, 1.0, 1.0, 0.58 * ratio))
+			draw_circle(from_pos, 10.0 + 4.0 * ratio, Color(color.r, color.g, color.b, 0.20 * ratio))
+			draw_circle(to_pos, 12.0 + (1.0 - ratio) * 14.0, Color(color.r, color.g, color.b, 0.26 * ratio))
+			draw_circle(to_pos, 5.0 + (1.0 - ratio) * 5.0, Color(1.0, 1.0, 1.0, 0.72 * ratio))
+		elif kind == "harmony_wave" or kind == "octave_wave":
+			var pos2 := Vector2(fx.get("pos", Vector2.ZERO))
+			var radius := float(fx.get("radius", 120.0)) * (1.10 - ratio * 0.10)
+			var wave_color := Color("#ffc7df") if kind == "harmony_wave" else color
+			var spark_count := 8 if kind == "octave_wave" else (6 if kind == "harmony_wave" else 10)
+			var thickness := 7.0 if kind == "octave_wave" else (5.5 if kind == "harmony_wave" else 7.0)
+			draw_circle(pos2, radius, Color(wave_color.r, wave_color.g, wave_color.b, 0.18 * ratio))
+			draw_circle(pos2, radius * 0.72, Color(1.0, 1.0, 1.0, 0.12 * ratio))
+			draw_circle(pos2, radius + 4.0, Color(1.0, 1.0, 1.0, 0.58 * ratio), false, thickness + 2.0)
+			draw_circle(pos2, radius, Color(wave_color.r, wave_color.g, wave_color.b, 0.86 * ratio), false, thickness)
+			draw_circle(pos2, radius * 0.78, Color(1.0, 1.0, 1.0, 0.48 * ratio), false, 3.0)
+			draw_circle(pos2, radius * 0.48, Color(wave_color.r, wave_color.g, wave_color.b, 0.24 * ratio), false, 2.0)
+			for arc_index in range(6):
+				var start_angle := elapsed * 1.7 + float(arc_index) * TAU / 6.0
+				draw_arc(pos2, radius * 0.96, start_angle, start_angle + TAU / 32.0, 6, Color(1.0, 1.0, 1.0, 0.62 * ratio), 3.0)
+			for i in range(spark_count):
+				var angle := elapsed * 1.8 + float(i) * TAU / float(spark_count)
+				var spark := pos2 + Vector2(cos(angle), sin(angle)) * radius * 0.92
+				DrawPrimitiveSystemScript.draw_spark(self, spark, 5.0 + 4.0 * ratio, Color(1.0, 1.0, 1.0, 0.76 * ratio))
+		elif kind == "audience_call_wave":
+			var lane_rect: Rect2 = fx.get("rect", Rect2()) as Rect2
+			if lane_rect.size == Vector2.ZERO:
+				continue
+			var arena: Rect2 = fx.get("arena", lane_rect) as Rect2
+			var horizontal_lane := bool(fx.get("horizontal", true))
+			var dir := Vector2(fx.get("dir", Vector2.RIGHT))
+			var width := float(fx.get("width", SONG_AUDIENCE_CALL_WAVE_WIDTH))
+			var progress := 1.0 - ratio
+			var call_colors := [Color("#ff5cae"), Color("#5be7ff"), Color("#ffd84f"), Color("#caa7ff")]
+			draw_rect(lane_rect, Color(1.0, 0.55, 0.82, 0.13 * ratio), true)
+			draw_rect(lane_rect.grow(-width * 0.18), Color(0.40, 0.88, 1.0, 0.12 * ratio), true)
+			draw_rect(lane_rect, Color(1.0, 1.0, 1.0, 0.42 * ratio), false, 5.0)
+			draw_rect(lane_rect.grow(-9.0), Color(1.0, 0.83, 0.22, 0.34 * ratio), false, 3.0)
+			if horizontal_lane:
+				var start_x := arena.position.x - width * 0.65
+				var end_x := arena.end.x + width * 0.65
+				var crest_x := lerpf(start_x, end_x, progress) if dir.x >= 0.0 else lerpf(end_x, start_x, progress)
+				var entry_x := arena.position.x if dir.x >= 0.0 else arena.end.x
+				var core_rect := Rect2(Vector2(crest_x - width * 0.36, lane_rect.position.y), Vector2(width * 0.72, lane_rect.size.y))
+				draw_line(Vector2(entry_x, lane_rect.position.y), Vector2(entry_x, lane_rect.end.y), Color(1.0, 0.88, 0.35, 0.20 * ratio), width * 0.45, true)
+				draw_line(Vector2(entry_x, lane_rect.position.y), Vector2(entry_x, lane_rect.end.y), Color(1.0, 1.0, 1.0, 0.30 * ratio), width * 0.14, true)
+				draw_rect(core_rect.grow(42.0), Color(1.0, 1.0, 1.0, 0.18 * ratio), true)
+				draw_rect(core_rect.grow(22.0), Color(1.0, 0.84, 0.26, 0.18 * ratio), true)
+				draw_rect(core_rect, Color(0.40, 0.90, 1.0, 0.20 * ratio), true)
+				draw_rect(core_rect, Color(1.0, 1.0, 1.0, 0.70 * ratio), false, 7.0)
+				draw_rect(core_rect.grow(-10.0), Color(1.0, 0.34, 0.70, 0.55 * ratio), false, 4.0)
+				for band in range(5):
+					var lane_rate := 0.16 + float(band) * 0.17
+					var y := lane_rect.position.y + lane_rect.size.y * lane_rate + sin(elapsed * 5.2 + float(band) * 1.4) * 8.0
+					var wave_y := y + sin(elapsed * 3.2 + float(band)) * 10.0
+					var band_color: Color = call_colors[band % call_colors.size()] as Color
+					draw_line(Vector2(lane_rect.position.x, y), Vector2(lane_rect.end.x, wave_y), Color(1.0, 1.0, 1.0, 0.46 * ratio), 15.0, true)
+					draw_line(Vector2(lane_rect.position.x, y), Vector2(lane_rect.end.x, wave_y), Color(band_color.r, band_color.g, band_color.b, 0.78 * ratio), 8.0, true)
+					draw_line(Vector2(lane_rect.position.x, y), Vector2(lane_rect.end.x, wave_y), Color(1.0, 1.0, 1.0, 0.72 * ratio), 2.2, true)
+				for i in range(20):
+					var t := fmod(progress * 1.45 + float(i) / 20.0, 1.0)
+					var x := lane_rect.position.x + t * lane_rect.size.x
+					if dir.x < 0.0:
+						x = lane_rect.end.x - t * lane_rect.size.x
+					var y2 := lane_rect.position.y + 22.0 + fmod(float(i) * 47.0 + elapsed * 64.0, maxf(1.0, lane_rect.size.y - 44.0))
+					var light_color: Color = call_colors[i % call_colors.size()] as Color
+					var rod_dir := dir * 34.0 + Vector2(0.0, sin(elapsed * 6.0 + float(i)) * 15.0)
+					var rod_from := Vector2(x, y2) - rod_dir * 0.48
+					var rod_to := Vector2(x, y2) + rod_dir * 0.52
+					draw_line(rod_from, rod_to, Color(1.0, 1.0, 1.0, 0.68 * ratio), 9.0, true)
+					draw_line(rod_from, rod_to, Color(light_color.r, light_color.g, light_color.b, 0.96 * ratio), 5.2, true)
+					draw_circle(rod_to, 6.0, Color(1.0, 1.0, 1.0, 0.84 * ratio))
+					if i % 4 == 0:
+						DrawPrimitiveSystemScript.draw_spark(self, rod_to + dir * 10.0, 5.0 + 3.0 * ratio, Color(1.0, 1.0, 1.0, 0.70 * ratio))
+				for mark in range(5):
+					var mt := fmod(progress * 1.1 + float(mark) / 5.0, 1.0)
+					var mx := lane_rect.position.x + mt * lane_rect.size.x
+					if dir.x < 0.0:
+						mx = lane_rect.end.x - mt * lane_rect.size.x
+					var my := lane_rect.get_center().y + sin(elapsed * 4.0 + float(mark)) * width * 0.20
+					var side := Vector2(0.0, 18.0)
+					var back := -dir * 28.0
+					var tip := Vector2(mx, my) + dir * 16.0
+					draw_line(tip + back + side, tip, Color(1.0, 1.0, 1.0, 0.62 * ratio), 6.0, true)
+					draw_line(tip + back - side, tip, Color(1.0, 0.82, 0.28, 0.64 * ratio), 6.0, true)
+			else:
+				var start_y := arena.position.y - width * 0.65
+				var end_y := arena.end.y + width * 0.65
+				var crest_y := lerpf(start_y, end_y, progress) if dir.y >= 0.0 else lerpf(end_y, start_y, progress)
+				var entry_y := arena.position.y if dir.y >= 0.0 else arena.end.y
+				var core_rect := Rect2(Vector2(lane_rect.position.x, crest_y - width * 0.36), Vector2(lane_rect.size.x, width * 0.72))
+				draw_line(Vector2(lane_rect.position.x, entry_y), Vector2(lane_rect.end.x, entry_y), Color(1.0, 0.88, 0.35, 0.20 * ratio), width * 0.45, true)
+				draw_line(Vector2(lane_rect.position.x, entry_y), Vector2(lane_rect.end.x, entry_y), Color(1.0, 1.0, 1.0, 0.30 * ratio), width * 0.14, true)
+				draw_rect(core_rect.grow(42.0), Color(1.0, 1.0, 1.0, 0.18 * ratio), true)
+				draw_rect(core_rect.grow(22.0), Color(1.0, 0.84, 0.26, 0.18 * ratio), true)
+				draw_rect(core_rect, Color(0.40, 0.90, 1.0, 0.20 * ratio), true)
+				draw_rect(core_rect, Color(1.0, 1.0, 1.0, 0.70 * ratio), false, 7.0)
+				draw_rect(core_rect.grow(-10.0), Color(1.0, 0.34, 0.70, 0.55 * ratio), false, 4.0)
+				for band in range(5):
+					var lane_rate2 := 0.16 + float(band) * 0.17
+					var x2 := lane_rect.position.x + lane_rect.size.x * lane_rate2 + sin(elapsed * 5.2 + float(band) * 1.4) * 8.0
+					var wave_x := x2 + sin(elapsed * 3.2 + float(band)) * 10.0
+					var band_color2: Color = call_colors[band % call_colors.size()] as Color
+					draw_line(Vector2(x2, lane_rect.position.y), Vector2(wave_x, lane_rect.end.y), Color(1.0, 1.0, 1.0, 0.46 * ratio), 15.0, true)
+					draw_line(Vector2(x2, lane_rect.position.y), Vector2(wave_x, lane_rect.end.y), Color(band_color2.r, band_color2.g, band_color2.b, 0.78 * ratio), 8.0, true)
+					draw_line(Vector2(x2, lane_rect.position.y), Vector2(wave_x, lane_rect.end.y), Color(1.0, 1.0, 1.0, 0.72 * ratio), 2.2, true)
+				for i in range(20):
+					var t2 := fmod(progress * 1.45 + float(i) / 20.0, 1.0)
+					var y3 := lane_rect.position.y + t2 * lane_rect.size.y
+					if dir.y < 0.0:
+						y3 = lane_rect.end.y - t2 * lane_rect.size.y
+					var x3 := lane_rect.position.x + 22.0 + fmod(float(i) * 47.0 + elapsed * 64.0, maxf(1.0, lane_rect.size.x - 44.0))
+					var light_color2: Color = call_colors[i % call_colors.size()] as Color
+					var rod_dir2 := dir * 34.0 + Vector2(sin(elapsed * 6.0 + float(i)) * 15.0, 0.0)
+					var rod_from2 := Vector2(x3, y3) - rod_dir2 * 0.48
+					var rod_to2 := Vector2(x3, y3) + rod_dir2 * 0.52
+					draw_line(rod_from2, rod_to2, Color(1.0, 1.0, 1.0, 0.68 * ratio), 9.0, true)
+					draw_line(rod_from2, rod_to2, Color(light_color2.r, light_color2.g, light_color2.b, 0.96 * ratio), 5.2, true)
+					draw_circle(rod_to2, 6.0, Color(1.0, 1.0, 1.0, 0.84 * ratio))
+					if i % 4 == 0:
+						DrawPrimitiveSystemScript.draw_spark(self, rod_to2 + dir * 10.0, 5.0 + 3.0 * ratio, Color(1.0, 1.0, 1.0, 0.70 * ratio))
+				for mark in range(5):
+					var mt2 := fmod(progress * 1.1 + float(mark) / 5.0, 1.0)
+					var my2 := lane_rect.position.y + mt2 * lane_rect.size.y
+					if dir.y < 0.0:
+						my2 = lane_rect.end.y - mt2 * lane_rect.size.y
+					var mx2 := lane_rect.get_center().x + sin(elapsed * 4.0 + float(mark)) * width * 0.20
+					var side2 := Vector2(18.0, 0.0)
+					var back2 := -dir * 28.0
+					var tip2 := Vector2(mx2, my2) + dir * 16.0
+					draw_line(tip2 + back2 + side2, tip2, Color(1.0, 1.0, 1.0, 0.62 * ratio), 6.0, true)
+					draw_line(tip2 + back2 - side2, tip2, Color(1.0, 0.82, 0.28, 0.64 * ratio), 6.0, true)
+
+func _draw_song_howling_effects() -> void:
+	var speaker_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, SONG_HOWLING_SPEAKER_IMAGE)
+	for item in song_howling_emitters:
+		var emitter: Dictionary = item as Dictionary
+		var pos := Vector2(emitter.get("pos", Vector2.ZERO))
+		var phase := float(emitter.get("phase", 0.0))
+		var pulse := 0.5 + 0.5 * sin(elapsed * 8.0 + phase)
+		draw_circle(pos + Vector2(0.0, 18.0), 42.0 + pulse * 6.0, Color(0.78, 0.06, 0.58, 0.16))
+		if speaker_texture != null:
+			var texture_size := speaker_texture.get_size()
+			var image_width := 118.0 + pulse * 5.0
+			var image_size := Vector2(image_width, image_width * texture_size.y / maxf(1.0, texture_size.x))
+			var image_center := pos + Vector2(0.0, 4.0 + sin(elapsed * 5.5 + phase) * 1.8)
+			var angle := sin(elapsed * 7.0 + phase) * 0.025
+			_draw_rotated_texture(speaker_texture, image_center, image_size, angle, 0.98)
+			draw_circle(pos + Vector2(image_width * 0.28, -image_size.y * 0.31), 7.0 + pulse * 2.2, Color(1.0, 0.18, 0.72, 0.48))
+		else:
+			draw_circle(pos, 19.0, Color(0.18, 0.06, 0.24, 0.66))
+			draw_circle(pos, 19.0, Color(1.0, 0.52, 0.88, 0.92), false, 3.0)
+			draw_line(pos + Vector2(-10.0, -3.0), pos + Vector2(10.0, -3.0), Color(1.0, 0.92, 1.0, 0.78), 4.0, true)
+			draw_line(pos + Vector2(-5.0, 7.0), pos + Vector2(7.0, -11.0), Color(1.0, 0.35, 0.86, 0.82), 3.0, true)
+		for i in range(3):
+			var arc_radius := 38.0 + float(i) * 9.0 + pulse * 3.0
+			_draw_fixed_arc(pos + Vector2(18.0, -8.0), arc_radius, -0.62, 0.56, 12, Color(1.0, 0.32, 0.86, 0.38 - float(i) * 0.07), 2.8)
+		_draw_outlined_text(pos + Vector2(0.0, 36.0), "!!", 24, 18, Color("#ff47ca"), Color(0.18, 0.02, 0.20, 0.82), HORIZONTAL_ALIGNMENT_CENTER)
+	for item in song_howling_waves:
+		var wave: Dictionary = item as Dictionary
+		var pos2 := Vector2(wave.get("pos", Vector2.ZERO))
+		var age := float(wave.get("age", 0.0))
+		var active := age >= SONG_HOWLING_TELEGRAPH_DURATION
+		var phase2 := float(wave.get("phase", 0.0))
+		if not active:
+			var telegraph_ratio := clampf(age / maxf(0.01, SONG_HOWLING_TELEGRAPH_DURATION), 0.0, 1.0)
+			var warn_radius := lerpf(SONG_HOWLING_WAVE_START_RADIUS, SONG_HOWLING_WAVE_END_RADIUS, telegraph_ratio)
+			draw_circle(pos2, warn_radius, Color(1.0, 0.10, 0.82, 0.08 + telegraph_ratio * 0.12), false, 4.0)
+			draw_circle(pos2, warn_radius + 7.0, Color(1.0, 1.0, 1.0, 0.20 + telegraph_ratio * 0.20), false, 2.5)
+			for i in range(10):
+				var angle := phase2 + float(i) * TAU / 10.0
+				var spark := pos2 + Vector2(cos(angle), sin(angle)) * warn_radius
+				draw_circle(spark, 3.0 + telegraph_ratio * 2.0, Color(1.0, 0.60, 0.94, 0.54))
+			continue
+		var progress := clampf((age - SONG_HOWLING_TELEGRAPH_DURATION) / maxf(0.01, SONG_HOWLING_WAVE_EXPAND_DURATION), 0.0, 1.0)
+		var radius := lerpf(SONG_HOWLING_WAVE_START_RADIUS, SONG_HOWLING_WAVE_END_RADIUS, progress)
+		var alpha := 1.0 - progress
+		draw_circle(pos2, radius + 12.0, Color(0.94, 0.04, 0.74, 0.13 * alpha))
+		draw_circle(pos2, radius, Color(1.0, 1.0, 1.0, 0.60 * alpha), false, 7.0)
+		draw_circle(pos2, radius, Color(0.96, 0.05, 0.72, 0.92 * alpha), false, 4.5)
+		draw_circle(pos2, maxf(8.0, radius - 30.0), Color(0.32, 0.08, 0.40, 0.22 * alpha), false, 2.8)
+		for i in range(18):
+			var angle2 := phase2 + float(i) * TAU / 18.0 + sin(elapsed * 7.0 + float(i)) * 0.06
+			var jag := radius + (8.0 if i % 2 == 0 else -7.0)
+			var p1 := pos2 + Vector2(cos(angle2), sin(angle2)) * jag
+			var p2 := pos2 + Vector2(cos(angle2 + TAU / 44.0), sin(angle2 + TAU / 44.0)) * (radius + 4.0)
+			draw_line(p1, p2, Color(1.0, 0.62, 0.94, 0.58 * alpha), 3.0, true)
+
+func _draw_song_bad_lights() -> void:
+	for item in song_bad_lights:
+		var light: Dictionary = item as Dictionary
+		var pos := Vector2(light.get("pos", Vector2.ZERO))
+		var radius := float(light.get("radius", SONG_BAD_LIGHT_RADIUS))
+		var time_left := float(light.get("time", 0.0))
+		var max_time := maxf(0.01, float(light.get("maxTime", SONG_BAD_LIGHT_LIFETIME)))
+		var age := max_time - time_left
+		var spawn := smoothstep(0.0, 0.18, age)
+		var fade := smoothstep(0.0, 0.38, time_left)
+		var alpha := clampf(spawn * fade, 0.0, 1.0)
+		if alpha <= 0.0:
+			continue
+		var phase := float(light.get("phase", 0.0))
+		var flicker := 0.55 + 0.45 * sin(elapsed * 19.0 + phase)
+		var inside := player_pos.distance_squared_to(pos) <= radius * radius
+		var ring_alpha := alpha * (flicker if time_left < 0.7 else 1.0)
+		var color := Color("#e91c80")
+		draw_circle(pos, radius * 1.02, Color(1.0, 1.0, 1.0, 0.12 * alpha))
+		draw_circle(pos, radius * 0.92, Color(0.96, 0.05, 0.56, 0.14 * alpha))
+		draw_circle(pos, radius * 0.58, Color(1.0, 0.80, 0.98, 0.08 * alpha))
+		draw_circle(pos, radius, Color(1.0, 1.0, 1.0, 0.70 * ring_alpha), false, 5.5)
+		draw_circle(pos, radius * 0.94, Color(color.r, color.g, color.b, 0.88 * ring_alpha), false, 6.0)
+		draw_circle(pos, radius * 0.77, Color(0.42, 0.02, 0.30, 0.28 * alpha), false, 2.6)
+		for i in range(18):
+			var angle := phase + elapsed * 2.2 + float(i) * TAU / 18.0
+			var outer := radius * (1.02 + (0.06 if i % 2 == 0 else -0.04))
+			var inner := radius * (0.84 + (0.04 if i % 3 == 0 else -0.02))
+			var p1 := pos + Vector2(cos(angle), sin(angle)) * inner
+			var p2 := pos + Vector2(cos(angle + 0.08), sin(angle + 0.08)) * outer
+			draw_line(p1, p2, Color(1.0, 0.58, 0.90, 0.56 * alpha), 3.4, true)
+			if i % 3 == 0:
+				draw_line(pos + Vector2(cos(angle), sin(angle)) * radius * 0.38, p2, Color(1.0, 1.0, 1.0, 0.18 * alpha), 2.0, true)
+		var icon_alpha := (0.78 if inside else 0.55) * alpha
+		draw_circle(pos, 25.0 + (6.0 if inside else 0.0), Color(0.20, 0.04, 0.28, 0.42 * alpha))
+		_draw_outlined_text(pos + Vector2(-12.0, 11.0), "!", 26, 24, Color(1.0, 0.34, 0.88, icon_alpha), Color(0.12, 0.00, 0.16, 0.82 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_outlined_text(pos + Vector2(-48.0, radius * 0.38), "攻撃停止", 96, 15, Color(1.0, 0.86, 0.98, 0.82 * alpha), Color(0.18, 0.00, 0.10, 0.84 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_song_bad_light_player_glare() -> void:
+	if not _normal_weapons_disabled_by_song_bad_light():
+		return
+	var pulse := 0.55 + 0.45 * sin(elapsed * 18.0)
+	draw_circle(player_pos, 58.0 + pulse * 9.0, Color(1.0, 0.92, 1.0, 0.16))
+	draw_circle(player_pos, 42.0 + pulse * 4.0, Color(1.0, 0.18, 0.62, 0.13))
+	draw_circle(player_pos, 32.0, Color(1.0, 1.0, 1.0, 0.10))
+	for i in range(8):
+		var angle := elapsed * 6.2 + float(i) * TAU / 8.0
+		var from_pos := player_pos + Vector2(cos(angle), sin(angle)) * (24.0 + pulse * 5.0)
+		var to_pos := player_pos + Vector2(cos(angle + 0.10), sin(angle + 0.10)) * (62.0 + pulse * 8.0)
+		draw_line(from_pos, to_pos, Color(1.0, 0.40, 0.86, 0.38), 3.0, true)
+
+func _draw_song_lyrics_card(card: Dictionary) -> void:
+	var pos := Vector2(card.get("pos", Vector2.ZERO))
+	var phase := float(card.get("phase", 0.0))
+	var bob := sin(elapsed * 4.8 + phase) * 5.0
+	var draw_pos := pos + Vector2(0.0, bob)
+	var time_left := float(card.get("time", 0.0))
+	var max_time := maxf(0.01, float(card.get("maxTime", SONG_LYRICS_CARD_LIFETIME)))
+	var spawn_alpha := smoothstep(0.0, 0.28, max_time - time_left)
+	var alpha := clampf(spawn_alpha if time_left > 0.0 else 0.0, 0.0, 1.0)
+	var lyrics_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, SONG_LYRICS_CARD_IMAGE)
+	if lyrics_texture != null:
+		var pulse := 1.0 + sin(elapsed * 5.0 + phase) * 0.025
+		var image_width := 118.0 * pulse
+		var image_size := Vector2(image_width, image_width * lyrics_texture.get_size().y / maxf(1.0, lyrics_texture.get_size().x))
+		DrawPrimitiveSystemScript.draw_shadow(self, draw_pos + Vector2(0.0, image_size.y * 0.28), Vector2(image_size.x * 0.70, image_size.y * 0.20), 0.14 * alpha)
+		draw_circle(draw_pos, image_width * 0.44, Color(1.0, 0.92, 0.42, 0.09 * alpha))
+		draw_texture_rect(lyrics_texture, Rect2(draw_pos - image_size * 0.5, image_size), false, Color(1.0, 1.0, 1.0, alpha))
+		if time_left <= 2.0:
+			var blink := 0.45 + 0.55 * sin(elapsed * 18.0)
+			draw_circle(draw_pos, image_width * 0.48, Color(1.0, 0.58, 0.86, 0.22 * blink * alpha), false, 3.0)
+		return
+	var rect := Rect2(draw_pos - Vector2(46.0, 34.0), Vector2(92.0, 68.0))
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 10.0), rect.size + Vector2(12.0, 8.0), 0.15 * alpha)
+	_draw_song_notice_soft_rect(rect, Color(1.0, 0.98, 1.0, 0.92 * alpha), Color(1.0, 0.42, 0.76, 0.88 * alpha), 2.5, 10.0)
+	draw_rect(Rect2(rect.position + Vector2(10.0, 12.0), Vector2(rect.size.x - 20.0, 4.0)), Color(0.56, 0.84, 1.0, 0.72 * alpha), true)
+	draw_rect(Rect2(rect.position + Vector2(12.0, 25.0), Vector2(rect.size.x - 24.0, 3.0)), Color(0.82, 0.62, 1.0, 0.58 * alpha), true)
+	draw_rect(Rect2(rect.position + Vector2(12.0, 36.0), Vector2(rect.size.x - 34.0, 3.0)), Color(1.0, 0.70, 0.86, 0.58 * alpha), true)
+	var note_color := Color("#ff5cad")
+	note_color.a = alpha
+	_draw_outlined_text(rect.position + Vector2(24.0, 59.0), "♪?", 44, 24, note_color, Color(0.22, 0.04, 0.24, 0.74 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	DrawPrimitiveSystemScript.draw_spark(self, rect.position + Vector2(rect.size.x - 10.0, 10.0), 6.0, Color(1.0, 1.0, 1.0, 0.58 * alpha))
+
+func _draw_song_boss_megaphone_waves() -> void:
+	for item in song_boss_megaphone_waves:
+		var wave: Dictionary = item as Dictionary
+		var origin := Vector2(wave.get("origin", Vector2.ZERO))
+		var wave_dir := Vector2(wave.get("dir", Vector2.RIGHT)).normalized()
+		if wave_dir.length_squared() <= 0.01:
+			wave_dir = Vector2.RIGHT
+		var wave_range := float(wave.get("range", 380.0))
+		var wave_angle := float(wave.get("angle", PI / 3.0))
+		var max_time := maxf(0.01, float(wave.get("maxTime", 1.0)))
+		var time_left := float(wave.get("time", 0.0))
+		var age := max_time - time_left
+		var telegraph := float(wave.get("telegraph", 0.7))
+		var active := age >= telegraph
+		var phase := clampf(age / maxf(0.01, max_time), 0.0, 1.0)
+		var alpha := (0.45 if active else 0.28) * (1.0 - smoothstep(max_time - 0.16, max_time, age))
+		if alpha <= 0.0:
+			continue
+		var base_angle := wave_dir.angle()
+		var points := PackedVector2Array()
+		points.append(origin)
+		var steps := 18
+		for i in range(steps + 1):
+			var a := base_angle - wave_angle * 0.5 + wave_angle * float(i) / float(steps)
+			points.append(origin + Vector2(cos(a), sin(a)) * wave_range)
+		draw_colored_polygon(points, Color(1.0, 0.12, 0.42, 0.11 + alpha * 0.16))
+		_draw_polyline(points, Color(1.0, 1.0, 1.0, 0.50 + alpha * 0.35), 4.0 if active else 2.5)
+		_draw_polyline(points, Color(1.0, 0.12, 0.38, 0.62 + alpha * 0.18), 2.2 if active else 1.6)
+		var core_len := wave_range * (0.72 + phase * 0.10)
+		for j in range(5):
+			var offset_rate := -0.42 + float(j) * 0.21
+			var a2 := base_angle + wave_angle * offset_rate + sin(elapsed * 10.0 + float(j)) * 0.015
+			var to_pos := origin + Vector2(cos(a2), sin(a2)) * core_len
+			draw_line(origin + wave_dir * 18.0, to_pos, Color(1.0, 1.0, 1.0, 0.22 + alpha * 0.22), 10.0 if active else 6.0, true)
+			draw_line(origin + wave_dir * 18.0, to_pos, Color(1.0, 0.12, 0.38, 0.46 + alpha * 0.22), 5.0 if active else 3.2, true)
+		var label_pos := origin + wave_dir * minf(150.0, wave_range * 0.42) + Vector2(-46.0, 14.0)
+		_draw_outlined_text(label_pos, "CHECK!", 92, 18, Color(1.0, 0.92, 0.98, 0.82 + alpha * 0.12), Color(0.22, 0.02, 0.10, 0.72), HORIZONTAL_ALIGNMENT_CENTER)
+		for spark_index in range(8):
+			var spark_t := fmod(phase * 1.4 + float(spark_index) / 8.0, 1.0)
+			var spread := -wave_angle * 0.42 + wave_angle * 0.84 * fmod(float(spark_index) * 0.37, 1.0)
+			var spark_pos := origin + Vector2(cos(base_angle + spread), sin(base_angle + spread)) * (wave_range * spark_t)
+			DrawPrimitiveSystemScript.draw_spark(self, spark_pos, 4.5, Color(1.0, 0.62, 0.86, 0.48 + alpha * 0.18))
+
+func _draw_song_pitch_waves() -> void:
+	for item in song_pitch_waves:
+		var wave: Dictionary = item as Dictionary
+		var rect: Rect2 = wave.get("rect", Rect2()) as Rect2
+		var age := float(wave.get("maxTime", 1.0)) - float(wave.get("time", 0.0))
+		var active := age >= SONG_PITCH_WAVE_TELEGRAPH_DURATION
+		var alpha := 0.50 if active else 0.32
+		var core_color := Color(0.95, 0.08, 0.78, alpha)
+		var edge_color := Color(1.0, 1.0, 1.0, 0.78 if active else 0.52)
+		var warn_color := Color(1.0, 0.62, 0.94, 0.88 if active else 0.58)
+		var fill_color := Color(0.82, 0.04, 0.68, 0.16 if active else 0.10)
+		draw_rect(rect, fill_color, true)
+		draw_rect(rect, Color(1.0, 1.0, 1.0, 0.22 if active else 0.14), false, 3.0)
+		if bool(wave.get("horizontal", true)):
+			var y := rect.get_center().y
+			for offset in [-34.0, 0.0, 34.0]:
+				draw_line(Vector2(rect.position.x, y + offset), Vector2(rect.end.x, y + offset + sin(elapsed * 9.0 + offset) * 6.0), Color(1.0, 1.0, 1.0, 0.34 if active else 0.22), 9.0 if active else 6.0, true)
+				draw_line(Vector2(rect.position.x, y + offset), Vector2(rect.end.x, y + offset + sin(elapsed * 9.0 + offset) * 6.0), core_color, 5.5 if active else 4.0, true)
+			draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), edge_color, 3.2)
+			for j in range(7):
+				var x := rect.position.x + 90.0 + float(j) * 270.0
+				var noise_y := y + sin(elapsed * 10.0 + float(j)) * 38.0
+				draw_line(Vector2(x - 22.0, noise_y - 12.0), Vector2(x + 24.0, noise_y + 10.0), Color(1.0, 1.0, 1.0, 0.42 if active else 0.28), 5.0, true)
+				draw_line(Vector2(x - 22.0, noise_y - 12.0), Vector2(x + 24.0, noise_y + 10.0), warn_color, 2.6, true)
+				if j % 2 == 0:
+					_draw_outlined_text(Vector2(x - 18.0, y + 15.0), "♭", 36, 25, Color("#ff47ca"), Color(0.20, 0.02, 0.24, 0.78), HORIZONTAL_ALIGNMENT_CENTER)
+		else:
+			var x := rect.get_center().x
+			for offset in [-34.0, 0.0, 34.0]:
+				draw_line(Vector2(x + offset, rect.position.y), Vector2(x + offset + sin(elapsed * 9.0 + offset) * 6.0, rect.end.y), Color(1.0, 1.0, 1.0, 0.34 if active else 0.22), 9.0 if active else 6.0, true)
+				draw_line(Vector2(x + offset, rect.position.y), Vector2(x + offset + sin(elapsed * 9.0 + offset) * 6.0, rect.end.y), core_color, 5.5 if active else 4.0, true)
+			draw_line(Vector2(x, rect.position.y), Vector2(x, rect.end.y), edge_color, 3.2)
+			for j in range(6):
+				var y2 := rect.position.y + 100.0 + float(j) * 240.0
+				var noise_x := x + sin(elapsed * 10.0 + float(j)) * 38.0
+				draw_line(Vector2(noise_x - 12.0, y2 - 22.0), Vector2(noise_x + 10.0, y2 + 24.0), Color(1.0, 1.0, 1.0, 0.42 if active else 0.28), 5.0, true)
+				draw_line(Vector2(noise_x - 12.0, y2 - 22.0), Vector2(noise_x + 10.0, y2 + 24.0), warn_color, 2.6, true)
+				if j % 2 == 0:
+					_draw_outlined_text(Vector2(x - 18.0, y2 + 10.0), "♭", 36, 25, Color("#ff47ca"), Color(0.20, 0.02, 0.24, 0.78), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_song_note(note: Dictionary) -> void:
+	var pos := Vector2(note.get("pos", Vector2.ZERO))
+	var phase := float(note.get("phase", 0.0))
+	var bob := sin(elapsed * 4.4 + phase) * 4.0
+	var draw_pos := pos + Vector2(0.0, bob)
+	var orb_index := clampi(int(note.get("orbIndex", 0)), 0, SONG_NOTE_ORB_IMAGES.size() - 1)
+	var lyrics_locked := _song_notes_locked_by_lyrics_lost()
+	var texture: Texture2D = _song_note_orb_texture(orb_index, lyrics_locked)
+	if texture != null:
+		var pulse := 1.0 + sin(elapsed * 5.2 + phase) * 0.035
+		var size := Vector2(66.0, 66.0) * pulse
+		DrawPrimitiveSystemScript.draw_shadow(self, draw_pos + Vector2(0.0, 13.0), Vector2(36.0, 10.0), 0.08 if lyrics_locked else 0.12)
+		if lyrics_locked:
+			draw_circle(draw_pos, 30.0 * pulse, Color(0.18, 0.17, 0.22, 0.20))
+			draw_texture_rect(texture, Rect2(draw_pos - size * 0.5, size), false, Color(0.80, 0.82, 0.88, 0.84))
+			draw_circle(draw_pos, 31.0 * pulse, Color(0.10, 0.09, 0.13, 0.24))
+			draw_circle(draw_pos, 32.0 * pulse, Color(1.0, 1.0, 1.0, 0.36), false, 2.2)
+			_draw_outlined_text(draw_pos + Vector2(-13.0, 14.0), "×", 31, 26, Color(0.92, 0.94, 1.0, 0.90), Color(0.10, 0.08, 0.14, 0.88), HORIZONTAL_ALIGNMENT_CENTER)
+		else:
+			draw_circle(draw_pos, 28.0 * pulse, Color(1.0, 0.78, 0.96, 0.10))
+			draw_texture_rect(texture, Rect2(draw_pos - size * 0.5, size), false)
+		return
+	var color: Color = note.get("color", Color("#ff8fc8")) as Color
+	if lyrics_locked:
+		color = Color(0.58, 0.60, 0.68, 0.82)
+	draw_circle(draw_pos, 28.0, Color(color.r, color.g, color.b, 0.16))
+	draw_circle(draw_pos, 19.0, Color(1.0, 1.0, 1.0, 0.86))
+	draw_circle(draw_pos, 18.0, Color(color.r, color.g, color.b, 0.78), false, 3)
+	_draw_outlined_text(draw_pos + Vector2(-17.0, 15.0), String(note.get("symbol", "♪")), 34, 26, color, Color(0.26, 0.12, 0.34, 0.55), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_song_spotlight(light: Dictionary) -> void:
+	var pos := Vector2(light.get("pos", Vector2.ZERO))
+	var radius := float(light.get("radius", SONG_SPOTLIGHT_RADIUS))
+	var time_left := float(light.get("time", 0.0))
+	var max_time := maxf(0.01, float(light.get("maxTime", SONG_SPOTLIGHT_DURATION)))
+	var age := max_time - time_left
+	var spawn := smoothstep(0.0, 0.24, age)
+	var fade := smoothstep(0.0, 0.48, time_left)
+	var life_alpha := clampf(spawn * fade, 0.0, 1.0)
+	if life_alpha <= 0.0:
+		return
+	var phase := float(light.get("phase", 0.0))
+	var occupied := player_pos.distance_squared_to(pos) <= radius * radius
+	var expiring := time_left < 0.85
+	var pulse := 0.5 + 0.5 * sin(elapsed * 5.8 + phase)
+	var sweep := elapsed * 0.58 + phase
+	var blink := 0.45 + 0.55 * sin(elapsed * 18.0 + phase)
+	var ring_alpha := life_alpha * (blink if expiring else 1.0)
+	var occupied_boost := 1.0 if occupied else 0.0
+	var visual_radius := minf(160.0, radius * (0.87 + pulse * 0.025 + occupied_boost * 0.06 + (1.0 - spawn) * 0.12))
+	var floor_texture_path := SONG_SPOTLIGHT_FLOOR_ACTIVE_IMAGE
+	if expiring:
+		floor_texture_path = SONG_SPOTLIGHT_FLOOR_EXPIRING_IMAGE
+	elif occupied:
+		floor_texture_path = SONG_SPOTLIGHT_FLOOR_OCCUPIED_IMAGE
+	var floor_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, floor_texture_path)
+	var floor_scale := 2.34 + occupied_boost * 0.12
+	var floor_size := Vector2.ONE * visual_radius * floor_scale
+	var floor_alpha := life_alpha * (0.56 + occupied_boost * 0.20)
+	if expiring:
+		floor_alpha = life_alpha * (0.34 + blink * 0.20)
+	if floor_texture != null:
+		draw_texture_rect(floor_texture, Rect2(pos - floor_size * 0.5, floor_size), false, Color(1.0, 1.0, 1.0, floor_alpha))
+		var sparkle_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, SONG_SPOTLIGHT_SPARKLE_PARTICLES_IMAGE)
+		if sparkle_texture != null and (occupied or expiring):
+			var sparkle_alpha := life_alpha * (0.14 + occupied_boost * 0.22 + (0.10 * blink if expiring else 0.0))
+			var sparkle_size := floor_size * (1.02 + pulse * 0.03)
+			draw_texture_rect(sparkle_texture, Rect2(pos - sparkle_size * 0.5, sparkle_size), false, Color(1.0, 1.0, 1.0, sparkle_alpha))
+	if age < 0.55:
+		for i in range(12):
+			var angle := phase + float(i) * TAU / 12.0 + elapsed * 1.4
+			var gather := lerpf(radius * 0.95, radius * 0.34, spawn)
+			var spark_pos := pos + Vector2(cos(angle), sin(angle)) * (gather + sin(elapsed * 8.0 + float(i)) * 6.0)
+			draw_circle(spark_pos, 2.2 + pulse * 1.0, Color(1.0, 0.93, 0.58, 0.54 * life_alpha))
+	if floor_texture == null:
+		draw_circle(pos, visual_radius * 1.06, Color(1.0, 0.92, 0.48, (0.08 + occupied_boost * 0.04) * life_alpha))
+		draw_circle(pos, visual_radius * 0.76, Color(1.0, 0.98, 0.78, (0.12 + occupied_boost * 0.06) * life_alpha))
+	draw_circle(pos, visual_radius, Color(1.0, 0.82, 0.22, (0.36 + occupied_boost * 0.22) * ring_alpha), false, 1.8 + occupied_boost * 1.5)
+	draw_circle(pos, visual_radius * 0.72, Color(1.0, 1.0, 1.0, (0.18 + occupied_boost * 0.12) * ring_alpha), false, 1.0 + occupied_boost * 0.8)
+	for i in range(14):
+		var start_angle := sweep + float(i) * TAU / 14.0
+		var arc_alpha := (0.15 + occupied_boost * 0.16) * ring_alpha
+		draw_arc(pos, visual_radius * 0.96, start_angle, start_angle + TAU / 58.0, 5, Color(1.0, 0.94, 0.58, arc_alpha), 1.2 + occupied_boost * 0.8)
+	var particle_count: int = 12 if occupied else 7
+	for i in range(particle_count):
+		var angle := -sweep * (1.35 if occupied else 0.85) + float(i) * TAU / float(particle_count)
+		var orbit: float = visual_radius * (0.30 + 0.36 * absf(sin(elapsed * 0.95 + float(i) * 0.73)))
+		var particle_pos := pos + Vector2(cos(angle) * orbit, sin(angle) * orbit)
+		if occupied:
+			var attract: float = 0.18 + 0.10 * sin(elapsed * 3.0 + float(i))
+			particle_pos = particle_pos.lerp(player_pos, attract)
+		var particle_alpha := (0.48 + occupied_boost * 0.26) * life_alpha
+		if i % 3 == 0:
+			_draw_outlined_text(particle_pos + Vector2(-7.0, 7.0), "♪", 16, 13, Color(1.0, 0.76, 0.20, particle_alpha), Color(1.0, 1.0, 1.0, 0.34 * particle_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+		else:
+			DrawPrimitiveSystemScript.draw_spark(self, particle_pos, 4.0 + pulse * 2.0, Color(1.0, 0.94, 0.56, particle_alpha))
+	var icon_radius := 20.0 + occupied_boost * 4.0 + pulse * 1.5
+	draw_circle(pos, icon_radius + 6.0, Color(1.0, 0.90, 0.42, (0.16 + occupied_boost * 0.08) * life_alpha))
+	draw_circle(pos, icon_radius, Color(1.0, 1.0, 1.0, (0.72 + occupied_boost * 0.14) * life_alpha))
+	draw_circle(pos, icon_radius, Color(1.0, 0.72, 0.16, 0.74 * life_alpha), false, 2.2)
+	_draw_outlined_text(pos + Vector2(-13.0, 10.0), "♪", 26, 22, Color(0.86, 0.50, 0.03, 0.96 * life_alpha), Color(1.0, 1.0, 1.0, 0.70 * life_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	if occupied:
+		for i in range(5):
+			var angle := sweep + float(i) * TAU / 5.0
+			var from_pos := pos + Vector2(cos(angle), sin(angle)) * visual_radius * 0.72
+			var to_pos := player_pos + Vector2(cos(angle + PI), sin(angle + PI)) * 10.0
+			draw_line(from_pos, to_pos, Color(1.0, 0.92, 0.42, 0.18 * life_alpha), 2.0, true)
+
+func _draw_song_spotlight_labels(visible_rect: Rect2) -> void:
+	if not _is_song_frame():
+		return
+	for item in song_spotlights:
+		var light: Dictionary = item as Dictionary
+		var pos := Vector2(light.get("pos", Vector2.ZERO))
+		if not visible_rect.has_point(pos):
+			continue
+		var radius := float(light.get("radius", SONG_SPOTLIGHT_RADIUS))
+		if player_pos.distance_squared_to(pos) > radius * radius:
+			continue
+		var time_left := float(light.get("time", 0.0))
+		var max_time := maxf(0.01, float(light.get("maxTime", SONG_SPOTLIGHT_DURATION)))
+		var age := max_time - time_left
+		var spawn := smoothstep(0.0, 0.24, age)
+		var fade := smoothstep(0.0, 0.48, time_left)
+		var life_alpha := clampf(spawn * fade, 0.0, 1.0)
+		if life_alpha <= 0.0:
+			continue
+		var phase := float(light.get("phase", 0.0))
+		var pulse := 0.5 + 0.5 * sin(elapsed * 5.8 + phase)
+		var visual_radius := minf(160.0, radius * (0.93 + pulse * 0.025 + (1.0 - spawn) * 0.12))
+		var label_alpha := (0.72 + pulse * 0.18) * life_alpha
+		_draw_outlined_text(pos + Vector2(-52.0, visual_radius * 0.36), "LIVE HEAT+", 104, 15, Color(0.86, 0.50, 0.03, label_alpha), Color(1.0, 1.0, 1.0, 0.72 * label_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_song_live_heat_level_notice() -> void:
+	if song_live_heat_level_notice_timer <= 0.0 or song_live_heat_level_notice_data.is_empty():
+		return
+	if _song_live_heat_level_notice_blocked():
+		return
+	var duration := maxf(0.1, song_live_heat_level_notice_duration)
+	var age := duration - song_live_heat_level_notice_timer
+	var appear := smoothstep(0.0, 0.15, age)
+	var fade := 1.0 - smoothstep(duration - 0.25, duration, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var level := int(song_live_heat_level_notice_data.get("level", 1))
+	var max_level := level >= 5
+	var accent: Color = song_live_heat_level_notice_data.get("accent", Color("#ff8fc8")) as Color
+	var sub_accent: Color = song_live_heat_level_notice_data.get("subAccent", Color("#8eeaff")) as Color
+	var base_size := Vector2(560.0, 136.0) if max_level else Vector2(510.0, 118.0)
+	var scale := 1.0 + (1.0 - appear) * 0.065
+	if max_level:
+		scale += sin(elapsed * 10.0) * 0.006
+	var center := Vector2(FIELD_VIEW.get_center().x, _song_notice_stack_center_y(base_size.y * scale, 0))
+	center.y += lerpf(-14.0, 0.0, appear) - (1.0 - fade) * 12.0
+	var rect := Rect2(center - base_size * scale * 0.5, base_size * scale)
+	var glow_alpha := (0.24 if max_level else 0.14) * alpha
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 8.0), rect.size + Vector2(26.0, 14.0), 0.17 * alpha)
+	draw_rect(rect.grow(7.0), Color(accent.r, accent.g, accent.b, glow_alpha), true)
+	if max_level:
+		draw_rect(rect.grow(12.0), Color(sub_accent.r, sub_accent.g, sub_accent.b, 0.11 * alpha), true)
+	_draw_song_notice_soft_rect(rect, Color(1.0, 0.985, 1.0, 0.94 * alpha), Color(accent.r, accent.g, accent.b, 0.86 * alpha), 3.0, 22.0)
+	draw_rect(Rect2(rect.position + Vector2(0.0, 7.0), Vector2(rect.size.x, 7.0)), Color(sub_accent.r, sub_accent.g, sub_accent.b, (0.34 if max_level else 0.22) * alpha), true)
+	draw_rect(Rect2(rect.position + Vector2(0.0, rect.size.y - 10.0), Vector2(rect.size.x, 8.0)), Color(accent.r, accent.g, accent.b, 0.22 * alpha), true)
+	var icon_pos := rect.position + Vector2(62.0, rect.size.y * 0.5)
+	draw_circle(icon_pos, 34.0, Color(accent.r, accent.g, accent.b, 0.22 * alpha))
+	draw_circle(icon_pos, 25.0, Color(1.0, 1.0, 1.0, 0.92 * alpha))
+	draw_circle(icon_pos, 25.0, Color(accent.r, accent.g, accent.b, 0.82 * alpha), false, 3.0)
+	_draw_outlined_text(icon_pos + Vector2(-17.0, 12.0), String(song_live_heat_level_notice_data.get("icon", "♪")), 34, 28, Color(accent.r, accent.g, accent.b, alpha), Color(0.24, 0.08, 0.20, 0.38 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	var text_x := rect.position.x + 112.0
+	var text_width := int(rect.size.x - 136.0)
+	var title_color := Color("#7a587d")
+	title_color.a = 0.88 * alpha
+	var name_color := Color("#ff3f9d") if not max_level else Color("#e58c00")
+	name_color.a = alpha
+	var desc_color := Color("#5f5068")
+	desc_color.a = 0.92 * alpha
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 30.0), "text": String(song_live_heat_level_notice_data.get("title", "")), "width": text_width, "size": 18, "fontWeight": "black", "color": title_color})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 68.0), "text": String(song_live_heat_level_notice_data.get("name", "")), "width": text_width, "size": 31 if max_level else 28, "fontWeight": "black", "color": name_color})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 101.0), "text": String(song_live_heat_level_notice_data.get("description", "")), "width": text_width, "size": 17, "fontWeight": "bold", "color": desc_color})
+	if max_level:
+		for i in range(14):
+			var t := elapsed * 2.2 + float(i) * 0.63
+			var spark := rect.position + Vector2(fmod(float(i) * 47.0 + elapsed * 54.0, rect.size.x), 12.0 + sin(t) * 10.0)
+			var spark_color := accent if i % 2 == 0 else sub_accent
+			draw_circle(spark, 2.4 + sin(t * 1.7) * 0.8, Color(spark_color.r, spark_color.g, spark_color.b, 0.58 * alpha))
+			if i % 4 == 0:
+				DrawPrimitiveSystemScript.draw_spark(self, spark + Vector2(0.0, 20.0), 7.0, Color(1.0, 1.0, 1.0, 0.56 * alpha))
+
+func _draw_song_octave_bonus_notice() -> void:
+	if song_octave_bonus_notice_timer <= 0.0:
+		return
+	if not _is_song_frame():
+		return
+	if state != "playing":
+		return
+	var duration := maxf(0.1, song_octave_bonus_notice_duration)
+	var age := duration - song_octave_bonus_notice_timer
+	var appear := smoothstep(0.0, 0.14, age)
+	var fade := 1.0 - smoothstep(duration - 0.25, duration, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var base_size := Vector2(468.0, 102.0)
+	var scale := 1.0 + (1.0 - appear) * 0.055
+	var lane := 1 if _song_live_heat_level_notice_visible() else 0
+	var center := Vector2(FIELD_VIEW.get_center().x, _song_notice_stack_center_y(base_size.y * scale, lane))
+	center.y += lerpf(-10.0, 0.0, appear) - (1.0 - fade) * 10.0
+	var rect := Rect2(center - base_size * scale * 0.5, base_size * scale)
+	var gold := Color("#ffd45d")
+	var pink := Color("#ff7eb6")
+	var cyan := Color("#8eeaff")
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(24.0, 12.0), 0.15 * alpha)
+	draw_rect(rect.grow(7.0), Color(gold.r, gold.g, gold.b, 0.14 * alpha), true)
+	_draw_song_notice_soft_rect(rect, Color(1.0, 0.99, 0.96, 0.94 * alpha), Color(gold.r, gold.g, gold.b, 0.88 * alpha), 3.0, 20.0)
+	draw_rect(Rect2(rect.position + Vector2(0.0, 7.0), Vector2(rect.size.x, 6.0)), Color(pink.r, pink.g, pink.b, 0.26 * alpha), true)
+	draw_rect(Rect2(rect.position + Vector2(0.0, rect.size.y - 9.0), Vector2(rect.size.x, 7.0)), Color(cyan.r, cyan.g, cyan.b, 0.24 * alpha), true)
+	var icon_pos := rect.position + Vector2(54.0, rect.size.y * 0.5)
+	draw_circle(icon_pos, 29.0, Color(gold.r, gold.g, gold.b, 0.24 * alpha))
+	draw_circle(icon_pos, 21.0, Color(1.0, 1.0, 1.0, 0.94 * alpha))
+	draw_circle(icon_pos, 21.0, Color(pink.r, pink.g, pink.b, 0.74 * alpha), false, 3.0)
+	var icon_color := Color("#ff5cad")
+	icon_color.a = alpha
+	_draw_outlined_text(icon_pos + Vector2(-16.0, 11.0), "♪", 32, 26, icon_color, Color(0.24, 0.08, 0.18, 0.36 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	var text_x := rect.position.x + 96.0
+	var text_width := int(rect.size.x - 118.0)
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 26.0), "text": "1オクターブ完成！ オクターブボーナス", "width": text_width, "size": 19, "fontWeight": "black", "color": Color(0.52, 0.28, 0.48, 0.94 * alpha)})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 57.0), "text": "テンション +5　視聴者 +500", "width": text_width, "size": 16, "fontWeight": "bold", "color": Color(0.90, 0.28, 0.56, 0.95 * alpha)})
+	var wave_text := "音波攻撃・ノックバック"
+	if song_octave_bonus_notice_hits > 0:
+		wave_text = "音波攻撃 %d体" % song_octave_bonus_notice_hits
+	if song_octave_bonus_notice_call_wave:
+		wave_text = "観客コール波発生！"
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 80.0), "text": "ギフト期待度 +1　%s" % wave_text, "width": text_width, "size": 15, "fontWeight": "bold", "color": Color(0.28, 0.52, 0.72, 0.92 * alpha)})
+	for i in range(6):
+		var t := elapsed * 2.8 + float(i) * 0.74
+		var spark := rect.position + Vector2(34.0 + float(i) * 70.0 + sin(t) * 5.0, 16.0 + cos(t * 1.2) * 5.0)
+		DrawPrimitiveSystemScript.draw_spark(self, spark, 5.0, Color(1.0, 1.0, 1.0, 0.45 * alpha))
+
+func _draw_song_boss_chorus_judge_notice() -> void:
+	if not _is_song_frame() or state != "playing":
+		return
+	if song_boss_chorus_judge_notice_timer <= 0.0 and not song_boss_chorus_judge_active:
+		return
+	var duration := maxf(0.1, song_boss_chorus_judge_notice_duration if song_boss_chorus_judge_notice_duration > 0.0 else 1.0)
+	var age := duration - song_boss_chorus_judge_notice_timer
+	var appear := 1.0 if song_boss_chorus_judge_active else smoothstep(0.0, 0.14, age)
+	var fade := 1.0 if song_boss_chorus_judge_active else 1.0 - smoothstep(duration - 0.25, duration, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var base_size := Vector2(430.0, 90.0)
+	var lane := 0
+	if _song_live_heat_level_notice_visible():
+		lane += 1
+	if song_octave_bonus_notice_timer > 0.0:
+		lane += 1
+	var center := Vector2(FIELD_VIEW.get_center().x, _song_notice_stack_center_y(base_size.y, lane))
+	center.y += lerpf(-9.0, 0.0, appear) - (1.0 - fade) * 9.0
+	var rect := Rect2(center - base_size * 0.5, base_size)
+	var accent := Color("#ff3f82")
+	var sub_accent := Color("#8eeaff") if song_boss_chorus_judge_notice_success else Color("#caa7ff")
+	var title := song_boss_chorus_judge_notice_title
+	var subtitle := song_boss_chorus_judge_notice_subtitle
+	if song_boss_chorus_judge_active:
+		title = "サビジャッジ中！"
+		var remain := int(ceil(song_boss_chorus_judge_timer))
+		subtitle = "音符 %d / %d　残り%02d秒" % [song_boss_chorus_judge_collected, song_boss_chorus_judge_required, remain]
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(24.0, 12.0), 0.15 * alpha)
+	draw_rect(rect.grow(7.0), Color(accent.r, accent.g, accent.b, 0.13 * alpha), true)
+	_draw_song_notice_soft_rect(rect, Color(1.0, 0.985, 1.0, 0.94 * alpha), Color(accent.r, accent.g, accent.b, 0.88 * alpha), 3.0, 20.0)
+	draw_rect(Rect2(rect.position + Vector2(0.0, 7.0), Vector2(rect.size.x, 6.0)), Color(sub_accent.r, sub_accent.g, sub_accent.b, 0.26 * alpha), true)
+	var icon_pos := rect.position + Vector2(54.0, rect.size.y * 0.5)
+	draw_circle(icon_pos, 28.0, Color(accent.r, accent.g, accent.b, 0.24 * alpha))
+	draw_circle(icon_pos, 20.0, Color(1.0, 1.0, 1.0, 0.94 * alpha))
+	draw_circle(icon_pos, 20.0, Color(accent.r, accent.g, accent.b, 0.78 * alpha), false, 3.0)
+	_draw_outlined_text(icon_pos + Vector2(-15.0, 10.0), "♪!", 32, 22, Color(accent.r, accent.g, accent.b, alpha), Color(0.20, 0.04, 0.18, 0.52 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	var text_x := rect.position.x + 94.0
+	var text_width := int(rect.size.x - 116.0)
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28.0), "text": title, "width": text_width, "size": 21, "fontWeight": "black", "color": Color(0.54, 0.18, 0.40, 0.95 * alpha)})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 59.0), "text": subtitle, "width": text_width, "size": 17, "fontWeight": "bold", "color": Color(0.28, 0.46, 0.68, 0.92 * alpha)})
+	if song_boss_chorus_judge_active and song_boss_chorus_judge_required > 0:
+		var bar_rect := Rect2(rect.position + Vector2(95.0, rect.size.y - 16.0), Vector2(rect.size.x - 122.0, 6.0))
+		var rate := clampf(float(song_boss_chorus_judge_collected) / float(song_boss_chorus_judge_required), 0.0, 1.0)
+		draw_rect(bar_rect, Color(0.98, 0.82, 0.92, 0.72 * alpha), true)
+		draw_rect(Rect2(bar_rect.position, Vector2(bar_rect.size.x * rate, bar_rect.size.y)), Color(accent.r, accent.g, accent.b, 0.86 * alpha), true)
+
+func _draw_song_notice_soft_rect(rect: Rect2, fill: Color, border: Color, border_width: float, radius: float) -> void:
+	var r := minf(radius, minf(rect.size.x, rect.size.y) * 0.5)
+	draw_rect(Rect2(rect.position + Vector2(r, 0.0), Vector2(rect.size.x - r * 2.0, rect.size.y)), fill, true)
+	draw_rect(Rect2(rect.position + Vector2(0.0, r), Vector2(rect.size.x, rect.size.y - r * 2.0)), fill, true)
+	draw_circle(rect.position + Vector2(r, r), r, fill)
+	draw_circle(rect.position + Vector2(rect.size.x - r, r), r, fill)
+	draw_circle(rect.position + Vector2(r, rect.size.y - r), r, fill)
+	draw_circle(rect.position + Vector2(rect.size.x - r, rect.size.y - r), r, fill)
+	draw_line(rect.position + Vector2(r, 0.0), rect.position + Vector2(rect.size.x - r, 0.0), border, border_width)
+	draw_line(rect.position + Vector2(r, rect.size.y), rect.position + Vector2(rect.size.x - r, rect.size.y), border, border_width)
+	draw_line(rect.position + Vector2(0.0, r), rect.position + Vector2(0.0, rect.size.y - r), border, border_width)
+	draw_line(rect.position + Vector2(rect.size.x, r), rect.position + Vector2(rect.size.x, rect.size.y - r), border, border_width)
+	draw_arc(rect.position + Vector2(r, r), r, PI, PI * 1.5, 12, border, border_width)
+	draw_arc(rect.position + Vector2(rect.size.x - r, r), r, PI * 1.5, TAU, 12, border, border_width)
+	draw_arc(rect.position + Vector2(rect.size.x - r, rect.size.y - r), r, 0.0, PI * 0.5, 12, border, border_width)
+	draw_arc(rect.position + Vector2(r, rect.size.y - r), r, PI * 0.5, PI, 12, border, border_width)
+
+func _draw_song_chorus_banner() -> void:
+	if song_chorus_banner_timer <= 0.0:
+		return
+	var duration := maxf(0.01, SONG_CHORUS_BANNER_DURATION)
+	var age := duration - song_chorus_banner_timer
+	var appear := smoothstep(0.0, 0.18, age)
+	var fade := 1.0 - smoothstep(duration - 0.30, duration, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	if alpha <= 0.0:
+		return
+	var rect := Rect2(Vector2(FIELD_VIEW.get_center().x - 260.0, FIELD_VIEW.position.y + 44.0), Vector2(520.0, 82.0))
+	var accent := Color("#ff82c4")
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 8.0), rect.size + Vector2(28.0, 14.0), 0.17 * alpha)
+	draw_rect(rect.grow(4.0), Color(1.0, 0.75, 0.92, 0.22 * alpha), true)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.91 * alpha), true)
+	draw_rect(Rect2(rect.position, Vector2(rect.size.x, 7.0)), Color(0.55, 0.90, 1.0, 0.72 * alpha), true)
+	draw_rect(rect, Color(accent.r, accent.g, accent.b, 0.84 * alpha), false, 3)
+	_draw_text_item({"pos": rect.position + Vector2(0.0, 41.0), "text": "サビタイム！", "width": int(rect.size.x), "size": 34, "fontWeight": "black", "color": Color("#ff3f9d")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({"pos": rect.position + Vector2(0.0, 67.0), "text": "音符を集めてテンションUP！", "width": int(rect.size.x), "size": 17, "fontWeight": "bold", "color": Color("#6b4a74")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_song_chorus_timer() -> void:
+	if not _is_song_frame() or song_chorus_timer <= 0.0:
+		return
+	if state != "playing" and state != "comment_choice" and state != "gift_choice":
+		return
+	var remaining := ceili(maxf(0.0, song_chorus_timer))
+	var progress := clampf(song_chorus_timer / maxf(0.1, song_chorus_current_duration), 0.0, 1.0)
+	var rect := Rect2(Vector2(FIELD_VIEW.end.x - 256.0, FIELD_VIEW.position.y + 14.0), Vector2(226.0, 54.0))
+	var accent := Color("#ff82c4")
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(18.0, 10.0), 0.14)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.88), true)
+	draw_rect(rect, accent, false, 3)
+	_draw_text_item({"pos": rect.position + Vector2(13.0, 23.0), "text": "サビ 残り", "width": 118, "size": 15, "fontWeight": "bold", "color": Color("#7a587d")})
+	_draw_text_item({"pos": rect.position + Vector2(136.0, 38.0), "text": "%02ds" % remaining, "width": 72, "size": 30, "fontWeight": "black", "color": Color("#ff54a8")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	var bar := Rect2(rect.position + Vector2(13.0, 42.0), Vector2(rect.size.x - 26.0, 7.0))
+	draw_rect(bar, Color("#f2e7fb"), true)
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * progress, bar.size.y)), Color("#8eeaff"), true)
+
+func _draw_song_chorus_result_card() -> void:
+	if song_chorus_result_timer <= 0.0 or song_chorus_result_data.is_empty():
+		return
+	if state != "playing":
+		return
+	var lines_value: Variant = song_chorus_result_data.get("lines", [])
+	var lines: Array = []
+	if lines_value is Array:
+		lines = lines_value as Array
+	var duration := maxf(0.1, song_chorus_result_duration)
+	var age := duration - song_chorus_result_timer
+	var appear := smoothstep(0.0, 0.16, age)
+	var fade := 1.0 - smoothstep(duration - 0.30, duration, age)
+	var alpha := clampf(appear * fade, 0.0, 1.0)
+	var rect := Rect2(Vector2(FIELD_VIEW.end.x - 370.0, FIELD_VIEW.position.y + 20.0), Vector2(330.0, 98.0))
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(20.0, 12.0), 0.13 * alpha)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.90 * alpha), true)
+	draw_rect(Rect2(rect.position, Vector2(8.0, rect.size.y)), Color(1.0, 0.48, 0.78, 0.86 * alpha), true)
+	draw_rect(rect, Color(1.0, 0.48, 0.78, 0.65 * alpha), false, 2)
+	_draw_text_item({"pos": rect.position + Vector2(20.0, 29.0), "text": String(song_chorus_result_data.get("title", "サビタイム RESULT")), "width": int(rect.size.x - 40.0), "size": 17, "fontWeight": "black", "color": Color("#70436d")}, "", HORIZONTAL_ALIGNMENT_LEFT)
+	for i in range(mini(lines.size(), 2)):
+		_draw_text_item({"pos": rect.position + Vector2(32.0, 56.0 + float(i) * 22.0), "text": String(lines[i]), "width": int(rect.size.x - 48.0), "size": 15, "fontWeight": "bold", "color": Color("#8a6d88")})
+
+func _song_live_heat_bar_color(value: float) -> Color:
+	var t := clampf(value, 0.0, 1.0)
+	if t < 0.34:
+		return Color("#74ecff").lerp(Color("#b4ffe9"), t / 0.34)
+	if t < 0.68:
+		return Color("#b4ffe9").lerp(Color("#ff8fcb"), (t - 0.34) / 0.34)
+	return Color("#ff8fcb").lerp(Color("#ffe873"), (t - 0.68) / 0.32)
+
+func _draw_song_live_heat_hud() -> void:
+	if not _is_song_frame():
+		return
+	if state != "playing" and state != "comment_choice" and state != "gift_choice":
+		return
+	var ratio := clampf(displayed_song_live_heat / SONG_LIVE_HEAT_MAX, 0.0, 1.0)
+	if not song_live_heat_gauge_display_initialized:
+		ratio = clampf(song_live_heat / SONG_LIVE_HEAT_MAX, 0.0, 1.0)
+	var accent := Color("#8eeaff").lerp(Color("#ff5cad"), ratio)
+	var flash := 0.0
+	if song_live_heat_level_flash_timer > 0.0:
+		flash = clampf(song_live_heat_level_flash_timer, 0.0, 1.0)
+	var panel_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, SONG_LIVE_HEAT_HUD_IMAGE)
+	if panel_texture != null:
+		var texture_size := panel_texture.get_size()
+		var panel_width := 352.0
+		var panel_height := panel_width * float(texture_size.y) / maxf(1.0, float(texture_size.x))
+		var rect := Rect2(Vector2(FIELD_VIEW.position.x + 4.0, FIELD_VIEW.position.y + 2.0), Vector2(panel_width, panel_height))
+		DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(18.0, 10.0), 0.10 + flash * 0.06)
+		if flash > 0.0:
+			draw_rect(rect.grow(3.0), Color(accent.r, accent.g, accent.b, 0.10 * flash), true)
+		draw_texture_rect(panel_texture, rect, false, Color(1.0, 1.0, 1.0, 0.99))
+		var bar := Rect2(rect.position + Vector2(rect.size.x * 0.096, rect.size.y * 0.655), Vector2(rect.size.x * 0.800, rect.size.y * 0.125))
+		var fill_width := maxf(0.0, bar.size.x * ratio)
+		if fill_width > 0.0:
+			var fill_rect := Rect2(bar.position, Vector2(fill_width, bar.size.y))
+			var fill_segments := 14
+			for i in range(fill_segments):
+				var segment_start := fill_width * float(i) / float(fill_segments)
+				var segment_end := fill_width * float(i + 1) / float(fill_segments)
+				var segment_rect := Rect2(bar.position + Vector2(segment_start, 0.0), Vector2(maxf(1.0, segment_end - segment_start + 0.75), bar.size.y))
+				var segment_color := _song_live_heat_bar_color(ratio * (float(i) + 0.5) / float(fill_segments))
+				draw_rect(segment_rect, Color(segment_color.r, segment_color.g, segment_color.b, 0.86), true)
+			var fill_color := _song_live_heat_bar_color(ratio)
+			draw_rect(Rect2(fill_rect.position, Vector2(fill_rect.size.x, fill_rect.size.y * 0.42)), Color(1.0, 1.0, 1.0, 0.22), true)
+			var end_radius := bar.size.y * 0.5
+			var start_color := _song_live_heat_bar_color(0.0)
+			draw_circle(bar.position + Vector2(end_radius, end_radius), end_radius, Color(start_color.r, start_color.g, start_color.b, 0.86))
+			if fill_width > bar.size.y:
+				draw_circle(bar.position + Vector2(fill_width - end_radius, end_radius), end_radius, Color(fill_color.r, fill_color.g, fill_color.b, 0.86))
+			if flash > 0.0:
+				draw_rect(fill_rect.grow(2.0), Color(1.0, 0.74, 0.92, 0.18 * flash), true)
+		_draw_text_item({"pos": rect.position + Vector2(rect.size.x * 0.56, rect.size.y * 0.40), "text": "Lv.%d" % song_live_heat_level, "width": int(rect.size.x * 0.18), "size": 21, "fontWeight": "black", "color": Color("#ff4f9d")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text_item({"pos": rect.position + Vector2(rect.size.x * 0.70, rect.size.y * 0.39), "text": "%d%%" % roundi(ratio * 100.0), "width": int(rect.size.x * 0.16), "size": 15, "fontWeight": "bold", "color": Color("#806080")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		var scale_text := "♪ 音階 %d/8" % song_note_scale_index
+		var scale_color := Color("#70436d")
+		if _song_lyrics_lost_active():
+			scale_text = "♪ 音階停止"
+			scale_color = Color("#d84596")
+		_draw_text_item({"pos": rect.position + Vector2(rect.size.x * 0.61, rect.size.y * 0.90), "text": scale_text, "width": int(rect.size.x * 0.28), "size": 12, "fontWeight": "bold", "color": scale_color}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+		if song_encore_timer > 0.0:
+			_draw_text_item({"pos": rect.position + Vector2(rect.size.x * 0.14, rect.size.y * 0.90), "text": "アンコール %02ds" % ceili(song_encore_timer), "width": int(rect.size.x * 0.42), "size": 12, "fontWeight": "bold", "color": Color("#e43d91")})
+		elif song_chorus_timer <= 0.0:
+			var next_chorus := maxi(0, int(ceil(song_chorus_next_time - elapsed)))
+			_draw_text_item({"pos": rect.position + Vector2(rect.size.x * 0.14, rect.size.y * 0.90), "text": "次のサビまで %02ds" % next_chorus, "width": int(rect.size.x * 0.42), "size": 12, "fontWeight": "bold", "color": Color("#7a587d")})
+		return
+	var rect := Rect2(Vector2(FIELD_VIEW.position.x + 34.0, FIELD_VIEW.position.y + 14.0), Vector2(232.0, 54.0))
+	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(18.0, 10.0), 0.14 + flash * 0.08)
+	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.88), true)
+	draw_rect(rect.grow(2.0), Color(accent.r, accent.g, accent.b, 0.12 + flash * 0.18), true)
+	draw_rect(rect, accent, false, 3)
+	_draw_text_item({"pos": rect.position + Vector2(13.0, 22.0), "text": "LIVE HEAT", "width": 104, "size": 15, "fontWeight": "bold", "color": Color("#7a587d")})
+	_draw_text_item({"pos": rect.position + Vector2(126.0, 33.0), "text": "Lv.%d" % song_live_heat_level, "width": 88, "size": 28, "fontWeight": "black", "color": Color("#ff54a8")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	var bar := Rect2(rect.position + Vector2(13.0, 42.0), Vector2(rect.size.x - 26.0, 7.0))
+	draw_rect(bar, Color("#f2e7fb"), true)
+	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), accent, true)
+	var scale_text := "♪ 音階 %d/8" % song_note_scale_index
+	var scale_color := Color("#70436d")
+	if _song_lyrics_lost_active():
+		scale_text = "♪ 音階停止"
+		scale_color = Color("#d84596")
+	_draw_text_item({"pos": rect.position + Vector2(146.0, 58.0), "text": scale_text, "width": 80, "size": 13, "fontWeight": "bold", "color": scale_color}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	if song_encore_timer > 0.0:
+		_draw_text_item({"pos": rect.position + Vector2(16.0, 58.0), "text": "アンコール %02ds" % ceili(song_encore_timer), "width": 124, "size": 13, "fontWeight": "bold", "color": Color("#e43d91")})
+	elif song_chorus_timer <= 0.0:
+		var next_chorus := maxi(0, int(ceil(song_chorus_next_time - elapsed)))
+		_draw_text_item({"pos": rect.position + Vector2(16.0, 58.0), "text": "次のサビまで %02ds" % next_chorus, "width": 124, "size": 13, "fontWeight": "bold", "color": Color("#7a587d")})
+
+func _draw_song_live_heat_background_overlay(arena: Rect2) -> void:
+	var intensity := clampf(float(song_live_heat_level) / 5.0, 0.0, 1.0)
+	if song_encore_timer > 0.0:
+		intensity = 1.0
+	if intensity <= 0.0:
+		return
+	var pulse := 0.5 + 0.5 * sin(elapsed * 2.8)
+	var pink := Color(1.0, 0.50, 0.78, 0.055 + intensity * 0.060)
+	var cyan := Color(0.50, 0.92, 1.0, 0.040 + intensity * 0.050)
+	draw_rect(arena, pink, true)
+	var top_band := Rect2(arena.position, Vector2(arena.size.x, 92.0))
+	var bottom_band := Rect2(Vector2(arena.position.x, arena.end.y - 92.0), Vector2(arena.size.x, 92.0))
+	draw_rect(top_band, Color(cyan.r, cyan.g, cyan.b, cyan.a * (0.55 + pulse * 0.35)), true)
+	draw_rect(bottom_band, Color(pink.r, pink.g, pink.b, pink.a * (0.55 + (1.0 - pulse) * 0.35)), true)
+	for i in range(8 + song_live_heat_level * 2):
+		var x := arena.position.x + fmod(float(i) * 167.0 + elapsed * (28.0 + intensity * 24.0), arena.size.x)
+		var y := arena.end.y - 60.0 - sin(elapsed * 3.0 + float(i)) * 16.0
+		var color := Color("#ff8fc8") if i % 2 == 0 else Color("#8eeaff")
+		draw_line(Vector2(x, y + 28.0), Vector2(x + 10.0, y - 30.0), Color(color.r, color.g, color.b, 0.28 + intensity * 0.30), 4.0)
+	if song_encore_timer > 0.0:
+		for i in range(7):
+			var angle := elapsed * 0.45 + float(i) * TAU / 7.0
+			var pos := arena.get_center() + Vector2(cos(angle), sin(angle)) * Vector2(arena.size.x * 0.40, arena.size.y * 0.34)
+			draw_circle(pos, 4.0 + pulse * 3.0, Color(1.0, 1.0, 1.0, 0.34))
+
+func _draw_outlined_text(pos: Vector2, text: String, width: int, size: int, color: Color, outline: Color, alignment = HORIZONTAL_ALIGNMENT_LEFT) -> void:
+	for offset in [Vector2(-1.5, 0.0), Vector2(1.5, 0.0), Vector2(0.0, -1.5), Vector2(0.0, 1.5), Vector2(-1.1, -1.1), Vector2(1.1, -1.1), Vector2(-1.1, 1.1), Vector2(1.1, 1.1)]:
+		_draw_text_item({"pos": pos + offset, "text": text, "width": width, "size": size, "fontWeight": "black", "color": outline}, "", alignment)
+	_draw_text_item({"pos": pos, "text": text, "width": width, "size": size, "fontWeight": "black", "color": color}, "", alignment)
+
+func _draw_song_stage_background(arena: Rect2) -> void:
+	draw_rect(arena, Color("#fff8ff"), true)
+	draw_rect(arena.grow(-34.0), Color("#fbfdff"), true)
+	draw_rect(arena, Color("#ffb6dd"), false, 6)
+	draw_rect(arena.grow(-24.0), Color("#91eaff"), false, 3)
+	for i in range(6):
+		var y := arena.position.y + 260.0 + float(i) * 155.0
+		draw_line(Vector2(arena.position.x + 160.0, y), Vector2(arena.end.x - 160.0, y), Color(0.82, 0.72, 0.93, 0.20), 2.0)
+	for i in range(10):
+		var x := arena.position.x + 240.0 + float(i) * 190.0
+		draw_circle(Vector2(x, arena.position.y + 76.0), 14.0, Color("#ffd1ec"))
+		draw_circle(Vector2(x + 46.0, arena.end.y - 76.0), 12.0, Color("#9eefff"))
+	var stage := Rect2(arena.position + Vector2(170.0, 180.0), arena.size - Vector2(340.0, 330.0))
+	draw_rect(stage, Color(1.0, 1.0, 1.0, 0.36), false, 2)
+	var monitor := Rect2(Vector2(arena.get_center().x - 180.0, arena.position.y + 84.0), Vector2(360.0, 96.0))
+	draw_rect(monitor, Color("#2a1b44"), true)
+	draw_rect(monitor, Color("#ffd1ec"), false, 3)
+	_draw_text_item({"pos": monitor.position + Vector2(0.0, 61.0), "text": "LIVE STAGE", "width": int(monitor.size.x), "size": 30, "fontWeight": "black", "color": Color("#ffffff")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	for side in [-1.0, 1.0]:
+		var speaker := Rect2(Vector2(arena.get_center().x + side * 850.0 - 48.0, arena.position.y + 260.0), Vector2(96.0, 540.0))
+		draw_rect(speaker, Color("#37204f"), true)
+		draw_rect(speaker, Color("#d7b9ff"), false, 3)
+		for j in range(3):
+			draw_circle(speaker.position + Vector2(48.0, 96.0 + float(j) * 150.0), 34.0, Color("#8eeaff"))
+			draw_circle(speaker.position + Vector2(48.0, 96.0 + float(j) * 150.0), 20.0, Color("#2a1b44"))
+
+func _draw_drawing_stage_background(arena: Rect2) -> void:
+	draw_rect(arena.grow(80.0), Color("#f5f7ff"), true)
+	draw_rect(arena, Color("#fff8fb"), true)
+	draw_rect(arena, Color("#83e8f2"), false, 7.0)
+	draw_rect(arena.grow(-26.0), Color("#ffc0db"), false, 4.0)
+	var paper := arena.grow(-132.0)
+	draw_rect(paper, Color("#fffdf7"), true)
+	draw_rect(paper, Color(1.0, 0.64, 0.78, 0.38), false, 3.0)
+	for i in range(1, int(paper.size.x / 96.0)):
+		var x := paper.position.x + float(i) * 96.0
+		draw_line(Vector2(x, paper.position.y), Vector2(x, paper.end.y), Color(0.67, 0.86, 0.96, 0.14), 1.0)
+	for i in range(1, int(paper.size.y / 96.0)):
+		var y := paper.position.y + float(i) * 96.0
+		draw_line(Vector2(paper.position.x, y), Vector2(paper.end.x, y), Color(1.0, 0.64, 0.78, 0.13), 1.0)
+	var progress_ratio := clampf(drawing_progress / 100.0, 0.0, 1.0)
+	if progress_ratio > 0.0:
+		draw_rect(Rect2(paper.position, Vector2(paper.size.x * progress_ratio, paper.size.y)), Color(1.0, 0.70, 0.88, 0.045 + progress_ratio * 0.035), true)
+		var sketch_alpha := 0.08 + progress_ratio * 0.12
+		var stroke_count := clampi(int(4.0 + progress_ratio * 10.0), 4, 14)
+		for i in range(stroke_count):
+			var t := float(i) / float(maxi(1, stroke_count - 1))
+			var y := paper.position.y + paper.size.y * (0.18 + 0.62 * fposmod(t * 1.37, 1.0))
+			var x0 := paper.position.x + paper.size.x * (0.12 + 0.15 * sin(t * TAU))
+			var x1 := paper.position.x + paper.size.x * (0.72 + 0.16 * cos(t * TAU * 0.7))
+			var color := Color(0.97, 0.45, 0.76, sketch_alpha) if i % 2 == 0 else Color(0.34, 0.78, 1.0, sketch_alpha)
+			draw_line(Vector2(x0, y), Vector2(x1, y + 28.0 * sin(t * TAU * 1.8)), color, 2.0, true)
+		if drawing_progress >= 75.0:
+			for i in range(6):
+				var px := paper.position.x + paper.size.x * (0.18 + 0.64 * fposmod(float(i) * 0.37, 1.0))
+				var py := paper.position.y + paper.size.y * (0.18 + 0.62 * fposmod(float(i) * 0.23, 1.0))
+				var glow := 0.55 + 0.45 * sin(elapsed * 2.2 + float(i) * 1.4)
+				draw_circle(Vector2(px, py), 3.0 + glow * 2.0, Color(1.0, 0.95, 0.45, 0.16 + glow * 0.14))
+	var top_band := Rect2(arena.position, Vector2(arena.size.x, 132.0))
+	var bottom_band := Rect2(Vector2(arena.position.x, arena.end.y - 132.0), Vector2(arena.size.x, 132.0))
+	var left_band := Rect2(arena.position, Vector2(116.0, arena.size.y))
+	var right_band := Rect2(Vector2(arena.end.x - 116.0, arena.position.y), Vector2(116.0, arena.size.y))
+	draw_rect(top_band, Color("#f0e6ff"), true)
+	draw_rect(bottom_band, Color("#fff0c9"), true)
+	draw_rect(left_band, Color("#e7fbff"), true)
+	draw_rect(right_band, Color("#fff1f9"), true)
+	for x in range(0, 9):
+		var pos := arena.position + Vector2(210.0 + float(x) * 210.0, 64.0)
+		var color := Color("#ff87c0") if x % 2 == 0 else Color("#72dcff")
+		draw_circle(pos, 18.0, Color(color.r, color.g, color.b, 0.38))
+		draw_circle(pos, 8.0, Color("#ffffff"))
+	for x in range(0, 10):
+		var pos := Vector2(arena.position.x + 180.0 + float(x) * 190.0, arena.end.y - 60.0)
+		draw_rect(Rect2(pos - Vector2(38.0, 14.0), Vector2(76.0, 28.0)), Color("#ffffff"), true)
+		draw_rect(Rect2(pos - Vector2(38.0, 14.0), Vector2(76.0, 28.0)), Color("#ffb6d9"), false, 2.0)
+	var monitor := Rect2(Vector2(arena.get_center().x - 190.0, arena.position.y + 32.0), Vector2(380.0, 76.0))
+	draw_rect(monitor, Color("#f9fbff"), true)
+	draw_rect(monitor, Color("#93e9ff"), false, 3.0)
+	_draw_text_item({"pos": monitor.position + Vector2(0.0, 52.0), "text": "CANVAS LIVE", "width": int(monitor.size.x), "size": 24, "fontWeight": "black", "color": Color("#ee5d9f")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	for prop_value in MapBackgroundSystemScript.prop_collision_rects_for_data(_current_map_data()):
+		var prop: Rect2 = prop_value as Rect2
+		DrawPrimitiveSystemScript.draw_shadow(self, prop.get_center() + Vector2(0.0, 8.0), prop.size + Vector2(18.0, 10.0), 0.15)
+		draw_rect(prop, Color("#ffffff"), true)
+		draw_rect(prop, Color("#d0b8ff"), false, 3.0)
+		if prop.size.x > prop.size.y:
+			draw_line(prop.position + Vector2(16.0, prop.size.y * 0.5), prop.end - Vector2(16.0, prop.size.y * 0.5), Color("#ff8fc8"), 4.0, true)
+		else:
+			draw_circle(prop.get_center(), minf(prop.size.x, prop.size.y) * 0.22, Color("#8eeaff"))
 
 func _draw_toast() -> void:
 	if toast_timer <= 0.0:

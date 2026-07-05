@@ -20,6 +20,7 @@ static func spawn_step(context: Dictionary) -> Dictionary:
 		interval *= 0.8
 	if float(context.get("spawnRateTimer", 0.0)) > 0.0:
 		interval *= 0.9
+	interval /= maxf(0.25, float(context.get("songInstructionSpawnMultiplier", 1.0)))
 
 	var count: int = 2 if (more_spawns or (god_reservation and god_power >= 0.95)) else 1
 	return {"spawnTimer": interval, "spawnCount": count}
@@ -44,13 +45,22 @@ static func spawn_kinds(context: Dictionary) -> Dictionary:
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	var kinds: Array = []
 	for i in range(int(step["spawnCount"])):
-		kinds.append(EnemySystem.pick_wave_enemy(
+		var kind := EnemySystem.pick_wave_enemy(
 			float(context["elapsed"]),
 			bool(context["quickTestMode"]),
 			rng,
 			String(context.get("streamFrameId", "")),
 			String(context.get("activeGenreEvent", ""))
-		))
+		)
+		if float(context.get("songCommentEnemyBias", 0.0)) > 0.0 and rng.randf() < float(context.get("songCommentEnemyBias", 0.0)):
+			var comment_roll := rng.randf()
+			if comment_roll < 0.45:
+				kind = "request_spammer"
+			elif comment_roll < 0.75:
+				kind = "song_noise_comment"
+			else:
+				kind = "song_lyric_spoiler_comment"
+		kinds.append(kind)
 	return {
 		"spawnTimer": step["spawnTimer"],
 		"kinds": kinds
@@ -58,6 +68,12 @@ static func spawn_kinds(context: Dictionary) -> Dictionary:
 
 static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumberGenerator) -> Dictionary:
 	var marshmallows: Array = target.get("marshmallows") as Array
+	var song_instruction_spawn_multiplier := 1.0
+	if target.has_method("_song_instruction_enemy_spawn_multiplier"):
+		song_instruction_spawn_multiplier = maxf(0.25, float(target.call("_song_instruction_enemy_spawn_multiplier")))
+	var song_comment_enemy_bias := 0.0
+	if target.has_method("_song_comment_enemy_spawn_bias"):
+		song_comment_enemy_bias = clampf(float(target.call("_song_comment_enemy_spawn_bias")), 0.0, 0.85)
 	return {
 		"spawnTimer": target.get("spawn_timer"),
 		"delta": delta,
@@ -72,7 +88,9 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 		"flameMarketing": target.get("flame_marketing"),
 		"spawnRateTimer": target.get("spawn_rate_timer"),
 		"streamFrameId": target.get("current_stream_frame_id"),
-		"activeGenreEvent": target.get("active_genre_event")
+		"activeGenreEvent": target.get("active_genre_event"),
+		"songInstructionSpawnMultiplier": song_instruction_spawn_multiplier,
+		"songCommentEnemyBias": song_comment_enemy_bias
 	}
 
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:

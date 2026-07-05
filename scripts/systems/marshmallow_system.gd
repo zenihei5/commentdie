@@ -11,6 +11,8 @@ const GAMEPLAY_SPAWN_INTERVAL_MIN := 30.0
 const GAMEPLAY_SPAWN_INTERVAL_MAX := 45.0
 const GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MIN := 42.0
 const GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MAX := 58.0
+const SINGING_SPAWN_INTERVAL_MIN := 38.0
+const SINGING_SPAWN_INTERVAL_MAX := 52.0
 
 static func pick_data(context: Dictionary) -> Dictionary:
 	var pool: Array = []
@@ -131,10 +133,15 @@ static func spawn_random_for_target(target: Node, data_list: Array, rng: RandomN
 static func pickup_display_name_for_target(target: Node) -> String:
 	if String(target.get("current_stream_frame_id")) == "gameplay":
 		return "差し入れマシュマロ"
+	if String(target.get("current_stream_frame_id")) == "singing":
+		return "ライブ差し入れマロ"
 	return "マシュマロ"
 
 static func next_spawn_interval_for_target(target: Node, rng: RandomNumberGenerator) -> float:
-	if String(target.get("current_stream_frame_id")) != "gameplay":
+	var frame_id := String(target.get("current_stream_frame_id"))
+	if frame_id == "singing":
+		return rng.randf_range(SINGING_SPAWN_INTERVAL_MIN, SINGING_SPAWN_INTERVAL_MAX)
+	if frame_id != "gameplay":
 		return rng.randf_range(DEFAULT_SPAWN_INTERVAL_MIN, DEFAULT_SPAWN_INTERVAL_MAX)
 	if String(target.get("active_genre_event")) == "bullet_hell":
 		return rng.randf_range(GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MIN, GAMEPLAY_BULLET_HELL_SPAWN_INTERVAL_MAX)
@@ -142,6 +149,8 @@ static func next_spawn_interval_for_target(target: Node, rng: RandomNumberGenera
 
 static func active_pickup_limit_for_target(target: Node) -> int:
 	if String(target.get("current_stream_frame_id")) == "gameplay":
+		return GAMEPLAY_AUTO_PICKUP_LIMIT
+	if String(target.get("current_stream_frame_id")) == "singing":
 		return GAMEPLAY_AUTO_PICKUP_LIMIT
 	return DEFAULT_AUTO_PICKUP_LIMIT
 
@@ -194,6 +203,8 @@ static func update_auto_spawn_for_target(target: Node, data_list: Array, rng: Ra
 static func auto_spawn_chat_for_target(target: Node) -> String:
 	if String(target.get("current_stream_frame_id")) == "gameplay":
 		return "差し入れマシュマロが届いた！"
+	if String(target.get("current_stream_frame_id")) == "singing":
+		return "ライブ差し入れマロが届いた！"
 	return "マシュマロが届いた！"
 
 static func update_auto_spawn_if_enabled_for_target(target: Node, frame: Dictionary, data_list: Array, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array) -> Dictionary:
@@ -220,7 +231,7 @@ static func find_position(context: Dictionary) -> Vector2:
 		var p: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * dist
 		p.x = clampf(p.x, arena.position.x + 70.0, arena.end.x - 70.0)
 		p.y = clampf(p.y, arena.position.y + 70.0, arena.end.y - 70.0)
-		if p.distance_to(player_pos) > 110.0 and not point_in_wall(p, effect_walls, stream_frame_id):
+		if p.distance_squared_to(player_pos) > 12100.0 and not point_in_wall(p, effect_walls, stream_frame_id):
 			return p
 	return arena.get_center() + Vector2(rng.randf_range(-160.0, 160.0), rng.randf_range(-120.0, 120.0))
 
@@ -271,6 +282,7 @@ static func update_pickups(context: Dictionary) -> Dictionary:
 	var expired: Array = []
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var pickup_range: float = float(context.get("pickupRange", PICKUP_BASE_RANGE))
+	var pickup_range_sq := pickup_range * pickup_range
 	var delta: float = float(context.get("delta", 0.0))
 	var unread_count: int = int(context.get("unread", 0))
 	var marshmallows: Array = context["marshmallows"] as Array
@@ -278,7 +290,7 @@ static func update_pickups(context: Dictionary) -> Dictionary:
 		var m: Dictionary = item as Dictionary
 		m["time"] = float(m["time"]) - delta
 		var pos: Vector2 = m["pos"]
-		if pos.distance_to(player_pos) < pickup_range:
+		if pos.distance_squared_to(player_pos) < pickup_range_sq:
 			picked.append(m)
 			m["time"] = -1.0
 		elif float(m["time"]) <= 0.0:
@@ -367,7 +379,10 @@ static func pickup_range_for_target(target: Node) -> float:
 	var magnet_range: float = float(target.get("maro_magnet_range"))
 	var radar_range: float = float(target.get("comment_radar_range_bonus"))
 	var passive_rate: float = float(target.get("passive_maro_pickup_rate"))
-	return (PICKUP_BASE_RANGE + magnet_range + radar_range) * passive_rate
+	var range_value := (PICKUP_BASE_RANGE + magnet_range + radar_range) * passive_rate
+	if target.has_method("_song_live_heat_pickup_range_multiplier"):
+		range_value *= maxf(0.1, float(target.call("_song_live_heat_pickup_range_multiplier")))
+	return range_value
 
 static func update_effect_timers(context: Dictionary) -> Dictionary:
 	var delta: float = float(context.get("delta", 0.0))

@@ -1,0 +1,2 @@
+Source: C:\Users\zenih\Desktop\ぜんぶコメントのせいだ設定\Map\歌枠_サビタイム.png
+Purpose: Singing stream frame chorus-time background. Uses the same world size and collision rectangles as the base singing stage.

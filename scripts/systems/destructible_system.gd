@@ -83,7 +83,7 @@ static func find_spawn_position(target: Node, arena: Rect2, rng: RandomNumberGen
 		var p: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * dist
 		p.x = clampf(p.x, arena.position.x + 70.0, arena.end.x - 70.0)
 		p.y = clampf(p.y, arena.position.y + 80.0, arena.end.y - 80.0)
-		if p.distance_to(player_pos) < 115.0:
+		if p.distance_squared_to(player_pos) < 13225.0:
 			continue
 		if _point_in_wall(p, effect_walls, String(target.get("current_stream_frame_id"))):
 			continue
@@ -99,7 +99,7 @@ static func _near_alive_box(p: Vector2, boxes: Array) -> bool:
 		var box: Dictionary = item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
 			continue
-		if p.distance_to(Vector2(box.get("pos", Vector2.ZERO))) < 86.0:
+		if p.distance_squared_to(Vector2(box.get("pos", Vector2.ZERO))) < 7396.0:
 			return true
 	return false
 
@@ -109,7 +109,7 @@ static func _near_enemy_cluster(p: Vector2, enemies: Array) -> bool:
 		var enemy: Dictionary = item as Dictionary
 		if float(enemy.get("hp", 0.0)) <= 0.0:
 			continue
-		if p.distance_to(Vector2(enemy["pos"])) < 95.0:
+		if p.distance_squared_to(Vector2(enemy["pos"])) < 9025.0:
 			nearby += 1
 	return nearby >= 3
 
@@ -231,6 +231,10 @@ static func pick_drop_id_for_target(target: Node, rng: RandomNumberGenerator) ->
 	return "viewer_boost"
 
 static func drop_name(id: String) -> String:
+	if id == "song_special_live_gift":
+		return "スペシャルライブギフト箱"
+	if id == "song_live_gift":
+		return "ライブギフト箱"
 	if id == "heal_drink":
 		return "エナドリ"
 	if id == "heart_drop":
@@ -245,21 +249,27 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	var hit_fx: Array = target.get("hit_fx") as Array
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
 	var attract_range: float = DROP_ATTRACT_RANGE + float(target.get("comment_radar_range_bonus"))
+	if target.has_method("_song_live_heat_pickup_range_multiplier"):
+		attract_range *= maxf(0.1, float(target.call("_song_live_heat_pickup_range_multiplier")))
 	var magnet_speed_rate: float = maxf(0.1, float(target.get("item_magnet_speed_rate")))
 	var attracted_any := false
+	var attract_range_sq := attract_range * attract_range
+	var pickup_range_sq := DROP_PICKUP_RANGE * DROP_PICKUP_RANGE
 	for item in (target.get("drop_items") as Array):
 		var drop: Dictionary = item as Dictionary
 		drop["life"] = float(drop.get("life", DROP_LIFE)) - delta
 		drop["age"] = float(drop.get("age", 0.0)) + delta
 		var pos: Vector2 = Vector2(drop["pos"])
-		var distance: float = pos.distance_to(player_pos)
-		if distance < attract_range and distance > 1.0:
+		var to_player := player_pos - pos
+		var distance_sq := to_player.length_squared()
+		if distance_sq < attract_range_sq and distance_sq > 1.0:
+			var distance := sqrt(distance_sq)
 			attracted_any = true
 			var speed: float = lerpf(110.0, 330.0, 1.0 - distance / maxf(1.0, attract_range)) * magnet_speed_rate
-			pos += (player_pos - pos).normalized() * speed * delta
+			pos += (to_player / distance) * speed * delta
 			drop["pos"] = pos
-			distance = pos.distance_to(player_pos)
-		if distance <= DROP_PICKUP_RANGE:
+			distance_sq = pos.distance_squared_to(player_pos)
+		if distance_sq <= pickup_range_sq:
 			var feedback: Dictionary = apply_drop_for_target(target, String(drop["id"]))
 			chats.append(String(feedback["chat"]))
 			toasts.append(String(feedback["toast"]))
@@ -297,6 +307,11 @@ static func _append_comment_radar_fx_for_target(target: Node, radius: float) -> 
 	target.set("comment_radar_fx_timer", GiftSystem.COMMENT_RADAR_FX_COOLDOWN)
 
 static func apply_drop_for_target(target: Node, id: String) -> Dictionary:
+	if id == "song_live_gift" or id == "song_special_live_gift":
+		target.set("pending_gift_choices", int(target.get("pending_gift_choices")) + 1)
+		if id == "song_special_live_gift":
+			return {"chat": "+ スペシャルライブギフト箱を受け取った！", "toast": "スペシャルライブギフト！", "popup": "SP GIFT!", "color": Color("#ff7fd2")}
+		return {"chat": "+ ライブギフト箱を受け取った！", "toast": "ライブギフト！", "popup": "GIFT!", "color": Color("#86eaff")}
 	if id == "heal_drink":
 		if int(target.get("player_hp")) < int(target.get("player_max_hp")):
 			var heal_amount: int = DamageSystem.LEGACY_HP_UNIT

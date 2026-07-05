@@ -16,11 +16,29 @@ const GAMEPLAY_ARENA_RACE_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_race_2200x
 const GAMEPLAY_ARENA_BULLET_HELL_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_bullet_hell_2200x1500.png"
 const GAMEPLAY_ARENA_HORROR_BG := GAMEPLAY_ARENA_DIR + "/gameplay_arena_horror_2200x1500.png"
 const GAMEPLAY_ARENA_COLLISION_PREVIEW := GAMEPLAY_ARENA_DIR + "/gameplay_arena_user_collision_preview_2200x1500.png"
+const SINGING_STAGE_DIR := "res://assets/generated/maps/singing_stage_v1"
+const SINGING_STAGE_BG := SINGING_STAGE_DIR + "/singing_stage_base_1470x1070.png"
+const SINGING_STAGE_CHORUS_BG := SINGING_STAGE_DIR + "/singing_stage_chorus_1470x1070.png"
+const SINGING_STAGE_FLOOR_SPEAKER := "res://assets/generated/song_stage_obstacles_v1/floor_speaker.png"
+const SINGING_STAGE_FLOOR_SPEAKER_FLIPPED := "res://assets/generated/song_stage_obstacles_v1/floor_speaker_flipped.png"
+const SINGING_STAGE_MONITOR_STAND := "res://assets/generated/song_stage_obstacles_v1/monitor_stand.png"
+const DRAWING_STAGE_DIR := "res://assets/generated/maps/drawing_stage_v1"
+const DRAWING_STAGE_BG := DRAWING_STAGE_DIR + "/drawing_stage_base.png"
+const DRAWING_STAGE_PROGRESS_ROUGH := DRAWING_STAGE_DIR + "/canvas_progress_rough.png"
+const DRAWING_STAGE_PROGRESS_LINEART := DRAWING_STAGE_DIR + "/canvas_progress_lineart.png"
+const DRAWING_STAGE_PROGRESS_FINISH := DRAWING_STAGE_DIR + "/canvas_progress_finish.png"
+const DRAWING_STAGE_PROGRESS_COMPLETE := DRAWING_STAGE_DIR + "/canvas_progress_complete.png"
 
 const ZATSUDAN_STUDIO_SIZE := Vector2(2200, 1500)
 const ZATSUDAN_STUDIO_WORLD_RECT := Rect2(Vector2(20, 120), ZATSUDAN_STUDIO_SIZE)
 const GAMEPLAY_ARENA_SIZE := Vector2(2200, 1500)
 const GAMEPLAY_ARENA_WORLD_RECT := Rect2(Vector2(20, 120), GAMEPLAY_ARENA_SIZE)
+const SINGING_STAGE_SIZE := Vector2(2200, 1600)
+const SINGING_STAGE_WORLD_RECT := Rect2(Vector2(20, 120), SINGING_STAGE_SIZE)
+const DRAWING_STAGE_SIZE := Vector2(2300, 1600)
+const DRAWING_STAGE_WORLD_RECT := Rect2(Vector2(20, 120), DRAWING_STAGE_SIZE)
+const DRAWING_STAGE_PLAY_RECT := Rect2(Vector2(280, 315), Vector2(1700, 950))
+const DRAWING_STAGE_CANVAS_PROGRESS_RECT := Rect2(Vector2(280, 315), Vector2(1700, 950))
 const ZATSUDAN_STUDIO_COLLISION_RECTS := [
 	{"id": "bench_left_top", "rect": Rect2(619, 413, 351, 55)},
 	{"id": "bench_right_mid", "rect": Rect2(1388, 717, 312, 44)},
@@ -76,6 +94,50 @@ const GAMEPLAY_ARENA_COLLISION_RECTS := [
 	{"id": "lower_left_game_desk", "rect": Rect2(740, 790, 196, 185)},
 	{"id": "lower_right_tv_stand", "rect": Rect2(1282, 804, 214, 170)}
 ]
+const SINGING_STAGE_COLLISION_RECTS := [
+	{"id": "top_stage_decor_band", "rect": Rect2(0, 0, 2200, 300)},
+	{"id": "bottom_audience_edge", "rect": Rect2(0, 1230, 2200, 370)},
+	{"id": "left_stage_side_decor", "rect": Rect2(0, 0, 176, 1600)},
+	{"id": "right_stage_side_decor", "rect": Rect2(2024, 0, 176, 1600)}
+]
+const SINGING_STAGE_PROP_COLLISION_RECTS := [
+	{"id": "floor_speaker_left", "rect": Rect2(438, 976, 206, 108)},
+	{"id": "floor_speaker_right", "rect": Rect2(1556, 976, 206, 108)},
+	{"id": "monitor_stand_mid", "rect": Rect2(1038, 438, 164, 196)}
+]
+const DRAWING_STAGE_COLLISION_RECTS := [
+	{"id": "tablet_top_bezel", "rect": Rect2(0, 0, 2300, 315)},
+	{"id": "tablet_bottom_bezel", "rect": Rect2(0, 1265, 2300, 335)},
+	{"id": "tablet_left_bezel", "rect": Rect2(0, 315, 280, 950)},
+	{"id": "tablet_right_bezel", "rect": Rect2(1980, 315, 320, 950)}
+]
+const DRAWING_STAGE_PROP_COLLISION_RECTS := []
+const SINGING_STAGE_OBSTACLE_DRAW_ITEMS := [
+	{
+		"id": "floor_speaker_left",
+		"texturePath": SINGING_STAGE_FLOOR_SPEAKER,
+		"center": Vector2(541, 1022),
+		"size": Vector2(232, 232),
+		"shadowOffset": Vector2(0, 52),
+		"shadowSize": Vector2(150, 24)
+	},
+	{
+		"id": "floor_speaker_right",
+		"texturePath": SINGING_STAGE_FLOOR_SPEAKER_FLIPPED,
+		"center": Vector2(1659, 1022),
+		"size": Vector2(232, 232),
+		"shadowOffset": Vector2(0, 52),
+		"shadowSize": Vector2(150, 24)
+	},
+	{
+		"id": "monitor_stand_mid",
+		"texturePath": SINGING_STAGE_MONITOR_STAND,
+		"center": Vector2(1120, 535),
+		"size": Vector2(214, 214),
+		"shadowOffset": Vector2(0, 76),
+		"shadowSize": Vector2(96, 22)
+	}
+]
 
 static func zatsudan_background_data() -> Dictionary:
 	if USE_TRIAL_FIELD_BACKGROUND:
@@ -129,12 +191,56 @@ static func gameplay_arena_background_data(genre_event: String = "") -> Dictiona
 		"propCollisionRects": []
 	}
 
+static func singing_stage_background_path_for_mode(mode: String = "") -> String:
+	if mode == "chorus":
+		return SINGING_STAGE_CHORUS_BG
+	return SINGING_STAGE_BG
+
+static func singing_stage_background_data(mode: String = "") -> Dictionary:
+	var background_path := singing_stage_background_path_for_mode(mode)
+	return {
+		"id": "singing_live_stage_%s" % (mode if mode != "" else "base"),
+		"size": SINGING_STAGE_SIZE,
+		"worldRect": SINGING_STAGE_WORLD_RECT,
+		"assembledPath": background_path,
+		"floorPath": background_path,
+		"propsPath": "",
+		"collisionPreviewPath": "",
+		"collisionRects": SINGING_STAGE_COLLISION_RECTS,
+		"propCollisionRects": SINGING_STAGE_PROP_COLLISION_RECTS,
+		"obstacleDrawItems": SINGING_STAGE_OBSTACLE_DRAW_ITEMS
+	}
+
+static func drawing_stage_background_data() -> Dictionary:
+	return {
+		"id": "drawing_canvas_stage_v1",
+		"size": DRAWING_STAGE_SIZE,
+		"worldRect": DRAWING_STAGE_WORLD_RECT,
+		"assembledPath": DRAWING_STAGE_BG,
+		"floorPath": DRAWING_STAGE_BG,
+		"propsPath": "",
+		"collisionPreviewPath": "",
+		"collisionRects": DRAWING_STAGE_COLLISION_RECTS,
+		"propCollisionRects": DRAWING_STAGE_PROP_COLLISION_RECTS,
+		"canvasProgressRect": DRAWING_STAGE_CANVAS_PROGRESS_RECT,
+		"canvasProgressPaths": {
+			"rough": DRAWING_STAGE_PROGRESS_ROUGH,
+			"lineart": DRAWING_STAGE_PROGRESS_LINEART,
+			"finish": DRAWING_STAGE_PROGRESS_FINISH,
+			"complete": DRAWING_STAGE_PROGRESS_COMPLETE
+		}
+	}
+
 static func background_data_for_stream_frame(frame_id: String, genre_event: String = "") -> Dictionary:
 	match frame_id:
 		"zatsudan":
 			return zatsudan_background_data()
 		"gameplay":
 			return gameplay_arena_background_data(genre_event)
+		"singing", "song":
+			return singing_stage_background_data(genre_event)
+		"drawing":
+			return drawing_stage_background_data()
 		_:
 			return zatsudan_background_data()
 
@@ -191,10 +297,27 @@ static func static_wall_rects_for_data(data: Dictionary) -> Array:
 	for item in collision_rects:
 		var rect: Rect2 = (item as Dictionary)["rect"] as Rect2
 		rects.append(Rect2(rect.position + offset, rect.size))
-	var prop_collision_rects: Array = []
-	if data.has("propCollisionRects"):
-		prop_collision_rects = data["propCollisionRects"] as Array
-	for item in prop_collision_rects:
+	rects.append_array(prop_collision_rects_for_data(data))
+	return rects
+
+static func prop_collision_rects_for_data(data: Dictionary) -> Array:
+	var rects: Array = []
+	if not data.has("propCollisionRects"):
+		return rects
+	var offset: Vector2 = world_rect(data).position
+	for item in (data["propCollisionRects"] as Array):
 		var rect: Rect2 = (item as Dictionary)["rect"] as Rect2
 		rects.append(Rect2(rect.position + offset, rect.size))
 	return rects
+
+static func obstacle_draw_items_for_data(data: Dictionary) -> Array:
+	var draw_items: Array = []
+	if not data.has("obstacleDrawItems"):
+		return draw_items
+	var offset: Vector2 = world_rect(data).position
+	for item in (data["obstacleDrawItems"] as Array):
+		var source: Dictionary = item as Dictionary
+		var draw_item := source.duplicate(true)
+		draw_item["center"] = (source["center"] as Vector2) + offset
+		draw_items.append(draw_item)
+	return draw_items

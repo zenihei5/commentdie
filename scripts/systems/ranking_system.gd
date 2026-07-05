@@ -96,9 +96,11 @@ static func save_and_format_ranking(entry: Dictionary, is_ranking_eligible: bool
 	if sorted_entries.size() > MAX_SAVED_ENTRIES:
 		sorted_entries = sorted_entries.slice(0, MAX_SAVED_ENTRIES)
 	save_rankings(sorted_entries)
-	var rank_index: int = _rank_position(sorted_entries, entry)
+	var scoped_entries: Array = _ranking_scope_entries(sorted_entries, String(entry.get("streamFrameId", "")))
+	var rank_index: int = _rank_position(scoped_entries, entry)
 	var viewer_count: int = int(entry.get("viewerCount", entry.get("score", 0)))
-	return "ランキング登録：%d位 / 最大同時視聴者数 %s人" % [
+	return "%s登録：%d位 / 最大同時視聴者数 %s人" % [
+		_ranking_scope_label(entry),
 		rank_index,
 		_format_number(viewer_count)
 	]
@@ -239,7 +241,7 @@ static func _tabs(relay_mode_unlocked: bool = false) -> Array:
 		{"id": "all", "label": "総合"},
 		{"id": "zatsudan", "label": "雑談枠"},
 		{"id": "gameplay", "label": "ゲーム実況枠"},
-		{"id": "singing", "label": "歌枠 未開放", "locked": true, "unlockText": "ゲーム実況枠をクリアすると開放されます。"},
+		{"id": "singing", "label": "歌枠"},
 		{"id": "drawing", "label": "お絵かき枠 未開放", "locked": true, "unlockText": "歌枠をクリアすると開放されます。"},
 		{"id": "collab", "label": "コラボ枠 未開放", "locked": true, "unlockText": "お絵かき枠をクリアすると開放されます。"},
 		{"id": "relay", "label": "配信リレー" if relay_mode_unlocked else "配信リレー 未開放", "locked": not relay_mode_unlocked}
@@ -720,6 +722,32 @@ static func _rank_position(entries: Array, entry: Dictionary) -> int:
 		if _entry_is_same(current, entry):
 			return index + 1
 	return entries.size()
+
+
+static func _ranking_scope_entries(entries: Array, stream_frame_id: String) -> Array:
+	var frame_id := stream_frame_id.strip_edges()
+	if frame_id == "":
+		return entries
+	var scoped_entries: Array = []
+	for entry_item in entries:
+		if not (entry_item is Dictionary):
+			continue
+		var entry: Dictionary = entry_item as Dictionary
+		if String(entry.get("modeId", "")) != "normal_180":
+			continue
+		if String(entry.get("streamFrameId", "")) != frame_id:
+			continue
+		scoped_entries.append(entry)
+	if scoped_entries.is_empty():
+		return entries
+	return _sort_entries(scoped_entries)
+
+
+static func _ranking_scope_label(entry: Dictionary) -> String:
+	var frame_name := String(entry.get("streamFrameName", "")).strip_edges()
+	if frame_name == "":
+		return "ランキング"
+	return "%sランキング" % frame_name
 
 
 static func _relay_rank_position(entries: Array, entry: Dictionary) -> int:

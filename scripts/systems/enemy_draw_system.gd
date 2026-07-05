@@ -7,9 +7,13 @@ const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_s
 
 static var enemy_texture_cache: Dictionary = {}
 
-static func draw_enemies(target: CanvasItem, enemy_list: Array) -> void:
+static func draw_enemies(target: CanvasItem, enemy_list: Array, visible_rect: Rect2 = Rect2()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
 	for enemy in enemy_list:
-		var enemy_draw: Dictionary = DrawDataSystemScript.enemy_draw_data(enemy as Dictionary)
+		var enemy_data: Dictionary = enemy as Dictionary
+		if use_culling and not visible_rect.has_point(Vector2(enemy_data.get("pos", Vector2.ZERO))):
+			continue
+		var enemy_draw: Dictionary = DrawDataSystemScript.enemy_draw_data(enemy_data)
 		for part in DrawDataSystemScript.enemy_draw_parts(enemy_draw):
 			draw_enemy_part(target, part as Dictionary)
 

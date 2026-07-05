@@ -226,7 +226,9 @@ static func build_run_stats(
 	weapon: Dictionary,
 	gift_names: Array,
 	genre_stats: Dictionary,
-	marshmallow_stats: Dictionary
+	marshmallow_stats: Dictionary,
+	song_stats: Dictionary = {},
+	drawing_stats: Dictionary = {}
 ) -> Dictionary:
 	return {
 		"reason": reason,
@@ -269,12 +271,24 @@ static func build_run_stats(
 		"accessories": core.get("accessories", []),
 		"giftList": gift_names.duplicate(),
 		"giftSummary": DisplayTextSystem.taken_gift_summary(gift_names),
-		"streamFrameResultText": DisplayTextSystem.stream_frame_result_text(String(core.get("streamFrameId", "")), genre_stats, marshmallow_stats),
+		"streamFrameResultText": DisplayTextSystem.stream_frame_result_text(String(core.get("streamFrameId", "")), genre_stats, marshmallow_stats, song_stats, drawing_stats),
 		"genreEventCount": int(genre_stats.get("genreEventCount", 0)),
 		"raceEventCount": int(genre_stats.get("raceEventCount", 0)),
 		"bulletHellEventCount": int(genre_stats.get("bulletHellEventCount", 0)),
 		"horrorEventCount": int(genre_stats.get("horrorEventCount", 0)),
 		"genreEventClearCount": int(genre_stats.get("genreEventClearCount", 0)),
+		"songMaxLiveHeat": float(song_stats.get("maxLiveHeat", 0.0)),
+		"songMaxLiveHeatLevel": int(song_stats.get("maxLiveHeatLevel", 0)),
+		"songChorusCount": int(song_stats.get("chorusCount", 0)),
+		"songNotesCollected": int(song_stats.get("notesCollected", 0)),
+		"songOctaveBonusCount": int(song_stats.get("octaveBonusCount", 0)),
+		"songSpotlightStayTime": float(song_stats.get("spotlightStayTime", 0.0)),
+		"songEncoreTriggered": bool(song_stats.get("encoreTriggered", false)),
+		"songEncoreCompleted": bool(song_stats.get("encoreCompleted", false)),
+		"drawingProgress": float(drawing_stats.get("progress", 0.0)),
+		"drawingFillCount": int(drawing_stats.get("fillCount", 0)),
+		"drawingCorrectionCount": int(drawing_stats.get("correctionCount", 0)),
+		"drawingEraserCount": int(drawing_stats.get("eraserCount", 0)),
 		"marshmallowReadCount": int(marshmallow_stats.get("answered", 0)),
 		"goodMaroCount": int(marshmallow_stats.get("good", 0)),
 		"godMaroCount": int(marshmallow_stats.get("god", 0)),
@@ -330,6 +344,20 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"god": int(target.get("marshmallow_god")),
 		"kuso": int(target.get("marshmallow_kuso")),
 		"unread": int(target.get("marshmallow_unread"))
+	}, {
+		"maxLiveHeat": float(target.get("song_max_live_heat")),
+		"maxLiveHeatLevel": int(target.get("song_max_live_heat_level")),
+		"chorusCount": int(target.get("song_chorus_count")),
+		"notesCollected": int(target.get("song_total_notes_collected")),
+		"octaveBonusCount": int(target.get("song_octave_bonus_count")),
+		"spotlightStayTime": float(target.get("song_total_spotlight_time")),
+		"encoreTriggered": bool(target.get("song_encore_triggered")),
+		"encoreCompleted": bool(target.get("song_encore_completed"))
+	}, {
+		"progress": float(target.get("drawing_progress")),
+		"fillCount": int(target.get("drawing_fill_count")),
+		"correctionCount": int(target.get("drawing_correction_complete_count")),
+		"eraserCount": int(target.get("drawing_eraser_used_count"))
 	})
 
 static func complete_run_stats(stats: Dictionary) -> Dictionary:

@@ -4,6 +4,8 @@ extends RefCounted
 const BOSS_SUPER_LONG_COMMENT := "boss_super_long_comment"
 const BOSS_KUSO_MARO_KING := "boss_kuso_maro_king"
 const BOSS_BUGGED_FINAL_BOSS := "bugged_final_boss"
+const BOSS_PITCH_POLICE_CHIEF := "pitch_police_chief"
+const BOSS_RED_PEN_REVIEW_CHIEF := "red_pen_review_chief"
 const BOSS_KIND := BOSS_SUPER_LONG_COMMENT
 const WARNING_DURATION := 3.0
 const DEFAULT_MAX_SUMMONS := 1
@@ -25,6 +27,25 @@ const BUGGED_GENRE_TELEGRAPH := 1.0
 const BUGGED_STUN_DURATION := 1.2
 const BUGGED_STUN_DAMAGE_RATE := 1.2
 const BUGGED_GENRES: Array[String] = ["race", "bullet_hell", "horror"]
+const PITCH_CHIEF_STATE_NORMAL := "normal"
+const PITCH_CHIEF_STATE_TELEGRAPH := "chorus_judge_telegraph"
+const PITCH_CHIEF_STATE_JUDGE := "chorus_judge"
+const PITCH_CHIEF_STATE_STUN := "stun"
+const PITCH_CHIEF_JUDGE_TELEGRAPH := 1.2
+const PITCH_CHIEF_JUDGE_DURATION := 10.0
+const PITCH_CHIEF_JUDGE_REQUIRED := 6
+const PITCH_CHIEF_SUCCESS_STUN := 2.0
+const PITCH_CHIEF_FAILURE_STUN := 0.8
+const PITCH_CHIEF_SUCCESS_DAMAGE_RATE := 1.2
+const PITCH_CHIEF_BULLET_DAMAGE := 24
+const PITCH_CHIEF_BULLET_SPEED := 245.0
+const PITCH_CHIEF_MEGAPHONE_DAMAGE := 28
+const PITCH_CHIEF_MEGAPHONE_RANGE := 380.0
+const PITCH_CHIEF_MEGAPHONE_ANGLE := PI / 3.0
+const RED_PEN_BULLET_DAMAGE := 24
+const RED_PEN_BULLET_SPEED := 255.0
+const RED_PEN_REVIEW_LINE_DAMAGE := 28
+const RED_PEN_REVIEW_LINE_WIDTH := 74.0
 const BOSS_DEFEAT_COMMON_CHATS: Array[String] = [
 	"ボス撃破きた！",
 	"神回",
@@ -78,6 +99,7 @@ static func reset_for_target(target: Node, reset_count: bool = true) -> void:
 		(target.get("boss_slow_fields") as Array).clear()
 	if target.get("boss_guide_lines") != null:
 		(target.get("boss_guide_lines") as Array).clear()
+	clear_pitch_police_chief_state_for_target(target)
 
 static func comment_available(context: Dictionary, comment: Dictionary, comment_time: float) -> bool:
 	if String(comment.get("effectType", "")) != "summon_boss" and String(comment.get("id", "")) != "summon_boss":
@@ -105,8 +127,9 @@ static func request_summon_for_target(target: Node, view: Dictionary, has_heart:
 	target.set("boss_pending_id", boss_id)
 	target.set("boss_warning_text", warning_text)
 	target.set("boss_heart_variant", has_heart)
-	if boss_id == BOSS_KUSO_MARO_KING:
-		target.set("current_death_text", death_text_for_boss(boss_id, has_heart))
+	var boss_death_text: String = death_text_for_boss(boss_id, has_heart)
+	if boss_death_text != "":
+		target.set("current_death_text", boss_death_text)
 	var params: Dictionary = view.get("params", {}) as Dictionary
 	var variant: Dictionary = data.get("heartVariant", {}) as Dictionary
 	var hp_rate: float = float(variant.get("hpRate", 1.0)) if has_heart else 1.0
@@ -225,6 +248,10 @@ static func spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenera
 	}
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		initialize_bugged_final_boss_state(boss, rng)
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		initialize_pitch_police_chief_state(boss, rng)
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		initialize_red_pen_review_chief_state(boss, rng)
 	var enemies: Array = target.get("enemies") as Array
 	enemies.append(boss)
 	target.set("enemies", enemies)
@@ -265,6 +292,7 @@ static func retreat_for_target(target: Node) -> Dictionary:
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
 	clear_bugged_boss_state_for_target(target)
+	clear_pitch_police_chief_state_for_target(target)
 	return {
 		"chats": [retreat_chat_for_boss(boss_name)],
 		"toasts": ["ボスに逃げられた…"]
@@ -304,6 +332,7 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 	if target.get("boss_slow_fields") != null:
 		(target.get("boss_slow_fields") as Array).clear()
 	clear_bugged_boss_state_for_target(target)
+	clear_pitch_police_chief_state_for_target(target)
 	append_boss_defeat_fx_for_target(target, boss, boss_id, readable_name, viewer_reward)
 	var celebration_chats: Array[String] = defeat_chats_for_boss(boss_id, readable_name, viewer_reward, int(target.get("comment_barrage_setting")))
 	return {
@@ -322,6 +351,10 @@ static func readable_boss_name(boss_id: String, fallback: String) -> String:
 		return "クソマロキング"
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		return "バグったラスボス"
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		return "音程警察長"
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		return "赤ペン添削長"
 	if boss_id == BOSS_SUPER_LONG_COMMENT:
 		return "超長文ニキ"
 	return fallback
@@ -331,6 +364,10 @@ static func defeat_effect_type_for_boss(boss_id: String) -> String:
 		return "maro"
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		return "bugged"
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		return "song"
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		return "drawing"
 	return "long_comment"
 
 static func append_boss_defeat_fx_for_target(target: Node, boss: Dictionary, boss_id: String, boss_name: String, viewer_reward: int) -> void:
@@ -358,6 +395,8 @@ static func defeat_chats_for_boss(boss_id: String, boss_name: String, viewer_rew
 		specific = ["クソマロ鎮圧", "マロ欄救われた", "クソマロ成敗", "甘くない勝利"]
 	elif boss_id == BOSS_BUGGED_FINAL_BOSS:
 		specific = ["ラスボス停止！", "ジャンル暴走を止めた", "ゲーム実況枠クリア", "バグ修正完了"]
+	elif boss_id == BOSS_PITCH_POLICE_CHIEF:
+		specific = ["音程警察長、取り締まり終了！", "歌い切った！", "サビジャッジ突破", "ライブ続行！"]
 	else:
 		specific = ["長文ニキ沈黙", "読まずに勝った", "要約成功", "長文、鎮圧！"]
 	var target_total: int = defeat_comment_total_for_setting(comment_barrage_setting)
@@ -396,10 +435,15 @@ static func boss_data_for_target(target: Node, boss_id: String) -> Dictionary:
 	return default_boss_data()
 
 static func boss_id_for_target(target: Node) -> String:
-	if String(target.get("current_stream_frame_id")) == "zatsudan":
+	var stream_frame_id: String = String(target.get("current_stream_frame_id"))
+	if stream_frame_id == "zatsudan":
 		return BOSS_KUSO_MARO_KING
-	if String(target.get("current_stream_frame_id")) == "gameplay":
+	if stream_frame_id == "gameplay":
 		return BOSS_BUGGED_FINAL_BOSS
+	if stream_frame_id == "song" or stream_frame_id == "singing":
+		return BOSS_PITCH_POLICE_CHIEF
+	if stream_frame_id == "drawing":
+		return BOSS_RED_PEN_REVIEW_CHIEF
 	return BOSS_SUPER_LONG_COMMENT
 
 static func boss_speed(data: Dictionary) -> float:
@@ -415,9 +459,17 @@ static func warning_text_for_boss(data: Dictionary, boss_id: String) -> String:
 		return "クソマロキング出現！"
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		return "バグったラスボス出現！"
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		return "音程警察長 出現！"
 	return "大荒れイベント発生！"
 
 static func request_chats_for_boss(boss_id: String, warning_text: String) -> Array[String]:
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		return [
+			"WARNING! %s" % warning_text,
+			"赤ペン添削長きた",
+			"添削ライン注意"
+		]
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return [
 			"WARNING! %s" % warning_text,
@@ -430,12 +482,24 @@ static func request_chats_for_boss(boss_id: String, warning_text: String) -> Arr
 			"ラスボス戦きた",
 			"ジャンル変わりすぎ注意"
 		]
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		return [
+			"WARNING! %s" % warning_text,
+			"音程チェック厳しそう",
+			"赤チェック注意"
+		]
 	return [
 		"WARNING! %s" % warning_text,
 		"ボスきたｗ"
 	]
 
 static func spawn_chats_for_boss(boss_id: String, boss_name: String) -> Array[String]:
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		return [
+			"%sが出現！" % boss_name,
+			"赤ペンが太い",
+			"修正コメント湧きそう"
+		]
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return [
 			"%sが出現！" % boss_name,
@@ -448,23 +512,45 @@ static func spawn_chats_for_boss(boss_id: String, boss_name: String) -> Array[St
 			"ゲーム壊れた？",
 			"ジャンルチェンジ連打してくるぞ"
 		]
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		return [
+			"%sが出現！" % boss_name,
+			"音程警察きた",
+			"サビジャッジされるぞ"
+		]
 	return ["%sが出現！" % boss_name, "逃げるな"]
 
 static func speech_text_for_boss(boss_id: String) -> String:
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		return "要修正"
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return "未読にするな"
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		return "ジャンル変更"
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		return "音程チェック"
 	return "戦え戦え"
 
 static func retreat_chat_for_boss(_boss_name: String) -> String:
 	return "ボスに逃げられた…"
 
 static func death_text_for_boss(boss_id: String, has_heart: bool) -> String:
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		if has_heart:
+			return "「ボスと戦え♡」で赤ペン添削長の優しめ添削に押し切られた"
+		return "「ボスと戦え」で赤ペン添削長に画面中を添削された"
 	if boss_id == BOSS_KUSO_MARO_KING:
 		if has_heart:
 			return "「ボスと戦え♡」でもクソマロキングの圧が強かった"
 		return "「ボスと戦え」でクソマロキングに押し切られた"
+	if boss_id == BOSS_BUGGED_FINAL_BOSS:
+		if has_heart:
+			return "「ボスと戦え♡」でバグったラスボスのジャンル崩壊に飲まれた"
+		return "「ボスと戦え」でバグったラスボスに押し切られた"
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		if has_heart:
+			return "「ボスと戦え♡」で音程警察長のサビジャッジに押し切られた"
+		return "「ボスと戦え」で音程警察長に音程チェックされた"
 	return ""
 
 static func initial_attack_timers(data: Dictionary, interval_rate: float) -> Dictionary:
@@ -564,6 +650,363 @@ static func clear_bugged_boss_state_for_target(target: Node) -> void:
 		target.set("genre_event_duration", GenreEventSystem.GENRE_EVENT_DURATION)
 		target.set("genre_event_source", "")
 
+static func initialize_pitch_police_chief_state(boss: Dictionary, rng: RandomNumberGenerator) -> void:
+	boss["baseSpeed"] = float(boss.get("speed", 52.0))
+	boss["pitchChiefState"] = PITCH_CHIEF_STATE_NORMAL
+	boss["pitchChiefStateTimer"] = pitch_chief_normal_duration(boss, rng)
+	boss["pitchChiefBulletTimer"] = rng.randf_range(0.9, 1.5)
+	boss["pitchChiefPitchWaveTimer"] = rng.randf_range(2.4, 3.8)
+	boss["pitchChiefMegaphoneTimer"] = rng.randf_range(4.6, 6.0)
+	boss["pitchChiefJudgeTimer"] = pitch_chief_judge_interval(boss, rng)
+	boss["pitchChiefStunDamageRate"] = 1.0
+	boss["damageTakenRate"] = 1.0
+	boss["ignoreMovementWalls"] = true
+
+static func pitch_chief_hp_phase(boss: Dictionary) -> int:
+	var max_hp: float = maxf(1.0, float(boss.get("max_hp", boss.get("hp", 1.0))))
+	var ratio: float = clampf(float(boss.get("hp", max_hp)) / max_hp, 0.0, 1.0)
+	if ratio <= 0.40:
+		return 3
+	if ratio <= 0.70:
+		return 2
+	return 1
+
+static func pitch_chief_normal_duration(boss: Dictionary, rng: RandomNumberGenerator) -> float:
+	if pitch_chief_hp_phase(boss) >= 3:
+		return rng.randf_range(4.5, 6.0)
+	return rng.randf_range(6.0, 8.0)
+
+static func pitch_chief_judge_interval(boss: Dictionary, rng: RandomNumberGenerator) -> float:
+	if pitch_chief_hp_phase(boss) >= 3:
+		return rng.randf_range(18.0, 24.0)
+	return rng.randf_range(22.0, 32.0)
+
+static func pitch_chief_bullet_count(boss: Dictionary) -> int:
+	var phase := pitch_chief_hp_phase(boss)
+	if phase >= 3:
+		return 5
+	if phase >= 2:
+		return 4
+	return 3
+
+static func pitch_chief_pitch_wave_count(boss: Dictionary) -> int:
+	return 2 if pitch_chief_hp_phase(boss) >= 3 else 1
+
+static func clear_pitch_police_chief_state_for_target(target: Node) -> void:
+	if target.has_method("_clear_song_boss_chorus_judge"):
+		target.call("_clear_song_boss_chorus_judge")
+
+static func update_pitch_police_chief_for_target(
+	target: Node,
+	boss: Dictionary,
+	delta: float,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	toasts: Array[String],
+	_damage_events: Array,
+	comment_event_ids: Array[String]
+) -> void:
+	boss["ignoreMovementWalls"] = true
+	boss["pos"] = EnemySystem.clamp_enemy_pos_to_arena_for_enemy(boss, Vector2(boss.get("pos", Vector2.ZERO)), arena)
+	var base_speed: float = float(boss.get("baseSpeed", boss.get("speed", 52.0)))
+	var state := String(boss.get("pitchChiefState", PITCH_CHIEF_STATE_NORMAL))
+	if state == PITCH_CHIEF_STATE_STUN:
+		boss["speed"] = 0.0
+		boss["damageTakenRate"] = float(boss.get("pitchChiefStunDamageRate", 1.0))
+		boss["hitFlashTimer"] = maxf(float(boss.get("hitFlashTimer", 0.0)), 0.025)
+		var stun_left := maxf(0.0, float(boss.get("pitchChiefStateTimer", 0.0)) - delta)
+		boss["pitchChiefStateTimer"] = stun_left
+		if stun_left <= 0.0:
+			boss["damageTakenRate"] = 1.0
+			boss["speed"] = base_speed
+			boss["pitchChiefState"] = PITCH_CHIEF_STATE_NORMAL
+			boss["pitchChiefStateTimer"] = pitch_chief_normal_duration(boss, rng)
+			boss["pitchChiefStunDamageRate"] = 1.0
+			boss["speechText"] = "チェック再開"
+		return
+	boss["damageTakenRate"] = 1.0
+	if state == PITCH_CHIEF_STATE_TELEGRAPH:
+		boss["speed"] = base_speed * 0.25
+		var telegraph_left := maxf(0.0, float(boss.get("pitchChiefStateTimer", 0.0)) - delta)
+		boss["pitchChiefStateTimer"] = telegraph_left
+		if telegraph_left <= 0.0:
+			start_pitch_chorus_judge_for_target(target, boss, arena, rng, chats, comment_event_ids)
+		return
+	if state == PITCH_CHIEF_STATE_JUDGE:
+		boss["speed"] = base_speed * 0.35
+		var judge_left := maxf(0.0, float(boss.get("pitchChiefStateTimer", 0.0)) - delta)
+		boss["pitchChiefStateTimer"] = judge_left
+		if int(target.get("song_boss_chorus_judge_collected")) >= PITCH_CHIEF_JUDGE_REQUIRED:
+			finish_pitch_chorus_judge_for_target(target, boss, true, chats, toasts, comment_event_ids)
+		elif judge_left <= 0.0:
+			finish_pitch_chorus_judge_for_target(target, boss, false, chats, toasts, comment_event_ids)
+		return
+	boss["speed"] = base_speed
+	update_pitch_chief_normal_attacks_for_target(target, boss, delta, arena, rng, chats, comment_event_ids)
+	var normal_left := maxf(0.0, float(boss.get("pitchChiefStateTimer", 0.0)) - delta)
+	boss["pitchChiefStateTimer"] = normal_left
+	if normal_left <= 0.0:
+		enter_pitch_chorus_judge_telegraph(target, boss, rng, chats, toasts, comment_event_ids)
+
+static func update_pitch_chief_normal_attacks_for_target(
+	target: Node,
+	boss: Dictionary,
+	delta: float,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	comment_event_ids: Array[String]
+) -> void:
+	var bullet_timer := float(boss.get("pitchChiefBulletTimer", 1.2)) - delta
+	if bullet_timer <= 0.0:
+		spawn_pitch_chief_red_check_bullets_for_target(target, boss, rng, pitch_chief_bullet_count(boss))
+		bullet_timer = rng.randf_range(1.1, 1.55) if pitch_chief_hp_phase(boss) >= 3 else rng.randf_range(1.45, 2.05)
+	boss["pitchChiefBulletTimer"] = bullet_timer
+	var pitch_timer := float(boss.get("pitchChiefPitchWaveTimer", 3.0)) - delta
+	if pitch_timer <= 0.0:
+		spawn_pitch_chief_pitch_waves_for_target(target, arena, pitch_chief_pitch_wave_count(boss), chats, comment_event_ids)
+		pitch_timer = rng.randf_range(5.4, 7.0) if pitch_chief_hp_phase(boss) >= 3 else rng.randf_range(7.2, 9.2)
+	boss["pitchChiefPitchWaveTimer"] = pitch_timer
+	if pitch_chief_hp_phase(boss) >= 2:
+		var megaphone_timer := float(boss.get("pitchChiefMegaphoneTimer", 5.0)) - delta
+		if megaphone_timer <= 0.0:
+			spawn_pitch_chief_megaphone_wave_for_target(target, boss, chats, comment_event_ids)
+			megaphone_timer = rng.randf_range(6.8, 8.4) if pitch_chief_hp_phase(boss) >= 3 else rng.randf_range(8.2, 10.4)
+		boss["pitchChiefMegaphoneTimer"] = megaphone_timer
+
+static func spawn_pitch_chief_red_check_bullets_for_target(target: Node, boss: Dictionary, rng: RandomNumberGenerator, count: int) -> void:
+	var bullets: Array = target.get("enemy_bullets") as Array
+	if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+		return
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var to_player := Vector2(target.get("player_pos")) - boss_pos
+	var to_player_sq := to_player.length_squared()
+	var base_dir := to_player / sqrt(to_player_sq) if to_player_sq >= 0.01 else Vector2.RIGHT
+	if base_dir.length_squared() < 0.01:
+		base_dir = Vector2.RIGHT
+	var spread := deg_to_rad(18.0)
+	var step := spread / maxf(1.0, float(count - 1))
+	var start := -spread * 0.5
+	for i in range(maxi(1, count)):
+		if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+			break
+		var dir := base_dir.rotated(start + step * float(i) + rng.randf_range(-0.025, 0.025)).normalized()
+		bullets.append({
+			"pos": boss_pos + dir * (float(boss.get("radius", 102.0)) * 0.62 + 12.0),
+			"vel": dir * PITCH_CHIEF_BULLET_SPEED,
+			"life": 4.2,
+			"hitRadius": 18.0,
+			"source": "boss_bullet",
+			"damage": PITCH_CHIEF_BULLET_DAMAGE,
+			"visualKind": "pitch_police_note"
+		})
+	target.set("enemy_bullets", bullets)
+
+static func spawn_pitch_chief_pitch_waves_for_target(target: Node, arena: Rect2, count: int, chats: Array[String], comment_event_ids: Array[String]) -> void:
+	for _i in range(maxi(1, count)):
+		if target.has_method("_spawn_song_pitch_wave"):
+			target.call("_spawn_song_pitch_wave", arena)
+	if not comment_event_ids.has("song_boss_pitch_wave"):
+		comment_event_ids.append("song_boss_pitch_wave")
+	chats.append("! 音程ズレ波！")
+
+static func spawn_pitch_chief_megaphone_wave_for_target(target: Node, boss: Dictionary, chats: Array[String], comment_event_ids: Array[String]) -> void:
+	if not target.has_method("_spawn_song_boss_megaphone_wave"):
+		return
+	var origin := Vector2(boss.get("pos", Vector2.ZERO))
+	var dir := Vector2(target.get("player_pos")) - origin
+	if dir.length_squared() <= 0.01:
+		dir = Vector2.RIGHT
+	else:
+		dir = dir.normalized()
+	target.call("_spawn_song_boss_megaphone_wave", origin, dir, PITCH_CHIEF_MEGAPHONE_RANGE, PITCH_CHIEF_MEGAPHONE_ANGLE, 0.7, 0.5, PITCH_CHIEF_MEGAPHONE_DAMAGE, 0.7)
+	if not comment_event_ids.has("song_boss_megaphone_wave"):
+		comment_event_ids.append("song_boss_megaphone_wave")
+	chats.append("! メガホン注意！")
+
+static func enter_pitch_chorus_judge_telegraph(
+	target: Node,
+	boss: Dictionary,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	toasts: Array[String],
+	comment_event_ids: Array[String]
+) -> void:
+	boss["pitchChiefState"] = PITCH_CHIEF_STATE_TELEGRAPH
+	boss["pitchChiefStateTimer"] = PITCH_CHIEF_JUDGE_TELEGRAPH
+	boss["speechText"] = "サビジャッジ"
+	if target.has_method("_prepare_song_boss_chorus_judge"):
+		target.call("_prepare_song_boss_chorus_judge", PITCH_CHIEF_JUDGE_REQUIRED, PITCH_CHIEF_JUDGE_DURATION)
+	if not comment_event_ids.has("song_boss_chorus_judge_prepare"):
+		comment_event_ids.append("song_boss_chorus_judge_prepare")
+	chats.append("* サビジャッジ予告！")
+	toasts.append("サビジャッジ：音符を集めろ！")
+	boss["pitchChiefJudgeTimer"] = pitch_chief_judge_interval(boss, rng)
+
+static func start_pitch_chorus_judge_for_target(
+	target: Node,
+	boss: Dictionary,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	comment_event_ids: Array[String]
+) -> void:
+	boss["pitchChiefState"] = PITCH_CHIEF_STATE_JUDGE
+	boss["pitchChiefStateTimer"] = PITCH_CHIEF_JUDGE_DURATION
+	boss["speechText"] = "音符を集めろ"
+	if target.has_method("_start_song_boss_chorus_judge"):
+		target.call("_start_song_boss_chorus_judge", PITCH_CHIEF_JUDGE_REQUIRED, PITCH_CHIEF_JUDGE_DURATION)
+	if target.has_method("_spawn_song_boss_chorus_judge_notes"):
+		target.call("_spawn_song_boss_chorus_judge_notes", rng.randi_range(8, 12), arena)
+	if not comment_event_ids.has("song_boss_chorus_judge_start"):
+		comment_event_ids.append("song_boss_chorus_judge_start")
+	chats.append("* サビジャッジ開始！")
+
+static func finish_pitch_chorus_judge_for_target(
+	target: Node,
+	boss: Dictionary,
+	success: bool,
+	chats: Array[String],
+	toasts: Array[String],
+	comment_event_ids: Array[String]
+) -> void:
+	boss["pitchChiefState"] = PITCH_CHIEF_STATE_STUN
+	boss["pitchChiefStateTimer"] = PITCH_CHIEF_SUCCESS_STUN if success else PITCH_CHIEF_FAILURE_STUN
+	boss["pitchChiefStunDamageRate"] = PITCH_CHIEF_SUCCESS_DAMAGE_RATE if success else 1.0
+	boss["damageTakenRate"] = float(boss["pitchChiefStunDamageRate"])
+	boss["speed"] = 0.0
+	boss["hitFlashTimer"] = maxf(float(boss.get("hitFlashTimer", 0.0)), 0.18 if success else 0.08)
+	boss["speechText"] = "ジャッジ成功" if success else "ジャッジ未達"
+	if target.has_method("_finish_song_boss_chorus_judge"):
+		target.call("_finish_song_boss_chorus_judge", success)
+	if success:
+		chats.append("+ サビジャッジ成功！")
+		toasts.append("サビジャッジ成功！ ボスが停止")
+		if not comment_event_ids.has("song_boss_chorus_judge_success"):
+			comment_event_ids.append("song_boss_chorus_judge_success")
+	else:
+		chats.append("! サビジャッジ失敗")
+		toasts.append("サビジャッジ未達")
+		if not comment_event_ids.has("song_boss_chorus_judge_fail"):
+			comment_event_ids.append("song_boss_chorus_judge_fail")
+
+static func initialize_red_pen_review_chief_state(boss: Dictionary, rng: RandomNumberGenerator) -> void:
+	boss["baseSpeed"] = float(boss.get("speed", 54.0))
+	boss["redPenBulletTimer"] = rng.randf_range(1.0, 1.6)
+	boss["redPenLineTimer"] = rng.randf_range(3.2, 4.8)
+	boss["redPenSummonTimer"] = rng.randf_range(6.0, 8.0)
+	boss["ignoreMovementWalls"] = true
+
+static func red_pen_review_phase(boss: Dictionary) -> int:
+	var max_hp: float = maxf(1.0, float(boss.get("max_hp", boss.get("hp", 1.0))))
+	var ratio: float = clampf(float(boss.get("hp", max_hp)) / max_hp, 0.0, 1.0)
+	if ratio <= 0.35:
+		return 3
+	if ratio <= 0.68:
+		return 2
+	return 1
+
+static func update_red_pen_review_chief_for_target(
+	target: Node,
+	boss: Dictionary,
+	delta: float,
+	arena: Rect2,
+	rng: RandomNumberGenerator,
+	chats: Array[String],
+	comment_event_ids: Array[String]
+) -> void:
+	boss["ignoreMovementWalls"] = true
+	boss["pos"] = EnemySystem.clamp_enemy_pos_to_arena_for_enemy(boss, Vector2(boss.get("pos", Vector2.ZERO)), arena)
+	var base_speed: float = float(boss.get("baseSpeed", boss.get("speed", 54.0)))
+	boss["speed"] = base_speed
+	var phase := red_pen_review_phase(boss)
+	var bullet_timer := float(boss.get("redPenBulletTimer", 1.2)) - delta
+	if bullet_timer <= 0.0:
+		spawn_red_pen_bullets_for_target(target, boss, rng, 5 if phase >= 3 else (4 if phase >= 2 else 3))
+		bullet_timer = rng.randf_range(1.05, 1.45) if phase >= 3 else rng.randf_range(1.35, 1.95)
+	boss["redPenBulletTimer"] = bullet_timer
+	var line_timer := float(boss.get("redPenLineTimer", 4.0)) - delta
+	if line_timer <= 0.0:
+		spawn_red_pen_review_lines_for_target(target, boss, arena, rng, 2 if phase >= 3 else 1)
+		line_timer = rng.randf_range(4.2, 5.6) if phase >= 3 else rng.randf_range(5.4, 7.2)
+		if not comment_event_ids.has("drawing_boss_review_line"):
+			comment_event_ids.append("drawing_boss_review_line")
+		chats.append("! 添削ライン注意")
+	boss["redPenLineTimer"] = line_timer
+	var summon_timer := float(boss.get("redPenSummonTimer", 7.0)) - delta
+	if summon_timer <= 0.0:
+		spawn_red_pen_fix_notes_for_target(target, boss, arena, rng, 2 if phase >= 2 else 1)
+		summon_timer = rng.randf_range(8.5, 11.0) if phase >= 3 else rng.randf_range(10.0, 13.0)
+		if not comment_event_ids.has("drawing_boss_summon_fix_notes"):
+			comment_event_ids.append("drawing_boss_summon_fix_notes")
+		chats.append("! 修正コメント召喚")
+	boss["redPenSummonTimer"] = summon_timer
+
+static func spawn_red_pen_bullets_for_target(target: Node, boss: Dictionary, rng: RandomNumberGenerator, count: int) -> void:
+	var bullets: Array = target.get("enemy_bullets") as Array
+	if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+		return
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var to_player := Vector2(target.get("player_pos")) - boss_pos
+	var to_player_sq := to_player.length_squared()
+	var base_dir := to_player / sqrt(to_player_sq) if to_player_sq >= 0.01 else Vector2.RIGHT
+	if base_dir.length_squared() < 0.01:
+		base_dir = Vector2.RIGHT
+	var spread := deg_to_rad(24.0)
+	var step := spread / maxf(1.0, float(count - 1))
+	var start := -spread * 0.5
+	for i in range(maxi(1, count)):
+		if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
+			break
+		var dir := base_dir.rotated(start + step * float(i) + rng.randf_range(-0.035, 0.035)).normalized()
+		bullets.append({
+			"pos": boss_pos + dir * (float(boss.get("radius", 100.0)) * 0.60 + 10.0),
+			"vel": dir * RED_PEN_BULLET_SPEED,
+			"life": 4.0,
+			"hitRadius": 18.0,
+			"source": "boss_bullet",
+			"damage": RED_PEN_BULLET_DAMAGE,
+			"visualKind": "red_pen_mark"
+		})
+	target.set("enemy_bullets", bullets)
+
+static func spawn_red_pen_review_lines_for_target(target: Node, boss: Dictionary, arena: Rect2, rng: RandomNumberGenerator, count: int) -> void:
+	var lines: Array = target.get("boss_guide_lines") as Array
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var player_pos := Vector2(target.get("player_pos"))
+	var to_player := player_pos - boss_pos
+	var to_player_sq := to_player.length_squared()
+	var base_dir := to_player / sqrt(to_player_sq) if to_player_sq >= 0.01 else Vector2.RIGHT
+	if base_dir.length_squared() < 0.01:
+		base_dir = Vector2.RIGHT
+	var length := maxf(arena.size.x, arena.size.y) * 1.55
+	for i in range(maxi(1, count)):
+		var dir := base_dir.rotated(rng.randf_range(-0.20, 0.20) + (float(i) - float(count - 1) * 0.5) * 0.34).normalized()
+		var center := player_pos + dir * rng.randf_range(-70.0, 70.0)
+		lines.append({
+			"from": center - dir * length * 0.5,
+			"to": center + dir * length * 0.5,
+			"timer": 0.76,
+			"maxTimer": 0.76,
+			"flashLife": 0.16,
+			"width": RED_PEN_REVIEW_LINE_WIDTH,
+			"damage": RED_PEN_REVIEW_LINE_DAMAGE,
+			"hit": false
+		})
+	target.set("boss_guide_lines", lines)
+
+static func spawn_red_pen_fix_notes_for_target(target: Node, boss: Dictionary, arena: Rect2, rng: RandomNumberGenerator, count: int) -> void:
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var radius := float(boss.get("radius", 100.0))
+	for i in range(maxi(1, count)):
+		var angle := rng.randf_range(0.0, TAU)
+		var distance := rng.randf_range(radius + 54.0, radius + 150.0)
+		var pos := boss_pos + Vector2(cos(angle), sin(angle)) * distance
+		pos.x = clampf(pos.x, arena.position.x + 48.0, arena.end.x - 48.0)
+		pos.y = clampf(pos.y, arena.position.y + 48.0, arena.end.y - 48.0)
+		EnemySystem.spawn_enemy_for_target(target, "drawing_fix_note", arena, rng, pos)
+
 static func update_boss_attacks_for_target(
 	target: Node,
 	boss: Dictionary,
@@ -578,6 +1021,12 @@ static func update_boss_attacks_for_target(
 	var boss_id := String(boss.get("bossId", ""))
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		update_bugged_final_boss_for_target(target, boss, delta, arena, rng, chats, toasts, damage_events, comment_event_ids)
+		return
+	if boss_id == BOSS_PITCH_POLICE_CHIEF:
+		update_pitch_police_chief_for_target(target, boss, delta, arena, rng, chats, toasts, damage_events, comment_event_ids)
+		return
+	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
+		update_red_pen_review_chief_for_target(target, boss, delta, arena, rng, chats, comment_event_ids)
 		return
 	if boss_id != BOSS_KUSO_MARO_KING:
 		return
@@ -738,8 +1187,9 @@ static func spawn_bugged_spoiler_bullets_for_target(target: Node, boss: Dictiona
 		return
 	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
 	var to_player := Vector2(target.get("player_pos")) - boss_pos
-	var base_dir := to_player.normalized()
-	if base_dir.length() < 0.1:
+	var to_player_sq := to_player.length_squared()
+	var base_dir := to_player / sqrt(to_player_sq) if to_player_sq >= 0.01 else Vector2.RIGHT
+	if base_dir.length_squared() < 0.01:
 		base_dir = Vector2.RIGHT
 	var spread := 0.34
 	for i in range(maxi(1, count)):
@@ -766,8 +1216,9 @@ static func spawn_bugged_boss_pattern_bullets_for_target(target: Node, boss: Dic
 		return
 	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
 	var to_player := Vector2(target.get("player_pos")) - boss_pos
-	var base_dir := to_player.normalized()
-	if base_dir.length() < 0.1:
+	var to_player_sq := to_player.length_squared()
+	var base_dir := to_player / sqrt(to_player_sq) if to_player_sq >= 0.01 else Vector2.DOWN
+	if base_dir.length_squared() < 0.01:
 		base_dir = Vector2.DOWN
 	for angle in [-0.34, 0.0, 0.34]:
 		if bullets.size() >= EnemySystem.MAX_ENEMY_BULLETS:
@@ -815,8 +1266,10 @@ static func spawn_bugged_guide_lines_for_target(target: Node, boss: Dictionary, 
 	var lines: Array = target.get("boss_guide_lines") as Array
 	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
 	var player_pos := Vector2(target.get("player_pos"))
-	var base_dir := (player_pos - boss_pos).normalized()
-	if base_dir.length() < 0.1:
+	var to_player := player_pos - boss_pos
+	var to_player_sq := to_player.length_squared()
+	var base_dir := to_player / sqrt(to_player_sq) if to_player_sq >= 0.01 else Vector2.RIGHT
+	if base_dir.length_squared() < 0.01:
 		base_dir = Vector2.RIGHT
 	var length := maxf(arena.size.x, arena.size.y) * 1.55
 	for i in range(maxi(1, count)):
@@ -1024,7 +1477,7 @@ static func spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNum
 		var pos: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * distance
 		pos.x = clampf(pos.x, arena.position.x + radius + 24.0, arena.end.x - radius - 24.0)
 		pos.y = clampf(pos.y, arena.position.y + radius + 24.0, arena.end.y - radius - 24.0)
-		if pos.distance_to(player_pos) < 340.0:
+		if pos.distance_squared_to(player_pos) < 115600.0:
 			continue
 		if _blocked_by_walls(pos, wall_radius, walls):
 			continue
@@ -1049,7 +1502,7 @@ static func spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNum
 		candidate.y = clampf(candidate.y, arena.position.y + radius + 24.0, arena.end.y - radius - 24.0)
 		if _blocked_by_walls(candidate, wall_radius, walls):
 			continue
-		var score := candidate.distance_to(player_pos)
+		var score := candidate.distance_squared_to(player_pos)
 		if score > best_score:
 			best_score = score
 			best_pos = candidate

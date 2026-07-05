@@ -80,6 +80,10 @@ static func effective_wave_time(elapsed: float, quick_test_mode: bool) -> float:
 static func pick_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator, stream_frame_id: String = "", active_genre_event: String = "") -> String:
 	if stream_frame_id == "gameplay" and active_genre_event == "":
 		return pick_gameplay_normal_enemy(elapsed, quick_test_mode, rng)
+	if stream_frame_id == "singing" or stream_frame_id == "song":
+		return pick_song_enemy(elapsed, quick_test_mode, rng)
+	if stream_frame_id == "drawing":
+		return pick_drawing_enemy(elapsed, quick_test_mode, rng)
 	return pick_default_wave_enemy(elapsed, quick_test_mode, rng)
 
 static func pick_gameplay_normal_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
@@ -138,6 +142,98 @@ static func pick_bullet_hell_enemy(elapsed: float, quick_test_mode: bool, rng: R
 static func pick_race_event_enemy(_elapsed: float, _quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	return "enemy_wrong_way_kart" if rng.randf() < 0.62 else "enemy_jammer_cone"
 
+static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
+	var t: float = effective_wave_time(elapsed, quick_test_mode)
+	var roll: float = rng.randf()
+	if t >= 120.0:
+		if roll < 0.24:
+			return "pitch_police"
+		if roll < 0.45:
+			return "request_spammer"
+		if roll < 0.63:
+			return "fast_call_fan"
+		if roll < 0.75:
+			return "song_noise_comment"
+		if roll < 0.86:
+			return "song_lyric_spoiler_comment"
+		if roll < 0.93:
+			return "shooter"
+		return "fast"
+	if t >= 70.0:
+		if roll < 0.32:
+			return "pitch_police"
+		if roll < 0.52:
+			return "request_spammer"
+		if roll < 0.68:
+			return "fast_call_fan"
+		if roll < 0.80:
+			return "song_noise_comment"
+		if roll < 0.90:
+			return "song_lyric_spoiler_comment"
+		return "fast"
+	if t >= 30.0:
+		if roll < 0.42:
+			return "pitch_police"
+		if roll < 0.58:
+			return "request_spammer"
+		if roll < 0.72:
+			return "fast_call_fan"
+		if roll < 0.82:
+			return "song_noise_comment"
+		if roll < 0.90:
+			return "song_lyric_spoiler_comment"
+		return "troll"
+	if roll < 0.55:
+		return "pitch_police"
+	if roll < 0.68:
+		return "song_noise_comment"
+	if roll < 0.80:
+		return "request_spammer"
+	return "troll"
+
+static func pick_drawing_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
+	var t: float = effective_wave_time(elapsed, quick_test_mode)
+	var roll: float = rng.randf()
+	if t >= 120.0:
+		if roll < 0.24:
+			return "drawing_fix_note"
+		if roll < 0.44:
+			return "red_pen_teacher"
+		if roll < 0.62:
+			return "layer_lost"
+		if roll < 0.78:
+			return "bucket_fill_slime"
+		if roll < 0.92:
+			return "rough_line_comment"
+		return "shooter"
+	if t >= 70.0:
+		if roll < 0.30:
+			return "drawing_fix_note"
+		if roll < 0.50:
+			return "red_pen_teacher"
+		if roll < 0.66:
+			return "layer_lost"
+		if roll < 0.82:
+			return "bucket_fill_slime"
+		return "rough_line_comment"
+	if t >= 30.0:
+		if roll < 0.34:
+			return "drawing_fix_note"
+		if roll < 0.54:
+			return "red_pen_teacher"
+		if roll < 0.72:
+			return "rough_line_comment"
+		if roll < 0.86:
+			return "bucket_fill_slime"
+		return "troll"
+	if roll < 0.46:
+		return "drawing_fix_note"
+	if roll < 0.68:
+		return "rough_line_comment"
+	if roll < 0.84:
+		return "bucket_fill_slime"
+	return "troll"
+
 static func pick_default_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
@@ -191,8 +287,12 @@ static func knockback_resistance_for_kind(kind: String, is_boss: bool = false) -
 		return 0.65
 	if kind == "enemy_wrong_way_kart" or kind == "enemy_jammer_cone":
 		return 0.45
-	if kind == "enemy_armchair_strategist" or kind == "enemy_lag_comment" or kind == "enemy_dot_invader" or kind == "enemy_bullet_drone" or kind == "enemy_fake_gift_box" or kind == "enemy_noise_ghost_comment":
+	if kind == "enemy_armchair_strategist" or kind == "enemy_lag_comment" or kind == "enemy_dot_invader" or kind == "enemy_bullet_drone" or kind == "enemy_fake_gift_box" or kind == "enemy_noise_ghost_comment" or kind == "song_noise_comment" or kind == "song_lyric_spoiler_comment":
 		return 0.2
+	if kind == "request_spammer":
+		return 0.25
+	if kind == "pitch_police" or kind == "fast_call_fan":
+		return 0.12
 	if kind == "fast" or kind == "unread_maro":
 		return 0.1
 	if kind == "shooter" or kind == "ghost_comment":
@@ -216,6 +316,26 @@ static func contact_damage_for_kind(kind: String, is_boss: bool = false) -> int:
 	return DamageSystem.DEFAULT_CONTACT_DAMAGE
 
 static func enemy_data(kind: String) -> Dictionary:
+	if kind == "pitch_police":
+		return {"displayName": "音程警察", "description": "音程チェックで近づいてくる歌枠の基本敵", "hp": 14.0, "speed": 110.0, "radius": 23.0, "score": 58, "exp": 2, "behavior": "chase"}
+	if kind == "request_spammer":
+		return {"displayName": "リクエスト連投", "description": "曲リクエストを投げ続ける歌枠の遠距離敵", "hp": 18.0, "speed": 72.0, "radius": 25.0, "score": 84, "exp": 3, "behavior": "keep_distance_shooter", "contactDamage": 18}
+	if kind == "fast_call_fan":
+		return {"displayName": "早口コール勢", "description": "サビに合わせて高速で押し寄せるコール敵", "hp": 9.0, "speed": 166.0, "radius": 20.0, "score": 48, "exp": 2, "behavior": "chase_fast", "contactDamage": 20}
+	if kind == "song_noise_comment":
+		return {"displayName": "ノイズコメント", "description": "歌声にノイズを混ぜる変則コメント敵", "hp": 12.0, "speed": 96.0, "radius": 22.0, "score": 58, "exp": 2, "behavior": "chase_with_short_warp", "contactDamage": 16}
+	if kind == "song_lyric_spoiler_comment":
+		return {"displayName": "歌詞ネタバレコメント", "description": "先の歌詞を先回りして流す迷惑コメント敵", "hp": 13.0, "speed": 100.0, "radius": 23.0, "score": 62, "exp": 2, "behavior": "chase", "contactDamage": 18}
+	if kind == "drawing_fix_note":
+		return {"displayName": "修正指示コメント", "description": "赤字の修正メモを投げてくるお絵かき枠の遠距離敵", "hp": 15.0, "speed": 76.0, "radius": 24.0, "score": 70, "exp": 3, "behavior": "keep_distance_shooter", "contactDamage": 18}
+	if kind == "red_pen_teacher":
+		return {"displayName": "赤ペン先生", "description": "赤ペンチェックで急接近する添削コメント敵", "hp": 18.0, "speed": 118.0, "radius": 24.0, "score": 86, "exp": 3, "behavior": "charger", "contactDamage": 22}
+	if kind == "layer_lost":
+		return {"displayName": "レイヤー迷子", "description": "半透明に揺れながら近づくレイヤー混乱敵", "hp": 13.0, "speed": 96.0, "radius": 23.0, "score": 64, "exp": 2, "behavior": "ghost_chase", "contactDamage": 18}
+	if kind == "bucket_fill_slime":
+		return {"displayName": "バケツ塗りスライム", "description": "広い塗り残しのように押し寄せる硬めの敵", "hp": 30.0, "speed": 58.0, "radius": 31.0, "score": 96, "exp": 4, "behavior": "tank", "contactDamage": 20}
+	if kind == "rough_line_comment":
+		return {"displayName": "ラフ線コメント", "description": "ラフ線のようにジグザグ近づく軽量敵", "hp": 10.0, "speed": 132.0, "radius": 21.0, "score": 54, "exp": 2, "behavior": "zigzag_chase", "contactDamage": 17}
 	if kind == "enemy_spoiler_comment":
 		return {"displayName": "ネタバレコメント", "description": "ゲーム実況中にネタバレを書き込む迷惑コメント敵", "hp": 11.0, "speed": 108.0, "radius": 23.0, "score": 44, "exp": 2, "behavior": "chase"}
 	if kind == "enemy_backseat_controller":
@@ -408,6 +528,26 @@ static func spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNum
 	return Vector2.INF
 
 static func speech_lines(kind: String) -> Array[String]:
+	if kind == "pitch_police":
+		return ["音程！", "そこ違う", "ピッチ見て", "赤チェック"]
+	if kind == "request_spammer":
+		return ["これ歌って", "次これ", "リク連投", "この曲まだ？"]
+	if kind == "fast_call_fan":
+		return ["はい！はい！", "コール中", "サビ来た", "早口失礼"]
+	if kind == "song_noise_comment":
+		return ["ザザッ", "音割れ", "ノイズ入った", "聞こえる？"]
+	if kind == "song_lyric_spoiler_comment":
+		return ["次の歌詞", "そこ先に言うな", "ネタバレ歌詞", "まだ早い"]
+	if kind == "drawing_fix_note":
+		return ["そこ修正", "赤入れます", "線見て", "直して"]
+	if kind == "red_pen_teacher":
+		return ["赤ペンです", "添削します", "そこ違う", "要修正"]
+	if kind == "layer_lost":
+		return ["今どのレイヤー？", "線画どこ", "下に描いた", "結合しちゃった"]
+	if kind == "bucket_fill_slime":
+		return ["バケツでいこう", "全部塗る", "はみ出した", "塗り残し発見"]
+	if kind == "rough_line_comment":
+		return ["ラフでOK", "線が多い", "迷い線です", "あとで整える"]
 	if kind == "enemy_lag_comment":
 		return ["止まった？", "ラグい", "今ワープした？", "回線大丈夫？"]
 	if kind == "enemy_strategy_wiki_ojisan":
@@ -483,7 +623,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"defeatDelay": 0.0,
 		"defeatResolved": false
 	}
-	if kind == "enemy_backseat_controller" or kind == "enemy_dot_invader" or kind == "enemy_lag_comment" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone" or kind == "enemy_noise_ghost_comment":
+	if kind == "enemy_backseat_controller" or kind == "enemy_dot_invader" or kind == "enemy_lag_comment" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone" or kind == "enemy_noise_ghost_comment" or kind == "rough_line_comment":
 		enemy["movePhase"] = float(uid % 19) * 0.37
 	if kind == "enemy_backseat_controller":
 		enemy["dashTimer"] = 0.0
@@ -498,7 +638,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		enemy["lifeTimer"] = 5.4
 	if kind == "enemy_jammer_cone":
 		enemy["lifeTimer"] = float(data.get("lifeTime", 8.0))
-	if kind == "enemy_noise_ghost_comment":
+	if kind == "enemy_noise_ghost_comment" or kind == "layer_lost":
 		enemy["phaseTimer"] = float(uid % 13) * 0.21
 	if is_genre_event_enemy(kind):
 		enemy["genreEventEnemy"] = true
@@ -521,6 +661,8 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 		shoot_seed = rng.randf_range(1.4, SHOOTER_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_armchair_strategist":
 		shoot_seed = rng.randf_range(1.3, ARMCHAIR_FIRE_INTERVAL_MAX)
+	elif kind == "drawing_fix_note":
+		shoot_seed = rng.randf_range(1.2, ARMCHAIR_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_dot_invader":
 		shoot_seed = rng.randf_range(1.0, DOT_INVADER_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_strategy_wiki_ojisan":
@@ -587,6 +729,8 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		comment_event_ids.append("gameplay_horror_fake_gift_defeated")
 	var is_boss: bool = bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")) == "boss_super_long_comment"
 	append_defeat_fx_for_target(target, enemy, is_boss)
+	_apply_song_live_heat_for_kill(target, enemy)
+	_apply_drawing_progress_for_kill(target, enemy)
 	if is_boss:
 		return BossSystemScript.apply_defeat_for_target(target, enemy)
 	target.set("score", int(target.get("score")) + ScoreSystem.enemy_score_for_target(target, enemy))
@@ -606,6 +750,30 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		"marshmallowDropRequests": marshmallow_drop_requests,
 		"enemyDefeated": true
 	}
+
+static func _apply_song_live_heat_for_kill(target: Node, enemy: Dictionary) -> void:
+	if not target.has_method("_add_song_live_heat"):
+		return
+	var stream_frame_id := String(target.get("current_stream_frame_id"))
+	if stream_frame_id != "singing" and stream_frame_id != "song":
+		return
+	var radius := float(enemy.get("radius", 20.0))
+	var max_hp := float(enemy.get("max_hp", enemy.get("maxHp", enemy.get("hp", 0.0))))
+	var gain := 0.15
+	if bool(enemy.get("isBoss", false)) or max_hp >= 90.0 or radius >= 44.0:
+		gain = 1.2
+	elif max_hp >= 18.0 or radius >= 26.0:
+		gain = 0.5
+	target.call("_add_song_live_heat", gain, "enemy_defeat")
+
+static func _apply_drawing_progress_for_kill(target: Node, enemy: Dictionary) -> void:
+	if not target.has_method("_add_drawing_progress_from_enemy_defeat"):
+		return
+	if String(target.get("current_stream_frame_id")) != "drawing":
+		return
+	if bool(enemy.get("isBoss", false)):
+		return
+	target.call("_add_drawing_progress_from_enemy_defeat", enemy)
 
 static func defeat_delay_for_enemy(enemy: Dictionary) -> float:
 	var base_delay: float = 0.55 if bool(enemy.get("isBoss", false)) else 0.12
@@ -675,9 +843,10 @@ static func ignores_movement_walls(enemy: Dictionary) -> bool:
 	if bool(enemy.get("ignoreMovementWalls", false)):
 		return true
 	var boss_id: String = String(enemy.get("bossId", enemy.get("kind", "")))
-	if bool(enemy.get("isBoss", false)) and (boss_id == BossSystemScript.BOSS_KUSO_MARO_KING or boss_id == BossSystemScript.BOSS_BUGGED_FINAL_BOSS):
+	if bool(enemy.get("isBoss", false)) and (boss_id == BossSystemScript.BOSS_KUSO_MARO_KING or boss_id == BossSystemScript.BOSS_BUGGED_FINAL_BOSS or boss_id == BossSystemScript.BOSS_PITCH_POLICE_CHIEF):
 		return true
-	return String(enemy.get("kind", "")) == BossSystemScript.BOSS_BUGGED_FINAL_BOSS
+	var kind := String(enemy.get("kind", ""))
+	return kind == BossSystemScript.BOSS_BUGGED_FINAL_BOSS or kind == BossSystemScript.BOSS_PITCH_POLICE_CHIEF
 
 static func wall_navigation_radius(enemy: Dictionary) -> float:
 	var radius := float(enemy.get("radius", 22.0))
@@ -875,18 +1044,19 @@ static func blended_enemy_move_dir(base_dir: Vector2, avoid_dir: Vector2, dir_po
 	return mixed * dir_power
 
 static func move_enemy_with_wall_avoidance(enemy: Dictionary, enemy_pos: Vector2, dir: Vector2, speed: float, delta: float, arena: Rect2, walls: Array, player_pos: Vector2) -> Vector2:
-	if dir.length() < 0.1 or speed <= 0.0:
+	var dir_power := dir.length()
+	if dir_power < 0.1 or speed <= 0.0:
 		return enemy_pos
 	if ignores_movement_walls(enemy):
 		enemy.erase("wallAvoidX")
 		enemy.erase("wallAvoidY")
 		return clamp_enemy_pos_to_arena_for_enemy(enemy, enemy_pos + dir * speed * delta, arena)
 	var radius := wall_navigation_radius(enemy)
-	var dir_power := dir.length()
 	var base_dir := dir / dir_power
 	var to_player := player_pos - enemy_pos
 	var goal_pos := enemy_pos + base_dir * ENEMY_WALL_AVOIDANCE_FALLBACK_DISTANCE
-	if to_player.length() > 0.1 and base_dir.dot(to_player.normalized()) > 0.35:
+	var to_player_dist_sq := to_player.length_squared()
+	if to_player_dist_sq > 0.01 and base_dir.dot(to_player / sqrt(to_player_dist_sq)) > 0.35:
 		goal_pos = player_pos
 	var avoid_dir := wall_avoidance_direction(enemy, enemy_pos, goal_pos, radius, walls)
 	var safe_avoid_dir := forward_safe_avoidance_dir(base_dir, avoid_dir)
@@ -903,7 +1073,9 @@ static func move_enemy_with_wall_avoidance(enemy: Dictionary, enemy_pos: Vector2
 	moved_pos = clamp_enemy_pos_to_arena(moved_pos, arena)
 	var moved_step := moved_pos - previous_pos
 	var moved_forward_enough := moved_step.dot(base_dir) >= expected_distance * 0.18
-	if avoid_dir.length() <= 0.1 or (moved_pos.distance_to(previous_pos) >= expected_distance * 0.3 and (not bool(enemy.get("isBoss", false)) or moved_forward_enough)):
+	var moved_distance_sq := moved_pos.distance_squared_to(previous_pos)
+	var moved_min_distance := expected_distance * 0.3
+	if avoid_dir.length() <= 0.1 or (moved_distance_sq >= moved_min_distance * moved_min_distance and (not bool(enemy.get("isBoss", false)) or moved_forward_enough)):
 		return moved_pos
 
 	if safe_avoid_dir.length() <= 0.1:
@@ -915,7 +1087,7 @@ static func move_enemy_with_wall_avoidance(enemy: Dictionary, enemy_pos: Vector2
 	fallback_pos = clamp_enemy_pos_to_arena(fallback_pos, arena)
 	var fallback_step := fallback_pos - previous_pos
 	var best_pos := moved_pos
-	if fallback_step.dot(base_dir) >= -0.01 and fallback_pos.distance_to(previous_pos) > moved_pos.distance_to(previous_pos):
+	if fallback_step.dot(base_dir) >= -0.01 and fallback_pos.distance_squared_to(previous_pos) > moved_distance_sq:
 		best_pos = fallback_pos
 	if bool(enemy.get("isBoss", false)):
 		var unstick_pos := enemy_pos + base_dir * speed * delta * dir_power * BOSS_WALL_UNSTICK_STEP_RATE
@@ -972,6 +1144,7 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 		"enemySpeedRate": ModifierSystem.effect_rate_for_target(target, "enemy_speed"),
 		"godReservation": ModifierSystem.has_effect_for_target(target, "god_reservation"),
 		"godReservationRate": ModifierSystem.effect_rate_for_target(target, "god_reservation"),
+		"songEnemyMoveMultiplier": float(target.call("_song_enemy_move_speed_multiplier")) if target.has_method("_song_enemy_move_speed_multiplier") else 1.0,
 		"bulletHell": String(target.get("active_genre_event")) == "bullet_hell",
 		"effectWalls": target.get("effect_walls"),
 		"streamFrameId": target.get("current_stream_frame_id")
@@ -1071,6 +1244,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 	var speed_rate: float = 1.0 + 0.45 * float(context["enemySpeedRate"])
 	if bool(context["godReservation"]):
 		speed_rate += 0.10 * float(context["godReservationRate"])
+	speed_rate *= maxf(0.1, float(context.get("songEnemyMoveMultiplier", 1.0)))
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
@@ -1090,7 +1264,8 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		var behavior: String = String(enemy["behavior"])
 		var to_player: Vector2 = player_pos - enemy_pos
 		var dist: float = to_player.length()
-		var dir: Vector2 = to_player.normalized()
+		var to_player_dir := to_player / dist if dist > 0.1 else Vector2.ZERO
+		var dir: Vector2 = to_player_dir
 		var local_speed_rate: float = 1.0 if bool(enemy.get("isBoss", false)) else speed_rate
 		var speed: float = float(enemy["speed"]) * local_speed_rate
 		var slow_timer: float = float(enemy.get("slowTimer", 0.0))
@@ -1107,9 +1282,9 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			if float(enemy["shoot"]) <= 0.0 and dist < 650.0:
 				enemy["shoot"] = rng.randf_range(SHOOTER_FIRE_INTERVAL_MIN, SHOOTER_FIRE_INTERVAL_MAX)
 				if bullets.size() < MAX_ENEMY_BULLETS:
-					bullets.append({"pos": enemy_pos, "vel": to_player.normalized() * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE})
+					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE})
 		elif behavior == "zigzag_chase":
-			var base_dir := to_player.normalized()
+			var base_dir := to_player_dir
 			if base_dir.length() < 0.1:
 				base_dir = Vector2.RIGHT
 			var phase := float(enemy.get("movePhase", 0.0)) + delta * 3.25
@@ -1136,7 +1311,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			if float(enemy["shoot"]) <= 0.0 and dist < 720.0:
 				enemy["shoot"] = rng.randf_range(ARMCHAIR_FIRE_INTERVAL_MIN, ARMCHAIR_FIRE_INTERVAL_MAX)
 				if bullets.size() < MAX_ENEMY_BULLETS:
-					var bullet_dir := to_player.normalized()
+					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.RIGHT
 					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "visualKind": "armchair_comment"})
@@ -1149,19 +1324,19 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy["sideMoveDir"] = side_dir
 			var phase := float(enemy.get("movePhase", 0.0)) + delta * 2.65
 			enemy["movePhase"] = phase
-			dir = (Vector2(side_dir, sin(phase) * 0.38).normalized() * 0.86) + to_player.normalized() * 0.18
+			dir = (Vector2(side_dir, sin(phase) * 0.38).normalized() * 0.86) + to_player_dir * 0.18
 			if dir.length() > 1.0:
 				dir = dir.normalized()
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 720.0:
 				enemy["shoot"] = rng.randf_range(DOT_INVADER_FIRE_INTERVAL_MIN, DOT_INVADER_FIRE_INTERVAL_MAX)
 				if bullets.size() < MAX_ENEMY_BULLETS:
-					var bullet_dir := to_player.normalized()
+					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.DOWN
 					bullets.append({"pos": enemy_pos + bullet_dir * 16.0, "vel": bullet_dir * 230.0, "life": DOT_INVADER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "visualKind": "dot_invader_bullet"})
 		elif behavior == "chase_with_short_warp":
-			var lag_base_dir := to_player.normalized()
+			var lag_base_dir := to_player_dir
 			if lag_base_dir.length() < 0.1:
 				lag_base_dir = Vector2.RIGHT
 			var lag_phase := float(enemy.get("movePhase", 0.0)) + delta * 3.8
@@ -1194,14 +1369,14 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			else:
 				var wiki_phase := float(enemy.get("movePhase", 0.0)) + delta * 1.8
 				enemy["movePhase"] = wiki_phase
-				var wiki_base := to_player.normalized()
+				var wiki_base := to_player_dir
 				if wiki_base.length() < 0.1:
 					wiki_base = Vector2.RIGHT
 				dir = Vector2(-wiki_base.y, wiki_base.x) * sin(wiki_phase) * 0.34
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 740.0:
 				enemy["shoot"] = rng.randf_range(WIKI_FIRE_INTERVAL_MIN, WIKI_FIRE_INTERVAL_MAX)
-				var wiki_bullet_dir := to_player.normalized()
+				var wiki_bullet_dir := to_player_dir
 				if wiki_bullet_dir.length() < 0.1:
 					wiki_bullet_dir = Vector2.RIGHT
 				for angle in [-0.18, 0.0, 0.18]:
@@ -1210,7 +1385,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 					var spread_dir := wiki_bullet_dir.rotated(angle)
 					bullets.append({"pos": enemy_pos + spread_dir * 22.0, "vel": spread_dir * 210.0, "life": WIKI_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "visualKind": "wiki_comment"})
 		elif behavior == "ambush_chase":
-			var ambush_base_dir := to_player.normalized()
+			var ambush_base_dir := to_player_dir
 			if ambush_base_dir.length() < 0.1:
 				ambush_base_dir = Vector2.RIGHT
 			if dist < 180.0:
@@ -1245,7 +1420,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				continue
 			dir = Vector2.ZERO
 		elif behavior == "drone_keep_distance":
-			var drone_base := to_player.normalized()
+			var drone_base := to_player_dir
 			if drone_base.length() < 0.1:
 				drone_base = Vector2.DOWN
 			var drone_phase := float(enemy.get("movePhase", 0.0)) + delta * 2.25
@@ -1267,7 +1442,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 					var drone_bullet_dir := drone_base.rotated(angle)
 					bullets.append({"pos": enemy_pos + drone_bullet_dir * 20.0, "vel": drone_bullet_dir * 250.0, "life": DRONE_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 14.0, "source": "enemy bullet", "visualKind": "drone_bullet"})
 		elif behavior == "ghost_chase":
-			var ghost_base := to_player.normalized()
+			var ghost_base := to_player_dir
 			if ghost_base.length() < 0.1:
 				ghost_base = Vector2.RIGHT
 			var ghost_phase := float(enemy.get("phaseTimer", 0.0)) + delta * 2.2
@@ -1280,7 +1455,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			if float(enemy["shoot"]) < -0.35:
 				enemy["shoot"] = rng.randf_range(1.2, 2.0)
 			elif float(enemy["shoot"]) <= 0.0:
-				dir = to_player.normalized() * 3.2
+				dir = to_player_dir * 3.2
 			else:
 				dir *= 0.55
 		enemy_pos = move_enemy_with_wall_avoidance(enemy, enemy_pos, dir, speed, delta, arena, walls, player_pos)

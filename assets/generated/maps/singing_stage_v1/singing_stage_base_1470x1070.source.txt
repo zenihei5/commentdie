@@ -1,0 +1,2 @@
+Source: C:\Users\zenih\Desktop\ぜんぶコメントのせいだ設定\Map\歌枠.png
+Purpose: Singing stream frame base background. Chorus-time background can be added as another map path later.

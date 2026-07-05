@@ -127,6 +127,18 @@ static func comment_barrage_label(setting: int) -> String:
 	return "通常"
 
 static func enemy_display_name(kind: String) -> String:
+	if kind == "pitch_police_chief":
+		return "音程警察長"
+	if kind == "pitch_police":
+		return "音程警察"
+	if kind == "request_spammer":
+		return "リクエスト連投"
+	if kind == "fast_call_fan":
+		return "早口コール勢"
+	if kind == "song_noise_comment":
+		return "ノイズコメント"
+	if kind == "song_lyric_spoiler_comment":
+		return "歌詞ネタバレコメント"
 	if kind == "enemy_spoiler_comment":
 		return "ネタバレコメント"
 	if kind == "enemy_backseat_controller":
@@ -169,6 +181,8 @@ static func enemy_display_name(kind: String) -> String:
 		return "クソマロキング"
 	if kind == "bugged_final_boss":
 		return "バグったラスボス"
+	if kind == "bugged_final_boss_stun":
+		return "バグったラスボス"
 	if kind == "troll":
 		return "荒らし"
 	return kind
@@ -186,6 +200,8 @@ static func damage_source_display(source: String) -> String:
 		return "ボス攻撃"
 	if source == "damage_pit":
 		return "ダメージ床"
+	if source == "song_howling_wave":
+		return "ハウリング音波"
 	if source == "stopped moving":
 		return "足止め"
 	return source
@@ -238,7 +254,7 @@ static func taken_gift_summary(taken_gift_names: Array[String]) -> String:
 		recent.append(taken_gift_names[i])
 	return " / ".join(recent)
 
-static func stream_frame_result_text(stream_frame_id: String, genre_stats: Dictionary, marshmallow_stats: Dictionary) -> String:
+static func stream_frame_result_text(stream_frame_id: String, genre_stats: Dictionary, marshmallow_stats: Dictionary, song_stats: Dictionary = {}, drawing_stats: Dictionary = {}) -> String:
 	if stream_frame_id == "gameplay":
 		return "\nゲーム実況結果：変化 %d / レース %d / 弾幕 %d / ホラー %d / 完走 %d" % [
 			int(genre_stats.get("genreEventCount", 0)),
@@ -246,6 +262,23 @@ static func stream_frame_result_text(stream_frame_id: String, genre_stats: Dicti
 			int(genre_stats.get("bulletHellEventCount", 0)),
 			int(genre_stats.get("horrorEventCount", 0)),
 			int(genre_stats.get("genreEventClearCount", 0))
+		]
+	if stream_frame_id == "singing" or stream_frame_id == "song":
+		return "\n歌枠結果：最大HEAT Lv.%d %.0f / サビ %d / 音符 %d / オクターブ %d / 照明 %.1fs / アンコール %s" % [
+			int(song_stats.get("maxLiveHeatLevel", 0)),
+			float(song_stats.get("maxLiveHeat", 0.0)),
+			int(song_stats.get("chorusCount", 0)),
+			int(song_stats.get("notesCollected", 0)),
+			int(song_stats.get("octaveBonusCount", 0)),
+			float(song_stats.get("spotlightStayTime", 0.0)),
+			"成功" if bool(song_stats.get("encoreCompleted", false)) else ("発生" if bool(song_stats.get("encoreTriggered", false)) else "なし")
+		]
+	if stream_frame_id == "drawing":
+		return "\nお絵かき結果：制作進捗 %d%% / 囲い塗り %d / 修正 %d / 消しゴム %d" % [
+			roundi(float(drawing_stats.get("progress", 0.0))),
+			int(drawing_stats.get("fillCount", 0)),
+			int(drawing_stats.get("correctionCount", 0)),
+			int(drawing_stats.get("eraserCount", 0))
 		]
 	return "\nマシュマロ結果：読了 %d / 良マロ %d / 神マロ %d / クソマロ %d / 未読化 %d" % [
 		int(marshmallow_stats.get("answered", 0)),

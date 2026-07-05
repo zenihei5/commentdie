@@ -1103,10 +1103,11 @@ static func player_sprite_state(
 	last_dir: Vector2,
 	invincible_time: float
 ) -> Dictionary:
-	var move_amount: float = clampf(player_vel.length() / 260.0, 0.0, 1.0)
+	var player_speed := player_vel.length()
+	var move_amount: float = clampf(player_speed / 260.0, 0.0, 1.0)
 	var idle_bob: float = sin(elapsed_time * 4.0) * 2.0
 	var walk_bob: float = abs(sin(elapsed_time * 11.0)) * 5.0 * move_amount
-	var dash_squash: float = clampf((player_vel.length() - 330.0) / 430.0, 0.0, 1.0)
+	var dash_squash: float = clampf((player_speed - 330.0) / 430.0, 0.0, 1.0)
 	var attack_pop: float = clampf(1.0 - attack_timer / maxf(0.01, attack_interval), 0.0, 1.0)
 	attack_pop = sin(attack_pop * PI) * 0.08
 	var tilt: float = clampf(player_vel.x / 520.0, -1.0, 1.0) * 0.12
@@ -1121,7 +1122,7 @@ static func player_sprite_state(
 	var source_rect: Rect2 = Rect2(Vector2.ZERO, Vector2(player_sprite.get_size()))
 	var sprite_scale: float = float(character.get("spriteScale", 0.095))
 	var uses_idle_sheet: bool = player_idle_sprite != null
-	var is_moving: bool = player_vel.length() > 18.0
+	var is_moving: bool = player_speed > 18.0
 	var uses_run_sheet: bool = is_moving and player_run_sprite != null
 	var idle_frame_data: Dictionary = {}
 	if uses_run_sheet:
@@ -1252,6 +1253,28 @@ static func invincible_label_data(pos: Vector2) -> Dictionary:
 	}
 
 static func enemy_color(kind: String) -> Color:
+	if kind == "pitch_police_chief":
+		return Color("#fff4ff")
+	if kind == "pitch_police":
+		return Color("#ffd6f0")
+	if kind == "request_spammer":
+		return Color("#b8f5ff")
+	if kind == "fast_call_fan":
+		return Color("#fff0a8")
+	if kind == "song_noise_comment":
+		return Color("#cfe8ff")
+	if kind == "song_lyric_spoiler_comment":
+		return Color("#f4ecff")
+	if kind == "drawing_fix_note":
+		return Color("#fff4f6")
+	if kind == "red_pen_teacher":
+		return Color("#ff5d68")
+	if kind == "layer_lost":
+		return Color(0.70, 0.86, 1.0, 0.64)
+	if kind == "bucket_fill_slime":
+		return Color("#62d8ff")
+	if kind == "rough_line_comment":
+		return Color("#ffc3e1")
 	if kind == "enemy_spoiler_comment":
 		return Color("#fff0fb")
 	if kind == "enemy_backseat_controller":
@@ -1292,6 +1315,8 @@ static func enemy_color(kind: String) -> Color:
 		return Color("#5b294f")
 	if kind == "bugged_final_boss" or kind == "bugged_final_boss_stun":
 		return Color("#5d2cc8")
+	if kind == "red_pen_review_chief":
+		return Color("#b91538")
 	return Color("#7650bd")
 
 static func enemy_shadow_data(pos: Vector2, radius: float) -> Dictionary:
@@ -1302,6 +1327,18 @@ static func enemy_shadow_data(pos: Vector2, radius: float) -> Dictionary:
 	}
 
 static func enemy_sprite_path(kind: String) -> String:
+	if kind == "pitch_police_chief":
+		return "res://assets/generated/enemy_sprites_v1/song_pitch_police_chief.png"
+	if kind == "pitch_police":
+		return "res://assets/generated/enemy_sprites_v1/song_pitch_police.png"
+	if kind == "request_spammer":
+		return "res://assets/generated/enemy_sprites_v1/song_request_spammer.png"
+	if kind == "fast_call_fan":
+		return "res://assets/generated/enemy_sprites_v1/song_fast_call_fan.png"
+	if kind == "song_noise_comment":
+		return "res://assets/generated/enemy_sprites_v1/song_noise_comment.png"
+	if kind == "song_lyric_spoiler_comment":
+		return "res://assets/generated/enemy_sprites_v1/song_lyric_spoiler_comment.png"
 	if kind == "enemy_spoiler_comment":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_spoiler_comment.png"
 	if kind == "enemy_backseat_controller":
@@ -1539,6 +1576,10 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 	}
 
 static func enemy_hit_flash_color(kind: String) -> Color:
+	if kind == "pitch_police_chief":
+		return Color("#ff4f91")
+	if kind == "red_pen_review_chief":
+		return Color("#ff385e")
 	if kind.begins_with("boss_"):
 		return Color("#a3262d")
 	if kind == "bugged_final_boss" or kind == "bugged_final_boss_stun":
@@ -1691,10 +1732,14 @@ static func enemy_hp_bar_parts() -> Array:
 		{"kind": "text", "prefix": "label"}
 	]
 
-static func player_hp_bar_data(pos: Vector2, hp: int, max_hp: int, hide_hp: bool, elapsed: float) -> Dictionary:
+static func player_hp_bar_data(pos: Vector2, hp: int, max_hp: int, hide_hp: bool, elapsed: float, display_ratio_override: float = -1.0) -> Dictionary:
 	var width: float = 96.0
 	var origin: Vector2 = pos + Vector2(-width * 0.5, 48.0)
-	var ratio: float = visual_hp_ratio(hp, max_hp, hide_hp, elapsed)
+	var ratio: float = hp_ratio(hp, max_hp)
+	if hide_hp:
+		ratio = fake_hp_ratio(elapsed)
+	elif display_ratio_override >= 0.0:
+		ratio = clampf(display_ratio_override, 0.0, 1.0)
 	return {
 		"backRect": Rect2(origin, Vector2(width, 8.0)),
 		"fillRect": Rect2(origin, Vector2(width * ratio, 8.0)),
@@ -2031,6 +2076,31 @@ static func bullet_visual(player_owned: bool, bullet_item: Dictionary = {}) -> D
 			"innerRadius": 4.0,
 			"innerColor": Color.WHITE
 		}
+	var enemy_visual_kind := String(bullet_item.get("visualKind", ""))
+	if enemy_visual_kind == "red_pen_mark":
+		return {
+			"trailLength": 36.0,
+			"trailColor": Color(1.0, 0.05, 0.16, 0.42),
+			"trailWidth": 11.0,
+			"outerRadius": 14.0,
+			"outerColor": Color("#ff2448"),
+			"innerRadius": 6.0,
+			"innerColor": Color("#fff5f7"),
+			"glowRadius": 26.0,
+			"glowColor": Color(1.0, 0.16, 0.24, 0.24)
+		}
+	if enemy_visual_kind == "pitch_police_note":
+		return {
+			"trailLength": 34.0,
+			"trailColor": Color(1.0, 0.12, 0.36, 0.44),
+			"trailWidth": 10.0,
+			"outerRadius": 13.0,
+			"outerColor": Color("#ff315f"),
+			"innerRadius": 6.0,
+			"innerColor": Color("#fff6fb"),
+			"glowRadius": 24.0,
+			"glowColor": Color(1.0, 0.25, 0.55, 0.26)
+		}
 	return {
 		"trailLength": 18.0,
 		"trailColor": Color(1.0, 0.17, 0.35, 0.32),
@@ -2066,9 +2136,9 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 				"innerColor": Color("#f094bd")
 			}
 		var pos: Vector2 = Vector2(bullet_item["pos"])
-		var vel: Vector2 = Vector2(bullet_item["vel"]).normalized()
-		if vel.length() < 0.1:
-			vel = Vector2.RIGHT
+		var raw_vel: Vector2 = Vector2(bullet_item["vel"])
+		var vel_sq := raw_vel.length_squared()
+		var vel: Vector2 = raw_vel / sqrt(vel_sq) if vel_sq > 0.01 else Vector2.RIGHT
 		var side: Vector2 = Vector2(-vel.y, vel.x)
 		var visual_kind: String = String(bullet_item.get("visualKind", ""))
 		var item := {
@@ -2083,6 +2153,49 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 			"innerRadius": visual["innerRadius"],
 			"innerColor": visual["innerColor"] as Color
 		}
+		if visual_kind == "pitch_police_note":
+			item["trailGlowStart"] = pos - vel * 46.0
+			item["trailGlowEnd"] = pos + vel * 4.0
+			item["trailGlowColor"] = Color(1.0, 0.62, 0.82, 0.22)
+			item["trailGlowWidth"] = 18.0
+			item["auraPos"] = pos
+			item["auraRadius"] = 23.0
+			item["auraColor"] = Color(1.0, 0.15, 0.45, 0.34)
+			item["noteText"] = "♪"
+			item["notePos"] = pos - side * 9.0 + Vector2(-12.0, 10.0)
+			item["noteWidth"] = 24
+			item["noteSize"] = 21
+			item["noteColor"] = Color("#fff8ff")
+			item["checkText"] = "✓"
+			item["checkPos"] = pos + side * 6.0 + Vector2(-12.0, 9.0)
+			item["checkWidth"] = 24
+			item["checkSize"] = 20
+			item["checkColor"] = Color("#ff315f")
+			item["sparkDot1Pos"] = pos + side * 13.0 - vel * 9.0
+			item["sparkDot1Radius"] = 3.0
+			item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.82)
+			item["sparkDot2Pos"] = pos - side * 12.0 - vel * 18.0
+			item["sparkDot2Radius"] = 2.5
+			item["sparkDot2Color"] = Color(1.0, 0.72, 0.88, 0.70)
+		if visual_kind == "red_pen_mark":
+			item["trailGlowStart"] = pos - vel * 48.0
+			item["trailGlowEnd"] = pos + vel * 4.0
+			item["trailGlowColor"] = Color(1.0, 0.44, 0.52, 0.20)
+			item["trailGlowWidth"] = 18.0
+			item["auraPos"] = pos
+			item["auraRadius"] = 24.0
+			item["auraColor"] = Color(1.0, 0.05, 0.18, 0.32)
+			item["markText"] = "×"
+			item["markPos"] = pos + Vector2(-12.0, 10.0)
+			item["markWidth"] = 24
+			item["markSize"] = 23
+			item["markColor"] = Color("#ffffff")
+			item["sparkDot1Pos"] = pos + side * 13.0 - vel * 10.0
+			item["sparkDot1Radius"] = 3.0
+			item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.82)
+			item["sparkDot2Pos"] = pos - side * 12.0 - vel * 20.0
+			item["sparkDot2Radius"] = 2.4
+			item["sparkDot2Color"] = Color(1.0, 0.70, 0.76, 0.68)
 		if visual_kind == "starlight_superchat" or visual_kind == "high_superchat":
 			var star_color: Color = visual["starColor"] as Color
 			var center_scale: float = 1.10 if bool(bullet_item.get("centerShot", true)) else 0.90
@@ -2169,6 +2282,29 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 
 static func bullet_parts(data: Dictionary = {}) -> Array:
 	var visual_kind: String = String(data.get("visualKind", ""))
+	if visual_kind == "red_pen_mark":
+		return [
+			{"kind": "line", "prefix": "trailGlow"},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "sparkDot2"},
+			{"kind": "circle", "prefix": "aura", "filled": false, "width": 2.5},
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"},
+			{"kind": "text", "prefix": "mark", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "circle", "prefix": "sparkDot1"}
+		]
+	if visual_kind == "pitch_police_note":
+		return [
+			{"kind": "line", "prefix": "trailGlow"},
+			{"kind": "line", "prefix": "trail"},
+			{"kind": "circle", "prefix": "sparkDot2"},
+			{"kind": "circle", "prefix": "aura", "filled": false, "width": 2.5},
+			{"kind": "circle", "prefix": "outer"},
+			{"kind": "circle", "prefix": "inner"},
+			{"kind": "text", "prefix": "note", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "text", "prefix": "check", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "circle", "prefix": "sparkDot1"}
+		]
 	if visual_kind == "high_superchat":
 		if String(data.get("imagePath", "")) != "":
 			return [
@@ -3211,6 +3347,28 @@ static func pickup_text_fx_data(pos: Vector2, life: float, max_life: float, text
 		"labelSize": 19
 	}
 
+static func song_note_pickup_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var burst: float = sin(progress * PI)
+	return {
+		"kind": "song_note_pickup",
+		"glowPos": pos,
+		"glowRadius": radius * (0.80 + progress * 0.95),
+		"glowColor": Color(1.0, 0.58, 0.86, 0.22 * alpha),
+		"ringPos": pos,
+		"ringRadius": radius * (0.36 + progress * 0.72),
+		"ringColor": Color(0.58, 0.92, 1.0, 0.68 * alpha),
+		"corePos": pos,
+		"coreRadius": radius * (0.22 + burst * 0.08),
+		"coreColor": Color(1.0, 1.0, 1.0, 0.88 * alpha),
+		"label": "♪",
+		"labelPos": pos + Vector2(-12.0, 10.0 - progress * 10.0),
+		"labelWidth": 24,
+		"labelColor": Color(1.0, 0.46, 0.78, alpha),
+		"labelSize": 22
+	}
+
 static func starlight_hit_fx_data(pos: Vector2, life: float, max_life: float, premium: bool) -> Dictionary:
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
@@ -3932,11 +4090,14 @@ static func boss_defeat_fx_data(pos: Vector2, life: float, max_life: float, radi
 	data["flareWidth"] = 10.0 + 10.0 * burst
 	return data
 
-static func hit_fx_draw_data(hit_fx: Array) -> Array:
+static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Array:
 	var items: Array = []
+	var use_culling := visible_rect.size != Vector2.ZERO
 	for fx in hit_fx:
 		var fx_item: Dictionary = fx as Dictionary
 		if float(fx_item.get("delay", 0.0)) > 0.0:
+			continue
+		if use_culling and fx_item.has("pos") and not visible_rect.has_point(Vector2(fx_item.get("pos", Vector2.ZERO))):
 			continue
 		if String(fx_item.get("kind", "")) == "comment_pin":
 			items.append(comment_pin_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.45))))
@@ -3994,6 +4155,14 @@ static func hit_fx_draw_data(hit_fx: Array) -> Array:
 				float(fx_item.get("radius", 22.0)),
 				int(fx_item.get("tier", 0)),
 				bool(fx_item.get("premium", false))
+			))
+			continue
+		if String(fx_item.get("kind", "")) == "song_note":
+			items.append(song_note_pickup_fx_data(
+				Vector2(fx_item["pos"]),
+				float(fx_item["life"]),
+				float(fx_item.get("maxLife", 0.38)),
+				float(fx_item.get("radius", 26.0))
 			))
 			continue
 		if String(fx_item.get("kind", "")) == "maro_comment_hit":
@@ -4128,6 +4297,13 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "text", "prefix": "shadow"},
 			{"kind": "text", "prefix": "label"}
+		]
+	if String(data.get("kind", "")) == "song_note_pickup":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "text", "prefix": "label", "alignment": HORIZONTAL_ALIGNMENT_CENTER}
 		]
 	if String(data.get("kind", "")) == "damage_number":
 		return [

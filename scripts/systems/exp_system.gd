@@ -100,10 +100,13 @@ static func update_orbs(context: Dictionary) -> Dictionary:
 	}
 
 static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
+	var pickup_range_multiplier := 1.0
+	if target.has_method("_song_live_heat_pickup_range_multiplier"):
+		pickup_range_multiplier = maxf(0.1, float(target.call("_song_live_heat_pickup_range_multiplier")))
 	var result: Dictionary = update_orbs({
 		"orbs": target.get("exp_orbs"),
 		"playerPos": target.get("player_pos"),
-		"magnetRange": target.get("magnet_range"),
+		"magnetRange": float(target.get("magnet_range")) * pickup_range_multiplier,
 		"magnetSpeedRate": target.get("item_magnet_speed_rate"),
 		"delta": delta
 	})

@@ -106,6 +106,8 @@ static func apply_damage_for_target(target: Node, source_text: String, damage: i
 
 static func apply_damage_source_for_target(target: Node, source: String, damage: int = -1) -> Dictionary:
 	var amount: int = source_damage(source) if damage < 0 else damage
+	if target.has_method("_song_live_heat_damage_taken_multiplier"):
+		amount = maxi(1, int(ceil(float(amount) * maxf(0.05, float(target.call("_song_live_heat_damage_taken_multiplier"))))))
 	return apply_damage_for_target(target, DisplayTextSystem.damage_source_display(source), amount)
 
 static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dictionary:

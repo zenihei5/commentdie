@@ -2122,6 +2122,303 @@
       "reaction_count_min": 2,
       "reaction_count_max": 4
     },
+    "song_instruction_tempo_up": {
+      "notice": [
+        {
+          "text": "テンポ上げて！",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "song_instruction_tempo_up",
+            "notice",
+            "song"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "敵もノってきた",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_tempo_up",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "音符急いで拾おう",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_tempo_up",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "テンポ上がりすぎ",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_tempo_up",
+            "reaction",
+            "song",
+            "joke"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "song_instruction_force_chorus": {
+      "notice": [
+        {
+          "text": "短縮サビ突入！",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "song_instruction_force_chorus",
+            "notice",
+            "song"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "サビだけ来た",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_force_chorus",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "敵多い多い",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_force_chorus",
+            "reaction",
+            "song",
+            "danger"
+          ]
+        },
+        {
+          "text": "スポットライト少ないぞ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "event",
+            "song_instruction_force_chorus",
+            "reaction",
+            "song"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "song_instruction_mic_howling": {
+      "notice": [
+        {
+          "text": "ハウリングしてる！",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "song_instruction_mic_howling",
+            "notice",
+            "song",
+            "danger"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "耳が痛い",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_mic_howling",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "マイク近すぎ",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_mic_howling",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "音波避けて",
+          "type": "warning",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_mic_howling",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "ハウリング止めて",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_mic_howling",
+            "reaction",
+            "song"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "song_instruction_lighting_mistake": {
+      "notice": [
+        {
+          "text": "照明ミスってる！",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "song_instruction_lighting_mistake",
+            "notice",
+            "song"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "まぶしい",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_lighting_mistake",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "照明さん！？",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_lighting_mistake",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "そこ立つと攻撃止まる",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_lighting_mistake",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "暴走ライト注意",
+          "type": "warning",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_lighting_mistake",
+            "reaction",
+            "song"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "song_instruction_lyrics_lost": {
+      "notice": [
+        {
+          "text": "歌詞カードどこ？",
+          "type": "warning",
+          "weight": 10,
+          "tags": [
+            "event",
+            "song_instruction_lyrics_lost",
+            "notice",
+            "song"
+          ]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "歌詞カード落とした？",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_lyrics_lost",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "カード拾って",
+          "type": "warning",
+          "weight": 7,
+          "tags": [
+            "event",
+            "song_instruction_lyrics_lost",
+            "reaction",
+            "song"
+          ]
+        },
+        {
+          "text": "そこから覚えてない？",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_lyrics_lost",
+            "reaction",
+            "song",
+            "joke"
+          ]
+        },
+        {
+          "text": "音階止まってるぞ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "event",
+            "song_instruction_lyrics_lost",
+            "reaction",
+            "song"
+          ]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
     "gameplay_genre_change_common": {
       "notice": [
         {
@@ -7132,6 +7429,245 @@
             "stream",
             "song",
             "collapse"
+          ]
+        }
+      ],
+      "low_heat": [
+        {
+          "text": "歌枠きた",
+          "type": "normal",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "low_heat"
+          ]
+        },
+        {
+          "text": "今日は何歌うの？",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "low_heat"
+          ]
+        },
+        {
+          "text": "まだ開演直後って感じ",
+          "type": "normal",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "low_heat"
+          ]
+        }
+      ],
+      "mid_heat": [
+        {
+          "text": "盛り上がってきた",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "mid_heat"
+          ]
+        },
+        {
+          "text": "ここ好き",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "mid_heat"
+          ]
+        },
+        {
+          "text": "コメント欄がライブ会場",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "mid_heat",
+            "joke"
+          ]
+        }
+      ],
+      "high_heat": [
+        {
+          "text": "神サビ近い",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "high_heat"
+          ]
+        },
+        {
+          "text": "会場あったまってる",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "high_heat"
+          ]
+        },
+        {
+          "text": "ここ切り抜き",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "high_heat"
+          ]
+        }
+      ],
+      "chorus": [
+        {
+          "text": "神サビきた！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "song",
+            "chorus"
+          ]
+        },
+        {
+          "text": "音符拾っていこう",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "chorus"
+          ]
+        },
+        {
+          "text": "サビ中に伸ばせ",
+          "type": "normal",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "chorus"
+          ]
+        }
+      ],
+      "call_response": [
+        {
+          "text": "合いの手いくぞ",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "call"
+          ]
+        },
+        {
+          "text": "コール返して",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "call"
+          ]
+        }
+      ],
+      "encore": [
+        {
+          "text": "もう一曲！",
+          "type": "positive",
+          "weight": 9,
+          "tags": [
+            "stream",
+            "song",
+            "encore"
+          ]
+        },
+        {
+          "text": "終われない空気",
+          "type": "joke",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "encore",
+            "joke"
+          ]
+        },
+        {
+          "text": "ラストまで盛り上げろ",
+          "type": "positive",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "encore"
+          ]
+        }
+      ],
+      "pitch_wave": [
+        {
+          "text": "音程ズレ波きた",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "pitch_wave"
+          ]
+        },
+        {
+          "text": "赤紫ライン避けて",
+          "type": "warning",
+          "weight": 8,
+          "tags": [
+            "stream",
+            "song",
+            "pitch_wave"
+          ]
+        },
+        {
+          "text": "不協和音やばい",
+          "type": "joke",
+          "weight": 5,
+          "tags": [
+            "stream",
+            "song",
+            "pitch_wave",
+            "joke"
+          ]
+        }
+      ],
+      "spotlight": [
+        {
+          "text": "スポットライトいいね",
+          "type": "positive",
+          "weight": 7,
+          "tags": [
+            "stream",
+            "song",
+            "spotlight"
+          ]
+        },
+        {
+          "text": "今映えてる",
+          "type": "positive",
+          "weight": 6,
+          "tags": [
+            "stream",
+            "song",
+            "spotlight"
           ]
         }
       ]

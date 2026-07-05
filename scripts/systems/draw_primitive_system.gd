@@ -71,7 +71,7 @@ static func draw_simple_draw_part(target: CanvasItem, data: Dictionary, part: Di
 	elif kind == "dot":
 		draw_circle_item(target, {"pos": part["pos"] as Vector2, "radius": data["dotRadius"], "color": data["dotColor"] as Color})
 	elif kind == "time":
-		draw_text_item(target, data, "time", HORIZONTAL_ALIGNMENT_LEFT, null, "%02d" % int(ceil(float(data["timeLeft"]))))
+		draw_time_text_item(target, data)
 	elif kind == "shadow":
 		draw_shadow(target, data["shadowPos"] as Vector2, data["shadowSize"] as Vector2, float(data["shadowAlpha"]))
 	elif kind == "polygon":
@@ -144,6 +144,27 @@ static func draw_arc_item(target: CanvasItem, item: Dictionary, prefix: String) 
 
 static func draw_fixed_arc(target: CanvasItem, pos: Vector2, radius: float, start_angle: float, end_angle: float, points: int, color: Color, width: float) -> void:
 	target.draw_arc(pos, radius, start_angle, end_angle, points, color, width)
+
+static func draw_time_text_item(target: CanvasItem, item: Dictionary) -> void:
+	var time_text := "%02d" % int(ceil(float(item["timeLeft"])))
+	var base_pos: Vector2 = item["timePos"] as Vector2
+	var outline_color: Color = item.get("timeOutlineColor", Color(0.02, 0.02, 0.03, 0.88)) as Color
+	var offsets := [
+		Vector2(-2.0, 0.0),
+		Vector2(2.0, 0.0),
+		Vector2(0.0, -2.0),
+		Vector2(0.0, 2.0),
+		Vector2(-1.4, -1.4),
+		Vector2(1.4, -1.4),
+		Vector2(-1.4, 1.4),
+		Vector2(1.4, 1.4)
+	]
+	for offset in offsets:
+		var outline_item := item.duplicate()
+		outline_item["timePos"] = base_pos + offset
+		outline_item["timeColor"] = outline_color
+		draw_text_item(target, outline_item, "time", HORIZONTAL_ALIGNMENT_LEFT, null, time_text)
+	draw_text_item(target, item, "time", HORIZONTAL_ALIGNMENT_LEFT, null, time_text)
 
 static func draw_text_item(target: CanvasItem, item: Dictionary, prefix: String = "", alignment = HORIZONTAL_ALIGNMENT_LEFT, override_color: Variant = null, override_text: String = "") -> void:
 	var key_prefix: String = prefix

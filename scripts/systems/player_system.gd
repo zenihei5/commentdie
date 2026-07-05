@@ -27,9 +27,11 @@ static func friction(banana_power: float, no_brake_power: float, input: Vector2,
 	if banana_power > 0.0:
 		value = lerpf(value, 3.4, banana_power)
 	if no_brake_power > 0.0:
-		var braking: bool = input.length() < 0.1
-		if input.length() >= 0.1 and player_vel.length() >= 20.0:
-			braking = input.dot(player_vel.normalized()) < -0.35
+		var input_power_sq := input.length_squared()
+		var player_speed_sq := player_vel.length_squared()
+		var braking: bool = input_power_sq < 0.01
+		if input_power_sq >= 0.01 and player_speed_sq >= 400.0:
+			braking = input.dot(player_vel / sqrt(player_speed_sq)) < -0.35
 		if braking:
 			value = minf(value, lerpf(11.0, 0.85, no_brake_power))
 		else:
@@ -54,21 +56,23 @@ static func speed_rate(move_slow_timer: float, active_genre_event: String, banan
 	return value
 
 static func no_brake_sliding(no_brake_power: float, input: Vector2, player_vel: Vector2) -> bool:
-	if no_brake_power <= 0.0 or player_vel.length() < 82.0:
+	var player_speed_sq := player_vel.length_squared()
+	if no_brake_power <= 0.0 or player_speed_sq < 6724.0:
 		return false
-	if input.length() < 0.1:
+	if input.length_squared() < 0.01:
 		return true
-	return input.dot(player_vel.normalized()) < -0.35
+	return input.dot(player_vel / sqrt(player_speed_sq)) < -0.35
 
 static func banana_input(input: Vector2, banana_power: float, elapsed: float) -> Vector2:
-	if banana_power <= 0.0 or input.length() < 0.1:
+	if banana_power <= 0.0 or input.length_squared() < 0.01:
 		return input
 	return input.rotated(sin(elapsed * 7.0) * 0.28 * banana_power)
 
 static func banana_floor_drift(player_vel: Vector2, banana_power: float, elapsed: float, player_pos: Vector2, delta: float) -> Vector2:
-	if banana_power <= 0.0 or player_vel.length() < 38.0:
+	var player_speed_sq := player_vel.length_squared()
+	if banana_power <= 0.0 or player_speed_sq < 1444.0:
 		return player_vel
-	var dir: Vector2 = player_vel.normalized()
+	var dir: Vector2 = player_vel / sqrt(player_speed_sq)
 	var side: Vector2 = Vector2(-dir.y, dir.x)
 	var wave: float = sin(elapsed * 9.0 + player_pos.x * 0.025 + player_pos.y * 0.017)
 	return player_vel + side * wave * 118.0 * banana_power * delta
@@ -127,7 +131,7 @@ static func dash_button_result(context: Dictionary, input: Vector2) -> Dictionar
 	var button_down: bool = Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_SPACE)
 	var dash_dir: Vector2 = Vector2.ZERO
 	if button_down and not bool(context.get("dashEnterDown", false)):
-		if input.length() >= 0.1:
+		if input.length_squared() >= 0.01:
 			dash_dir = input
 		else:
 			var facing_x: float = float(context.get("playerFacingX", 1.0))
@@ -146,17 +150,18 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var click_move_active: bool = bool(context.get("clickMoveActive", false))
 	var click_move_target: Vector2 = Vector2(context.get("clickMoveTarget", Vector2.ZERO))
 	var click_move_arrive_distance: float = float(context.get("clickMoveArriveDistance", 22.0))
-	if keyboard_input.length() >= 0.1:
+	if keyboard_input.length_squared() >= 0.01:
 		click_move_active = false
 	elif click_move_active:
 		var to_click_target: Vector2 = click_move_target - Vector2(context["playerPos"])
-		if to_click_target.length() <= click_move_arrive_distance:
+		var click_distance_sq := to_click_target.length_squared()
+		if click_distance_sq <= click_move_arrive_distance * click_move_arrive_distance:
 			click_move_active = false
 			input = Vector2.ZERO
 		else:
-			input = to_click_target.normalized()
+			input = to_click_target / sqrt(click_distance_sq)
 	var stop_timer_value: float = float(context["stopTimer"])
-	if input.length() < 0.1:
+	if input.length_squared() < 0.01:
 		stop_timer_value += delta
 	else:
 		stop_timer_value = 0.0
@@ -174,19 +179,22 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var player_speed: float = float(context["playerSpeed"])
 	var friction_value: float = friction(banana_power, no_brake_power, input, player_vel, String(context["activeGenreEvent"]), int(context["kusogeResistLevel"]))
 	var speed_rate_value: float = speed_rate(float(context["moveSlowTimer"]), String(context["activeGenreEvent"]), banana_power, no_brake_power, float(context.get("fieldSlowRate", 0.0)), float(context.get("raceDashBoostTimer", 0.0)))
+	speed_rate_value *= maxf(0.1, float(context.get("songLiveHeatMoveSpeedMultiplier", 1.0)))
 	player_vel = player_vel.lerp(input * player_speed * speed_rate_value, minf(1.0, delta * friction_value))
 	player_vel = banana_floor_drift(player_vel, banana_power, elapsed, Vector2(context["playerPos"]), delta)
 
-	var dash_cd_value: float = maxf(0.0, float(context["dashCd"]) - delta)
+	var dash_recovery_multiplier := maxf(0.05, float(context.get("songDashCooldownRecoveryMultiplier", 1.0)))
+	var dash_cd_value: float = maxf(0.0, float(context["dashCd"]) - delta * dash_recovery_multiplier)
 	var invincible_value: float = maxf(0.0, float(context["invincible"]) - delta)
 	var no_dash_power: float = float(context["noDashPower"])
 	var tap_result: Dictionary = dash_tap_result(context, delta, elapsed, float(context["reversePower"]))
 	var dash_dir: Vector2 = Vector2(tap_result["dashDir"])
 	var button_result: Dictionary = dash_button_result(context, input)
-	if dash_dir.length() < 0.1:
+	if dash_dir.length_squared() < 0.01:
 		dash_dir = Vector2(button_result["dashDir"])
 	var dash_started := false
-	if dash_dir.length() >= 0.1 and can_dash(no_dash_power, dash_cd_value):
+	var dash_dir_sq := dash_dir.length_squared()
+	if dash_dir_sq >= 0.01 and can_dash(no_dash_power, dash_cd_value):
 		dash_dir = dash_dir.normalized()
 		player_vel += dash_dir * 760.0
 		dash_cd_value = float(context["dashCooldown"]) * dash_cooldown_rate(no_dash_power)
@@ -199,7 +207,7 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	player_pos.y = clampf(player_pos.y, arena.position.y + 28.0, arena.end.y - 28.0)
 	var effect_wall_list: Array = context["effectWalls"] as Array if context.has("effectWalls") else []
 	player_pos = resolve_wall_collision(player_pos, previous_pos, 24.0, effect_wall_list, String(context["streamFrameId"]))
-	if click_move_active and player_pos.distance_to(click_move_target) <= click_move_arrive_distance:
+	if click_move_active and player_pos.distance_squared_to(click_move_target) <= click_move_arrive_distance * click_move_arrive_distance:
 		click_move_active = false
 
 	return {
@@ -261,7 +269,8 @@ static func boss_field_slow_rate(player_pos: Vector2, fields: Array) -> float:
 		var field: Dictionary = item as Dictionary
 		if float(field.get("life", 0.0)) <= 0.0:
 			continue
-		if player_pos.distance_to(Vector2(field.get("pos", Vector2.ZERO))) <= float(field.get("radius", 0.0)) + 18.0:
+		var radius := float(field.get("radius", 0.0)) + 18.0
+		if player_pos.distance_squared_to(Vector2(field.get("pos", Vector2.ZERO))) <= radius * radius:
 			value = maxf(value, float(field.get("slowRate", 0.0)))
 	return clampf(value, 0.0, 0.85)
 
@@ -270,6 +279,12 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	var banana_power: float = ModifierSystem.effect_rate_for_target(target, "banana_floor")
 	var no_brake_power: float = maxf(ModifierSystem.effect_rate_for_target(target, "no_brake"), ModifierSystem.effect_rate_for_target(target, "takeback"))
 	var no_dash_power: float = ModifierSystem.effect_rate_for_target(target, "no_dash")
+	var song_move_rate := 1.0
+	if target.has_method("_song_live_heat_move_speed_multiplier"):
+		song_move_rate = maxf(0.1, float(target.call("_song_live_heat_move_speed_multiplier")))
+	var song_dash_recovery_rate := 1.0
+	if target.has_method("_song_dash_cooldown_recovery_multiplier"):
+		song_dash_recovery_rate = maxf(0.05, float(target.call("_song_dash_cooldown_recovery_multiplier")))
 	var result: Dictionary = update_motion({
 		"delta": delta,
 		"elapsed": target.get("elapsed"),
@@ -286,6 +301,8 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"playerVel": target.get("player_vel"),
 		"playerPos": target.get("player_pos"),
 		"playerSpeed": target.get("player_speed"),
+		"songLiveHeatMoveSpeedMultiplier": song_move_rate,
+		"songDashCooldownRecoveryMultiplier": song_dash_recovery_rate,
 		"playerFacingX": target.get("player_facing_x"),
 		"dashCd": target.get("dash_cd"),
 		"dashTapTimer": target.get("dash_tap_timer"),

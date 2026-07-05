@@ -199,6 +199,18 @@ static func _stream_slot_pool_key_candidates(pool_key: String) -> Array[String]:
 			return ["clear"]
 		"result_collapse":
 			return ["collapse"]
+		"song_low_heat":
+			return ["low_heat", "normal"]
+		"song_mid_heat":
+			return ["mid_heat", "hype"]
+		"song_high_heat":
+			return ["high_heat", "hype"]
+		"song_chorus":
+			return ["chorus", "hype"]
+		"song_encore":
+			return ["encore", "hype"]
+		"song_spotlight":
+			return ["spotlight", "hype"]
 	return []
 
 static func _stream_slot_pool_entries(data: Dictionary, stream_slot_key: String, pool_keys: Array[String]) -> Array:
@@ -582,6 +594,27 @@ static func _is_endgame_target(target: Node) -> bool:
 	var remaining := run_length - elapsed
 	return remaining > 0.0 and remaining <= 30.0
 
+static func _song_pool_keys_for_target(target: Node) -> Array[String]:
+	var stream_frame_id := String(target.get("current_stream_frame_id"))
+	if stream_frame_id != "singing" and stream_frame_id != "song":
+		return []
+	var keys: Array[String] = []
+	var heat_level := int(target.get("song_live_heat_level"))
+	if heat_level <= 1:
+		keys.append("song_low_heat")
+	elif heat_level <= 3:
+		keys.append("song_mid_heat")
+	else:
+		keys.append("song_high_heat")
+	if float(target.get("song_chorus_timer")) > 0.0:
+		keys.append("song_chorus")
+	if float(target.get("song_encore_timer")) > 0.0:
+		keys.append("song_encore")
+	var spotlights: Array = target.get("song_spotlights") as Array
+	if spotlights.size() > 0:
+		keys.append("song_spotlight")
+	return keys
+
 static func _target_pool_keys(target: Node) -> Array[String]:
 	var state := String(target.get("state"))
 	if state == "comment_choice":
@@ -609,6 +642,9 @@ static func _target_pool_keys(target: Node) -> Array[String]:
 		keys.append("high_buzz")
 	if _is_endgame_target(target):
 		keys.append("endgame")
+	for song_key in _song_pool_keys_for_target(target):
+		if not keys.has(song_key):
+			keys.append(song_key)
 	return keys
 
 static func _event_params_for_line(text: String, target: Node) -> Dictionary:
@@ -808,6 +844,8 @@ static func update_timer_for_target(target: Node, delta: float, rng: RandomNumbe
 		_setting_float(data, "fast_interval_min" if fast else "normal_interval_min", 0.15 if fast else 0.5),
 		_setting_float(data, "fast_interval_max" if fast else "normal_interval_max", 0.35 if fast else 1.0)
 	)
+	if not fast and target.has_method("_song_comment_speed_multiplier"):
+		next_timer /= maxf(0.25, float(target.call("_song_comment_speed_multiplier")))
 	target.set("chat_timer", next_timer)
 	var entry := _choose_weighted_entry(_target_pool_entries(data, _target_pool_keys(target), target), lines, rng, data)
 	if not entry.is_empty():

@@ -4,9 +4,12 @@ extends RefCounted
 const DrawDataSystemScript := preload("res://scripts/systems/draw_data_system.gd")
 const DrawPrimitiveSystemScript := preload("res://scripts/systems/draw_primitive_system.gd")
 
-static func draw_bullets(target: CanvasItem, bullets: Array, from_player: bool, rotated_texture_drawer: Callable = Callable(), texture_loader: Callable = Callable()) -> void:
+static func draw_bullets(target: CanvasItem, bullets: Array, from_player: bool, rotated_texture_drawer: Callable = Callable(), texture_loader: Callable = Callable(), visible_rect: Rect2 = Rect2()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
 	for bullet_item in bullets:
 		var bullet: Dictionary = bullet_item as Dictionary
+		if use_culling and not visible_rect.has_point(Vector2(bullet.get("pos", Vector2.ZERO))):
+			continue
 		var visual_kind: String = String(bullet.get("visualKind", ""))
 		if from_player and (visual_kind == "starlight_superchat" or visual_kind == "high_superchat"):
 			var bullet_data_items: Array = DrawDataSystemScript.bullet_draw_data([bullet], from_player)
@@ -17,9 +20,9 @@ static func draw_bullets(target: CanvasItem, bullets: Array, from_player: bool, 
 
 static func draw_simple_bullet_item(target: CanvasItem, bullet: Dictionary, from_player: bool) -> void:
 	var pos: Vector2 = Vector2(bullet["pos"])
-	var vel: Vector2 = Vector2(bullet["vel"]).normalized()
-	if vel.length() < 0.1:
-		vel = Vector2.RIGHT
+	var raw_vel: Vector2 = Vector2(bullet["vel"])
+	var vel_sq := raw_vel.length_squared()
+	var vel: Vector2 = raw_vel / sqrt(vel_sq) if vel_sq > 0.01 else Vector2.RIGHT
 	var visual_kind: String = String(bullet.get("visualKind", ""))
 	var trail_length: float = 22.0
 	var trail_color := Color(0.25, 0.73, 1.0, 0.28)

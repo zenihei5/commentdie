@@ -106,5 +106,54 @@
       "bug_lag_warp",
       "bug_genre_change"
     ]
+  },
+  {
+    "id": "pitch_police_chief",
+    "displayName": "音程警察長",
+    "description": "歌枠に出現する音程チェック系の専用ボス。",
+    "warningText": "音程警察長 出現！",
+    "stageId": "song",
+    "role": "song_stage_boss",
+    "hp": 1200.0,
+    "speed": 52.0,
+    "radius": 102.0,
+    "contactDamage": 32,
+    "expValue": 30,
+    "viewerValue": 4600,
+    "giftHypeReward": 30,
+    "lifetime": 110.0,
+    "hitFlashDuration": 0.06,
+    "knockbackResistance": 1.0,
+    "canBeKnockedBack": false,
+    "attacks": [
+      "red_check_note_bullet",
+      "pitch_wave",
+      "megaphone_wave",
+      "chorus_judge"
+    ]
+  },
+  {
+    "id": "red_pen_review_chief",
+    "displayName": "赤ペン添削長",
+    "description": "お絵かき枠に出現する赤ペン添削系の専用ボス。",
+    "warningText": "赤ペン添削長 出現！",
+    "stageId": "drawing",
+    "role": "drawing_stage_boss",
+    "hp": 1100.0,
+    "speed": 54.0,
+    "radius": 100.0,
+    "contactDamage": 32,
+    "expValue": 30,
+    "viewerValue": 4400,
+    "giftHypeReward": 30,
+    "lifetime": 110.0,
+    "hitFlashDuration": 0.06,
+    "knockbackResistance": 1.0,
+    "canBeKnockedBack": false,
+    "attacks": [
+      "red_pen_bullet",
+      "review_line",
+      "summon_fix_notes"
+    ]
   }
 ]
