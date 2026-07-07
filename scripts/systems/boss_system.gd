@@ -354,7 +354,7 @@ static func readable_boss_name(boss_id: String, fallback: String) -> String:
 	if boss_id == BOSS_PITCH_POLICE_CHIEF:
 		return "音程警察長"
 	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
-		return "赤ペン添削長"
+		return "赤ペンリテイクドラゴン"
 	if boss_id == BOSS_SUPER_LONG_COMMENT:
 		return "超長文ニキ"
 	return fallback
@@ -467,8 +467,8 @@ static func request_chats_for_boss(boss_id: String, warning_text: String) -> Arr
 	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
 		return [
 			"WARNING! %s" % warning_text,
-			"赤ペン添削長きた",
-			"添削ライン注意"
+			"赤ペンリテイクドラゴンきた",
+			"リテイクライン注意"
 		]
 	if boss_id == BOSS_KUSO_MARO_KING:
 		return [
@@ -537,8 +537,8 @@ static func retreat_chat_for_boss(_boss_name: String) -> String:
 static func death_text_for_boss(boss_id: String, has_heart: bool) -> String:
 	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
 		if has_heart:
-			return "「ボスと戦え♡」で赤ペン添削長の優しめ添削に押し切られた"
-		return "「ボスと戦え」で赤ペン添削長に画面中を添削された"
+			return "「ボスと戦え♡」で赤ペンリテイクドラゴンの優しめリテイクに押し切られた"
+		return "「ボスと戦え」で赤ペンリテイクドラゴンに画面中をリテイクされた"
 	if boss_id == BOSS_KUSO_MARO_KING:
 		if has_heart:
 			return "「ボスと戦え♡」でもクソマロキングの圧が強かった"

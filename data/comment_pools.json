@@ -2419,6 +2419,136 @@
       "reaction_count_min": 1,
       "reaction_count_max": 2
     },
+    "drawing_instruction_fast_dry": {
+      "notice": [
+        {
+          "text": "乾くの早すぎ！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "drawing_instruction_fast_dry", "notice", "drawing"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "囲うなら急いで",
+          "type": "warning",
+          "weight": 7,
+          "tags": ["event", "drawing_instruction_fast_dry", "reaction", "drawing"]
+        },
+        {
+          "text": "線が消えるの早い",
+          "type": "normal",
+          "weight": 6,
+          "tags": ["event", "drawing_instruction_fast_dry", "reaction", "drawing"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "drawing_instruction_too_much_paint": {
+      "notice": [
+        {
+          "text": "絵具出すぎ！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "drawing_instruction_too_much_paint", "notice", "drawing"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "太い線で囲える",
+          "type": "normal",
+          "weight": 7,
+          "tags": ["event", "drawing_instruction_too_much_paint", "reaction", "drawing"]
+        },
+        {
+          "text": "絵具残量見て",
+          "type": "warning",
+          "weight": 6,
+          "tags": ["event", "drawing_instruction_too_much_paint", "reaction", "drawing"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "drawing_instruction_palette_shuffle": {
+      "notice": [
+        {
+          "text": "パレットぐちゃぐちゃ！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "drawing_instruction_palette_shuffle", "notice", "drawing"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "色変わるかも",
+          "type": "warning",
+          "weight": 7,
+          "tags": ["event", "drawing_instruction_palette_shuffle", "reaction", "drawing"]
+        },
+        {
+          "text": "拾った色を確認して",
+          "type": "normal",
+          "weight": 6,
+          "tags": ["event", "drawing_instruction_palette_shuffle", "reaction", "drawing"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "drawing_instruction_more_corrections": {
+      "notice": [
+        {
+          "text": "修正指示ふえた！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "drawing_instruction_more_corrections", "notice", "drawing"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "直すと報酬うまい",
+          "type": "normal",
+          "weight": 7,
+          "tags": ["event", "drawing_instruction_more_corrections", "reaction", "drawing"]
+        },
+        {
+          "text": "修正ポイント増えた",
+          "type": "warning",
+          "weight": 6,
+          "tags": ["event", "drawing_instruction_more_corrections", "reaction", "drawing"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "drawing_instruction_spilled_bucket": {
+      "notice": [
+        {
+          "text": "バケツ倒した！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "drawing_instruction_spilled_bucket", "notice", "drawing"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "汚れ踏むと遅い",
+          "type": "warning",
+          "weight": 7,
+          "tags": ["event", "drawing_instruction_spilled_bucket", "reaction", "drawing"]
+        },
+        {
+          "text": "消しゴムで掃除できる",
+          "type": "normal",
+          "weight": 6,
+          "tags": ["event", "drawing_instruction_spilled_bucket", "reaction", "drawing"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
     "gameplay_genre_change_common": {
       "notice": [
         {

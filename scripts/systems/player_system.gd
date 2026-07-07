@@ -285,6 +285,9 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	var song_dash_recovery_rate := 1.0
 	if target.has_method("_song_dash_cooldown_recovery_multiplier"):
 		song_dash_recovery_rate = maxf(0.05, float(target.call("_song_dash_cooldown_recovery_multiplier")))
+	var field_slow_rate := boss_field_slow_rate(Vector2(target.get("player_pos")), target.get("boss_slow_fields") as Array)
+	if target.has_method("_drawing_spilled_paint_slow_rate"):
+		field_slow_rate = maxf(field_slow_rate, float(target.call("_drawing_spilled_paint_slow_rate")))
 	var result: Dictionary = update_motion({
 		"delta": delta,
 		"elapsed": target.get("elapsed"),
@@ -294,7 +297,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"bananaPower": banana_power,
 		"noBrakePower": no_brake_power,
 		"moveSlowTimer": target.get("move_slow_timer"),
-		"fieldSlowRate": boss_field_slow_rate(Vector2(target.get("player_pos")), target.get("boss_slow_fields") as Array),
+		"fieldSlowRate": field_slow_rate,
 		"activeGenreEvent": target.get("active_genre_event"),
 		"raceDashBoostTimer": target.get("genre_race_dash_boost_timer"),
 		"kusogeResistLevel": target.get("kusoge_resist_level"),

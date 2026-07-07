@@ -1273,8 +1273,8 @@ static func enemy_color(kind: String) -> Color:
 		return Color(0.70, 0.86, 1.0, 0.64)
 	if kind == "bucket_fill_slime":
 		return Color("#62d8ff")
-	if kind == "rough_line_comment":
-		return Color("#ffc3e1")
+	if kind == "undo_ghost":
+		return Color(0.72, 0.84, 1.0, 0.68)
 	if kind == "enemy_spoiler_comment":
 		return Color("#fff0fb")
 	if kind == "enemy_backseat_controller":
@@ -1339,6 +1339,16 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/song_noise_comment.png"
 	if kind == "song_lyric_spoiler_comment":
 		return "res://assets/generated/enemy_sprites_v1/song_lyric_spoiler_comment.png"
+	if kind == "drawing_fix_note":
+		return "res://assets/generated/enemy_sprites_v1/drawing_fix_note.png"
+	if kind == "red_pen_teacher":
+		return "res://assets/generated/enemy_sprites_v1/red_pen_teacher.png"
+	if kind == "layer_lost":
+		return "res://assets/generated/enemy_sprites_v1/layer_lost.png"
+	if kind == "bucket_fill_slime":
+		return "res://assets/generated/enemy_sprites_v1/bucket_fill_slime.png"
+	if kind == "undo_ghost":
+		return "res://assets/generated/enemy_sprites_v1/undo_ghost.png"
 	if kind == "enemy_spoiler_comment":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_spoiler_comment.png"
 	if kind == "enemy_backseat_controller":
@@ -1385,6 +1395,8 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss.png"
 	if kind == "bugged_final_boss_stun":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss_stun.png"
+	if kind == "red_pen_review_chief":
+		return "res://assets/generated/enemy_sprites_v1/red_pen_retake_dragon.png"
 	return ""
 
 static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color, flash_color: Color = Color.TRANSPARENT, flash_strength: float = 0.0) -> Dictionary:
@@ -1705,6 +1717,7 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var flash_color: Color = enemy.get("hitFlashColor", enemy_hit_flash_color(body_kind)) as Color
 	return {
 		"kind": kind,
+		"displayName": String(enemy.get("displayName", "")),
 		"pos": pos,
 		"radius": radius,
 		"shadow": enemy_shadow_data(pos, radius),
@@ -1848,7 +1861,8 @@ static func enemy_draw_parts(enemy_draw: Dictionary) -> Array:
 	if not (enemy_draw["face"] as Dictionary).is_empty():
 		parts.append({"kind": "face", "data": enemy_draw["face"] as Dictionary})
 	var bar: Dictionary = enemy_draw["bar"] as Dictionary
-	bar["label"] = DisplayTextSystem.enemy_display_name(String(enemy_draw["kind"]))
+	var display_name := String(enemy_draw.get("displayName", ""))
+	bar["label"] = display_name if display_name != "" else DisplayTextSystem.enemy_display_name(String(enemy_draw["kind"]))
 	bar["labelShadow"] = bar["label"]
 	bar["labelOutlineA"] = bar["label"]
 	bar["labelOutlineB"] = bar["label"]

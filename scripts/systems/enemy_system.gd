@@ -204,7 +204,7 @@ static func pick_drawing_enemy(elapsed: float, quick_test_mode: bool, rng: Rando
 		if roll < 0.78:
 			return "bucket_fill_slime"
 		if roll < 0.92:
-			return "rough_line_comment"
+			return "undo_ghost"
 		return "shooter"
 	if t >= 70.0:
 		if roll < 0.30:
@@ -215,21 +215,21 @@ static func pick_drawing_enemy(elapsed: float, quick_test_mode: bool, rng: Rando
 			return "layer_lost"
 		if roll < 0.82:
 			return "bucket_fill_slime"
-		return "rough_line_comment"
+		return "undo_ghost"
 	if t >= 30.0:
 		if roll < 0.34:
 			return "drawing_fix_note"
 		if roll < 0.54:
 			return "red_pen_teacher"
 		if roll < 0.72:
-			return "rough_line_comment"
+			return "undo_ghost"
 		if roll < 0.86:
 			return "bucket_fill_slime"
 		return "troll"
 	if roll < 0.46:
 		return "drawing_fix_note"
 	if roll < 0.68:
-		return "rough_line_comment"
+		return "undo_ghost"
 	if roll < 0.84:
 		return "bucket_fill_slime"
 	return "troll"
@@ -334,8 +334,8 @@ static func enemy_data(kind: String) -> Dictionary:
 		return {"displayName": "レイヤー迷子", "description": "半透明に揺れながら近づくレイヤー混乱敵", "hp": 13.0, "speed": 96.0, "radius": 23.0, "score": 64, "exp": 2, "behavior": "ghost_chase", "contactDamage": 18}
 	if kind == "bucket_fill_slime":
 		return {"displayName": "バケツ塗りスライム", "description": "広い塗り残しのように押し寄せる硬めの敵", "hp": 30.0, "speed": 58.0, "radius": 31.0, "score": 96, "exp": 4, "behavior": "tank", "contactDamage": 20}
-	if kind == "rough_line_comment":
-		return {"displayName": "ラフ線コメント", "description": "ラフ線のようにジグザグ近づく軽量敵", "hp": 10.0, "speed": 132.0, "radius": 21.0, "score": 54, "exp": 2, "behavior": "zigzag_chase", "contactDamage": 17}
+	if kind == "undo_ghost":
+		return {"displayName": "Undo幽霊", "description": "戻る矢印をまとって半透明に揺れるお絵かき枠の幽霊敵", "hp": 12.0, "speed": 112.0, "radius": 23.0, "score": 62, "exp": 2, "behavior": "ghost_chase", "contactDamage": 17}
 	if kind == "enemy_spoiler_comment":
 		return {"displayName": "ネタバレコメント", "description": "ゲーム実況中にネタバレを書き込む迷惑コメント敵", "hp": 11.0, "speed": 108.0, "radius": 23.0, "score": 44, "exp": 2, "behavior": "chase"}
 	if kind == "enemy_backseat_controller":
@@ -546,8 +546,8 @@ static func speech_lines(kind: String) -> Array[String]:
 		return ["今どのレイヤー？", "線画どこ", "下に描いた", "結合しちゃった"]
 	if kind == "bucket_fill_slime":
 		return ["バケツでいこう", "全部塗る", "はみ出した", "塗り残し発見"]
-	if kind == "rough_line_comment":
-		return ["ラフでOK", "線が多い", "迷い線です", "あとで整える"]
+	if kind == "undo_ghost":
+		return ["戻して", "Undoします", "一手前へ", "消しすぎ注意"]
 	if kind == "enemy_lag_comment":
 		return ["止まった？", "ラグい", "今ワープした？", "回線大丈夫？"]
 	if kind == "enemy_strategy_wiki_ojisan":
@@ -601,6 +601,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 	var enemy: Dictionary = {
 		"uid": uid,
 		"kind": kind,
+		"displayName": String(data.get("displayName", kind)),
 		"pos": pos,
 		"hp": data["hp"],
 		"max_hp": data["hp"],
@@ -623,7 +624,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"defeatDelay": 0.0,
 		"defeatResolved": false
 	}
-	if kind == "enemy_backseat_controller" or kind == "enemy_dot_invader" or kind == "enemy_lag_comment" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone" or kind == "enemy_noise_ghost_comment" or kind == "rough_line_comment":
+	if kind == "enemy_backseat_controller" or kind == "enemy_dot_invader" or kind == "enemy_lag_comment" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone" or kind == "enemy_noise_ghost_comment":
 		enemy["movePhase"] = float(uid % 19) * 0.37
 	if kind == "enemy_backseat_controller":
 		enemy["dashTimer"] = 0.0
@@ -638,7 +639,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		enemy["lifeTimer"] = 5.4
 	if kind == "enemy_jammer_cone":
 		enemy["lifeTimer"] = float(data.get("lifeTime", 8.0))
-	if kind == "enemy_noise_ghost_comment" or kind == "layer_lost":
+	if kind == "enemy_noise_ghost_comment" or kind == "layer_lost" or kind == "undo_ghost":
 		enemy["phaseTimer"] = float(uid % 13) * 0.21
 	if is_genre_event_enemy(kind):
 		enemy["genreEventEnemy"] = true

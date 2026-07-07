@@ -139,6 +139,18 @@ static func enemy_display_name(kind: String) -> String:
 		return "ノイズコメント"
 	if kind == "song_lyric_spoiler_comment":
 		return "歌詞ネタバレコメント"
+	if kind == "drawing_fix_note":
+		return "修正指示コメント"
+	if kind == "red_pen_teacher":
+		return "赤ペン先生"
+	if kind == "layer_lost":
+		return "レイヤー迷子"
+	if kind == "bucket_fill_slime":
+		return "バケツ塗りスライム"
+	if kind == "undo_ghost":
+		return "Undo幽霊"
+	if kind == "red_pen_review_chief":
+		return "赤ペン添削長"
 	if kind == "enemy_spoiler_comment":
 		return "ネタバレコメント"
 	if kind == "enemy_backseat_controller":

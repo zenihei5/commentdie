@@ -267,27 +267,64 @@ const SONG_ENCORE_LIVE_HEAT_MULTIPLIER := 1.4
 const SONG_ENCORE_VIEWER_GAIN_MULTIPLIER := 1.35
 const SONG_ENCORE_VOLTAGE_GAIN_MULTIPLIER := 1.35
 const SONG_ENCORE_CLEAR_BONUS_MULTIPLIER := 1.1
-const DRAWING_PAINT_COLOR_IDS := ["pink", "cyan"]
-const DRAWING_PAINT_DURATION := 8.0
+const DRAWING_PAINT_COLOR_IDS := ["pink", "cyan", "green", "yellow"]
+const DRAWING_PAINT_PINK_WEIGHT := 0.30
+const DRAWING_PAINT_CYAN_WEIGHT := 0.25
+const DRAWING_PAINT_GREEN_WEIGHT := 0.25
+const DRAWING_PAINT_MAX_AMOUNT := 200.0
+const DRAWING_PAINT_COST_PER_TRAIL_STAMP := 1.6
+const DRAWING_PAINT_COST_PER_NEW_CELL := 0.6
+const DRAWING_PAINT_SAME_COLOR_COST_MULTIPLIER := 0.30
+const DRAWING_PAINT_DIFFERENT_COLOR_COST_MULTIPLIER := 1.0
 const DRAWING_PAINT_ORB_INTERVAL_MIN := 7.0
 const DRAWING_PAINT_ORB_INTERVAL_MAX := 11.0
 const DRAWING_PAINT_ORB_LIFETIME := 18.0
 const DRAWING_PAINT_ORB_MAX := 5
 const DRAWING_PAINT_ORB_RADIUS := 28.0
+const DRAWING_PAINT_PINK_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_pink.png"
+const DRAWING_PAINT_CYAN_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_cyan.png"
+const DRAWING_PAINT_GREEN_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_green.png"
+const DRAWING_PAINT_YELLOW_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_yellow.png"
+const DRAWING_PAINT_GRAY_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_gray.png"
+const DRAWING_PALETTE_SHUFFLE_WEAK_GRAY_RATE := 0.5
+const DRAWING_PALETTE_SHUFFLE_RANDOM_WEIGHTS := {"pink": 1.0, "cyan": 1.0, "green": 1.0, "yellow": 1.0}
+const DRAWING_HUD_GAUGE_IMAGE := "res://assets/generated/drawing_hud_v1/drawing_gauge.png"
+const DRAWING_PAINT_GAUGE_APPEAR_DURATION := 0.22
+const DRAWING_PAINT_GAUGE_FADE_DURATION := 0.28
+const DRAWING_PAINT_GAUGE_RADIUS := 34.0
+const DRAWING_PAINT_GAUGE_WIDTH := 4.0
 const DRAWING_TRAIL_LIFETIME := 12.0
 const DRAWING_TRAIL_WIDTH := 56.0
 const DRAWING_TRAIL_STAMP_INTERVAL := 0.08
 const DRAWING_TRAIL_MIN_DISTANCE := 14.0
 const DRAWING_TRAIL_MAX_SAMPLES := 230
+const DRAWING_YELLOW_TRAIL_LIFETIME := 8.0
+const DRAWING_YELLOW_TRAIL_WALL_HP := 5.0
+const DRAWING_YELLOW_TRAIL_BOSS_DAMAGE_MULTIPLIER := 3.0
+const DRAWING_YELLOW_REGION_LIFETIME := 12.0
+const DRAWING_YELLOW_REGION_WALL_HP := 12.0
+const DRAWING_YELLOW_REGION_BOSS_DAMAGE_MULTIPLIER := 4.0
+const DRAWING_YELLOW_WALL_DAMAGE_PER_SECOND := 1.0
+const DRAWING_YELLOW_WALL_KNOCKBACK := 110.0
+const DRAWING_MAX_ACTIVE_YELLOW_WALLS := 3
 const DRAWING_CELL_SIZE := 32.0
 const DRAWING_MIN_FILL_CELLS := 12
 const DRAWING_MAX_FILL_CELLS := 180
 const DRAWING_MAX_ACTIVE_REGIONS := 3
-const DRAWING_REGION_LIFETIME := 10.0
+const DRAWING_REGION_LIFETIME := 16.0
+const DRAWING_REGION_FADE_DURATION := 1.5
 const DRAWING_REGION_TICK_INTERVAL := 0.5
-const DRAWING_PINK_DAMAGE_PER_TICK := 0.8
-const DRAWING_CYAN_SLOW_RATE := 0.30
-const DRAWING_CYAN_SLOW_TIMER := 0.85
+const DRAWING_REGION_VIEWER_GAIN := 300
+const DRAWING_REGION_GIFT_HYPE_GAIN := 1
+const DRAWING_PINK_DAMAGE_PER_TICK := 0.9
+const DRAWING_PINK_BOSS_DAMAGE_MULTIPLIER := 0.35
+const DRAWING_CYAN_SLOW_RATE := 0.55
+const DRAWING_CYAN_BOSS_SLOW_RATE := 0.15
+const DRAWING_CYAN_SLOW_TIMER := 1.0
+const DRAWING_GREEN_HEAL_PER_SECOND := 1.4
+const DRAWING_GREEN_TICK_INTERVAL := 0.5
+const DRAWING_GREEN_REGION_LIFETIME := 16.0
+const DRAWING_GREEN_REGION_HEAL_BURST := 3
 const DRAWING_REGION_KNOCKBACK := 18.0
 const DRAWING_CORRECTION_INTERVAL_MIN := 22.0
 const DRAWING_CORRECTION_INTERVAL_MAX := 34.0
@@ -300,21 +337,55 @@ const DRAWING_CORRECTION_GIFT_HYPE_GAIN := 5
 const DRAWING_CORRECTION_SPAWN_PAINT_ORB_CHANCE := 0.35
 const DRAWING_CORRECTION_HEAL_MENTAL_CHANCE := 0.15
 const DRAWING_CORRECTION_HEAL_AMOUNT := 5
-const DRAWING_ERASER_INTERVAL_MIN := 35.0
-const DRAWING_ERASER_INTERVAL_MAX := 50.0
+const DRAWING_CORRECTION_POINT_IMAGE := "res://assets/generated/drawing_pickups_v1/correction_point.png"
+const DRAWING_CORRECTION_NO_PAINT_HINT_DURATION := 0.8
+const DRAWING_CORRECTION_NO_PAINT_COOLDOWN := 0.75
+const DRAWING_CORRECTION_SHAKE_DURATION := 0.32
+const DRAWING_CORRECTION_ARROW_DURATION := 1.05
+const DRAWING_CORRECTION_ORB_ASSIST_RADIUS := 320.0
+const DRAWING_CORRECTION_ORB_ASSIST_MIN_DISTANCE := 132.0
+const DRAWING_CORRECTION_ORB_ASSIST_MAX_DISTANCE := 220.0
+const DRAWING_CORRECTION_COMPLETION_FLASH_DURATION := 0.42
+const DRAWING_ERASER_INTERVAL_MIN := 40.0
+const DRAWING_ERASER_INTERVAL_MAX := 55.0
+const DRAWING_ERASER_MAX := 1
 const DRAWING_ERASER_LIFETIME := 16.0
-const DRAWING_ERASER_RADIUS := 190.0
-const DRAWING_ERASER_DAMAGE := 1.0
-const DRAWING_ERASER_KNOCKBACK := 90.0
-const DRAWING_PROGRESS_FILL_GAIN := 1.5
-const DRAWING_PROGRESS_LARGE_FILL_BONUS := 2.0
-const DRAWING_PROGRESS_LARGE_FILL_MIN_CELLS := 64
+const DRAWING_ERASER_RADIUS := 260.0
+const DRAWING_ERASER_DAMAGE := 3.0
+const DRAWING_ERASER_KNOCKBACK := 198.0
+const DRAWING_ERASER_CORRECTION_RADIUS := 180.0
+const DRAWING_ERASER_INVINCIBLE_DURATION := 0.8
+const DRAWING_ERASER_WAVE_DURATION := 0.75
+const DRAWING_ERASER_IMAGE := "res://assets/generated/drawing_pickups_v1/eraser.png"
+const DRAWING_PROGRESS_TRAIL_NEW_CELL_GAIN := 0.02
+const DRAWING_PROGRESS_TRAIL_CELL_COOLDOWN := 6.0
+const DRAWING_PROGRESS_TRAIL_MAX_PER_PAINT_USE := 1.0
+const DRAWING_PROGRESS_FILL_BASE_GAIN := 2.0
+const DRAWING_PROGRESS_FILL_PER_CELL_GAIN := 0.04
+const DRAWING_PROGRESS_FILL_MAX_GAIN := 7.0
 const DRAWING_PROGRESS_CORRECTION_GAIN := 5.0
 const DRAWING_PROGRESS_ERASER_GAIN := 1.0
 const DRAWING_PROGRESS_ENEMY_SMALL_GAIN := 0.25
 const DRAWING_PROGRESS_ENEMY_MEDIUM_GAIN := 0.55
 const DRAWING_PROGRESS_ENEMY_LARGE_GAIN := 1.0
-const DRAWING_COMPLETE_VIEWER_REWARD := 1800
+const DRAWING_MILESTONE_ROUGH_PROGRESS := 25.0
+const DRAWING_MILESTONE_LINEART_PROGRESS := 50.0
+const DRAWING_MILESTONE_BASE_PAINT_PROGRESS := 75.0
+const DRAWING_MILESTONE_COMPLETE_PROGRESS := 100.0
+const DRAWING_MILESTONE_ROUGH_PAINT_ORBS := 2
+const DRAWING_MILESTONE_ROUGH_GIFT_HYPE := 3
+const DRAWING_MILESTONE_ROUGH_VIEWER_REWARD := 300
+const DRAWING_MILESTONE_LINEART_DAMAGE := 4.0
+const DRAWING_MILESTONE_LINEART_KNOCKBACK := 135.0
+const DRAWING_MILESTONE_LINEART_GIFT_HYPE := 5
+const DRAWING_MILESTONE_BASE_PAINT_REGION_SECONDS := 5.0
+const DRAWING_MILESTONE_BASE_PAINT_NEXT_REGION_RATE := 1.25
+const DRAWING_MILESTONE_BASE_PAINT_GIFT_HYPE := 8
+const DRAWING_MILESTONE_BASE_PAINT_VIEWER_REWARD := 700
+const DRAWING_MILESTONE_COMPLETE_DAMAGE := 8.0
+const DRAWING_MILESTONE_COMPLETE_KNOCKBACK := 260.0
+const DRAWING_MILESTONE_NEXT_GIFT_HYPE_BONUS := 8
+const DRAWING_COMPLETE_VIEWER_REWARD := 1500
 const DRAWING_COMPLETE_GIFT_HYPE_REWARD := 15
 const DRAWING_FOCUS_SPOT_INTERVAL_MIN := 24.0
 const DRAWING_FOCUS_SPOT_INTERVAL_MAX := 34.0
@@ -322,6 +393,12 @@ const DRAWING_FOCUS_SPOT_LIFETIME := 13.0
 const DRAWING_FOCUS_SPOT_RADIUS := 118.0
 const DRAWING_FOCUS_TRAIL_WIDTH_RATE := 1.16
 const DRAWING_FOCUS_CORRECTION_SPEED_RATE := 1.25
+const DRAWING_FOCUS_PAINT_COST_RATE := 0.65
+const DRAWING_SPILLED_PAINT_LIFETIME := 16.0
+const DRAWING_SPILLED_PAINT_RADIUS_MIN := 44.0
+const DRAWING_SPILLED_PAINT_RADIUS_MAX := 68.0
+const DRAWING_SPILLED_PAINT_SLOW_RATE := 0.22
+const DRAWING_SPILLED_PAINT_CLEAR_PADDING := 24.0
 const DRAWING_TOAST_DURATION := 1.45
 const STREAM_START_INTRO_DURATION := 1.90
 const STREAM_START_INTRO_SKIP_DELAY := 0.30
@@ -560,21 +637,36 @@ var drawing_paint_orbs: Array = []
 var drawing_paint_trails: Array = []
 var drawing_paint_regions: Array = []
 var drawing_correction_points: Array = []
+var drawing_correction_completion_fx: Array = []
 var drawing_erasers: Array = []
+var drawing_eraser_waves: Array = []
 var drawing_focus_spots: Array = []
+var drawing_spilled_paints: Array = []
 var drawing_active_paint_color := ""
 var drawing_active_paint_timer := 0.0
+var drawing_current_paint_amount := 0.0
+var drawing_paint_gauge_appear_timer := 0.0
+var drawing_paint_gauge_fade_timer := 0.0
+var drawing_paint_gauge_last_color := ""
 var drawing_orb_spawn_timer := 1.8
 var drawing_correction_spawn_timer := 8.0
-var drawing_eraser_spawn_timer := 15.0
+var drawing_eraser_spawn_timer := DRAWING_ERASER_INTERVAL_MIN
 var drawing_focus_spawn_timer := 6.0
+var drawing_green_heal_tick_timer := DRAWING_GREEN_TICK_INTERVAL
+var drawing_green_heal_accumulator := 0.0
 var drawing_trail_stamp_timer := 0.0
 var drawing_last_trail_stamp_pos := Vector2.ZERO
 var drawing_has_last_trail_stamp := false
+var drawing_trail_progress_cell_cooldowns: Dictionary = {}
+var drawing_trail_progress_gain_this_paint := 0.0
 var drawing_focus_inside_last_frame := false
+var drawing_green_recovery_inside_last_frame := false
 var drawing_next_region_id := 1
 var drawing_progress := 0.0
 var drawing_complete_reward_claimed := false
+var drawing_progress_milestones_claimed: Dictionary = {}
+var drawing_next_region_effect_rate := 1.0
+var drawing_next_gift_choice_hype_bonus := 0
 var drawing_fill_count := 0
 var drawing_correction_complete_count := 0
 var drawing_eraser_used_count := 0
@@ -582,6 +674,7 @@ var drawing_filled_cell_keys: Dictionary = {}
 var drawing_toast_timer := 0.0
 var drawing_toast_title := ""
 var drawing_toast_subtitle := ""
+var drawing_toast_queue: Array = []
 var banana_slip_fx_timer := 0.0
 var banana_floor_appear_timer := 0.0
 var banana_floor_rollback_timer := 0.0
@@ -2787,7 +2880,7 @@ func _draw() -> void:
 		_draw_screen_backdrop()
 	else:
 		_draw_world_layer()
-	if state == "comment_choice" or state == "gift_choice" or state == "pause":
+	if state == "comment_choice" or state == "gift_choice" or state == "pause" or state == "game_over_intro" or state == "result":
 		_draw_status_overlay_layer()
 		_draw_overlay_layer()
 	else:
@@ -3623,6 +3716,7 @@ func _update_spawning(delta: float, arena: Rect2) -> void:
 
 func _update_enemies(delta: float, arena: Rect2) -> void:
 	var result: Dictionary = EnemySystemScript.update_world_for_target(self, delta, rng, arena)
+	_update_drawing_yellow_walls_vs_enemies(delta, arena)
 	var marshmallow_drop_requests: Array = result.get("marshmallowDropRequests", []) as Array
 	if not marshmallow_drop_requests.is_empty():
 		MarshmallowSystemScript.spawn_supply_drop_requests_for_target(self, marshmallow_data, marshmallow_drop_requests, rng, arena, effect_walls)
@@ -3727,7 +3821,14 @@ func _start_gift_choice() -> void:
 	pending_gift_choices -= 1
 	gift_choice_enter_time = 0.0
 	_play_level_up_se()
+	var base_gift_hype := gift_hype
+	var applied_drawing_hype_bonus := drawing_next_gift_choice_hype_bonus
+	if applied_drawing_hype_bonus > 0:
+		drawing_next_gift_choice_hype_bonus = 0
+		gift_hype = clampi(gift_hype + applied_drawing_hype_bonus, 0, 100)
 	var result: Dictionary = GiftSystemScript.start_offer_ui_for_target(self, gifts, rng, choice_box)
+	if applied_drawing_hype_bonus > 0:
+		gift_hype = base_gift_hype
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["arrivalText"])]}, chat_box)
 	_refresh_choice_cards()
 
@@ -4949,6 +5050,7 @@ func _draw_genre_stg_player_overlay() -> void:
 
 func _draw_player() -> void:
 	_draw_song_spotlight_player_underlay()
+	_draw_drawing_paint_gauge_underlay()
 	if player_sprite != null:
 		_draw_player_sprite()
 		_draw_genre_stg_player_overlay()
@@ -4985,6 +5087,44 @@ func _draw_song_spotlight_player_underlay() -> void:
 		var from_pos := player_pos + Vector2(cos(angle), sin(angle)) * (base_radius * 0.72)
 		var to_pos := player_pos + Vector2(0.0, -36.0) + Vector2(cos(angle) * 9.0, sin(angle) * 5.0)
 		draw_line(from_pos, to_pos, Color(1.0, 0.88, 0.36, (0.12 + flash * 0.08) * alpha), 2.4, true)
+
+func _draw_drawing_paint_gauge_underlay() -> void:
+	if not _is_drawing_frame():
+		return
+	var active := _drawing_has_active_paint()
+	if not active and drawing_paint_gauge_fade_timer <= 0.0:
+		return
+	var color_id := drawing_active_paint_color if active else drawing_paint_gauge_last_color
+	if color_id == "":
+		return
+	var ratio := _drawing_paint_amount_ratio() if active else 0.0
+	var appear := 1.0
+	if active and drawing_paint_gauge_appear_timer > 0.0:
+		appear = smoothstep(0.0, 1.0, 1.0 - drawing_paint_gauge_appear_timer / DRAWING_PAINT_GAUGE_APPEAR_DURATION)
+	var fade := 1.0 if active else clampf(drawing_paint_gauge_fade_timer / DRAWING_PAINT_GAUGE_FADE_DURATION, 0.0, 1.0)
+	var alpha := appear * fade
+	if alpha <= 0.01:
+		return
+	var paint_color := _drawing_paint_color(color_id)
+	var blink := 1.0
+	if active and ratio <= 0.30:
+		blink = 0.64 + 0.36 * (0.5 + 0.5 * sin(elapsed * 13.0))
+	var scale := lerpf(0.84, 1.0, appear)
+	var center := player_pos + Vector2(0.0, 25.0)
+	var radius := DRAWING_PAINT_GAUGE_RADIUS * scale
+	draw_circle(center, radius + 4.0, Color(0.02, 0.03, 0.05, 0.14 * alpha))
+	draw_circle(center, radius, Color(1.0, 1.0, 1.0, 0.30 * alpha), false, DRAWING_PAINT_GAUGE_WIDTH + 1.6, true)
+	draw_circle(center, radius - 1.0, Color(0.78, 0.92, 1.0, 0.15 * alpha), false, 1.4, true)
+	if ratio > 0.0:
+		var start_angle := -PI * 0.5
+		var end_angle := start_angle + TAU * ratio
+		draw_arc(center, radius, start_angle, end_angle, 52, Color(paint_color.r, paint_color.g, paint_color.b, 0.88 * alpha * blink), DRAWING_PAINT_GAUGE_WIDTH, true)
+		draw_arc(center, radius, start_angle, end_angle, 52, Color(1.0, 1.0, 1.0, 0.26 * alpha * blink), 1.3, true)
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _drawing_paint_orb_image_path(color_id))
+	if texture != null:
+		var icon_size := Vector2.ONE * 27.0 * scale
+		var icon_center := center + Vector2(radius * 0.70, radius * 0.60)
+		draw_texture_rect(texture, _fit_texture_rect(Rect2(icon_center - icon_size * 0.5, icon_size), texture.get_size()), false, Color(1.0, 1.0, 1.0, 0.96 * alpha))
 
 func _draw_song_spotlight_player_overlay() -> void:
 	if not _song_spotlight_benefit_active():
@@ -5919,7 +6059,25 @@ func _fit_texture_rect(container: Rect2, tex_size: Vector2) -> Rect2:
 	var size: Vector2 = tex_size * scale
 	return Rect2(container.position + (container.size - size) * 0.5, size)
 
-func _draw_texture_cover_rect(texture: Texture2D, container: Rect2, focus: Vector2 = Vector2(0.5, 0.46), zoom: float = 1.0) -> void:
+func _draw_texture_with_silhouette_outline(texture: Texture2D, rect: Rect2, modulate: Color = Color.WHITE, outline_color: Color = Color(0.03, 0.03, 0.05, 0.78), outline_px: float = 4.0) -> void:
+	if texture == null or rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return
+	var offsets := [
+		Vector2(-1.0, 0.0),
+		Vector2(1.0, 0.0),
+		Vector2(0.0, -1.0),
+		Vector2(0.0, 1.0),
+		Vector2(-0.72, -0.72),
+		Vector2(0.72, -0.72),
+		Vector2(-0.72, 0.72),
+		Vector2(0.72, 0.72)
+	]
+	for offset_value in offsets:
+		var offset: Vector2 = offset_value as Vector2
+		draw_texture_rect(texture, Rect2(rect.position + offset * outline_px, rect.size), false, outline_color)
+	draw_texture_rect(texture, rect, false, modulate)
+
+func _draw_texture_cover_rect(texture: Texture2D, container: Rect2, focus: Vector2 = Vector2(0.5, 0.46), zoom: float = 1.0, modulate: Color = Color.WHITE) -> void:
 	var tex_size := texture.get_size()
 	if tex_size.x <= 0.0 or tex_size.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
 		return
@@ -5938,7 +6096,55 @@ func _draw_texture_cover_rect(texture: Texture2D, container: Rect2, focus: Vecto
 		var zoom_margin := source_rect.size - zoomed_size
 		source_rect.position += Vector2(zoom_margin.x * focus.x, zoom_margin.y * focus.y)
 		source_rect.size = zoomed_size
-	draw_texture_rect_region(texture, container, source_rect)
+	draw_texture_rect_region(texture, container, source_rect, modulate)
+
+func _draw_texture_cover_rect_reveal(texture: Texture2D, container: Rect2, reveal: float, focus: Vector2 = Vector2(0.5, 0.46), zoom: float = 1.0, modulate: Color = Color.WHITE) -> void:
+	reveal = clampf(reveal, 0.0, 1.0)
+	if reveal <= 0.0:
+		return
+	var tex_size := texture.get_size()
+	if tex_size.x <= 0.0 or tex_size.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
+		return
+	zoom = maxf(1.0, zoom)
+	var container_aspect: float = container.size.x / container.size.y
+	var texture_aspect: float = tex_size.x / tex_size.y
+	var source_rect := Rect2(Vector2.ZERO, tex_size)
+	if texture_aspect > container_aspect:
+		source_rect.size.x = tex_size.y * container_aspect
+		source_rect.position.x = clampf((tex_size.x - source_rect.size.x) * focus.x, 0.0, tex_size.x - source_rect.size.x)
+	else:
+		source_rect.size.y = tex_size.x / container_aspect
+		source_rect.position.y = clampf((tex_size.y - source_rect.size.y) * focus.y, 0.0, tex_size.y - source_rect.size.y)
+	if zoom > 1.0:
+		var zoomed_size := source_rect.size / zoom
+		var zoom_margin := source_rect.size - zoomed_size
+		source_rect.position += Vector2(zoom_margin.x * focus.x, zoom_margin.y * focus.y)
+		source_rect.size = zoomed_size
+	if reveal >= 0.995:
+		draw_texture_rect_region(texture, container, source_rect, modulate)
+		return
+	var visible_width := container.size.x * reveal
+	if visible_width <= 1.0:
+		return
+	var visible_rect := Rect2(container.position, Vector2(visible_width, container.size.y))
+	var visible_source := source_rect
+	visible_source.size.x *= reveal
+	draw_texture_rect_region(texture, visible_rect, visible_source, modulate)
+
+func _draw_drawing_canvas_progress_scroll_edge(canvas_rect: Rect2, reveal: float, color: Color, alpha: float) -> void:
+	if reveal <= 0.02 or reveal >= 0.995:
+		return
+	var edge_x := canvas_rect.position.x + canvas_rect.size.x * reveal
+	var wobble := sin(elapsed * 9.0 + reveal * TAU) * 2.0
+	edge_x += wobble
+	var edge_alpha := clampf(alpha, 0.0, 1.0)
+	var band := Rect2(Vector2(edge_x - 10.0, canvas_rect.position.y), Vector2(20.0, canvas_rect.size.y))
+	draw_rect(band, Color(color.r, color.g, color.b, 0.07 * edge_alpha), true)
+	draw_line(Vector2(edge_x - 4.0, canvas_rect.position.y), Vector2(edge_x - 4.0, canvas_rect.end.y), Color(1.0, 1.0, 1.0, 0.34 * edge_alpha), 5.0, true)
+	draw_line(Vector2(edge_x, canvas_rect.position.y), Vector2(edge_x, canvas_rect.end.y), Color(color.r, color.g, color.b, 0.58 * edge_alpha), 3.0, true)
+	for i in range(5):
+		var y := canvas_rect.position.y + fmod(float(i) * 179.0 + elapsed * 48.0, canvas_rect.size.y)
+		draw_line(Vector2(edge_x - 11.0, y), Vector2(edge_x + 11.0, y + 6.0), Color(1.0, 1.0, 1.0, 0.18 * edge_alpha), 1.6, true)
 
 func _draw_character_bust_panel_v25() -> void:
 	var rect := Rect2(Vector2(1006, 18), Vector2(230, 136))
@@ -6076,34 +6282,62 @@ func _draw_drawing_canvas_progress_layer(map_data: Dictionary) -> void:
 	var paths_value: Variant = map_data.get("canvasProgressPaths", {})
 	if not (paths_value is Dictionary):
 		return
-	var progress_data := _drawing_canvas_progress_layer_data()
-	var progress_key := String(progress_data.get("key", "rough"))
-	var path := String((paths_value as Dictionary).get(progress_key, ""))
-	if path == "":
-		return
-	var texture: Texture2D = _load_ui_part(path)
-	if texture == null:
-		texture = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
-	if texture == null:
-		return
 	var local_rect: Rect2 = rect_value as Rect2
 	var map_rect: Rect2 = MapBackgroundSystemScript.world_rect(map_data)
 	var canvas_rect := Rect2(map_rect.position + local_rect.position, local_rect.size)
-	var draw_rect := _fit_texture_rect(canvas_rect.grow(-18.0), texture.get_size())
-	var alpha := float(progress_data.get("alpha", 0.22))
-	draw_texture_rect(texture, draw_rect, false, Color(1.0, 1.0, 1.0, alpha))
+	var inset_value: Variant = map_data.get("canvasProgressInset", Vector4.ZERO)
+	if inset_value is Vector4:
+		var inset: Vector4 = inset_value as Vector4
+		canvas_rect = Rect2(
+			canvas_rect.position + Vector2(inset.x, inset.y),
+			canvas_rect.size - Vector2(inset.x + inset.z, inset.y + inset.w)
+		)
+		if canvas_rect.size.x <= 0.0 or canvas_rect.size.y <= 0.0:
+			return
+	var layer_items := _drawing_canvas_progress_layer_items()
+	for item_value in layer_items:
+		var item: Dictionary = item_value as Dictionary
+		var progress_key := String(item.get("key", "rough"))
+		var path := String((paths_value as Dictionary).get(progress_key, ""))
+		if path == "":
+			continue
+		var texture: Texture2D = _load_ui_part(path)
+		if texture == null:
+			texture = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+		if texture == null:
+			continue
+		var alpha := float(item.get("alpha", 0.22))
+		var reveal := clampf(float(item.get("reveal", 1.0)), 0.0, 1.0)
+		_draw_texture_cover_rect_reveal(texture, canvas_rect, reveal, Vector2(0.5, 0.50), 1.0, Color(1.0, 1.0, 1.0, alpha))
+		if bool(item.get("edge", false)):
+			_draw_drawing_canvas_progress_scroll_edge(canvas_rect, reveal, item.get("edgeColor", Color("#8eeaff")) as Color, alpha)
 
-func _drawing_canvas_progress_layer_data() -> Dictionary:
+func _drawing_canvas_progress_layer_items() -> Array:
 	var progress := clampf(drawing_progress, 0.0, 100.0)
+	if progress <= 0.0:
+		return []
+	var items: Array = []
 	if progress >= 100.0:
-		return {"key": "complete", "alpha": 0.42}
+		items.append({"key": "complete", "alpha": 0.42, "reveal": 1.0})
+		return items
 	if progress >= 75.0:
-		return {"key": "finish", "alpha": 0.30 + (progress - 75.0) / 25.0 * 0.08}
+		var local := (progress - 75.0) / 25.0
+		items.append({"key": "finish", "alpha": lerpf(0.24, 0.08, local), "reveal": 1.0})
+		items.append({"key": "complete", "alpha": lerpf(0.30, 0.42, local), "reveal": local, "edge": true, "edgeColor": Color("#fff4a8")})
+		return items
 	if progress >= 50.0:
-		return {"key": "finish", "alpha": 0.21 + (progress - 50.0) / 25.0 * 0.07}
+		var local := (progress - 50.0) / 25.0
+		items.append({"key": "lineart", "alpha": lerpf(0.20, 0.10, local), "reveal": 1.0})
+		items.append({"key": "finish", "alpha": lerpf(0.21, 0.30, local), "reveal": local, "edge": true, "edgeColor": Color("#ff9fd1")})
+		return items
 	if progress >= 25.0:
-		return {"key": "lineart", "alpha": 0.20 + (progress - 25.0) / 25.0 * 0.05}
-	return {"key": "rough", "alpha": 0.14 + progress / 25.0 * 0.07}
+		var local := (progress - 25.0) / 25.0
+		items.append({"key": "rough", "alpha": lerpf(0.18, 0.10, local), "reveal": 1.0})
+		items.append({"key": "lineart", "alpha": lerpf(0.20, 0.25, local), "reveal": local, "edge": true, "edgeColor": Color("#8eeaff")})
+		return items
+	var local := progress / 25.0
+	items.append({"key": "rough", "alpha": 0.14 + local * 0.07, "reveal": local, "edge": true, "edgeColor": Color("#e3c2ff")})
+	return items
 
 func _load_ui_part(path: String) -> Texture2D:
 	return TextureCacheSystemScript.load_resource_texture(ui_part_cache, path)
@@ -9388,6 +9622,16 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/song_lighting_mistake_icon.png"
 	elif comment_id == "song_lyrics_lost":
 		path = "res://assets/generated/instruction_comment_icons_v1/song_lyrics_lost_icon.png"
+	elif comment_id == "drawing_fast_dry":
+		path = "res://assets/generated/instruction_comment_icons_v1/drawing_fast_dry_icon.png"
+	elif comment_id == "drawing_too_much_paint":
+		path = "res://assets/generated/instruction_comment_icons_v1/drawing_too_much_paint_icon.png"
+	elif comment_id == "drawing_palette_shuffle":
+		path = "res://assets/generated/instruction_comment_icons_v1/drawing_palette_shuffle_icon.png"
+	elif comment_id == "drawing_more_corrections":
+		path = "res://assets/generated/instruction_comment_icons_v1/drawing_more_corrections_icon.png"
+	elif comment_id == "drawing_spilled_bucket":
+		path = "res://assets/generated/instruction_comment_icons_v1/drawing_spilled_bucket_icon.png"
 	if path == "":
 		return null
 	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)
@@ -9411,6 +9655,9 @@ func _instruction_comment_icon_rect(card_rect: Rect2, center_x: float, comment_i
 		icon_size = Vector2(150.0, 150.0)
 		y_offset = 82.0
 	elif comment_id in ["song_force_chorus", "song_mic_howling", "song_lighting_mistake", "song_lyrics_lost"]:
+		icon_size = Vector2(156.0, 156.0)
+		y_offset = 78.0
+	elif comment_id in ["drawing_fast_dry", "drawing_too_much_paint", "drawing_palette_shuffle", "drawing_more_corrections", "drawing_spilled_bucket"]:
 		icon_size = Vector2(156.0, 156.0)
 		y_offset = 78.0
 	return Rect2(Vector2(center_x - icon_size.x * 0.5, card_rect.position.y + y_offset), icon_size)
@@ -10443,6 +10690,28 @@ func _apply_drawing_instruction_comment(comment_id: String) -> void:
 		return
 	var arena := _current_arena()
 	match comment_id:
+		"drawing_fast_dry":
+			_show_drawing_toast("乾くの早すぎ！", "ペイント線が短時間で消えます")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 乾くの早すぎ！", "> 囲うなら急いで"]}, chat_box)
+		"drawing_too_much_paint":
+			_show_drawing_toast("絵具出すぎ！", "線が太い・絵具消費UP")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 絵具出すぎ！", "> 太い線で囲えるけど減りも早い"]}, chat_box)
+		"drawing_palette_shuffle":
+			_show_drawing_toast("パレットぐちゃぐちゃ！", "グレー絵具は拾うまで色不明")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ パレット事故注意", "> グレー絵具は拾うまで色が分からない"]}, chat_box)
+			_refresh_drawing_paint_orb_palette_state()
+		"drawing_more_corrections":
+			var burst_count := _drawing_more_corrections_burst_count()
+			for i in range(burst_count):
+				if drawing_correction_points.size() < DRAWING_CORRECTION_MAX + burst_count:
+					_spawn_drawing_correction_point(arena)
+			_show_drawing_toast("修正指示ふえた！", "修正ポイント追加・処理報酬UP")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 修正ポイント追加！", "> 今なら直すほどおいしい"]}, chat_box)
+		"drawing_spilled_bucket":
+			var spill_count := _drawing_spilled_bucket_count()
+			_spawn_drawing_spilled_bucket(arena, spill_count)
+			_show_drawing_toast("バケツ倒した！", "汚れペイントを消しゴムで掃除")
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ バケツ倒した！", "> 汚れ踏むと足取られる"]}, chat_box)
 		"drawing_paint_rush":
 			for i in range(3):
 				if drawing_paint_orbs.size() < DRAWING_PAINT_ORB_MAX:
@@ -10472,14 +10741,55 @@ func _drawing_instruction_multiplier(comment_id: String, active_value: float) ->
 		return 1.0
 	return lerpf(1.0, active_value, power)
 
+func _drawing_instruction_variant_value(comment_id: String, inactive_value: float, full_value: float, heart_value: float) -> float:
+	var power := _drawing_instruction_power(comment_id)
+	if power <= 0.0:
+		return inactive_value
+	if power >= 0.95:
+		return full_value
+	return heart_value
+
+func _drawing_fast_dry_lifetime_multiplier() -> float:
+	return _drawing_instruction_variant_value("drawing_fast_dry", 1.0, 0.5, 8.0 / 12.0)
+
+func _drawing_too_much_paint_width_multiplier() -> float:
+	return _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.4, 1.25)
+
+func _drawing_too_much_paint_cost_multiplier() -> float:
+	return _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.6, 1.3)
+
+func _drawing_palette_gray_paint_rate() -> float:
+	return _drawing_instruction_variant_value("drawing_palette_shuffle", 0.0, 1.0, DRAWING_PALETTE_SHUFFLE_WEAK_GRAY_RATE)
+
+func _drawing_more_corrections_burst_count() -> int:
+	return int(round(_drawing_instruction_variant_value("drawing_more_corrections", 0.0, 2.0, 1.0)))
+
+func _drawing_more_corrections_reward_multiplier() -> float:
+	return _drawing_instruction_variant_value("drawing_more_corrections", 1.0, 1.3, 1.15)
+
+func _drawing_spilled_bucket_count() -> int:
+	return int(round(_drawing_instruction_variant_value("drawing_spilled_bucket", 0.0, 6.0, 3.0)))
+
 func _drawing_focus_work_multiplier(active_value: float) -> float:
 	if not drawing_focus_inside_last_frame:
 		return 1.0
 	return active_value
 
+func _drawing_paint_cost_multiplier() -> float:
+	var value := _drawing_too_much_paint_cost_multiplier()
+	if drawing_focus_inside_last_frame:
+		value *= DRAWING_FOCUS_PAINT_COST_RATE
+	return value
+
+func _drawing_has_active_paint() -> bool:
+	return drawing_active_paint_color != "" and drawing_current_paint_amount > 0.0
+
+func _drawing_paint_amount_ratio() -> float:
+	return clampf(drawing_current_paint_amount / DRAWING_PAINT_MAX_AMOUNT, 0.0, 1.0)
+
 func _drawing_trail_width() -> float:
 	var value := DRAWING_TRAIL_WIDTH
-	value *= _drawing_instruction_multiplier("drawing_paint_rush", 1.22)
+	value *= _drawing_too_much_paint_width_multiplier()
 	value *= _drawing_focus_work_multiplier(DRAWING_FOCUS_TRAIL_WIDTH_RATE)
 	return value
 
@@ -11548,8 +11858,8 @@ func _add_drawing_progress(amount: float, _source: String = "", pos: Vector2 = V
 			"text": "+%.1f%%" % amount,
 			"color": Color("#ff8fc8")
 		})
-	if before < 100.0 and drawing_progress >= 100.0:
-		_complete_drawing_illustration()
+	if drawing_progress > before:
+		_check_drawing_progress_milestones()
 
 func _add_drawing_progress_from_enemy_defeat(enemy: Dictionary) -> void:
 	var max_hp := float(enemy.get("max_hp", enemy.get("maxHp", enemy.get("hp", 0.0))))
@@ -11561,6 +11871,104 @@ func _add_drawing_progress_from_enemy_defeat(enemy: Dictionary) -> void:
 		gain = DRAWING_PROGRESS_ENEMY_MEDIUM_GAIN
 	_add_drawing_progress(gain, "enemy_defeat", Vector2(enemy.get("pos", player_pos)) + Vector2(-18.0, -24.0))
 
+func _check_drawing_progress_milestones() -> void:
+	if not _is_drawing_frame():
+		return
+	var milestones := [
+		{"key": "rough", "threshold": DRAWING_MILESTONE_ROUGH_PROGRESS},
+		{"key": "lineart", "threshold": DRAWING_MILESTONE_LINEART_PROGRESS},
+		{"key": "base_paint", "threshold": DRAWING_MILESTONE_BASE_PAINT_PROGRESS},
+		{"key": "complete", "threshold": DRAWING_MILESTONE_COMPLETE_PROGRESS}
+	]
+	for item_value in milestones:
+		var item: Dictionary = item_value as Dictionary
+		var key := String(item.get("key", ""))
+		if key == "" or bool(drawing_progress_milestones_claimed.get(key, false)):
+			continue
+		if drawing_progress < float(item.get("threshold", 100.0)):
+			continue
+		drawing_progress_milestones_claimed[key] = true
+		_apply_drawing_progress_milestone(key)
+
+func _apply_drawing_progress_milestone(key: String) -> void:
+	var arena := _current_arena()
+	match key:
+		"rough":
+			_spawn_drawing_bonus_paint_orbs(DRAWING_MILESTONE_ROUGH_PAINT_ORBS, arena)
+			_add_drawing_milestone_resources(DRAWING_MILESTONE_ROUGH_VIEWER_REWARD, DRAWING_MILESTONE_ROUGH_GIFT_HYPE)
+			_show_drawing_toast("ラフ完成！", "絵具 +%d / 視聴者 +%d / ギフト +%d" % [
+				DRAWING_MILESTONE_ROUGH_PAINT_ORBS,
+				DRAWING_MILESTONE_ROUGH_VIEWER_REWARD,
+				DRAWING_MILESTONE_ROUGH_GIFT_HYPE
+			], true)
+			_play_exp_pickup_se()
+		"lineart":
+			var hits := _apply_drawing_milestone_screen_damage(
+				DRAWING_MILESTONE_LINEART_DAMAGE,
+				DRAWING_MILESTONE_LINEART_KNOCKBACK,
+				"drawing_lineart_milestone"
+			)
+			_spawn_drawing_eraser(arena, true)
+			_add_drawing_milestone_resources(0, DRAWING_MILESTONE_LINEART_GIFT_HYPE)
+			_show_drawing_toast("線画完成！", "敵%d体に効果 / 消しゴム +1 / ギフト +%d" % [
+				hits,
+				DRAWING_MILESTONE_LINEART_GIFT_HYPE
+			], true)
+			_request_screen_shake(0.035, 0.08)
+		"base_paint":
+			var extended := _extend_drawing_paint_regions(DRAWING_MILESTONE_BASE_PAINT_REGION_SECONDS)
+			drawing_next_region_effect_rate = maxf(drawing_next_region_effect_rate, DRAWING_MILESTONE_BASE_PAINT_NEXT_REGION_RATE)
+			_add_drawing_milestone_resources(DRAWING_MILESTONE_BASE_PAINT_VIEWER_REWARD, DRAWING_MILESTONE_BASE_PAINT_GIFT_HYPE)
+			_show_drawing_toast("下塗り完成！", "ゾーン%d個 +%.0f秒 / 次ゾーン x%.2f" % [
+				extended,
+				DRAWING_MILESTONE_BASE_PAINT_REGION_SECONDS,
+				DRAWING_MILESTONE_BASE_PAINT_NEXT_REGION_RATE
+			], true)
+			_play_exp_pickup_se()
+		"complete":
+			_complete_drawing_illustration()
+
+func _add_drawing_milestone_resources(viewer_gain: int, gift_gain: int) -> void:
+	if viewer_gain > 0:
+		score += viewer_gain
+	if gift_gain > 0:
+		gift_hype = clampi(gift_hype + gift_gain, 0, 100)
+		max_gift_hype = maxi(max_gift_hype, gift_hype)
+
+func _spawn_drawing_bonus_paint_orbs(count: int, arena: Rect2) -> void:
+	for i in range(maxi(0, count)):
+		_add_drawing_paint_orb(_drawing_paint_orb_position(arena))
+
+func _apply_drawing_milestone_screen_damage(damage: float, knockback: float, source: String) -> int:
+	var visible_rect := _visible_world_rect_for_spawning().intersection(_current_arena()).grow(72.0)
+	var origin := visible_rect.get_center()
+	var hits := 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		var enemy_radius := maxf(12.0, float(enemy.get("radius", 24.0)))
+		if not visible_rect.grow(enemy_radius).has_point(enemy_pos):
+			continue
+		if _song_apply_enemy_damage(enemy, damage, origin, knockback, source):
+			hits += 1
+	if hits > 0:
+		_play_enemy_damage_se_once_per_frame()
+	return hits
+
+func _extend_drawing_paint_regions(extra_seconds: float) -> int:
+	if extra_seconds <= 0.0:
+		return 0
+	var extended := 0
+	for i in range(drawing_paint_regions.size()):
+		var region: Dictionary = drawing_paint_regions[i] as Dictionary
+		region["time"] = float(region.get("time", 0.0)) + extra_seconds
+		region["maxTime"] = float(region.get("maxTime", region.get("time", 0.0))) + extra_seconds
+		drawing_paint_regions[i] = region
+		extended += 1
+	return extended
+
 func _complete_drawing_illustration() -> void:
 	if drawing_complete_reward_claimed:
 		return
@@ -11568,8 +11976,14 @@ func _complete_drawing_illustration() -> void:
 	score += DRAWING_COMPLETE_VIEWER_REWARD
 	gift_hype = clampi(gift_hype + DRAWING_COMPLETE_GIFT_HYPE_REWARD, 0, 100)
 	max_gift_hype = maxi(max_gift_hype, gift_hype)
-	_show_drawing_toast("イラスト完成！", "視聴者 +%d / ギフト +%d" % [DRAWING_COMPLETE_VIEWER_REWARD, DRAWING_COMPLETE_GIFT_HYPE_REWARD])
-	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ イラスト完成！", "888888", "> サムネいける", "+ 視聴者が増えた！"]}, chat_box)
+	var hits := _apply_drawing_milestone_screen_damage(
+		DRAWING_MILESTONE_COMPLETE_DAMAGE,
+		DRAWING_MILESTONE_COMPLETE_KNOCKBACK,
+		"drawing_complete_milestone"
+	)
+	drawing_next_gift_choice_hype_bonus = maxi(drawing_next_gift_choice_hype_bonus, DRAWING_MILESTONE_NEXT_GIFT_HYPE_BONUS)
+	_show_drawing_toast("完成披露！", "敵%d体に効果 / 視聴者 +%d / ギフト +%d" % [hits, DRAWING_COMPLETE_VIEWER_REWARD, DRAWING_COMPLETE_GIFT_HYPE_REWARD], true)
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 完成披露！", "888888", "> サムネいける", "+ 視聴者が増えた！"]}, chat_box)
 	hit_fx.append({
 		"kind": "pickup_text",
 		"pos": player_pos + Vector2(-64.0, -96.0),
@@ -11579,6 +11993,8 @@ func _complete_drawing_illustration() -> void:
 		"text": "COMPLETE!",
 		"color": Color("#ff5cad")
 	})
+	_request_screen_flash(Color(1.0, 0.86, 0.42, 0.20), 0.22)
+	_request_screen_shake(0.075, 0.14)
 	_play_exp_pickup_se()
 
 func _reset_drawing_stage_state() -> void:
@@ -11586,21 +12002,36 @@ func _reset_drawing_stage_state() -> void:
 	drawing_paint_trails.clear()
 	drawing_paint_regions.clear()
 	drawing_correction_points.clear()
+	drawing_correction_completion_fx.clear()
 	drawing_erasers.clear()
+	drawing_eraser_waves.clear()
 	drawing_focus_spots.clear()
+	drawing_spilled_paints.clear()
 	drawing_active_paint_color = ""
 	drawing_active_paint_timer = 0.0
+	drawing_current_paint_amount = 0.0
+	drawing_paint_gauge_appear_timer = 0.0
+	drawing_paint_gauge_fade_timer = 0.0
+	drawing_paint_gauge_last_color = ""
 	drawing_orb_spawn_timer = 1.8
 	drawing_correction_spawn_timer = 8.0
-	drawing_eraser_spawn_timer = 15.0
+	drawing_eraser_spawn_timer = rng.randf_range(DRAWING_ERASER_INTERVAL_MIN, DRAWING_ERASER_INTERVAL_MAX)
 	drawing_focus_spawn_timer = 6.0
+	drawing_green_heal_tick_timer = DRAWING_GREEN_TICK_INTERVAL
+	drawing_green_heal_accumulator = 0.0
 	drawing_trail_stamp_timer = 0.0
 	drawing_last_trail_stamp_pos = Vector2.ZERO
 	drawing_has_last_trail_stamp = false
+	drawing_trail_progress_cell_cooldowns.clear()
+	drawing_trail_progress_gain_this_paint = 0.0
 	drawing_focus_inside_last_frame = false
+	drawing_green_recovery_inside_last_frame = false
 	drawing_next_region_id = 1
 	drawing_progress = 0.0
 	drawing_complete_reward_claimed = false
+	drawing_progress_milestones_claimed.clear()
+	drawing_next_region_effect_rate = 1.0
+	drawing_next_gift_choice_hype_bonus = 0
 	drawing_fill_count = 0
 	drawing_correction_complete_count = 0
 	drawing_eraser_used_count = 0
@@ -11608,27 +12039,66 @@ func _reset_drawing_stage_state() -> void:
 	drawing_toast_timer = 0.0
 	drawing_toast_title = ""
 	drawing_toast_subtitle = ""
+	drawing_toast_queue.clear()
 
 func _update_drawing_stage(delta: float, arena: Rect2) -> void:
 	if not _is_drawing_frame():
-		if not drawing_paint_orbs.is_empty() or not drawing_paint_trails.is_empty() or not drawing_paint_regions.is_empty() or not drawing_focus_spots.is_empty():
+		if not drawing_paint_orbs.is_empty() or not drawing_paint_trails.is_empty() or not drawing_paint_regions.is_empty() or not drawing_correction_points.is_empty() or not drawing_correction_completion_fx.is_empty() or not drawing_erasers.is_empty() or not drawing_eraser_waves.is_empty() or not drawing_focus_spots.is_empty() or not drawing_spilled_paints.is_empty():
 			_reset_drawing_stage_state()
 		return
 	drawing_toast_timer = maxf(0.0, drawing_toast_timer - delta)
+	_update_drawing_toast_queue()
+	_update_drawing_spilled_paints(delta)
 	_update_drawing_focus_spots(delta, arena)
-	if drawing_active_paint_timer > 0.0:
-		drawing_active_paint_timer = maxf(0.0, drawing_active_paint_timer - delta)
-		if drawing_active_paint_timer <= 0.0:
-			drawing_active_paint_color = ""
-			drawing_has_last_trail_stamp = false
+	drawing_paint_gauge_appear_timer = maxf(0.0, drawing_paint_gauge_appear_timer - delta)
+	drawing_paint_gauge_fade_timer = maxf(0.0, drawing_paint_gauge_fade_timer - delta)
+	_update_drawing_trail_progress_cooldowns(delta)
+	if drawing_active_paint_color != "" and drawing_current_paint_amount <= 0.0:
+		_end_drawing_paint_resource()
 	_update_drawing_regions(delta, arena)
+	_update_drawing_green_paint_heal(delta, arena)
+	_refresh_drawing_paint_orb_palette_state()
 	_update_drawing_paint_orbs(delta, arena)
+	_refresh_drawing_paint_orb_palette_state()
 	_update_drawing_correction_points(delta, arena)
+	_update_drawing_correction_completion_fx(delta)
+	_update_drawing_eraser_waves(delta)
 	_update_drawing_erasers(delta, arena)
-	if drawing_active_paint_color != "":
+	if _drawing_has_active_paint():
 		_update_drawing_trail(delta, arena)
 	else:
 		drawing_has_last_trail_stamp = false
+
+func _update_drawing_spilled_paints(delta: float) -> void:
+	for i in range(drawing_spilled_paints.size() - 1, -1, -1):
+		var spill: Dictionary = drawing_spilled_paints[i] as Dictionary
+		spill["time"] = float(spill.get("time", 0.0)) - delta
+		if float(spill["time"]) <= 0.0:
+			drawing_spilled_paints.remove_at(i)
+		else:
+			drawing_spilled_paints[i] = spill
+
+func _spawn_drawing_spilled_bucket(arena: Rect2, count: int) -> void:
+	for i in range(count):
+		var radius := rng.randf_range(DRAWING_SPILLED_PAINT_RADIUS_MIN, DRAWING_SPILLED_PAINT_RADIUS_MAX)
+		var pos := _drawing_event_position(arena, radius, radius + 64.0)
+		drawing_spilled_paints.append({
+			"pos": pos,
+			"radius": radius,
+			"time": DRAWING_SPILLED_PAINT_LIFETIME,
+			"maxTime": DRAWING_SPILLED_PAINT_LIFETIME,
+			"phase": rng.randf_range(0.0, TAU)
+		})
+
+func _drawing_spilled_paint_slow_rate() -> float:
+	if not _is_drawing_frame():
+		return 0.0
+	for spill_value in drawing_spilled_paints:
+		var spill: Dictionary = spill_value as Dictionary
+		var radius := float(spill.get("radius", DRAWING_SPILLED_PAINT_RADIUS_MAX)) + 18.0
+		if player_pos.distance_squared_to(Vector2(spill.get("pos", Vector2.ZERO))) <= radius * radius:
+			return DRAWING_SPILLED_PAINT_SLOW_RATE
+	return 0.0
 
 func _update_drawing_focus_spots(delta: float, arena: Rect2) -> void:
 	for i in range(drawing_focus_spots.size() - 1, -1, -1):
@@ -11683,27 +12153,168 @@ func _update_drawing_paint_orbs(delta: float, arena: Rect2) -> void:
 		drawing_orb_spawn_timer = rng.randf_range(DRAWING_PAINT_ORB_INTERVAL_MIN, DRAWING_PAINT_ORB_INTERVAL_MAX)
 
 func _spawn_drawing_paint_orb(arena: Rect2) -> void:
-	var color_id: String = DRAWING_PAINT_COLOR_IDS[rng.randi_range(0, DRAWING_PAINT_COLOR_IDS.size() - 1)]
-	drawing_paint_orbs.append({
-		"pos": _drawing_event_position(arena, DRAWING_PAINT_ORB_RADIUS, 82.0),
+	var color_id := _pick_drawing_paint_color()
+	_add_drawing_paint_orb(_drawing_paint_orb_position(arena), color_id)
+
+func _add_drawing_paint_orb(pos: Vector2, color_id: String = "") -> void:
+	if color_id == "":
+		color_id = _pick_drawing_paint_color()
+	var orb := {
+		"pos": pos,
 		"colorId": color_id,
 		"radius": DRAWING_PAINT_ORB_RADIUS,
 		"time": DRAWING_PAINT_ORB_LIFETIME,
 		"maxTime": DRAWING_PAINT_ORB_LIFETIME,
 		"phase": rng.randf_range(0.0, TAU)
-	})
+	}
+	_configure_drawing_paint_orb_palette_state(orb)
+	drawing_paint_orbs.append(orb)
+
+func _refresh_drawing_paint_orb_palette_state() -> void:
+	for i in range(drawing_paint_orbs.size()):
+		var orb: Dictionary = drawing_paint_orbs[i] as Dictionary
+		_configure_drawing_paint_orb_palette_state(orb)
+		drawing_paint_orbs[i] = orb
+
+func _configure_drawing_paint_orb_palette_state(orb: Dictionary) -> void:
+	var base_color := String(orb.get("colorId", "pink"))
+	var gray_rate := _drawing_palette_gray_paint_rate()
+	if gray_rate <= 0.0:
+		orb["displayColor"] = base_color
+		orb["actualColor"] = base_color
+		orb.erase("paletteGrayLocked")
+		return
+	var use_gray := gray_rate >= 0.999
+	if not use_gray:
+		if orb.has("paletteGrayLocked"):
+			use_gray = bool(orb.get("paletteGrayLocked", false))
+		else:
+			use_gray = rng.randf() < gray_rate
+			orb["paletteGrayLocked"] = use_gray
+	else:
+		orb["paletteGrayLocked"] = true
+	if use_gray:
+		orb["displayColor"] = "gray"
+		orb["actualColor"] = ""
+	else:
+		orb["displayColor"] = base_color
+		orb["actualColor"] = base_color
+
+func _drawing_paint_orb_position(arena: Rect2) -> Vector2:
+	for i in range(18):
+		var pos := _drawing_event_position(arena, DRAWING_PAINT_ORB_RADIUS, 82.0)
+		if _drawing_paint_orb_position_clear(pos):
+			return pos
+	return _drawing_event_position(arena, DRAWING_PAINT_ORB_RADIUS, 82.0)
+
+func _drawing_paint_orb_position_clear(pos: Vector2) -> bool:
+	for orb_value in drawing_paint_orbs:
+		var orb: Dictionary = orb_value as Dictionary
+		var other_pos := Vector2(orb.get("pos", Vector2.ZERO))
+		var other_radius := float(orb.get("radius", DRAWING_PAINT_ORB_RADIUS))
+		var min_distance := DRAWING_PAINT_ORB_RADIUS + other_radius + 72.0
+		if pos.distance_squared_to(other_pos) < min_distance * min_distance:
+			return false
+	return true
+
+func _drawing_paint_orb_position_near(origin: Vector2, arena: Rect2) -> Vector2:
+	var rect := arena.grow(-(DRAWING_PAINT_ORB_RADIUS + 38.0))
+	for i in range(24):
+		var angle := rng.randf_range(0.0, TAU)
+		var distance := rng.randf_range(DRAWING_CORRECTION_ORB_ASSIST_MIN_DISTANCE, DRAWING_CORRECTION_ORB_ASSIST_MAX_DISTANCE)
+		var pos := origin + Vector2(cos(angle), sin(angle)) * distance
+		pos = Vector2(clampf(pos.x, rect.position.x, rect.end.x), clampf(pos.y, rect.position.y, rect.end.y))
+		if pos.distance_squared_to(player_pos) < 95.0 * 95.0:
+			continue
+		if _drawing_position_blocked(pos, 82.0):
+			continue
+		if _drawing_paint_orb_position_clear(pos):
+			return pos
+	return _drawing_paint_orb_position(arena)
+
+func _nearest_drawing_paint_orb_data(origin: Vector2, max_distance: float = -1.0) -> Dictionary:
+	var best: Dictionary = {}
+	var best_distance_sq := 999999999999.0
+	var limit_sq := max_distance * max_distance if max_distance > 0.0 else 999999999999.0
+	for orb_value in drawing_paint_orbs:
+		var orb: Dictionary = orb_value as Dictionary
+		var pos := Vector2(orb.get("pos", Vector2.ZERO))
+		var distance_sq := origin.distance_squared_to(pos)
+		if distance_sq > limit_sq or distance_sq >= best_distance_sq:
+			continue
+		best_distance_sq = distance_sq
+		best = {
+			"pos": pos,
+			"distanceSq": distance_sq
+		}
+	return best
+
+func _ensure_drawing_paint_orb_near_correction(pos: Vector2, arena: Rect2) -> void:
+	if not _nearest_drawing_paint_orb_data(pos, DRAWING_CORRECTION_ORB_ASSIST_RADIUS).is_empty():
+		return
+	if drawing_paint_orbs.size() >= DRAWING_PAINT_ORB_MAX + DRAWING_CORRECTION_MAX:
+		return
+	_add_drawing_paint_orb(_drawing_paint_orb_position_near(pos, arena))
+
+func _pick_drawing_paint_color() -> String:
+	var roll := rng.randf()
+	if roll < DRAWING_PAINT_PINK_WEIGHT:
+		return "pink"
+	if roll < DRAWING_PAINT_PINK_WEIGHT + DRAWING_PAINT_CYAN_WEIGHT:
+		return "cyan"
+	if roll < DRAWING_PAINT_PINK_WEIGHT + DRAWING_PAINT_CYAN_WEIGHT + DRAWING_PAINT_GREEN_WEIGHT:
+		return "green"
+	return "yellow"
+
+func _random_drawing_palette_shuffle_color() -> String:
+	var total_weight := 0.0
+	for color_value in DRAWING_PAINT_COLOR_IDS:
+		total_weight += maxf(0.0, float(DRAWING_PALETTE_SHUFFLE_RANDOM_WEIGHTS.get(String(color_value), 1.0)))
+	if total_weight <= 0.0:
+		return String(DRAWING_PAINT_COLOR_IDS[rng.randi_range(0, DRAWING_PAINT_COLOR_IDS.size() - 1)])
+	var roll := rng.randf() * total_weight
+	for color_value in DRAWING_PAINT_COLOR_IDS:
+		var color_id := String(color_value)
+		roll -= maxf(0.0, float(DRAWING_PALETTE_SHUFFLE_RANDOM_WEIGHTS.get(color_id, 1.0)))
+		if roll <= 0.0:
+			return color_id
+	return String(DRAWING_PAINT_COLOR_IDS[DRAWING_PAINT_COLOR_IDS.size() - 1])
 
 func _collect_drawing_paint_orb(orb: Dictionary) -> void:
-	drawing_active_paint_color = String(orb.get("colorId", "pink"))
-	drawing_active_paint_timer = DRAWING_PAINT_DURATION
+	var original_color := String(orb.get("colorId", "pink"))
+	var display_color := String(orb.get("displayColor", original_color))
+	var actual_color := String(orb.get("actualColor", original_color))
+	var color_was_hidden := display_color == "gray" or actual_color == ""
+	if color_was_hidden:
+		actual_color = _random_drawing_palette_shuffle_color()
+	drawing_active_paint_color = actual_color
+	drawing_active_paint_timer = 0.0
+	drawing_current_paint_amount = DRAWING_PAINT_MAX_AMOUNT
+	drawing_paint_gauge_last_color = drawing_active_paint_color
+	drawing_paint_gauge_appear_timer = DRAWING_PAINT_GAUGE_APPEAR_DURATION
+	drawing_paint_gauge_fade_timer = 0.0
 	drawing_has_last_trail_stamp = false
 	drawing_trail_stamp_timer = 0.0
+	drawing_trail_progress_gain_this_paint = 0.0
 	var color_name := _drawing_paint_name(drawing_active_paint_color)
+	if color_was_hidden:
+		hit_fx.append({
+			"kind": "pickup_text",
+			"pos": Vector2(orb.get("pos", player_pos)) + Vector2(-44.0, -54.0),
+			"vel": Vector2(0.0, -38.0),
+			"life": 0.62,
+			"maxLife": 0.62,
+			"text": "COLOR!",
+			"color": _drawing_paint_color(drawing_active_paint_color)
+		})
 	_show_drawing_toast("%s絵の具GET！" % color_name, "移動すると線を描けます")
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ %s絵の具を拾った！" % color_name]}, chat_box)
 	_play_exp_pickup_se()
 
 func _update_drawing_trail(delta: float, arena: Rect2) -> void:
+	if not _drawing_has_active_paint():
+		drawing_has_last_trail_stamp = false
+		return
 	drawing_trail_stamp_timer = maxf(0.0, drawing_trail_stamp_timer - delta)
 	if drawing_trail_stamp_timer > 0.0:
 		return
@@ -11719,20 +12330,94 @@ func _update_drawing_trail(delta: float, arena: Rect2) -> void:
 	drawing_trail_stamp_timer = DRAWING_TRAIL_STAMP_INTERVAL
 	var cell := _drawing_world_to_cell(player_pos, arena)
 	var cell_key := _drawing_cell_key(cell)
-	drawing_paint_trails.append({
+	var paint_cost := _drawing_paint_cost_for_cell(cell)
+	var trail_lifetime := _drawing_trail_lifetime(drawing_active_paint_color)
+	var trail := {
 		"pos": player_pos,
 		"cell": cell,
 		"cellKey": cell_key,
 		"colorId": drawing_active_paint_color,
 		"width": trail_width,
-		"time": DRAWING_TRAIL_LIFETIME,
-		"maxTime": DRAWING_TRAIL_LIFETIME
-	})
+		"time": trail_lifetime,
+		"maxTime": trail_lifetime
+	}
+	if drawing_active_paint_color == "yellow":
+		trail["wallHp"] = DRAWING_YELLOW_TRAIL_WALL_HP
+		trail["maxWallHp"] = DRAWING_YELLOW_TRAIL_WALL_HP
+	drawing_paint_trails.append(trail)
 	drawing_last_trail_stamp_pos = player_pos
 	drawing_has_last_trail_stamp = true
 	while drawing_paint_trails.size() > DRAWING_TRAIL_MAX_SAMPLES:
 		drawing_paint_trails.remove_at(0)
+	_add_drawing_progress_from_trail_cell(cell_key)
 	_try_drawing_fill_from_trail(cell, drawing_active_paint_color, arena)
+	_consume_drawing_paint(paint_cost)
+
+func _drawing_trail_lifetime(color_id: String) -> float:
+	var lifetime_multiplier := _drawing_fast_dry_lifetime_multiplier()
+	if color_id == "yellow":
+		return DRAWING_YELLOW_TRAIL_LIFETIME * lifetime_multiplier
+	return DRAWING_TRAIL_LIFETIME * lifetime_multiplier
+
+func _drawing_paint_cost_for_cell(cell: Vector2i) -> float:
+	var existing_color := _drawing_painted_color_at_cell(cell)
+	var cell_cost_multiplier := DRAWING_PAINT_DIFFERENT_COLOR_COST_MULTIPLIER
+	if existing_color == drawing_active_paint_color:
+		cell_cost_multiplier = DRAWING_PAINT_SAME_COLOR_COST_MULTIPLIER
+	var cost := DRAWING_PAINT_COST_PER_TRAIL_STAMP + DRAWING_PAINT_COST_PER_NEW_CELL * cell_cost_multiplier
+	return maxf(0.0, cost * _drawing_paint_cost_multiplier())
+
+func _drawing_painted_color_at_cell(cell: Vector2i) -> String:
+	var key := _drawing_cell_key(cell)
+	for i in range(drawing_paint_trails.size() - 1, -1, -1):
+		var trail: Dictionary = drawing_paint_trails[i] as Dictionary
+		if String(trail.get("cellKey", "")) == key:
+			return String(trail.get("colorId", ""))
+	return _drawing_region_color_at_cell(cell)
+
+func _consume_drawing_paint(amount: float) -> void:
+	if amount <= 0.0 or drawing_active_paint_color == "":
+		return
+	drawing_current_paint_amount = maxf(0.0, drawing_current_paint_amount - amount)
+	if drawing_current_paint_amount <= 0.0:
+		_end_drawing_paint_resource()
+
+func _end_drawing_paint_resource() -> void:
+	if drawing_active_paint_color == "":
+		return
+	drawing_paint_gauge_last_color = drawing_active_paint_color
+	drawing_paint_gauge_fade_timer = DRAWING_PAINT_GAUGE_FADE_DURATION
+	drawing_active_paint_color = ""
+	drawing_active_paint_timer = 0.0
+	drawing_current_paint_amount = 0.0
+	drawing_has_last_trail_stamp = false
+	drawing_trail_progress_gain_this_paint = 0.0
+
+func _update_drawing_trail_progress_cooldowns(delta: float) -> void:
+	if drawing_trail_progress_cell_cooldowns.is_empty():
+		return
+	for key_value in drawing_trail_progress_cell_cooldowns.keys():
+		var key := String(key_value)
+		var timer := float(drawing_trail_progress_cell_cooldowns.get(key, 0.0)) - delta
+		if timer <= 0.0:
+			drawing_trail_progress_cell_cooldowns.erase(key)
+		else:
+			drawing_trail_progress_cell_cooldowns[key] = timer
+
+func _add_drawing_progress_from_trail_cell(cell_key: String) -> void:
+	if cell_key == "" or drawing_active_paint_color == "":
+		return
+	if drawing_trail_progress_gain_this_paint >= DRAWING_PROGRESS_TRAIL_MAX_PER_PAINT_USE:
+		return
+	if float(drawing_trail_progress_cell_cooldowns.get(cell_key, 0.0)) > 0.0:
+		return
+	var remaining := DRAWING_PROGRESS_TRAIL_MAX_PER_PAINT_USE - drawing_trail_progress_gain_this_paint
+	var gain := minf(DRAWING_PROGRESS_TRAIL_NEW_CELL_GAIN, remaining)
+	if gain <= 0.0:
+		return
+	drawing_trail_progress_cell_cooldowns[cell_key] = DRAWING_PROGRESS_TRAIL_CELL_COOLDOWN
+	drawing_trail_progress_gain_this_paint += gain
+	_add_drawing_progress(gain, "paint_trail")
 
 func _update_drawing_regions(delta: float, arena: Rect2) -> void:
 	for i in range(drawing_paint_trails.size() - 1, -1, -1):
@@ -11748,7 +12433,7 @@ func _update_drawing_regions(delta: float, arena: Rect2) -> void:
 			region["tick"] = DRAWING_REGION_TICK_INTERVAL
 			_apply_drawing_region_effect(region, arena)
 		if float(region.get("time", 0.0)) <= 0.0:
-			drawing_paint_regions.remove_at(i)
+			_remove_drawing_paint_region_at(i)
 
 func _try_drawing_fill_from_trail(new_cell: Vector2i, color_id: String, arena: Rect2) -> void:
 	var boundary: Dictionary = {}
@@ -11785,8 +12470,6 @@ func _try_drawing_fill_from_trail(new_cell: Vector2i, color_id: String, arena: R
 			var key := _drawing_cell_key(cell)
 			if boundary.has(key) or outside.has(key) or drawing_filled_cell_keys.has(key):
 				continue
-			if _drawing_cell_blocked(cell, arena):
-				continue
 			candidates.append(cell)
 	if candidates.is_empty():
 		return
@@ -11811,7 +12494,7 @@ func _try_drawing_fill_from_trail(new_cell: Vector2i, color_id: String, arena: R
 			best_distance_sq = dist_sq
 	if best_component.is_empty():
 		return
-	_create_drawing_region(best_component, color_id, arena)
+	_create_drawing_region(best_component, color_id, arena, boundary)
 
 func _drawing_enqueue_flood_cell(cell: Vector2i, boundary: Dictionary, outside: Dictionary, queue: Array, grid: Vector2i) -> void:
 	if cell.x < 0 or cell.y < 0 or cell.x >= grid.x or cell.y >= grid.y:
@@ -11850,38 +12533,95 @@ func _drawing_component_distance_sq(component: Array, target_cell: Vector2i) -> 
 		best = minf(best, dist)
 	return best
 
-func _create_drawing_region(cells: Array, color_id: String, arena: Rect2) -> void:
+func _drawing_cell_from_key(key: String) -> Vector2i:
+	var parts := key.split(":")
+	if parts.size() < 2:
+		return Vector2i.ZERO
+	return Vector2i(int(parts[0]), int(parts[1]))
+
+func _drawing_cells_from_key_dict(keys: Dictionary) -> Array:
+	var cells: Array = []
+	for key_value in keys.keys():
+		var key := String(key_value)
+		if key == "":
+			continue
+		cells.append(_drawing_cell_from_key(key))
+	return cells
+
+func _drawing_boundary_cells_for_component(cells: Array, boundary: Dictionary) -> Array:
+	var result_keys: Dictionary = {}
+	for cell_value in cells:
+		var cell: Vector2i = cell_value as Vector2i
+		for offset in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+			var key := _drawing_cell_key(cell + offset)
+			if boundary.has(key):
+				result_keys[key] = true
+	return _drawing_cells_from_key_dict(result_keys)
+
+func _create_drawing_region(cells: Array, color_id: String, arena: Rect2, boundary: Dictionary = {}) -> void:
+	var region_cells: Array = _drawing_boundary_cells_for_component(cells, boundary) if color_id == "yellow" and not boundary.is_empty() else cells.duplicate()
+	if color_id == "yellow" and region_cells.is_empty() and not boundary.is_empty():
+		region_cells = _drawing_cells_from_key_dict(boundary)
+	var filled_cell_keys: Dictionary = {}
+	for cell_value in cells:
+		var filled_cell: Vector2i = cell_value as Vector2i
+		var filled_key := _drawing_cell_key(filled_cell)
+		filled_cell_keys[filled_key] = true
 	var cell_keys: Dictionary = {}
 	var center := Vector2.ZERO
-	for cell_value in cells:
+	for cell_value in region_cells:
 		var cell: Vector2i = cell_value as Vector2i
 		var key := _drawing_cell_key(cell)
 		cell_keys[key] = true
-		drawing_filled_cell_keys[key] = true
 		center += _drawing_cell_center(cell, arena)
-	if cells.size() > 0:
-		center /= float(cells.size())
-	drawing_paint_regions.append({
+	if region_cells.size() > 0:
+		center /= float(region_cells.size())
+	var region_lifetime := _drawing_region_lifetime(color_id)
+	var region_effect_rate := maxf(1.0, drawing_next_region_effect_rate)
+	drawing_next_region_effect_rate = 1.0
+	var region := {
 		"id": drawing_next_region_id,
 		"colorId": color_id,
-		"cells": cells.duplicate(),
+		"cells": region_cells,
 		"cellKeys": cell_keys,
 		"center": center,
-		"time": DRAWING_REGION_LIFETIME,
-		"maxTime": DRAWING_REGION_LIFETIME,
-		"tick": 0.05
-	})
+		"time": region_lifetime,
+		"maxTime": region_lifetime,
+		"tick": 0.05,
+		"filledCellKeys": filled_cell_keys,
+		"effectRate": region_effect_rate
+	}
+	if color_id == "yellow":
+		var wall_hp := DRAWING_YELLOW_REGION_WALL_HP * region_effect_rate
+		region["wallHp"] = wall_hp
+		region["maxWallHp"] = wall_hp
+	drawing_paint_regions.append(region)
+	_claim_drawing_filled_cell_keys(filled_cell_keys)
 	drawing_next_region_id += 1
 	while drawing_paint_regions.size() > DRAWING_MAX_ACTIVE_REGIONS:
-		drawing_paint_regions.remove_at(0)
+		_remove_drawing_paint_region_at(0)
+	_trim_drawing_yellow_walls()
 	var fill_score := cells.size()
 	drawing_fill_count += 1
-	var progress_gain := DRAWING_PROGRESS_FILL_GAIN
-	if fill_score >= DRAWING_PROGRESS_LARGE_FILL_MIN_CELLS:
-		progress_gain += DRAWING_PROGRESS_LARGE_FILL_BONUS
-	var hits := _apply_drawing_region_effect(drawing_paint_regions[drawing_paint_regions.size() - 1] as Dictionary, arena)
-	_complete_drawing_corrections_in_region(cell_keys)
-	_show_drawing_toast("囲い塗り成功！", "%sエリア %dマス / 敵%d体に効果" % [_drawing_paint_name(color_id), fill_score, hits])
+	var progress_gain := minf(
+		DRAWING_PROGRESS_FILL_MAX_GAIN,
+		DRAWING_PROGRESS_FILL_BASE_GAIN + float(fill_score) * DRAWING_PROGRESS_FILL_PER_CELL_GAIN
+	)
+	score += DRAWING_REGION_VIEWER_GAIN
+	gift_hype = clampi(gift_hype + DRAWING_REGION_GIFT_HYPE_GAIN, 0, 100)
+	max_gift_hype = maxi(max_gift_hype, gift_hype)
+	var active_region := drawing_paint_regions[drawing_paint_regions.size() - 1] as Dictionary
+	var hits := _apply_drawing_region_effect(active_region, arena)
+	var heal_burst := 0
+	if color_id == "green":
+		heal_burst = _apply_drawing_green_heal(ceili(float(DRAWING_GREEN_REGION_HEAL_BURST) * region_effect_rate), center + Vector2(-28.0, -40.0))
+	_complete_drawing_corrections_in_region(filled_cell_keys)
+	var toast_subtitle := "%sエリア %dマス / 敵%d体に効果" % [_drawing_paint_name(color_id), fill_score, hits]
+	if color_id == "green":
+		toast_subtitle = "%sエリア %dマス / HP +%d" % [_drawing_paint_name(color_id), fill_score, heal_burst]
+	elif color_id == "yellow":
+		toast_subtitle = "%sバリア %dマス / 敵をせき止める" % [_drawing_paint_name(color_id), fill_score]
+	_show_drawing_toast("囲い塗り成功！", toast_subtitle)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 囲い塗り成功！", "> 塗り範囲できてる"]}, chat_box)
 	hit_fx.append({
 		"kind": "pickup_text",
@@ -11894,9 +12634,106 @@ func _create_drawing_region(cells: Array, color_id: String, arena: Rect2) -> voi
 	})
 	_add_drawing_progress(progress_gain, "paint_fill", center)
 
+func _claim_drawing_filled_cell_keys(cell_keys: Dictionary) -> void:
+	for key_value in cell_keys.keys():
+		var key := String(key_value)
+		if key == "":
+			continue
+		drawing_filled_cell_keys[key] = int(drawing_filled_cell_keys.get(key, 0)) + 1
+
+func _release_drawing_filled_cell_keys(cell_keys: Dictionary) -> void:
+	for key_value in cell_keys.keys():
+		var key := String(key_value)
+		if key == "":
+			continue
+		var count := int(drawing_filled_cell_keys.get(key, 0)) - 1
+		if count <= 0:
+			drawing_filled_cell_keys.erase(key)
+		else:
+			drawing_filled_cell_keys[key] = count
+
+func _remove_drawing_paint_region_at(index: int) -> void:
+	if index < 0 or index >= drawing_paint_regions.size():
+		return
+	var region: Dictionary = drawing_paint_regions[index] as Dictionary
+	var filled_cell_keys: Dictionary = region.get("filledCellKeys", {}) as Dictionary
+	_release_drawing_filled_cell_keys(filled_cell_keys)
+	drawing_paint_regions.remove_at(index)
+
+func _drawing_region_lifetime(color_id: String) -> float:
+	if color_id == "green":
+		return DRAWING_GREEN_REGION_LIFETIME
+	if color_id == "yellow":
+		return DRAWING_YELLOW_REGION_LIFETIME
+	return DRAWING_REGION_LIFETIME
+
+func _drawing_region_color_at_cell(cell: Vector2i) -> String:
+	var key := _drawing_cell_key(cell)
+	var best_color := ""
+	for i in range(drawing_paint_regions.size() - 1, -1, -1):
+		var region: Dictionary = drawing_paint_regions[i] as Dictionary
+		var cell_keys: Dictionary = region.get("cellKeys", {}) as Dictionary
+		if not cell_keys.has(key):
+			continue
+		var color_id := String(region.get("colorId", "pink"))
+		if color_id == "green":
+			return "green"
+		if color_id == "yellow":
+			return "yellow"
+		if best_color == "" or (best_color == "pink" and color_id == "cyan"):
+			best_color = color_id
+	return best_color
+
+func _update_drawing_green_paint_heal(delta: float, arena: Rect2) -> void:
+	var player_cell := _drawing_world_to_cell(player_pos, arena)
+	var inside_green := _drawing_region_color_at_cell(player_cell) == "green"
+	if not inside_green:
+		drawing_green_heal_tick_timer = DRAWING_GREEN_TICK_INTERVAL
+		drawing_green_recovery_inside_last_frame = false
+		return
+	if not drawing_green_recovery_inside_last_frame:
+		_show_drawing_toast("癒しエリア", "メンタル回復中")
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 緑ペイント発動！", "> ちょっと回復できる"]}, chat_box)
+	drawing_green_recovery_inside_last_frame = true
+	if player_hp >= player_max_hp:
+		drawing_green_heal_accumulator = 0.0
+		return
+	drawing_green_heal_tick_timer -= delta
+	while drawing_green_heal_tick_timer <= 0.0:
+		drawing_green_heal_tick_timer += DRAWING_GREEN_TICK_INTERVAL
+		drawing_green_heal_accumulator += DRAWING_GREEN_HEAL_PER_SECOND * DRAWING_GREEN_TICK_INTERVAL
+		var heal_amount := int(floor(drawing_green_heal_accumulator))
+		if heal_amount <= 0:
+			continue
+		var actual_heal := _apply_drawing_green_heal(heal_amount, player_pos + Vector2(-20.0, -52.0))
+		drawing_green_heal_accumulator = maxf(0.0, drawing_green_heal_accumulator - float(heal_amount))
+		if actual_heal <= 0:
+			break
+
+func _apply_drawing_green_heal(amount: int, fx_pos: Vector2) -> int:
+	if amount <= 0 or player_hp >= player_max_hp:
+		return 0
+	var actual_heal := mini(amount, player_max_hp - player_hp)
+	if actual_heal <= 0:
+		return 0
+	player_hp = mini(player_max_hp, player_hp + actual_heal)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": fx_pos,
+		"vel": Vector2(0.0, -42.0),
+		"life": 0.68,
+		"maxLife": 0.68,
+		"text": "HP +%d" % actual_heal,
+		"color": Color("#74f4bc")
+	})
+	return actual_heal
+
 func _apply_drawing_region_effect(region: Dictionary, arena: Rect2) -> int:
 	var hits := 0
 	var color_id := String(region.get("colorId", "pink"))
+	if color_id == "green" or color_id == "yellow":
+		return 0
+	var effect_rate := maxf(1.0, float(region.get("effectRate", 1.0)))
 	var cell_keys: Dictionary = region.get("cellKeys", {}) as Dictionary
 	if cell_keys.is_empty():
 		return 0
@@ -11908,32 +12745,197 @@ func _apply_drawing_region_effect(region: Dictionary, arena: Rect2) -> int:
 		var cell := _drawing_world_to_cell(enemy_pos, arena)
 		if not cell_keys.has(_drawing_cell_key(cell)):
 			continue
+		if _drawing_region_color_at_cell(cell) != color_id:
+			continue
 		if color_id == "pink":
-			if _song_apply_enemy_damage(enemy, DRAWING_PINK_DAMAGE_PER_TICK, Vector2(region.get("center", enemy_pos)), DRAWING_REGION_KNOCKBACK, "drawing_pink_region"):
+			var is_boss := bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")).begins_with("boss_")
+			var damage := DRAWING_PINK_DAMAGE_PER_TICK * effect_rate
+			if is_boss:
+				damage *= DRAWING_PINK_BOSS_DAMAGE_MULTIPLIER
+			if _song_apply_enemy_damage(enemy, damage, Vector2(region.get("center", enemy_pos)), DRAWING_REGION_KNOCKBACK, "drawing_pink_region"):
 				hits += 1
 		else:
-			enemy["slowTimer"] = maxf(float(enemy.get("slowTimer", 0.0)), DRAWING_CYAN_SLOW_TIMER)
-			enemy["slowRate"] = maxf(float(enemy.get("slowRate", 0.0)), DRAWING_CYAN_SLOW_RATE)
+			var cyan_is_boss := bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")).begins_with("boss_")
+			var slow_rate := minf(0.85, (DRAWING_CYAN_BOSS_SLOW_RATE if cyan_is_boss else DRAWING_CYAN_SLOW_RATE) * effect_rate)
+			enemy["slowTimer"] = maxf(float(enemy.get("slowTimer", 0.0)), DRAWING_CYAN_SLOW_TIMER * effect_rate)
+			enemy["slowRate"] = maxf(float(enemy.get("slowRate", 0.0)), slow_rate)
 			hits += 1
 	return hits
+
+func _update_drawing_yellow_walls_vs_enemies(delta: float, arena: Rect2) -> void:
+	if not _is_drawing_frame():
+		return
+	if drawing_paint_trails.is_empty() and drawing_paint_regions.is_empty():
+		return
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		var enemy_radius := maxf(10.0, float(enemy.get("radius", 22.0)))
+		var wall := _drawing_yellow_wall_near(enemy_pos, enemy_radius, arena)
+		if wall.is_empty():
+			continue
+		var damage := DRAWING_YELLOW_WALL_DAMAGE_PER_SECOND * delta
+		if _drawing_enemy_is_boss(enemy):
+			damage *= DRAWING_YELLOW_REGION_BOSS_DAMAGE_MULTIPLIER if String(wall.get("kind", "")) == "region" else DRAWING_YELLOW_TRAIL_BOSS_DAMAGE_MULTIPLIER
+		else:
+			_push_enemy_from_drawing_yellow_wall(enemy, Vector2(wall.get("center", enemy_pos)), enemy_radius, arena)
+		_damage_drawing_yellow_wall(wall, damage)
+
+func _drawing_yellow_wall_near(pos: Vector2, enemy_radius: float, arena: Rect2) -> Dictionary:
+	var base_cell := _drawing_world_to_cell(pos, arena)
+	var grid := _drawing_grid_size(arena)
+	var best: Dictionary = {}
+	var best_distance_sq := INF
+	for y in range(-1, 2):
+		for x in range(-1, 2):
+			var cell := base_cell + Vector2i(x, y)
+			if cell.x < 0 or cell.y < 0 or cell.x >= grid.x or cell.y >= grid.y:
+				continue
+			var wall := _drawing_yellow_wall_ref_for_cell(cell)
+			if wall.is_empty():
+				continue
+			var center := _drawing_cell_center(cell, arena)
+			var hit_radius := DRAWING_CELL_SIZE * 0.62 + enemy_radius * 0.55
+			var distance_sq := center.distance_squared_to(pos)
+			if distance_sq > hit_radius * hit_radius or distance_sq >= best_distance_sq:
+				continue
+			wall["center"] = center
+			best = wall
+			best_distance_sq = distance_sq
+	return best
+
+func _drawing_yellow_wall_ref_for_cell(cell: Vector2i) -> Dictionary:
+	var key := _drawing_cell_key(cell)
+	for i in range(drawing_paint_regions.size() - 1, -1, -1):
+		var region: Dictionary = drawing_paint_regions[i] as Dictionary
+		if String(region.get("colorId", "")) != "yellow":
+			continue
+		var cell_keys: Dictionary = region.get("cellKeys", {}) as Dictionary
+		if cell_keys.has(key):
+			return {
+				"kind": "region",
+				"index": i,
+				"cell": cell,
+				"cellKey": key
+			}
+	for i in range(drawing_paint_trails.size() - 1, -1, -1):
+		var trail: Dictionary = drawing_paint_trails[i] as Dictionary
+		if String(trail.get("colorId", "")) != "yellow":
+			continue
+		if String(trail.get("cellKey", "")) == key:
+			return {
+				"kind": "trail",
+				"index": i,
+				"cell": cell,
+				"cellKey": key
+			}
+	return {}
+
+func _push_enemy_from_drawing_yellow_wall(enemy: Dictionary, wall_center: Vector2, enemy_radius: float, arena: Rect2) -> void:
+	var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+	var dir := enemy_pos - wall_center
+	if dir.length_squared() < 0.01:
+		dir = enemy_pos - player_pos
+	if dir.length_squared() < 0.01:
+		dir = Vector2.RIGHT
+	dir = dir.normalized()
+	var target_distance := DRAWING_CELL_SIZE * 0.78 + enemy_radius * 0.82
+	var target_pos := wall_center + dir * target_distance
+	target_pos = Vector2(
+		clampf(target_pos.x, arena.position.x + enemy_radius, arena.end.x - enemy_radius),
+		clampf(target_pos.y, arena.position.y + enemy_radius, arena.end.y - enemy_radius)
+	)
+	enemy["pos"] = target_pos
+	EnemySystemScript.add_knockback_for_enemy(enemy, dir, DRAWING_YELLOW_WALL_KNOCKBACK)
+
+func _damage_drawing_yellow_wall(wall: Dictionary, amount: float) -> void:
+	if amount <= 0.0:
+		return
+	var index := int(wall.get("index", -1))
+	var kind := String(wall.get("kind", ""))
+	if kind == "region":
+		if index < 0 or index >= drawing_paint_regions.size():
+			return
+		var region: Dictionary = drawing_paint_regions[index] as Dictionary
+		if String(region.get("colorId", "")) != "yellow":
+			return
+		var hp := float(region.get("wallHp", DRAWING_YELLOW_REGION_WALL_HP)) - amount
+		if hp <= 0.0:
+			_show_drawing_yellow_wall_break_fx(Vector2(region.get("center", Vector2.ZERO)))
+			_remove_drawing_paint_region_at(index)
+		else:
+			region["wallHp"] = hp
+	elif kind == "trail":
+		if index < 0 or index >= drawing_paint_trails.size():
+			return
+		var trail: Dictionary = drawing_paint_trails[index] as Dictionary
+		if String(trail.get("colorId", "")) != "yellow":
+			return
+		var hp := float(trail.get("wallHp", DRAWING_YELLOW_TRAIL_WALL_HP)) - amount
+		if hp <= 0.0:
+			_show_drawing_yellow_wall_break_fx(Vector2(trail.get("pos", Vector2.ZERO)))
+			drawing_paint_trails.remove_at(index)
+		else:
+			trail["wallHp"] = hp
+
+func _show_drawing_yellow_wall_break_fx(pos: Vector2) -> void:
+	if pos == Vector2.ZERO:
+		return
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos,
+		"vel": Vector2(0.0, -34.0),
+		"life": 0.42,
+		"maxLife": 0.42,
+		"text": "BREAK",
+		"color": _drawing_paint_color("yellow")
+	})
+
+func _drawing_enemy_is_boss(enemy: Dictionary) -> bool:
+	return bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")).begins_with("boss_")
+
+func _trim_drawing_yellow_walls() -> void:
+	var yellow_count := 0
+	for region_value in drawing_paint_regions:
+		var region: Dictionary = region_value as Dictionary
+		if String(region.get("colorId", "")) == "yellow":
+			yellow_count += 1
+	while yellow_count > DRAWING_MAX_ACTIVE_YELLOW_WALLS:
+		for i in range(drawing_paint_regions.size()):
+			var region: Dictionary = drawing_paint_regions[i] as Dictionary
+			if String(region.get("colorId", "")) != "yellow":
+				continue
+			_remove_drawing_paint_region_at(i)
+			yellow_count -= 1
+			break
 
 func _update_drawing_correction_points(delta: float, arena: Rect2) -> void:
 	for i in range(drawing_correction_points.size() - 1, -1, -1):
 		var point: Dictionary = drawing_correction_points[i] as Dictionary
 		point["time"] = float(point.get("time", 0.0)) - delta
+		point["noPaintHint"] = maxf(0.0, float(point.get("noPaintHint", 0.0)) - delta)
+		point["noPaintCooldown"] = maxf(0.0, float(point.get("noPaintCooldown", 0.0)) - delta)
+		point["shake"] = maxf(0.0, float(point.get("shake", 0.0)) - delta)
+		point["arrowTime"] = maxf(0.0, float(point.get("arrowTime", 0.0)) - delta)
 		if float(point["time"]) <= 0.0:
 			drawing_correction_points.remove_at(i)
 			continue
-		if drawing_active_paint_color != "":
+		if not _drawing_has_active_paint():
 			var point_pos := Vector2(point.get("pos", Vector2.ZERO))
-			var radius := float(point.get("radius", DRAWING_CORRECTION_RADIUS)) + _drawing_trail_width() * 0.42
-			if point_pos.distance_squared_to(player_pos) <= radius * radius:
-				point["paintTime"] = float(point.get("paintTime", 0.0)) + delta * _drawing_correction_speed_multiplier()
-				if float(point["paintTime"]) >= DRAWING_CORRECTION_DIRECT_PAINT_TIME:
-					_complete_drawing_correction_at(i)
-					continue
-			else:
-				point["paintTime"] = maxf(0.0, float(point.get("paintTime", 0.0)) - delta * 0.65)
+			var touch_radius := float(point.get("radius", DRAWING_CORRECTION_RADIUS)) + 30.0
+			if point_pos.distance_squared_to(player_pos) <= touch_radius * touch_radius:
+				_trigger_drawing_correction_no_paint_feedback(point, arena)
+			point["paintTime"] = maxf(0.0, float(point.get("paintTime", 0.0)) - delta * 0.9)
+			continue
+		if _drawing_correction_touched_by_active_paint(point):
+			point["paintTime"] = float(point.get("paintTime", 0.0)) + delta * _drawing_correction_speed_multiplier()
+			if float(point["paintTime"]) >= DRAWING_CORRECTION_DIRECT_PAINT_TIME:
+				_complete_drawing_correction_at(i)
+				continue
+		else:
+			point["paintTime"] = maxf(0.0, float(point.get("paintTime", 0.0)) - delta * 0.65)
 	drawing_correction_spawn_timer -= delta
 	if drawing_correction_spawn_timer <= 0.0:
 		if drawing_correction_points.size() < DRAWING_CORRECTION_MAX:
@@ -11941,14 +12943,71 @@ func _update_drawing_correction_points(delta: float, arena: Rect2) -> void:
 		drawing_correction_spawn_timer = rng.randf_range(DRAWING_CORRECTION_INTERVAL_MIN, DRAWING_CORRECTION_INTERVAL_MAX)
 
 func _spawn_drawing_correction_point(arena: Rect2) -> void:
+	var pos := _drawing_event_position(arena, DRAWING_CORRECTION_RADIUS, 120.0)
 	drawing_correction_points.append({
-		"pos": _drawing_event_position(arena, DRAWING_CORRECTION_RADIUS, 120.0),
+		"pos": pos,
 		"radius": DRAWING_CORRECTION_RADIUS,
 		"time": DRAWING_CORRECTION_LIFETIME,
 		"maxTime": DRAWING_CORRECTION_LIFETIME,
 		"paintTime": 0.0,
+		"noPaintHint": 0.0,
+		"noPaintCooldown": 0.0,
+		"shake": 0.0,
+		"arrowTime": 0.0,
+		"hasHintOrb": false,
+		"hintOrbPos": Vector2.ZERO,
 		"phase": rng.randf_range(0.0, TAU)
 	})
+	_ensure_drawing_paint_orb_near_correction(pos, arena)
+
+func _trigger_drawing_correction_no_paint_feedback(point: Dictionary, arena: Rect2) -> void:
+	if float(point.get("noPaintCooldown", 0.0)) > 0.0:
+		return
+	var pos := Vector2(point.get("pos", Vector2.ZERO))
+	_ensure_drawing_paint_orb_near_correction(pos, arena)
+	var nearest := _nearest_drawing_paint_orb_data(pos)
+	if nearest.is_empty():
+		point["hasHintOrb"] = false
+	else:
+		point["hasHintOrb"] = true
+		point["hintOrbPos"] = Vector2(nearest.get("pos", pos))
+		point["arrowTime"] = DRAWING_CORRECTION_ARROW_DURATION
+	point["noPaintHint"] = DRAWING_CORRECTION_NO_PAINT_HINT_DURATION
+	point["noPaintCooldown"] = DRAWING_CORRECTION_NO_PAINT_COOLDOWN
+	point["shake"] = DRAWING_CORRECTION_SHAKE_DURATION
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": pos + Vector2(-32.0, -44.0),
+		"vel": Vector2(0.0, -18.0),
+		"life": DRAWING_CORRECTION_NO_PAINT_HINT_DURATION,
+		"maxLife": DRAWING_CORRECTION_NO_PAINT_HINT_DURATION,
+		"text": "絵具が必要！",
+		"color": Color("#ffe36e")
+	})
+
+func _drawing_correction_touched_by_active_paint(point: Dictionary) -> bool:
+	var point_pos := Vector2(point.get("pos", Vector2.ZERO))
+	var base_radius := float(point.get("radius", DRAWING_CORRECTION_RADIUS))
+	var touch_radius := base_radius + _drawing_trail_width() * 0.42
+	if point_pos.distance_squared_to(player_pos) <= touch_radius * touch_radius:
+		return true
+	for trail_value in drawing_paint_trails:
+		var trail: Dictionary = trail_value as Dictionary
+		if String(trail.get("colorId", "")) != drawing_active_paint_color:
+			continue
+		var trail_pos := Vector2(trail.get("pos", Vector2.ZERO))
+		var trail_width := float(trail.get("width", _drawing_trail_width()))
+		var trail_touch_radius := base_radius + trail_width * 0.52
+		if point_pos.distance_squared_to(trail_pos) <= trail_touch_radius * trail_touch_radius:
+			return true
+	return false
+
+func _update_drawing_correction_completion_fx(delta: float) -> void:
+	for i in range(drawing_correction_completion_fx.size() - 1, -1, -1):
+		var fx: Dictionary = drawing_correction_completion_fx[i] as Dictionary
+		fx["time"] = float(fx.get("time", 0.0)) - delta
+		if float(fx["time"]) <= 0.0:
+			drawing_correction_completion_fx.remove_at(i)
 
 func _complete_drawing_corrections_in_region(cell_keys: Dictionary) -> void:
 	for i in range(drawing_correction_points.size() - 1, -1, -1):
@@ -11964,18 +13023,28 @@ func _complete_drawing_correction_at(index: int) -> void:
 	var point: Dictionary = drawing_correction_points[index] as Dictionary
 	var pos := Vector2(point.get("pos", Vector2.ZERO))
 	drawing_correction_points.remove_at(index)
+	drawing_correction_completion_fx.append({
+		"pos": pos,
+		"time": DRAWING_CORRECTION_COMPLETION_FLASH_DURATION,
+		"maxTime": DRAWING_CORRECTION_COMPLETION_FLASH_DURATION,
+		"phase": rng.randf_range(0.0, TAU)
+	})
 	drawing_correction_complete_count += 1
-	score += DRAWING_CORRECTION_VIEWER_GAIN
-	gift_hype = clampi(gift_hype + DRAWING_CORRECTION_GIFT_HYPE_GAIN, 0, 100)
+	var reward_multiplier := _drawing_more_corrections_reward_multiplier()
+	var viewer_gain := roundi(float(DRAWING_CORRECTION_VIEWER_GAIN) * reward_multiplier)
+	var gift_gain := maxi(1, roundi(float(DRAWING_CORRECTION_GIFT_HYPE_GAIN) * reward_multiplier))
+	var progress_gain := DRAWING_PROGRESS_CORRECTION_GAIN * reward_multiplier
+	score += viewer_gain
+	gift_hype = clampi(gift_hype + gift_gain, 0, 100)
 	max_gift_hype = maxi(max_gift_hype, gift_hype)
 	if rng.randf() < DRAWING_CORRECTION_SPAWN_PAINT_ORB_CHANCE and drawing_paint_orbs.size() < DRAWING_PAINT_ORB_MAX:
 		_spawn_drawing_paint_orb(_current_arena())
 	if rng.randf() < DRAWING_CORRECTION_HEAL_MENTAL_CHANCE:
 		_song_live_heat_note_heal(DRAWING_CORRECTION_HEAL_AMOUNT)
 	_show_drawing_toast("修正ポイント完了！", "進捗 +%d%% / 視聴者 +%d / ギフト +%d" % [
-		roundi(DRAWING_PROGRESS_CORRECTION_GAIN),
-		DRAWING_CORRECTION_VIEWER_GAIN,
-		DRAWING_CORRECTION_GIFT_HYPE_GAIN
+		roundi(progress_gain),
+		viewer_gain,
+		gift_gain
 	])
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 修正対応完了！", "> そこ直したの助かる"]}, chat_box)
 	hit_fx.append({
@@ -11987,7 +13056,14 @@ func _complete_drawing_correction_at(index: int) -> void:
 		"text": "FIX!",
 		"color": Color("#ff6aa5")
 	})
-	_add_drawing_progress(DRAWING_PROGRESS_CORRECTION_GAIN, "correction", pos)
+	_add_drawing_progress(progress_gain, "correction", pos)
+
+func _update_drawing_eraser_waves(delta: float) -> void:
+	for i in range(drawing_eraser_waves.size() - 1, -1, -1):
+		var wave: Dictionary = drawing_eraser_waves[i] as Dictionary
+		wave["time"] = float(wave.get("time", 0.0)) - delta
+		if float(wave["time"]) <= 0.0:
+			drawing_eraser_waves.remove_at(i)
 
 func _update_drawing_erasers(delta: float, arena: Rect2) -> void:
 	for i in range(drawing_erasers.size() - 1, -1, -1):
@@ -11998,14 +13074,17 @@ func _update_drawing_erasers(delta: float, arena: Rect2) -> void:
 			continue
 		var pos := Vector2(eraser.get("pos", Vector2.ZERO))
 		if pos.distance_squared_to(player_pos) <= 54.0 * 54.0:
-			_collect_drawing_eraser(pos)
+			_collect_drawing_eraser(player_pos)
 			drawing_erasers.remove_at(i)
 	drawing_eraser_spawn_timer -= delta
 	if drawing_eraser_spawn_timer <= 0.0:
-		_spawn_drawing_eraser(arena)
+		if drawing_erasers.size() < DRAWING_ERASER_MAX:
+			_spawn_drawing_eraser(arena)
 		drawing_eraser_spawn_timer = rng.randf_range(DRAWING_ERASER_INTERVAL_MIN, DRAWING_ERASER_INTERVAL_MAX)
 
-func _spawn_drawing_eraser(arena: Rect2) -> void:
+func _spawn_drawing_eraser(arena: Rect2, allow_over_cap: bool = false) -> void:
+	if not allow_over_cap and drawing_erasers.size() >= DRAWING_ERASER_MAX:
+		return
 	drawing_erasers.append({
 		"pos": _drawing_event_position(arena, 32.0, 90.0),
 		"time": DRAWING_ERASER_LIFETIME,
@@ -12016,16 +13095,24 @@ func _spawn_drawing_eraser(arena: Rect2) -> void:
 func _collect_drawing_eraser(pos: Vector2) -> void:
 	drawing_eraser_used_count += 1
 	var eraser_radius := _drawing_eraser_radius()
-	var removed_bullets := 0
-	for i in range(enemy_bullets.size() - 1, -1, -1):
-		var bullet: Dictionary = enemy_bullets[i] as Dictionary
-		if Vector2(bullet.get("pos", Vector2.ZERO)).distance_squared_to(pos) <= eraser_radius * eraser_radius:
-			enemy_bullets.remove_at(i)
-			removed_bullets += 1
+	drawing_eraser_waves.append({
+		"pos": pos,
+		"radius": eraser_radius,
+		"time": DRAWING_ERASER_WAVE_DURATION,
+		"maxTime": DRAWING_ERASER_WAVE_DURATION,
+		"phase": rng.randf_range(0.0, TAU)
+	})
+	var removed_bullets := _erase_enemy_bullets_near(pos, eraser_radius)
+	var removed_lines := _erase_boss_guide_lines_near(pos, eraser_radius)
+	var removed_fields := _erase_boss_slow_fields_near(pos, eraser_radius)
+	var removed_spills := _erase_drawing_spilled_paints_near(pos, eraser_radius)
+	var fixed_points := _complete_drawing_corrections_near(pos, DRAWING_ERASER_CORRECTION_RADIUS)
 	var hits := _song_apply_area_damage(pos, eraser_radius, DRAWING_ERASER_DAMAGE, DRAWING_ERASER_KNOCKBACK, "drawing_eraser")
-	var progress_gain := DRAWING_PROGRESS_ERASER_GAIN if removed_bullets > 0 or hits > 0 else 0.0
-	_show_drawing_toast("消しゴム発動！", "敵弾%d個消去 / 敵%d体に効果" % [removed_bullets, hits])
-	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 消しゴム助かる", "> 画面が少しきれいになった"]}, chat_box)
+	invincible = maxf(invincible, DRAWING_ERASER_INVINCIBLE_DURATION)
+	var cleaned := removed_bullets + removed_lines + removed_fields + removed_spills + fixed_points + hits
+	var progress_gain := DRAWING_PROGRESS_ERASER_GAIN if cleaned > 0 else 0.0
+	_show_drawing_toast("消しゴム波発動！", "敵弾%d / 危険%d / 修正%d / 敵%d体" % [removed_bullets, removed_lines + removed_fields + removed_spills, fixed_points, hits])
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 消しゴム波たすかる", "> 盤面きれいになった", "> 今の無敵うまい"]}, chat_box)
 	hit_fx.append({
 		"kind": "pickup_text",
 		"pos": pos,
@@ -12037,6 +13124,74 @@ func _collect_drawing_eraser(pos: Vector2) -> void:
 	})
 	_add_drawing_progress(progress_gain, "eraser", pos)
 	_play_marshmallow_pickup_se()
+
+func _erase_enemy_bullets_near(pos: Vector2, radius: float) -> int:
+	var removed := 0
+	var radius_sq := radius * radius
+	for i in range(enemy_bullets.size() - 1, -1, -1):
+		var bullet: Dictionary = enemy_bullets[i] as Dictionary
+		if Vector2(bullet.get("pos", Vector2.ZERO)).distance_squared_to(pos) <= radius_sq:
+			enemy_bullets.remove_at(i)
+			removed += 1
+	return removed
+
+func _erase_boss_guide_lines_near(pos: Vector2, radius: float) -> int:
+	var removed := 0
+	for i in range(boss_guide_lines.size() - 1, -1, -1):
+		var line: Dictionary = boss_guide_lines[i] as Dictionary
+		var from_pos := Vector2(line.get("from", Vector2.ZERO))
+		var to_pos := Vector2(line.get("to", Vector2.ZERO))
+		var width := float(line.get("width", 58.0))
+		if BossSystemScript.distance_to_segment(pos, from_pos, to_pos) <= radius + width * 0.5:
+			boss_guide_lines.remove_at(i)
+			removed += 1
+	return removed
+
+func _erase_boss_slow_fields_near(pos: Vector2, radius: float) -> int:
+	var removed := 0
+	for i in range(boss_slow_fields.size() - 1, -1, -1):
+		var field: Dictionary = boss_slow_fields[i] as Dictionary
+		var field_pos := Vector2(field.get("pos", Vector2.ZERO))
+		var field_radius := float(field.get("radius", 90.0))
+		var clear_radius := radius + field_radius
+		if field_pos.distance_squared_to(pos) <= clear_radius * clear_radius:
+			boss_slow_fields.remove_at(i)
+			removed += 1
+	return removed
+
+func _erase_drawing_spilled_paints_near(pos: Vector2, radius: float) -> int:
+	var removed := 0
+	for i in range(drawing_spilled_paints.size() - 1, -1, -1):
+		var spill: Dictionary = drawing_spilled_paints[i] as Dictionary
+		var spill_pos := Vector2(spill.get("pos", Vector2.ZERO))
+		var spill_radius := float(spill.get("radius", DRAWING_SPILLED_PAINT_RADIUS_MAX))
+		var clear_radius := radius + spill_radius + DRAWING_SPILLED_PAINT_CLEAR_PADDING
+		if spill_pos.distance_squared_to(pos) > clear_radius * clear_radius:
+			continue
+		drawing_spilled_paints.remove_at(i)
+		removed += 1
+	return removed
+
+func _complete_drawing_corrections_near(pos: Vector2, radius: float) -> int:
+	var completed := 0
+	var radius_sq := radius * radius
+	for i in range(drawing_correction_points.size() - 1, -1, -1):
+		var point: Dictionary = drawing_correction_points[i] as Dictionary
+		var point_pos := Vector2(point.get("pos", Vector2.ZERO))
+		if point_pos.distance_squared_to(pos) > radius_sq:
+			continue
+		hit_fx.append({
+			"kind": "pickup_text",
+			"pos": point_pos + Vector2(-30.0, -58.0),
+			"vel": Vector2(0.0, -42.0),
+			"life": 0.74,
+			"maxLife": 0.74,
+			"text": "修正対応！",
+			"color": Color("#fff6cf")
+		})
+		_complete_drawing_correction_at(i)
+		completed += 1
+	return completed
 
 func _drawing_event_position(arena: Rect2, radius: float, obstacle_clearance: float = 80.0) -> Vector2:
 	var rect := arena.grow(-(radius + 38.0))
@@ -12086,34 +13241,82 @@ func _drawing_cell_blocked(cell: Vector2i, arena: Rect2) -> bool:
 		return true
 	return _drawing_position_blocked(center, DRAWING_CELL_SIZE * 0.35)
 
-func _show_drawing_toast(title: String, subtitle: String) -> void:
+func _update_drawing_toast_queue() -> void:
+	if drawing_toast_timer > 0.0 or drawing_toast_queue.is_empty():
+		return
+	var next_value: Variant = drawing_toast_queue.pop_front()
+	if not (next_value is Dictionary):
+		return
+	var next: Dictionary = next_value as Dictionary
+	_show_drawing_toast(String(next.get("title", "")), String(next.get("subtitle", "")))
+
+func _show_drawing_toast(title: String, subtitle: String, queue_if_busy: bool = false) -> void:
+	if queue_if_busy and drawing_toast_timer > 0.0 and drawing_toast_title != "":
+		drawing_toast_queue.append({
+			"title": title,
+			"subtitle": subtitle
+		})
+		return
 	drawing_toast_title = title
 	drawing_toast_subtitle = subtitle
 	drawing_toast_timer = DRAWING_TOAST_DURATION
 
 func _drawing_paint_name(color_id: String) -> String:
+	if color_id == "yellow":
+		return "黄色"
+	if color_id == "green":
+		return "緑"
 	if color_id == "cyan":
 		return "水色"
 	return "ピンク"
 
 func _drawing_paint_effect_name(color_id: String) -> String:
+	if color_id == "yellow":
+		return "インク壁"
+	if color_id == "green":
+		return "回復中"
 	if color_id == "cyan":
 		return "敵スロー"
 	return "敵ダメージ"
 
 func _drawing_paint_color(color_id: String) -> Color:
+	if color_id == "gray":
+		return Color("#b9b3c8")
+	if color_id == "yellow":
+		return Color("#fff06a")
+	if color_id == "green":
+		return Color("#74f4bc")
 	if color_id == "cyan":
 		return Color("#57dfff")
 	return Color("#ff70b9")
 
 func _drawing_paint_soft_color(color_id: String) -> Color:
+	if color_id == "gray":
+		return Color(0.64, 0.61, 0.76, 0.24)
+	if color_id == "yellow":
+		return Color(1.0, 0.94, 0.46, 0.24)
+	if color_id == "green":
+		return Color(0.48, 1.0, 0.74, 0.25)
 	if color_id == "cyan":
 		return Color(0.35, 0.86, 1.0, 0.25)
 	return Color(1.0, 0.45, 0.73, 0.25)
 
+func _drawing_paint_orb_image_path(color_id: String) -> String:
+	if color_id == "gray":
+		return DRAWING_PAINT_GRAY_IMAGE
+	if color_id == "yellow":
+		return DRAWING_PAINT_YELLOW_IMAGE
+	if color_id == "green":
+		return DRAWING_PAINT_GREEN_IMAGE
+	if color_id == "cyan":
+		return DRAWING_PAINT_CYAN_IMAGE
+	return DRAWING_PAINT_PINK_IMAGE
+
 func _draw_drawing_stage_objects(visible_rect: Rect2) -> void:
 	if not _is_drawing_frame():
 		return
+	for spill_value in drawing_spilled_paints:
+		_draw_drawing_spilled_paint(spill_value as Dictionary, visible_rect)
 	for spot_value in drawing_focus_spots:
 		_draw_drawing_focus_spot(spot_value as Dictionary, visible_rect)
 	for region_value in drawing_paint_regions:
@@ -12121,10 +13324,35 @@ func _draw_drawing_stage_objects(visible_rect: Rect2) -> void:
 	_draw_drawing_trails(visible_rect)
 	for point_value in drawing_correction_points:
 		_draw_drawing_correction_point(point_value as Dictionary, visible_rect)
+	for fx_value in drawing_correction_completion_fx:
+		_draw_drawing_correction_completion_fx(fx_value as Dictionary, visible_rect)
+	for wave_value in drawing_eraser_waves:
+		_draw_drawing_eraser_wave(wave_value as Dictionary, visible_rect)
 	for eraser_value in drawing_erasers:
 		_draw_drawing_eraser(eraser_value as Dictionary, visible_rect)
 	for orb_value in drawing_paint_orbs:
 		_draw_drawing_paint_orb(orb_value as Dictionary, visible_rect)
+
+func _draw_drawing_spilled_paint(spill: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(spill.get("pos", Vector2.ZERO))
+	var radius := float(spill.get("radius", DRAWING_SPILLED_PAINT_RADIUS_MAX))
+	if not visible_rect.grow(radius + 18.0).has_point(pos):
+		return
+	var time_left := float(spill.get("time", 0.0))
+	var max_time := maxf(0.1, float(spill.get("maxTime", DRAWING_SPILLED_PAINT_LIFETIME)))
+	var life_ratio := clampf(time_left / max_time, 0.0, 1.0)
+	var fade := clampf(time_left / 1.2, 0.0, 1.0)
+	var phase := float(spill.get("phase", 0.0))
+	var pulse := 0.5 + 0.5 * sin(elapsed * 3.4 + phase)
+	draw_circle(pos, radius * (1.04 + pulse * 0.02), Color(0.12, 0.10, 0.15, 0.20 * fade), true)
+	draw_circle(pos, radius, Color(0.38, 0.30, 0.48, 0.26 * fade), true)
+	draw_circle(pos + Vector2(radius * 0.16, -radius * 0.10), radius * 0.54, Color(0.22, 0.19, 0.28, 0.16 * fade), true)
+	draw_circle(pos - Vector2(radius * 0.24, radius * 0.08), radius * 0.22, Color(0.74, 0.66, 0.86, 0.13 * fade), true)
+	draw_circle(pos, radius, Color(0.19, 0.16, 0.24, 0.30 * fade), false, 2.0, true)
+	for i in range(3):
+		var angle := phase + elapsed * 0.35 + float(i) * TAU / 3.0
+		var dot_pos := pos + Vector2(cos(angle), sin(angle * 0.9)) * radius * (0.38 + 0.08 * float(i))
+		draw_circle(dot_pos, 2.8 + float(i), Color(0.88, 0.80, 0.95, (0.10 + 0.04 * life_ratio) * fade), true)
 
 func _draw_drawing_focus_spot(spot: Dictionary, visible_rect: Rect2) -> void:
 	var pos := Vector2(spot.get("pos", Vector2.ZERO))
@@ -12148,23 +13376,37 @@ func _draw_drawing_paint_region(region: Dictionary, visible_rect: Rect2) -> void
 	var time_left := float(region.get("time", 0.0))
 	var max_time := maxf(0.1, float(region.get("maxTime", DRAWING_REGION_LIFETIME)))
 	var life_ratio := clampf(time_left / max_time, 0.0, 1.0)
+	var fade_ratio := clampf(time_left / minf(max_time, DRAWING_REGION_FADE_DURATION), 0.0, 1.0)
 	var base_color := _drawing_paint_soft_color(color_id)
 	var edge_color := _drawing_paint_color(color_id)
-	base_color.a *= 0.42 + life_ratio * 0.55
-	edge_color.a = 0.28 + life_ratio * 0.34
+	base_color.a *= 0.72 * fade_ratio
+	edge_color.a = 0.38 * fade_ratio
 	for cell_value in region.get("cells", []):
 		var cell: Vector2i = cell_value as Vector2i
 		var center := _drawing_cell_center(cell, _current_arena())
 		var rect := Rect2(center - Vector2.ONE * DRAWING_CELL_SIZE * 0.5, Vector2.ONE * DRAWING_CELL_SIZE)
 		if not rect.intersects(visible_rect):
 			continue
+		if color_id == "yellow":
+			var hp_ratio := clampf(float(region.get("wallHp", DRAWING_YELLOW_REGION_WALL_HP)) / maxf(0.1, float(region.get("maxWallHp", DRAWING_YELLOW_REGION_WALL_HP))), 0.0, 1.0)
+			draw_rect(rect.grow(4.0), Color(0.86, 0.62, 0.10, 0.16 * fade_ratio), true)
+			draw_rect(rect.grow(1.5), Color(edge_color.r, edge_color.g, edge_color.b, (0.34 + 0.16 * hp_ratio) * fade_ratio), true)
+			draw_rect(rect.grow(-6.0), Color(1.0, 0.99, 0.86, 0.22 * fade_ratio), true)
+			if cell.x % 2 == 0 and cell.y % 2 == 0:
+				draw_circle(center + Vector2(-4.0, -5.0), 3.2, Color(1.0, 1.0, 0.92, 0.32 * fade_ratio))
+			continue
 		draw_rect(rect.grow(1.0), base_color, true)
 		if cell.x % 2 == 0 and cell.y % 2 == 0:
-			draw_rect(rect.grow(-5.0), Color(1.0, 1.0, 1.0, 0.06 + 0.06 * life_ratio), true)
+			draw_rect(rect.grow(-5.0), Color(1.0, 1.0, 1.0, (0.06 + 0.06 * life_ratio) * fade_ratio), true)
 	var center_pos := Vector2(region.get("center", Vector2.ZERO))
 	if visible_rect.has_point(center_pos):
-		draw_circle(center_pos, 22.0 + sin(elapsed * 4.2 + float(region.get("id", 0))) * 2.4, Color(edge_color.r, edge_color.g, edge_color.b, 0.14))
-		_draw_outlined_text(center_pos + Vector2(-52.0, 7.0), _drawing_paint_effect_name(color_id), 104, 14, Color("#ffffff"), Color(edge_color.r, edge_color.g, edge_color.b, 0.86), HORIZONTAL_ALIGNMENT_CENTER)
+		draw_circle(center_pos, 22.0 + sin(elapsed * 4.2 + float(region.get("id", 0))) * 2.4, Color(edge_color.r, edge_color.g, edge_color.b, 0.14 * fade_ratio))
+		if color_id == "green":
+			for i in range(5):
+				var angle := elapsed * 0.85 + float(region.get("id", 0)) * 0.73 + float(i) * TAU / 5.0
+				var dot_pos := center_pos + Vector2(cos(angle), sin(angle * 0.91)) * (18.0 + float(i % 2) * 10.0)
+				draw_circle(dot_pos, 2.8 + 0.8 * sin(elapsed * 3.0 + float(i)), Color(0.92, 1.0, 0.90, 0.42 * fade_ratio))
+		_draw_outlined_text(center_pos + Vector2(-52.0, 7.0), _drawing_paint_effect_name(color_id), 104, 14, Color(1.0, 1.0, 1.0, fade_ratio), Color(0.02, 0.02, 0.03, 0.94 * fade_ratio), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_drawing_trails(visible_rect: Rect2) -> void:
 	var previous_by_color: Dictionary = {}
@@ -12179,6 +13421,20 @@ func _draw_drawing_trails(visible_rect: Rect2) -> void:
 		var max_time := maxf(0.1, float(trail.get("maxTime", DRAWING_TRAIL_LIFETIME)))
 		var life_ratio := clampf(time_left / max_time, 0.0, 1.0)
 		var color := _drawing_paint_color(color_id)
+		if color_id == "yellow":
+			var wall_ratio := clampf(float(trail.get("wallHp", DRAWING_YELLOW_TRAIL_WALL_HP)) / maxf(0.1, float(trail.get("maxWallHp", DRAWING_YELLOW_TRAIL_WALL_HP))), 0.0, 1.0)
+			if previous_by_color.has(color_id):
+				var prev := Vector2(previous_by_color[color_id])
+				if prev.distance_squared_to(pos) < 92.0 * 92.0:
+					draw_line(prev, pos, Color(0.95, 0.70, 0.12, 0.18 * life_ratio), trail_width * 0.98, true)
+					draw_line(prev, pos, Color(color.r, color.g, color.b, (0.36 + 0.12 * wall_ratio) * life_ratio), trail_width * 0.78, true)
+					draw_line(prev, pos, Color(1.0, 1.0, 0.88, 0.24 * life_ratio), trail_width * 0.20, true)
+			draw_circle(pos, trail_width * 0.48, Color(0.95, 0.70, 0.12, 0.16 * life_ratio))
+			draw_circle(pos, trail_width * 0.39, Color(color.r, color.g, color.b, (0.36 + 0.12 * wall_ratio) * life_ratio))
+			draw_circle(pos - Vector2(trail_width * 0.10, trail_width * 0.12), trail_width * 0.12, Color(1.0, 1.0, 0.90, 0.30 * life_ratio))
+			draw_circle(pos, trail_width * 0.45, Color(1.0, 0.88, 0.20, 0.26 * life_ratio), false, 3.0, true)
+			previous_by_color[color_id] = pos
+			continue
 		if previous_by_color.has(color_id):
 			var prev := Vector2(previous_by_color[color_id])
 			if prev.distance_squared_to(pos) < 92.0 * 92.0:
@@ -12194,36 +13450,146 @@ func _draw_drawing_paint_orb(orb: Dictionary, visible_rect: Rect2) -> void:
 	var radius := float(orb.get("radius", DRAWING_PAINT_ORB_RADIUS))
 	if not visible_rect.grow(radius + 32.0).has_point(pos):
 		return
-	var color_id := String(orb.get("colorId", "pink"))
+	var color_id := String(orb.get("displayColor", orb.get("colorId", "pink")))
 	var color := _drawing_paint_color(color_id)
+	var is_hidden_color := color_id == "gray"
 	var phase := float(orb.get("phase", 0.0))
 	var bob := sin(elapsed * 4.6 + phase) * 3.5
 	var center := pos + Vector2(0.0, bob)
 	var time_ratio := clampf(float(orb.get("time", 0.0)) / maxf(0.1, float(orb.get("maxTime", DRAWING_PAINT_ORB_LIFETIME))), 0.0, 1.0)
 	DrawPrimitiveSystemScript.draw_shadow(self, center + Vector2(0.0, radius * 0.85), Vector2(radius * 1.7, radius * 0.46), 0.16 * time_ratio)
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _drawing_paint_orb_image_path(color_id))
+	if texture != null:
+		DrawPrimitiveSystemScript.draw_shadow(self, center + Vector2(0.0, radius * 1.10), Vector2(radius * 2.35, radius * 0.58), 0.23 * time_ratio)
+		draw_circle(center, radius + 18.0, Color(0.03, 0.04, 0.06, 0.16 * time_ratio))
+		draw_circle(center, radius + 15.0, Color(color.r, color.g, color.b, 0.16 + 0.08 * sin(elapsed * 5.0 + phase)))
+		var image_size := Vector2.ONE * radius * 3.35
+		var image_rect := _fit_texture_rect(Rect2(center - image_size * 0.5, image_size), texture.get_size())
+		var modulate := Color(0.82, 0.80, 0.90, 0.98) if is_hidden_color else Color(1.0, 1.0, 1.0, 0.98)
+		_draw_texture_with_silhouette_outline(texture, image_rect, modulate, Color(0.02, 0.02, 0.04, 0.82 * time_ratio), 4.0)
+		return
 	draw_circle(center, radius + 8.0, Color(color.r, color.g, color.b, 0.18 + 0.10 * sin(elapsed * 5.0 + phase)))
 	draw_circle(center, radius, Color(color.r, color.g, color.b, 0.78))
 	draw_circle(center - Vector2(radius * 0.22, radius * 0.24), radius * 0.45, Color(1.0, 1.0, 1.0, 0.42))
 	draw_circle(center, radius, Color("#ffffff"), false, 3.0, true)
+	if is_hidden_color:
+		draw_circle(center + Vector2(radius * 0.24, -radius * 0.18), radius * 0.25, Color(0.78, 0.74, 0.92, 0.46))
+		return
 	_draw_outlined_text(center + Vector2(-22.0, 10.0), "絵具", 44, 13, Color("#ffffff"), Color(color.r, color.g, color.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_drawing_correction_point(point: Dictionary, visible_rect: Rect2) -> void:
-	var pos := Vector2(point.get("pos", Vector2.ZERO))
+	var base_pos := Vector2(point.get("pos", Vector2.ZERO))
 	var radius := float(point.get("radius", DRAWING_CORRECTION_RADIUS))
-	if not visible_rect.grow(radius + 28.0).has_point(pos):
+	if not visible_rect.grow(radius + DRAWING_CORRECTION_ORB_ASSIST_RADIUS).has_point(base_pos):
 		return
 	var phase := float(point.get("phase", 0.0))
+	var pos := base_pos
+	var shake := float(point.get("shake", 0.0))
+	if shake > 0.0:
+		var shake_ratio := clampf(shake / DRAWING_CORRECTION_SHAKE_DURATION, 0.0, 1.0)
+		pos += Vector2(sin(elapsed * 52.0 + phase), cos(elapsed * 45.0 + phase)) * 4.0 * shake_ratio
 	var pulse := 0.5 + 0.5 * sin(elapsed * 5.4 + phase)
 	var life_ratio := clampf(float(point.get("time", 0.0)) / maxf(0.1, float(point.get("maxTime", DRAWING_CORRECTION_LIFETIME))), 0.0, 1.0)
-	draw_circle(pos, radius + pulse * 7.0, Color(1.0, 0.92, 0.45, 0.16 * life_ratio), false, 3.0, true)
-	draw_circle(pos, radius * 0.72, Color(1.0, 0.96, 0.56, 0.74 * life_ratio))
-	draw_circle(pos, radius * 0.72, Color("#ff80bd"), false, 3.0, true)
-	draw_line(pos + Vector2(-radius * 0.42, 0.0), pos + Vector2(radius * 0.42, 0.0), Color("#ffffff"), 4.0, true)
-	draw_line(pos + Vector2(0.0, -radius * 0.42), pos + Vector2(0.0, radius * 0.42), Color("#ffffff"), 4.0, true)
+	var has_paint := _drawing_has_active_paint()
+	var active_color := _drawing_paint_color(drawing_active_paint_color) if has_paint else Color("#d34f8d")
+	var ready_alpha := 0.62 if has_paint else 0.24
+	draw_circle(pos, radius + pulse * 7.0, Color(1.0, 0.92, 0.45, 0.13 * life_ratio), false, 3.0, true)
+	draw_circle(pos, radius + 10.0, Color(1.0, 1.0, 1.0, 0.20 * life_ratio), false, 3.0, true)
+	draw_arc(pos, radius + 10.0, 0.0, TAU, 48, Color(active_color.r, active_color.g, active_color.b, ready_alpha * life_ratio), 3.0, true)
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, DRAWING_CORRECTION_POINT_IMAGE)
+	var image_modulate := Color(1.0, 1.0, 1.0, 0.98 * life_ratio) if has_paint else Color(0.72, 0.72, 0.78, 0.84 * life_ratio)
+	if texture != null:
+		var image_size := Vector2.ONE * radius * 2.35
+		var image_rect := _fit_texture_rect(Rect2(pos - image_size * 0.5, image_size), texture.get_size())
+		_draw_texture_with_silhouette_outline(texture, image_rect, image_modulate, Color(0.04, 0.02, 0.04, 0.76 * life_ratio), 3.4)
+	else:
+		draw_circle(pos, radius * 0.72, Color(1.0, 0.96, 0.56, (0.74 if has_paint else 0.46) * life_ratio))
+		draw_circle(pos, radius * 0.72, Color("#ff80bd"), false, 3.0, true)
+		draw_line(pos + Vector2(-radius * 0.42, 0.0), pos + Vector2(radius * 0.42, 0.0), Color("#ffffff"), 4.0, true)
+		draw_line(pos + Vector2(0.0, -radius * 0.42), pos + Vector2(0.0, radius * 0.42), Color("#ffffff"), 4.0, true)
 	var paint_ratio := clampf(float(point.get("paintTime", 0.0)) / DRAWING_CORRECTION_DIRECT_PAINT_TIME, 0.0, 1.0)
-	if paint_ratio > 0.0:
-		draw_arc(pos, radius + 10.0, -PI * 0.5, -PI * 0.5 + TAU * paint_ratio, 36, Color("#74e7ff"), 4.0, true)
+	if has_paint and paint_ratio > 0.0:
+		draw_arc(pos, radius + 15.0, -PI * 0.5, -PI * 0.5 + TAU * paint_ratio, 42, Color(active_color.r, active_color.g, active_color.b, 0.92 * life_ratio), 5.0, true)
+		draw_arc(pos, radius + 15.0, -PI * 0.5, -PI * 0.5 + TAU * paint_ratio, 42, Color(1.0, 1.0, 1.0, 0.28 * life_ratio), 1.6, true)
+	var hint_ratio := clampf(float(point.get("noPaintHint", 0.0)) / DRAWING_CORRECTION_NO_PAINT_HINT_DURATION, 0.0, 1.0)
+	if hint_ratio > 0.0:
+		var hint_alpha := smoothstep(0.0, 1.0, hint_ratio)
+		_draw_outlined_text(pos + Vector2(-58.0, -radius - 28.0), "絵具が必要！", 116, 14, Color(1.0, 0.94, 0.58, hint_alpha), Color(0.20, 0.08, 0.04, 0.74 * hint_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	var arrow_ratio := clampf(float(point.get("arrowTime", 0.0)) / DRAWING_CORRECTION_ARROW_DURATION, 0.0, 1.0)
+	if arrow_ratio > 0.0 and bool(point.get("hasHintOrb", false)):
+		_draw_drawing_correction_paint_arrow(pos, Vector2(point.get("hintOrbPos", base_pos)), arrow_ratio)
 	_draw_outlined_text(pos + Vector2(-34.0, radius + 17.0), "修正", 68, 13, Color("#ffffff"), Color("#d34f8d"), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_drawing_correction_paint_arrow(from_pos: Vector2, target_pos: Vector2, ratio: float) -> void:
+	var delta := target_pos - from_pos
+	if delta.length_squared() < 36.0 * 36.0:
+		return
+	var dir := delta.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	var alpha := clampf(ratio, 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(elapsed * 7.0)
+	var start := from_pos + dir * 54.0
+	var end := target_pos - dir * 42.0
+	for i in range(3):
+		var t := clampf(0.28 + float(i) * 0.22 + pulse * 0.04, 0.0, 1.0)
+		var center := start.lerp(end, t)
+		var tip := center + dir * 16.0
+		var back := center - dir * 12.0
+		draw_line(back, tip, Color(1.0, 1.0, 1.0, 0.44 * alpha), 7.0, true)
+		draw_line(tip, tip - dir * 11.0 + side * 8.0, Color(1.0, 1.0, 1.0, 0.44 * alpha), 7.0, true)
+		draw_line(tip, tip - dir * 11.0 - side * 8.0, Color(1.0, 1.0, 1.0, 0.44 * alpha), 7.0, true)
+		draw_line(back, tip, Color(1.0, 0.82, 0.30, 0.82 * alpha), 3.6, true)
+		draw_line(tip, tip - dir * 11.0 + side * 8.0, Color(1.0, 0.82, 0.30, 0.82 * alpha), 3.6, true)
+		draw_line(tip, tip - dir * 11.0 - side * 8.0, Color(1.0, 0.82, 0.30, 0.82 * alpha), 3.6, true)
+
+func _draw_drawing_correction_completion_fx(fx: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(fx.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(96.0).has_point(pos):
+		return
+	var time_left := float(fx.get("time", 0.0))
+	var max_time := maxf(0.1, float(fx.get("maxTime", DRAWING_CORRECTION_COMPLETION_FLASH_DURATION)))
+	var ratio := clampf(time_left / max_time, 0.0, 1.0)
+	var burst := 1.0 - ratio
+	draw_circle(pos, 34.0 + burst * 42.0, Color(1.0, 1.0, 1.0, 0.26 * ratio), false, 6.0, true)
+	draw_circle(pos, 24.0 + burst * 30.0, Color(1.0, 0.92, 0.72, 0.18 * ratio))
+	draw_arc(pos, 48.0 + burst * 24.0, elapsed * 5.0, elapsed * 5.0 + TAU * 0.68, 36, Color(1.0, 1.0, 1.0, 0.62 * ratio), 3.0, true)
+
+func _draw_drawing_eraser_wave(wave: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(wave.get("pos", Vector2.ZERO))
+	var radius := float(wave.get("radius", DRAWING_ERASER_RADIUS))
+	if not visible_rect.grow(radius + 32.0).has_point(pos):
+		return
+	var time_left := float(wave.get("time", 0.0))
+	var max_time := maxf(0.1, float(wave.get("maxTime", DRAWING_ERASER_WAVE_DURATION)))
+	var ratio := clampf(time_left / max_time, 0.0, 1.0)
+	var progress := 1.0 - ratio
+	var eased := smoothstep(0.0, 1.0, progress)
+	var draw_radius := lerpf(46.0, radius, eased)
+	var phase := float(wave.get("phase", 0.0))
+	var burst := sin(progress * PI)
+	var dark_alpha := (0.24 + burst * 0.18) * ratio
+	draw_circle(pos, draw_radius * 0.76, Color(0.62, 0.92, 1.0, 0.12 * ratio))
+	draw_circle(pos, draw_radius * 0.50, Color(0.02, 0.04, 0.06, 0.06 * ratio))
+	draw_circle(pos, draw_radius + 4.0, Color(0.02, 0.03, 0.05, dark_alpha), false, 18.0, true)
+	draw_circle(pos, draw_radius, Color(0.50, 0.91, 1.0, (0.34 + burst * 0.16) * ratio), false, 10.0, true)
+	draw_circle(pos, draw_radius - 7.0, Color(1.0, 1.0, 1.0, 0.58 * ratio), false, 3.4, true)
+	draw_circle(pos, draw_radius * 0.86, Color(0.02, 0.03, 0.05, 0.20 * ratio), false, 3.0, true)
+	for i in range(12):
+		var ray_angle := phase + float(i) * TAU / 12.0 + progress * 0.65
+		var dir := Vector2(cos(ray_angle), sin(ray_angle))
+		var ray_start := pos + dir * maxf(18.0, draw_radius - 26.0)
+		var ray_end := pos + dir * (draw_radius + 13.0 + burst * 9.0)
+		draw_line(ray_start, ray_end, Color(0.02, 0.03, 0.05, 0.20 * ratio), 4.2, true)
+		draw_line(ray_start, ray_end, Color(0.72, 0.96, 1.0, 0.30 * ratio), 2.0, true)
+	for i in range(18):
+		var angle := phase + float(i) * TAU / 18.0 + progress * 1.4
+		var crumb_rate := 0.35 + float((i * 37) % 61) / 100.0
+		var crumb_distance := lerpf(18.0, radius * crumb_rate, eased)
+		var wobble := sin(elapsed * 7.0 + float(i) * 1.7) * 7.0
+		var crumb_pos := pos + Vector2(cos(angle), sin(angle)) * (crumb_distance + wobble)
+		var crumb_size := 2.0 + float(i % 4) * 0.7
+		draw_circle(crumb_pos, crumb_size + 1.4, Color(0.02, 0.03, 0.05, 0.26 * ratio))
+		draw_circle(crumb_pos, crumb_size, Color(1.0, 1.0, 0.96, 0.72 * ratio))
 
 func _draw_drawing_eraser(eraser: Dictionary, visible_rect: Rect2) -> void:
 	var pos := Vector2(eraser.get("pos", Vector2.ZERO))
@@ -12235,6 +13601,14 @@ func _draw_drawing_eraser(eraser: Dictionary, visible_rect: Rect2) -> void:
 	var life_ratio := clampf(float(eraser.get("time", 0.0)) / maxf(0.1, float(eraser.get("maxTime", DRAWING_ERASER_LIFETIME))), 0.0, 1.0)
 	var body := Rect2(center - Vector2(33.0, 19.0), Vector2(66.0, 38.0))
 	DrawPrimitiveSystemScript.draw_shadow(self, center + Vector2(0.0, 31.0), Vector2(76.0, 18.0), 0.15 * life_ratio)
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, DRAWING_ERASER_IMAGE)
+	if texture != null:
+		DrawPrimitiveSystemScript.draw_shadow(self, center + Vector2(0.0, 35.0), Vector2(104.0, 23.0), 0.26 * life_ratio)
+		draw_circle(center, 52.0, Color(0.02, 0.03, 0.05, 0.14 * life_ratio))
+		var image_size := Vector2.ONE * 112.0
+		var image_rect := _fit_texture_rect(Rect2(center - image_size * 0.5, image_size), texture.get_size())
+		_draw_texture_with_silhouette_outline(texture, image_rect, Color(1.0, 1.0, 1.0, 0.98), Color(0.02, 0.02, 0.04, 0.84 * life_ratio), 4.5)
+		return
 	draw_rect(body.grow(5.0), Color(0.45, 0.92, 1.0, 0.20 * life_ratio), true)
 	draw_rect(body, Color("#f7fbff"), true)
 	draw_rect(Rect2(body.position, Vector2(body.size.x * 0.42, body.size.y)), Color("#8eeaff"), true)
@@ -12246,6 +13620,27 @@ func _draw_drawing_stage_hud() -> void:
 		return
 	if state != "playing" and state != "comment_choice" and state != "gift_choice":
 		return
+	var image_rect := Rect2(FIELD_VIEW.position + Vector2(12.0, 12.0), Vector2(360.0, 126.0))
+	var hud_texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, DRAWING_HUD_GAUGE_IMAGE)
+	if hud_texture != null:
+		DrawPrimitiveSystemScript.draw_shadow(self, image_rect.get_center() + Vector2(0.0, 7.0), image_rect.size + Vector2(18.0, 10.0), 0.14)
+		draw_texture_rect(hud_texture, _fit_texture_rect(image_rect, hud_texture.get_size()), false, Color.WHITE)
+		var active_text := "絵具なし"
+		var active_color := Color("#8b7288")
+		if _drawing_has_active_paint():
+			active_text = "%s %d%%" % [_drawing_paint_name(drawing_active_paint_color), roundi(_drawing_paint_amount_ratio() * 100.0)]
+			active_color = _drawing_paint_color(drawing_active_paint_color)
+		_draw_text_item({"pos": image_rect.position + Vector2(205.0, 42.0), "text": active_text, "width": 118, "size": 13, "fontWeight": "bold", "color": active_color}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+		var bar := Rect2(image_rect.position + Vector2(image_rect.size.x * 0.120, image_rect.size.y * 0.465), Vector2(image_rect.size.x * 0.765, image_rect.size.y * 0.155))
+		var progress_ratio := clampf(drawing_progress / 100.0, 0.0, 1.0)
+		draw_rect(bar, Color(1.0, 0.93, 0.98, 0.55), true)
+		var fill_rect := Rect2(bar.position, Vector2(bar.size.x * progress_ratio, bar.size.y))
+		if fill_rect.size.x > 0.0:
+			draw_rect(fill_rect, Color("#ff72bd"), true)
+			draw_rect(Rect2(fill_rect.position, Vector2(fill_rect.size.x, fill_rect.size.y * 0.42)), Color(1.0, 1.0, 1.0, 0.24), true)
+		draw_rect(bar, Color("#f58abb"), false, 1.8)
+		_draw_text_item({"pos": image_rect.position + Vector2(64.0, 104.0), "text": "制作進捗 %d%%" % roundi(drawing_progress), "width": 240, "size": 13, "fontWeight": "black", "color": Color("#7a4968")}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		return
 	var rect := Rect2(FIELD_VIEW.position + Vector2(18.0, 18.0), Vector2(294.0, 92.0))
 	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(18.0, 10.0), 0.13)
 	draw_rect(rect, Color(1.0, 0.98, 1.0, 0.90), true)
@@ -12254,8 +13649,8 @@ func _draw_drawing_stage_hud() -> void:
 	_draw_text_item({"pos": rect.position + Vector2(18.0, 26.0), "text": "DRAWING", "width": 118, "size": 18, "fontWeight": "black", "color": Color("#e94f9a")})
 	var active_text := "絵具なし"
 	var active_color := Color("#8b7288")
-	if drawing_active_paint_color != "":
-		active_text = "%s %.1fs" % [_drawing_paint_name(drawing_active_paint_color), drawing_active_paint_timer]
+	if _drawing_has_active_paint():
+		active_text = "%s %d%%" % [_drawing_paint_name(drawing_active_paint_color), roundi(_drawing_paint_amount_ratio() * 100.0)]
 		active_color = _drawing_paint_color(drawing_active_paint_color)
 	_draw_text_item({"pos": rect.position + Vector2(144.0, 28.0), "text": active_text, "width": 132, "size": 16, "fontWeight": "bold", "color": active_color}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 	var bar := Rect2(rect.position + Vector2(22.0, 52.0), Vector2(rect.size.x - 44.0, 14.0))
@@ -12267,8 +13662,6 @@ func _draw_drawing_stage_hud() -> void:
 		draw_rect(Rect2(fill_rect.position, Vector2(fill_rect.size.x, fill_rect.size.y * 0.42)), Color(1.0, 1.0, 1.0, 0.22), true)
 	draw_rect(bar, Color("#ffb7dc"), false, 2.0)
 	_draw_text_item({"pos": rect.position + Vector2(20.0, 82.0), "text": "制作進捗 %d%%" % roundi(drawing_progress), "width": 132, "size": 12, "fontWeight": "bold", "color": Color("#6d5870")})
-	var fill_count := drawing_fill_count
-	_draw_text_item({"pos": rect.position + Vector2(152.0, 82.0), "text": "塗りエリア %d" % fill_count, "width": 122, "size": 12, "fontWeight": "bold", "color": Color("#6d5870")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_drawing_stage_toast() -> void:
 	if drawing_toast_timer <= 0.0 or drawing_toast_title == "":

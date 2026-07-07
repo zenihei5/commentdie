@@ -134,9 +134,9 @@
   },
   {
     "id": "red_pen_review_chief",
-    "displayName": "赤ペン添削長",
-    "description": "お絵かき枠に出現する赤ペン添削系の専用ボス。",
-    "warningText": "赤ペン添削長 出現！",
+    "displayName": "赤ペンリテイクドラゴン",
+    "description": "お絵かき枠に出現する赤ペンリテイク系の専用ボス。",
+    "warningText": "赤ペンリテイクドラゴン 出現！",
     "stageId": "drawing",
     "role": "drawing_stage_boss",
     "hp": 1100.0,

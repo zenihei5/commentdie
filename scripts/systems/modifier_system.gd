@@ -200,6 +200,16 @@ static func _drawing_instruction_event_id(comment_id: String) -> String:
 			return "drawing_instruction_fix_here"
 		"drawing_clean_screen":
 			return "drawing_instruction_clean_screen"
+		"drawing_fast_dry":
+			return "drawing_instruction_fast_dry"
+		"drawing_too_much_paint":
+			return "drawing_instruction_too_much_paint"
+		"drawing_palette_shuffle":
+			return "drawing_instruction_palette_shuffle"
+		"drawing_more_corrections":
+			return "drawing_instruction_more_corrections"
+		"drawing_spilled_bucket":
+			return "drawing_instruction_spilled_bucket"
 	return ""
 
 static func _effect_duration_for_target(target: Node, comment: Dictionary) -> float:

@@ -39,6 +39,7 @@ const DRAWING_STAGE_SIZE := Vector2(2300, 1600)
 const DRAWING_STAGE_WORLD_RECT := Rect2(Vector2(20, 120), DRAWING_STAGE_SIZE)
 const DRAWING_STAGE_PLAY_RECT := Rect2(Vector2(280, 315), Vector2(1700, 950))
 const DRAWING_STAGE_CANVAS_PROGRESS_RECT := Rect2(Vector2(280, 315), Vector2(1700, 950))
+const DRAWING_STAGE_CANVAS_PROGRESS_INSET := Vector4(24, 44, 24, 42)
 const ZATSUDAN_STUDIO_COLLISION_RECTS := [
 	{"id": "bench_left_top", "rect": Rect2(619, 413, 351, 55)},
 	{"id": "bench_right_mid", "rect": Rect2(1388, 717, 312, 44)},
@@ -223,6 +224,7 @@ static func drawing_stage_background_data() -> Dictionary:
 		"collisionRects": DRAWING_STAGE_COLLISION_RECTS,
 		"propCollisionRects": DRAWING_STAGE_PROP_COLLISION_RECTS,
 		"canvasProgressRect": DRAWING_STAGE_CANVAS_PROGRESS_RECT,
+		"canvasProgressInset": DRAWING_STAGE_CANVAS_PROGRESS_INSET,
 		"canvasProgressPaths": {
 			"rough": DRAWING_STAGE_PROGRESS_ROUGH,
 			"lineart": DRAWING_STAGE_PROGRESS_LINEART,
