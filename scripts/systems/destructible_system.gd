@@ -9,6 +9,7 @@ const HORROR_BOX_INTERVAL := 7.0
 const DROP_LIFE := 15.0
 const DROP_ATTRACT_RANGE := 96.0
 const DROP_PICKUP_RANGE := 30.0
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 
 static func reset_for_target(target: Node) -> void:
 	(target.get("destructibles") as Array).clear()
@@ -85,7 +86,7 @@ static func find_spawn_position(target: Node, arena: Rect2, rng: RandomNumberGen
 		p.y = clampf(p.y, arena.position.y + 80.0, arena.end.y - 80.0)
 		if p.distance_squared_to(player_pos) < 13225.0:
 			continue
-		if _point_in_wall(p, effect_walls, String(target.get("current_stream_frame_id"))):
+		if _point_in_wall(p, effect_walls, DrawDataSystem.collision_frame_id_for_target(target)):
 			continue
 		if _near_enemy_cluster(p, enemies):
 			continue
@@ -248,13 +249,19 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	var drop_pickup_se := false
 	var hit_fx: Array = target.get("hit_fx") as Array
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
-	var attract_range: float = DROP_ATTRACT_RANGE + float(target.get("comment_radar_range_bonus"))
+	var attract_base := DROP_ATTRACT_RANGE
+	var pickup_base := DROP_PICKUP_RANGE
+	var snapshot = target.get("permanent_upgrade_snapshot")
+	if snapshot != null:
+		attract_base = PowerUpEffectProviderScript.normal_attract_radius(attract_base, snapshot)
+		pickup_base = PowerUpEffectProviderScript.normal_pickup_radius(pickup_base, snapshot)
+	var attract_range: float = attract_base + float(target.get("comment_radar_range_bonus"))
 	if target.has_method("_song_live_heat_pickup_range_multiplier"):
 		attract_range *= maxf(0.1, float(target.call("_song_live_heat_pickup_range_multiplier")))
 	var magnet_speed_rate: float = maxf(0.1, float(target.get("item_magnet_speed_rate")))
 	var attracted_any := false
 	var attract_range_sq := attract_range * attract_range
-	var pickup_range_sq := DROP_PICKUP_RANGE * DROP_PICKUP_RANGE
+	var pickup_range_sq := pickup_base * pickup_base
 	for item in (target.get("drop_items") as Array):
 		var drop: Dictionary = item as Dictionary
 		drop["life"] = float(drop.get("life", DROP_LIFE)) - delta
@@ -313,8 +320,16 @@ static func apply_drop_for_target(target: Node, id: String) -> Dictionary:
 			return {"chat": "+ スペシャルライブギフト箱を受け取った！", "toast": "スペシャルライブギフト！", "popup": "SP GIFT!", "color": Color("#ff7fd2")}
 		return {"chat": "+ ライブギフト箱を受け取った！", "toast": "ライブギフト！", "popup": "GIFT!", "color": Color("#86eaff")}
 	if id == "heal_drink":
+		# Gift-box energy drinks are a healing route too.  Consume the pickup
+		# without granting fallback score while the relay boss no-heal effect is
+		# active, so the restriction cannot be bypassed through destructibles.
+		if target.has_method("_relay_heal_allowed") and not bool(target.call("_relay_heal_allowed")):
+			return {"chat": "NO HEAL", "toast": "回復禁止中", "popup": "NO HEAL", "color": Color("#ff6b88")}
 		if int(target.get("player_hp")) < int(target.get("player_max_hp")):
 			var heal_amount: int = DamageSystem.LEGACY_HP_UNIT
+			var snapshot = target.get("permanent_upgrade_snapshot")
+			if snapshot != null:
+				heal_amount = PowerUpEffectProviderScript.scaled_heal_amount(heal_amount, snapshot, "drop_heal")
 			target.set("player_hp", mini(int(target.get("player_max_hp")), int(target.get("player_hp")) + heal_amount))
 			return {"chat": "エナドリを拾った！", "toast": "エナドリ！ メンタル +%d" % heal_amount, "popup": "メンタル +%d" % heal_amount, "color": Color("#37e06d")}
 		target.set("score", int(target.get("score")) + 300)

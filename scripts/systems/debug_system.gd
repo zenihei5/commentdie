@@ -2,6 +2,8 @@ class_name DebugSystem
 extends RefCounted
 
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
+const CURRENT_FRAME_BOSS_KEY := KEY_F7
+const CURRENT_FRAME_BOSS_KEY_LABEL := "F7"
 
 static func pressed_actions(latch: Dictionary) -> Array[String]:
 	var actions: Array[String] = []
@@ -42,7 +44,17 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_J, "spawn_clipper")
 	_add_if_pressed(actions, latch, KEY_E, "clear_effects")
 	_add_if_pressed(actions, latch, KEY_BACKSPACE, "reset_ranking")
+	_add_if_pressed(actions, latch, CURRENT_FRAME_BOSS_KEY, "spawn_current_frame_boss")
+	_add_if_pressed(actions, latch, KEY_F10, "relay_boss_direct")
+	_add_if_pressed(actions, latch, KEY_F9, "relay_boss_toggle_debug")
+	_add_if_pressed(actions, latch, KEY_F11, "relay_boss_force_attack")
+	_add_if_pressed(actions, latch, KEY_F12, "relay_boss_next_phase")
 	return actions
+
+static func direct_action(latch: Dictionary) -> String:
+	if _pressed(latch, KEY_F10):
+		return "relay_boss_direct"
+	return ""
 
 static func title_action(latch: Dictionary) -> String:
 	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
@@ -163,6 +175,9 @@ static func should_start_gift(action: String) -> bool:
 
 static func should_start_comment(action: String) -> bool:
 	return action == "comment_now"
+
+static func should_spawn_current_frame_boss(action: String) -> bool:
+	return action == "spawn_current_frame_boss"
 
 static func forced_comment_id(action: String) -> String:
 	if action == "comment_no_stop":

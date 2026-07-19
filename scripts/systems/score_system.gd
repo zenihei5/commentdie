@@ -26,11 +26,15 @@ static func enemy_score(enemy: Dictionary, context: Dictionary) -> int:
 		gift_bonus *= genre_score_rate(int(context.get("streamingSkillLevel", 0)))
 	var combo_bonus: float = 1.0 + float(burn_combo) * 0.1
 	var passive_rate: float = float(context.get("passiveScoreRate", 1.0))
-	return int(float(enemy["score"]) * multiplier * combo_bonus * gift_bonus * passive_rate)
+	var enemy_score_multiplier: float = float(enemy.get("scoreMultiplier", 1.0))
+	return int(float(enemy["score"]) * enemy_score_multiplier * multiplier * combo_bonus * gift_bonus * passive_rate)
 
 static func enemy_score_for_target(target: Node, enemy: Dictionary) -> int:
+	var challenge_bonus := 0.0
+	if target.has_method("_collab_challenge_excitement_bonus_value"):
+		challenge_bonus = maxf(0.0, float(target.call("_collab_challenge_excitement_bonus_value")))
 	return enemy_score(enemy, {
-		"multiplier": target.get("multiplier"),
+		"multiplier": float(target.get("multiplier")) + challenge_bonus,
 		"burnCombo": target.get("burn_combo"),
 		"clipBonusLevel": target.get("clip_bonus_level"),
 		"flameMarketing": target.get("flame_marketing"),

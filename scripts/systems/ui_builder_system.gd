@@ -2,6 +2,7 @@ class_name UiBuilderSystem
 extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+const RelayBreakScreenScript := preload("res://scripts/ui/relay_break_screen.gd")
 
 static func build_ui(target: Node, choose_callable: Callable, result_style: StyleBoxFlat) -> Dictionary:
 	var ui := CanvasLayer.new()
@@ -11,7 +12,11 @@ static func build_ui(target: Node, choose_callable: Callable, result_style: Styl
 	var chat_nodes: Dictionary = build_chat_ui(ui)
 	var status_nodes: Dictionary = build_status_ui(ui)
 	var result_nodes: Dictionary = build_result_ui(ui, result_style)
+	var relay_break_screen := RelayBreakScreenScript.new()
+	relay_break_screen.visible = false
+	ui.add_child(relay_break_screen)
 	return {
+		"uiRoot": ui,
 		"titleLabel": title_nodes["titleLabel"],
 		"bannerLabel": title_nodes["bannerLabel"],
 		"choiceBox": choice_nodes["choiceBox"],
@@ -20,7 +25,8 @@ static func build_ui(target: Node, choose_callable: Callable, result_style: Styl
 		"chatBox": chat_nodes["chatBox"],
 		"statusLabel": status_nodes["statusLabel"],
 		"resultPanel": result_nodes["resultPanel"],
-		"resultLabel": result_nodes["resultLabel"]
+		"resultLabel": result_nodes["resultLabel"],
+		"relayBreakScreen": relay_break_screen
 	}
 
 static func build_title_ui(ui: CanvasLayer) -> Dictionary:

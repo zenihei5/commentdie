@@ -2,6 +2,8 @@ extends RefCounted
 class_name EnemySystem
 
 const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
+const RelayStageProfileSystemScript := preload("res://scripts/systems/relay_stage_profile_system.gd")
+const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
 const KNOCKBACK_SPEED_SCALE := 13.0
 const KNOCKBACK_DECAY_RATE := 13.0
 const KNOCKBACK_STOP_SPEED := 8.0
@@ -21,6 +23,35 @@ const WIKI_BULLET_LIFE := 2.9
 const DRONE_FIRE_INTERVAL_MIN := 2.55
 const DRONE_FIRE_INTERVAL_MAX := 3.25
 const DRONE_BULLET_LIFE := 2.9
+const DRAWING_MAX_NORMAL_ENEMY_PROJECTILES := 18
+const DRAWING_MAX_SHOOTER_ENEMIES := 4
+const DRAWING_LATE_MAX_SHOOTER_ENEMIES := 6
+const DRAWING_LATE_SHOOTER_TIME := 120.0
+const DRAWING_RED_PEN_FIRE_INTERVAL_MIN := 3.8
+const DRAWING_RED_PEN_FIRE_INTERVAL_MAX := 4.6
+const DRAWING_RED_PEN_PROJECTILE_SPEED := 170.0
+const DRAWING_RED_PEN_PROJECTILE_DAMAGE := 5
+const DRAWING_RED_PEN_BULLET_LIFE := 3.6
+const DRAWING_RED_PEN_PRE_SHOT_WARNING_TIME := 0.45
+const DRAWING_RED_PEN_MAX_PROJECTILES_PER_ENEMY := 1
+const DRAWING_BUCKET_PUDDLE_INTERVAL := 7.5
+const DRAWING_BUCKET_PUDDLE_LIFETIME := 6.0
+const DRAWING_BUCKET_PUDDLE_RADIUS := 48.0
+const DRAWING_BUCKET_PUDDLE_SLOW_RATE := 0.15
+const DRAWING_BUCKET_MAX_PUDDLES_PER_ENEMY := 2
+const COLLAB_MESSENGER_DASH_INTERVAL := 4.5
+const COLLAB_MESSENGER_DASH_WARNING_DURATION := 0.55
+const COLLAB_MESSENGER_DASH_SPEED := 320.0
+const COLLAB_MESSENGER_TRAIL_LIFETIME := 2.5
+const COLLAB_MESSENGER_TRAIL_WIDTH := 38.0
+const COLLAB_DISCORD_PULSE_INTERVAL := 5.0
+const COLLAB_DISCORD_PULSE_WARNING_DURATION := 0.6
+const COLLAB_DISCORD_PULSE_RADIUS := 190.0
+const COLLAB_VOLUME_FIELD_INTERVAL := 7.0
+const COLLAB_VOLUME_FIELD_WARNING_DURATION := 0.7
+const COLLAB_VOLUME_FIELD_RADIUS := 135.0
+const COLLAB_VOLUME_FIELD_LIFETIME := 5.0
+const COLLAB_EXCLUSIVE_ATTACH_DISTANCE := 54.0
 const LAG_WARP_COOLDOWN_MIN := 4.45
 const LAG_WARP_COOLDOWN_MAX := 5.45
 const LAG_WARP_WARNING_TIME := 0.35
@@ -49,6 +80,11 @@ const GAMEPLAY_RACE_MARSHMALLOW_DROP_CHANCE := 0.006
 const GAMEPLAY_BULLET_HELL_MARSHMALLOW_DROP_CHANCE := 0.004
 const GAMEPLAY_HORROR_MARSHMALLOW_DROP_CHANCE := 0.010
 const GAMEPLAY_FAKE_GIFT_MARSHMALLOW_DROP_CHANCE := 0.25
+const LINKED_TROLL_DEFEAT_REWARD_ENABLED := true
+const LINKED_TROLL_BONUS_EXP_MULTIPLIER := 0.5
+const LINKED_TROLL_MINIMUM_BONUS_EXP := 1
+const LINKED_TROLL_GIFT_EXPECTATION_GAIN := 1
+const LINKED_TROLL_MAX_GIFT_EXPECTATION_GAIN_PER_RUN := 10
 
 static var movement_wall_cache: Dictionary = {}
 
@@ -77,14 +113,56 @@ static func spawn_interval(context: Dictionary) -> float:
 static func effective_wave_time(elapsed: float, quick_test_mode: bool) -> float:
 	return elapsed * 3.0 if quick_test_mode else elapsed
 
-static func pick_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator, stream_frame_id: String = "", active_genre_event: String = "") -> String:
+static func pick_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator, stream_frame_id: String = "", active_genre_event: String = "", upper_enemy_weight: float = 1.0) -> String:
+	var kind := _pick_wave_enemy_base(elapsed, quick_test_mode, rng, stream_frame_id, active_genre_event)
+	if upper_enemy_weight < 1.0 and _is_upper_enemy_kind(kind) and rng.randf() >= upper_enemy_weight:
+		return _fallback_wave_enemy(stream_frame_id, active_genre_event)
+	if upper_enemy_weight <= 1.0:
+		return kind
+	var upper_chance := clampf((upper_enemy_weight - 1.0) * 0.45, 0.0, 0.45)
+	if rng.randf() >= upper_chance:
+		return kind
+	return _relay_upper_enemy_kind(stream_frame_id, active_genre_event, kind)
+
+static func _is_upper_enemy_kind(kind: String) -> bool:
+	return kind == "long_comment_guy" or kind == "clipper" or kind == "enemy_backseat_controller" or kind == "enemy_armchair_strategist" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_wrong_way_kart" or kind == "enemy_bullet_drone" or kind == "red_pen_teacher" or kind == "bucket_fill_slime" or kind == "collab_volume_police"
+
+static func _fallback_wave_enemy(stream_frame_id: String, active_genre_event: String) -> String:
+	if stream_frame_id == "gameplay":
+		return "enemy_spoiler_comment"
+	if stream_frame_id == "singing" or stream_frame_id == "song":
+		return "pitch_police"
+	if stream_frame_id == "drawing":
+		return "drawing_fix_note"
+	if stream_frame_id == "collab":
+		return "collab_comparison_troll"
+	return "troll"
+
+static func _pick_wave_enemy_base(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator, stream_frame_id: String = "", active_genre_event: String = "") -> String:
 	if stream_frame_id == "gameplay" and active_genre_event == "":
 		return pick_gameplay_normal_enemy(elapsed, quick_test_mode, rng)
 	if stream_frame_id == "singing" or stream_frame_id == "song":
 		return pick_song_enemy(elapsed, quick_test_mode, rng)
 	if stream_frame_id == "drawing":
 		return pick_drawing_enemy(elapsed, quick_test_mode, rng)
+	if stream_frame_id == "collab":
+		return pick_collab_enemy(elapsed, quick_test_mode, rng)
 	return pick_default_wave_enemy(elapsed, quick_test_mode, rng)
+
+static func _relay_upper_enemy_kind(stream_frame_id: String, active_genre_event: String, fallback: String) -> String:
+	if stream_frame_id == "gameplay":
+		match active_genre_event:
+			"race": return "enemy_wrong_way_kart"
+			"bullet_hell": return "enemy_bullet_drone"
+			"horror": return "enemy_strategy_wiki_ojisan"
+		return "enemy_strategy_wiki_ojisan"
+	if stream_frame_id == "singing":
+		return "request_spammer"
+	if stream_frame_id == "drawing":
+		return "red_pen_teacher" if fallback != "red_pen_teacher" else "bucket_fill_slime"
+	if stream_frame_id == "collab":
+		return "collab_volume_police"
+	return "long_comment_guy"
 
 static func pick_gameplay_normal_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
@@ -194,45 +272,50 @@ static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNu
 static func pick_drawing_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
-	if t >= 120.0:
-		if roll < 0.24:
-			return "drawing_fix_note"
-		if roll < 0.44:
-			return "red_pen_teacher"
-		if roll < 0.62:
-			return "layer_lost"
-		if roll < 0.78:
-			return "bucket_fill_slime"
-		if roll < 0.92:
-			return "undo_ghost"
-		return "shooter"
 	if t >= 70.0:
 		if roll < 0.30:
 			return "drawing_fix_note"
-		if roll < 0.50:
-			return "red_pen_teacher"
-		if roll < 0.66:
+		if roll < 0.55:
 			return "layer_lost"
-		if roll < 0.82:
+		if roll < 0.80:
 			return "bucket_fill_slime"
-		return "undo_ghost"
-	if t >= 30.0:
-		if roll < 0.34:
-			return "drawing_fix_note"
-		if roll < 0.54:
-			return "red_pen_teacher"
-		if roll < 0.72:
-			return "undo_ghost"
-		if roll < 0.86:
-			return "bucket_fill_slime"
-		return "troll"
-	if roll < 0.46:
+		return "red_pen_teacher"
+	if roll < 0.35:
 		return "drawing_fix_note"
-	if roll < 0.68:
-		return "undo_ghost"
-	if roll < 0.84:
+	if roll < 0.60:
+		return "layer_lost"
+	if roll < 0.85:
 		return "bucket_fill_slime"
-	return "troll"
+	return "red_pen_teacher"
+
+static func pick_collab_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
+	var t: float = effective_wave_time(elapsed, quick_test_mode)
+	var roll: float = rng.randf()
+	if t >= 126.0:
+		if roll < 0.25:
+			return "collab_comparison_troll"
+		if roll < 0.45:
+			return "collab_messenger_pigeon"
+		if roll < 0.65:
+			return "collab_discord_troll"
+		if roll < 0.85:
+			return "collab_volume_police"
+		return "collab_exclusive_listener"
+	if t >= 81.0:
+		if roll < 0.30:
+			return "collab_comparison_troll"
+		if roll < 0.55:
+			return "collab_messenger_pigeon"
+		if roll < 0.80:
+			return "collab_discord_troll"
+		return "collab_volume_police"
+	if t >= 36.0:
+		if roll < 0.40:
+			return "collab_comparison_troll"
+		if roll < 0.70:
+			return "collab_messenger_pigeon"
+		return "collab_discord_troll"
+	return "collab_comparison_troll" if roll < 0.60 else "collab_messenger_pigeon"
 
 static func pick_default_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
@@ -317,66 +400,82 @@ static func contact_damage_for_kind(kind: String, is_boss: bool = false) -> int:
 
 static func enemy_data(kind: String) -> Dictionary:
 	if kind == "pitch_police":
-		return {"displayName": "音程警察", "description": "音程チェックで近づいてくる歌枠の基本敵", "hp": 14.0, "speed": 110.0, "radius": 23.0, "score": 58, "exp": 2, "behavior": "chase"}
+		return {"displayName": "音程警察", "description": "音程チェックで近づいてくる歌枠の基本敵", "hp": 14.0, "speed": 110.0, "radius": 23.0, "score": 58, "exp": 2, "behavior": "chase", "contactDamage": 12}
 	if kind == "request_spammer":
-		return {"displayName": "リクエスト連投", "description": "曲リクエストを投げ続ける歌枠の遠距離敵", "hp": 18.0, "speed": 72.0, "radius": 25.0, "score": 84, "exp": 3, "behavior": "keep_distance_shooter", "contactDamage": 18}
+		return {"displayName": "リクエスト連投", "description": "曲リクエストを投げ続ける歌枠の遠距離敵", "hp": 18.0, "speed": 72.0, "radius": 25.0, "score": 84, "exp": 3, "behavior": "keep_distance_shooter", "contactDamage": 10}
 	if kind == "fast_call_fan":
-		return {"displayName": "早口コール勢", "description": "サビに合わせて高速で押し寄せるコール敵", "hp": 9.0, "speed": 166.0, "radius": 20.0, "score": 48, "exp": 2, "behavior": "chase_fast", "contactDamage": 20}
+		return {"displayName": "早口コール勢", "description": "サビに合わせて高速で押し寄せるコール敵", "hp": 9.0, "speed": 166.0, "radius": 20.0, "score": 48, "exp": 2, "behavior": "chase_fast", "contactDamage": 14}
 	if kind == "song_noise_comment":
-		return {"displayName": "ノイズコメント", "description": "歌声にノイズを混ぜる変則コメント敵", "hp": 12.0, "speed": 96.0, "radius": 22.0, "score": 58, "exp": 2, "behavior": "chase_with_short_warp", "contactDamage": 16}
+		return {"displayName": "ノイズコメント", "description": "歌声にノイズを混ぜる変則コメント敵", "hp": 12.0, "speed": 96.0, "radius": 22.0, "score": 58, "exp": 2, "behavior": "chase_with_short_warp", "contactDamage": 10}
 	if kind == "song_lyric_spoiler_comment":
-		return {"displayName": "歌詞ネタバレコメント", "description": "先の歌詞を先回りして流す迷惑コメント敵", "hp": 13.0, "speed": 100.0, "radius": 23.0, "score": 62, "exp": 2, "behavior": "chase", "contactDamage": 18}
+		return {"displayName": "歌詞ネタバレコメント", "description": "先の歌詞を先回りして流す迷惑コメント敵", "hp": 13.0, "speed": 100.0, "radius": 23.0, "score": 62, "exp": 2, "behavior": "chase", "contactDamage": 10}
 	if kind == "drawing_fix_note":
-		return {"displayName": "修正指示コメント", "description": "赤字の修正メモを投げてくるお絵かき枠の遠距離敵", "hp": 15.0, "speed": 76.0, "radius": 24.0, "score": 70, "exp": 3, "behavior": "keep_distance_shooter", "contactDamage": 18}
+		return {"displayName": "修正指示コメント", "description": "赤字の修正メモで接近してくるお絵かき枠の妨害敵", "hp": 13.5, "speed": 72.0, "radius": 24.0, "score": 70, "exp": 3, "behavior": "chase", "contactDamage": 10}
 	if kind == "red_pen_teacher":
-		return {"displayName": "赤ペン先生", "description": "赤ペンチェックで急接近する添削コメント敵", "hp": 18.0, "speed": 118.0, "radius": 24.0, "score": 86, "exp": 3, "behavior": "charger", "contactDamage": 22}
+		return {"displayName": "赤ペン先生", "description": "短い予告のあと赤ペン弾を撃つお絵かき枠の遠距離敵", "hp": 18.0, "speed": 104.0, "radius": 24.0, "score": 86, "exp": 3, "behavior": "drawing_red_pen_teacher", "contactDamage": 10}
 	if kind == "layer_lost":
-		return {"displayName": "レイヤー迷子", "description": "半透明に揺れながら近づくレイヤー混乱敵", "hp": 13.0, "speed": 96.0, "radius": 23.0, "score": 64, "exp": 2, "behavior": "ghost_chase", "contactDamage": 18}
+		return {"displayName": "レイヤー迷子", "description": "半透明に揺れながらゆっくり近づくレイヤー混乱敵", "hp": 13.0, "speed": 72.0, "radius": 23.0, "score": 64, "exp": 2, "behavior": "ghost_chase", "contactDamage": 5}
 	if kind == "bucket_fill_slime":
-		return {"displayName": "バケツ塗りスライム", "description": "広い塗り残しのように押し寄せる硬めの敵", "hp": 30.0, "speed": 58.0, "radius": 31.0, "score": 96, "exp": 4, "behavior": "tank", "contactDamage": 20}
+		return {"displayName": "バケツ塗りスライム", "description": "ゆっくり近づきながら短時間の汚れペイントを残す敵", "hp": 30.0, "speed": 46.0, "radius": 31.0, "score": 96, "exp": 4, "behavior": "drawing_bucket_slime", "contactDamage": 12}
 	if kind == "undo_ghost":
-		return {"displayName": "Undo幽霊", "description": "戻る矢印をまとって半透明に揺れるお絵かき枠の幽霊敵", "hp": 12.0, "speed": 112.0, "radius": 23.0, "score": 62, "exp": 2, "behavior": "ghost_chase", "contactDamage": 17}
+		return {"displayName": "Undo幽霊", "description": "戻る矢印をまとって半透明に揺れるお絵かき枠の幽霊敵", "hp": 12.0, "speed": 112.0, "radius": 23.0, "score": 62, "exp": 2, "behavior": "ghost_chase", "contactDamage": 10}
+	if kind == "collab_comparison_troll":
+		return {"displayName": "比較厨", "description": "プレイヤーへ接近し、近くにいる間だけ攻撃力を下げるコラボ枠の妨害敵", "hp": 15.0, "speed": 84.0, "radius": 24.0, "score": 70, "exp": 3, "behavior": "collab_comparison_chase", "contactDamage": 5}
+	if kind == "collab_messenger_pigeon":
+		return {"displayName": "伝書鳩", "description": "プレイヤーと相方の間を突進し、短時間のコメント跡を残すコラボ枠の妨害敵", "hp": 12.0, "speed": 78.0, "radius": 21.0, "score": 66, "exp": 2, "behavior": "collab_messenger_pigeon", "contactDamage": 5}
+	if kind == "collab_discord_troll":
+		return {"displayName": "不仲煽り", "description": "予告のあと押し出し波を放ち、相方との距離を乱すコラボ枠の妨害敵", "hp": 17.0, "speed": 72.0, "radius": 24.0, "score": 78, "exp": 3, "behavior": "collab_discord_troll", "contactDamage": 4}
+	if kind == "collab_volume_police":
+		return {"displayName": "音量警察", "description": "音声干渉エリアを作り、プレイヤーの攻撃間隔を悪化させるコラボ枠の妨害敵", "hp": 18.0, "speed": 68.0, "radius": 25.0, "score": 82, "exp": 3, "behavior": "collab_volume_police", "contactDamage": 4}
+	if kind == "collab_exclusive_listener":
+		return {"displayName": "独占リスナー", "description": "相方へ張り付き、通常支援を止める優先撃破のコラボ枠妨害敵", "hp": 14.0, "speed": 100.0, "radius": 22.0, "score": 76, "exp": 3, "behavior": "collab_exclusive_listener", "contactDamage": 0}
+	if kind == "collab_division_noise":
+		return {"displayName": "分断ノイズ", "description": "コラボクラッシャーが生むPASS供給用の赤青ノイズ", "hp": 23.0, "speed": 48.0, "radius": 25.0, "score": 90, "exp": 4, "behavior": "collab_division_noise", "contactDamage": 0}
+	if kind == "collab_mute_core":
+		return {"displayName": "ミュートコア", "description": "破壊すると相方の通常支援が再開する固定ノイズコア", "hp": 31.0, "speed": 0.0, "radius": 27.0, "score": 80, "exp": 3, "behavior": "collab_mute_core", "contactDamage": 0}
 	if kind == "enemy_spoiler_comment":
-		return {"displayName": "ネタバレコメント", "description": "ゲーム実況中にネタバレを書き込む迷惑コメント敵", "hp": 11.0, "speed": 108.0, "radius": 23.0, "score": 44, "exp": 2, "behavior": "chase"}
+		return {"displayName": "ネタバレコメント", "description": "ゲーム実況中にネタバレを書き込む迷惑コメント敵", "hp": 11.0, "speed": 108.0, "radius": 23.0, "score": 44, "exp": 2, "behavior": "chase", "contactDamage": 12}
 	if kind == "enemy_backseat_controller":
-		return {"displayName": "指示厨コントローラー", "description": "操作指示コメントがコントローラー型になった中型敵", "hp": 24.0, "speed": 104.0, "radius": 28.0, "score": 82, "exp": 3, "behavior": "zigzag_chase"}
+		return {"displayName": "指示厨コントローラー", "description": "操作指示コメントがコントローラー型になった中型敵", "hp": 24.0, "speed": 104.0, "radius": 28.0, "score": 82, "exp": 3, "behavior": "zigzag_chase", "contactDamage": 14}
 	if kind == "enemy_armchair_strategist":
-		return {"displayName": "エアプ軍師", "description": "離れた位置から攻略コメント弾を撃つ遠距離敵", "hp": 18.0, "speed": 72.0, "radius": 25.0, "score": 86, "exp": 4, "behavior": "keep_distance_shooter"}
+		return {"displayName": "エアプ軍師", "description": "離れた位置から攻略コメント弾を撃つ遠距離敵", "hp": 18.0, "speed": 72.0, "radius": 25.0, "score": 86, "exp": 4, "behavior": "keep_distance_shooter", "contactDamage": 12}
 	if kind == "enemy_dot_invader":
-		return {"displayName": "ドットインベーダー", "description": "弾幕シューティング風イベントに出るレトロSTG敵", "hp": 12.0, "speed": 70.0, "radius": 22.0, "score": 72, "exp": 3, "behavior": "stg_side_move"}
+		return {"displayName": "ドットインベーダー", "description": "弾幕シューティング風イベントに出るレトロSTG敵", "hp": 12.0, "speed": 70.0, "radius": 22.0, "score": 72, "exp": 3, "behavior": "stg_side_move", "contactDamage": 12}
 	if kind == "enemy_fake_gift_box":
-		return {"displayName": "偽ギフトボックス", "description": "ホラーゲーム風イベントで正体を現す罠ギフト", "hp": 18.0, "speed": 126.0, "radius": 24.0, "score": 90, "exp": 3, "behavior": "chase"}
+		return {"displayName": "偽ギフトボックス", "description": "ホラーゲーム風イベントで正体を現す罠ギフト", "hp": 18.0, "speed": 126.0, "radius": 24.0, "score": 90, "exp": 3, "behavior": "chase", "contactDamage": 12}
 	if kind == "enemy_lag_comment":
-		return {"displayName": "ラグコメント", "description": "短距離ワープで画面にノイズを混ぜる変則コメント敵", "hp": 10.0, "speed": 106.0, "radius": 22.0, "score": 58, "exp": 2, "behavior": "chase_with_short_warp", "contactDamage": 18}
+		return {"displayName": "ラグコメント", "description": "短距離ワープで画面にノイズを混ぜる変則コメント敵", "hp": 10.0, "speed": 106.0, "radius": 22.0, "score": 58, "exp": 2, "behavior": "chase_with_short_warp", "contactDamage": 10}
 	if kind == "enemy_strategy_wiki_ojisan":
-		return {"displayName": "攻略Wikiおじさん", "description": "攻略情報を抱えて低速で迫る硬めのゲーム実況敵", "hp": 52.0, "speed": 54.0, "radius": 34.0, "score": 130, "exp": 7, "behavior": "slow_spread_shooter", "contactDamage": 25}
+		return {"displayName": "攻略Wikiおじさん", "description": "攻略情報を抱えて低速で迫る硬めのゲーム実況敵", "hp": 52.0, "speed": 54.0, "radius": 34.0, "score": 130, "exp": 7, "behavior": "slow_spread_shooter", "contactDamage": 16}
 	if kind == "enemy_fake_first_timer":
-		return {"displayName": "初見詐欺", "description": "初見のふりをして近づくと急加速する奇襲コメント敵", "hp": 9.0, "speed": 54.0, "radius": 19.0, "score": 62, "exp": 2, "behavior": "ambush_chase", "contactDamage": 22}
+		return {"displayName": "初見詐欺", "description": "初見のふりをして近づくと急加速する奇襲コメント敵", "hp": 9.0, "speed": 54.0, "radius": 19.0, "score": 62, "exp": 2, "behavior": "ambush_chase", "contactDamage": 14}
 	if kind == "enemy_wrong_way_kart":
-		return {"displayName": "逆走カート", "description": "レースゲーム風イベントで直線的に走り抜ける妨害カート", "hp": 18.0, "speed": 292.0, "radius": 25.0, "score": 78, "exp": 2, "behavior": "linear_pass", "contactDamage": 24}
+		return {"displayName": "逆走カート", "description": "レースゲーム風イベントで直線的に走り抜ける妨害カート", "hp": 18.0, "speed": 292.0, "radius": 25.0, "score": 78, "exp": 2, "behavior": "linear_pass", "contactDamage": 16}
 	if kind == "enemy_jammer_cone":
-		return {"displayName": "じゃまコーン", "description": "レースゲーム風イベント中に短時間だけ残る壊せる障害物", "hp": 18.0, "speed": 0.0, "radius": 24.0, "score": 34, "exp": 1, "behavior": "stationary_obstacle", "contactDamage": 14, "lifeTime": 8.0}
+		return {"displayName": "じゃまコーン", "description": "レースゲーム風イベント中に短時間だけ残る壊せる障害物", "hp": 18.0, "speed": 0.0, "radius": 24.0, "score": 34, "exp": 1, "behavior": "stationary_obstacle", "contactDamage": 8, "lifeTime": 8.0}
 	if kind == "enemy_bullet_drone":
-		return {"displayName": "弾幕ドローン", "description": "弾幕シューティング風イベントで3方向弾を撃つ中型敵", "hp": 24.0, "speed": 86.0, "radius": 26.0, "score": 110, "exp": 4, "behavior": "drone_keep_distance", "contactDamage": 18}
+		return {"displayName": "弾幕ドローン", "description": "弾幕シューティング風イベントで3方向弾を撃つ中型敵", "hp": 24.0, "speed": 86.0, "radius": 26.0, "score": 110, "exp": 4, "behavior": "drone_keep_distance", "contactDamage": 10}
 	if kind == "enemy_noise_ghost_comment":
-		return {"displayName": "ノイズ幽霊コメント", "description": "ホラーゲーム風イベントに現れる砂嵐混じりのコメント敵", "hp": 16.0, "speed": 88.0, "radius": 22.0, "score": 82, "exp": 3, "behavior": "ghost_chase", "contactDamage": 18}
+		return {"displayName": "ノイズ幽霊コメント", "description": "ホラーゲーム風イベントに現れる砂嵐混じりのコメント敵", "hp": 16.0, "speed": 88.0, "radius": 22.0, "score": 82, "exp": 3, "behavior": "ghost_chase", "contactDamage": 10}
 	if kind == "fast":
-		return {"displayName": "連投マン", "description": "高速で距離を詰める連投コメント敵", "hp": 8.0, "speed": 155.0, "radius": 20.0, "score": 40, "exp": 2, "behavior": "chase_fast"}
+		return {"displayName": "連投マン", "description": "高速で距離を詰める連投コメント敵", "hp": 8.0, "speed": 155.0, "radius": 20.0, "score": 40, "exp": 2, "behavior": "chase_fast", "contactDamage": 14}
 	if kind == "shooter":
-		return {"displayName": "指示厨", "description": "距離を取りながら指示弾を撃つ敵", "hp": 14.0, "speed": 95.0, "radius": 24.0, "score": 60, "exp": 3, "behavior": "shooter"}
+		return {"displayName": "指示厨", "description": "距離を取りながら指示弾を撃つ敵", "hp": 14.0, "speed": 95.0, "radius": 24.0, "score": 60, "exp": 3, "behavior": "shooter", "contactDamage": 12}
 	if kind == "long_comment_guy":
-		return {"displayName": "長文ニキ", "description": "遅いがしぶとく進路をふさぐ長文コメント敵", "hp": 40.0, "speed": 62.0, "radius": 34.0, "score": 80, "exp": 5, "behavior": "tank"}
+		return {"displayName": "長文ニキ", "description": "遅いがしぶとく進路をふさぐ長文コメント敵", "hp": 40.0, "speed": 62.0, "radius": 34.0, "score": 80, "exp": 5, "behavior": "tank", "contactDamage": 18}
 	if kind == "clipper":
-		return {"displayName": "悪質切り抜き師", "description": "予告後に突進して事故シーンを狙う敵", "hp": 18.0, "speed": 120.0, "radius": 23.0, "score": 100, "exp": 4, "behavior": "charger"}
+		return {"displayName": "悪質切り抜き師", "description": "予告後に突進して事故シーンを狙う敵", "hp": 18.0, "speed": 120.0, "radius": 23.0, "score": 100, "exp": 4, "behavior": "charger", "contactDamage": 18}
 	if kind == "unread_maro":
-		return {"displayName": "未読マロ", "description": "放置されたマシュマロが荒らし化した敵", "hp": 8.0, "speed": 130.0, "radius": 19.0, "score": 20, "exp": 1, "behavior": "chase"}
+		return {"displayName": "未読マロ", "description": "放置されたマシュマロが荒らし化した敵", "hp": 8.0, "speed": 130.0, "radius": 19.0, "score": 20, "exp": 1, "behavior": "chase", "contactDamage": 12}
 	if kind == "ghost_comment":
-		return {"displayName": "幽霊コメント", "description": "ホラー風イベント中に現れる透明気味のコメント敵", "hp": 20.0, "speed": 122.0, "radius": 23.0, "score": 120, "exp": 3, "behavior": "ghost"}
+		return {"displayName": "幽霊コメント", "description": "ホラー風イベント中に現れる透明気味のコメント敵", "hp": 20.0, "speed": 122.0, "radius": 23.0, "score": 120, "exp": 3, "behavior": "ghost", "contactDamage": 14}
+	if kind == "noise_ghost_comment":
+		return {"displayName": "ラストオフライン召喚ノイズ", "description": "ラストオフラインが呼び出す報酬なしの召喚ノイズ", "hp": 16.0, "speed": 88.0, "radius": 22.0, "score": 0, "exp": 0, "expDrop": 0, "behavior": "ghost_chase", "contactDamage": 7, "noRewards": true, "relayBossSummon": true}
 	if kind == "boss_super_long_comment":
 		return {"displayName": "超長文ニキ", "description": "長文ニキの巨大版。大きなコメント塊でプレイヤーを追い詰める。", "hp": 400.0, "speed": 58.0, "radius": 78.0, "score": 3000, "exp": 20, "behavior": "tank"}
 	if kind == "bugged_final_boss":
 		return {"displayName": "バグったラスボス", "description": "ゲーム実況枠のジャンル変化を暴走させる専用ボス。", "hp": 1000.0, "speed": 52.0, "radius": 96.0, "score": 4200, "exp": 28, "behavior": "tank", "contactDamage": DamageSystem.BOSS_CONTACT_DAMAGE}
-	return {"displayName": "荒らし", "description": "まっすぐ近づいてくる基本コメント敵", "hp": 10.0, "speed": 92.0, "radius": 21.0, "score": 20, "exp": 1, "behavior": "chase"}
+	return {"displayName": "荒らし", "description": "まっすぐ近づいてくる基本コメント敵", "hp": 10.0, "speed": 92.0, "radius": 21.0, "score": 20, "exp": 1, "behavior": "chase", "contactDamage": 12}
 
 static func spawn_position(arena: Rect2, rng: RandomNumberGenerator, edge_padding: float = 20.0) -> Vector2:
 	var rect := spawn_candidate_rect(arena, edge_padding)
@@ -410,14 +509,14 @@ static func spawn_position_in_outer_band(rect: Rect2, rng: RandomNumberGenerator
 	return Vector2(rng.randf_range(rect.end.x - band, rect.end.x), rng.randf_range(rect.position.y, rect.end.y))
 
 static func spawn_walls_for_target(target: Node) -> Array:
-	var stream_frame_id := String(target.get("current_stream_frame_id"))
-	if stream_frame_id == "":
-		stream_frame_id = "zatsudan"
 	var effect_walls_value: Variant = target.get("effect_walls")
 	var effect_walls: Array = []
 	if effect_walls_value is Array:
 		effect_walls = effect_walls_value as Array
-	return movement_wall_rects(effect_walls, stream_frame_id)
+	var walls: Array = DrawDataSystem.static_wall_rects_for_target(target)
+	for effect_wall in effect_walls:
+		walls.append(effect_wall as Rect2)
+	return walls
 
 static func spawn_position_blocked_by_walls(pos: Vector2, radius: float, walls: Array) -> bool:
 	var clearance := radius + SPAWN_WALL_CLEARANCE
@@ -538,6 +637,16 @@ static func speech_lines(kind: String) -> Array[String]:
 		return ["ザザッ", "音割れ", "ノイズ入った", "聞こえる？"]
 	if kind == "song_lyric_spoiler_comment":
 		return ["次の歌詞", "そこ先に言うな", "ネタバレ歌詞", "まだ早い"]
+	if kind == "collab_comparison_troll":
+		return ["相方の方がよくない？", "片方だけでいいよ", "どっちが人気なの？", "差ついてるね"]
+	if kind == "collab_messenger_pigeon":
+		return ["向こうで聞いたよ", "これ伝えておくね", "相方が言ってた", "あっちの枠ではさ"]
+	if kind == "collab_discord_troll":
+		return ["空気重くない？", "仲悪そう", "話合ってないよ", "無理してない？"]
+	if kind == "collab_volume_police":
+		return ["音量そろえて", "声かぶってる", "片方聞こえない", "マイク調整して"]
+	if kind == "collab_exclusive_listener":
+		return ["相方だけ見せて", "二人じゃなくていい", "相方だけでいいよ", "こっちは静かにして"]
 	if kind == "drawing_fix_note":
 		return ["そこ修正", "赤入れます", "線見て", "直して"]
 	if kind == "red_pen_teacher":
@@ -594,6 +703,8 @@ static func random_speech(kind: String, rng: RandomNumberGenerator) -> String:
 
 static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, giant_power: float = 0.0, speech_text: String = "") -> Dictionary:
 	var data: Dictionary = enemy_data(kind)
+	if kind == "noise_ghost_comment":
+		data["displayName"] = "召喚ノイズ"
 	var is_boss_kind: bool = kind.begins_with("boss_")
 	if giant_power > 0.0:
 		data["hp"] = float(data["hp"]) * lerpf(1.25, 1.5, giant_power)
@@ -622,8 +733,16 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"stunTimer": 0.0,
 		"defeatPending": false,
 		"defeatDelay": 0.0,
-		"defeatResolved": false
+		"defeatResolved": false,
+		"spawnGraceTimer": 0.45,
+		"lastHitOwner": "",
+		"defeatOwner": "",
+		"removeReason": ""
 	}
+	if bool(data.get("noRewards", false)):
+		enemy["noRewards"] = true
+	if bool(data.get("relayBossSummon", false)):
+		enemy["relayBossSummon"] = true
 	if kind == "enemy_backseat_controller" or kind == "enemy_dot_invader" or kind == "enemy_lag_comment" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone" or kind == "enemy_noise_ghost_comment":
 		enemy["movePhase"] = float(uid % 19) * 0.37
 	if kind == "enemy_backseat_controller":
@@ -641,14 +760,278 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		enemy["lifeTimer"] = float(data.get("lifeTime", 8.0))
 	if kind == "enemy_noise_ghost_comment" or kind == "layer_lost" or kind == "undo_ghost":
 		enemy["phaseTimer"] = float(uid % 13) * 0.21
+	if kind == "red_pen_teacher":
+		enemy["shotWarningTimer"] = 0.0
+		enemy["shotWarningDuration"] = DRAWING_RED_PEN_PRE_SHOT_WARNING_TIME
+		enemy["shotWarningDir"] = Vector2.ZERO
+	if kind == "bucket_fill_slime":
+		enemy["puddleTimer"] = DRAWING_BUCKET_PUDDLE_INTERVAL * 0.55
+		enemy["puddleTimes"] = []
+	if kind == "collab_messenger_pigeon":
+		enemy["messengerWarningTimer"] = 0.0
+		enemy["messengerDashTimer"] = 0.0
+		enemy["messengerDashDir"] = Vector2.ZERO
+		enemy["messengerDashTarget"] = Vector2.ZERO
+		enemy["messengerTargetsPartner"] = uid % 2 == 0
+	if kind == "collab_discord_troll":
+		enemy["collabPulseWarningTimer"] = 0.0
+	if kind == "collab_volume_police":
+		enemy["collabFieldWarningTimer"] = 0.0
+	if kind == "collab_exclusive_listener":
+		enemy["collabPartnerAttached"] = false
+	if kind == "collab_division_noise":
+		enemy["canBecomeCollabPassTarget"] = true
+		enemy["canBecomeLinkedTrollEnemy"] = false
+		enemy["partnerTargetPriority"] = 3.0
+		enemy["collabPassTargetPriority"] = 3.0
+		enemy["divisionOrbitPhase"] = float(uid % 17) * 0.37
+	if kind == "collab_mute_core":
+		enemy["canBecomeCollabPassTarget"] = false
+		enemy["canBecomeLinkedTrollEnemy"] = false
+		enemy["hasSpecialTargetMarker"] = true
 	if is_genre_event_enemy(kind):
 		enemy["genreEventEnemy"] = true
 	return enemy
-static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2 = Vector2.INF) -> void:
+
+static func drawing_non_shooter_enemy(rng: RandomNumberGenerator) -> String:
+	var roll := rng.randf()
+	if roll < 0.42:
+		return "drawing_fix_note"
+	if roll < 0.71:
+		return "layer_lost"
+	return "bucket_fill_slime"
+
+static func drawing_shooter_limit_for_target(target: Node) -> int:
+	var t := effective_wave_time(float(target.get("elapsed")), bool(target.get("quick_test_mode")))
+	return DRAWING_LATE_MAX_SHOOTER_ENEMIES if t >= DRAWING_LATE_SHOOTER_TIME else DRAWING_MAX_SHOOTER_ENEMIES
+
+static func drawing_shooter_count(enemies: Array) -> int:
+	var count := 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item
+		if String(enemy.get("kind", "")) == "red_pen_teacher" and not bool(enemy.get("defeatPending", false)) and not bool(enemy.get("defeatResolved", false)):
+			count += 1
+	return count
+
+static func drawing_red_pen_projectile_count(bullets: Array, uid: int) -> int:
+	var count := 0
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item
+		if String(bullet.get("sourceKind", "")) == "red_pen_teacher" and int(bullet.get("sourceUid", -1)) == uid:
+			count += 1
+	return count
+
+static func collab_enemy_limit(kind: String) -> int:
+	match kind:
+		"collab_comparison_troll":
+			return 6
+		"collab_messenger_pigeon":
+			return 4
+		"collab_discord_troll":
+			return 4
+		"collab_volume_police":
+			return 3
+		"collab_exclusive_listener":
+			return 2
+		"collab_division_noise":
+			return 3
+		"collab_mute_core":
+			return 1
+	return 99
+
+static func collab_enemy_count(enemies: Array, kind: String) -> int:
+	var count := 0
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if String(enemy.get("kind", "")) != kind:
+			continue
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		count += 1
+	return count
+
+static func collab_spawn_kind_for_target(target: Node, requested_kind: String, rng: RandomNumberGenerator) -> String:
+	if String(target.get("current_stream_frame_id")) != "collab":
+		return requested_kind
+	var enemies: Array = target.get("enemies") as Array
+	if collab_enemy_count(enemies, requested_kind) < collab_enemy_limit(requested_kind):
+		return requested_kind
+	if bool(target.get("relay_mode")):
+		var fallback_groups: Array = [["collab_comparison_troll", "collab_messenger_pigeon"]]
+		if requested_kind == "collab_discord_troll" or requested_kind == "collab_volume_police" or requested_kind == "collab_exclusive_listener":
+			fallback_groups.append(["collab_discord_troll", "collab_volume_police"])
+		for group in fallback_groups:
+			for candidate in group:
+				if collab_enemy_count(enemies, String(candidate)) < collab_enemy_limit(String(candidate)):
+					return String(candidate)
+		return ""
+	for _attempt in range(8):
+		var candidate := pick_collab_enemy(float(target.get("elapsed")), bool(target.get("quick_test_mode")), rng)
+		if collab_enemy_count(enemies, candidate) < collab_enemy_limit(candidate):
+			return candidate
+	return ""
+
+static func dangerous_enemy_class(kind: String) -> String:
+	if kind == "shooter" or kind == "enemy_armchair_strategist" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_dot_invader" or kind == "enemy_bullet_drone" or kind == "request_spammer" or kind == "red_pen_teacher":
+		return "ranged"
+	if kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone":
+		return "spread"
+	if kind == "clipper" or kind == "enemy_backseat_controller" or kind == "enemy_wrong_way_kart" or kind == "collab_messenger_pigeon":
+		return "charge"
+	if kind == "enemy_fake_first_timer" or kind == "enemy_fake_gift_box":
+		return "ambush"
+	return ""
+
+static func _danger_caps_for_target(target: Node) -> Dictionary:
+	var config: Dictionary = target.get("relay_mode_config") as Dictionary
+	var caps: Dictionary = config.get("dangerEnemyCaps", {}) as Dictionary
+	var mode := "relay" if bool(target.get("relay_mode")) else "normal"
+	return caps.get(mode, {}) as Dictionary
+
+static func _active_dangerous_enemy_count(enemies: Array, danger_class: String) -> int:
+	var count := 0
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		if _kind_belongs_to_danger_class(String(enemy.get("kind", "")), danger_class):
+			count += 1
+	return count
+
+static func dangerous_enemy_count(enemies: Array, danger_class: String) -> int:
+	return _active_dangerous_enemy_count(enemies, danger_class)
+
+static func active_normal_wave_count(enemies: Array) -> int:
+	var count := 0
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		if String(enemy.get("spawnSource", "")) != "normal_wave":
+			continue
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		count += 1
+	return count
+
+static func _kind_belongs_to_danger_class(kind: String, danger_class: String) -> bool:
+	if danger_class == "spread":
+		return kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone"
+	return dangerous_enemy_class(kind) == danger_class
+
+static func _safe_fallback_for_target(target: Node) -> String:
+	var frame_id := String(target.get("current_stream_frame_id"))
+	if frame_id == "gameplay":
+		return "enemy_spoiler_comment"
+	if frame_id == "singing" or frame_id == "song":
+		return "pitch_police"
+	if frame_id == "drawing":
+		return "drawing_fix_note"
+	if frame_id == "collab":
+		return "collab_comparison_troll"
+	return "troll"
+
+static func _safe_kind_for_target(target: Node, requested_kind: String) -> String:
+	var danger_class := dangerous_enemy_class(requested_kind)
+	if danger_class == "":
+		return requested_kind
+	var enemies: Array = target.get("enemies") as Array
+	var caps := _danger_caps_for_target(target)
+	if (requested_kind == "enemy_strategy_wiki_ojisan" or requested_kind == "enemy_bullet_drone") and _active_dangerous_enemy_count(enemies, "spread") >= int(caps.get("maxActiveSpreadShooters", 2)):
+		return _safe_fallback_for_target(target)
+	if danger_class == "ranged" and _active_dangerous_enemy_count(enemies, "ranged") >= int(caps.get("maxActiveRangedEnemies", 6)):
+		return _safe_fallback_for_target(target)
+	if danger_class == "charge" and _active_dangerous_enemy_count(enemies, "charge") >= int(caps.get("maxSimultaneousChargeAttacks", 2)):
+		return _safe_fallback_for_target(target)
+	if danger_class == "ambush" and _active_dangerous_enemy_count(enemies, "ambush") >= int(caps.get("maxSimultaneousAmbushAttacks", 2)):
+		return _safe_fallback_for_target(target)
+	return requested_kind
+
+static func linked_troll_enemy_kinds_for_tag(tag: String) -> Array[String]:
+	match tag:
+		"long_comment":
+			return ["long_comment_guy"]
+		"malicious_clipper":
+			return ["clipper"]
+		"unread_marshmallow":
+			return ["unread_maro"]
+		"comment_linked":
+			return ["fast"]
+		"skill_troll":
+			return ["enemy_spoiler_comment", "fast"]
+		"backseat_troll":
+			return ["enemy_backseat_controller"]
+		"spoiler_troll":
+			return ["enemy_spoiler_comment"]
+		"game_troll":
+			return ["enemy_armchair_strategist", "enemy_lag_comment", "troll"]
+		"pitch_police":
+			return ["pitch_police"]
+		"key_troll":
+			return ["request_spammer"]
+		"breath_troll":
+			return ["fast_call_fan"]
+		"lyrics_troll":
+			return ["song_lyric_spoiler_comment"]
+		"song_choice_troll":
+			return ["song_noise_comment"]
+		"comparison_troll":
+			return ["long_comment_guy"]
+		"collab_comparison_troll":
+			return ["collab_comparison_troll"]
+		"collab_messenger_pigeon":
+			return ["collab_messenger_pigeon"]
+		"collab_discord_troll":
+			return ["collab_discord_troll"]
+		"collab_volume_police":
+			return ["collab_volume_police"]
+		"collab_exclusive_listener":
+			return ["collab_exclusive_listener"]
+		"song_troll":
+			return ["troll"]
+		"correction_comment":
+			return ["drawing_fix_note"]
+		"red_pen_teacher":
+			return ["red_pen_teacher"]
+		"lost_layer":
+			return ["layer_lost"]
+		"paint_bucket_slime":
+			return ["bucket_fill_slime"]
+		"discord_troll":
+			return ["enemy_backseat_controller"]
+		"voice_troll":
+			return ["shooter"]
+		"collab_troll":
+			return ["fast"]
+		"fanbase_troll":
+			return ["troll"]
+	return []
+
+static func pick_linked_troll_enemy_kind(enemy_tags: Array, rng: RandomNumberGenerator) -> String:
+	var candidates: Array[String] = []
+	for raw_tag in enemy_tags:
+		for kind in linked_troll_enemy_kinds_for_tag(String(raw_tag)):
+			if not candidates.has(kind):
+				candidates.append(kind)
+	if candidates.is_empty():
+		return ""
+	return candidates[rng.randi_range(0, candidates.size() - 1)]
+
+static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2 = Vector2.INF, linked_comment_id: String = "", linked_speech_text: String = "", runtime_variant: String = "", spawn_source: String = "") -> int:
 	var spawn_pos: Vector2 = pos
 	var giant_power: float = 0.0
 	if ModifierSystem.has_effect_for_target(target, "giant_enemies"):
 		giant_power = ModifierSystem.effect_rate_for_target(target, "giant_enemies")
+	var enemies: Array = target.get("enemies") as Array
+	if String(target.get("current_stream_frame_id")) == "drawing" and kind == "red_pen_teacher" and linked_comment_id == "":
+		if drawing_shooter_count(enemies) >= drawing_shooter_limit_for_target(target):
+			kind = drawing_non_shooter_enemy(rng)
+	if String(target.get("current_stream_frame_id")) == "collab":
+		if linked_comment_id == "":
+			kind = collab_spawn_kind_for_target(target, kind, rng)
+			if kind == "":
+				return -1
+		elif collab_enemy_count(enemies, kind) >= collab_enemy_limit(kind):
+			return -1
+	kind = _safe_kind_for_target(target, kind)
 	var data := enemy_data(kind)
 	var spawn_radius := float(data.get("radius", 22.0))
 	if giant_power > 0.0:
@@ -656,14 +1039,14 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 	if spawn_pos == Vector2.INF:
 		spawn_pos = spawn_position_for_target(target, arena, rng, spawn_radius)
 		if spawn_pos == Vector2.INF:
-			return
+			return -1
 	var shoot_seed: float = rng.randf_range(0.6, 1.4) if pos == Vector2.INF else 1.0
 	if kind == "shooter":
 		shoot_seed = rng.randf_range(1.4, SHOOTER_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_armchair_strategist":
 		shoot_seed = rng.randf_range(1.3, ARMCHAIR_FIRE_INTERVAL_MAX)
-	elif kind == "drawing_fix_note":
-		shoot_seed = rng.randf_range(1.2, ARMCHAIR_FIRE_INTERVAL_MAX)
+	elif kind == "red_pen_teacher":
+		shoot_seed = rng.randf_range(1.6, DRAWING_RED_PEN_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_dot_invader":
 		shoot_seed = rng.randf_range(1.0, DOT_INVADER_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_strategy_wiki_ojisan":
@@ -672,17 +1055,66 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 		shoot_seed = rng.randf_range(1.2, DRONE_FIRE_INTERVAL_MAX)
 	elif kind == "enemy_lag_comment":
 		shoot_seed = rng.randf_range(LAG_WARP_COOLDOWN_MIN, LAG_WARP_COOLDOWN_MAX)
-	var enemies: Array = target.get("enemies") as Array
 	var next_uid: int = int(target.get("next_enemy_uid"))
+	var normal_speech_rate := 0.20 if String(target.get("current_stream_frame_id")) == "collab" else 1.0
+	var linked_comments: Variant = target.get("troll_linked_comments")
+	if linked_comments is Dictionary:
+		var active_linked_count := 0
+		for raw_link in (linked_comments as Dictionary).values():
+			if not (raw_link is Dictionary):
+				continue
+			var link: Dictionary = raw_link as Dictionary
+			if String(link.get("state", "")) == "active" and bool(link.get("enemySpawned", false)):
+				active_linked_count += 1
+		if active_linked_count >= 3:
+			normal_speech_rate *= 0.25
+		elif active_linked_count >= 2:
+			normal_speech_rate *= 0.50
+	if String(target.get("current_stream_frame_id")) == "collab" and int(target.get("collab_pass_target_uid")) >= 0:
+		normal_speech_rate *= 0.75
 	var speech_text: String = ""
-	if rng.randf() < 0.33:
+	if linked_comment_id == "" and rng.randf() < 0.33 * normal_speech_rate:
 		speech_text = random_speech(kind, rng)
-	var enemy := build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power, speech_text)
+	var enemy := apply_runtime_variant(build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power, speech_text), runtime_variant)
+	if bool(target.get("relay_mode")) and not bool(enemy.get("relayBoss", false)) and not bool(enemy.get("relayBossSummon", false)):
+		var profile := RelayStageProfileSystemScript.profile_for_target(target)
+		var hp_rate := float(profile.get("hp", 1.0))
+		enemy["hp"] = float(enemy.get("hp", 1.0)) * hp_rate
+		enemy["max_hp"] = float(enemy.get("max_hp", enemy.get("hp", 1.0))) * hp_rate
+		enemy["speed"] = float(enemy.get("speed", 0.0)) * float(profile.get("speed", 1.0))
+		enemy["relayUpperWeight"] = float(profile.get("upperWeight", 1.0))
+	if linked_comment_id != "":
+		enemy["linkedTrollCommentId"] = linked_comment_id
+		enemy["linkedSpeechText"] = linked_speech_text.strip_edges()
+		enemy["linkedSpeechAge"] = 0.0
+		enemy["linkedSpeechAlpha"] = 1.0
+		enemy["speechText"] = ""
 	if is_genre_event_enemy(kind):
 		enemy["genreEventEnemy"] = true
+	if spawn_source != "":
+		enemy["spawnSource"] = spawn_source
+	elif linked_comment_id != "":
+		enemy["spawnSource"] = "comment_linked"
+	elif is_genre_event_enemy(kind):
+		enemy["spawnSource"] = "genre_event"
+	else:
+		enemy["spawnSource"] = "system"
 	enemies.append(enemy)
 	target.set("enemies", enemies)
 	target.set("next_enemy_uid", next_uid + 1)
+	return next_uid
+
+static func apply_runtime_variant(enemy: Dictionary, runtime_variant: String) -> Dictionary:
+	if runtime_variant != "comment_linked" or String(enemy.get("kind", "")) != "fast":
+		return enemy
+	enemy["runtimeVariant"] = "comment_linked"
+	enemy["max_hp"] = maxf(1.0, float(roundi(float(enemy.get("max_hp", 1.0)) * 0.75)))
+	enemy["hp"] = enemy["max_hp"]
+	enemy["contactDamage"] = 10
+	enemy["exp"] = 1
+	enemy["expValue"] = 1
+	enemy["scoreMultiplier"] = 1.0
+	return enemy
 
 static func kill_events(enemy: Dictionary, split_enemy: bool, rng: RandomNumberGenerator) -> Dictionary:
 	var pos: Vector2 = Vector2(enemy["pos"])
@@ -721,6 +1153,26 @@ static func gameplay_marshmallow_drop_request_for_target(target: Node, enemy: Di
 
 static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("kills", int(target.get("kills")) + 1)
+	if bool(enemy.get("noRewards", false)) and not bool(enemy.get("relayBoss", false)):
+		return {"enemyDefeated": true, "noRewards": true}
+	if target.has_method("get") and String(enemy.get("spawnSource", "")) == "normal_wave":
+		var balance_stats: Dictionary = target.get("balance_debug_stats") as Dictionary
+		balance_stats["defeats"] = int(balance_stats.get("defeats", 0)) + 1
+		target.set("balance_debug_stats", balance_stats)
+	if target.has_method("_on_enemy_defeated_for_collab_pass"):
+		target.call("_on_enemy_defeated_for_collab_pass", enemy)
+	if target.has_method("_on_enemy_defeated_for_collab_boss"):
+		target.call("_on_enemy_defeated_for_collab_boss", enemy)
+	if bool(enemy.get("relayBoss", false)):
+		if target.has_method("_on_relay_boss_enemy_defeated"):
+			target.call("_on_relay_boss_enemy_defeated", enemy)
+		return {"enemyDefeated": true, "noRewards": true}
+	if bool(enemy.get("noRewards", false)) or bool(enemy.get("relayBossSummon", false)):
+		if bool(enemy.get("relayBossNoiseSummon", false)) and target.has_method("_on_relay_boss_noise_summon_defeated"):
+			target.call("_on_relay_boss_noise_summon_defeated", enemy)
+		if target.has_method("_on_enemy_defeated_for_collab_pass"):
+			target.call("_on_enemy_defeated_for_collab_pass", enemy)
+		return {"enemyDefeated": true, "noRewards": true}
 	var active_genre_event := String(target.get("active_genre_event"))
 	var comment_event_ids: Array[String] = []
 	if active_genre_event == "bullet_hell" and String(enemy.get("defeatSource", enemy.get("lastHitSource", ""))) == "genre_stg_shot":
@@ -730,12 +1182,35 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		comment_event_ids.append("gameplay_horror_fake_gift_defeated")
 	var is_boss: bool = bool(enemy.get("isBoss", false)) or String(enemy.get("kind", "")) == "boss_super_long_comment"
 	append_defeat_fx_for_target(target, enemy, is_boss)
+	var linked_comment_id := String(enemy.get("linkedTrollCommentId", ""))
+	if linked_comment_id != "":
+		enemy["linkedSpeechText"] = ""
+		append_linked_troll_ban_fx_for_target(target, enemy)
 	_apply_song_live_heat_for_kill(target, enemy)
 	_apply_drawing_progress_for_kill(target, enemy)
 	if is_boss:
+		var tracker_variant: Variant = target.get("power_up_run_tracker")
+		if tracker_variant != null and tracker_variant.has_method("register_boss_defeat"):
+			var defeat_owner := String(enemy.get("defeatOwner", ""))
+			var pp_reward_id := String(enemy.get("ppRewardId", enemy.get("bossId", enemy.get("kind", ""))))
+			var defeat_data := {
+				"bossId": String(enemy.get("bossId", enemy.get("kind", ""))),
+				"ppRewardId": pp_reward_id,
+				"basePpReward": int(enemy.get("basePpReward", 0)),
+				"isPpRewardTarget": bool(enemy.get("isPpRewardTarget", false)),
+				"isFirstDefeatRewardTarget": bool(enemy.get("isFirstDefeatRewardTarget", false)),
+				"defeatReason": "player_side_damage" if defeat_owner == "player" else defeat_owner,
+				"rewardKey": "boss:%s:%s" % [String(tracker_variant.run_id), pp_reward_id]
+			}
+			tracker_variant.register_boss_defeat(defeat_data)
 		return BossSystemScript.apply_defeat_for_target(target, enemy)
 	target.set("score", int(target.get("score")) + ScoreSystem.enemy_score_for_target(target, enemy))
 	ExpSystem.drop_from_enemy_for_target(target, enemy)
+	if String(enemy.get("spawnSource", "")) == "normal_wave":
+		var drop_stats: Dictionary = target.get("balance_debug_stats") as Dictionary
+		drop_stats["expDropped"] = int(drop_stats.get("expDropped", 0)) + maxi(1, int(enemy.get("expValue", enemy.get("exp", 1))))
+		target.set("balance_debug_stats", drop_stats)
+	grant_linked_troll_defeat_reward_for_target(target, enemy)
 	var marshmallow_drop_requests: Array = []
 	var marshmallow_drop_request: Dictionary = gameplay_marshmallow_drop_request_for_target(target, enemy, rng)
 	if not marshmallow_drop_request.is_empty():
@@ -749,6 +1224,7 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		"chat": String(events["chat"]),
 		"commentEventIds": comment_event_ids,
 		"marshmallowDropRequests": marshmallow_drop_requests,
+		"linkedTrollCommentIds": [linked_comment_id] if linked_comment_id != "" else [],
 		"enemyDefeated": true
 	}
 
@@ -1115,6 +1591,79 @@ static func append_defeat_fx_for_target(target: Node, enemy: Dictionary, is_boss
 	})
 	target.set("hit_fx", hit_fx)
 
+static func append_linked_troll_ban_fx_for_target(target: Node, enemy: Dictionary) -> void:
+	var hit_fx: Array = target.get("hit_fx") as Array
+	var pos := Vector2(enemy.get("pos", Vector2.ZERO))
+	var to_enemy := pos - Vector2(target.get("player_pos"))
+	var direction := to_enemy.normalized() if to_enemy.length_squared() > 0.01 else Vector2.RIGHT
+	var radius := float(enemy.get("radius", 22.0))
+	hit_fx.append({
+		"kind": "ban_judgement_defeat",
+		"pos": pos,
+		"dir": direction,
+		"life": 0.46,
+		"maxLife": 0.46,
+		"radius": radius,
+		"boss": false
+	})
+	target.set("hit_fx", hit_fx)
+
+static func grant_linked_troll_defeat_reward_for_target(target: Node, enemy: Dictionary) -> Dictionary:
+	var reward := {"bonusExp": 0, "giftExpectationGain": 0}
+	if not LINKED_TROLL_DEFEAT_REWARD_ENABLED:
+		return reward
+	if String(enemy.get("linkedTrollCommentId", "")) == "" or bool(enemy.get("linkedTrollRewardGranted", false)):
+		return reward
+	enemy["linkedTrollRewardGranted"] = true
+	var bonus_exp := maxi(LINKED_TROLL_MINIMUM_BONUS_EXP, roundi(float(enemy.get("expValue", enemy.get("exp", 1))) * LINKED_TROLL_BONUS_EXP_MULTIPLIER))
+	ExpSystem.drop_value_for_target(target, Vector2(enemy.get("pos", Vector2.ZERO)), bonus_exp, "linked_troll_bonus")
+	reward["bonusExp"] = bonus_exp
+	var run_gain := int(target.get("linked_troll_gift_expectation_gain"))
+	var remaining_gift_gain := maxi(0, LINKED_TROLL_MAX_GIFT_EXPECTATION_GAIN_PER_RUN - run_gain)
+	var gift_gain := mini(LINKED_TROLL_GIFT_EXPECTATION_GAIN, remaining_gift_gain)
+	if gift_gain > 0:
+		target.set("gift_hype", clampi(int(target.get("gift_hype")) + gift_gain, 0, 100))
+		target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), int(target.get("gift_hype"))))
+		target.set("linked_troll_gift_expectation_gain", run_gain + gift_gain)
+	reward["giftExpectationGain"] = gift_gain
+	append_linked_troll_reward_popup_for_target(target, enemy, bonus_exp, gift_gain)
+	return reward
+
+static func append_linked_troll_reward_popup_for_target(target: Node, enemy: Dictionary, bonus_exp: int, gift_gain: int) -> void:
+	var hit_fx: Array = target.get("hit_fx") as Array
+	var pos := Vector2(enemy.get("pos", Vector2.ZERO))
+	var radius := float(enemy.get("radius", 22.0))
+	var popup_pos := pos + Vector2(-52.0, -radius - 76.0)
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": popup_pos,
+		"vel": Vector2(0.0, -34.0),
+		"life": 0.84,
+		"maxLife": 0.84,
+		"text": "BAN BONUS",
+		"color": Color("#ff5a8f")
+	})
+	hit_fx.append({
+		"kind": "pickup_text",
+		"pos": popup_pos + Vector2(0.0, 18.0),
+		"vel": Vector2(0.0, -30.0),
+		"life": 0.76,
+		"maxLife": 0.76,
+		"text": "+%d EXP" % bonus_exp,
+		"color": Color("#74dcff")
+	})
+	if gift_gain > 0:
+		hit_fx.append({
+			"kind": "pickup_text",
+			"pos": popup_pos + Vector2(0.0, 36.0),
+			"vel": Vector2(0.0, -26.0),
+			"life": 0.72,
+			"maxLife": 0.72,
+			"text": "GIFT +%d" % gift_gain,
+			"color": Color("#ffd66a")
+		})
+	target.set("hit_fx", hit_fx)
+
 static func update_enemy_world(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
 		"bullets": context["bullets"],
@@ -1148,7 +1697,9 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 		"songEnemyMoveMultiplier": float(target.call("_song_enemy_move_speed_multiplier")) if target.has_method("_song_enemy_move_speed_multiplier") else 1.0,
 		"bulletHell": String(target.get("active_genre_event")) == "bullet_hell",
 		"effectWalls": target.get("effect_walls"),
-		"streamFrameId": target.get("current_stream_frame_id")
+		"streamFrameId": target.get("current_stream_frame_id"),
+		"collisionFrameId": DrawDataSystem.collision_frame_id_for_target(target),
+		"target": target
 	})
 	target.set("enemy_bullets", result["bullets"])
 	apply_pending_defeats_for_target(target, result, arena, rng)
@@ -1162,7 +1713,7 @@ static func apply_pending_defeats_for_target(target: Node, result: Dictionary, a
 			continue
 		if bool(enemy.get("defeatResolved", false)):
 			continue
-		if bool(enemy.get("isBoss", false)) and not bool(enemy.get("defeatReactionApplied", false)):
+		if (bool(enemy.get("isBoss", false)) or bool(enemy.get("relayBoss", false))) and not bool(enemy.get("defeatReactionApplied", false)):
 			enemy["defeatReactionApplied"] = true
 			merge_kill_feedback(result, {
 				"screenShakePower": 0.55,
@@ -1219,6 +1770,13 @@ static func merge_kill_feedback(target: Dictionary, source: Dictionary) -> void:
 		target["marshmallowDropRequests"] = marshmallow_drop_requests
 	if bool(source.get("enemyDefeated", false)):
 		target["enemyDefeated"] = true
+	var linked_comment_ids: Array = target.get("linkedTrollCommentIds", []) as Array
+	for item in (source.get("linkedTrollCommentIds", []) as Array):
+		var linked_comment_id := String(item)
+		if linked_comment_id != "" and not linked_comment_ids.has(linked_comment_id):
+			linked_comment_ids.append(linked_comment_id)
+	if not linked_comment_ids.is_empty():
+		target["linkedTrollCommentIds"] = linked_comment_ids
 
 static func _merge_damage_events(target: Dictionary, source: Dictionary) -> void:
 	var target_items: Array = target.get("damageEvents", []) as Array
@@ -1241,7 +1799,17 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 	var arena: Rect2 = context["arena"] as Rect2
 	var effect_walls: Array = context["effectWalls"] as Array
 	var stream_frame_id: String = String(context["streamFrameId"])
-	var walls: Array = movement_wall_rects(effect_walls, stream_frame_id)
+	var collision_frame_id: String = String(context.get("collisionFrameId", stream_frame_id))
+	var max_enemy_bullets := DRAWING_MAX_NORMAL_ENEMY_PROJECTILES if stream_frame_id == "drawing" else MAX_ENEMY_BULLETS
+	var target: Variant = context.get("target", null)
+	var walls: Array = movement_wall_rects(effect_walls, collision_frame_id)
+	var collab_partner_pos := player_pos
+	var collab_partner_available := false
+	if stream_frame_id == "collab" and target != null:
+		var partner_id := String(target.get("collab_partner_id"))
+		if partner_id != "":
+			collab_partner_pos = Vector2(target.get("collab_partner_pos"))
+			collab_partner_available = collab_partner_pos != Vector2.ZERO
 	var speed_rate: float = 1.0 + 0.45 * float(context["enemySpeedRate"])
 	if bool(context["godReservation"]):
 		speed_rate += 0.10 * float(context["godReservationRate"])
@@ -1251,6 +1819,16 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
 		var previous_enemy_pos: Vector2 = enemy_pos
 		enemy["hitFlashTimer"] = maxf(0.0, float(enemy.get("hitFlashTimer", 0.0)) - delta)
+		enemy["spawnGraceTimer"] = maxf(0.0, float(enemy.get("spawnGraceTimer", 0.0)) - delta)
+		enemy["syncStarCarrierRevealTimer"] = maxf(0.0, float(enemy.get("syncStarCarrierRevealTimer", 0.0)) - delta)
+		if bool(enemy.get("relayBossNoiseSummon", false)):
+			var summon_lifetime := float(enemy.get("relayBossSummonLifetime", enemy.get("lifeTimer", 0.0))) - delta
+			enemy["relayBossSummonLifetime"] = summon_lifetime
+			enemy["lifeTimer"] = summon_lifetime
+			if summon_lifetime <= 0.0:
+				enemy["removeReason"] = "natural_despawn"
+				enemy["defeatResolved"] = true
+				continue
 		if bool(enemy.get("defeatPending", false)):
 			enemy_pos = apply_knockback_motion(enemy, enemy_pos, previous_enemy_pos, delta, arena, effect_walls, stream_frame_id)
 			enemy["pos"] = enemy_pos
@@ -1265,6 +1843,11 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		var behavior: String = String(enemy["behavior"])
 		var to_player: Vector2 = player_pos - enemy_pos
 		var dist: float = to_player.length()
+		var linked_speech_text := String(enemy.get("linkedSpeechText", ""))
+		if linked_speech_text != "":
+			var speech_age := float(enemy.get("linkedSpeechAge", 0.0)) + delta
+			enemy["linkedSpeechAge"] = speech_age
+			enemy["linkedSpeechAlpha"] = 1.0 if speech_age <= 1.5 or dist <= 260.0 else 0.78
 		var to_player_dir := to_player / dist if dist > 0.1 else Vector2.ZERO
 		var dir: Vector2 = to_player_dir
 		var local_speed_rate: float = 1.0 if bool(enemy.get("isBoss", false)) else speed_rate
@@ -1282,8 +1865,8 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 650.0:
 				enemy["shoot"] = rng.randf_range(SHOOTER_FIRE_INTERVAL_MIN, SHOOTER_FIRE_INTERVAL_MAX)
-				if bullets.size() < MAX_ENEMY_BULLETS:
-					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE})
+				if bullets.size() < max_enemy_bullets:
+					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "erasableByPinkPaint": true})
 		elif behavior == "zigzag_chase":
 			var base_dir := to_player_dir
 			if base_dir.length() < 0.1:
@@ -1311,11 +1894,62 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 720.0:
 				enemy["shoot"] = rng.randf_range(ARMCHAIR_FIRE_INTERVAL_MIN, ARMCHAIR_FIRE_INTERVAL_MAX)
-				if bullets.size() < MAX_ENEMY_BULLETS:
+				if bullets.size() < max_enemy_bullets:
 					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.RIGHT
-					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "visualKind": "armchair_comment"})
+					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "armchair_comment", "erasableByPinkPaint": true})
+		elif behavior == "drawing_red_pen_teacher":
+			var red_pen_preferred_distance := 315.0
+			var red_pen_base := to_player_dir
+			if red_pen_base.length() < 0.1:
+				red_pen_base = Vector2.RIGHT
+			if dist < red_pen_preferred_distance - 70.0:
+				dir = -red_pen_base * 0.72
+			elif dist > red_pen_preferred_distance + 120.0:
+				dir = red_pen_base * 0.62
+			else:
+				var red_pen_phase := float(enemy.get("movePhase", 0.0)) + delta * 1.85
+				enemy["movePhase"] = red_pen_phase
+				dir = Vector2(-red_pen_base.y, red_pen_base.x) * sin(red_pen_phase) * 0.42
+			var shot_warning_timer := float(enemy.get("shotWarningTimer", 0.0))
+			if shot_warning_timer > 0.0:
+				shot_warning_timer = maxf(0.0, shot_warning_timer - delta)
+				enemy["shotWarningTimer"] = shot_warning_timer
+				dir *= 0.30
+				if shot_warning_timer <= 0.0:
+					var shot_dir := Vector2(enemy.get("shotWarningDir", red_pen_base))
+					if shot_dir.length() < 0.1:
+						shot_dir = red_pen_base
+					shot_dir = shot_dir.normalized()
+					var uid := int(enemy.get("uid", -1))
+					if bullets.size() < max_enemy_bullets and drawing_red_pen_projectile_count(bullets, uid) < DRAWING_RED_PEN_MAX_PROJECTILES_PER_ENEMY:
+						bullets.append({
+							"pos": enemy_pos + shot_dir * 22.0,
+							"vel": shot_dir * DRAWING_RED_PEN_PROJECTILE_SPEED,
+							"life": DRAWING_RED_PEN_BULLET_LIFE,
+							"damage": DRAWING_RED_PEN_PROJECTILE_DAMAGE,
+							"hitRadius": 14.0,
+							"source": "red pen bullet",
+							"sourceKind": "red_pen_teacher",
+							"sourceUid": uid,
+							"visualKind": "red_pen_mark",
+							"erasableByPinkPaint": true
+						})
+					enemy["shoot"] = rng.randf_range(DRAWING_RED_PEN_FIRE_INTERVAL_MIN, DRAWING_RED_PEN_FIRE_INTERVAL_MAX)
+			else:
+				enemy["shoot"] = float(enemy["shoot"]) - delta
+				if float(enemy["shoot"]) <= 0.0 and dist < 760.0:
+					var uid := int(enemy.get("uid", -1))
+					if bullets.size() < max_enemy_bullets and drawing_red_pen_projectile_count(bullets, uid) < DRAWING_RED_PEN_MAX_PROJECTILES_PER_ENEMY:
+						var warning_dir := red_pen_base
+						if warning_dir.length() < 0.1:
+							warning_dir = Vector2.RIGHT
+						enemy["shotWarningDir"] = warning_dir.normalized()
+						enemy["shotWarningTimer"] = DRAWING_RED_PEN_PRE_SHOT_WARNING_TIME
+						enemy["shotWarningDuration"] = DRAWING_RED_PEN_PRE_SHOT_WARNING_TIME
+					else:
+						enemy["shoot"] = 0.45
 		elif behavior == "stg_side_move":
 			var side_dir := float(enemy.get("sideMoveDir", 1.0))
 			if enemy_pos.x < arena.position.x + 90.0:
@@ -1331,11 +1965,11 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 720.0:
 				enemy["shoot"] = rng.randf_range(DOT_INVADER_FIRE_INTERVAL_MIN, DOT_INVADER_FIRE_INTERVAL_MAX)
-				if bullets.size() < MAX_ENEMY_BULLETS:
+				if bullets.size() < max_enemy_bullets:
 					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.DOWN
-					bullets.append({"pos": enemy_pos + bullet_dir * 16.0, "vel": bullet_dir * 230.0, "life": DOT_INVADER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "visualKind": "dot_invader_bullet"})
+					bullets.append({"pos": enemy_pos + bullet_dir * 16.0, "vel": bullet_dir * 230.0, "life": DOT_INVADER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "dot_invader_bullet", "erasableByPinkPaint": true})
 		elif behavior == "chase_with_short_warp":
 			var lag_base_dir := to_player_dir
 			if lag_base_dir.length() < 0.1:
@@ -1381,10 +2015,10 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				if wiki_bullet_dir.length() < 0.1:
 					wiki_bullet_dir = Vector2.RIGHT
 				for angle in [-0.18, 0.0, 0.18]:
-					if bullets.size() >= MAX_ENEMY_BULLETS:
+					if bullets.size() >= max_enemy_bullets:
 						break
 					var spread_dir := wiki_bullet_dir.rotated(angle)
-					bullets.append({"pos": enemy_pos + spread_dir * 22.0, "vel": spread_dir * 210.0, "life": WIKI_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "visualKind": "wiki_comment"})
+					bullets.append({"pos": enemy_pos + spread_dir * 22.0, "vel": spread_dir * 210.0, "life": WIKI_BULLET_LIFE, "damage": DamageSystem.SPREAD_ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "spreadProjectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "wiki_comment", "erasableByPinkPaint": true})
 		elif behavior == "ambush_chase":
 			var ambush_base_dir := to_player_dir
 			if ambush_base_dir.length() < 0.1:
@@ -1438,10 +2072,141 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			if float(enemy["shoot"]) <= 0.0 and dist < 760.0:
 				enemy["shoot"] = rng.randf_range(DRONE_FIRE_INTERVAL_MIN, DRONE_FIRE_INTERVAL_MAX)
 				for angle in [-0.24, 0.0, 0.24]:
-					if bullets.size() >= MAX_ENEMY_BULLETS:
+					if bullets.size() >= max_enemy_bullets:
 						break
 					var drone_bullet_dir := drone_base.rotated(angle)
-					bullets.append({"pos": enemy_pos + drone_bullet_dir * 20.0, "vel": drone_bullet_dir * 250.0, "life": DRONE_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 14.0, "source": "enemy bullet", "visualKind": "drone_bullet"})
+					bullets.append({"pos": enemy_pos + drone_bullet_dir * 20.0, "vel": drone_bullet_dir * 250.0, "life": DRONE_BULLET_LIFE, "damage": DamageSystem.SPREAD_ENEMY_BULLET_DAMAGE, "hitRadius": 14.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "spreadProjectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "drone_bullet", "erasableByPinkPaint": true})
+		elif behavior == "collab_division_noise":
+			var division_anchor := player_pos
+			if collab_partner_available:
+				division_anchor = (player_pos + collab_partner_pos) * 0.5
+			var division_phase := float(enemy.get("divisionOrbitPhase", 0.0)) + delta * 0.72
+			enemy["divisionOrbitPhase"] = division_phase
+			var division_radius := 118.0 + float(int(enemy.get("uid", 0)) % 3) * 24.0
+			var division_target := division_anchor + Vector2(cos(division_phase), sin(division_phase * 0.83)) * division_radius
+			var division_delta := division_target - enemy_pos
+			dir = division_delta.normalized() if division_delta.length_squared() > 16.0 else Vector2.ZERO
+		elif behavior == "collab_mute_core":
+			dir = Vector2.ZERO
+		elif behavior == "collab_comparison_chase":
+			dir = to_player_dir
+		elif behavior == "collab_messenger_pigeon":
+			var targets_partner := bool(enemy.get("messengerTargetsPartner", false)) and collab_partner_available
+			var messenger_target := collab_partner_pos if targets_partner else player_pos
+			var messenger_base := messenger_target - enemy_pos
+			if messenger_base.length() < 0.1:
+				messenger_base = to_player_dir
+			if messenger_base.length() < 0.1:
+				messenger_base = Vector2.RIGHT
+			var messenger_dash_time := float(enemy.get("messengerDashTimer", 0.0))
+			var messenger_warning := float(enemy.get("messengerWarningTimer", 0.0))
+			if messenger_dash_time > 0.0:
+				messenger_dash_time = maxf(0.0, messenger_dash_time - delta)
+				enemy["messengerDashTimer"] = messenger_dash_time
+				dir = Vector2(enemy.get("messengerDashDir", messenger_base.normalized()))
+				if dir.length() < 0.1:
+					dir = messenger_base.normalized()
+				speed = COLLAB_MESSENGER_DASH_SPEED
+				if messenger_dash_time <= 0.0:
+					enemy["messengerTargetsPartner"] = not targets_partner
+			elif messenger_warning > 0.0:
+				messenger_warning = maxf(0.0, messenger_warning - delta)
+				enemy["messengerWarningTimer"] = messenger_warning
+				dir = messenger_base.normalized() * 0.24
+				if messenger_warning <= 0.0:
+					var dash_dir := messenger_base.normalized()
+					var dash_target := Vector2(enemy.get("messengerDashTarget", messenger_target))
+					var dash_distance := enemy_pos.distance_to(dash_target)
+					enemy["messengerDashDir"] = dash_dir
+					enemy["messengerDashTimer"] = clampf(dash_distance / COLLAB_MESSENGER_DASH_SPEED, 0.28, 0.85)
+					if target != null and target.has_method("_spawn_collab_messenger_trail"):
+						target.call("_spawn_collab_messenger_trail", enemy_pos, dash_target, COLLAB_MESSENGER_TRAIL_WIDTH, COLLAB_MESSENGER_TRAIL_LIFETIME)
+			else:
+				dir = messenger_base.normalized() * 0.85
+				enemy["shoot"] = float(enemy.get("shoot", 0.0)) - delta
+				if float(enemy["shoot"]) <= 0.0:
+					enemy["messengerDashTarget"] = messenger_target
+					enemy["messengerWarningTimer"] = COLLAB_MESSENGER_DASH_WARNING_DURATION
+					enemy["shoot"] = COLLAB_MESSENGER_DASH_INTERVAL
+		elif behavior == "collab_discord_troll":
+			dir = to_player_dir
+			var pulse_warning := float(enemy.get("collabPulseWarningTimer", 0.0))
+			if pulse_warning > 0.0:
+				pulse_warning = maxf(0.0, pulse_warning - delta)
+				enemy["collabPulseWarningTimer"] = pulse_warning
+				dir *= 0.28
+				if pulse_warning <= 0.0 and target != null and target.has_method("_trigger_collab_discord_pulse"):
+					target.call("_trigger_collab_discord_pulse", enemy_pos, COLLAB_DISCORD_PULSE_RADIUS)
+			else:
+				enemy["shoot"] = float(enemy.get("shoot", 0.0)) - delta
+				if float(enemy["shoot"]) <= 0.0:
+					enemy["collabPulseWarningTimer"] = COLLAB_DISCORD_PULSE_WARNING_DURATION
+					enemy["shoot"] = COLLAB_DISCORD_PULSE_INTERVAL
+		elif behavior == "collab_volume_police":
+			var volume_base := to_player_dir
+			if volume_base.length() < 0.1:
+				volume_base = Vector2.RIGHT
+			var volume_preferred_distance := 260.0
+			if dist < volume_preferred_distance - 52.0:
+				dir = -volume_base * 0.70
+			elif dist > volume_preferred_distance + 98.0:
+				dir = volume_base * 0.62
+			else:
+				dir = Vector2(-volume_base.y, volume_base.x) * 0.38
+			var field_warning := float(enemy.get("collabFieldWarningTimer", 0.0))
+			if field_warning > 0.0:
+				field_warning = maxf(0.0, field_warning - delta)
+				enemy["collabFieldWarningTimer"] = field_warning
+				dir *= 0.25
+				if field_warning <= 0.0 and target != null and target.has_method("_spawn_collab_volume_field"):
+					target.call("_spawn_collab_volume_field", enemy_pos, COLLAB_VOLUME_FIELD_RADIUS, COLLAB_VOLUME_FIELD_LIFETIME, 1.25, "volume_police")
+			else:
+				enemy["shoot"] = float(enemy.get("shoot", 0.0)) - delta
+				if float(enemy["shoot"]) <= 0.0:
+					enemy["collabFieldWarningTimer"] = COLLAB_VOLUME_FIELD_WARNING_DURATION
+					enemy["shoot"] = COLLAB_VOLUME_FIELD_INTERVAL
+		elif behavior == "collab_exclusive_listener":
+			if collab_partner_available:
+				var partner_delta := collab_partner_pos - enemy_pos
+				if bool(enemy.get("collabPartnerAttached", false)):
+					var attach_side := -1.0 if int(enemy.get("uid", 0)) % 2 == 0 else 1.0
+					enemy_pos = collab_partner_pos + Vector2(attach_side * 18.0, -4.0)
+					dir = Vector2.ZERO
+				elif partner_delta.length() <= COLLAB_EXCLUSIVE_ATTACH_DISTANCE:
+					var attached := false
+					if target != null and target.has_method("_try_attach_collab_exclusive_listener"):
+						attached = bool(target.call("_try_attach_collab_exclusive_listener", int(enemy.get("uid", -1))))
+					if attached:
+						enemy["collabPartnerAttached"] = true
+					dir = Vector2.ZERO
+				else:
+					dir = partner_delta.normalized()
+			else:
+				dir = to_player_dir
+		elif behavior == "drawing_bucket_slime":
+			var bucket_base := to_player_dir
+			if bucket_base.length() < 0.1:
+				bucket_base = Vector2.RIGHT
+			var bucket_phase := float(enemy.get("movePhase", 0.0)) + delta * 1.35
+			enemy["movePhase"] = bucket_phase
+			var bucket_side := Vector2(-bucket_base.y, bucket_base.x) * sin(bucket_phase) * 0.22
+			dir = (bucket_base + bucket_side).normalized()
+			var puddle_times: Array = []
+			var raw_puddle_times: Variant = enemy.get("puddleTimes", [])
+			if raw_puddle_times is Array:
+				for time_value in raw_puddle_times:
+					var left := float(time_value) - delta
+					if left > 0.0:
+						puddle_times.append(left)
+			var puddle_timer := float(enemy.get("puddleTimer", DRAWING_BUCKET_PUDDLE_INTERVAL)) - delta
+			if puddle_timer <= 0.0:
+				if puddle_times.size() < DRAWING_BUCKET_MAX_PUDDLES_PER_ENEMY and target != null and target.has_method("_spawn_drawing_enemy_spilled_paint"):
+					var spawned := bool(target.call("_spawn_drawing_enemy_spilled_paint", enemy_pos, DRAWING_BUCKET_PUDDLE_RADIUS, DRAWING_BUCKET_PUDDLE_LIFETIME, DRAWING_BUCKET_PUDDLE_SLOW_RATE))
+					if spawned:
+						puddle_times.append(DRAWING_BUCKET_PUDDLE_LIFETIME)
+				puddle_timer = DRAWING_BUCKET_PUDDLE_INTERVAL
+			enemy["puddleTimer"] = puddle_timer
+			enemy["puddleTimes"] = puddle_times
 		elif behavior == "ghost_chase":
 			var ghost_base := to_player_dir
 			if ghost_base.length() < 0.1:
@@ -1462,11 +2227,13 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		enemy_pos = move_enemy_with_wall_avoidance(enemy, enemy_pos, dir, speed, delta, arena, walls, player_pos)
 		enemy_pos = apply_knockback_motion(enemy, enemy_pos, enemy_pos, delta, arena, effect_walls, stream_frame_id)
 		enemy["pos"] = enemy_pos
+		var is_last_offline_body := (bool(enemy.get("relayBoss", false)) or String(enemy.get("bossId", "")) == "last_offline" or String(enemy.get("kind", "")) == "last_offline") and not bool(enemy.get("relayBossSummon", false))
 		var contact_radius: float = float(enemy["radius"]) + 22.0
-		if enemy_pos.distance_squared_to(player_pos) < contact_radius * contact_radius:
+		var summon_spawn_grace := bool(enemy.get("relayBossNoiseSummon", false)) and float(enemy.get("spawnGraceTimer", 0.0)) > 0.0
+		if not is_last_offline_body and not summon_spawn_grace and enemy_pos.distance_squared_to(player_pos) < contact_radius * contact_radius:
 			var contact_source: String = String(enemy["kind"]) + " contact"
 			var contact_damage: int = int(enemy.get("contactDamage", contact_damage_for_kind(String(enemy["kind"]), bool(enemy.get("isBoss", false)))))
-			damage_events.append({"source": contact_source, "damage": contact_damage})
+			damage_events.append({"source": contact_source, "damage": contact_damage, "enemyId": String(enemy.get("kind", "")), "runtimeVariant": String(enemy.get("runtimeVariant", "")), "attackType": "contact"})
 	result["bullets"] = bullets
 	return result
 
@@ -1489,7 +2256,7 @@ static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 		var bullet_pos: Vector2 = Vector2(bullet["pos"])
 		if bullet_pos.distance_squared_to(player_pos) < hit_radius * hit_radius:
 			bullet["life"] = -1.0
-			damage_events.append({"source": String(bullet.get("source", "enemy bullet")), "damage": int(bullet.get("damage", DamageSystem.ENEMY_BULLET_DAMAGE))})
+			damage_events.append({"source": String(bullet.get("source", "enemy bullet")), "damage": int(bullet.get("damage", DamageSystem.ENEMY_BULLET_DAMAGE)), "enemyId": String(bullet.get("sourceKind", "")), "runtimeVariant": String(bullet.get("runtimeVariant", "")), "attackType": String(bullet.get("attackType", "projectile"))})
 	var bullet_keep_area: Rect2 = arena.grow(80.0)
 	var kept_bullets: Array = []
 	for bullet_item in bullets:

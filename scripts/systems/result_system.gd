@@ -1,6 +1,10 @@
 class_name ResultSystem
 extends RefCounted
 
+const StreamPointRewardCalculatorScript := preload("res://scripts/systems/stream_point_reward_calculator.gd")
+const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
+const StreamPointRewardResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
+
 static func calculate_kami_point(stats: Dictionary) -> int:
 	var cleared_bonus: int = 40 if bool(stats.get("cleared", false)) else 0
 	return int(
@@ -145,6 +149,7 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"maxVoltage": float(stats.get("maxVoltage", stats.get("maxMultiplier", 1.0))),
 		"maxBurnCombo": int(stats.get("maxBurnCombo", stats.get("burnComboMax", 0))),
 		"modeId": String(stats.get("modeId", "")),
+		"stageId": String(stats.get("stageId", stats.get("streamFrameId", ""))),
 		"modeName": String(stats.get("modeName", "")),
 		"characterId": String(stats.get("characterId", "")),
 		"characterName": String(stats.get("characterName", "配信者")),
@@ -228,7 +233,8 @@ static func build_run_stats(
 	genre_stats: Dictionary,
 	marshmallow_stats: Dictionary,
 	song_stats: Dictionary = {},
-	drawing_stats: Dictionary = {}
+	drawing_stats: Dictionary = {},
+	collab_stats: Dictionary = {}
 ) -> Dictionary:
 	return {
 		"reason": reason,
@@ -271,7 +277,7 @@ static func build_run_stats(
 		"accessories": core.get("accessories", []),
 		"giftList": gift_names.duplicate(),
 		"giftSummary": DisplayTextSystem.taken_gift_summary(gift_names),
-		"streamFrameResultText": DisplayTextSystem.stream_frame_result_text(String(core.get("streamFrameId", "")), genre_stats, marshmallow_stats, song_stats, drawing_stats),
+		"streamFrameResultText": DisplayTextSystem.stream_frame_result_text(String(core.get("streamFrameId", "")), genre_stats, marshmallow_stats, song_stats, drawing_stats, collab_stats),
 		"genreEventCount": int(genre_stats.get("genreEventCount", 0)),
 		"raceEventCount": int(genre_stats.get("raceEventCount", 0)),
 		"bulletHellEventCount": int(genre_stats.get("bulletHellEventCount", 0)),
@@ -289,6 +295,11 @@ static func build_run_stats(
 		"drawingFillCount": int(drawing_stats.get("fillCount", 0)),
 		"drawingCorrectionCount": int(drawing_stats.get("correctionCount", 0)),
 		"drawingEraserCount": int(drawing_stats.get("eraserCount", 0)),
+		"collabPartnerName": String(collab_stats.get("partnerName", "")),
+		"collabPassSuccessCount": int(collab_stats.get("passSuccessCount", 0)),
+		"collabSyncStarsCollected": int(collab_stats.get("syncStarsCollected", 0)),
+		"collabPairSkillCount": int(collab_stats.get("pairSkillCount", 0)),
+		"collabChallengeSuccessCount": int(collab_stats.get("challengeSuccessCount", 0)),
 		"marshmallowReadCount": int(marshmallow_stats.get("answered", 0)),
 		"goodMaroCount": int(marshmallow_stats.get("good", 0)),
 		"godMaroCount": int(marshmallow_stats.get("god", 0)),
@@ -358,6 +369,12 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"fillCount": int(target.get("drawing_fill_count")),
 		"correctionCount": int(target.get("drawing_correction_complete_count")),
 		"eraserCount": int(target.get("drawing_eraser_used_count"))
+	}, {
+		"partnerName": String(target.call("_collab_partner_display_name")) if target.has_method("_collab_partner_display_name") else "",
+		"passSuccessCount": int(target.get("collab_pass_success_count")),
+		"syncStarsCollected": int(target.get("collab_sync_star_collected_count")),
+		"pairSkillCount": int(target.get("collab_pair_skill_count")),
+		"challengeSuccessCount": int(target.get("collab_challenge_success_count"))
 	})
 
 static func complete_run_stats(stats: Dictionary) -> Dictionary:
@@ -369,31 +386,98 @@ static func complete_run_stats(stats: Dictionary) -> Dictionary:
 	return result
 
 static func complete_run_for_target(reason: String, target: Node, quick_test_mode: bool) -> Dictionary:
+	var existing_result: Variant = target.get("last_result_stats")
+	var existing_tracker: Variant = target.get("power_up_run_tracker")
+	if existing_tracker != null and bool(existing_tracker.result_committed) and existing_result is Dictionary:
+		return (existing_result as Dictionary).duplicate(true)
 	var result: Dictionary = build_run_stats_from_target(reason, target)
 	var relay_mode: bool = bool(target.get("relay_mode"))
 	result["modeId"] = "relay" if relay_mode else ("test_60" if quick_test_mode else "normal_180")
 	result["modeName"] = "配信リレー" if relay_mode else ("テスト配信" if quick_test_mode else "通常配信")
-	result["isRankingEligible"] = (not quick_test_mode) and (not relay_mode)
-	result["isRelayRankingEligible"] = relay_mode
+	result["stageId"] = "relay" if relay_mode else String(result.get("streamFrameId", ""))
+	result["isRankingEligible"] = (not quick_test_mode) and (not relay_mode or bool(target.get("relay_boss_score_awarded")))
+	result["isRelayRankingEligible"] = false
 	result["cleared"] = _is_cleared(result, quick_test_mode)
 	result["endType"] = result_end_type_for_stats(result, quick_test_mode)
 	result["playedAt"] = Time.get_datetime_string_from_system()
-	result["runId"] = "%s_%d" % [String(result["playedAt"]).replace(":", "").replace("-", "").replace("T", "_"), int(result.get("score", 0))]
+	result["runId"] = String(target.get("run_id"))
+	if String(result["runId"]).strip_edges() == "":
+		result["runId"] = "%s_%d" % [String(result["playedAt"]).replace(":", "").replace("-", "").replace("T", "_"), int(result.get("score", 0))]
 	result = complete_run_stats(result)
+	var reward_commit := _commit_power_up_reward(result, target)
+	var committed_reward = reward_commit.get("reward", null)
+	result["streamPointReward"] = committed_reward.to_dictionary() if committed_reward != null and committed_reward.has_method("to_dictionary") else {}
+	result["ppGrantState"] = String(reward_commit.get("state", "unavailable"))
+	result["streamPointBalance"] = int(reward_commit.get("balance", 0))
 	var unlock_result: Dictionary = {"message": ""}
 	if not relay_mode:
 		unlock_result = StreamFrameSystem.clear_frame_for_target(target, result)
 	result["unlockMessage"] = String(unlock_result.get("message", ""))
 	var result_data: Dictionary = build_result_data(result)
 	if relay_mode:
-		result["rankingText"] = RankingSystem.save_and_format_relay_ranking(build_relay_ranking_entry(result), bool(result["isRelayRankingEligible"]))
+		result["rankingText"] = RankingSystem.save_and_format_ranking(build_ranking_entry(result), bool(result["isRankingEligible"]))
 	else:
 		result["rankingText"] = RankingSystem.save_and_format_ranking(build_ranking_entry(result), bool(result["isRankingEligible"]))
 	result_data["rankingText"] = String(result.get("rankingText", ""))
 	result["resultData"] = result_data
 	target.set("last_result_data", result_data)
 	result["resultText"] = build_result_text(result)
+	target.set("last_result_stats", result.duplicate(true))
 	return result
+
+static func _commit_power_up_reward(result: Dictionary, target: Node) -> Dictionary:
+	var tracker_variant: Variant = target.get("power_up_run_tracker")
+	var manager_variant: Variant = target.get("power_up_shop_manager")
+	if tracker_variant == null or manager_variant == null:
+		return {"state": "unavailable", "balance": 0, "reward": StreamPointRewardResultScript.new()}
+	var tracker = tracker_variant
+	var manager = manager_variant
+	if manager == null:
+		return {"state": "unavailable", "balance": 0, "reward": StreamPointRewardResultScript.new()}
+	var outcome := "completed" if String(result.get("endType", "")) == "completed" else ("defeated" if String(result.get("endType", "")) == "mental_breakdown" else "retired")
+	var input: Dictionary = tracker.reward_input(
+		bool(result.get("relayMode", false)),
+		outcome,
+		float(result.get("elapsed", 0.0)),
+		String(result.get("stageId", result.get("streamFrameId", ""))),
+		bool(result.get("cleared", false)),
+		(result.get("relayCompletedFrameIds", []) as Array)
+	)
+	var profile: Dictionary = manager.profile as Dictionary
+	var reward = StreamPointRewardCalculatorScript.calculate(
+		input,
+		profile.get("firstStageClears", {}) as Dictionary,
+		profile.get("firstBossDefeats", {}) as Dictionary,
+		bool(profile.get("firstRelayClear", false)),
+		manager.database.reward_rules
+	)
+	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward)
+	if bool(grant.get("ok", false)):
+		tracker.result_committed = true
+		target.set("pending_power_up_reward", null)
+		return {"state": String(grant.get("state", "granted")), "balance": int(grant.get("balance", manager.current_points())), "reward": reward}
+	target.set("pending_power_up_reward", reward)
+	return {"state": String(grant.get("state", "save_failed")), "balance": manager.current_points(), "reward": reward}
+
+static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
+	var tracker_variant: Variant = target.get("power_up_run_tracker")
+	var manager = target.get("power_up_shop_manager")
+	var pending_variant: Variant = target.get("pending_power_up_reward")
+	if tracker_variant == null or manager == null or pending_variant == null or not pending_variant.has_method("to_dictionary"):
+		return {"ok": false, "state": "nothing_to_retry"}
+	var tracker = tracker_variant
+	var reward = pending_variant
+	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward)
+	if bool(grant.get("ok", false)):
+		tracker.result_committed = true
+		target.set("pending_power_up_reward", null)
+		var result_data: Dictionary = target.get("last_result_data") as Dictionary
+		result_data["ppGrantState"] = String(grant.get("state", "granted"))
+		result_data["streamPointBalance"] = int(grant.get("balance", manager.current_points()))
+		result_data["streamPointReward"] = reward.to_dictionary()
+		target.set("last_result_data", result_data)
+		return {"ok": true, "state": "granted", "balance": manager.current_points()}
+	return {"ok": false, "state": String(grant.get("state", "save_failed"))}
 
 static func build_result_data(result: Dictionary) -> Dictionary:
 	var end_type := String(result.get("endType", ""))
@@ -457,6 +541,9 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"summaryLine": result_summary_for_end_type(end_type, fallback_summary),
 		"streamFrameResultText": String(result.get("streamFrameResultText", "")),
 		"unlockMessage": String(result.get("unlockMessage", "")),
+		"streamPointReward": result.get("streamPointReward", {}),
+		"ppGrantState": String(result.get("ppGrantState", "unavailable")),
+		"streamPointBalance": int(result.get("streamPointBalance", 0)),
 		"rankingText": String(result.get("rankingText", "")),
 		"bossSummoned": bool(result.get("bossSummoned", false)),
 		"bossDefeated": bool(result.get("bossDefeated", false)),
@@ -547,6 +634,8 @@ static func build_result_text(stats: Dictionary) -> String:
 		""
 	]
 	if completed:
+		if relay_mode and _is_relay_completed(stats):
+			lines.append("RELAY COMPLETE")
 		lines.append("配信結果：最後まで配信を走り切った！")
 		lines.append("最終指示コメ：%s" % String(stats.get("currentComment", "なし")))
 	else:
@@ -571,6 +660,12 @@ static func build_result_text(stats: Dictionary) -> String:
 	if unlock_message != "":
 		lines.append("")
 		lines.append(unlock_message)
+	var reward_data: Dictionary = stats.get("streamPointReward", {}) as Dictionary
+	var pp_state := String(stats.get("ppGrantState", "unavailable"))
+	if pp_state == "save_failed":
+		lines.append("PP保存に失敗しました。ショップから再試行できます")
+	elif int(reward_data.get("totalPp", 0)) > 0:
+		lines.append("パワーアップPP  +%d  / 所持 %d PP" % [int(reward_data.get("totalPp", 0)), int(stats.get("streamPointBalance", 0))])
 	if ranking_text != "":
 		lines.append("")
 		lines.append(ranking_text)
@@ -579,6 +674,8 @@ static func build_result_text(stats: Dictionary) -> String:
 	return "\n".join(lines)
 
 static func _is_cleared(stats: Dictionary, quick_test_mode: bool) -> bool:
+	if bool(stats.get("relayMode", false)) and _is_relay_completed(stats):
+		return true
 	var required_time: float = 60.0 if quick_test_mode else 180.0
 	var reason: String = String(stats.get("reason", ""))
 	return float(stats.get("elapsed", 0.0)) >= required_time - 0.05 or reason.contains("成功") or reason.contains("完走")

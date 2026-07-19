@@ -1,0 +1,301 @@
+{
+  "id": "relay",
+  "displayName": "配信リレー",
+  "segmentDuration": 120.0,
+  "phaseTimes": {
+    "introEnd": 30.0,
+    "mainEnd": 90.0,
+    "climaxEnd": 120.0
+  },
+  "instruction": {
+    "interval": 15.0,
+    "choiceTime": 10.0,
+    "effectTime": 15.0,
+    "candidateCount": 3
+  },
+  "break": {
+    "count": 5,
+    "healRate": 0.30,
+    "giftCandidateCount": 3,
+    "giftGuaranteedQuality": "hit",
+    "giftLevelGainHit": 2,
+    "giftLevelGainBigHit": 3
+  },
+  "enemyMultipliers": {
+    "zatsudan": {"hp": 1.00, "damage": 1.00, "speed": 1.00},
+    "gameplay": {"hp": 1.15, "damage": 1.00, "speed": 1.03},
+    "singing": {"hp": 1.30, "damage": 1.00, "speed": 1.05},
+    "drawing": {"hp": 1.45, "damage": 1.00, "speed": 1.08},
+    "collab": {"hp": 1.60, "damage": 1.00, "speed": 1.10}
+  },
+  "damageMultipliers": {
+    "zatsudan": 1.00,
+    "gameplay": 1.00,
+    "singing": 1.00,
+    "drawing": 1.00,
+    "collab": 1.00
+  },
+  "enemyDamageMultipliers": {
+    "zatsudan": 0.80,
+    "gameplay": 1.00,
+    "singing": 1.00,
+    "drawing": 1.00,
+    "collab": 1.00,
+    "relay_boss": 1.00
+  },
+  "normalStageSpawnCurves": {
+    "zatsudan": [1.00, 1.15, 1.30, 1.45],
+    "gameplay": [1.00, 1.15, 1.30, 1.45],
+    "singing": [1.00, 1.20, 1.40, 1.60],
+    "drawing": [1.00, 1.15, 1.30, 1.45],
+    "collab": [1.00, 1.00, 1.00, 1.00]
+  },
+  "relaySpawnCurves": {
+    "zatsudan": [1.00, 1.20, 1.45],
+    "gameplay": [1.00, 1.25, 1.55],
+    "singing": [1.00, 1.30, 1.60],
+    "drawing": [1.00, 1.25, 1.55],
+    "collab": [1.00, 1.10, 1.25]
+  },
+  "normalUpperEnemyWeights": {
+    "zatsudan": [0.80, 1.00, 1.10, 1.25],
+    "gameplay": [0.80, 1.00, 1.10, 1.25],
+    "singing": [0.80, 1.00, 1.10, 1.25],
+    "drawing": [0.80, 1.00, 1.10, 1.25],
+    "collab": [0.80, 1.00, 1.10, 1.25]
+  },
+  "relayUpperEnemyWeights": {
+    "zatsudan": [0.80, 1.10, 1.25],
+    "gameplay": [0.80, 1.10, 1.25],
+    "singing": [0.80, 1.10, 1.25],
+    "drawing": [0.80, 1.10, 1.25],
+    "collab": [0.80, 1.10, 1.25]
+  },
+  "relayStageBalance": {
+    "baseActiveEnemyCap": 20,
+    "drawing": {
+      "spawnAmountMultiplier": 1.35,
+      "activeEnemyCapMultiplier": 1.40,
+      "minimumCapIncrease": 8,
+      "heavyGimmickSpawnAmountMultiplier": 1.10,
+      "timePhases": [
+        {"start": 0.0, "end": 30.0, "spawnIntervalMultiplier": 0.90, "additionalSpawnCountMin": 0, "additionalSpawnCountMax": 0},
+        {"start": 30.0, "end": 90.0, "spawnIntervalMultiplier": 0.75, "additionalSpawnCountMin": 1, "additionalSpawnCountMax": 1},
+        {"start": 90.0, "end": 120.0, "spawnIntervalMultiplier": 0.65, "additionalSpawnCountMin": 1, "additionalSpawnCountMax": 2}
+      ],
+      "enemyTiers": {
+        "low": {"weight": 0.65, "kinds": ["drawing_fix_note", "layer_lost"]},
+        "standard": {"weight": 0.30, "kinds": ["drawing_fix_note", "layer_lost"]},
+        "strong": {"weight": 0.05, "kinds": ["bucket_fill_slime"]}
+      }
+    },
+    "collab": {
+      "spawnAmountMultiplier": 1.50,
+      "activeEnemyCapMultiplier": 1.60,
+      "minimumCapIncrease": 12,
+      "challengeSpawnAmountMultiplier": 1.15,
+      "timePhases": [
+        {"start": 0.0, "end": 30.0, "spawnIntervalMultiplier": 0.85, "additionalSpawnCountMin": 1, "additionalSpawnCountMax": 1},
+        {"start": 30.0, "end": 90.0, "spawnIntervalMultiplier": 0.70, "additionalSpawnCountMin": 1, "additionalSpawnCountMax": 1},
+        {"start": 90.0, "end": 120.0, "spawnIntervalMultiplier": 0.60, "additionalSpawnCountMin": 2, "additionalSpawnCountMax": 2}
+      ],
+      "enemyTiers": {
+        "low": {"weight": 0.60, "kinds": ["collab_comparison_troll", "collab_messenger_pigeon"]},
+        "standard": {"weight": 0.30, "kinds": ["collab_discord_troll", "collab_volume_police"]},
+        "strong": {"weight": 0.10, "kinds": ["collab_exclusive_listener"]}
+      }
+    }
+  },
+  "dangerEnemyCaps": {
+    "normal": {
+      "maxActiveRangedEnemies": 6,
+      "maxActiveSpreadShooters": 2,
+      "maxSimultaneousChargeAttacks": 2,
+      "maxSimultaneousAmbushAttacks": 2
+    },
+    "relay": {
+      "maxActiveRangedEnemies": 7,
+      "maxActiveSpreadShooters": 2,
+      "maxSimultaneousChargeAttacks": 2,
+      "maxSimultaneousAmbushAttacks": 2
+    },
+    "bulletHellNormalEnemySpawnMultiplierCap": 1.20,
+    "horrorMaxActiveAmbushEnemies": 2
+  },
+  "segments": {
+    "zatsudan": {
+      "displayName": "雑談枠",
+      "instructionPool": "zatsudan",
+      "timeline": {"disableBoss": true},
+      "disableEnemyKinds": ["enemy_kuso_maro_king"]
+    },
+    "gameplay": {
+      "displayName": "ゲーム実況枠",
+      "instructionPool": "gameplay",
+      "genres": ["race", "bullet_hell", "horror"],
+      "timeline": {"normalEnd": 10.0, "genreAEnd": 50.0, "transitionEnd": 55.0, "genreBEnd": 90.0, "mixEnd": 120.0},
+      "mixMode": "reduced_representative_elements",
+      "disableBoss": true
+    },
+    "singing": {
+      "displayName": "歌枠",
+      "instructionPool": "singing",
+      "liveHeatGainMultiplier": 1.60,
+      "noteSpawnMultiplier": 1.25,
+      "timeline": {"forcedChorusAt": 90.0, "maxMainEvents": 1},
+      "disableBoss": true
+    },
+    "drawing": {
+      "displayName": "お絵かき枠",
+      "instructionPool": "drawing",
+      "paintProgressMultiplier": 1.50,
+      "zoneProgressMultiplier": 1.35,
+      "paintOrbSpawnMultiplier": 1.20,
+      "timeline": {"finishAt": 90.0, "finishOrbSpawn": 1.50, "finishProgress": 1.50, "finishZoneDuration": 1.25},
+      "disableBoss": true
+    },
+    "collab": {
+      "displayName": "コラボ枠",
+      "instructionPool": "collab",
+      "passInterval": {"min": 18.0, "max": 22.0},
+      "syncRush": {"start": 90.0, "passIntervalMin": 10.0, "passIntervalMax": 14.0},
+      "challengeTimes": [25.0, 70.0, 105.0],
+      "disableCrusher": true
+    }
+  },
+  "boss": {
+    "id": "last_offline",
+    "ppRewardId": "last_offline",
+    "basePpReward": 0,
+    "isPpRewardTarget": false,
+    "isFirstDefeatRewardTarget": false,
+    "trackFirstDefeat": true,
+    "cutin": {"version": 3, "displayName": "ラストオフライン", "subTitle": "配信終焉体", "labelType": "final_boss", "imagePath": "res://assets/generated/relay_boss_v1/last_offline.png", "themeColor": "#8a5cff", "accentColor": "#ff6ecf", "noiseColor": "#f5f7ff", "bgStyle": "final", "durationSeconds": 3.40, "imageSide": "left", "entryDirection": "left", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_final", "customSeType": "boss_final", "isFinalBoss": true, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "last_offline", "customCommentPoolId": "cutin_last_offline", "customIntroId": "stream_shutdown", "customFinaleId": "stream_shutdown_finale", "customIntroDurationSeconds": 1.10, "replaceCommonThemeIntro": true, "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "last_offline_shutdown", "useRelayThemeSequence": true, "bgmDuckVolumeMultiplier": 0.08, "preRevealAccents": [{"type": "eye_pair", "x": 0.5, "y": 0.4, "scale": 1.0}, {"type": "core", "x": 0.5, "y": 0.58, "scale": 1.0}]},
+    "displayName": "ラストオフライン",
+    "formalName": "配信終焉体・ラストオフライン",
+    "maxHp": 2400.0,
+    "contactDamage": 0,
+    "contact": {
+      "damage": 12,
+      "rehitSeconds": 1.0,
+      "knockbackDistance": 140.0,
+      "knockbackDuration": 0.22,
+      "shape": "circle",
+      "radius": 105.0,
+      "centerMarker": "CoreCenter",
+      "playerRadius": 22.0,
+      "reenableAfterRepositionSeconds": 0.15,
+      "arrivalPushDuration": 0.12,
+      "arrivalPushPadding": 10.0,
+      "minimumDestinationPlayerDistance": 220.0,
+      "enabledStates": ["IDLE_HOVER", "CRUISING", "ATTACKING", "PHASE_TRANSITION"],
+      "disabledStates": ["REPOSITION_WARNING", "REPOSITIONING", "STUNNED", "DEAD"],
+      "effectKind": "relay_boss_contact_noise"
+    },
+    "baseScore": 10000,
+    "baseAttackInterval": 3.2,
+    "minimumAttackInterval": 1.8,
+    "phaseThresholds": [0.80, 0.60, 0.40, 0.20, 0.00],
+    "phaseAttackIntervalMultipliers": [1.00, 0.95, 0.90, 0.88, 0.82],
+    "normalPassInterval": 20.0,
+    "finalPassInterval": 12.0,
+    "collabSkillBossDamageRate": 0.06,
+    "collabSkillBossDamageCap": 0.08,
+    "attacks": {
+      "comment_shotgun": {"stage": "common", "movementPolicy": "mobile", "warning": 0.80, "telegraph": 0.80, "activeDuration": 0.10, "recovery": 0.60, "reuseCooldown": 7.0, "weight": 1.0, "count": 5, "damage": 7, "cooldown": 0.60},
+      "offline_laser": {"stage": "common", "movementPolicy": "lock_on_aim_commit", "warning": 1.10, "telegraph": 1.10, "duration": 0.80, "activeDuration": 0.80, "recovery": 0.80, "reuseCooldown": 10.0, "weight": 0.8, "large": true, "requiresFullArena": true, "aimGrace": 0.35, "damage": 16, "cooldown": 1.00},
+      "noise_summon": {"stage": "common", "movementPolicy": "mobile", "warning": 1.00, "telegraph": 1.00, "activeDuration": 0.10, "recovery": 0.80, "reuseCooldown": 12.0, "weight": 0.8, "count": 2, "maxActive": 4, "lifetime": 12.0, "contactDamage": 7, "cooldown": 12.0, "cooldownMinSeconds": 11.0, "cooldownMaxSeconds": 14.0, "enemyKind": "noise_ghost_comment", "enemyLifetimeSeconds": 14.0, "spawnWarningSeconds": 0.6, "spawnGraceSeconds": 0.4, "bossDistanceMin": 180.0, "bossDistanceMax": 300.0, "playerDistanceMin": 180.0, "enemySpacingMin": 50.0, "arenaMargin": 70.0, "bossBodyPadding": 28.0, "candidateAttemptsPerEnemy": 48, "phaseSettings": [{"phaseIndex": 0, "spawnCount": 3, "activeCap": 5}, {"phaseIndex": 1, "spawnCount": 4, "activeCap": 6}, {"phaseIndex": 2, "spawnCount": 4, "activeCap": 7}, {"phaseIndex": 3, "spawnCount": 5, "activeCap": 8}, {"phaseIndex": 4, "spawnCount": 6, "activeCap": 10}], "collabBreakSpawnMultiplier": 0.75, "postSummonProtectedAttackSeconds": 2.0, "postProtectedAttackSummonSeconds": 1.0, "protectedAttackIds": ["offline_laser", "game_over_barrage", "howling_ring", "eraser_sweep", "paint_warning", "all_genre_rush"], "syncStar": {"enabled": true, "maxCarrierCount": 1, "maxDropPerWave": 1, "normalCooldownSeconds": 18.0, "finalPhaseCooldownSeconds": 14.0, "iconPath": "res://assets/generated/field_pickup_icons_v1/icons/sync_star.png", "dropAllowedOwners": ["player", "partner"], "dropOnNaturalDespawn": false, "dropOnForcedClear": false, "dropOnCollabSkillClear": false}},
+      "kuso_maro_drop": {"stage": "zatsudan", "movementPolicy": "lock_on_telegraph", "warning": 1.20, "telegraph": 1.20, "activeDuration": 0.65, "recovery": 0.70, "reuseCooldown": 8.0, "weight": 1.0, "count": 4, "damage": 11, "cooldown": 8.0},
+      "long_comment_line": {"stage": "zatsudan", "movementPolicy": "lock_on_telegraph", "warning": 1.00, "telegraph": 1.00, "activeDuration": 0.60, "recovery": 0.70, "reuseCooldown": 9.0, "weight": 1.0, "count": 3, "travelTime": 2.20, "damage": 11, "cooldown": 9.0},
+      "race_lane_charge": {"stage": "gameplay", "movementPolicy": "reposition_then_lock", "warning": 1.20, "telegraph": 1.20, "activeDuration": 1.80, "recovery": 0.80, "reuseCooldown": 10.0, "weight": 1.0, "count": 2, "chargeWarning": 0.60, "damage": 16, "cooldown": 10.0},
+      "game_over_barrage": {"stage": "gameplay", "movementPolicy": "lock_on_telegraph", "warning": 1.00, "telegraph": 1.00, "duration": 4.50, "activeDuration": 4.50, "recovery": 1.00, "reuseCooldown": 12.0, "weight": 0.7, "large": true, "fireInterval": 0.35, "count": 6, "damage": 7, "cooldown": 12.0},
+      "fake_gift_trap": {"stage": "gameplay", "movementPolicy": "lock_on_telegraph", "warning": 0.80, "telegraph": 0.80, "activeDuration": 0.45, "recovery": 0.70, "reuseCooldown": 11.0, "weight": 1.0, "count": 5, "attackWarning": 0.45, "damage": 11, "lifetime": 10.0, "cooldown": 11.0},
+      "howling_ring": {"stage": "singing", "movementPolicy": "lock_on_telegraph", "warning": 0.90, "telegraph": 0.90, "activeDuration": 2.25, "recovery": 0.80, "reuseCooldown": 9.0, "weight": 1.0, "count": 3, "interval": 0.75, "damage": 11, "cooldown": 9.0},
+      "pitch_wave": {"stage": "singing", "movementPolicy": "lock_on_telegraph", "warning": 1.10, "telegraph": 1.10, "activeDuration": 3.00, "recovery": 0.80, "reuseCooldown": 10.0, "weight": 1.0, "count": 2, "travelTime": 3.00, "damage": 11, "cooldown": 10.0},
+      "rhythm_explosion": {"stage": "singing", "movementPolicy": "lock_on_telegraph", "telegraph": 1.40, "activeDuration": 2.65, "recovery": 1.00, "reuseCooldown": 11.0, "weight": 0.7, "large": true, "markerCount": 6, "firstExplosion": 1.40, "interval": 0.25, "damage": 16, "cooldown": 11.0},
+      "dirty_paint": {"stage": "drawing", "movementPolicy": "lock_on_telegraph", "warning": 0.90, "telegraph": 0.90, "activeDuration": 7.0, "recovery": 0.80, "reuseCooldown": 9.0, "weight": 1.0, "count": 3, "speedMultiplier": 0.65, "damage": 0, "cooldown": 9.0},
+      "eraser_sweep": {"stage": "drawing", "movementPolicy": "reposition_then_lock", "warning": 1.20, "telegraph": 1.20, "activeDuration": 1.00, "recovery": 0.90, "reuseCooldown": 11.0, "weight": 0.7, "large": true, "travelTime": 1.00, "damage": 20, "cooldown": 11.0},
+      "paint_warning": {"stage": "drawing", "movementPolicy": "lock_on_telegraph", "warning": 1.40, "telegraph": 1.40, "activeDuration": 2.50, "recovery": 1.00, "reuseCooldown": 12.0, "weight": 0.7, "large": true, "dangerDuration": 2.50, "areaRate": 0.50, "damageInterval": 0.60, "damage": 7, "cooldown": 12.0},
+      "division_noise": {"stage": "collab_final", "movementPolicy": "lock_on_telegraph", "warning": 0.80, "telegraph": 0.80, "activeDuration": 4.0, "recovery": 0.80, "reuseCooldown": 8.0, "weight": 1.0, "damage": 7, "knockback": "small", "slow": 1.20, "cooldown": 8.0},
+      "collab_break": {"stage": "collab_final", "movementPolicy": "lock_on_telegraph", "warning": 1.00, "telegraph": 1.00, "activeDuration": 10.0, "recovery": 1.00, "reuseCooldown": 16.0, "weight": 0.5, "large": true, "breakDamageRate": 0.03, "duration": 10.0, "cooldown": 16.0},
+      "all_genre_rush": {"stage": "collab_final", "movementPolicy": "reposition_then_lock", "warning": 1.20, "telegraph": 1.20, "activeDuration": 2.50, "recovery": 2.00, "reuseCooldown": 18.0, "weight": 0.4, "large": true, "damage": 7, "cooldown": 18.0}
+    },
+    "comments": [
+      {"id": "relay_boss_attack_up", "displayName": "ボス本気出して！", "description": "ボスの攻撃間隔を短くする", "category": "boss", "imagePath": "res://assets/generated/instruction_comment_icons_v1/relay_boss_attack_up_icon.png", "multiplier": 1.0},
+      {"id": "relay_boss_projectiles_up", "displayName": "弾幕もっと増やして！", "description": "飛び道具の数と速度を強化する", "category": "boss", "imagePath": "res://assets/generated/instruction_comment_icons_v1/relay_boss_projectiles_up_icon.png", "multiplier": 1.0},
+      {"id": "relay_boss_movement_up", "displayName": "もっと動き回って！", "description": "15秒間、ボスの巡航と位置変更を強化", "category": "boss", "imagePath": "res://assets/generated/instruction_comment_icons_v1/relay_boss_movement_up_icon.png", "multiplier": 1.0},
+      {"id": "relay_boss_no_dash", "displayName": "ダッシュ禁止で！", "description": "15秒間ダッシュ入力を無効化", "category": "player", "imagePath": "res://assets/generated/instruction_comment_icons_v1/relay_boss_no_dash_icon.png", "multiplier": 1.0},
+      {"id": "relay_boss_partner_mute", "displayName": "相方に頼りすぎ！", "description": "15秒間、相方の通常支援を停止", "category": "partner", "imagePath": "res://assets/generated/instruction_comment_icons_v1/relay_boss_partner_mute_icon.png", "multiplier": 1.0},
+      {"id": "relay_boss_small_arena", "displayName": "もっと狭いところで戦って！", "description": "1秒予告後、15秒間アリーナを中央75%に縮小", "category": "field", "imagePath": "res://assets/generated/instruction_comment_icons_v1/relay_boss_small_arena_icon.png", "multiplier": 1.0},
+      {"id": "boss_support_dont_lose", "displayName": "負けないで！", "description": "メンタル15%回復 / 15秒間 被ダメージ20%軽減", "category": "boss_support", "imagePath": "res://assets/generated/instruction_comment_icons_v1/boss_support_dont_lose_icon.png", "effectType": "relay_boss_support", "duration": 15.0, "riskLevel": 0, "multiplier": 1.0, "difficultyBonus": 0, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "params": {"healMaxHpRate": 0.15, "damageTakenMultiplier": 0.80}},
+      {"id": "boss_support_do_your_best", "displayName": "頑張れ！！", "description": "15秒間 攻撃力25%アップ / 移動速度10%アップ", "category": "boss_support", "imagePath": "res://assets/generated/instruction_comment_icons_v1/boss_support_do_your_best_icon.png", "effectType": "relay_boss_support", "duration": 15.0, "riskLevel": 0, "multiplier": 1.0, "difficultyBonus": 0, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "params": {"playerAttackMultiplier": 1.25, "playerMoveSpeedMultiplier": 1.10}}
+    ],
+    "bossInstructionSettings": {"interval": 15.0, "choiceTime": 10.0, "effectTime": 15.0, "candidateCount": 3, "support": {"enabled": true, "baseChance": 0.15, "lowHpThreshold": 0.35, "lowHpChance": 0.30, "appearanceCooldown": 45.0, "pityElapsed": 90.0, "maxPerOffer": 1, "appearanceSePath": "res://assets/audio/collab_star_comment_shower_complete.mp3"}},
+    "arenaSizeMultiplier": 0.75,
+    "phaseTransitionTime": 1.5,
+    "phaseBarrier": {
+      "enabled": true,
+      "releaseDuration": 0.30,
+      "invalidTextCooldown": 0.35,
+      "hitSeCooldown": 0.20,
+      "maxRipples": 3,
+      "invalidTextDuration": 0.48,
+      "rippleDuration": 0.34,
+      "barrierRadiusRate": 0.60,
+      "barrierAspect": 0.90,
+      "moduleGatherRate": 0.16,
+      "finalPhaseNoiseMultiplier": 1.35,
+      "hitSePath": "res://assets/audio/collab_maro_ban_circle_barrier.mp3",
+      "releaseSePath": "res://assets/audio/confirm_select.mp3",
+      "phaseColors": {
+        "gameplay": ["#85e6ff", "#947cff", "#fff7ff"],
+        "singing": ["#ff83c6", "#ffe16a", "#fff7ff"],
+        "drawing": ["#82ddff", "#ff8dca", "#ffe16a"],
+        "collab_final": ["#d85cff", "#ff5f9e", "#ffd76a"]
+      }
+    },
+    "muzzleMarkers": {
+      "MuzzleCenter": {"x": 0.0, "y": -0.08},
+      "MuzzleLeft": {"x": -0.16, "y": -0.02},
+      "MuzzleRight": {"x": 0.16, "y": -0.02},
+      "CoreCenter": {"x": 0.0, "y": 0.08},
+      "ChatModule": {"x": -0.34, "y": -0.17},
+      "GameModule": {"x": 0.34, "y": -0.17},
+      "SongModule": {"x": -0.34, "y": 0.17},
+      "DrawModule": {"x": 0.34, "y": 0.17},
+      "CollabModule": {"x": 0.0, "y": 0.37}
+    },
+    "comboDamageRate": 0.06,
+    "comboDamageCap": 0.08,
+    "movement": {
+      "visualDrawSize": {"x": 520.0, "y": 520.0},
+      "visualOpaqueSize": {"x": 500.0, "y": 450.0},
+      "damageRadius": 110.0,
+      "edgePadding": 40.0,
+      "minimumPlayerDistance": 220.0,
+      "minimumTravelDistance": 400.0,
+      "minimumTravelWidthRate": 0.30,
+      "repositionWarningSeconds": 0.4,
+      "arrivalDistance": 10.0,
+      "sameAreaMaxSeconds": 4.0,
+      "idleHoverMaxSeconds": 1.0,
+      "attackRecoveryMin": 0.6,
+      "attackRecoveryMax": 1.2,
+      "cruiseSpeeds": [90.0, 110.0, 125.0, 140.0, 155.0],
+      "repositionSpeeds": [220.0, 240.0, 260.0, 280.0, 320.0],
+      "attacksPerAnchor": [[2, 2], [1, 2], [1, 2], [1, 2], [1, 1]],
+      "travelVolleyFirstDelay": 0.5,
+      "travelVolleyIntervalMin": 0.45,
+      "travelVolleyIntervalMax": 0.65,
+      "travelVolleyCountMin": 2,
+      "travelVolleyCountMax": 3,
+      "hoverAmplitude": 6.0,
+      "hoverCycleSeconds": 1.4,
+      "tiltDegrees": 1.5,
+      "tiltCycleSeconds": 2.0,
+      "phaseTransitionCenterTime": 0.7,
+      "resumeDelayMin": 0.6,
+      "resumeDelayMax": 1.2
+    }
+  }
+}

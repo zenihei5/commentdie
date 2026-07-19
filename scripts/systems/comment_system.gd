@@ -1,6 +1,8 @@
 ﻿extends RefCounted
 class_name CommentSystem
 
+const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
+
 const DO_EVERYTHING_ID := "do_everything"
 const DO_EVERYTHING_OFFER_CHANCE := 0.05
 const DO_EVERYTHING_BUCKETS := [
@@ -10,6 +12,7 @@ const DO_EVERYTHING_BUCKETS := [
 ]
 const SONG_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.6
 const DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
+const COLLAB_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
 
 static func build_offer(context: Dictionary) -> Array:
 	var result: Array = []
@@ -32,6 +35,9 @@ static func build_offer(context: Dictionary) -> Array:
 	return result
 
 static func build_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
+	var do_everything_count := int(target.get("do_everything_offer_count"))
+	if bool(target.get("relay_mode")):
+		do_everything_count = 999
 	var offer: Array = build_offer({
 		"comments": comments,
 		"commentTime": target.get("elapsed"),
@@ -43,9 +49,11 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"bossRequested": target.get("boss_requested"),
 		"bossActive": target.get("boss_active"),
 		"bossSummonCount": target.get("boss_summon_count"),
-		"doEverythingOfferCount": target.get("do_everything_offer_count"),
+		"doEverythingOfferCount": do_everything_count,
+		"relayMode": target.get("relay_mode"),
 		"activeGenreEvent": target.get("active_genre_event"),
 		"songChorusActive": float(target.get("song_chorus_timer")) > 0.0 or float(target.get("song_chorus_telegraph_timer")) > 0.0,
+		"collabChallengeActive": target.has_method("_collab_challenge_active") and bool(target.call("_collab_challenge_active")),
 		"debugRareCommentBoost": target.get("debug_rare_comment_boost"),
 		"rng": rng
 	})
@@ -77,12 +85,18 @@ static func build_forced_do_everything_offer_for_target(target: Node, comments: 
 
 static func start_choice_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float) -> Dictionary:
 	target.set("state", "comment_choice")
+	PauseReasonSystemScript.add(target, "InstructionComment")
 	target.set("previous_state", "playing")
 	target.set("choice_timer", maxf(1.0, base_choice_time + float(target.get("choice_time_bonus")) - float(target.get("choice_time_penalty"))))
 	target.set("selected_card", 0)
 	target.set("special_choice_return_card", 0)
 	target.set("comment_warning_step", 0)
 	var offer: Array = build_offer_for_target(target, comments, rng)
+	if bool(target.get("relay_mode")):
+		offer = offer.slice(0, 3)
+		var relay_config: Dictionary = target.get("relay_mode_config") as Dictionary
+		var instruction: Dictionary = relay_config.get("instruction", {}) as Dictionary
+		target.set("choice_timer", float(instruction.get("choiceTime", 10.0)))
 	target.set("offered_comments", offer)
 	target.set("ng_cards", _bool_cards(false, offer.size()))
 	var pending_heart: bool = bool(target.get("heart_pending"))
@@ -102,6 +116,7 @@ static func finish_choice_for_target(target: Node, interval: float) -> String:
 	target.set("comment_timer", interval)
 	target.set("comment_warning_step", 0)
 	target.set("state", "playing")
+	PauseReasonSystemScript.remove(target, "InstructionComment")
 	(target.get("heart_cards") as Array).clear()
 	return String(target.get("current_comment")) + " を選択"
 
@@ -362,6 +377,8 @@ static func _comment_pick_weight(comment: Dictionary, context: Dictionary) -> in
 		weight = maxi(weight + 1, ceili(float(weight) * SONG_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
 	if _should_boost_drawing_instruction_weight(comment, context):
 		weight = maxi(weight + 1, ceili(float(weight) * DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
+	if _should_boost_collab_instruction_weight(comment, context):
+		weight = maxi(weight + 1, ceili(float(weight) * COLLAB_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
 	if not _debug_rare_comment_boost(context):
 		return weight
 	var risk: int = int(comment.get("riskLevel", 1))
@@ -380,6 +397,10 @@ static func _should_boost_song_instruction_weight(comment: Dictionary, context: 
 static func _should_boost_drawing_instruction_weight(comment: Dictionary, context: Dictionary) -> bool:
 	var frame: Dictionary = context.get("streamFrame", {}) as Dictionary
 	return String(frame.get("id", "")) == "drawing" and String(comment.get("effectType", "")) == "drawing_instruction"
+
+static func _should_boost_collab_instruction_weight(comment: Dictionary, context: Dictionary) -> bool:
+	var frame: Dictionary = context.get("streamFrame", {}) as Dictionary
+	return String(frame.get("id", "")) == "collab" and String(comment.get("effectType", "")) == "collab_instruction"
 
 static func _should_offer_do_everything(comments: Array, context: Dictionary, comment_time: float) -> bool:
 	var comment: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
@@ -488,7 +509,11 @@ static func _is_special_only_comment(comment: Dictionary) -> bool:
 	return _is_do_everything_comment(comment) or bool(comment.get("isSpecialChoice", false)) or bool(comment.get("excludedFromNormalChoices", false))
 
 static func _comment_allowed_for_context(comment: Dictionary, context: Dictionary, comment_time: float) -> bool:
+	if bool(context.get("relayMode", false)) and (String(comment.get("effectType", "")) == "summon_boss" or String(comment.get("id", "")) == "summon_boss"):
+		return false
 	if _is_matching_active_genre_comment(comment, context):
+		return false
+	if String(comment.get("id", "")) == "dont_fail_collab" and bool(context.get("collabChallengeActive", false)):
 		return false
 	if String(comment.get("id", "")) == "song_force_chorus" and bool(context.get("songChorusActive", false)):
 		return false

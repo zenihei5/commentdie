@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "sourceDirectory": "external:user-provided/instruction-comments",
+  "processing": {
+    "method": "green chroma key with edge alpha and green despill",
+    "keyColor": "#00ff00",
+    "tightCropPadding": 10
+  },
+  "assets": [
+    {
+      "sourceFile": "負けないで.png",
+      "output": "assets/generated/instruction_comment_icons_v1/boss_support_dont_lose_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        34,
+        320,
+        1225,
+        887
+      ],
+      "outputSize": [
+        1191,
+        567
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 322655,
+      "partialAlphaPixels": 25760,
+      "opaquePixels": 326882
+    },
+    {
+      "sourceFile": "頑張れ.png",
+      "output": "assets/generated/instruction_comment_icons_v1/boss_support_do_your_best_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        68,
+        96,
+        1198,
+        1125
+      ],
+      "outputSize": [
+        1130,
+        1029
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 569578,
+      "partialAlphaPixels": 23892,
+      "opaquePixels": 569300
+    },
+    {
+      "sourceFile": "ボス本気出して.png",
+      "output": "assets/generated/instruction_comment_icons_v1/relay_boss_attack_up_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        0,
+        29,
+        1254,
+        1239
+      ],
+      "outputSize": [
+        1254,
+        1210
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 543341,
+      "partialAlphaPixels": 18789,
+      "opaquePixels": 955210
+    },
+    {
+      "sourceFile": "弾幕もっと増やして.png",
+      "output": "assets/generated/instruction_comment_icons_v1/relay_boss_projectiles_up_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "outputSize": [
+        1254,
+        1254
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 809529,
+      "partialAlphaPixels": 77714,
+      "opaquePixels": 685273
+    },
+    {
+      "sourceFile": "もっと動き回って！.png",
+      "output": "assets/generated/instruction_comment_icons_v1/relay_boss_movement_up_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        27,
+        40,
+        1219,
+        1233
+      ],
+      "outputSize": [
+        1192,
+        1193
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 636880,
+      "partialAlphaPixels": 63808,
+      "opaquePixels": 721368
+    },
+    {
+      "sourceFile": "ダッシュ禁止で！.png",
+      "output": "assets/generated/instruction_comment_icons_v1/relay_boss_no_dash_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        34,
+        131,
+        1208,
+        1075
+      ],
+      "outputSize": [
+        1174,
+        944
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 535066,
+      "partialAlphaPixels": 25086,
+      "opaquePixels": 548104
+    },
+    {
+      "sourceFile": "相方に頼りすぎ！.png",
+      "output": "assets/generated/instruction_comment_icons_v1/relay_boss_partner_mute_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        26,
+        64,
+        1251,
+        1149
+      ],
+      "outputSize": [
+        1225,
+        1085
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 583798,
+      "partialAlphaPixels": 20115,
+      "opaquePixels": 725212
+    },
+    {
+      "sourceFile": "もっと狭いところで戦って！.png",
+      "output": "assets/generated/instruction_comment_icons_v1/relay_boss_small_arena_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        37,
+        20,
+        1204,
+        1224
+      ],
+      "outputSize": [
+        1167,
+        1204
+      ],
+      "remainingChromaGreenPixels": 0,
+      "transparentPixels": 573661,
+      "partialAlphaPixels": 49867,
+      "opaquePixels": 781540
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 class_name PlayerSystem
 extends RefCounted
 
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+
 static func input_vector() -> Vector2:
 	var input := Vector2.ZERO
 	if Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT):
@@ -180,6 +182,8 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var friction_value: float = friction(banana_power, no_brake_power, input, player_vel, String(context["activeGenreEvent"]), int(context["kusogeResistLevel"]))
 	var speed_rate_value: float = speed_rate(float(context["moveSlowTimer"]), String(context["activeGenreEvent"]), banana_power, no_brake_power, float(context.get("fieldSlowRate", 0.0)), float(context.get("raceDashBoostTimer", 0.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("songLiveHeatMoveSpeedMultiplier", 1.0)))
+	speed_rate_value *= maxf(0.1, float(context.get("collabMoveSpeedMultiplier", 1.0)))
+	speed_rate_value *= maxf(0.1, float(context.get("relayBossMoveSpeedMultiplier", 1.0)))
 	player_vel = player_vel.lerp(input * player_speed * speed_rate_value, minf(1.0, delta * friction_value))
 	player_vel = banana_floor_drift(player_vel, banana_power, elapsed, Vector2(context["playerPos"]), delta)
 
@@ -196,7 +200,11 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var dash_dir_sq := dash_dir.length_squared()
 	if dash_dir_sq >= 0.01 and can_dash(no_dash_power, dash_cd_value):
 		dash_dir = dash_dir.normalized()
-		player_vel += dash_dir * 760.0
+		var dash_speed := 760.0
+		var shop_snapshot = context.get("permanentUpgradeSnapshot")
+		if shop_snapshot != null:
+			dash_speed = PowerUpEffectProviderScript.dash_speed(dash_speed, shop_snapshot)
+		player_vel += dash_dir * dash_speed
 		dash_cd_value = float(context["dashCooldown"]) * dash_cooldown_rate(no_dash_power)
 		dash_started = true
 
@@ -222,6 +230,7 @@ static func update_motion(context: Dictionary) -> Dictionary:
 		"dashDownDown": bool(tap_result["dashDownDown"]),
 		"dashEnterDown": bool(button_result["dashEnterDown"]),
 		"dashStarted": dash_started,
+		"dashDir": dash_dir if dash_started else Vector2.ZERO,
 		"invincible": invincible_value,
 		"stopTimer": stop_timer_value,
 		"stoppedDamage": stopped_damage,
@@ -285,6 +294,12 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	var song_dash_recovery_rate := 1.0
 	if target.has_method("_song_dash_cooldown_recovery_multiplier"):
 		song_dash_recovery_rate = maxf(0.05, float(target.call("_song_dash_cooldown_recovery_multiplier")))
+	var collab_move_rate := 1.0
+	if target.has_method("_collab_player_move_speed_multiplier"):
+		collab_move_rate = maxf(0.1, float(target.call("_collab_player_move_speed_multiplier")))
+	var relay_boss_move_rate := 1.0
+	if target.has_method("_relay_boss_player_move_speed_multiplier"):
+		relay_boss_move_rate = maxf(0.1, float(target.call("_relay_boss_player_move_speed_multiplier")))
 	var field_slow_rate := boss_field_slow_rate(Vector2(target.get("player_pos")), target.get("boss_slow_fields") as Array)
 	if target.has_method("_drawing_spilled_paint_slow_rate"):
 		field_slow_rate = maxf(field_slow_rate, float(target.call("_drawing_spilled_paint_slow_rate")))
@@ -304,7 +319,10 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"playerVel": target.get("player_vel"),
 		"playerPos": target.get("player_pos"),
 		"playerSpeed": target.get("player_speed"),
+		"permanentUpgradeSnapshot": target.get("permanent_upgrade_snapshot"),
 		"songLiveHeatMoveSpeedMultiplier": song_move_rate,
+		"collabMoveSpeedMultiplier": collab_move_rate,
+		"relayBossMoveSpeedMultiplier": relay_boss_move_rate,
 		"songDashCooldownRecoveryMultiplier": song_dash_recovery_rate,
 		"playerFacingX": target.get("player_facing_x"),
 		"dashCd": target.get("dash_cd"),
@@ -320,7 +338,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"dashCooldown": target.get("dash_cooldown"),
 		"arena": arena,
 		"effectWalls": target.get("effect_walls"),
-		"streamFrameId": target.get("current_stream_frame_id"),
+		"streamFrameId": DrawDataSystem.collision_frame_id_for_target(target),
 		"clickMoveActive": target.get("click_move_active"),
 		"clickMoveTarget": target.get("click_move_target"),
 		"clickMoveArriveDistance": 22.0

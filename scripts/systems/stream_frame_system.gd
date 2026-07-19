@@ -546,7 +546,10 @@ static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionar
 	current_entry["bestKamiRank"] = String(stats.get("rank", current_entry.get("bestKamiRank", "D")))
 	frame_progress[current_id] = current_entry
 	var message: String = ""
-	var next_id: String = String(current_frame.get("nextUnlockFrameId", ""))
+	var next_id := ""
+	var next_unlock_value: Variant = current_frame.get("nextUnlockFrameId", "")
+	if next_unlock_value != null:
+		next_id = String(next_unlock_value)
 	if next_id != "":
 		var next_entry: Dictionary = frame_progress.get(next_id, {}) as Dictionary
 		if not bool(next_entry.get("isUnlocked", false)):

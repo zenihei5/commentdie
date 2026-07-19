@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "currency": {
+    "id": "stream_points",
+    "displayName": "配信ポイント",
+    "shortName": "PP"
+  },
+  "rewardRules": {
+    "normal": {
+      "participation": 5,
+      "progressMax": 60,
+      "progressDurationSeconds": 180.0,
+      "clear": 85,
+      "firstStageClear": 50,
+      "firstBossDefeat": 75
+    },
+    "relay": {
+      "participation": 10,
+      "clearedFrame": 120,
+      "finalReached": 100,
+      "finalDefeated": 250,
+      "firstClear": 200
+    },
+    "difficulty": {
+      "normal": 1.0,
+      "hard": 1.0,
+      "expert": 1.0
+    }
+  },
+  "mascotMessages": {
+    "idle": "応援を力に変えよう！",
+    "purchasable": "強化できるよ！",
+    "shortage": "あと%dPPだよ！",
+    "purchaseSuccess": "パワーアップ完了！",
+    "maxLevel": "最大まで強くなった！"
+  },
+  "categories": [
+    {"id": "combat", "displayName": "戦闘", "detailTag": "戦闘強化"},
+    {"id": "support", "displayName": "配信サポート", "detailTag": "配信サポート"}
+  ],
+  "upgrades": [
+    {
+      "id": "max_hp",
+      "category": "combat",
+      "displayName": "メンタルトレーニング",
+      "description": "最大メンタルを増やします。すべてのキャラクターに適用されます。",
+      "cardSummary": {"levelZero": "最大メンタルを強化", "valueLabel": "最大メンタル", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#FFF1F7", "accentColor": "#FF78A9", "patternId": "heart_circle", "patternAlpha": 0.06},
+      "effectTags": ["全キャラクター", "常時有効"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/mental_care.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.04, 0.08, 0.12, 0.16, 0.20],
+      "prices": [120, 220, 360, 540, 760]
+    },
+    {
+      "id": "attack_power",
+      "category": "combat",
+      "displayName": "火力アップ講座",
+      "description": "プレイヤー側の与ダメージを増やします。",
+      "cardSummary": {"levelZero": "与ダメージを強化", "valueLabel": "与ダメージ", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#FFF1E7", "accentColor": "#FF9D5C", "patternId": "spark_impact", "patternAlpha": 0.06},
+      "effectTags": ["武器攻撃", "相方攻撃", "召喚攻撃"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/stream_power.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.03, 0.06, 0.09, 0.12, 0.15],
+      "prices": [120, 220, 360, 540, 760]
+    },
+    {
+      "id": "move_speed",
+      "category": "combat",
+      "displayName": "フットワーク練習",
+      "description": "通常移動とダッシュの速度を増やします。",
+      "cardSummary": {"levelZero": "移動速度を強化", "valueLabel": "移動速度", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#EEF8FF", "accentColor": "#63BCEB", "patternId": "speed_wing", "patternAlpha": 0.06},
+      "effectTags": ["通常移動", "ダッシュ速度"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/light_sneakers.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.02, 0.04, 0.06, 0.08, 0.10],
+      "prices": [120, 220, 360, 540, 760]
+    },
+    {
+      "id": "damage_reduction",
+      "category": "combat",
+      "displayName": "炎上耐性",
+      "description": "敵やステージから受けるダメージを軽減します。",
+      "cardSummary": {"levelZero": "被ダメージを軽減", "valueLabel": "被ダメージ", "format": "percent_down"},
+      "visualStyle": {"baseColor": "#F3EEFF", "accentColor": "#A486E8", "patternId": "hex_shield", "patternAlpha": 0.06},
+      "effectTags": ["被ダメージ", "常時有効"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/mic_barrier.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.02, 0.04, 0.06, 0.08, 0.10],
+      "prices": [120, 220, 360, 540, 760]
+    },
+    {
+      "id": "exp_gain",
+      "category": "support",
+      "displayName": "配信研究",
+      "description": "敵やアイテムから得る経験値を増やします。",
+      "cardSummary": {"levelZero": "獲得経験値を強化", "valueLabel": "獲得EXP", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#EFF1FF", "accentColor": "#7D91ED", "patternId": "book_chart", "patternAlpha": 0.06},
+      "effectTags": ["敵EXP", "経験値アイテム"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/notification_bell.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.04, 0.08, 0.12, 0.16, 0.20],
+      "prices": [100, 180, 300, 450, 650]
+    },
+    {
+      "id": "pickup_range",
+      "category": "support",
+      "displayName": "コメント収集術",
+      "description": "通常回収物の回収範囲を広げます。",
+      "cardSummary": {"levelZero": "回収範囲を強化", "valueLabel": "回収範囲", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#ECFAF5", "accentColor": "#52C89D", "patternId": "comment_suction", "patternAlpha": 0.06},
+      "effectTags": ["経験値", "回復アイテム", "通常回収物"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_radar.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.06, 0.12, 0.18, 0.24, 0.30],
+      "prices": [100, 180, 300, 450, 650]
+    },
+    {
+      "id": "healing_power",
+      "category": "support",
+      "displayName": "休憩上手",
+      "description": "対象となる回復量を増やします。",
+      "cardSummary": {"levelZero": "回復量を強化", "valueLabel": "回復量", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#FFF8E9", "accentColor": "#E3A83D", "patternId": "steam_heart", "patternAlpha": 0.06},
+      "effectTags": ["戦闘中の回復", "リレー休憩は対象外"],
+      "iconPath": "res://assets/generated/relay_break_v1/icon_heal.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.05, 0.10, 0.15, 0.20, 0.25],
+      "prices": [100, 180, 300, 450, 650]
+    },
+    {
+      "id": "gift_luck",
+      "category": "support",
+      "displayName": "ギフト祈願",
+      "description": "ギフトの品質ウェイトを補正します。3択数や進化枠は変えません。",
+      "cardSummary": {"levelZero": "当たり抽選を強化", "levelOnePlus": "当たり・大当たり率UP", "format": "fixed_by_level"},
+      "visualStyle": {"baseColor": "#FFF8D9", "accentColor": "#D8A833", "patternId": "star_ribbon", "patternAlpha": 0.06},
+      "effectTags": ["当たり", "大当たり"],
+      "iconPath": "res://assets/generated/relay_break_v1/icon_gift.png",
+      "maxLevel": 5,
+      "values": [0, 1, 2, 3, 4, 5],
+      "prices": [100, 180, 300, 450, 650],
+      "giftLuck": {
+        "hitWeightMultipliers": [1.0, 1.08, 1.16, 1.24, 1.32, 1.40],
+        "jackpotWeightMultipliers": [1.0, 1.12, 1.24, 1.36, 1.48, 1.60]
+      }
+    }
+  ]
+}

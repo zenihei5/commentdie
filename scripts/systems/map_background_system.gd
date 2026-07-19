@@ -28,11 +28,19 @@ const DRAWING_STAGE_PROGRESS_ROUGH := DRAWING_STAGE_DIR + "/canvas_progress_roug
 const DRAWING_STAGE_PROGRESS_LINEART := DRAWING_STAGE_DIR + "/canvas_progress_lineart.png"
 const DRAWING_STAGE_PROGRESS_FINISH := DRAWING_STAGE_DIR + "/canvas_progress_finish.png"
 const DRAWING_STAGE_PROGRESS_COMPLETE := DRAWING_STAGE_DIR + "/canvas_progress_complete.png"
+const COLLAB_STAGE_DIR := "res://assets/generated/maps/collab_studio_v2"
+const COLLAB_STAGE_BG := COLLAB_STAGE_DIR + "/collab_studio_user_1536x1024.png"
+const RELAY_BOSS_STAGE_DIR := "res://assets/generated/maps/relay_boss_stage_v1"
+const RELAY_BOSS_STAGE_BG := RELAY_BOSS_STAGE_DIR + "/last_offline_boss_arena.png"
 
 const ZATSUDAN_STUDIO_SIZE := Vector2(2200, 1500)
 const ZATSUDAN_STUDIO_WORLD_RECT := Rect2(Vector2(20, 120), ZATSUDAN_STUDIO_SIZE)
 const GAMEPLAY_ARENA_SIZE := Vector2(2200, 1500)
 const GAMEPLAY_ARENA_WORLD_RECT := Rect2(Vector2(20, 120), GAMEPLAY_ARENA_SIZE)
+const COLLAB_STAGE_SIZE := Vector2(2200, 1500)
+const COLLAB_STAGE_WORLD_RECT := Rect2(Vector2(20, 120), COLLAB_STAGE_SIZE)
+const RELAY_BOSS_STAGE_SIZE := Vector2(2200, 1500)
+const RELAY_BOSS_STAGE_WORLD_RECT := Rect2(Vector2(20, 120), RELAY_BOSS_STAGE_SIZE)
 const SINGING_STAGE_SIZE := Vector2(2200, 1600)
 const SINGING_STAGE_WORLD_RECT := Rect2(Vector2(20, 120), SINGING_STAGE_SIZE)
 const DRAWING_STAGE_SIZE := Vector2(2300, 1600)
@@ -94,6 +102,25 @@ const GAMEPLAY_ARENA_COLLISION_RECTS := [
 	{"id": "center_arcade_cabinet", "rect": Rect2(1064, 415, 118, 190)},
 	{"id": "lower_left_game_desk", "rect": Rect2(740, 790, 196, 185)},
 	{"id": "lower_right_tv_stand", "rect": Rect2(1282, 804, 214, 170)}
+]
+const COLLAB_STAGE_COLLISION_RECTS := [
+	{"id": "top_monitor_wall", "rect": Rect2(0, 0, 2200, 218)},
+	{"id": "bottom_window_ledge", "rect": Rect2(0, 1448, 2200, 52)},
+	{"id": "left_wall_equipment", "rect": Rect2(0, 0, 160, 1500)},
+	{"id": "right_wall_equipment", "rect": Rect2(2040, 0, 160, 1500)},
+	{"id": "left_stream_desk", "rect": Rect2(260, 242, 455, 180)},
+	{"id": "right_stream_desk", "rect": Rect2(1470, 242, 460, 180)},
+	{"id": "center_audio_mixer", "rect": Rect2(910, 250, 380, 150)},
+	{"id": "left_mobile_monitor", "rect": Rect2(562, 848, 148, 216)},
+	{"id": "right_mobile_monitor", "rect": Rect2(1478, 848, 148, 216)},
+	{"id": "bottom_sofa", "rect": Rect2(700, 1170, 690, 240)},
+	{"id": "bottom_right_equipment_case", "rect": Rect2(1388, 1164, 116, 226)}
+]
+const RELAY_BOSS_STAGE_COLLISION_RECTS := [
+	{"id": "top_ruined_studio", "rect": Rect2(0, 0, 2200, 270)},
+	{"id": "bottom_ruined_studio", "rect": Rect2(0, 1280, 2200, 220)},
+	{"id": "left_ruined_studio", "rect": Rect2(0, 0, 180, 1500)},
+	{"id": "right_ruined_studio", "rect": Rect2(2020, 0, 180, 1500)}
 ]
 const SINGING_STAGE_COLLISION_RECTS := [
 	{"id": "top_stage_decor_band", "rect": Rect2(0, 0, 2200, 300)},
@@ -192,6 +219,32 @@ static func gameplay_arena_background_data(genre_event: String = "") -> Dictiona
 		"propCollisionRects": []
 	}
 
+static func collab_stage_background_data() -> Dictionary:
+	return {
+		"id": "collab_studio_v2",
+		"size": COLLAB_STAGE_SIZE,
+		"worldRect": COLLAB_STAGE_WORLD_RECT,
+		"assembledPath": COLLAB_STAGE_BG,
+		"floorPath": COLLAB_STAGE_BG,
+		"propsPath": "",
+		"collisionPreviewPath": "",
+		"collisionRects": COLLAB_STAGE_COLLISION_RECTS,
+		"propCollisionRects": []
+	}
+
+static func relay_boss_background_data() -> Dictionary:
+	return {
+		"id": "relay_boss_last_offline",
+		"size": RELAY_BOSS_STAGE_SIZE,
+		"worldRect": RELAY_BOSS_STAGE_WORLD_RECT,
+		"assembledPath": RELAY_BOSS_STAGE_BG,
+		"floorPath": RELAY_BOSS_STAGE_BG,
+		"propsPath": "",
+		"collisionPreviewPath": "",
+		"collisionRects": RELAY_BOSS_STAGE_COLLISION_RECTS,
+		"propCollisionRects": []
+	}
+
 static func singing_stage_background_path_for_mode(mode: String = "") -> String:
 	if mode == "chorus":
 		return SINGING_STAGE_CHORUS_BG
@@ -243,6 +296,10 @@ static func background_data_for_stream_frame(frame_id: String, genre_event: Stri
 			return singing_stage_background_data(genre_event)
 		"drawing":
 			return drawing_stage_background_data()
+		"collab":
+			return collab_stage_background_data()
+		"relay_boss":
+			return relay_boss_background_data()
 		_:
 			return zatsudan_background_data()
 
@@ -289,6 +346,9 @@ static func zatsudan_prop_collision_rects() -> Array:
 
 static func zatsudan_static_wall_rects() -> Array:
 	return static_wall_rects_for_data(zatsudan_background_data())
+
+static func relay_boss_static_wall_rects() -> Array:
+	return static_wall_rects_for_data(relay_boss_background_data())
 
 static func static_wall_rects_for_data(data: Dictionary) -> Array:
 	var rects: Array = []

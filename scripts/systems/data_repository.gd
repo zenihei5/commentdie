@@ -11,6 +11,8 @@ var weapons: Array = []
 var bosses: Array = []
 var stream_start_intro_config: Dictionary = {}
 var comment_pools: Dictionary = {}
+var relay_mode_config: Dictionary = {}
+var boss_cutin_v2_config: Dictionary = {}
 
 static func loaded() -> DataRepository:
 	var repository: DataRepository = DataRepository.new()
@@ -28,6 +30,8 @@ func load_all() -> void:
 	bosses = _load_array("res://data/bosses.json", true)
 	stream_start_intro_config = _load_dictionary("res://data/stream_start_intro.json", true)
 	comment_pools = _load_dictionary("res://data/comment_pools.json", true)
+	relay_mode_config = _load_dictionary("res://data/relay_mode.json", true)
+	boss_cutin_v2_config = _load_dictionary("res://data/boss_cutin_v2.json", true)
 
 func apply_to_target(target: Node) -> void:
 	target.set("comments", comments)
@@ -40,6 +44,8 @@ func apply_to_target(target: Node) -> void:
 	target.set("bosses", bosses)
 	target.set("stream_start_intro_config", stream_start_intro_config)
 	target.set("comment_pools", comment_pools)
+	target.set("relay_mode_config", relay_mode_config)
+	target.set("boss_cutin_v2_config", boss_cutin_v2_config)
 
 func find_by_id(list: Array, id: String) -> Dictionary:
 	for item in list:

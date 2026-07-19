@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "sourceDirectory": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\配信リレー",
+  "processing": {
+    "method": "border-connected green chroma key with edge despill",
+    "tightCropPadding": 8
+  },
+  "assets": [
+    {
+      "id": "panel_frame",
+      "sourceFile": "休憩大枠.png",
+      "output": "assets/generated/relay_break_v1/panel_frame.png",
+      "originalSize": [
+        1729,
+        910
+      ],
+      "contentBoundsInSource": [
+        45,
+        33,
+        1686,
+        868
+      ],
+      "outputSize": [
+        1641,
+        835
+      ],
+      "transparentPixels": 45566,
+      "partialAlphaPixels": 11138,
+      "opaquePixels": 1313531
+    },
+    {
+      "id": "card_heal",
+      "sourceFile": "休憩_回復選択カード背景.png",
+      "output": "assets/generated/relay_break_v1/card_heal.png",
+      "originalSize": [
+        1536,
+        1024
+      ],
+      "contentBoundsInSource": [
+        45,
+        93,
+        1491,
+        933
+      ],
+      "outputSize": [
+        1446,
+        840
+      ],
+      "transparentPixels": 49673,
+      "partialAlphaPixels": 9849,
+      "opaquePixels": 1155118
+    },
+    {
+      "id": "card_gift",
+      "sourceFile": "休憩_ギフト選択カード背景.png",
+      "output": "assets/generated/relay_break_v1/card_gift.png",
+      "originalSize": [
+        1536,
+        1024
+      ],
+      "contentBoundsInSource": [
+        43,
+        93,
+        1493,
+        932
+      ],
+      "outputSize": [
+        1450,
+        839
+      ],
+      "transparentPixels": 49185,
+      "partialAlphaPixels": 8924,
+      "opaquePixels": 1158441
+    },
+    {
+      "id": "icon_heal",
+      "sourceFile": "休憩_回復アイコン.png",
+      "output": "assets/generated/relay_break_v1/icon_heal.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        169,
+        130,
+        1067,
+        1059
+      ],
+      "outputSize": [
+        898,
+        929
+      ],
+      "transparentPixels": 428608,
+      "partialAlphaPixels": 13420,
+      "opaquePixels": 392214
+    },
+    {
+      "id": "icon_gift",
+      "sourceFile": "休憩_ギフトアイコン.png",
+      "output": "assets/generated/relay_break_v1/icon_gift.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        163,
+        272,
+        1110,
+        1077
+      ],
+      "outputSize": [
+        947,
+        805
+      ],
+      "transparentPixels": 307132,
+      "partialAlphaPixels": 7642,
+      "opaquePixels": 447561
+    },
+    {
+      "id": "character_supana",
+      "sourceFile": "休憩_すぱな.png",
+      "output": "assets/generated/relay_break_v1/character_supana.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        305,
+        57,
+        931,
+        1201
+      ],
+      "outputSize": [
+        626,
+        1144
+      ],
+      "transparentPixels": 402251,
+      "partialAlphaPixels": 15317,
+      "opaquePixels": 298576
+    },
+    {
+      "id": "character_maron",
+      "sourceFile": "休憩_まろん.png",
+      "output": "assets/generated/relay_break_v1/character_maron.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        321,
+        32,
+        914,
+        1222
+      ],
+      "outputSize": [
+        593,
+        1190
+      ],
+      "transparentPixels": 312775,
+      "partialAlphaPixels": 13905,
+      "opaquePixels": 378990
+    },
+    {
+      "id": "character_banri",
+      "sourceFile": "休憩_ばんり.png",
+      "output": "assets/generated/relay_break_v1/character_banri.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        278,
+        68,
+        924,
+        1180
+      ],
+      "outputSize": [
+        646,
+        1112
+      ],
+      "transparentPixels": 376835,
+      "partialAlphaPixels": 15083,
+      "opaquePixels": 326434
+    },
+    {
+      "id": "boss_accent",
+      "sourceFile": "休憩_最終ボス前アクセント.png",
+      "output": "assets/generated/relay_break_v1/boss_accent.png",
+      "originalSize": [
+        2172,
+        724
+      ],
+      "contentBoundsInSource": [
+        19,
+        260,
+        2154,
+        460
+      ],
+      "outputSize": [
+        2135,
+        200
+      ],
+      "transparentPixels": 385988,
+      "partialAlphaPixels": 14363,
+      "opaquePixels": 26649
+    },
+    {
+      "id": "decoration_atlas",
+      "sourceFile": "休憩_装飾アイコン.png",
+      "output": "assets/generated/relay_break_v1/decoration_atlas.png",
+      "originalSize": [
+        1448,
+        1086
+      ],
+      "contentBoundsInSource": [
+        134,
+        186,
+        1318,
+        865
+      ],
+      "outputSize": [
+        1184,
+        679
+      ],
+      "transparentPixels": 667939,
+      "partialAlphaPixels": 10423,
+      "opaquePixels": 125574
+    }
+  ],
+  "decorationCuts": [
+    {
+      "id": "heart_pink",
+      "sourceRegion": [
+        120,
+        150,
+        405,
+        440
+      ],
+      "contentBoundsInRegion": [
+        68,
+        84,
+        261,
+        248
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/heart_pink.png",
+      "outputSize": [
+        193,
+        164
+      ],
+      "transparentPixels": 10834,
+      "partialAlphaPixels": 984,
+      "opaquePixels": 19834
+    },
+    {
+      "id": "heart_mint",
+      "sourceRegion": [
+        560,
+        150,
+        865,
+        445
+      ],
+      "contentBoundsInRegion": [
+        54,
+        88,
+        245,
+        251
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/heart_mint.png",
+      "outputSize": [
+        191,
+        163
+      ],
+      "transparentPixels": 10638,
+      "partialAlphaPixels": 1246,
+      "opaquePixels": 19249
+    },
+    {
+      "id": "steam",
+      "sourceRegion": [
+        1000,
+        135,
+        1275,
+        470
+      ],
+      "contentBoundsInRegion": [
+        54,
+        53,
+        235,
+        293
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/steam.png",
+      "outputSize": [
+        181,
+        240
+      ],
+      "transparentPixels": 24250,
+      "partialAlphaPixels": 2586,
+      "opaquePixels": 16604
+    },
+    {
+      "id": "sparkle_gold",
+      "sourceRegion": [
+        90,
+        585,
+        335,
+        885
+      ],
+      "contentBoundsInRegion": [
+        46,
+        63,
+        210,
+        239
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/sparkle_gold.png",
+      "outputSize": [
+        164,
+        176
+      ],
+      "transparentPixels": 19068,
+      "partialAlphaPixels": 904,
+      "opaquePixels": 8892
+    },
+    {
+      "id": "sparkle_blue",
+      "sourceRegion": [
+        390,
+        585,
+        630,
+        885
+      ],
+      "contentBoundsInRegion": [
+        40,
+        63,
+        204,
+        239
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/sparkle_blue.png",
+      "outputSize": [
+        164,
+        176
+      ],
+      "transparentPixels": 19101,
+      "partialAlphaPixels": 896,
+      "opaquePixels": 8867
+    },
+    {
+      "id": "orb_mint",
+      "sourceRegion": [
+        660,
+        560,
+        990,
+        920
+      ],
+      "contentBoundsInRegion": [
+        65,
+        83,
+        284,
+        281
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/orb_mint.png",
+      "outputSize": [
+        219,
+        198
+      ],
+      "transparentPixels": 22751,
+      "partialAlphaPixels": 1658,
+      "opaquePixels": 18953
+    },
+    {
+      "id": "mug_pink",
+      "sourceRegion": [
+        1030,
+        555,
+        1355,
+        935
+      ],
+      "contentBoundsInRegion": [
+        54,
+        44,
+        286,
+        308
+      ],
+      "output": "assets/generated/relay_break_v1/decorations/mug_pink.png",
+      "outputSize": [
+        232,
+        264
+      ],
+      "transparentPixels": 25924,
+      "partialAlphaPixels": 2149,
+      "opaquePixels": 33175
+    }
+  ]
+}

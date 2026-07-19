@@ -15,7 +15,7 @@ static func load_png_texture(cache: Dictionary, path: String) -> Texture2D:
 		return null
 	if cache.has(path):
 		return cache[path] as Texture2D
-	var resource_texture: Texture2D = ResourceLoader.load(path) as Texture2D
+	var resource_texture: Texture2D = ResourceLoader.load(path) as Texture2D if ResourceLoader.exists(path) else null
 	if resource_texture != null:
 		cache[path] = resource_texture
 		return resource_texture

@@ -1,0 +1,866 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/power_up_shop_screen.gd" id="1_screen"]
+[ext_resource type="AudioStream" path="res://assets/audio/confirm_select.mp3" id="2_confirm"]
+[ext_resource type="AudioStream" path="res://assets/audio/back_transition.mp3" id="3_back"]
+[ext_resource type="AudioStream" path="res://assets/audio/level_up.mp3" id="4_level"]
+[ext_resource type="AudioStream" path="res://assets/audio/cursor_move.mp3" id="5_cursor"]
+[ext_resource type="Texture2D" path="res://assets/generated/relay_break_v1/decorations/heart_pink.png" id="6_heart"]
+[ext_resource type="Texture2D" path="res://assets/generated/relay_break_v1/decorations/sparkle_blue.png" id="7_sparkle_blue"]
+[ext_resource type="Texture2D" path="res://assets/generated/relay_break_v1/decorations/sparkle_gold.png" id="8_sparkle_gold"]
+[ext_resource type="Texture2D" path="res://assets/generated/relay_break_v1/icon_gift.png" id="9_gift"]
+[ext_resource type="Texture2D" path="res://assets/generated/equipment_icons_v1/icons/comment_radar.png" id="10_comment"]
+[ext_resource type="Texture2D" path="res://assets/generated/weapon_fx_v1/listener_summon.png" id="11_listener"]
+[ext_resource type="Script" path="res://scripts/ui/power_up_shop_room_decoration.gd" id="13_room"]
+
+[node name="PowerUpShopScreen" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+focus_mode = 2
+script = ExtResource("1_screen")
+
+[node name="FullScreenBackground" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BackgroundDecoration" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="RoomDecorationLayer" type="Control" parent="BackgroundDecoration"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CommonRoomDecoration" type="Control" parent="BackgroundDecoration/RoomDecorationLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("13_room")
+
+[node name="CombatRoomDecoration" type="Control" parent="BackgroundDecoration/RoomDecorationLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Sparkle" type="TextureRect" parent="BackgroundDecoration/RoomDecorationLayer/CombatRoomDecoration"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -350.0
+offset_top = 260.0
+offset_right = -150.0
+offset_bottom = 460.0
+grow_horizontal = 0
+texture = ExtResource("8_sparkle_gold")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.08)
+mouse_filter = 2
+
+[node name="Heart" type="TextureRect" parent="BackgroundDecoration/RoomDecorationLayer/CombatRoomDecoration"]
+layout_mode = 1
+anchors_preset = 6
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 170.0
+offset_top = 350.0
+offset_right = 310.0
+offset_bottom = 490.0
+grow_vertical = 2
+texture = ExtResource("6_heart")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.06)
+mouse_filter = 2
+
+[node name="SupportRoomDecoration" type="Control" parent="BackgroundDecoration/RoomDecorationLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+modulate = Color(1, 1, 1, 0)
+
+[node name="Gift" type="TextureRect" parent="BackgroundDecoration/RoomDecorationLayer/SupportRoomDecoration"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -350.0
+offset_top = 300.0
+offset_right = -150.0
+offset_bottom = 500.0
+grow_horizontal = 0
+texture = ExtResource("9_gift")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.08)
+mouse_filter = 2
+
+[node name="Comment" type="TextureRect" parent="BackgroundDecoration/RoomDecorationLayer/SupportRoomDecoration"]
+layout_mode = 1
+anchors_preset = 6
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = 170.0
+offset_top = 400.0
+offset_right = 310.0
+offset_bottom = 540.0
+grow_vertical = 2
+texture = ExtResource("10_comment")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.06)
+mouse_filter = 2
+
+[node name="HeartEdge" type="TextureRect" parent="BackgroundDecoration"]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 18.0
+offset_top = 88.0
+offset_right = 106.0
+offset_bottom = 176.0
+texture = ExtResource("6_heart")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.045)
+mouse_filter = 2
+
+[node name="SparkleEdge" type="TextureRect" parent="BackgroundDecoration"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -118.0
+offset_top = 82.0
+offset_right = -34.0
+offset_bottom = 166.0
+texture = ExtResource("7_sparkle_blue")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.04)
+mouse_filter = 2
+
+[node name="GiftEdge" type="TextureRect" parent="BackgroundDecoration"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -124.0
+offset_top = -174.0
+offset_right = -24.0
+offset_bottom = -74.0
+texture = ExtResource("9_gift")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.04)
+mouse_filter = 2
+
+[node name="CommentEdge" type="TextureRect" parent="BackgroundDecoration"]
+layout_mode = 1
+anchors_preset = 5
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = -168.0
+offset_right = 134.0
+offset_bottom = -68.0
+texture = ExtResource("10_comment")
+expand_mode = 1
+stretch_mode = 5
+modulate = Color(1, 1, 1, 0.035)
+mouse_filter = 2
+
+[node name="SafeAreaMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MainCenter" type="CenterContainer" parent="SafeAreaMargin"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ShopContent" type="VBoxContainer" parent="SafeAreaMargin/MainCenter"]
+custom_minimum_size = Vector2(1180, 648)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="Header" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleArea" type="VBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="EnglishTitle" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea"]
+layout_mode = 2
+text = "POWER-UP SHOP"
+
+[node name="Title" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea"]
+layout_mode = 2
+text = "パワーアップショップ"
+
+[node name="TotalProgressRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Caption" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/TotalProgressRow"]
+layout_mode = 2
+text = "総強化Lv"
+
+[node name="Value" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/TotalProgressRow"]
+layout_mode = 2
+text = "0 / 0"
+
+[node name="ProgressBar" type="ProgressBar" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/TotalProgressRow"]
+custom_minimum_size = Vector2(160, 8)
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+value = 0.0
+show_percentage = false
+
+[node name="PpCapsule" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Header"]
+custom_minimum_size = Vector2(250, 54)
+layout_mode = 2
+
+[node name="PpRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Icon" type="TextureRect" parent="SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow"]
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow"]
+layout_mode = 2
+text = "所持PP"
+
+[node name="Value" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0"
+horizontal_alignment = 2
+
+[node name="HeaderToTabsGap" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="CategoryTabs" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CombatTab" type="Button" parent="SafeAreaMargin/MainCenter/ShopContent/CategoryTabs"]
+custom_minimum_size = Vector2(190, 42)
+layout_mode = 2
+focus_mode = 0
+text = "戦闘"
+
+[node name="SupportTab" type="Button" parent="SafeAreaMargin/MainCenter/ShopContent/CategoryTabs"]
+custom_minimum_size = Vector2(210, 42)
+layout_mode = 2
+focus_mode = 0
+text = "配信サポート"
+
+[node name="TabsToBodyGap" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Body" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 490)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 30
+
+[node name="CardSection" type="VBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body"]
+custom_minimum_size = Vector2(640, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="CardGrid" type="GridContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/CardSection"]
+custom_minimum_size = Vector2(620, 336)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+columns = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16
+
+[node name="DetailPanel" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body"]
+custom_minimum_size = Vector2(550, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 0
+
+[node name="DetailMargin" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel"]
+layout_mode = 2
+
+[node name="DetailAccentBand" type="ColorRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin"]
+layout_mode = 1
+anchors_preset = 6
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_right = 9.0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.560784, 0.741176, 1)
+
+[node name="HeroSection" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 9.0
+offset_right = -9.0
+offset_bottom = 220.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="CombatHeroBackground" type="ColorRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.560784, 0.741176, 1)
+
+[node name="SupportHeroBackground" type="ColorRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.47451, 0.85098, 0.937255, 1)
+modulate = Color(1, 1, 1, 0)
+
+[node name="HeroPattern" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="InformationSection" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = -340.0
+offset_right = -9.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="InformationMargin" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection"]
+layout_mode = 2
+
+[node name="DetailContent" type="VBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 16.0
+offset_right = -20.0
+offset_bottom = -14.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="HeroRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 18.0
+offset_right = -20.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+custom_minimum_size = Vector2(0, 112)
+theme_override_constants/separation = 14
+
+[node name="IconStage" type="CenterContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow"]
+custom_minimum_size = Vector2(176, 176)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="IconGlowPlate" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/IconStage"]
+custom_minimum_size = Vector2(166, 166)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="IconSlotLarge" type="CenterContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/IconStage"]
+custom_minimum_size = Vector2(104, 104)
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="IconPlateLarge" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/IconStage/IconSlotLarge"]
+custom_minimum_size = Vector2(104, 104)
+layout_mode = 2
+
+[node name="LargeIcon" type="TextureRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/IconStage/IconSlotLarge/IconPlateLarge"]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="HeroCopy" type="VBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="CategoryTag" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="Label" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy/CategoryTag"]
+layout_mode = 2
+text = "戦闘強化"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Name" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy"]
+layout_mode = 2
+text = "強化を選択"
+autowrap_mode = 2
+
+[node name="Level" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy"]
+layout_mode = 2
+text = "Lv 0 / 5"
+
+[node name="DetailLevelGauge" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Lamp0" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy/DetailLevelGauge"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+
+[node name="Lamp1" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy/DetailLevelGauge"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+
+[node name="Lamp2" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy/DetailLevelGauge"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+
+[node name="Lamp3" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy/DetailLevelGauge"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+
+[node name="Lamp4" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection/HeroRow/HeroCopy/DetailLevelGauge"]
+custom_minimum_size = Vector2(20, 18)
+layout_mode = 2
+
+[node name="Description" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 0
+text = "強化の説明"
+autowrap_mode = 2
+
+[node name="TargetTags" type="HFlowContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 5
+
+[node name="EffectComparison" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CurrentEffectBox" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrentContent" type="VBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/CurrentEffectBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Caption" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/CurrentEffectBox/CurrentContent"]
+layout_mode = 2
+text = "現在"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/CurrentEffectBox/CurrentContent"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "なし"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Arrow" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison"]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+text = "→"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NextEffectBox" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="NextContent" type="VBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/NextEffectBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="Caption" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/NextEffectBox/NextContent"]
+layout_mode = 2
+text = "次のLv"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/NextEffectBox/NextContent"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "なし"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RequiredPointRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent"]
+custom_minimum_size = Vector2(0, 34)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PpIcon" type="TextureRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="RequiredCaption" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow"]
+layout_mode = 2
+text = "必要 PP"
+
+[node name="RequiredValue" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0 PP"
+horizontal_alignment = 2
+
+[node name="Spacer" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="OwnedOrShortage" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow"]
+layout_mode = 2
+text = "所持PP 0"
+horizontal_alignment = 2
+
+[node name="PurchaseAndMascotRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent"]
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PurchaseButton" type="Button" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/PurchaseAndMascotRow"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "パワーアップする"
+
+[node name="MascotPresentation" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="MascotGlow" type="ColorRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -170.0
+offset_top = -150.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+color = Color(1, 0.843137, 0.403922, 0.12)
+
+[node name="SpeechBubble" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -222.0
+offset_top = -132.0
+offset_right = -12.0
+offset_bottom = -72.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="Message" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation/SpeechBubble"]
+layout_mode = 2
+text = "応援を力に変えよう！"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="MascotStateDecoration" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation"]
+layout_mode = 1
+anchors_preset = 9
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -168.0
+offset_top = -142.0
+offset_right = -136.0
+offset_bottom = -110.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "✦"
+horizontal_alignment = 1
+vertical_alignment = 1
+visible = false
+mouse_filter = 2
+
+[node name="Mascot" type="TextureRect" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation"]
+layout_mode = 1
+anchors_preset = 12
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -154.0
+offset_right = -8.0
+offset_bottom = -2.0
+grow_horizontal = 0
+grow_vertical = 0
+expand_mode = 1
+stretch_mode = 5
+texture = ExtResource("11_listener")
+mouse_filter = 2
+
+[node name="PurchaseLight" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 0
+offset_right = 24.0
+offset_bottom = 24.0
+expand_mode = 1
+stretch_mode = 5
+visible = false
+mouse_filter = 2
+
+[node name="BodyToFooterGap" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Footer" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+
+[node name="FooterRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Footer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackButton" type="Button" parent="SafeAreaMargin/MainCenter/ShopContent/Footer/FooterRow"]
+custom_minimum_size = Vector2(116, 38)
+layout_mode = 2
+focus_mode = 0
+text = "戻る"
+
+[node name="ResetButton" type="Button" parent="SafeAreaMargin/MainCenter/ShopContent/Footer/FooterRow"]
+custom_minimum_size = Vector2(206, 38)
+layout_mode = 2
+focus_mode = 0
+text = "全強化をリセット"
+
+[node name="Spacer" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Footer/FooterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="InputHints" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Footer/FooterRow"]
+layout_mode = 2
+text = "WASD / 十字キー: 選択　Enter / A: 購入　Esc / B: 戻る　Q / E: カテゴリ"
+
+[node name="ToastLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ToastPanel" type="PanelContainer" parent="ToastLayer"]
+layout_mode = 1
+anchors_preset = 12
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -240.0
+offset_top = -88.0
+offset_right = 240.0
+offset_bottom = -28.0
+grow_horizontal = 2
+grow_vertical = 0
+visible = false
+
+[node name="Label" type="Label" parent="ToastLayer/ToastPanel"]
+layout_mode = 2
+text = ""
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DialogLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="DialogLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.039, 0.031, 0.11, 0.72)
+
+[node name="ResetDialog" type="PanelContainer" parent="DialogLayer"]
+custom_minimum_size = Vector2(560, 292)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -280.0
+offset_top = -146.0
+offset_right = 280.0
+offset_bottom = 146.0
+grow_horizontal = 2
+grow_vertical = 2
+visible = false
+
+[node name="Content" type="VBoxContainer" parent="DialogLayer/ResetDialog"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="DialogLayer/ResetDialog/Content"]
+layout_mode = 2
+text = "強化をリセットしますか？"
+horizontal_alignment = 1
+
+[node name="Description" type="Label" parent="DialogLayer/ResetDialog/Content"]
+layout_mode = 2
+text = "使用したPPを全額返還し、すべてLv0に戻します。"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="DialogLayer/ResetDialog/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Confirm" type="Button" parent="DialogLayer/ResetDialog/Content/Buttons"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "リセットする"
+
+[node name="Cancel" type="Button" parent="DialogLayer/ResetDialog/Content/Buttons"]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_horizontal = 3
+focus_mode = 0
+text = "キャンセル"
+
+[node name="UiSeGroup" type="Node" parent="."]
+
+[node name="CursorSe" type="AudioStreamPlayer" parent="UiSeGroup"]
+stream = ExtResource("5_cursor")
+
+[node name="PurchaseSe" type="AudioStreamPlayer" parent="UiSeGroup"]
+stream = ExtResource("2_confirm")
+
+[node name="ErrorSe" type="AudioStreamPlayer" parent="UiSeGroup"]
+stream = ExtResource("3_back")
+
+[node name="MaxSe" type="AudioStreamPlayer" parent="UiSeGroup"]
+stream = ExtResource("4_level")

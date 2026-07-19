@@ -1,0 +1,3 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+CONTACT_TEST_RESULT={"failures":[],"playerPos":"(800.0, 713.1936)","runtime":{"arrival_overlap_pending":true,"damage_cooldown":0.0,"knockback_active":true,"knockback_duration":0.12,"knockback_elapsed":0.016,"knockback_is_safety_push":true,"knockback_start":"(800.0, 700.0)","knockback_target":"(800.0, 737.8)","last_movement_state":"IDLE_HOVER","reenable_timer":0.134}}

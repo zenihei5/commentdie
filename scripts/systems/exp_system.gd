@@ -2,10 +2,11 @@ class_name ExpSystem
 extends RefCounted
 
 const EXP_NEEDS := [5, 10, 18, 30, 45, 65, 90, 120, 155, 195]
-const EXTRA_LEVEL_GROWTH_RATE := 1.18
+const EXTRA_LEVEL_GROWTH_RATE := 1.10
 const MAX_EXP_ORBS := 220
 const EXP_ORB_MERGE_RADIUS := 56.0
 const EXP_PICKUP_RADIUS := 24.0
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 
 static func current_need(level: int) -> int:
 	var idx := maxi(0, level - 1)
@@ -17,18 +18,24 @@ static func current_need(level: int) -> int:
 	return need
 
 static func drop_from_enemy_for_target(target: Node, enemy: Dictionary) -> void:
-	var orbs: Array = target.get("exp_orbs") as Array
 	var value: int = maxi(1, int(enemy.get("expValue", enemy.get("exp", 1))))
-	var pos := Vector2(enemy["pos"])
+	drop_value_for_target(target, Vector2(enemy["pos"]), value)
+
+static func drop_value_for_target(target: Node, pos: Vector2, value: int, variant: String = "") -> void:
+	var orbs: Array = target.get("exp_orbs") as Array
+	value = maxi(1, value)
 	if orbs.size() >= MAX_EXP_ORBS:
 		_merge_exp_drop(orbs, pos, value)
 		return
-	orbs.append({
+	var orb := {
 		"pos": pos,
 		"value": value,
 		"visualType": visual_type_for_value(value),
 		"life": 20.0
-	})
+	}
+	if variant != "":
+		orb["variant"] = variant
+	orbs.append(orb)
 
 static func _merge_exp_drop(orbs: Array, pos: Vector2, value: int) -> void:
 	var best_index := -1
@@ -117,11 +124,17 @@ static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
 	result["levelUp"] = false
 	result["levelUps"] = 0
 	if collected_count > 0:
+		if target.has_method("_collab_challenge_exp_gain_multiplier"):
+			result["collectedExp"] = roundi(float(result["collectedExp"]) * maxf(1.0, float(target.call("_collab_challenge_exp_gain_multiplier"))))
 		var bonus: int = ScoreSystem.exp_collect_bonus(int(target.get("like_score_level")), collected_count)
 		target.set("score", int(target.get("score")) + bonus)
 		var level_ups: int = add_exp_to_target(target, int(result["collectedExp"]))
 		result["levelUps"] = level_ups
 		result["levelUp"] = level_ups > 0
+		var balance_stats: Dictionary = target.get("balance_debug_stats") as Dictionary
+		balance_stats["expCollected"] = int(balance_stats.get("expCollected", 0)) + int(result["collectedExp"])
+		balance_stats["levelUps"] = int(balance_stats.get("levelUps", 0)) + level_ups
+		target.set("balance_debug_stats", balance_stats)
 	return result
 
 static func should_vacuum(enabled: bool, timer: float, delta: float) -> Dictionary:
@@ -149,7 +162,9 @@ static func update_world_for_target(target: Node, delta: float) -> Dictionary:
 	return result
 
 static func add_exp_to_target(target: Node, amount: int) -> int:
-	var adjusted_amount: int = _exp_amount_with_notification_bonus_for_target(target, amount)
+	var shop_snapshot = target.get("permanent_upgrade_snapshot")
+	var shop_amount := amount if shop_snapshot == null else PowerUpEffectProviderScript.exp_amount(amount, shop_snapshot)
+	var adjusted_amount: int = _exp_amount_with_notification_bonus_for_target(target, shop_amount)
 	target.set("exp_value", int(target.get("exp_value")) + adjusted_amount)
 	var level_ups := 0
 	while int(target.get("exp_value")) >= current_need(int(target.get("exp_level"))):

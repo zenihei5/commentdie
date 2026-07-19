@@ -9,6 +9,7 @@ const DEFAULT_FULLSCREEN := true
 const DEFAULT_COMMENT_BARRAGE := 1
 const DEFAULT_SCREEN_SHAKE := true
 const DEFAULT_SHOW_TUTORIAL := true
+const DEFAULT_SHOP_UPGRADES_ENABLED := true
 const BASE_CONTENT_SIZE := Vector2i(1600, 900)
 const MIN_WINDOW_SIZE := Vector2i(640, 360)
 const WINDOW_SIZE_LABELS := ["1280 x 720", "1600 x 900", "1920 x 1080"]
@@ -41,7 +42,8 @@ static func normalized_settings(data: Dictionary) -> Dictionary:
 		"fullscreen": bool(data.get("fullscreen", DEFAULT_FULLSCREEN)),
 		"windowSize": window_size_index_from_value(data.get("windowSize", data.get("windowSizeIndex", DEFAULT_WINDOW_SIZE_INDEX))),
 		"commentBarrage": DEFAULT_COMMENT_BARRAGE,
-		"screenShake": bool(data.get("screenShake", DEFAULT_SCREEN_SHAKE))
+		"screenShake": bool(data.get("screenShake", DEFAULT_SCREEN_SHAKE)),
+		"shopUpgradesEnabled": bool(data.get("shopUpgradesEnabled", DEFAULT_SHOP_UPGRADES_ENABLED))
 	}
 
 static func build_save_data(
@@ -51,7 +53,8 @@ static func build_save_data(
 	screen_shake: bool,
 	bgm_volume: int = DEFAULT_BGM_VOLUME,
 	se_volume: int = DEFAULT_SE_VOLUME,
-	fullscreen: bool = DEFAULT_FULLSCREEN
+	fullscreen: bool = DEFAULT_FULLSCREEN,
+	shop_upgrades_enabled: bool = DEFAULT_SHOP_UPGRADES_ENABLED
 ) -> Dictionary:
 	var window_index := normalized_window_size(window_size)
 	var barrage_index := DEFAULT_COMMENT_BARRAGE
@@ -65,7 +68,8 @@ static func build_save_data(
 		"showTutorial": not tutorial_seen,
 		"tutorialSeen": tutorial_seen,
 		"commentBarrage": barrage_index,
-		"screenShake": screen_shake
+		"screenShake": screen_shake,
+		"shopUpgradesEnabled": shop_upgrades_enabled
 	}
 
 static func load_for_target(target: Node) -> void:
@@ -77,6 +81,7 @@ static func load_for_target(target: Node) -> void:
 	target.set("window_size_index", int(settings["windowSize"]))
 	target.set("comment_barrage_setting", int(settings["commentBarrage"]))
 	target.set("screen_shake_enabled", bool(settings["screenShake"]))
+	target.set("shop_upgrades_enabled", bool(settings["shopUpgradesEnabled"]))
 	apply_display_settings(bool(settings["fullscreen"]), int(settings["windowSize"]))
 	if not bool(settings["fullscreen"]):
 		schedule_window_resize_lock_for_target(target)
@@ -91,7 +96,8 @@ static func save_for_target(target: Node) -> void:
 		bool(target.get("screen_shake_enabled")),
 		int(target.get("bgm_volume")),
 		int(target.get("se_volume")),
-		bool(target.get("fullscreen_enabled"))
+		bool(target.get("fullscreen_enabled")),
+		bool(target.get("shop_upgrades_enabled"))
 	))
 
 static func normalized_volume(value: Variant) -> int:
@@ -242,6 +248,7 @@ static func apply_title_action(current: Dictionary, action: String) -> Dictionar
 		"windowSize": normalized_window_size(int(current.get("windowSize", DEFAULT_WINDOW_SIZE_INDEX))),
 		"commentBarrage": DEFAULT_COMMENT_BARRAGE,
 		"screenShake": bool(current.get("screenShake", DEFAULT_SCREEN_SHAKE)),
+		"shopUpgradesEnabled": bool(current.get("shopUpgradesEnabled", DEFAULT_SHOP_UPGRADES_ENABLED)),
 		"changed": false
 	}
 	if action == "bgm_volume_up":
@@ -285,6 +292,7 @@ static func apply_title_action(current: Dictionary, action: String) -> Dictionar
 		result["windowSize"] = DEFAULT_WINDOW_SIZE_INDEX
 		result["commentBarrage"] = DEFAULT_COMMENT_BARRAGE
 		result["screenShake"] = DEFAULT_SCREEN_SHAKE
+		result["shopUpgradesEnabled"] = DEFAULT_SHOP_UPGRADES_ENABLED
 		result["changed"] = true
 	return result
 
@@ -296,7 +304,8 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 		"fullscreen": target.get("fullscreen_enabled"),
 		"windowSize": target.get("window_size_index"),
 		"commentBarrage": target.get("comment_barrage_setting"),
-		"screenShake": target.get("screen_shake_enabled")
+		"screenShake": target.get("screen_shake_enabled"),
+		"shopUpgradesEnabled": target.get("shop_upgrades_enabled")
 	}, action)
 	if bool(result["changed"]):
 		target.set("tutorial_seen", bool(result["tutorialSeen"]))
@@ -306,6 +315,7 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 		target.set("window_size_index", int(result["windowSize"]))
 		target.set("comment_barrage_setting", int(result["commentBarrage"]))
 		target.set("screen_shake_enabled", bool(result["screenShake"]))
+		target.set("shop_upgrades_enabled", bool(result["shopUpgradesEnabled"]))
 		apply_display_settings(bool(result["fullscreen"]), int(result["windowSize"]))
 		if not bool(result["fullscreen"]):
 			schedule_window_resize_lock_for_target(target)

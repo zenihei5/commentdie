@@ -1,6 +1,8 @@
 extends RefCounted
 class_name MarshmallowSystem
 
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+
 const PICKUP_BASE_RANGE := 40.0
 const DEFAULT_AUTO_PICKUP_LIMIT := 2
 const GAMEPLAY_AUTO_PICKUP_LIMIT := 1
@@ -88,7 +90,7 @@ static func random_speech(data: Dictionary, rng: RandomNumberGenerator) -> Strin
 static func spawn_pickup_for_target(target: Node, data: Dictionary, rng: RandomNumberGenerator, arena: Rect2, effect_walls: Array, spawn_pos: Vector2 = Vector2.INF, source: String = "auto", reschedule: bool = true) -> bool:
 	if data.is_empty():
 		return false
-	var stream_frame_id := String(target.get("current_stream_frame_id"))
+	var stream_frame_id := DrawDataSystem.collision_frame_id_for_target(target)
 	var pos: Vector2 = spawn_pos
 	if pos == Vector2.INF:
 		pos = find_position({
@@ -141,6 +143,8 @@ static func next_spawn_interval_for_target(target: Node, rng: RandomNumberGenera
 	var frame_id := String(target.get("current_stream_frame_id"))
 	if frame_id == "singing":
 		return rng.randf_range(SINGING_SPAWN_INTERVAL_MIN, SINGING_SPAWN_INTERVAL_MAX)
+	if frame_id == "collab":
+		return rng.randf_range(GAMEPLAY_SPAWN_INTERVAL_MIN, GAMEPLAY_SPAWN_INTERVAL_MAX)
 	if frame_id != "gameplay":
 		return rng.randf_range(DEFAULT_SPAWN_INTERVAL_MIN, DEFAULT_SPAWN_INTERVAL_MAX)
 	if String(target.get("active_genre_event")) == "bullet_hell":
@@ -149,6 +153,8 @@ static func next_spawn_interval_for_target(target: Node, rng: RandomNumberGenera
 
 static func active_pickup_limit_for_target(target: Node) -> int:
 	if String(target.get("current_stream_frame_id")) == "gameplay":
+		return GAMEPLAY_AUTO_PICKUP_LIMIT
+	if String(target.get("current_stream_frame_id")) == "collab":
 		return GAMEPLAY_AUTO_PICKUP_LIMIT
 	if String(target.get("current_stream_frame_id")) == "singing":
 		return GAMEPLAY_AUTO_PICKUP_LIMIT
@@ -379,7 +385,11 @@ static func pickup_range_for_target(target: Node) -> float:
 	var magnet_range: float = float(target.get("maro_magnet_range"))
 	var radar_range: float = float(target.get("comment_radar_range_bonus"))
 	var passive_rate: float = float(target.get("passive_maro_pickup_rate"))
-	var range_value := (PICKUP_BASE_RANGE + magnet_range + radar_range) * passive_rate
+	var pickup_base := PICKUP_BASE_RANGE
+	var snapshot = target.get("permanent_upgrade_snapshot")
+	if snapshot != null:
+		pickup_base = PowerUpEffectProviderScript.normal_pickup_radius(pickup_base, snapshot)
+	var range_value := (pickup_base + magnet_range + radar_range) * passive_rate
 	if target.has_method("_song_live_heat_pickup_range_multiplier"):
 		range_value *= maxf(0.1, float(target.call("_song_live_heat_pickup_range_multiplier")))
 	return range_value
@@ -450,6 +460,9 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 	if effect == "heal":
 		var before_hp: int = int(result.get("playerHp", 100))
 		var heal_amount: int = good_amount(hp_amount(int(params["amount"])), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		var snapshot = result.get("permanentUpgradeSnapshot")
+		if snapshot != null:
+			heal_amount = PowerUpEffectProviderScript.scaled_heal_amount(heal_amount, snapshot, "marshmallow_heal")
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + heal_amount)
 		result["effectValue"] = int(result["playerHp"]) - before_hp
 	elif effect == "gift_hype":
@@ -471,6 +484,9 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 	elif effect == "invincible_heal":
 		var before_invincible_hp: int = int(result.get("playerHp", 100))
 		var invincible_heal_amount: int = good_amount(hp_amount(int(params["amount"])), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0)))
+		var snapshot = result.get("permanentUpgradeSnapshot")
+		if snapshot != null:
+			invincible_heal_amount = PowerUpEffectProviderScript.scaled_heal_amount(invincible_heal_amount, snapshot, "marshmallow_heal")
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + invincible_heal_amount)
 		result["invincible"] = maxf(float(result.get("invincible", 0.0)), float(params["invincible"]))
 		result["effectValue"] = int(result["playerHp"]) - before_invincible_hp
@@ -524,7 +540,8 @@ static func build_effect_context_from_target(target: Node) -> Dictionary:
 		"spawnRateTimer": target.get("spawn_rate_timer"),
 		"passiveGoodRate": target.get("passive_maro_good_rate"),
 		"sweetToothLevel": target.get("sweet_tooth_level"),
-		"steelMentalLevel": target.get("steel_mental_level")
+		"steelMentalLevel": target.get("steel_mental_level"),
+		"permanentUpgradeSnapshot": target.get("permanent_upgrade_snapshot")
 	}
 
 static func apply_effect_result_to_target(target: Node, result: Dictionary) -> void:

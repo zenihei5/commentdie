@@ -2,6 +2,10 @@
 class_name WeaponSystem
 
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
+const RelayBossDefenseSystemScript := preload("res://scripts/systems/relay_boss_defense_system.gd")
+const HIT_NONE := 0
+const HIT_DAMAGED := 1
+const HIT_BLOCKED := 2
 const DEFEAT_KNOCKBACK_MULTIPLIER := 2.4
 const SHORT_RANGE_MIN_PROJECTILE_RANGE := 165.0
 const SHORT_RANGE_MIN_AREA_RADIUS := 66.0
@@ -209,6 +213,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"killed": [],
 		"destroyedBoxes": [],
 		"chat": [],
+		"barrierHitRequests": [],
 		"superchatShotFired": false,
 		"boomerangOrbitSe": false
 	}
@@ -333,6 +338,16 @@ static func song_live_heat_attack_cooldown_multiplier_for_target(target: Node) -
 		return maxf(0.1, float(target.call("_song_live_heat_attack_cooldown_multiplier")))
 	return 1.0
 
+static func collab_attack_cooldown_multiplier_for_target(target: Node) -> float:
+	if target.has_method("_collab_attack_cooldown_multiplier"):
+		return maxf(0.1, float(target.call("_collab_attack_cooldown_multiplier")))
+	return 1.0
+
+static func collab_player_damage_multiplier_for_target(target: Node) -> float:
+	if target.has_method("_collab_player_damage_multiplier"):
+		return maxf(0.1, float(target.call("_collab_player_damage_multiplier")))
+	return 1.0
+
 static func normal_weapons_disabled_for_target(target: Node) -> bool:
 	if target.has_method("_normal_weapons_disabled_by_song_bad_light"):
 		return bool(target.call("_normal_weapons_disabled_by_song_bad_light"))
@@ -341,6 +356,10 @@ static func normal_weapons_disabled_for_target(target: Node) -> bool:
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
 	var song_cooldown_rate := song_live_heat_attack_cooldown_multiplier_for_target(target)
+	var collab_cooldown_rate := collab_attack_cooldown_multiplier_for_target(target)
+	var collab_damage_rate := collab_player_damage_multiplier_for_target(target)
+	var support_attack_rate := ModifierSystem.combined_multiplier_for_target(target, "playerAttackDamage")
+	var player_damage_rate := collab_damage_rate * support_attack_rate
 	var normal_weapons_disabled := normal_weapons_disabled_for_target(target)
 	var result: Dictionary = update_weapons({
 		"delta": delta,
@@ -376,13 +395,13 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"enemyBullets": target.get("enemy_bullets"),
 		"boomerangHits": target.get("boomerang_hits"),
 		"hitFxState": target.get("hit_fx"),
-		"damage": target.get("hammer_damage"),
+		"damage": float(target.get("hammer_damage")) * player_damage_rate,
 		"range": target.get("hammer_range"),
 		"arcAngle": current_weapon.get("arcAngle", 120.0),
-		"interval": float(target.get("hammer_interval")) * song_cooldown_rate,
-		"equipmentDamageRate": target.get("equipment_damage_rate"),
+		"interval": float(target.get("hammer_interval")) * song_cooldown_rate * collab_cooldown_rate,
+		"equipmentDamageRate": float(target.get("equipment_damage_rate")) * player_damage_rate,
 		"equipmentRangeRate": target.get("equipment_range_rate"),
-		"equipmentIntervalRate": float(target.get("equipment_interval_rate")) * song_cooldown_rate,
+		"equipmentIntervalRate": float(target.get("equipment_interval_rate")) * song_cooldown_rate * collab_cooldown_rate,
 		"equipmentBulletSupportLevel": target.get("equipment_bullet_support_level"),
 		"knockback": target.get("knockback_power"),
 		"arena": arena,
@@ -401,8 +420,9 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 
 static func apply_update_result_for_target(target: Node, result: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	var chats: Array = []
-	var feedback: Dictionary = {"chats": chats}
+	var feedback: Dictionary = {"chats": chats, "barrierHitRequests": []}
 	_merge_reaction_result(feedback, result)
+	_dispatch_barrier_hit_requests(target, result.get("barrierHitRequests", []) as Array)
 	var killed: Array = result.get("killed", []) as Array
 	for item in killed:
 		var enemy: Dictionary = item
@@ -436,12 +456,23 @@ static func apply_update_result_for_target(target: Node, result: Dictionary, are
 		feedback["commentEventIds"] = comment_event_ids
 	return feedback
 
+static func _dispatch_barrier_hit_requests(target: Node, requests: Array) -> void:
+	if requests.is_empty() or not target.has_method("_relay_boss_register_barrier_hit"):
+		return
+	for request_item in requests:
+		var request: Dictionary = request_item as Dictionary
+		target.call("_relay_boss_register_barrier_hit", request)
+
 static func _merge_weapon_result(target: Dictionary, source: Dictionary) -> void:
 	for key in ["hitFx", "killed", "destroyedBoxes", "chat"]:
 		var target_items: Array = target.get(key, []) as Array
 		var source_items: Array = source.get(key, []) as Array
 		for item in source_items:
 			target_items.append(item)
+	var barrier_requests: Array = target.get("barrierHitRequests", []) as Array
+	for item in source.get("barrierHitRequests", []) as Array:
+		barrier_requests.append(item)
+	target["barrierHitRequests"] = barrier_requests
 	_merge_reaction_result(target, source)
 
 static func _merge_reaction_result(target: Dictionary, source: Dictionary) -> void:
@@ -543,25 +574,32 @@ static func _append_killed_once(enemy: Dictionary, _killed_enemies: Array) -> vo
 		return
 	EnemySystem.queue_defeat_for_enemy(enemy)
 
-static func _apply_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2, knockback: float, killed_enemies: Array, hit_effects: Array, hit_source: String = "") -> bool:
+static func _apply_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = [], hit_source: String = "") -> int:
 	if float(enemy.get("hp", 0.0)) <= 0.0:
-		return false
+		return HIT_NONE
 	var enemy_pos: Vector2 = Vector2(enemy.get("pos", Vector2.ZERO))
+	if bool(enemy.get("phaseBarrierActive", false)):
+		barrier_hit_requests.append({"enemyUid": int(enemy.get("uid", -1)), "pos": enemy_pos, "source": hit_source})
+		return HIT_BLOCKED
 	var applied_damage: float = damage * maxf(0.05, float(enemy.get("damageTakenRate", 1.0)))
 	enemy["hp"] = float(enemy["hp"]) - applied_damage
 	if hit_source != "":
 		enemy["lastHitSource"] = hit_source
+	enemy["lastHitOwner"] = "player"
 	_start_enemy_hit_flash(enemy)
 	var dir: Vector2 = push_dir.normalized()
 	var defeated := float(enemy.get("hp", 0.0)) <= 0.0
-	if defeated and hit_source != "":
-		enemy["defeatSource"] = hit_source
+	if defeated:
+		if hit_source != "":
+			enemy["defeatSource"] = hit_source
+		enemy["defeatOwner"] = "player"
+		enemy["removeReason"] = "combat_defeat"
 	var scaled_knockback: float = _scaled_hit_knockback(enemy, knockback, defeated)
 	if scaled_knockback > 0.0 and dir.length() > 0.1:
 		EnemySystem.add_knockback_for_enemy(enemy, dir, scaled_knockback)
 	hit_effects.append(_damage_number_fx(enemy_pos, applied_damage))
 	_append_killed_once(enemy, killed_enemies)
-	return true
+	return HIT_DAMAGED
 
 static func _is_boss_enemy(enemy: Dictionary) -> bool:
 	var kind: String = String(enemy.get("kind", ""))
@@ -616,12 +654,13 @@ static func _ban_judgement_defeat_fx(enemy: Dictionary, dir: Vector2) -> Diction
 		"boss": boss_hit
 	}
 
-static func _apply_ban_judgement_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2, knockback: float, stun_duration: float, heavy_stun_duration: float, killed_enemies: Array, hit_effects: Array) -> bool:
+static func _apply_ban_judgement_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2, knockback: float, stun_duration: float, heavy_stun_duration: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array) -> int:
 	var enemy_pos: Vector2 = Vector2(enemy.get("pos", Vector2.ZERO))
 	var boss_hit: bool = _is_boss_enemy(enemy)
 	var applied_knockback: float = knockback * _ban_judgement_knockback_rate(enemy)
-	if not _apply_enemy_hit(enemy, damage, push_dir, applied_knockback, killed_enemies, hit_effects):
-		return false
+	var hit_result := _apply_enemy_hit(enemy, damage, push_dir, applied_knockback, killed_enemies, hit_effects, barrier_hit_requests)
+	if hit_result != HIT_DAMAGED:
+		return hit_result
 	var stun: float = _ban_judgement_stun_duration(enemy, stun_duration, heavy_stun_duration)
 	if stun > 0.0:
 		enemy["stunTimer"] = maxf(float(enemy.get("stunTimer", 0.0)), stun)
@@ -630,7 +669,7 @@ static func _apply_ban_judgement_enemy_hit(enemy: Dictionary, damage: float, pus
 	hit_effects.append(_ban_judgement_hit_fx(enemy_pos, push_dir, boss_hit))
 	if _ban_judgement_enemy_defeated(enemy):
 		hit_effects.append(_ban_judgement_defeat_fx(enemy, push_dir))
-	return true
+	return HIT_DAMAGED
 
 static func _damage_number_fx(pos: Vector2, damage: float) -> Dictionary:
 	return {
@@ -738,7 +777,8 @@ static func _apply_ban_judgement_attack(
 	shockwave_width_rate: float,
 	killed_enemies: Array,
 	destroyed_boxes: Array,
-	hit_effects: Array
+	hit_effects: Array,
+	barrier_hit_requests: Array
 ) -> Dictionary:
 	var norm_dir: Vector2 = dir.normalized()
 	if norm_dir.length() < 0.1:
@@ -765,7 +805,8 @@ static func _apply_ban_judgement_attack(
 		var hit_range: float = swing_range + range_padding
 		var distance_sq: float = to_enemy.length_squared()
 		if distance_sq <= hit_range * hit_range and (distance_sq <= 0.01 or norm_dir.dot(to_enemy / sqrt(distance_sq)) >= arc_dot_threshold):
-			if _apply_ban_judgement_enemy_hit(enemy, swing_damage, norm_dir, swing_knockback, stun_duration, heavy_stun_duration, killed_enemies, hit_effects):
+			var hit_result := _apply_ban_judgement_enemy_hit(enemy, swing_damage, norm_dir, swing_knockback, stun_duration, heavy_stun_duration, killed_enemies, hit_effects, barrier_hit_requests)
+			if hit_result == HIT_DAMAGED:
 				hit_ids.append(_attack_target_id("enemy", enemy))
 				hits += 1
 				swing_hits += 1
@@ -854,11 +895,13 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 		"hitFx": [],
 		"killed": [],
 		"destroyedBoxes": [],
+		"barrierHitRequests": [],
 		"chat": []
 	}
 	var hit_effects: Array = result["hitFx"] as Array
 	var killed_enemies: Array = result["killed"] as Array
 	var destroyed_boxes: Array = result["destroyedBoxes"] as Array
+	var barrier_hit_requests: Array = result["barrierHitRequests"] as Array
 	var chat_events: Array = result["chat"] as Array
 	var weapon_type: String = String(context["weaponType"])
 	if not is_melee_attack_type(weapon_type):
@@ -925,7 +968,8 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 			inherited_range_rate * _short_range_area_rate(context),
 			killed_enemies,
 			destroyed_boxes,
-			hit_effects
+			hit_effects,
+			barrier_hit_requests
 		)
 		hits = int(judgement_result.get("hits", 0))
 		closest_hit = judgement_result.get("closestHit", closest_hit) as Vector2
@@ -953,9 +997,10 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 			if dir.dot(enemy_dir) < arc_dot_threshold:
 				continue
 			var damage: float = float(context["damage"])
-			_apply_enemy_hit(enemy, damage, enemy_dir, float(context["knockback"]), killed_enemies, hit_effects)
-			hits += 1
-			enemy_hits += 1
+			var hit_result := _apply_enemy_hit(enemy, damage, enemy_dir, float(context["knockback"]), killed_enemies, hit_effects, barrier_hit_requests)
+			if hit_result == HIT_DAMAGED:
+				hits += 1
+				enemy_hits += 1
 			if enemy_pos.distance_squared_to(player_pos) < closest_hit.distance_squared_to(player_pos):
 				closest_hit = enemy_pos
 	for box_item in destructibles:
@@ -984,11 +1029,13 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 		"hitFx": [],
 		"killed": [],
 		"destroyedBoxes": [],
+		"barrierHitRequests": [],
 		"superchatShotFired": false
 	}
 	var killed_enemies: Array = result["killed"] as Array
 	var destroyed_boxes: Array = result["destroyedBoxes"] as Array
 	var hit_effects: Array = result["hitFx"] as Array
+	var barrier_hit_requests: Array = result["barrierHitRequests"] as Array
 	var delta: float = float(context["delta"])
 	var timer: float = float(context["superchatTimer"]) - delta
 	var is_main_projectile: bool = String(context["weaponType"]) == "projectile"
@@ -1075,14 +1122,15 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 				var visual_kind: String = String(bullet.get("visualKind", ""))
 				var is_starlight_bullet: bool = visual_kind == "starlight_superchat" or visual_kind == "high_superchat"
 				var is_premium_bullet: bool = bool(bullet.get("premium", false))
-				if _apply_enemy_hit(enemy, damage, push_dir, float(context.get("knockback", 0.0)) * 0.42, killed_enemies, hit_effects, String(bullet.get("source", ""))):
+				var hit_result := _apply_enemy_hit(enemy, damage, push_dir, float(context.get("knockback", 0.0)) * 0.42, killed_enemies, hit_effects, barrier_hit_requests, String(bullet.get("source", "")))
+				if hit_result == HIT_DAMAGED:
 					if is_starlight_bullet:
 						hit_effects.append(_starlight_hit_fx(hit_pos, is_premium_bullet))
 						if _starlight_enemy_defeated(enemy):
 							hit_effects.append(_starlight_defeat_fx(enemy, is_premium_bullet))
 					var weapon_for_hit: Dictionary = context["weapon"] as Dictionary
 					if is_premium_bullet:
-						var explosion_hits: int = _apply_starlight_explosion(weapon_for_hit, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects)
+						var explosion_hits: int = _apply_starlight_explosion(weapon_for_hit, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests)
 						_request_weapon_hit_reaction(result, weapon_for_hit, 1 + explosion_hits, 1 + explosion_hits)
 					_request_weapon_hit_reaction(result, context["weapon"] as Dictionary, 1)
 				var pierce_left: int = int(bullet.get("pierceLeft", 0))
@@ -1108,7 +1156,7 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 					bullet["hitIds"] = bullet_hit_ids
 					if bool(bullet.get("premium", false)):
 						hit_effects.append(_starlight_hit_fx(hit_pos, true))
-						_apply_starlight_explosion(context["weapon"] as Dictionary, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects)
+						_apply_starlight_explosion(context["weapon"] as Dictionary, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests)
 					elif String(bullet.get("visualKind", "")) == "starlight_superchat":
 						hit_effects.append(_starlight_hit_fx(hit_pos))
 					var pierce_left: int = int(bullet.get("pierceLeft", 0))
@@ -1133,12 +1181,14 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 		"hitFx": [],
 		"killed": [],
 		"destroyedBoxes": [],
+		"barrierHitRequests": [],
 		"boomerangHits": context["boomerangHits"],
 		"boomerangOrbitSe": false
 	}
 	var hit_effects: Array = result["hitFx"] as Array
 	var killed_enemies: Array = result["killed"] as Array
 	var destroyed_boxes: Array = result["destroyedBoxes"] as Array
+	var barrier_hit_requests: Array = result["barrierHitRequests"] as Array
 	var weapon: Dictionary = context["weapon"] as Dictionary
 	var weapon_type: String = String(context["weaponType"])
 	var weapon_timers: Dictionary = context.get("weaponTimers", {}) as Dictionary
@@ -1193,7 +1243,8 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 			var enemy_hit_radius: float = float(enemy["radius"]) + hit_radius
 			if pos.distance_squared_to(enemy_pos) < enemy_hit_radius * enemy_hit_radius:
 				var push_dir: Vector2 = (enemy_pos - player_pos).normalized()
-				if _apply_enemy_hit(enemy, damage, push_dir, float(context["knockback"]) * 0.45, killed_enemies, hit_effects):
+				var hit_result := _apply_enemy_hit(enemy, damage, push_dir, float(context["knockback"]) * 0.45, killed_enemies, hit_effects, barrier_hit_requests)
+				if hit_result == HIT_DAMAGED:
 					_request_weapon_hit_reaction(result, weapon, 1)
 				hit_memory[hit_key] = elapsed + hit_interval
 				if is_maro_ring:
@@ -1217,11 +1268,12 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	return result
 
 static func update_equipment_weapons(context: Dictionary) -> Dictionary:
-	var result: Dictionary = {"timers": context["timers"], "hitFx": [], "killed": [], "destroyedBoxes": [], "chat": []}
+	var result: Dictionary = {"timers": context["timers"], "hitFx": [], "killed": [], "destroyedBoxes": [], "chat": [], "barrierHitRequests": []}
 	var timers: Dictionary = result["timers"] as Dictionary
 	var hit_effects: Array = result["hitFx"] as Array
 	var killed_enemies: Array = result["killed"] as Array
 	var destroyed_boxes: Array = result["destroyedBoxes"] as Array
+	var barrier_hit_requests: Array = result["barrierHitRequests"] as Array
 	var chat_events: Array = result["chat"] as Array
 	var delta: float = float(context["delta"])
 	var weapon_data: Array = context["weaponData"] as Array
@@ -1267,7 +1319,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 		if attack_type(weapon) == "melee_arc":
 			var arc_angle: float = float(weapon.get("arcAngle", 120.0)) + 8.0
 			var closest_hit: Vector2 = player_pos + attack_dir * range_value
-			var enemy_hits: int = _apply_arc_damage(enemies, player_pos, attack_dir, range_value, arc_angle, damage, float(context["knockback"]), killed_enemies, hit_effects)
+			var enemy_hits: int = _apply_arc_damage(enemies, player_pos, attack_dir, range_value, arc_angle, damage, float(context["knockback"]), killed_enemies, hit_effects, barrier_hit_requests)
 			var hits: int = enemy_hits
 			hits += _apply_arc_damage_to_boxes(destructibles, player_pos, attack_dir, range_value, arc_angle, destroyed_boxes, hit_effects)
 			hits += _clear_enemy_bullets_in_arc(enemy_bullets, player_pos, attack_dir, range_value + 18.0, arc_angle, hit_effects)
@@ -1285,7 +1337,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			if weapon_id == "ban_hammer" and hits > 0:
 				chat_events.append("BAN命中！")
 		elif weapon_id == "mic_barrier":
-			var enemy_hits: int = _apply_circle_damage(enemies, player_pos, range_value, damage, float(context["knockback"]), killed_enemies, hit_effects)
+			var enemy_hits: int = _apply_circle_damage(enemies, player_pos, range_value, damage, float(context["knockback"]), killed_enemies, hit_effects, barrier_hit_requests)
 			_apply_circle_damage_to_boxes(destructibles, player_pos, range_value, destroyed_boxes, hit_effects)
 			_clear_enemy_bullets_in_circle(enemy_bullets, player_pos, range_value, hit_effects)
 			_request_weapon_hit_reaction(result, weapon, enemy_hits, enemy_hits)
@@ -1301,7 +1353,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 				elif to_target.length() > 0.1:
 					center = player_pos + to_target.normalized() * range_value
 			var spotlight_radius: float = maxf(72.0 * float(context["rangeRate"]) * _short_range_explosion_area_rate(context), SHORT_RANGE_MIN_AREA_RADIUS)
-			var enemy_hits: int = _apply_circle_damage(enemies, center, spotlight_radius, damage, float(context["knockback"]) * 0.35, killed_enemies, hit_effects)
+			var enemy_hits: int = _apply_circle_damage(enemies, center, spotlight_radius, damage, float(context["knockback"]) * 0.35, killed_enemies, hit_effects, barrier_hit_requests)
 			_apply_circle_damage_to_boxes(destructibles, center, spotlight_radius, destroyed_boxes, hit_effects)
 			_clear_enemy_bullets_in_circle(enemy_bullets, center, spotlight_radius, hit_effects)
 			_request_weapon_hit_reaction(result, weapon, enemy_hits, enemy_hits)
@@ -1343,7 +1395,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 		elif weapon_id == "emote_mine":
 			_spawn_emote_mines(weapon, level_value, spawn_support_level, player_pos, active_fx, hit_effects, damage, float(context["rangeRate"]) * _short_range_explosion_area_rate(context))
 		elif weapon_id == "ng_word_laser":
-			var laser_hits: int = _fire_ng_word_lasers(weapon, level_value, spawn_support_level, player_pos, attack_dir, enemies, destructibles, enemy_bullets, range_value, damage, float(context["rangeRate"]), float(context["knockback"]), killed_enemies, destroyed_boxes, hit_effects)
+			var laser_hits: int = _fire_ng_word_lasers(weapon, level_value, spawn_support_level, player_pos, attack_dir, enemies, destructibles, enemy_bullets, range_value, damage, float(context["rangeRate"]), float(context["knockback"]), killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests)
 			if laser_hits > 0:
 				_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": "ng_word_laser"})
 		elif weapon_id == "listener_summon":
@@ -1524,17 +1576,18 @@ static func _apply_starlight_explosion(
 	destructibles: Array,
 	killed_enemies: Array,
 	destroyed_boxes: Array,
-	hit_effects: Array
+	hit_effects: Array,
+	barrier_hit_requests: Array = []
 ) -> int:
 	var radius: float = _premium_superchat_explosion_radius(weapon, context)
 	var damage: float = float(weapon.get("premiumExplosionDamage", 7.0))
 	var knockback: float = float(context.get("knockback", 0.0)) * 0.28
-	var hits: int = _apply_starlight_circle_damage(enemies, center, radius, damage, knockback, killed_enemies, hit_effects)
+	var hits: int = _apply_starlight_circle_damage(enemies, center, radius, damage, knockback, killed_enemies, hit_effects, barrier_hit_requests)
 	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects)
 	hit_effects.append(_starlight_burst_fx(center, radius))
 	return hits
 
-static func _apply_starlight_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array) -> int:
+static func _apply_starlight_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
 	var hits: int = 0
 	var radius_sq := radius * radius
 	for enemy_item in enemies:
@@ -1546,7 +1599,7 @@ static func _apply_starlight_circle_damage(enemies: Array, center: Vector2, radi
 		var offset_sq := offset.length_squared()
 		if offset_sq <= radius_sq:
 			var hit_dir := offset / sqrt(offset_sq) if offset_sq > 0.01 else Vector2.RIGHT
-			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects):
+			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
 				hits += 1
 				if _starlight_enemy_defeated(enemy):
 					hit_effects.append(_starlight_defeat_fx(enemy, true))
@@ -1602,7 +1655,7 @@ static func _update_maro_comment_pulse(
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var pulse_radius: float = _maro_pulse_radius(weapon, base_radius)
 	var pulse_damage: float = float(weapon.get("pulseDamage", 8.0))
-	var hit_count: int = _apply_circle_damage(enemies, player_pos, pulse_radius, pulse_damage, float(context["knockback"]) * 0.20, killed_enemies, hit_effects)
+	var hit_count: int = _apply_circle_damage(enemies, player_pos, pulse_radius, pulse_damage, float(context["knockback"]) * 0.20, killed_enemies, hit_effects, result["barrierHitRequests"] as Array)
 	var pulled_exp: int = _nudge_exp_orbs_for_maro_pulse(context.get("expOrbs", []) as Array, player_pos, _maro_pulse_exp_pull_radius(weapon), float(context["delta"]))
 	_request_weapon_hit_reaction(result, weapon, hit_count, hit_count)
 	hit_effects.append(_maro_comment_pulse_fx(player_pos, pulse_radius, pulled_exp))
@@ -1727,7 +1780,7 @@ static func _laser_hit(enemy_pos: Vector2, enemy_radius: float, start: Vector2, 
 	var hit_width: float = half_width + enemy_radius
 	return (to_enemy - dir * along).length_squared() <= hit_width * hit_width
 
-static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bullets: Array, start: Vector2, dir: Vector2, length: float, width: float, damage: float, knockback: float, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array) -> int:
+static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bullets: Array, start: Vector2, dir: Vector2, length: float, width: float, damage: float, knockback: float, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
 	var hits: int = 0
 	var half_width: float = width * 0.5
 	for enemy_item in enemies:
@@ -1737,7 +1790,7 @@ static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bull
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
 		if not _laser_hit(enemy_pos, float(enemy.get("radius", 20.0)), start, dir, length, half_width):
 			continue
-		if _apply_enemy_hit(enemy, damage, dir, knockback * 0.55, killed_enemies, hit_effects):
+		if _apply_enemy_hit(enemy, damage, dir, knockback * 0.55, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
 			hits += 1
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
@@ -1756,7 +1809,7 @@ static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bull
 			hits += 1
 	return hits
 
-static func _fire_ng_word_lasers(weapon: Dictionary, level_value: int, support_level: int, player_pos: Vector2, facing_dir: Vector2, enemies: Array, destructibles: Array, enemy_bullets: Array, range_value: float, damage: float, range_rate: float, knockback: float, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array) -> int:
+static func _fire_ng_word_lasers(weapon: Dictionary, level_value: int, support_level: int, player_pos: Vector2, facing_dir: Vector2, enemies: Array, destructibles: Array, enemy_bullets: Array, range_value: float, damage: float, range_rate: float, knockback: float, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
 	var count: int = _weapon_spawn_count(weapon, "laserCount", level_value, support_level)
 	var duration: float = maxf(0.08, float(weapon.get("duration", 0.25)))
 	var width: float = scaled_range(float(weapon.get("width", 0.6))) * range_rate * (1.12 if level_value >= 5 else 1.0)
@@ -1764,7 +1817,7 @@ static func _fire_ng_word_lasers(weapon: Dictionary, level_value: int, support_l
 	for i in range(count):
 		var dir: Vector2 = _spread_direction(facing_dir, i, count, deg_to_rad(18.0))
 		var start: Vector2 = player_pos + dir * 28.0
-		var hits: int = _apply_laser_damage(enemies, destructibles, enemy_bullets, start, dir, range_value, width, damage, knockback, killed_enemies, destroyed_boxes, hit_effects)
+		var hits: int = _apply_laser_damage(enemies, destructibles, enemy_bullets, start, dir, range_value, width, damage, knockback, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests)
 		total_hits += hits
 		hit_effects.append({
 			"kind": "ng_word_laser",
@@ -1809,7 +1862,7 @@ static func _spawn_listener_summons(weapon: Dictionary, level_value: int, suppor
 		})
 		active_count += 1
 
-static func _apply_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array) -> int:
+static func _apply_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
 	var hits: int = 0
 	var radius_sq := radius * radius
 	for enemy_item in enemies:
@@ -1821,7 +1874,7 @@ static func _apply_circle_damage(enemies: Array, center: Vector2, radius: float,
 		var offset_sq := offset.length_squared()
 		if offset_sq <= radius_sq:
 			var hit_dir := offset / sqrt(offset_sq) if offset_sq > 0.01 else Vector2.RIGHT
-			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects):
+			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
 				hits += 1
 	return hits
 
@@ -1834,7 +1887,7 @@ static func _apply_circle_damage_to_boxes(destructibles: Array, center: Vector2,
 		if center.distance_squared_to(Vector2(box["pos"])) <= box_radius * box_radius:
 			DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
 
-static func _apply_arc_damage(enemies: Array, origin: Vector2, dir: Vector2, radius: float, arc_angle: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array) -> int:
+static func _apply_arc_damage(enemies: Array, origin: Vector2, dir: Vector2, radius: float, arc_angle: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
 	var dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
 	var radius_sq := radius * radius
 	var hits: int = 0
@@ -1849,7 +1902,7 @@ static func _apply_arc_damage(enemies: Array, origin: Vector2, dir: Vector2, rad
 			continue
 		var to_enemy_dir := to_enemy / sqrt(dist_sq)
 		if dir.dot(to_enemy_dir) >= dot_threshold:
-			if _apply_enemy_hit(enemy, damage, to_enemy_dir, knockback, killed_enemies, hit_effects):
+			if _apply_enemy_hit(enemy, damage, to_enemy_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
 				hits += 1
 	return hits
 
@@ -1978,6 +2031,7 @@ static func _kusa_wave_reflect_or_finish(fx: Dictionary, normal: Vector2, collis
 	return true
 
 static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, _enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = []) -> void:
+	var barrier_hit_requests: Array = feedback.get("barrierHitRequests", []) as Array
 	var pos: Vector2 = Vector2(fx.get("pos", Vector2.ZERO))
 	var velocity: Vector2 = Vector2(fx.get("vel", Vector2.RIGHT * KUSA_WAVE_SPEED))
 	if velocity.length() < 0.1:
@@ -2017,7 +2071,7 @@ static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array
 		var enemy_hit_radius: float = float(enemy.get("radius", 20.0)) + hit_radius
 		if pos.distance_squared_to(enemy_pos) > enemy_hit_radius * enemy_hit_radius:
 			continue
-		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects):
+		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
 			cooldowns[target_id] = KUSA_WAVE_HIT_COOLDOWN
 			fx["hitCooldowns"] = cooldowns
 			_merge_reaction_result(feedback, {
@@ -2055,6 +2109,7 @@ static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array
 	var stun_duration: float = float(fx.get("stunDuration", BAN_JUDGEMENT_STUN_DURATION))
 	var heavy_stun_duration: float = float(fx.get("heavyStunDuration", BAN_JUDGEMENT_HEAVY_STUN_DURATION))
 	var hit_ids: Array = fx.get("hitIds", []) as Array
+	var barrier_hit_requests: Array = feedback.get("barrierHitRequests", []) as Array
 	var hit_count: int = 0
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
@@ -2066,9 +2121,11 @@ static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
 		if not _is_forward_shockwave_hit(pos, dir, range_value, width_value, enemy_pos, float(enemy.get("radius", 20.0))):
 			continue
-		if _apply_ban_judgement_enemy_hit(enemy, damage, dir, knockback, stun_duration, heavy_stun_duration, killed_enemies, hit_effects):
+		var hit_result := _apply_ban_judgement_enemy_hit(enemy, damage, dir, knockback, stun_duration, heavy_stun_duration, killed_enemies, hit_effects, barrier_hit_requests)
+		if hit_result != HIT_NONE:
 			hit_ids.append(target_id)
-			hit_count += 1
+			if hit_result == HIT_DAMAGED:
+				hit_count += 1
 	if hit_count > 0:
 		_merge_reaction_result(feedback, {
 			"enemyDamaged": true,
@@ -2094,6 +2151,7 @@ static func update_comment_pin_damage(fx: Dictionary, enemies: Array, destructib
 	var pos: Vector2 = Vector2(fx["pos"])
 	var damage: float = float(fx.get("damage", 0.0))
 	var hit_radius: float = float(fx.get("hitRadius", 12.0))
+	var barrier_hit_requests: Array = feedback.get("barrierHitRequests", []) as Array
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
 		if float(enemy.get("hp", 0.0)) <= 0.0:
@@ -2102,19 +2160,20 @@ static func update_comment_pin_damage(fx: Dictionary, enemies: Array, destructib
 		var enemy_hit_radius: float = float(enemy.get("radius", 20.0)) + hit_radius
 		if pos.distance_squared_to(enemy_pos) > enemy_hit_radius * enemy_hit_radius:
 			continue
-		enemy["slowTimer"] = maxf(float(enemy.get("slowTimer", 0.0)), float(fx.get("slowDuration", 2.0)))
-		enemy["slowRate"] = maxf(float(enemy.get("slowRate", 0.0)), float(fx.get("slowRate", 0.4)))
 		var push_dir: Vector2 = Vector2(fx.get("dir", enemy_pos - pos)).normalized()
 		if push_dir.length() < 0.1:
 			push_dir = (enemy_pos - pos).normalized()
-		_apply_enemy_hit(enemy, damage, push_dir, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects)
-		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "comment_pin"})
-		hit_effects.append({
-			"kind": "pin_burst",
-			"pos": enemy_pos,
-			"life": 0.22,
-			"maxLife": 0.22
-		})
+		var hit_result := _apply_enemy_hit(enemy, damage, push_dir, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects, barrier_hit_requests, "comment_pin")
+		if hit_result == HIT_DAMAGED:
+			enemy["slowTimer"] = maxf(float(enemy.get("slowTimer", 0.0)), float(fx.get("slowDuration", 2.0)))
+			enemy["slowRate"] = maxf(float(enemy.get("slowRate", 0.0)), float(fx.get("slowRate", 0.4)))
+			_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "comment_pin"})
+			hit_effects.append({
+				"kind": "pin_burst",
+				"pos": enemy_pos,
+				"life": 0.22,
+				"maxLife": 0.22
+			})
 		fx["life"] = 0.0
 		return
 	for box_item in destructibles:
@@ -2145,7 +2204,7 @@ static func update_emote_mine_damage(fx: Dictionary, enemies: Array, destructibl
 		return
 	var radius: float = float(fx.get("radius", 120.0))
 	var damage: float = float(fx.get("damage", 0.0))
-	var hit_count: int = _apply_circle_damage(enemies, pos, radius, damage, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects)
+	var hit_count: int = _apply_circle_damage(enemies, pos, radius, damage, float(fx.get("knockback", 0.0)), killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array)
 	_apply_circle_damage_to_boxes(destructibles, pos, radius, destroyed_boxes, hit_effects)
 	_clear_enemy_bullets_in_circle(enemy_bullets, pos, radius, hit_effects)
 	_merge_reaction_result(feedback, {
@@ -2193,14 +2252,15 @@ static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies:
 	if hit_timer > 0.0:
 		return
 	var damage: float = float(fx.get("damage", 0.0))
-	_apply_enemy_hit(target_enemy, damage, dir, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects)
-	_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true, "weaponCommentKind": "listener_summon"})
-	hit_effects.append({
-		"kind": "listener_burst",
-		"pos": enemy_pos,
-		"life": 0.22,
-		"maxLife": 0.22
-	})
+	var hit_result := _apply_enemy_hit(target_enemy, damage, dir, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "listener_summon")
+	if hit_result == HIT_DAMAGED:
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true, "weaponCommentKind": "listener_summon"})
+		hit_effects.append({
+			"kind": "listener_burst",
+			"pos": enemy_pos,
+			"life": 0.22,
+			"maxLife": 0.22
+		})
 	fx["hitTimer"] = float(fx.get("hitCooldown", 0.70))
 
 static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], destructibles: Array = [], enemy_bullets: Array = [], killed_enemies: Array = [], destroyed_boxes: Array = [], feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = []) -> Array:
@@ -2233,17 +2293,31 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 		remaining.append(fx_item)
 	return _capped_hit_fx(remaining)
 
+static func advance_hit_fx_visuals_for_target(target: Node, delta: float) -> void:
+	var hit_fx: Array = target.get("hit_fx") as Array
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		var delay := float(fx.get("delay", 0.0))
+		if delay > 0.0:
+			fx["delay"] = maxf(0.0, delay - delta)
+			continue
+		if fx.has("vel"):
+			var move := Vector2(fx["vel"]) * delta
+			fx["pos"] = Vector2(fx.get("pos", Vector2.ZERO)) + move
+			if fx.has("hit"):
+				fx["hit"] = Vector2(fx["hit"]) + move
+		fx["life"] = float(fx.get("life", 0.0)) - delta
+	target.set("hit_fx", _alive_hit_fx(hit_fx))
+
 static func update_hit_fx_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	var chats: Array = []
-	var feedback: Dictionary = {"chats": chats}
+	var feedback: Dictionary = {"chats": chats, "barrierHitRequests": []}
 	var killed_enemies: Array = []
 	var destroyed_boxes: Array = []
 	var enemies: Array = target.get("enemies") as Array
 	var destructibles: Array = target.get("destructibles") as Array
 	var enemy_bullets: Array = target.get("enemy_bullets") as Array
-	var stream_frame_id: String = String(target.get("current_stream_frame_id"))
-	if stream_frame_id == "":
-		stream_frame_id = "zatsudan"
+	var stream_frame_id: String = DrawDataSystem.collision_frame_id_for_target(target)
 	var effect_walls_value: Variant = target.get("effect_walls")
 	var effect_walls: Array = []
 	if effect_walls_value is Array:
@@ -2251,6 +2325,7 @@ static func update_hit_fx_for_target(target: Node, delta: float, arena: Rect2, r
 	var walls: Array = EnemySystem.movement_wall_rects(effect_walls, stream_frame_id)
 	target.set("hit_fx", update_hit_fx(target.get("hit_fx") as Array, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, feedback, arena, walls))
 	target.set("enemy_bullets", _alive_enemy_bullets(enemy_bullets))
+	_dispatch_barrier_hit_requests(target, feedback.get("barrierHitRequests", []) as Array)
 	for item in killed_enemies:
 		var enemy: Dictionary = item
 		var kill_result: Dictionary = EnemySystem.apply_kill_for_target(target, enemy, arena, rng)

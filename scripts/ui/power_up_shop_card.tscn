@@ -1,0 +1,229 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/power_up_shop_card.gd" id="1_card"]
+[ext_resource type="Script" path="res://scripts/ui/power_up_shop_card_pattern.gd" id="2_pattern"]
+
+[node name="PowerUpShopCard" type="Button"]
+custom_minimum_size = Vector2(300, 184)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+focus_mode = 0
+flat = false
+script = ExtResource("1_card")
+
+[node name="SelectionLamp" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 5.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(1, 0.560784, 0.741176, 1)
+
+[node name="TierDecoration" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+
+[node name="CardPattern" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_pattern")
+
+[node name="FocusRing" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+
+[node name="CategoryAccent" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_right = 6.0
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 0.560784, 0.741176, 1)
+
+[node name="CardContent" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 14.0
+offset_right = -18.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBox" type="VBoxContainer" parent="CardContent"]
+layout_mode = 2
+theme_override_constants/separation = 8
+mouse_filter = 2
+
+[node name="HeaderRow" type="HBoxContainer" parent="CardContent/VBox"]
+custom_minimum_size = Vector2(0, 68)
+layout_mode = 2
+theme_override_constants/separation = 12
+mouse_filter = 2
+
+[node name="EffectSummary" type="Label" parent="CardContent/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+text = "最大メンタルを強化"
+autowrap_mode = 2
+clip_text = false
+max_lines_visible = 1
+mouse_filter = 2
+
+[node name="IconSlot" type="CenterContainer" parent="CardContent/VBox/HeaderRow"]
+custom_minimum_size = Vector2(68, 68)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="IconPlate" type="PanelContainer" parent="CardContent/VBox/HeaderRow/IconSlot"]
+custom_minimum_size = Vector2(66, 66)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="CardContent/VBox/HeaderRow/IconSlot/IconPlate"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="TextColumn" type="VBoxContainer" parent="CardContent/VBox/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+mouse_filter = 2
+
+[node name="UpgradeName" type="Label" parent="CardContent/VBox/HeaderRow/TextColumn"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+text = "Power Up"
+autowrap_mode = 2
+clip_text = false
+max_lines_visible = 2
+mouse_filter = 2
+
+[node name="LevelLabel" type="Label" parent="CardContent/VBox/HeaderRow/TextColumn"]
+layout_mode = 2
+text = "Lv 0 / 5"
+mouse_filter = 2
+
+[node name="LevelIndicators" type="HBoxContainer" parent="CardContent/VBox"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_constants/separation = 8
+mouse_filter = 2
+
+[node name="Lamp0" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Lamp1" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Lamp2" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Lamp3" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Lamp4" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+custom_minimum_size = Vector2(18, 18)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PriceCapsule" type="PanelContainer" parent="CardContent/VBox"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="PriceLabel" type="Label" parent="CardContent/VBox/PriceCapsule"]
+layout_mode = 2
+text = "次の強化 120 PP"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="MaxBadge" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -64.0
+offset_top = 10.0
+offset_right = -14.0
+offset_bottom = 34.0
+grow_horizontal = 0
+text = "MAX!"
+horizontal_alignment = 1
+visible = false
+mouse_filter = 2
+
+[node name="MaxRibbon" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -86.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = 34.0
+grow_horizontal = 0
+mouse_filter = 2
+visible = false
+
+[node name="Label" type="Label" parent="MaxRibbon"]
+layout_mode = 2
+text = "MAX"
+horizontal_alignment = 1
+vertical_alignment = 1
+mouse_filter = 2
+
+[node name="StarBurst" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -16.0
+offset_top = -16.0
+offset_right = 16.0
+offset_bottom = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "✦"
+horizontal_alignment = 1
+vertical_alignment = 1
+modulate = Color(1, 1, 1, 0)
+mouse_filter = 2

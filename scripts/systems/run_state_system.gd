@@ -1,6 +1,8 @@
 class_name RunStateSystem
 extends RefCounted
 
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+
 const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
 const GenreEventSystemScript := preload("res://scripts/systems/genre_event_system.gd")
 
@@ -26,12 +28,19 @@ static func load_boot_data_for_target(target: Node, sprite_cache: Dictionary) ->
 	SettingsSystem.load_for_target(target)
 	return repository
 
-static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary, start_arena: Rect2 = Rect2()) -> Dictionary:
+static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary, start_arena: Rect2 = Rect2(), snapshot = null) -> Dictionary:
 	var max_hp: int = _scaled_player_hp(int(stats.get("hp", character.get("initialHp", 100))))
 	var move_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", character.get("moveSpeed", 5.0))))
 	var weapon_range: float = WeaponSystem.range_base(weapon)
 	var weapon_interval: float = WeaponSystem.attack_interval(weapon, 0.85)
 	var pickup_rate: float = float(stats.get("pickupRange", 1.0))
+	var hammer_damage: float = float(weapon.get("damage", 12.0))
+	var magnet_range: float = float(weapon.get("magnetRange", 95.0)) * pickup_rate
+	if snapshot != null:
+		max_hp = PowerUpEffectProviderScript.max_hp(max_hp, snapshot)
+		move_speed = PowerUpEffectProviderScript.move_speed(move_speed, snapshot)
+		hammer_damage = PowerUpEffectProviderScript.damage(hammer_damage, snapshot)
+		magnet_range = PowerUpEffectProviderScript.normal_attract_radius(magnet_range, snapshot)
 	if start_arena.size == Vector2.ZERO:
 		start_arena = MapBackgroundSystemScript.zatsudan_world_rect()
 	var start_pos: Vector2 = start_arena.get_center()
@@ -41,10 +50,10 @@ static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dic
 		"playerMaxHp": max_hp,
 		"playerHp": max_hp,
 		"playerSpeed": move_speed,
-		"hammerDamage": float(weapon.get("damage", 12.0)),
+		"hammerDamage": hammer_damage,
 		"hammerRange": weapon_range,
 		"hammerInterval": weapon_interval,
-		"magnetRange": float(weapon.get("magnetRange", 95.0)) * pickup_rate,
+		"magnetRange": magnet_range,
 		"dashCooldown": float(stats.get("dashCooldown", character.get("dashCooldown", 1.2))),
 		"knockbackPower": WeaponSystem.scaled_knockback(float(weapon.get("knockback", 18.0))),
 		"invincibleTime": float(stats.get("invincibleTime", 0.7)),
@@ -192,7 +201,7 @@ static func genre_state() -> Dictionary:
 static func start_run_for_target(target: Node, character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary) -> Dictionary:
 	var frame_id := String(target.get("current_stream_frame_id"))
 	var map_data := MapBackgroundSystemScript.background_data_for_stream_frame(frame_id)
-	var initial: Dictionary = initial_values(character, weapon, stats, resources, MapBackgroundSystemScript.world_rect(map_data))
+	var initial: Dictionary = initial_values(character, weapon, stats, resources, MapBackgroundSystemScript.world_rect(map_data), target.get("permanent_upgrade_snapshot"))
 	apply_initial_values(target, initial)
 	apply_gift_flags(target, gift_flags())
 	clear_run_collections(target)

@@ -3,14 +3,21 @@ extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
 const COMMENT_POOLS_PATH := "res://data/comment_pools.json"
+const LINKED_TROLL_COMMENTS_PATH := "res://data/linked_troll_comments.json"
 const FALLBACK_VISIBLE_LINE_LIMIT := 18
 const FALLBACK_HISTORY_LIMIT := 20
 const FALLBACK_RECENT_DUPLICATE_BLOCK := 12
 const FALLBACK_CATEGORY_STREAK_LIMIT := 3
 const ENTRY_INDEX_CACHE_KEY := "__chat_entry_index_cache"
+const TROLL_LINK_PREFIX := "[[troll_link:"
+const TROLL_LINK_SEPARATOR := "|"
+const TROLL_LINK_END := "]]"
+const TROLL_LINK_DELETED_TEXT := "このメッセージは削除されました"
 
 static var _comment_pool_loaded := false
 static var _comment_pool_cache: Dictionary = {}
+static var _linked_troll_comments_loaded := false
+static var _linked_troll_comment_definitions: Array = []
 
 static func comment_pool_data() -> Dictionary:
 	if _comment_pool_loaded:
@@ -23,6 +30,65 @@ static func comment_pool_data() -> Dictionary:
 	if _comment_pool_cache.is_empty():
 		_comment_pool_cache = {"settings": {}, "prefix_rules": {}, "pools": {}, "events": {}}
 	return _comment_pool_cache
+
+static func linked_troll_comment_definitions() -> Array:
+	if _linked_troll_comments_loaded:
+		return _linked_troll_comment_definitions
+	_linked_troll_comments_loaded = true
+	if FileAccess.file_exists(LINKED_TROLL_COMMENTS_PATH):
+		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(LINKED_TROLL_COMMENTS_PATH))
+		if parsed is Dictionary:
+			var raw_comments: Variant = (parsed as Dictionary).get("comments", [])
+			if raw_comments is Array:
+				for item in raw_comments as Array:
+					if item is Dictionary:
+						_linked_troll_comment_definitions.append(item)
+	return _linked_troll_comment_definitions
+
+static func _linked_troll_string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if value is Array:
+		for item in value as Array:
+			var text := String(item).strip_edges()
+			if text != "":
+				result.append(text)
+	return result
+
+static func linked_troll_definitions_for_target(target: Node) -> Array:
+	var result: Array = []
+	var stream_frame_id := String(target.get("current_stream_frame_id")).strip_edges()
+	var active_event := String(target.get("active_genre_event")).strip_edges()
+	for raw_definition in linked_troll_comment_definitions():
+		var definition: Dictionary = raw_definition as Dictionary
+		if not bool(definition.get("enabled", true)):
+			continue
+		if String(definition.get("stageId", "")).strip_edges() != stream_frame_id:
+			continue
+		if String(definition.get("text", "")).strip_edges() == "":
+			continue
+		var event_tags := _linked_troll_string_array(definition.get("eventTags", []))
+		if not event_tags.is_empty() and not event_tags.has(active_event):
+			continue
+		if _linked_troll_string_array(definition.get("enemyTags", [])).is_empty():
+			continue
+		result.append(definition)
+	return result
+
+static func choose_linked_troll_definition_for_target(target: Node, rng: RandomNumberGenerator) -> Dictionary:
+	var candidates := linked_troll_definitions_for_target(target)
+	if candidates.is_empty():
+		return {}
+	var total_weight := 0.0
+	for raw_definition in candidates:
+		var definition: Dictionary = raw_definition as Dictionary
+		total_weight += maxf(0.01, float(definition.get("weight", 1.0)))
+	var roll := rng.randf() * total_weight
+	for raw_definition in candidates:
+		var definition: Dictionary = raw_definition as Dictionary
+		roll -= maxf(0.01, float(definition.get("weight", 1.0)))
+		if roll <= 0.0:
+			return definition
+	return candidates.back() as Dictionary
 
 static func _comment_pool_data_for_target(target: Node) -> Dictionary:
 	var value: Variant = target.get("comment_pools")
@@ -342,6 +408,79 @@ static func sanitize_line(line: String) -> String:
 	text = text.replace("【通知】", "")
 	return text.strip_edges()
 
+static func _troll_link_data(line: String) -> Dictionary:
+	var raw := line.strip_edges()
+	if not raw.begins_with(TROLL_LINK_PREFIX):
+		return {}
+	var marker_end := raw.find(TROLL_LINK_END)
+	if marker_end < TROLL_LINK_PREFIX.length():
+		return {}
+	var metadata := raw.substr(TROLL_LINK_PREFIX.length(), marker_end - TROLL_LINK_PREFIX.length())
+	var parts := metadata.split(TROLL_LINK_SEPARATOR, false, 1)
+	if parts.size() != 2:
+		return {}
+	var link_id := String(parts[0]).strip_edges()
+	var state := String(parts[1]).strip_edges()
+	if link_id == "" or state == "":
+		return {}
+	return {
+		"id": link_id,
+		"state": state,
+		"text": sanitize_line(raw.substr(marker_end + TROLL_LINK_END.length()))
+	}
+
+static func _troll_link_line(link_id: String, state: String, text: String) -> String:
+	return TROLL_LINK_PREFIX + link_id + TROLL_LINK_SEPARATOR + state + TROLL_LINK_END + " " + sanitize_line(text)
+
+static func _is_troll_link_pinned(line: String) -> bool:
+	var link_data := _troll_link_data(line)
+	if link_data.is_empty():
+		return false
+	var state := String(link_data.get("state", ""))
+	return state == "active_new" or state == "active" or state == "ban_pending" or state == "deleted"
+
+static func display_text_for_line(line: String) -> String:
+	var link_data := _troll_link_data(line)
+	if link_data.is_empty():
+		return sanitize_line(line)
+	if String(link_data.get("state", "")) == "deleted":
+		return TROLL_LINK_DELETED_TEXT
+	return String(link_data.get("text", ""))
+
+static func _visible_lines_with_pinned_troll_links(lines: Array[String], visible_limit: int) -> Array[String]:
+	var pinned_indices: Dictionary = {}
+	for i in range(lines.size()):
+		if _is_troll_link_pinned(lines[i]):
+			pinned_indices[i] = true
+	var normal_budget := maxi(0, visible_limit - pinned_indices.size())
+	var selected_indices: Dictionary = pinned_indices.duplicate()
+	var selected_normal_count := 0
+	for i in range(lines.size() - 1, -1, -1):
+		if selected_normal_count >= normal_budget:
+			break
+		if pinned_indices.has(i):
+			continue
+		selected_indices[i] = true
+		selected_normal_count += 1
+	var result: Array[String] = []
+	for i in range(lines.size()):
+		if selected_indices.has(i):
+			result.append(lines[i])
+	return result
+
+static func _trim_history_lines(lines: Array[String], max_lines: int) -> Array[String]:
+	var result := lines
+	while result.size() > max_lines:
+		var remove_index := -1
+		for i in range(result.size()):
+			if not _is_troll_link_pinned(result[i]):
+				remove_index = i
+				break
+		if remove_index < 0:
+			remove_index = 0
+		result.remove_at(remove_index)
+	return result
+
 static func _fallback_type_for_text(text: String) -> String:
 	var clean := sanitize_line(text)
 	if clean.contains("配信終了まで") or clean.contains("終了まで") or clean.contains("LIVE") or clean.contains("WARNING") or clean.contains("次の配信枠へ") or clean.contains("配信開始") or clean.contains(" を選択") or clean.contains("を取得"):
@@ -355,6 +494,9 @@ static func _fallback_type_for_text(text: String) -> String:
 	return "normal"
 
 static func line_category(line: String) -> String:
+	var link_data := _troll_link_data(line)
+	if not link_data.is_empty():
+		return "warning" if String(link_data.get("state", "")) != "deleted" else "normal"
 	var data := comment_pool_data()
 	var entry := _entry_for_text(line, data)
 	return _entry_type(entry) if not entry.is_empty() else _fallback_type_for_text(line)
@@ -427,12 +569,13 @@ static func append_line(lines: Array[String], text: String, limit: int = -1, dat
 		var clean_existing := sanitize_line(line)
 		if clean_existing != "":
 			result.append(clean_existing)
-	var entry := _entry_for_append(text, source)
-	if _can_append_entry(result, entry, source):
-		result.append(_entry_text(entry))
-	while result.size() > max_lines:
-		result.pop_front()
-	return result
+	if not _troll_link_data(text).is_empty():
+		result.append(sanitize_line(text))
+	else:
+		var entry := _entry_for_append(text, source)
+		if _can_append_entry(result, entry, source):
+			result.append(_entry_text(entry))
+	return _trim_history_lines(result, max_lines)
 
 static func _same_lines(a: Array[String], b: Array[String]) -> bool:
 	if a.size() != b.size():
@@ -773,8 +916,28 @@ static func display_items(lines: Array[String]) -> Array:
 	var visible_lines: Array[String] = lines
 	var visible_limit := _setting_int(data, "visible_lines", FALLBACK_VISIBLE_LINE_LIMIT)
 	if visible_lines.size() > visible_limit:
-		visible_lines = visible_lines.slice(visible_lines.size() - visible_limit, visible_lines.size())
+		visible_lines = _visible_lines_with_pinned_troll_links(visible_lines, visible_limit)
 	for line in visible_lines:
+		var troll_link := _troll_link_data(line)
+		if not troll_link.is_empty():
+			var troll_state := String(troll_link.get("state", "active"))
+			var troll_text := display_text_for_line(line)
+			var troll_color := Color("#d53d65")
+			var troll_prefix := "[!]"
+			if troll_state == "ban_pending":
+				troll_color = Color("#ff385c")
+			elif troll_state == "deleted":
+				troll_color = Color("#8d929c")
+				troll_prefix = "[X]"
+			items.append({
+				"text": troll_prefix + " " + troll_text,
+				"color": troll_color,
+				"fontSize": 20,
+				"trollLinkState": troll_state,
+				"strikeThrough": troll_state == "ban_pending",
+				"shake": troll_state == "active_new"
+			})
+			continue
 		var clean := sanitize_line(line)
 		if clean == "":
 			continue
@@ -815,6 +978,46 @@ static func refresh_box(chat_box: Control, lines: Array[String]) -> void:
 		label.size = Vector2(row_width, 24)
 		label.clip_text = true
 		chat_box.add_child(label)
+		var troll_state := String(view.get("trollLinkState", ""))
+		if troll_state != "":
+			label.add_theme_constant_override("outline_size", 1)
+			label.add_theme_color_override("font_outline_color", Color(0.16, 0.03, 0.08, 0.88) if troll_state != "deleted" else Color(0.18, 0.20, 0.24, 0.72))
+		if bool(view.get("strikeThrough", false)):
+			var strike := ColorRect.new()
+			strike.color = Color(1.0, 0.18, 0.32, 0.88)
+			strike.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			strike.position = Vector2(28.0, 11.0)
+			strike.size = Vector2(maxf(16.0, row_width - 36.0), 2.0)
+			label.add_child(strike)
+		if bool(view.get("shake", false)):
+			var shake := label.create_tween()
+			shake.tween_property(label, "position:x", 4.0, 0.05)
+			shake.tween_property(label, "position:x", -3.0, 0.06)
+			shake.tween_property(label, "position:x", 0.0, 0.05)
+
+static func push_troll_linked_line_for_target(target: Node, chat_box: Control, link_id: String, text: String) -> Array[String]:
+	var data := _comment_pool_data_for_target(target)
+	var lines := append_line(current_lines_for_target(target), _troll_link_line(link_id, "active_new", text), -1, data)
+	target.set("chat_lines", lines)
+	refresh_box(chat_box, lines)
+	return lines
+
+static func update_troll_linked_line_for_target(target: Node, chat_box: Control, link_id: String, state: String) -> Array[String]:
+	var lines := current_lines_for_target(target)
+	var changed := false
+	for i in range(lines.size()):
+		var link_data := _troll_link_data(lines[i])
+		if String(link_data.get("id", "")) != link_id:
+			continue
+		var next_line := TROLL_LINK_DELETED_TEXT if state == "released" else _troll_link_line(link_id, state, String(link_data.get("text", "")))
+		if lines[i] != next_line:
+			lines[i] = next_line
+			changed = true
+		break
+	if changed:
+		target.set("chat_lines", lines)
+		refresh_box(chat_box, lines)
+	return lines
 
 static func seed_box(chat_box: Control, mode: String) -> Array[String]:
 	var lines: Array[String] = []

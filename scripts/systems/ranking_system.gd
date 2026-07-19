@@ -88,7 +88,7 @@ static func save_all_rankings(entries: Array, relay_entries: Array) -> void:
 
 
 static func save_and_format_ranking(entry: Dictionary, is_ranking_eligible: bool) -> String:
-	if not is_ranking_eligible or String(entry.get("modeId", "")) != "normal_180":
+	if not is_ranking_eligible or not ["normal_180", "relay"].has(String(entry.get("modeId", ""))):
 		return "ランキング対象外：テスト配信の記録は保存されません。"
 	var entries: Array = load_rankings()
 	entries.append(entry)
@@ -267,16 +267,23 @@ static func _sorted_entries_for_tab(tab_index: int, relay_mode_unlocked: bool = 
 		return []
 	var tab_id: String = String(tab.get("id", "all"))
 	if tab_id == "relay":
-		var relay_entries: Array = _sort_relay_entries(load_relay_rankings())
-		if relay_entries.size() > MAX_TAB_ENTRIES:
-			return relay_entries.slice(0, MAX_TAB_ENTRIES)
-		return relay_entries
+		var relay_entries: Array = []
+		for entry_item in load_rankings():
+			if not (entry_item is Dictionary):
+				continue
+			var relay_entry: Dictionary = entry_item as Dictionary
+			if String(relay_entry.get("modeId", "")) == "relay" or String(relay_entry.get("stageId", "")) == "relay":
+				relay_entries.append(relay_entry)
+		var sorted_relay_entries: Array = _sort_entries(relay_entries)
+		if sorted_relay_entries.size() > MAX_TAB_ENTRIES:
+			return sorted_relay_entries.slice(0, MAX_TAB_ENTRIES)
+		return sorted_relay_entries
 	var entries: Array = []
 	for entry_item in load_rankings():
 		if not (entry_item is Dictionary):
 			continue
 		var entry: Dictionary = entry_item as Dictionary
-		if String(entry.get("modeId", "")) != "normal_180":
+		if not ["normal_180", "relay"].has(String(entry.get("modeId", ""))):
 			continue
 		if tab_id != "all" and String(entry.get("streamFrameId", "")) != tab_id:
 			continue
@@ -733,9 +740,9 @@ static func _ranking_scope_entries(entries: Array, stream_frame_id: String) -> A
 		if not (entry_item is Dictionary):
 			continue
 		var entry: Dictionary = entry_item as Dictionary
-		if String(entry.get("modeId", "")) != "normal_180":
+		if not ["normal_180", "relay"].has(String(entry.get("modeId", ""))):
 			continue
-		if String(entry.get("streamFrameId", "")) != frame_id:
+		if String(entry.get("modeId", "")) != "relay" and String(entry.get("streamFrameId", "")) != frame_id:
 			continue
 		scoped_entries.append(entry)
 	if scoped_entries.is_empty():

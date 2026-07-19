@@ -2,6 +2,8 @@ extends RefCounted
 class_name GiftSystem
 
 const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
+const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 
 const MENTAL_CARE_MAX_HP_PER_LEVEL := 10
 const NOTIFICATION_BELL_EXP_RATE_PER_LEVEL := 0.08
@@ -61,7 +63,7 @@ static func build_offer(context: Dictionary) -> Array:
 	var evolution_gift: Dictionary = context.get("evolutionGift", {}) as Dictionary
 	if not evolution_gift.is_empty():
 		result.append(evolution_gift)
-	var level_gains: Array[int] = build_level_gain_slots(gift_hype, rng, 3 - result.size())
+	var level_gains: Array[int] = build_level_gain_slots(gift_hype, rng, 3 - result.size(), context.get("permanent_upgrade_snapshot", null))
 	for level_gain in level_gains:
 		if result.size() >= 3:
 			break
@@ -92,12 +94,14 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"initialWeaponId": initial_weapon_id,
 		"playerWeapons": target.get("player_weapons"),
 		"playerAccessories": target.get("player_accessories"),
+		"permanent_upgrade_snapshot": target.get("permanent_upgrade_snapshot"),
 		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
 		"rng": rng
 	}
 
 static func start_offer_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("state", "gift_choice")
+	PauseReasonSystemScript.add(target, "GiftSelection")
 	target.set("selected_card", 0)
 	var elapsed: float = float(target.get("elapsed"))
 	var quick_test: bool = bool(target.get("quick_test_mode"))
@@ -111,10 +115,10 @@ static func start_offer_ui_for_target(target: Node, gifts: Array, rng: RandomNum
 	choice_box.visible = true
 	return result
 
-static func build_level_gain_slots(gift_hype: int, rng: RandomNumberGenerator, count: int) -> Array[int]:
+static func build_level_gain_slots(gift_hype: int, rng: RandomNumberGenerator, count: int, snapshot = null) -> Array[int]:
 	var result: Array[int] = []
 	for i in range(maxi(0, count)):
-		result.append(roll_level_gain(gift_hype, rng))
+		result.append(roll_level_gain(gift_hype, rng, snapshot))
 	if result.is_empty():
 		return result
 	if gift_hype >= 90 and not result.has(3):
@@ -125,21 +129,32 @@ static func build_level_gain_slots(gift_hype: int, rng: RandomNumberGenerator, c
 		result[result.size() - 1] = 2
 	return result
 
-static func roll_level_gain(gift_hype: int, rng: RandomNumberGenerator) -> int:
+static func roll_level_gain(gift_hype: int, rng: RandomNumberGenerator, snapshot = null) -> int:
+	var normal_weight := 1.0
+	var hit_weight := 0.0
+	var jackpot_weight := 0.0
+	if gift_hype >= 90:
+		jackpot_weight = 0.50
+		hit_weight = 0.35
+		normal_weight = 0.15
+	elif gift_hype >= 70:
+		jackpot_weight = 0.15
+		hit_weight = 0.55
+		normal_weight = 0.30
+	elif gift_hype >= 40:
+		hit_weight = 0.35
+		normal_weight = 0.65
+	else:
+		normal_weight = 1.0
+	if snapshot != null:
+		var weights := PowerUpEffectProviderScript.gift_weights(normal_weight, hit_weight, jackpot_weight, snapshot)
+		normal_weight = float(weights.get("normal", normal_weight))
+		hit_weight = float(weights.get("hit", hit_weight))
+		jackpot_weight = float(weights.get("jackpot", jackpot_weight))
 	var roll: float = rng.randf()
-	if gift_hype < 40:
-		return 1
-	if gift_hype < 70:
-		return 2 if roll < 0.35 else 1
-	if gift_hype < 90:
-		if roll < 0.15:
-			return 3
-		if roll < 0.70:
-			return 2
-		return 1
-	if roll < 0.50:
+	if roll < jackpot_weight:
 		return 3
-	if roll < 0.85:
+	if roll < jackpot_weight + hit_weight:
 		return 2
 	return 1
 
@@ -410,6 +425,7 @@ static func choose_offer_index_for_target(target: Node, index: int) -> Dictionar
 	var gift: Dictionary = offered_gifts[index] as Dictionary
 	var result: Dictionary = choose_gift_for_target(target, gift)
 	target.set("state", "playing")
+	PauseReasonSystemScript.remove(target, "GiftSelection")
 	return {
 		"selected": true,
 		"giftName": String(gift["displayName"]),
@@ -518,31 +534,46 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	var main_damage_rate: float = 1.0 + 0.10 * float(stream_power_level) + 0.10 * float(main_weapon_level - 1)
 	var main_range_rate: float = 1.0 + 0.10 * float(wide_angle_level) + 0.08 * float(main_weapon_level - 1)
 	var main_interval_rate: float = pow(0.92, float(high_speed_level)) * pow(0.94, float(main_weapon_level - 1))
+	var shop_snapshot = target.get("permanent_upgrade_snapshot")
 	var previous_max_hp: int = int(target.get("player_max_hp"))
 	var previous_hp: int = int(target.get("player_hp"))
 	var base_hp: int = _scaled_player_hp(int(stats.get("hp", current_character.get("initialHp", 100))))
 	var new_max_hp: int = base_hp + mental_care_max_hp_bonus(mental_care_level)
+	if shop_snapshot != null:
+		new_max_hp = PowerUpEffectProviderScript.max_hp(base_hp, shop_snapshot, 0.0, mental_care_max_hp_bonus(mental_care_level))
 	var max_hp_delta: int = new_max_hp - previous_max_hp
 	target.set("mental_care_level", mental_care_level)
 	target.set("player_max_hp", new_max_hp)
 	target.set("player_hp", clampi(previous_hp + maxi(0, max_hp_delta), 0, new_max_hp))
-	target.set("equipment_damage_rate", 1.0 + 0.10 * float(stream_power_level))
+	var equipment_damage_rate: float = 1.0 + 0.10 * float(stream_power_level)
+	if shop_snapshot != null:
+		equipment_damage_rate = PowerUpEffectProviderScript.damage(equipment_damage_rate, shop_snapshot)
+	target.set("equipment_damage_rate", equipment_damage_rate)
 	target.set("equipment_range_rate", 1.0 + 0.10 * float(wide_angle_level))
 	target.set("equipment_interval_rate", pow(0.92, float(high_speed_level)))
 	target.set("equipment_bullet_support_level", bullet_support_level)
 	target.set("notification_bell_level", notification_bell_level)
-	target.set("hammer_damage", float(current_weapon.get("damage", 12.0)) * main_damage_rate)
+	var hammer_damage: float = float(current_weapon.get("damage", 12.0)) * main_damage_rate
+	if shop_snapshot != null:
+		hammer_damage = PowerUpEffectProviderScript.damage(hammer_damage, shop_snapshot)
+	target.set("hammer_damage", hammer_damage)
 	target.set("hammer_range", WeaponSystem.range_base(current_weapon) * main_range_rate)
 	var min_main_interval: float = float(current_weapon.get("minAttackInterval", current_weapon.get("minCooldown", 0.28)))
 	target.set("hammer_interval", maxf(min_main_interval, WeaponSystem.attack_interval(current_weapon, 0.85) * main_interval_rate))
 	target.set("knockback_power", WeaponSystem.scaled_knockback(float(current_weapon.get("knockback", 1.0))) * (1.0 + 0.10 * float(main_weapon_level - 1)))
-	target.set("player_speed", WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * (1.0 + 0.05 * float(sneaker_level)))
+	var player_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * (1.0 + 0.05 * float(sneaker_level))
+	if shop_snapshot != null:
+		player_speed = PowerUpEffectProviderScript.move_speed(player_speed, shop_snapshot)
+	target.set("player_speed", player_speed)
 	target.set("dash_cooldown", float(stats.get("dashCooldown", current_character.get("dashCooldown", 1.2))) * pow(0.95, float(sneaker_level)))
 	var comment_radar_range: float = comment_radar_range_bonus(comment_radar_level)
 	target.set("comment_radar_level", comment_radar_level)
 	target.set("comment_radar_range_bonus", comment_radar_range)
 	target.set("item_magnet_speed_rate", comment_radar_speed_rate(comment_radar_level))
-	target.set("magnet_range", float(current_weapon.get("magnetRange", 95.0)) * float(stats.get("pickupRange", 1.0)) + comment_radar_range)
+	var magnet_range: float = float(current_weapon.get("magnetRange", 95.0)) * float(stats.get("pickupRange", 1.0))
+	if shop_snapshot != null:
+		magnet_range = PowerUpEffectProviderScript.normal_attract_radius(magnet_range, shop_snapshot)
+	target.set("magnet_range", magnet_range + comment_radar_range)
 	target.set("mini_humidifier_level", mini_humidifier_level)
 	if mini_humidifier_level <= 0:
 		target.set("mini_humidifier_timer", 0.0)
@@ -718,7 +749,10 @@ static func apply_effect_result_to_target(target: Node, result: Dictionary) -> v
 	target.set("hammer_interval", float(result["hammerInterval"]))
 	target.set("player_speed", float(result["playerSpeed"]))
 	target.set("player_max_hp", int(result["playerMaxHp"]))
-	target.set("player_hp", int(result["playerHp"]))
+	var result_hp := int(result["playerHp"])
+	if bool(target.get("relay_boss_active")) and float(target.get("relay_boss_no_heal_timer")) > 0.0:
+		result_hp = mini(result_hp, int(target.get("player_hp")))
+	target.set("player_hp", result_hp)
 	target.set("magnet_range", float(result["magnetRange"]))
 	target.set("heart_stock", int(result["heartStock"]))
 	target.set("heart_pending", bool(result["heartPending"]))

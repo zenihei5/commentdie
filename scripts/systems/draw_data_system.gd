@@ -399,13 +399,24 @@ static func arena_effect_parts(arena_effects: Dictionary) -> Array:
 	return parts
 
 static func static_wall_rects(frame_id: String = "zatsudan") -> Array:
+	if frame_id == "relay_boss":
+		return MapBackgroundSystemScript.relay_boss_static_wall_rects()
 	var map_data: Dictionary = MapBackgroundSystemScript.background_data_for_stream_frame(frame_id)
 	return MapBackgroundSystemScript.static_wall_rects_for_data(map_data)
 
-static func arena_wall_draw_list(effect_walls: Array, include_static_walls: bool = true) -> Array:
+static func collision_frame_id_for_target(target: Node) -> String:
+	if target != null and bool(target.get("relay_boss_active")):
+		return "relay_boss"
+	var frame_id := String(target.get("current_stream_frame_id")) if target != null else "zatsudan"
+	return frame_id if frame_id != "" else "zatsudan"
+
+static func static_wall_rects_for_target(target: Node) -> Array:
+	return static_wall_rects(collision_frame_id_for_target(target))
+
+static func arena_wall_draw_list(effect_walls: Array, include_static_walls: bool = true, frame_id: String = "zatsudan") -> Array:
 	var walls: Array = []
 	if include_static_walls:
-		for wall in static_wall_rects():
+		for wall in static_wall_rects(frame_id):
 			walls.append({"rect": wall, "temporary": false})
 	for wall in effect_walls:
 		walls.append({"rect": wall as Rect2, "temporary": true})
@@ -1275,6 +1286,12 @@ static func enemy_color(kind: String) -> Color:
 		return Color("#62d8ff")
 	if kind == "undo_ghost":
 		return Color(0.72, 0.84, 1.0, 0.68)
+	if kind == "collab_division_noise":
+		return Color("#8a4fd4")
+	if kind == "collab_mute_core":
+		return Color("#503b66")
+	if kind == "collab_crusher":
+		return Color("#6d315f")
 	if kind == "enemy_spoiler_comment":
 		return Color("#fff0fb")
 	if kind == "enemy_backseat_controller":
@@ -1349,6 +1366,18 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/bucket_fill_slime.png"
 	if kind == "undo_ghost":
 		return "res://assets/generated/enemy_sprites_v1/undo_ghost.png"
+	if kind == "collab_comparison_troll":
+		return "res://assets/generated/enemy_sprites_v1/collab_comparison_troll.png"
+	if kind == "collab_messenger_pigeon":
+		return "res://assets/generated/enemy_sprites_v1/collab_messenger_pigeon.png"
+	if kind == "collab_discord_troll":
+		return "res://assets/generated/enemy_sprites_v1/collab_discord_troll.png"
+	if kind == "collab_volume_police":
+		return "res://assets/generated/enemy_sprites_v1/collab_volume_police.png"
+	if kind == "collab_exclusive_listener":
+		return "res://assets/generated/enemy_sprites_v1/collab_exclusive_listener.png"
+	if kind == "collab_division_noise":
+		return "res://assets/generated/enemy_sprites_v1/collab_division_noise.png"
 	if kind == "enemy_spoiler_comment":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_spoiler_comment.png"
 	if kind == "enemy_backseat_controller":
@@ -1371,6 +1400,8 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/gameplay_bullet_drone.png"
 	if kind == "enemy_noise_ghost_comment":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_noise_ghost_comment.png"
+	if kind == "noise_ghost_comment":
+		return "res://assets/generated/enemy_sprites_v1/song_noise_comment.png"
 	if kind == "enemy_fake_gift_box":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_fake_gift_box_active.png"
 	if kind == "troll":
@@ -1391,12 +1422,16 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/super_long_comment_boss.png"
 	if kind == "boss_kuso_maro_king":
 		return "res://assets/generated/enemy_sprites_v1/kuso_maro_king.png"
+	if kind == "last_offline":
+		return "res://assets/generated/relay_boss_v1/last_offline.png"
 	if kind == "bugged_final_boss":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss.png"
 	if kind == "bugged_final_boss_stun":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss_stun.png"
 	if kind == "red_pen_review_chief":
 		return "res://assets/generated/enemy_sprites_v1/red_pen_retake_dragon.png"
+	if kind == "collab_crusher":
+		return "res://assets/generated/enemy_sprites_v1/collab_crusher.png"
 	return ""
 
 static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color, flash_color: Color = Color.TRANSPARENT, flash_strength: float = 0.0) -> Dictionary:
@@ -1588,6 +1623,8 @@ static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Co
 	}
 
 static func enemy_hit_flash_color(kind: String) -> Color:
+	if kind == "collab_crusher" or kind == "collab_division_noise" or kind == "collab_mute_core":
+		return Color("#ff5fa7")
 	if kind == "pitch_police_chief":
 		return Color("#ff4f91")
 	if kind == "red_pen_review_chief":
@@ -1688,6 +1725,49 @@ static func speech_bubble_data(pos: Vector2, text: String, y_offset: float, widt
 		"color": Color("#1f2937")
 	}
 
+static func linked_troll_speech_bubble_data(pos: Vector2, text: String, radius: float, alpha: float) -> Dictionary:
+	var clean_text := text.strip_edges()
+	if clean_text == "":
+		return {}
+	var lines: Array[String] = []
+	var first_line_length := mini(10, clean_text.length())
+	if clean_text.length() > first_line_length:
+		lines.append(clean_text.substr(0, first_line_length))
+		lines.append(clean_text.substr(first_line_length))
+	else:
+		lines.append(clean_text)
+	var longest_line_length := 0
+	for line in lines:
+		longest_line_length = maxi(longest_line_length, line.length())
+	var width := clampf(30.0 + float(longest_line_length) * 13.0, 60.0, 170.0)
+	var height := 12.0 + float(lines.size()) * 17.0
+	var tail_tip := pos + Vector2(0.0, -radius - 36.0)
+	var rect := Rect2(tail_tip + Vector2(-width * 0.5, -height - 8.0), Vector2(width, height))
+	var tail := PackedVector2Array([
+		rect.position + Vector2(width * 0.43, height - 1.0),
+		rect.position + Vector2(width * 0.57, height - 1.0),
+		tail_tip
+	])
+	var visible_alpha := clampf(alpha, 0.0, 1.0)
+	return {
+		"rect": rect,
+		"tail": tail,
+		"fill": Color(1.0, 0.969, 0.98, 0.96 * visible_alpha),
+		"border": Color(1.0, 0.35, 0.56, visible_alpha),
+		"borderWidth": 2,
+		"warningPos": rect.position + Vector2(11.0, 11.0),
+		"warningRadius": 5.5,
+		"warningFill": Color(1.0, 0.35, 0.56, visible_alpha),
+		"warningTextPos": rect.position + Vector2(8.4, 14.5),
+		"warningTextColor": Color.WHITE * Color(1.0, 1.0, 1.0, visible_alpha),
+		"text": "\n".join(lines),
+		"textPos": rect.position + Vector2(20.0, 15.5),
+		"textWidth": int(width - 26.0),
+		"textSize": 13,
+		"textColor": Color(0.46, 0.16, 0.26, visible_alpha),
+		"outlineColor": Color(1.0, 1.0, 1.0, 0.88 * visible_alpha)
+	}
+
 static func enemy_has_custom_body_face(kind: String) -> bool:
 	return kind == "enemy_spoiler_comment" or kind == "enemy_backseat_controller" or kind == "enemy_armchair_strategist" or kind == "enemy_dot_invader" or kind == "enemy_fake_gift_box"
 
@@ -1703,6 +1783,17 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var pos: Vector2 = Vector2(enemy["pos"])
 	var radius: float = float(enemy["radius"])
 	var is_boss: bool = bool(enemy.get("isBoss", false)) or kind.begins_with("boss_")
+	var is_last_offline := kind == "last_offline" or String(enemy.get("bossId", "")) == "last_offline"
+	var visual_scale := float(enemy.get("visualScale", 1.0)) if is_boss else 1.0
+	var visual_offset := Vector2(enemy.get("visualOffset", Vector2.ZERO)) if is_boss else Vector2.ZERO
+	var cutin_alpha := clampf(float(enemy.get("cutinVisualAlpha", 1.0)), 0.0, 1.0) if is_boss else 1.0
+	if is_boss:
+		visual_scale *= maxf(0.01, float(enemy.get("cutinVisualScale", 1.0)))
+		visual_offset += Vector2(enemy.get("cutinVisualOffset", Vector2.ZERO))
+	var visual_rotation := float(enemy.get("visualRotation", 0.0)) if is_boss else 0.0
+	var shadow_scale := float(enemy.get("shadowScale", 1.0)) if is_boss else 1.0
+	pos += visual_offset
+	radius *= maxf(0.8, visual_scale)
 	if bool(enemy.get("defeatPending", false)) and is_boss:
 		var max_delay: float = maxf(0.01, float(enemy.get("defeatDelayMax", 0.55)))
 		var left: float = clampf(float(enemy.get("defeatDelay", 0.0)), 0.0, max_delay)
@@ -1712,20 +1803,51 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 		pos += Vector2(sin(clock * 56.0), cos(clock * 47.0)) * shake
 		radius *= 1.0 + sin(progress * PI) * 0.055
 	var color: Color = enemy_color(body_kind)
-	var speech_text: String = String(enemy.get("speechText", ""))
+	var linked_speech_text: String = String(enemy.get("linkedSpeechText", ""))
+	var speech_text: String = "" if linked_speech_text != "" else String(enemy.get("speechText", ""))
 	var flash_strength: float = enemy_hit_flash_strength(enemy)
 	var flash_color: Color = enemy.get("hitFlashColor", enemy_hit_flash_color(body_kind)) as Color
+	var body := enemy_body_data(body_kind, pos, radius, color, flash_color, flash_strength)
+	body["rotation"] = visual_rotation
+	var shadow := enemy_shadow_data(pos, radius)
+	if is_last_offline:
+		var draw_size := _vector2_from_config(enemy.get("visualDrawSize", {"x": 520.0, "y": 520.0}), Vector2(520.0, 520.0))
+		var scale_vector := _vector2_from_config(enemy.get("visualScaleVector", Vector2.ONE), Vector2.ONE)
+		body["relayBossTransformed"] = true
+		body["drawCenter"] = pos
+		body["drawSize"] = draw_size
+		body["scaleVector"] = scale_vector
+		body["rotation"] = visual_rotation
+		var shadow_pos := Vector2(enemy.get("shadowPos", pos + Vector2(0.0, draw_size.y * 0.37)))
+		shadow = {"pos": shadow_pos, "size": Vector2(draw_size.x * 0.58, draw_size.y * 0.15) * maxf(0.85, shadow_scale), "alpha": 0.22}
+	var body_modulate: Color = body.get("modulate", Color.WHITE) as Color
+	body_modulate.a *= cutin_alpha
+	body["modulate"] = body_modulate
+	if not shadow.is_empty():
+		shadow["alpha"] = float(shadow.get("alpha", 0.22)) * cutin_alpha
+	var bar: Dictionary = {} if is_last_offline and not bool(enemy.get("showWorldHpBar", false)) else enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"]))
+	if bool(enemy.get("cutinIntroLocked", false)):
+		bar = {}
 	return {
 		"kind": kind,
 		"displayName": String(enemy.get("displayName", "")),
 		"pos": pos,
 		"radius": radius,
-		"shadow": enemy_shadow_data(pos, radius),
-		"body": enemy_body_data(body_kind, pos, radius, color, flash_color, flash_strength),
+		"shadow": shadow,
+		"body": body,
 		"face": {} if body_kind == "long_comment_guy" or body_kind == "boss_super_long_comment" or enemy_sprite_path(body_kind) != "" or enemy_has_custom_body_face(body_kind) else enemy_face_data(pos),
-		"bar": enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"])),
-		"speech": speech_bubble_data(pos, speech_text, -radius - 54.0)
+		"bar": bar,
+		"speech": speech_bubble_data(pos, speech_text, -radius - 54.0),
+		"linkedTrollSpeech": linked_troll_speech_bubble_data(pos, linked_speech_text, radius, float(enemy.get("linkedSpeechAlpha", 1.0)))
 	}
+
+static func _vector2_from_config(value: Variant, fallback: Vector2) -> Vector2:
+	if value is Vector2:
+		return value as Vector2
+	if value is Dictionary:
+		var data: Dictionary = value as Dictionary
+		return Vector2(float(data.get("x", fallback.x)), float(data.get("y", fallback.y)))
+	return fallback
 
 static func enemy_face_parts() -> Array:
 	return [
@@ -1861,16 +1983,19 @@ static func enemy_draw_parts(enemy_draw: Dictionary) -> Array:
 	if not (enemy_draw["face"] as Dictionary).is_empty():
 		parts.append({"kind": "face", "data": enemy_draw["face"] as Dictionary})
 	var bar: Dictionary = enemy_draw["bar"] as Dictionary
-	var display_name := String(enemy_draw.get("displayName", ""))
-	bar["label"] = display_name if display_name != "" else DisplayTextSystem.enemy_display_name(String(enemy_draw["kind"]))
-	bar["labelShadow"] = bar["label"]
-	bar["labelOutlineA"] = bar["label"]
-	bar["labelOutlineB"] = bar["label"]
-	bar["labelOutlineC"] = bar["label"]
-	bar["labelOutlineD"] = bar["label"]
-	parts.append({"kind": "bar", "data": bar})
+	if not bar.is_empty():
+		var display_name := String(enemy_draw.get("displayName", ""))
+		bar["label"] = display_name if display_name != "" else DisplayTextSystem.enemy_display_name(String(enemy_draw["kind"]))
+		bar["labelShadow"] = bar["label"]
+		bar["labelOutlineA"] = bar["label"]
+		bar["labelOutlineB"] = bar["label"]
+		bar["labelOutlineC"] = bar["label"]
+		bar["labelOutlineD"] = bar["label"]
+		parts.append({"kind": "bar", "data": bar})
 	if not (enemy_draw["speech"] as Dictionary).is_empty():
 		parts.append({"kind": "speech", "data": enemy_draw["speech"] as Dictionary})
+	if not (enemy_draw["linkedTrollSpeech"] as Dictionary).is_empty():
+		parts.append({"kind": "linked_troll_speech", "data": enemy_draw["linkedTrollSpeech"] as Dictionary})
 	return parts
 
 static func exp_orb_data(base_pos: Vector2, elapsed_time: float, value: int = 1, visual_type: String = "small_blue") -> Dictionary:
@@ -2092,15 +2217,16 @@ static func bullet_visual(player_owned: bool, bullet_item: Dictionary = {}) -> D
 		}
 	var enemy_visual_kind := String(bullet_item.get("visualKind", ""))
 	if enemy_visual_kind == "red_pen_mark":
+		var boss_scale := 1.28 if bool(bullet_item.get("bossProjectile", false)) else 1.0
 		return {
-			"trailLength": 36.0,
+			"trailLength": 42.0 * boss_scale,
 			"trailColor": Color(1.0, 0.05, 0.16, 0.42),
-			"trailWidth": 11.0,
-			"outerRadius": 14.0,
+			"trailWidth": 11.0 * boss_scale,
+			"outerRadius": 14.0 * boss_scale,
 			"outerColor": Color("#ff2448"),
-			"innerRadius": 6.0,
+			"innerRadius": 6.0 * boss_scale,
 			"innerColor": Color("#fff5f7"),
-			"glowRadius": 26.0,
+			"glowRadius": 26.0 * boss_scale,
 			"glowColor": Color(1.0, 0.16, 0.24, 0.24)
 		}
 	if enemy_visual_kind == "pitch_police_note":
@@ -2192,24 +2318,42 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 			item["sparkDot2Radius"] = 2.5
 			item["sparkDot2Color"] = Color(1.0, 0.72, 0.88, 0.70)
 		if visual_kind == "red_pen_mark":
-			item["trailGlowStart"] = pos - vel * 48.0
+			var boss_projectile := bool(bullet_item.get("bossProjectile", false))
+			var projectile_scale := 1.28 if boss_projectile else 1.0
+			var phase := float(bullet_item.get("phase", 0.0))
+			item["trailGlowStart"] = pos - vel * (52.0 * projectile_scale)
 			item["trailGlowEnd"] = pos + vel * 4.0
 			item["trailGlowColor"] = Color(1.0, 0.44, 0.52, 0.20)
-			item["trailGlowWidth"] = 18.0
+			item["trailGlowWidth"] = 18.0 * projectile_scale
+			item["inkSideTrailStart"] = pos - vel * (46.0 * projectile_scale) + side * (6.0 * projectile_scale)
+			item["inkSideTrailEnd"] = pos - vel * (4.0 * projectile_scale) + side * (2.0 * projectile_scale)
+			item["inkSideTrailColor"] = Color(0.34, 0.01, 0.05, 0.58 if boss_projectile else 0.38)
+			item["inkSideTrailWidth"] = 5.0 * projectile_scale
+			item["inkHighlightStart"] = pos - vel * (36.0 * projectile_scale) - side * (4.0 * projectile_scale)
+			item["inkHighlightEnd"] = pos - vel * (2.0 * projectile_scale) - side * (1.0 * projectile_scale)
+			item["inkHighlightColor"] = Color(1.0, 0.72, 0.76, 0.52 if boss_projectile else 0.32)
+			item["inkHighlightWidth"] = 2.4 * projectile_scale
 			item["auraPos"] = pos
-			item["auraRadius"] = 24.0
-			item["auraColor"] = Color(1.0, 0.05, 0.18, 0.32)
+			item["auraRadius"] = 24.0 * projectile_scale
+			item["auraColor"] = Color(1.0, 0.05, 0.18, 0.40 if boss_projectile else 0.32)
+			item["markRingPos"] = pos
+			item["markRingRadius"] = 18.0 * projectile_scale
+			item["markRingColor"] = Color(1.0, 0.72, 0.76, 0.62 if boss_projectile else 0.42)
 			item["markText"] = "×"
-			item["markPos"] = pos + Vector2(-12.0, 10.0)
-			item["markWidth"] = 24
-			item["markSize"] = 23
-			item["markColor"] = Color("#ffffff")
-			item["sparkDot1Pos"] = pos + side * 13.0 - vel * 10.0
-			item["sparkDot1Radius"] = 3.0
+			item["markText"] = "×"
+			item["markPos"] = pos + Vector2(-14.0, 11.0) * projectile_scale
+			item["markWidth"] = roundi(28.0 * projectile_scale)
+			item["markSize"] = roundi(25.0 * projectile_scale)
+			item["markColor"] = Color("#c60c2f") if boss_projectile else Color("#ffffff")
+			item["sparkDot1Pos"] = pos + side * (14.0 * projectile_scale) - vel * (10.0 * projectile_scale)
+			item["sparkDot1Radius"] = 3.2 * projectile_scale
 			item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.82)
-			item["sparkDot2Pos"] = pos - side * 12.0 - vel * 20.0
-			item["sparkDot2Radius"] = 2.4
+			item["sparkDot2Pos"] = pos - side * (12.0 * projectile_scale) - vel * (22.0 * projectile_scale)
+			item["sparkDot2Radius"] = 2.6 * projectile_scale
 			item["sparkDot2Color"] = Color(1.0, 0.70, 0.76, 0.68)
+			item["sparkDot3Pos"] = pos - vel * (31.0 * projectile_scale) + side * sin(phase) * (10.0 * projectile_scale)
+			item["sparkDot3Radius"] = 2.2 * projectile_scale
+			item["sparkDot3Color"] = Color(0.50, 0.01, 0.06, 0.58)
 		if visual_kind == "starlight_superchat" or visual_kind == "high_superchat":
 			var star_color: Color = visual["starColor"] as Color
 			var center_scale: float = 1.10 if bool(bullet_item.get("centerShot", true)) else 0.90
@@ -2299,12 +2443,16 @@ static func bullet_parts(data: Dictionary = {}) -> Array:
 	if visual_kind == "red_pen_mark":
 		return [
 			{"kind": "line", "prefix": "trailGlow"},
+			{"kind": "line", "prefix": "inkSideTrail"},
 			{"kind": "line", "prefix": "trail"},
+			{"kind": "line", "prefix": "inkHighlight"},
 			{"kind": "circle", "prefix": "sparkDot2"},
 			{"kind": "circle", "prefix": "aura", "filled": false, "width": 2.5},
+			{"kind": "circle", "prefix": "markRing", "filled": false, "width": 2.8},
 			{"kind": "circle", "prefix": "outer"},
 			{"kind": "circle", "prefix": "inner"},
 			{"kind": "text", "prefix": "mark", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
+			{"kind": "circle", "prefix": "sparkDot3"},
 			{"kind": "circle", "prefix": "sparkDot1"}
 		]
 	if visual_kind == "pitch_police_note":
@@ -3361,6 +3509,58 @@ static func pickup_text_fx_data(pos: Vector2, life: float, max_life: float, text
 		"labelSize": 19
 	}
 
+static func pink_paint_cancel_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var spread: float = 6.0 + progress * 18.0
+	return {
+		"kind": "pink_paint_cancel",
+		"glowPos": pos,
+		"glowRadius": 18.0 + progress * 10.0,
+		"glowColor": Color(1.0, 0.42, 0.75, 0.22 * alpha),
+		"ringPos": pos,
+		"ringRadius": 8.0 + progress * 15.0,
+		"ringColor": Color(1.0, 0.76, 0.90, 0.72 * alpha),
+		"corePos": pos,
+		"coreRadius": 5.0 + progress * 2.0,
+		"coreColor": Color(1.0, 0.22, 0.62, 0.86 * alpha),
+		"drop1Pos": pos + Vector2(-0.74, -0.38) * spread,
+		"drop1Radius": 3.0,
+		"drop1Color": Color(1.0, 0.50, 0.80, 0.70 * alpha),
+		"drop2Pos": pos + Vector2(0.64, -0.54) * spread,
+		"drop2Radius": 2.4,
+		"drop2Color": Color(1.0, 0.82, 0.94, 0.64 * alpha),
+		"drop3Pos": pos + Vector2(0.20, 0.86) * spread,
+		"drop3Radius": 2.7,
+		"drop3Color": Color(1.0, 0.38, 0.72, 0.62 * alpha)
+	}
+
+static func drawing_erase_clean_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
+	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var spread: float = 5.0 + progress * 20.0
+	return {
+		"kind": "drawing_erase_clean",
+		"glowPos": pos,
+		"glowRadius": 17.0 + progress * 12.0,
+		"glowColor": Color(0.70, 0.96, 1.0, 0.22 * alpha),
+		"ringPos": pos,
+		"ringRadius": 7.0 + progress * 16.0,
+		"ringColor": Color(1.0, 1.0, 1.0, 0.76 * alpha),
+		"corePos": pos,
+		"coreRadius": 4.6 + progress * 1.8,
+		"coreColor": Color(0.92, 1.0, 1.0, 0.86 * alpha),
+		"crumb1Pos": pos + Vector2(-0.68, -0.44) * spread,
+		"crumb1Radius": 2.8,
+		"crumb1Color": Color(1.0, 1.0, 0.96, 0.70 * alpha),
+		"crumb2Pos": pos + Vector2(0.72, -0.38) * spread,
+		"crumb2Radius": 2.2,
+		"crumb2Color": Color(0.78, 0.96, 1.0, 0.60 * alpha),
+		"crumb3Pos": pos + Vector2(0.18, 0.88) * spread,
+		"crumb3Radius": 2.4,
+		"crumb3Color": Color(1.0, 1.0, 1.0, 0.58 * alpha)
+	}
+
 static func song_note_pickup_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
@@ -4104,6 +4304,41 @@ static func boss_defeat_fx_data(pos: Vector2, life: float, max_life: float, radi
 	data["flareWidth"] = 10.0 + 10.0 * burst
 	return data
 
+static func relay_boss_contact_noise_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var progress := clampf(1.0 - alpha, 0.0, 1.0)
+	var direction := dir.normalized()
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.DOWN
+	var side := Vector2(-direction.y, direction.x)
+	var radius := 10.0 + progress * 26.0
+	var ray_length := 18.0 + progress * 28.0
+	return {
+		"kind": "relay_boss_contact_noise",
+		"pos": pos,
+		"glowPos": pos,
+		"glowRadius": radius + 8.0,
+		"glowColor": Color(0.62, 0.20, 0.94, 0.20 * alpha),
+		"ringPos": pos,
+		"ringRadius": radius,
+		"ringColor": Color(0.92, 0.70, 1.0, 0.82 * alpha),
+		"corePos": pos,
+		"coreRadius": 5.0 + 3.0 * alpha,
+		"coreColor": Color(1.0, 1.0, 1.0, 0.88 * alpha),
+		"spark1Start": pos - side * 4.0,
+		"spark1End": pos + side * ray_length,
+		"spark1Color": Color(0.72, 0.34, 1.0, 0.68 * alpha),
+		"spark1Width": 2.0,
+		"spark2Start": pos - direction * 4.0,
+		"spark2End": pos + direction * ray_length,
+		"spark2Color": Color(1.0, 0.94, 1.0, 0.80 * alpha),
+		"spark2Width": 2.4,
+		"spark3Start": pos - (direction + side).normalized() * 3.0,
+		"spark3End": pos + (direction + side).normalized() * ray_length * 0.78,
+		"spark3Color": Color(0.20, 0.02, 0.26, 0.72 * alpha),
+		"spark3Width": 1.8
+	}
+
 static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Array:
 	var items: Array = []
 	var use_culling := visible_rect.size != Vector2.ZERO
@@ -4134,6 +4369,9 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 		if String(fx_item.get("kind", "")) == "listener_burst":
 			items.append(listener_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
 			continue
+		if String(fx_item.get("kind", "")) == "relay_boss_contact_noise":
+			items.append(relay_boss_contact_noise_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.DOWN)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.30))))
+			continue
 		if String(fx_item.get("kind", "")) == "enemy_defeat":
 			items.append(enemy_defeat_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.28)), float(fx_item.get("radius", 22.0)), bool(fx_item.get("boss", false))))
 			continue
@@ -4151,6 +4389,12 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 			continue
 		if String(fx_item.get("kind", "")) == "pickup_text":
 			items.append(pickup_text_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.72)), String(fx_item.get("text", "")), fx_item.get("color", Color.WHITE) as Color))
+			continue
+		if String(fx_item.get("kind", "")) == "pink_paint_cancel":
+			items.append(pink_paint_cancel_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.26))))
+			continue
+		if String(fx_item.get("kind", "")) == "drawing_erase_clean":
+			items.append(drawing_erase_clean_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.30))))
 			continue
 		if String(fx_item.get("kind", "")) == "damage_number":
 			items.append(damage_number_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.62)), float(fx_item["damage"])))
@@ -4311,6 +4555,24 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "text", "prefix": "shadow"},
 			{"kind": "text", "prefix": "label"}
+		]
+	if String(data.get("kind", "")) == "pink_paint_cancel":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.4},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "circle", "prefix": "drop1"},
+			{"kind": "circle", "prefix": "drop2"},
+			{"kind": "circle", "prefix": "drop3"}
+		]
+	if String(data.get("kind", "")) == "drawing_erase_clean":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.3},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "circle", "prefix": "crumb1"},
+			{"kind": "circle", "prefix": "crumb2"},
+			{"kind": "circle", "prefix": "crumb3"}
 		]
 	if String(data.get("kind", "")) == "song_note_pickup":
 		return [
@@ -4580,6 +4842,15 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "circle", "prefix": "outer"},
 			{"kind": "circle", "prefix": "inner"}
+		]
+	if String(data.get("kind", "")) == "relay_boss_contact_noise":
+		return [
+			{"kind": "circle", "prefix": "glow"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.4},
+			{"kind": "circle", "prefix": "core"},
+			{"kind": "line", "prefix": "spark1"},
+			{"kind": "line", "prefix": "spark2"},
+			{"kind": "line", "prefix": "spark3"}
 		]
 	if String(data.get("kind", "")) == "enemy_defeat":
 		return [

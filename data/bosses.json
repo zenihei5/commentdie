@@ -1,6 +1,11 @@
 [
   {
     "id": "boss_super_long_comment",
+    "ppRewardId": "boss_super_long_comment",
+    "basePpReward": 0,
+    "isPpRewardTarget": false,
+    "isFirstDefeatRewardTarget": false,
+    "cutin": {"version": 2, "displayName": "超長文ニキ", "subTitle": "コメント怪異", "labelType": "boss", "imagePath": "res://assets/generated/enemy_sprites_v1/super_long_comment_boss.png", "themeColor": "#ff66b8", "accentColor": "#8defff", "noiseColor": "#f7f7ff", "bgStyle": "zatsudan", "durationSeconds": 1.8, "imageSide": "left", "entryDirection": "left", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_normal", "isFinalBoss": false, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "super_long_comment", "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "bounce", "useRelayThemeSequence": false, "bgmDuckVolumeMultiplier": 0.55},
     "displayName": "超長文ニキ",
     "description": "長文ニキの巨大版。大きなコメント塊でプレイヤーを追い詰める。",
     "hp": 400.0,
@@ -22,6 +27,11 @@
   },
   {
     "id": "boss_kuso_maro_king",
+    "ppRewardId": "kusomaro_king",
+    "basePpReward": 75,
+    "isPpRewardTarget": true,
+    "isFirstDefeatRewardTarget": true,
+    "cutin": {"version": 3, "displayName": "クソマロキング", "subTitle": "未読マシュマロの王", "labelType": "boss", "imagePath": "res://assets/generated/enemy_sprites_v1/kuso_maro_king.png", "themeColor": "#ff66b8", "accentColor": "#8defff", "noiseColor": "#f7f7ff", "bgStyle": "zatsudan", "durationSeconds": 2.10, "imageSide": "left", "entryDirection": "left", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_normal", "customSeType": "boss_normal", "isFinalBoss": false, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "kusomaro_king", "customCommentPoolId": "cutin_kusomaro_king", "customIntroId": "marshmallow_pile", "customFinaleId": "marshmallow_crown_drop", "customIntroDurationSeconds": 0.55, "replaceCommonThemeIntro": false, "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "marshmallow_crown", "useRelayThemeSequence": false, "bgmDuckVolumeMultiplier": 0.55},
     "displayName": "クソマロキング",
     "description": "読まれなかったマシュマロとクソマロが巨大化した妨害型ボス。",
     "warningText": "クソマロキング出現！",
@@ -84,6 +94,11 @@
   },
   {
     "id": "bugged_final_boss",
+    "ppRewardId": "bugged_final_boss",
+    "basePpReward": 75,
+    "isPpRewardTarget": true,
+    "isFirstDefeatRewardTarget": true,
+    "cutin": {"version": 3, "displayName": "バグったラスボス", "subTitle": "実況崩壊プログラム", "labelType": "boss", "imagePath": "res://assets/generated/enemy_sprites_v1/gameplay_bugged_final_boss.png", "themeColor": "#59d8ff", "accentColor": "#7a6cff", "noiseColor": "#f4f7ff", "bgStyle": "gameplay", "durationSeconds": 2.20, "imageSide": "left", "entryDirection": "left", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_normal", "customSeType": "bugged_game_boss", "isFinalBoss": false, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "bugged_final_boss", "customCommentPoolId": "cutin_bugged_final_boss", "customIntroId": "bugged_game_final_boss", "customFinaleId": "bugged_name_correction", "customIntroDurationSeconds": 0.65, "replaceCommonThemeIntro": false, "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "bugged_glitch_settle", "useRelayThemeSequence": false, "bgmDuckVolumeMultiplier": 0.55},
     "displayName": "バグったラスボス",
     "description": "ゲーム実況枠のジャンル変化を暴走させる専用ボス。レース、弾幕、ホラーを強制的に切り替えてくる。",
     "warningText": "バグったラスボス出現！",
@@ -109,6 +124,11 @@
   },
   {
     "id": "pitch_police_chief",
+    "ppRewardId": "pitch_police_chief",
+    "basePpReward": 75,
+    "isPpRewardTarget": true,
+    "isFirstDefeatRewardTarget": true,
+    "cutin": {"version": 3, "displayName": "音程警察長", "subTitle": "", "labelType": "boss", "imagePath": "res://assets/generated/enemy_sprites_v1/song_pitch_police_chief.png", "themeColor": "#ff5d91", "accentColor": "#73d9ff", "noiseColor": "#fff7d8", "bgStyle": "singing", "durationSeconds": 2.25, "imageSide": "left", "entryDirection": "right", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_normal", "customSeType": "pitch_police_boss", "isFinalBoss": false, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "pitch_police_chief", "customCommentPoolId": "cutin_pitch_police_chief", "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "pitch_police_crackdown", "useRelayThemeSequence": false, "bgmDuckVolumeMultiplier": 0.52, "customIntroId": "pitch_violation_crackdown", "customIntroDurationSeconds": 0.78, "customFinaleId": ""},
     "displayName": "音程警察長",
     "description": "歌枠に出現する音程チェック系の専用ボス。",
     "warningText": "音程警察長 出現！",
@@ -134,6 +154,11 @@
   },
   {
     "id": "red_pen_review_chief",
+    "ppRewardId": "redpen_retake_dragon",
+    "basePpReward": 75,
+    "isPpRewardTarget": true,
+    "isFirstDefeatRewardTarget": true,
+    "cutin": {"version": 3, "displayName": "赤ペンリテイクドラゴン", "subTitle": "修正指示の化身", "labelType": "boss", "imagePath": "res://assets/generated/enemy_sprites_v1/red_pen_retake_dragon.png", "themeColor": "#72e7c5", "accentColor": "#ff71b8", "noiseColor": "#fff7fb", "bgStyle": "drawing", "durationSeconds": 2.15, "imageSide": "left", "entryDirection": "left", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_normal", "customSeType": "boss_normal", "isFinalBoss": false, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "red_pen_review_chief", "customCommentPoolId": "cutin_redpen_retake_dragon", "customIntroId": "redpen_rewrite", "customFinaleId": "", "customIntroDurationSeconds": 0.60, "replaceCommonThemeIntro": false, "useFakeNameCorrection": false, "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "redpen_rewrite", "useRelayThemeSequence": false, "bgmDuckVolumeMultiplier": 0.55},
     "displayName": "赤ペンリテイクドラゴン",
     "description": "お絵かき枠に出現する赤ペンリテイク系の専用ボス。",
     "warningText": "赤ペンリテイクドラゴン 出現！",
@@ -154,6 +179,36 @@
       "red_pen_bullet",
       "review_line",
       "summon_fix_notes"
+    ]
+  },
+  {
+    "id": "collab_crusher",
+    "ppRewardId": "collab_crusher",
+    "basePpReward": 75,
+    "isPpRewardTarget": true,
+    "isFirstDefeatRewardTarget": true,
+    "cutin": {"version": 3, "displayName": "コラボクラッシャー", "subTitle": "同期破壊ユニット", "labelType": "boss", "imagePath": "res://assets/generated/enemy_sprites_v1/collab_crusher.png", "themeColor": "#ff9b45", "accentColor": "#ff66b8", "noiseColor": "#fff7fb", "bgStyle": "collab", "durationSeconds": 2.20, "imageSide": "left", "entryDirection": "left", "flipH": false, "flipImageX": false, "imageScale": 1.0, "imageOffset": {"x": 0, "y": 0}, "seType": "boss_normal", "customSeType": "boss_normal", "isFinalBoss": false, "useSilhouetteReveal": true, "useCommentBurst": true, "commentPoolId": "collab_crusher", "customCommentPoolId": "cutin_collab_crusher", "customIntroId": "split_stream_crash", "customFinaleId": "", "customIntroDurationSeconds": 0.65, "replaceCommonThemeIntro": false, "connectImageToBossSpawn": true, "useBossIntroPose": true, "introPoseId": "collab_split_break", "useRelayThemeSequence": false, "bgmDuckVolumeMultiplier": 0.55},
+    "displayName": "コラボクラッシャー",
+    "description": "比較と対立ノイズで二人の連携を崩そうとするコラボ枠専用ボス。",
+    "warningText": "コラボクラッシャー 出現！",
+    "stageId": "collab",
+    "role": "collab_stage_boss",
+    "hp": 1300.0,
+    "speed": 48.0,
+    "radius": 112.0,
+    "contactDamage": 30,
+    "expValue": 32,
+    "viewerValue": 4800,
+    "giftHypeReward": 32,
+    "lifetime": 120.0,
+    "hitFlashDuration": 0.06,
+    "knockbackResistance": 1.0,
+    "canBeKnockedBack": false,
+    "attacks": [
+      "collab_vs_line",
+      "collab_comment_divide",
+      "collab_partner_mute",
+      "collab_comparison_spam"
     ]
   }
 ]

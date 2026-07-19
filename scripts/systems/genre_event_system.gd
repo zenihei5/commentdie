@@ -1,5 +1,8 @@
 extends RefCounted
+
 class_name GenreEventSystem
+
+const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 
 const FIRST_GENRE_EVENT_TIME := 25.0
 const GENRE_EVENT_DURATION := 20.0
@@ -66,9 +69,7 @@ static func clear_temp_objects_for_target(target: Node) -> void:
 		target.set("enemies", kept_enemies)
 
 static func placement_walls_for_target(target: Node) -> Array:
-	var stream_frame_id := String(target.get("current_stream_frame_id"))
-	if stream_frame_id == "":
-		stream_frame_id = "zatsudan"
+	var stream_frame_id := DrawDataSystem.collision_frame_id_for_target(target)
 	var walls: Array = DrawDataSystem.static_wall_rects(stream_frame_id)
 	var effect_walls: Array = target.get("effect_walls") as Array
 	for wall_item in effect_walls:
@@ -513,7 +514,11 @@ static func update_race_objects_for_target(target: Node, delta: float, arena: Re
 	var picked_count := 0
 	for coin_item in coins:
 		var coin: Dictionary = coin_item as Dictionary
-		var radius := float(coin.get("radius", 24.0)) + 24.0
+		var pickup_base := 24.0
+		var snapshot = target.get("permanent_upgrade_snapshot")
+		if snapshot != null:
+			pickup_base = PowerUpEffectProviderScript.normal_pickup_radius(pickup_base, snapshot)
+		var radius := float(coin.get("radius", 24.0)) + pickup_base
 		var coin_pos := Vector2(coin.get("pos", Vector2.ZERO))
 		if player_pos.distance_squared_to(coin_pos) <= radius * radius:
 			var score_gain := ScoreSystem.race_bonus(RACE_COIN_SCORE, int(target.get("streaming_skill_level")))
@@ -621,7 +626,7 @@ static func make_bullet(arena: Rect2, player_pos: Vector2, rng: RandomNumberGene
 		pos = Vector2(arena.end.x + 20.0, rng.randf_range(arena.position.y, arena.end.y))
 	var dir: Vector2 = (player_pos - pos).normalized().rotated(rng.randf_range(-0.22, 0.22))
 	var speed: float = 185.0
-	return {"pos": pos, "vel": dir * speed, "life": 5.0, "hitRadius": 17.0, "source": "genre bullet"}
+	return {"pos": pos, "vel": dir * speed, "life": 5.0, "hitRadius": 17.0, "source": "genre bullet", "erasableByPinkPaint": true}
 
 static func spawn_bullet_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var bullets: Array = target.get("enemy_bullets") as Array

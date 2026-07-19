@@ -2549,6 +2549,136 @@
       "reaction_count_min": 1,
       "reaction_count_max": 2
     },
+    "collab_instruction_partner_take_over": {
+      "notice": [
+        {
+          "text": "相方に任せろ！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "collab_instruction_partner_take_over", "notice", "collab"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "相方火力上がってる",
+          "type": "normal",
+          "weight": 7,
+          "tags": ["event", "collab_instruction_partner_take_over", "reaction", "collab"]
+        },
+        {
+          "text": "自分の火力落ちるの注意",
+          "type": "warning",
+          "weight": 6,
+          "tags": ["event", "collab_instruction_partner_take_over", "reaction", "collab"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "collab_instruction_dont_fail": {
+      "notice": [
+        {
+          "text": "コラボチャレンジ開始！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "collab_instruction_dont_fail", "notice", "collab"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "ここ合わせたい",
+          "type": "normal",
+          "weight": 7,
+          "tags": ["event", "collab_instruction_dont_fail", "reaction", "collab"]
+        },
+        {
+          "text": "失敗するな圧きた",
+          "type": "joke",
+          "weight": 6,
+          "tags": ["event", "collab_instruction_dont_fail", "reaction", "collab", "joke"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "collab_instruction_keep_sync": {
+      "notice": [
+        {
+          "text": "連携切らすな！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "collab_instruction_keep_sync", "notice", "collab"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "星守って",
+          "type": "warning",
+          "weight": 7,
+          "tags": ["event", "collab_instruction_keep_sync", "reaction", "collab"]
+        },
+        {
+          "text": "被弾でシンクロ落ちる",
+          "type": "warning",
+          "weight": 6,
+          "tags": ["event", "collab_instruction_keep_sync", "reaction", "collab"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "collab_instruction_out_of_sync": {
+      "notice": [
+        {
+          "text": "息合ってない！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "collab_instruction_out_of_sync", "notice", "collab"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "相方の攻撃にも注意",
+          "type": "warning",
+          "weight": 7,
+          "tags": ["event", "collab_instruction_out_of_sync", "reaction", "collab"]
+        },
+        {
+          "text": "足元が忙しい",
+          "type": "normal",
+          "weight": 6,
+          "tags": ["event", "collab_instruction_out_of_sync", "reaction", "collab"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
+    "collab_instruction_fast_pass": {
+      "notice": [
+        {
+          "text": "パス遅い！",
+          "type": "warning",
+          "weight": 10,
+          "tags": ["event", "collab_instruction_fast_pass", "notice", "collab"]
+        }
+      ],
+      "reactions": [
+        {
+          "text": "PASS急いで",
+          "type": "warning",
+          "weight": 7,
+          "tags": ["event", "collab_instruction_fast_pass", "reaction", "collab"]
+        },
+        {
+          "text": "3秒は短い",
+          "type": "normal",
+          "weight": 6,
+          "tags": ["event", "collab_instruction_fast_pass", "reaction", "collab"]
+        }
+      ],
+      "reaction_count_min": 1,
+      "reaction_count_max": 2
+    },
     "gameplay_genre_change_common": {
       "notice": [
         {

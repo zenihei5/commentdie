@@ -266,7 +266,7 @@ static func taken_gift_summary(taken_gift_names: Array[String]) -> String:
 		recent.append(taken_gift_names[i])
 	return " / ".join(recent)
 
-static func stream_frame_result_text(stream_frame_id: String, genre_stats: Dictionary, marshmallow_stats: Dictionary, song_stats: Dictionary = {}, drawing_stats: Dictionary = {}) -> String:
+static func stream_frame_result_text(stream_frame_id: String, genre_stats: Dictionary, marshmallow_stats: Dictionary, song_stats: Dictionary = {}, drawing_stats: Dictionary = {}, collab_stats: Dictionary = {}) -> String:
 	if stream_frame_id == "gameplay":
 		return "\nゲーム実況結果：変化 %d / レース %d / 弾幕 %d / ホラー %d / 完走 %d" % [
 			int(genre_stats.get("genreEventCount", 0)),
@@ -291,6 +291,17 @@ static func stream_frame_result_text(stream_frame_id: String, genre_stats: Dicti
 			int(drawing_stats.get("fillCount", 0)),
 			int(drawing_stats.get("correctionCount", 0)),
 			int(drawing_stats.get("eraserCount", 0))
+		]
+	if stream_frame_id == "collab":
+		var partner_name := String(collab_stats.get("partnerName", "相方"))
+		if partner_name == "" or partner_name == "未選択":
+			partner_name = "相方"
+		return "\nコラボ結果：相方 %s / パス成功 %d / 星 %d / ペア技 %d / チャレンジ成功 %d" % [
+			partner_name,
+			int(collab_stats.get("passSuccessCount", 0)),
+			int(collab_stats.get("syncStarsCollected", 0)),
+			int(collab_stats.get("pairSkillCount", 0)),
+			int(collab_stats.get("challengeSuccessCount", 0))
 		]
 	return "\nマシュマロ結果：読了 %d / 良マロ %d / 神マロ %d / クソマロ %d / 未読化 %d" % [
 		int(marshmallow_stats.get("answered", 0)),

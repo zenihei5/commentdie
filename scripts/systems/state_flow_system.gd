@@ -4,8 +4,8 @@ extends RefCounted
 const OPTION_ITEM_COUNT := 8
 const OPTION_RESET_INDEX := 6
 const OPTION_BACK_INDEX := 7
-const TITLE_MENU_COUNT := 4
-const TITLE_QUIT_INDEX := 3
+const TITLE_MENU_COUNT := 5
+const TITLE_QUIT_INDEX := 4
 
 static func toggle_pause_state(state: String, previous_state: String) -> Dictionary:
 	if state == "pause":
@@ -40,6 +40,7 @@ static func update_pause_input_for_target(target: Node) -> void:
 
 static func apply_title_action_for_target(target: Node, action: String) -> Dictionary:
 	var start_character_select := false
+	var open_power_up_shop := false
 	var open_ranking := false
 	var open_options := false
 	var quit_game := false
@@ -51,16 +52,20 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 		target.set("title_menu_index", 0)
 		start_character_select = true
 	if action == "title_ranking":
-		target.set("title_menu_index", 1)
-		open_ranking = true
-	if action == "title_options":
 		target.set("title_menu_index", 2)
+		open_ranking = true
+	if action == "title_power_up_shop":
+		target.set("title_menu_index", 1)
+		open_power_up_shop = true
+	if action == "title_options":
+		target.set("title_menu_index", 3)
 		open_options = true
 	if action == "title_select" or action == "start":
 		var index: int = int(target.get("title_menu_index"))
 		start_character_select = index == 0
-		open_ranking = index == 1
-		open_options = index == 2
+		open_power_up_shop = index == 1
+		open_ranking = index == 2
+		open_options = index == 3
 		quit_game = index == TITLE_QUIT_INDEX
 	if action == "toggle_mode":
 		target.set("quick_test_mode", not bool(target.get("quick_test_mode")))
@@ -74,6 +79,7 @@ static func apply_title_action_for_target(target: Node, action: String) -> Dicti
 	SettingsSystem.apply_title_action_for_target(target, action)
 	return {
 		"startCharacterSelect": start_character_select,
+		"openPowerUpShop": open_power_up_shop,
 		"openRanking": open_ranking,
 		"openOptions": open_options,
 		"quitGame": quit_game
@@ -145,6 +151,8 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 		var title_result: Dictionary = apply_title_action_for_target(target, title_action)
 		if bool(title_result["startCharacterSelect"]):
 			return {"handled": true, "action": "start_character_select"}
+		if bool(title_result["openPowerUpShop"]):
+			return {"handled": true, "action": "open_power_up_shop"}
 		if bool(title_result["openRanking"]):
 			return {"handled": true, "action": "open_title_ranking"}
 		if bool(title_result["openOptions"]):
@@ -171,6 +179,8 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 		return {"handled": true, "action": "update_stream_frame_select"}
 	if state == "stream_start_intro":
 		return {"handled": true, "action": ""}
+	if state == "boss_cutin":
+		return {"handled": true, "action": ""}
 	if state == "game_over_intro":
 		return {"handled": true, "action": ""}
 	if state == "tutorial":
@@ -193,6 +203,8 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 				return {"handled": true, "action": ranking_action}
 			return {"handled": true, "action": ""}
 		return {"handled": true, "action": result_action}
+	if state == "power_up_shop":
+		return {"handled": true, "action": ""}
 	if state == "pause":
 		return {"handled": true, "action": ""}
 	return {"handled": false, "action": ""}
@@ -207,7 +219,7 @@ static func apply_front_action(action: String, handlers: Dictionary) -> void:
 		handler.call()
 
 static func active_update_action(state: String) -> String:
-	if state == "game_over_intro":
+	if state == "game_over_intro" or state == "boss_cutin":
 		return ""
 	if state == "comment_choice":
 		return "comment_choice"
@@ -224,7 +236,7 @@ static func apply_active_update(state: String, handlers: Dictionary) -> void:
 		handler.call()
 
 static func has_modal_overlay(state: String) -> bool:
-	return state in ["comment_choice", "gift_choice", "pause", "title", "ranking", "options", "character_select", "stream_frame_select", "stream_start_intro", "tutorial", "result"]
+	return state in ["comment_choice", "gift_choice", "pause", "title", "ranking", "options", "character_select", "stream_frame_select", "collab_partner_select", "stream_start_intro", "boss_cutin", "tutorial", "result", "power_up_shop"]
 
 static func has_choice_backplate(state: String) -> bool:
 	return state == "comment_choice" or state == "gift_choice"
@@ -236,10 +248,14 @@ static func overlay_view(state: String) -> String:
 		return "ranking"
 	if state == "options":
 		return "options"
+	if state == "power_up_shop":
+		return "power_up_shop"
 	if state == "character_select":
 		return "character_select"
 	if state == "stream_frame_select":
 		return "stream_frame_select"
+	if state == "collab_partner_select":
+		return "collab_partner_select"
 	if state == "stream_start_intro":
 		return "stream_start_intro"
 	if state == "game_over_intro":
@@ -253,7 +269,7 @@ static func overlay_view(state: String) -> String:
 	return ""
 
 static func shows_comment_countdown(state: String) -> bool:
-	return not (state in ["title", "ranking", "options", "character_select", "stream_frame_select", "stream_start_intro", "game_over_intro", "tutorial", "result", "pause"])
+	return not (state in ["title", "ranking", "options", "character_select", "stream_frame_select", "collab_partner_select", "stream_start_intro", "boss_cutin", "game_over_intro", "tutorial", "result", "pause", "power_up_shop"])
 
 static func update_tutorial_state(tutorial_grace: float, delta: float) -> Dictionary:
 	var next_grace: float = maxf(0.0, tutorial_grace - delta)

@@ -1,0 +1,1 @@
+User-provided last offline final boss sprite; chroma-key cleanup and centered transparent game asset.

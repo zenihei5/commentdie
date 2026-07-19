@@ -1,0 +1,1086 @@
+{
+  "schemaVersion": 1,
+  "sourceDirectory": "external:user-provided/boss-cut-in",
+  "processing": {
+    "method": "green chroma key with edge alpha and green despill",
+    "keyColor": "#00ff00",
+    "tightCropPadding": 8
+  },
+  "assets": [
+    {
+      "sourceFile": "boss_cutin_label_boss.png",
+      "output": "assets/generated/boss_cutin_v3_assets/boss_cutin_label_boss.png",
+      "originalSize": [
+        2804,
+        561
+      ],
+      "contentBoundsInSource": [
+        95,
+        115,
+        2711,
+        465
+      ],
+      "outputSize": [
+        2616,
+        350
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 184659,
+      "partialAlphaPixels": 2131,
+      "opaquePixels": 728810
+    },
+    {
+      "sourceFile": "cutin_bug_loading_bar.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_bug_loading_bar.png",
+      "originalSize": [
+        2804,
+        561
+      ],
+      "contentBoundsInSource": [
+        198,
+        164,
+        2611,
+        439
+      ],
+      "outputSize": [
+        2413,
+        275
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 155162,
+      "partialAlphaPixels": 7310,
+      "opaquePixels": 501103
+    },
+    {
+      "sourceFile": "boss_cutin_label_final.png",
+      "output": "assets/generated/boss_cutin_v3_assets/boss_cutin_label_final.png",
+      "originalSize": [
+        3318,
+        474
+      ],
+      "contentBoundsInSource": [
+        59,
+        75,
+        3258,
+        395
+      ],
+      "outputSize": [
+        3199,
+        320
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 304004,
+      "partialAlphaPixels": 8780,
+      "opaquePixels": 710896
+    },
+    {
+      "sourceFile": "cutin_collab_broken_heart.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_collab_broken_heart.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        97,
+        164,
+        1157,
+        1094
+      ],
+      "outputSize": [
+        1060,
+        930
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 349985,
+      "partialAlphaPixels": 1459,
+      "opaquePixels": 634356
+    },
+    {
+      "sourceFile": "cutin_bug_horizontal_noise.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_bug_horizontal_noise.png",
+      "originalSize": [
+        1672,
+        941
+      ],
+      "contentBoundsInSource": [
+        21,
+        349,
+        1652,
+        598
+      ],
+      "outputSize": [
+        1631,
+        249
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 200886,
+      "partialAlphaPixels": 14029,
+      "opaquePixels": 191204
+    },
+    {
+      "sourceFile": "cutin_redpen_circle.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_redpen_circle.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        81,
+        72,
+        1171,
+        1150
+      ],
+      "outputSize": [
+        1090,
+        1078
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 939035,
+      "partialAlphaPixels": 4347,
+      "opaquePixels": 231638
+    },
+    {
+      "sourceFile": "cutin_decor_marshmallow_small.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_decor_marshmallow_small.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        72,
+        96,
+        1189,
+        1172
+      ],
+      "outputSize": [
+        1254,
+        1254
+      ],
+      "preserveCanvas": true,
+      "transparentPixels": 1151255,
+      "partialAlphaPixels": 3900,
+      "opaquePixels": 417361
+    },
+    {
+      "sourceFile": "cutin_decor_kusomaro_crown.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_decor_kusomaro_crown.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        68,
+        168,
+        1185,
+        993
+      ],
+      "outputSize": [
+        1117,
+        825
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 394323,
+      "partialAlphaPixels": 2126,
+      "opaquePixels": 525076
+    },
+    {
+      "sourceFile": "cutin_bug_pixel_fragment.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_bug_pixel_fragment.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        56,
+        41,
+        1198,
+        1200
+      ],
+      "outputSize": [
+        1254,
+        1254
+      ],
+      "preserveCanvas": true,
+      "transparentPixels": 1188442,
+      "partialAlphaPixels": 10915,
+      "opaquePixels": 373159
+    },
+    {
+      "sourceFile": "boss_cutin_impact_lines.png",
+      "output": "assets/generated/boss_cutin_v3_assets/boss_cutin_impact_lines.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        6,
+        2,
+        1245,
+        1250
+      ],
+      "outputSize": [
+        1254,
+        1254
+      ],
+      "preserveCanvas": true,
+      "transparentPixels": 1306004,
+      "partialAlphaPixels": 46544,
+      "opaquePixels": 219968
+    },
+    {
+      "sourceFile": "cutin_lastoffline_eye_glow.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_lastoffline_eye_glow.png",
+      "originalSize": [
+        2172,
+        724
+      ],
+      "contentBoundsInSource": [
+        330,
+        115,
+        1841,
+        569
+      ],
+      "outputSize": [
+        1511,
+        454
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 426969,
+      "partialAlphaPixels": 36265,
+      "opaquePixels": 222760
+    },
+    {
+      "sourceFile": "cutin_redpen_line_set.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_redpen_line_set.png",
+      "originalSize": [
+        1672,
+        941
+      ],
+      "contentBoundsInSource": [
+        54,
+        77,
+        1630,
+        879
+      ],
+      "outputSize": [
+        1672,
+        941
+      ],
+      "preserveCanvas": true,
+      "transparentPixels": 1400627,
+      "partialAlphaPixels": 11809,
+      "opaquePixels": 160916
+    },
+    {
+      "sourceFile": "cutin_collab_vs_mark.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_collab_vs_mark.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        111,
+        77,
+        1143,
+        1168
+      ],
+      "outputSize": [
+        1032,
+        1091
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 616743,
+      "partialAlphaPixels": 3028,
+      "opaquePixels": 506141
+    },
+    {
+      "sourceFile": "boss_cutin_glitch_fragments.png",
+      "output": "assets/generated/boss_cutin_v3_assets/boss_cutin_glitch_fragments.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        23,
+        23,
+        1223,
+        1221
+      ],
+      "outputSize": [
+        1254,
+        1254
+      ],
+      "preserveCanvas": true,
+      "transparentPixels": 1473955,
+      "partialAlphaPixels": 15183,
+      "opaquePixels": 83378
+    },
+    {
+      "sourceFile": "cutin_collab_crack.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_collab_crack.png",
+      "originalSize": [
+        1024,
+        1536
+      ],
+      "contentBoundsInSource": [
+        316,
+        12,
+        735,
+        1517
+      ],
+      "outputSize": [
+        419,
+        1505
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 351803,
+      "partialAlphaPixels": 2770,
+      "opaquePixels": 276022
+    },
+    {
+      "sourceFile": "cutin_lastoffline_power_icon.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_lastoffline_power_icon.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        152,
+        147,
+        1104,
+        1095
+      ],
+      "outputSize": [
+        952,
+        948
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 436421,
+      "partialAlphaPixels": 27979,
+      "opaquePixels": 438096
+    },
+    {
+      "sourceFile": "cutin_redpen_cross.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_redpen_cross.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        88,
+        152,
+        1159,
+        1137
+      ],
+      "outputSize": [
+        1071,
+        985
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 718781,
+      "partialAlphaPixels": 10078,
+      "opaquePixels": 326076
+    },
+    {
+      "sourceFile": "cutin_lastoffline_mouth_glow.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_lastoffline_mouth_glow.png",
+      "originalSize": [
+        1536,
+        1024
+      ],
+      "contentBoundsInSource": [
+        12,
+        252,
+        1526,
+        792
+      ],
+      "outputSize": [
+        1514,
+        540
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 436890,
+      "partialAlphaPixels": 9158,
+      "opaquePixels": 371512
+    },
+    {
+      "sourceFile": "cutin_lastoffline_core_glow.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_lastoffline_core_glow.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        84,
+        87,
+        1182,
+        1167
+      ],
+      "outputSize": [
+        1098,
+        1080
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 545360,
+      "partialAlphaPixels": 36968,
+      "opaquePixels": 603512
+    },
+    {
+      "sourceFile": "cutin_pitch_line.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_pitch_line.png",
+      "originalSize": [
+        2172,
+        724
+      ],
+      "contentBoundsInSource": [
+        36,
+        147,
+        2135,
+        600
+      ],
+      "outputSize": [
+        2099,
+        453
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 810602,
+      "partialAlphaPixels": 68467,
+      "opaquePixels": 71778
+    },
+    {
+      "sourceFile": "cutin_pitch_violation_marker.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_pitch_violation_marker.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        77,
+        97,
+        1212,
+        1157
+      ],
+      "outputSize": [
+        1135,
+        1060
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 898554,
+      "partialAlphaPixels": 6423,
+      "opaquePixels": 298123
+    },
+    {
+      "sourceFile": "cutin_pitch_police_siren.png",
+      "output": "assets/generated/boss_cutin_v3_assets/cutin_pitch_police_siren.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        152,
+        318,
+        1080,
+        978
+      ],
+      "outputSize": [
+        928,
+        660
+      ],
+      "preserveCanvas": false,
+      "transparentPixels": 174046,
+      "partialAlphaPixels": 33385,
+      "opaquePixels": 405049
+    },
+    {
+      "sourceFile": "boss_cutin_bg_common.png",
+      "output": "assets/generated/boss_cutin_v3_assets/boss_cutin_bg_common.png",
+      "originalSize": [
+        1672,
+        941
+      ],
+      "outputSize": [
+        1672,
+        941
+      ],
+      "preserveCanvas": true,
+      "opaqueBackground": true
+    }
+  ],
+  "marshmallowCuts": [
+    {
+      "id": "marshmallow_01",
+      "sourceRegion": [
+        0,
+        0,
+        281,
+        293
+      ],
+      "contentBoundsInRegion": [
+        89,
+        105,
+        241,
+        261
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_01.png",
+      "outputSize": [
+        152,
+        156
+      ],
+      "transparentPixels": 6197,
+      "partialAlphaPixels": 176,
+      "opaquePixels": 17339
+    },
+    {
+      "id": "marshmallow_02",
+      "sourceRegion": [
+        281,
+        0,
+        516,
+        293
+      ],
+      "contentBoundsInRegion": [
+        40,
+        104,
+        198,
+        252
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_02.png",
+      "outputSize": [
+        158,
+        148
+      ],
+      "transparentPixels": 6176,
+      "partialAlphaPixels": 156,
+      "opaquePixels": 17052
+    },
+    {
+      "id": "marshmallow_03",
+      "sourceRegion": [
+        516,
+        0,
+        752,
+        293
+      ],
+      "contentBoundsInRegion": [
+        42,
+        100,
+        198,
+        255
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_03.png",
+      "outputSize": [
+        156,
+        155
+      ],
+      "transparentPixels": 7189,
+      "partialAlphaPixels": 154,
+      "opaquePixels": 16837
+    },
+    {
+      "id": "marshmallow_04",
+      "sourceRegion": [
+        752,
+        0,
+        986,
+        293
+      ],
+      "contentBoundsInRegion": [
+        44,
+        100,
+        198,
+        258
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_04.png",
+      "outputSize": [
+        154,
+        158
+      ],
+      "transparentPixels": 6202,
+      "partialAlphaPixels": 189,
+      "opaquePixels": 17941
+    },
+    {
+      "id": "marshmallow_05",
+      "sourceRegion": [
+        986,
+        0,
+        1254,
+        293
+      ],
+      "contentBoundsInRegion": [
+        42,
+        110,
+        197,
+        264
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_05.png",
+      "outputSize": [
+        155,
+        154
+      ],
+      "transparentPixels": 8698,
+      "partialAlphaPixels": 150,
+      "opaquePixels": 15022
+    },
+    {
+      "id": "marshmallow_06",
+      "sourceRegion": [
+        0,
+        293,
+        281,
+        525
+      ],
+      "contentBoundsInRegion": [
+        83,
+        39,
+        235,
+        197
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_06.png",
+      "outputSize": [
+        152,
+        158
+      ],
+      "transparentPixels": 6212,
+      "partialAlphaPixels": 148,
+      "opaquePixels": 17656
+    },
+    {
+      "id": "marshmallow_07",
+      "sourceRegion": [
+        281,
+        293,
+        516,
+        525
+      ],
+      "contentBoundsInRegion": [
+        47,
+        45,
+        185,
+        192
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_07.png",
+      "outputSize": [
+        138,
+        147
+      ],
+      "transparentPixels": 6908,
+      "partialAlphaPixels": 146,
+      "opaquePixels": 13232
+    },
+    {
+      "id": "marshmallow_08",
+      "sourceRegion": [
+        516,
+        293,
+        752,
+        525
+      ],
+      "contentBoundsInRegion": [
+        40,
+        30,
+        198,
+        195
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_08.png",
+      "outputSize": [
+        158,
+        165
+      ],
+      "transparentPixels": 7335,
+      "partialAlphaPixels": 153,
+      "opaquePixels": 18582
+    },
+    {
+      "id": "marshmallow_09",
+      "sourceRegion": [
+        752,
+        293,
+        986,
+        525
+      ],
+      "contentBoundsInRegion": [
+        50,
+        48,
+        196,
+        202
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_09.png",
+      "outputSize": [
+        146,
+        154
+      ],
+      "transparentPixels": 5486,
+      "partialAlphaPixels": 155,
+      "opaquePixels": 16843
+    },
+    {
+      "id": "marshmallow_10",
+      "sourceRegion": [
+        986,
+        293,
+        1254,
+        525
+      ],
+      "contentBoundsInRegion": [
+        45,
+        45,
+        199,
+        200
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_10.png",
+      "outputSize": [
+        154,
+        155
+      ],
+      "transparentPixels": 7807,
+      "partialAlphaPixels": 139,
+      "opaquePixels": 15924
+    },
+    {
+      "id": "marshmallow_11",
+      "sourceRegion": [
+        0,
+        525,
+        281,
+        756
+      ],
+      "contentBoundsInRegion": [
+        76,
+        38,
+        244,
+        197
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_11.png",
+      "outputSize": [
+        168,
+        159
+      ],
+      "transparentPixels": 9787,
+      "partialAlphaPixels": 152,
+      "opaquePixels": 16773
+    },
+    {
+      "id": "marshmallow_12",
+      "sourceRegion": [
+        281,
+        525,
+        516,
+        756
+      ],
+      "contentBoundsInRegion": [
+        40,
+        31,
+        193,
+        194
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_12.png",
+      "outputSize": [
+        153,
+        163
+      ],
+      "transparentPixels": 6673,
+      "partialAlphaPixels": 157,
+      "opaquePixels": 18109
+    },
+    {
+      "id": "marshmallow_13",
+      "sourceRegion": [
+        516,
+        525,
+        752,
+        756
+      ],
+      "contentBoundsInRegion": [
+        35,
+        39,
+        204,
+        203
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_13.png",
+      "outputSize": [
+        169,
+        164
+      ],
+      "transparentPixels": 11142,
+      "partialAlphaPixels": 178,
+      "opaquePixels": 16396
+    },
+    {
+      "id": "marshmallow_14",
+      "sourceRegion": [
+        752,
+        525,
+        986,
+        756
+      ],
+      "contentBoundsInRegion": [
+        42,
+        43,
+        201,
+        203
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_14.png",
+      "outputSize": [
+        159,
+        160
+      ],
+      "transparentPixels": 6882,
+      "partialAlphaPixels": 152,
+      "opaquePixels": 18406
+    },
+    {
+      "id": "marshmallow_15",
+      "sourceRegion": [
+        986,
+        525,
+        1254,
+        756
+      ],
+      "contentBoundsInRegion": [
+        39,
+        42,
+        197,
+        198
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_15.png",
+      "outputSize": [
+        158,
+        156
+      ],
+      "transparentPixels": 6888,
+      "partialAlphaPixels": 161,
+      "opaquePixels": 17599
+    },
+    {
+      "id": "marshmallow_16",
+      "sourceRegion": [
+        0,
+        756,
+        281,
+        980
+      ],
+      "contentBoundsInRegion": [
+        82,
+        29,
+        240,
+        190
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_16.png",
+      "outputSize": [
+        158,
+        161
+      ],
+      "transparentPixels": 7422,
+      "partialAlphaPixels": 165,
+      "opaquePixels": 17851
+    },
+    {
+      "id": "marshmallow_17",
+      "sourceRegion": [
+        281,
+        756,
+        516,
+        980
+      ],
+      "contentBoundsInRegion": [
+        43,
+        38,
+        197,
+        190
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_17.png",
+      "outputSize": [
+        154,
+        152
+      ],
+      "transparentPixels": 5930,
+      "partialAlphaPixels": 161,
+      "opaquePixels": 17317
+    },
+    {
+      "id": "marshmallow_18",
+      "sourceRegion": [
+        516,
+        756,
+        752,
+        980
+      ],
+      "contentBoundsInRegion": [
+        54,
+        49,
+        191,
+        182
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_18.png",
+      "outputSize": [
+        137,
+        133
+      ],
+      "transparentPixels": 5549,
+      "partialAlphaPixels": 119,
+      "opaquePixels": 12553
+    },
+    {
+      "id": "marshmallow_19",
+      "sourceRegion": [
+        752,
+        756,
+        986,
+        980
+      ],
+      "contentBoundsInRegion": [
+        34,
+        46,
+        193,
+        193
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_19.png",
+      "outputSize": [
+        159,
+        147
+      ],
+      "transparentPixels": 7492,
+      "partialAlphaPixels": 162,
+      "opaquePixels": 15719
+    },
+    {
+      "id": "marshmallow_20",
+      "sourceRegion": [
+        986,
+        756,
+        1254,
+        980
+      ],
+      "contentBoundsInRegion": [
+        35,
+        43,
+        194,
+        192
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_20.png",
+      "outputSize": [
+        159,
+        149
+      ],
+      "transparentPixels": 5859,
+      "partialAlphaPixels": 164,
+      "opaquePixels": 17668
+    },
+    {
+      "id": "marshmallow_21",
+      "sourceRegion": [
+        0,
+        980,
+        281,
+        1254
+      ],
+      "contentBoundsInRegion": [
+        77,
+        31,
+        244,
+        183
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_21.png",
+      "outputSize": [
+        167,
+        152
+      ],
+      "transparentPixels": 9128,
+      "partialAlphaPixels": 143,
+      "opaquePixels": 16113
+    },
+    {
+      "id": "marshmallow_22",
+      "sourceRegion": [
+        281,
+        980,
+        516,
+        1254
+      ],
+      "contentBoundsInRegion": [
+        38,
+        32,
+        200,
+        185
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_22.png",
+      "outputSize": [
+        162,
+        153
+      ],
+      "transparentPixels": 7919,
+      "partialAlphaPixels": 163,
+      "opaquePixels": 16704
+    },
+    {
+      "id": "marshmallow_23",
+      "sourceRegion": [
+        516,
+        980,
+        752,
+        1254
+      ],
+      "contentBoundsInRegion": [
+        44,
+        35,
+        189,
+        188
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_23.png",
+      "outputSize": [
+        145,
+        153
+      ],
+      "transparentPixels": 5449,
+      "partialAlphaPixels": 140,
+      "opaquePixels": 16596
+    },
+    {
+      "id": "marshmallow_24",
+      "sourceRegion": [
+        752,
+        980,
+        986,
+        1254
+      ],
+      "contentBoundsInRegion": [
+        33,
+        33,
+        201,
+        188
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_24.png",
+      "outputSize": [
+        168,
+        155
+      ],
+      "transparentPixels": 9406,
+      "partialAlphaPixels": 161,
+      "opaquePixels": 16473
+    },
+    {
+      "id": "marshmallow_25",
+      "sourceRegion": [
+        986,
+        980,
+        1254,
+        1254
+      ],
+      "contentBoundsInRegion": [
+        35,
+        37,
+        192,
+        185
+      ],
+      "output": "assets/generated/boss_cutin_v3_assets/marshmallows/marshmallow_25.png",
+      "outputSize": [
+        157,
+        148
+      ],
+      "transparentPixels": 6424,
+      "partialAlphaPixels": 156,
+      "opaquePixels": 16656
+    }
+  ]
+}

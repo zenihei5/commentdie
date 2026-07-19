@@ -52,6 +52,40 @@ static func effect_rate_for_target(target: Node, id: String) -> float:
 		id
 	)
 
+static func set_multiplier_source_for_target(target: Node, source_id: String, multipliers: Dictionary) -> void:
+	if source_id == "":
+		return
+	var sources: Dictionary = {}
+	var current: Variant = target.get("modifier_sources")
+	if current is Dictionary:
+		sources = current as Dictionary
+	sources[source_id] = multipliers.duplicate(true)
+	target.set("modifier_sources", sources)
+
+static func remove_multiplier_source_for_target(target: Node, source_id: String) -> void:
+	var current: Variant = target.get("modifier_sources")
+	if not current is Dictionary:
+		return
+	var sources: Dictionary = current as Dictionary
+	sources.erase(source_id)
+	target.set("modifier_sources", sources)
+
+static func combined_multiplier_for_target(target: Node, key: String, fallback: float = 1.0) -> float:
+	var current: Variant = target.get("modifier_sources")
+	if not current is Dictionary:
+		return fallback
+	var result := fallback
+	var found := false
+	for source_value in (current as Dictionary).values():
+		if not source_value is Dictionary:
+			continue
+		var source: Dictionary = source_value as Dictionary
+		if not source.has(key):
+			continue
+		result *= float(source.get(key, fallback))
+		found = true
+	return result if found else fallback
+
 static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNumberGenerator, sub_comments: Array = [], _sub_heart_cards: Array = []) -> Dictionary:
 	var effects: Array[String] = []
 	var rates: Dictionary = {}
@@ -130,7 +164,10 @@ static func apply_choice_numbers_to_target(target: Node, view: Dictionary) -> Di
 		"giftHype": target.get("gift_hype"),
 		"maxGiftHype": target.get("max_gift_hype")
 	})
-	target.set("multiplier", float(number_state["multiplier"]))
+	if bool(target.get("relay_mode")):
+		target.set("multiplier", maxf(float(target.get("relay_base_multiplier")), float(number_state["multiplier"])))
+	else:
+		target.set("multiplier", float(number_state["multiplier"]))
 	target.set("max_multiplier", float(number_state["maxMultiplier"]))
 	target.set("burn_combo", int(number_state["burnCombo"]))
 	target.set("burn_combo_max", int(number_state["burnComboMax"]))
@@ -161,7 +198,12 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 	var recent: Array[String] = target.get("recent_comment_categories") as Array[String]
 	target.set("recent_comment_categories", updated_recent_categories(recent, String(comment.get("category", "default"))))
 	apply_choice_numbers_to_target(target, view)
-	target.set("effect_timer", _effect_duration_for_target(target, comment))
+	var effect_duration := _effect_duration_for_target(target, comment)
+	if bool(target.get("relay_mode")):
+		var relay_config: Dictionary = target.get("relay_mode_config") as Dictionary
+		var instruction: Dictionary = relay_config.get("instruction", {}) as Dictionary
+		effect_duration = float(instruction.get("effectTime", 15.0))
+	target.set("effect_timer", effect_duration)
 	if int(target.get("reentry_barrier_level")) > 0:
 		var barrier_time: float = 0.8 + 0.3 * float(target.get("reentry_barrier_level"))
 		target.set("invincible", maxf(float(target.get("invincible")), barrier_time))
@@ -174,6 +216,10 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 			feedback["commentEventIds"] = [event_id]
 	elif String(comment.get("effectType", "")) == "drawing_instruction":
 		var event_id := _drawing_instruction_event_id(String(comment.get("id", "")))
+		if event_id != "":
+			feedback["commentEventIds"] = [event_id]
+	elif String(comment.get("effectType", "")) == "collab_instruction":
+		var event_id := _collab_instruction_event_id(String(comment.get("id", "")))
 		if event_id != "":
 			feedback["commentEventIds"] = [event_id]
 	return {"commentId": String(comment["id"]), "feedback": feedback}
@@ -212,13 +258,27 @@ static func _drawing_instruction_event_id(comment_id: String) -> String:
 			return "drawing_instruction_spilled_bucket"
 	return ""
 
-static func _effect_duration_for_target(target: Node, comment: Dictionary) -> float:
+static func _collab_instruction_event_id(comment_id: String) -> String:
+	match comment_id:
+		"partner_take_over":
+			return "collab_instruction_partner_take_over"
+		"dont_fail_collab":
+			return "collab_instruction_dont_fail"
+		"keep_sync":
+			return "collab_instruction_keep_sync"
+		"out_of_sync":
+			return "collab_instruction_out_of_sync"
+		"fast_collab_pass":
+			return "collab_instruction_fast_pass"
+	return ""
+
+static func _effect_duration_for_target(_target: Node, comment: Dictionary) -> float:
 	var duration := float(comment["duration"])
 	var comment_id := String(comment.get("id", ""))
 	if comment_id == "song_lyrics_lost":
 		var params: Dictionary = comment.get("params", {}) as Dictionary
 		return maxf(duration, float(params.get("lyricsCardLifetime", duration)))
-	return maxf(5.0, duration - float(target.get("moderator_level")))
+	return maxf(5.0, duration)
 
 static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var walls: Array = target.get("effect_walls") as Array
@@ -316,8 +376,13 @@ static func clear_state_for_target(target: Node) -> Dictionary:
 		"pendingClearHype": target.get("pending_clear_hype"),
 		"activeCommentHurt": target.get("active_comment_hurt")
 	})
+	if bool(target.get("relay_mode")):
+		clear_state_result["clearBonus"] = false
+		clear_state_result["pendingClearHype"] = 0
+		clear_state_result["multiplier"] = maxf(1.0, float(target.get("relay_base_multiplier")))
 	target.set("gift_hype", int(clear_state_result["giftHype"]))
 	target.set("max_gift_hype", int(clear_state_result["maxGiftHype"]))
+	target.set("effect_timer", 0.0)
 	(target.get("active_effects") as Array).clear()
 	(target.get("active_effect_rates") as Dictionary).clear()
 	(target.get("effect_walls") as Array).clear()
