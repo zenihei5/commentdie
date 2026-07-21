@@ -2,17 +2,23 @@ class_name PowerUpShopScreen
 extends Control
 
 signal closed(origin: String)
+signal close_requested(origin: String)
 
 const PowerUpShopManager := preload("res://scripts/systems/power_up_shop_manager.gd")
 const CardScene := preload("res://scripts/ui/power_up_shop_card.tscn")
 const UiState := preload("res://scripts/ui/power_up_shop_ui_state.gd")
 const VisualStyle := preload("res://scripts/ui/power_up_shop_visual_style.gd")
+const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
 
 const CATEGORIES := ["combat", "support"]
+const FRONT_SCREEN_BACKGROUND_PATH := "res://assets/title/title_back.png"
 const CARD_COLUMNS := 2
 const STICK_DEADZONE := 0.55
 const STICK_REPEAT_DELAY := 0.24
 const STICK_REPEAT_INTERVAL := 0.14
+const STANDARD_CURRENT_EFFECT_FONT_SIZE := 22
+const STANDARD_NEXT_EFFECT_FONT_SIZE := 24
+const GIFT_EFFECT_FONT_SIZE := 20
 
 enum FocusArea {
 	CARDS,
@@ -32,10 +38,16 @@ enum FooterChoice {
 }
 
 @onready var background: TextureRect = $FullScreenBackground
+@onready var transition_visual_root: Control = $TransitionVisualRoot
+@onready var transition_veil: ColorRect = $TransitionVeil
+@onready var background_decoration: Control = $BackgroundDecoration
+@onready var safe_area_margin: MarginContainer = $SafeAreaMargin
+@onready var main_panel_backdrop: PanelContainer = $SafeAreaMargin/MainCenter/MainPanelBackdrop
 @onready var shop_content: VBoxContainer = $SafeAreaMargin/MainCenter/ShopContent
 @onready var header: HBoxContainer = $SafeAreaMargin/MainCenter/ShopContent/Header
 @onready var english_title: Label = $SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/EnglishTitle
 @onready var title_label: Label = $SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/Title
+@onready var title_description: Label = $SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/Description
 @onready var progress_row: HBoxContainer = $SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/TotalProgressRow
 @onready var progress_caption: Label = $SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/TotalProgressRow/Caption
 @onready var progress_value: Label = $SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea/TotalProgressRow/Value
@@ -46,6 +58,8 @@ enum FooterChoice {
 @onready var pp_value: Label = $SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow/Value
 @onready var combat_tab: Button = $SafeAreaMargin/MainCenter/ShopContent/CategoryTabs/CombatTab
 @onready var support_tab: Button = $SafeAreaMargin/MainCenter/ShopContent/CategoryTabs/SupportTab
+@onready var combat_tab_outer_ring: Panel = $SafeAreaMargin/MainCenter/ShopContent/CategoryTabs/CombatTab/FocusOuterRing
+@onready var support_tab_outer_ring: Panel = $SafeAreaMargin/MainCenter/ShopContent/CategoryTabs/SupportTab/FocusOuterRing
 @onready var card_grid: GridContainer = $SafeAreaMargin/MainCenter/ShopContent/Body/CardSection/CardGrid
 @onready var detail_panel: PanelContainer = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel
 @onready var detail_margin: Control = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin
@@ -92,14 +106,23 @@ enum FooterChoice {
 @onready var purchase_light: TextureRect = $PurchaseLight
 @onready var reset_button: Button = $SafeAreaMargin/MainCenter/ShopContent/Footer/FooterRow/ResetButton
 @onready var input_hints: Label = $SafeAreaMargin/MainCenter/ShopContent/Footer/FooterRow/InputHints
+@onready var toast_layer: Control = $ToastLayer
 @onready var toast_panel: PanelContainer = $ToastLayer/ToastPanel
 @onready var toast_label: Label = $ToastLayer/ToastPanel/Label
 @onready var dialog_layer: Control = $DialogLayer
 @onready var reset_dialog: PanelContainer = $DialogLayer/ResetDialog
-@onready var reset_confirm_button: Button = $DialogLayer/ResetDialog/Content/Buttons/Confirm
-@onready var reset_cancel_button: Button = $DialogLayer/ResetDialog/Content/Buttons/Cancel
+@onready var reset_title: Label = $DialogLayer/ResetDialog/ContentMargin/Content/Title
+@onready var reset_description: RichTextLabel = $DialogLayer/ResetDialog/ContentMargin/Content/Description
+@onready var reset_refund_panel: PanelContainer = $DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel
+@onready var reset_refund_icon: TextureRect = $DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/RefundRow/PpIcon
+@onready var reset_refund_amount: Label = $DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/RefundRow/RefundAmount
+@onready var reset_balance_before: Label = $DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/BalanceRow/BalanceBefore
+@onready var reset_balance_after: Label = $DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/BalanceRow/BalanceAfter
+@onready var reset_confirm_button: Button = $DialogLayer/ResetDialog/ContentMargin/Content/Buttons/Confirm
+@onready var reset_cancel_button: Button = $DialogLayer/ResetDialog/ContentMargin/Content/Buttons/Cancel
 @onready var cursor_se: AudioStreamPlayer = $UiSeGroup/CursorSe
 @onready var purchase_se: AudioStreamPlayer = $UiSeGroup/PurchaseSe
+@onready var reset_success_se: AudioStreamPlayer = $UiSeGroup/ResetSuccessSe
 @onready var error_se: AudioStreamPlayer = $UiSeGroup/ErrorSe
 @onready var max_se: AudioStreamPlayer = $UiSeGroup/MaxSe
 
@@ -109,6 +132,11 @@ var category_index := 0
 var selected_index := 0
 var category_last_indices := [0, 0]
 var reset_confirm_visible := false
+var reset_dialog_snapshot: Dictionary = {}
+var reset_execution_locked := false
+var reset_dialog_animation_locked := false
+var _reset_input_lock_remaining := 0.0
+var _reset_dialog_tween: Tween
 var focus_area := FocusArea.CARDS
 var dialog_choice := DialogChoice.CANCEL
 var footer_choice := FooterChoice.BACK
@@ -140,26 +168,37 @@ var _mascot_upgrade_id := ""
 var _mascot_generation := 0
 var _mascot_presentation_state := UiState.MascotState.IDLE
 var _mascot_messages: Dictionary = {}
+var _common_front_transition_locked := false
+var _common_front_transition_base_position := Vector2.ZERO
+var _common_front_transition_nodes: Array[Control] = []
+var _common_front_transition_base_positions: Dictionary = {}
 var purchase_api_call_count := 0
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	background.texture = VisualStyle.background_texture()
+	_setup_transition_visual_root()
+	background.texture = load(FRONT_SCREEN_BACKGROUND_PATH) as Texture2D
 	for child in detail_level_gauge.get_children():
 		var lamp: PanelContainer = child as PanelContainer
 		if lamp != null:
 			_detail_lamps.append(lamp)
 	_mascot_default_texture = load("res://assets/generated/weapon_fx_v1/listener_summon.png") as Texture2D
 	mascot.texture = _mascot_default_texture
+	mascot_glow.hide()
 	_mascot_messages = manager.database.mascot_messages.duplicate(true) if manager != null and manager.database != null else {}
 	purchase_light.texture = load("res://assets/generated/gameplay_event_objects_v1/coin.png") as Texture2D
+	(get_node("BackgroundWash") as ColorRect).color = Color(CommonLightUiStyle.BACKGROUND_WASH, 0.15)
 	combat_decoration.modulate = Color.WHITE
 	support_decoration.modulate = Color(1, 1, 1, 0)
 	_apply_static_styles()
 	_connect_ui()
 	_hide_dialog()
 	_hide_toast()
+	transition_veil.color = Color(1, 1, 1, 0.0)
+	transition_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	transition_veil.hide()
+	transition_visual_root.visible = true
 	dialog_layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	hide()
 	call_deferred("_layout_responsive")
@@ -173,8 +212,10 @@ func _process(delta: float) -> void:
 		return
 	var was_locked := _purchase_lock_remaining > 0.0
 	var was_input_locked := _purchase_input_lock_remaining > 0.0
+	var was_reset_input_locked := _reset_input_lock_remaining > 0.0
 	_purchase_lock_remaining = maxf(0.0, _purchase_lock_remaining - delta)
 	_purchase_input_lock_remaining = maxf(0.0, _purchase_input_lock_remaining - delta)
+	_reset_input_lock_remaining = maxf(0.0, _reset_input_lock_remaining - delta)
 	_purchase_cooldown = maxf(0.0, _purchase_cooldown - delta)
 	if _stick_direction != Vector2i.ZERO:
 		_stick_repeat_remaining = maxf(0.0, _stick_repeat_remaining - delta)
@@ -184,6 +225,8 @@ func _process(delta: float) -> void:
 	if was_locked and _purchase_lock_remaining <= 0.0:
 		_update_detail()
 	if was_input_locked and _purchase_input_lock_remaining <= 0.0:
+		_refresh_focus_visuals()
+	if was_reset_input_locked and _reset_input_lock_remaining <= 0.0:
 		_refresh_focus_visuals()
 
 func bind_manager(value) -> void:
@@ -202,7 +245,7 @@ func bind_manager(value) -> void:
 	if is_node_ready():
 		_refresh_view()
 
-func open_shop(new_origin: String, value) -> bool:
+func open_shop(new_origin: String, value, animate_transition: bool = false) -> bool:
 	bind_manager(value)
 	if manager == null or not manager.is_available():
 		return false
@@ -213,48 +256,54 @@ func open_shop(new_origin: String, value) -> bool:
 	focus_area = FocusArea.CARDS
 	last_input_device = "keyboard"
 	show()
+	finish_common_front_transition(true)
 	_layout_responsive()
 	_refresh_view()
 	grab_focus()
-	_animate_show()
+	_animate_show(animate_transition)
 	return true
 
-func close_shop() -> void:
+func close_shop(_animate_transition: bool = false) -> void:
 	if not visible:
 		return
+	_finish_close()
+
+func _finish_close() -> void:
+	finish_common_front_transition(false)
 	_reset_transient_state()
 	hide()
 	closed.emit(origin)
 
 func _connect_ui() -> void:
-	back_button.pressed.connect(close_shop)
+	back_button.pressed.connect(_on_back_button_pressed)
 	combat_tab.pressed.connect(_on_category_pressed.bind(0))
 	support_tab.pressed.connect(_on_category_pressed.bind(1))
 	purchase_button.pressed.connect(_on_purchase_pressed)
 	reset_button.pressed.connect(_show_reset_dialog)
 	reset_confirm_button.pressed.connect(_on_reset_confirm_button_pressed)
 	reset_cancel_button.pressed.connect(_on_reset_cancel_button_pressed)
-	VisualStyle.apply_button_theme(back_button, VisualStyle.PRIMARY, VisualStyle.SECONDARY)
+	VisualStyle.apply_back_button_theme(back_button)
 	VisualStyle.apply_button_theme(purchase_button, VisualStyle.PRIMARY, VisualStyle.SECONDARY)
-	VisualStyle.apply_button_theme(reset_button, VisualStyle.PRIMARY, VisualStyle.SECONDARY)
-	VisualStyle.apply_button_theme(reset_confirm_button, VisualStyle.COMBAT_DARK, VisualStyle.COMBAT)
-	VisualStyle.apply_button_theme(reset_cancel_button, VisualStyle.SECONDARY, VisualStyle.CARD_SUBTLE)
+	VisualStyle.apply_reset_button_theme(reset_button)
+	VisualStyle.apply_reset_button_theme(reset_confirm_button)
+	VisualStyle.apply_back_button_theme(reset_cancel_button)
 
 func _apply_static_styles() -> void:
-	VisualStyle.apply_font(english_title, 14, true, VisualStyle.COMBAT)
-	VisualStyle.apply_font(title_label, 30, true, VisualStyle.TEXT_LIGHT)
-	VisualStyle.apply_font(progress_caption, 12, true, VisualStyle.TEXT_LIGHT)
-	VisualStyle.apply_font(progress_value, 15, true, VisualStyle.PP)
-	VisualStyle.apply_font(pp_value, 28, true, VisualStyle.PP)
-	VisualStyle.apply_font($SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow/Caption, 17, true, VisualStyle.TEXT_LIGHT)
-	VisualStyle.apply_font(combat_tab, 17, true, VisualStyle.TEXT_LIGHT)
-	VisualStyle.apply_font(support_tab, 17, true, VisualStyle.TEXT_LIGHT)
+	VisualStyle.apply_font(english_title, 14, true, CommonLightUiStyle.ENGLISH_TITLE)
+	VisualStyle.apply_font(title_label, 30, true, CommonLightUiStyle.TEXT_PRIMARY)
+	VisualStyle.apply_font(title_description, 15, false, CommonLightUiStyle.TEXT_SECONDARY)
+	VisualStyle.apply_font(progress_caption, 12, true, CommonLightUiStyle.TEXT_SECONDARY)
+	VisualStyle.apply_font(progress_value, 15, true, CommonLightUiStyle.PP_TEXT)
+	VisualStyle.apply_font(pp_value, 28, true, CommonLightUiStyle.PP_TEXT)
+	VisualStyle.apply_font($SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow/Caption, 17, true, CommonLightUiStyle.TEXT_PRIMARY)
+	VisualStyle.apply_font(combat_tab, 17, true, CommonLightUiStyle.TEXT_PRIMARY)
+	VisualStyle.apply_font(support_tab, 17, true, CommonLightUiStyle.TEXT_PRIMARY)
 	VisualStyle.apply_font(detail_category_label, 14, true, VisualStyle.COMBAT_DARK)
 	VisualStyle.apply_font(detail_name, 22, true, VisualStyle.TEXT_DARK)
 	VisualStyle.apply_font(detail_level, 15, false, VisualStyle.SECONDARY)
 	VisualStyle.apply_font(detail_description, 15, false, VisualStyle.SECONDARY)
-	VisualStyle.apply_font(comparison_current, 22, true, VisualStyle.TEXT_DARK)
-	VisualStyle.apply_font(comparison_next, 24, true, VisualStyle.COMBAT_DARK)
+	VisualStyle.apply_font(comparison_current, STANDARD_CURRENT_EFFECT_FONT_SIZE, true, VisualStyle.TEXT_DARK)
+	VisualStyle.apply_font(comparison_next, STANDARD_NEXT_EFFECT_FONT_SIZE, true, VisualStyle.COMBAT_DARK)
 	VisualStyle.apply_font(comparison_current_box.get_node("CurrentContent/Caption") as Label, 13, false, VisualStyle.SECONDARY)
 	VisualStyle.apply_font(comparison_next_box.get_node("NextContent/Caption") as Label, 13, false, VisualStyle.COMBAT_DARK)
 	VisualStyle.apply_font(detail_content.get_node("EffectComparison/Arrow") as Label, 20, true, VisualStyle.SECONDARY)
@@ -263,27 +312,42 @@ func _apply_static_styles() -> void:
 	VisualStyle.apply_font(owned_or_shortage, 15, true, VisualStyle.SECONDARY)
 	VisualStyle.apply_font(mascot_message, 14, true, VisualStyle.TEXT_DARK)
 	VisualStyle.apply_font(mascot_state_decoration, 24, true, VisualStyle.PP_DARK)
-	VisualStyle.apply_font(input_hints, 13, false, VisualStyle.TEXT_LIGHT)
-	VisualStyle.apply_font(toast_label, 16, true, VisualStyle.TEXT_LIGHT)
-	detail_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.DETAIL, VisualStyle.SECONDARY, 1, 10))
-	information_section.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.DETAIL, Color("#E6DFF0"), 1, 8))
+	VisualStyle.apply_font(input_hints, 13, false, CommonLightUiStyle.TEXT_SECONDARY)
+	VisualStyle.apply_font(toast_label, 16, true, CommonLightUiStyle.TEXT_PRIMARY)
+	VisualStyle.apply_font(reset_title, 26, true, CommonLightUiStyle.TEXT_PRIMARY)
+	VisualStyle.apply_font(reset_description, 17, false, CommonLightUiStyle.TEXT_SECONDARY)
+	VisualStyle.apply_font(reset_refund_panel.get_node("RefundMargin/RefundRows/RefundRow/RefundCaption") as Label, 15, true, CommonLightUiStyle.PP_TEXT)
+	VisualStyle.apply_font(reset_refund_amount, 24, true, CommonLightUiStyle.PP_TEXT)
+	VisualStyle.apply_font(reset_balance_before, 20, true, CommonLightUiStyle.TEXT_PRIMARY)
+	VisualStyle.apply_font(reset_refund_panel.get_node("RefundMargin/RefundRows/BalanceRow/BalanceCaption") as Label, 14, false, CommonLightUiStyle.TEXT_SECONDARY)
+	VisualStyle.apply_font(reset_refund_panel.get_node("RefundMargin/RefundRows/BalanceRow/BalanceArrow") as Label, 20, true, CommonLightUiStyle.TEXT_SECONDARY)
+	VisualStyle.apply_font(reset_balance_after, 22, true, CommonLightUiStyle.PP_TEXT)
+	main_panel_backdrop.add_theme_stylebox_override("panel", CommonLightUiStyle.create_large_panel_style())
+	detail_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.DETAIL, CommonLightUiStyle.LILAC_BORDER, 2, 24))
+	information_section.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, CommonLightUiStyle.DIVIDER, 1, 8))
 	detail_icon_plate.add_theme_stylebox_override("panel", VisualStyle.compact_panel(VisualStyle.CARD_SUBTLE, VisualStyle.COMBAT, 2, 20, 0, 0))
-	icon_glow_plate.add_theme_stylebox_override("panel", VisualStyle.compact_panel(Color("#FFF5D0"), VisualStyle.PP, 2, 40, 0, 0))
-	detail_category_tag.add_theme_stylebox_override("panel", VisualStyle.compact_panel(Color("#FFFFFF"), VisualStyle.COMBAT, 1, 12, 8, 3))
-	speech_bubble.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(Color("#FFFFFF"), VisualStyle.COMBAT, 2, 14))
+	icon_glow_plate.add_theme_stylebox_override("panel", VisualStyle.compact_panel(CommonLightUiStyle.PP_PALE, VisualStyle.PP, 2, 40, 0, 0))
+	detail_category_tag.add_theme_stylebox_override("panel", VisualStyle.compact_panel(CommonLightUiStyle.MAIN_PANEL, VisualStyle.COMBAT, 1, 12, 8, 3))
+	speech_bubble.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, VisualStyle.COMBAT, 2, 14))
 	detail_accent_band.color = VisualStyle.COMBAT
-	comparison_current_box.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.CARD_SUBTLE, Color("#D5CAE5"), 1, 14))
+	comparison_current_box.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.CARD_SUBTLE, CommonLightUiStyle.LILAC_BORDER, 1, 14))
 	comparison_next_box.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.PRICE_FILL, VisualStyle.PP, 1, 14))
-	pp_capsule.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.PRIMARY, VisualStyle.PP_DARK, 2, 24))
-	progress_bar.add_theme_stylebox_override("background", VisualStyle.progress_style(VisualStyle.PROGRESS_TRACK, Color.TRANSPARENT))
-	progress_bar.add_theme_stylebox_override("fill", VisualStyle.progress_style(VisualStyle.COMBAT, VisualStyle.COMBAT))
-	$SafeAreaMargin/MainCenter/ShopContent/Footer.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(Color("#1D1838"), VisualStyle.SECONDARY, 1, 12))
-	toast_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.PRIMARY, VisualStyle.PP, 2, 20))
-	reset_dialog.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.DETAIL, VisualStyle.COMBAT, 3, 18))
+	pp_capsule.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.PP_PALE, CommonLightUiStyle.PP_GOLD, 2, 24))
+	progress_bar.add_theme_stylebox_override("background", VisualStyle.progress_style(CommonLightUiStyle.DIVIDER, CommonLightUiStyle.LILAC_BORDER))
+	progress_bar.add_theme_stylebox_override("fill", VisualStyle.progress_style(CommonLightUiStyle.COMBAT_LIGHT, CommonLightUiStyle.SUPPORT_LIGHT))
+	$SafeAreaMargin/MainCenter/ShopContent/Footer.add_theme_stylebox_override("panel", CommonLightUiStyle.create_footer_style())
+	toast_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, CommonLightUiStyle.PP_GOLD, 2, 20))
+	reset_dialog.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, CommonLightUiStyle.COMBAT_MAIN, 3, 22))
+	reset_refund_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.PP_PALE, CommonLightUiStyle.PP_GOLD, 2, 16))
 	detail_content.get_node("RequiredPointRow/PpIcon").texture = load("res://assets/generated/gameplay_event_objects_v1/coin.png") as Texture2D
 	pp_icon.texture = load("res://assets/generated/gameplay_event_objects_v1/coin.png") as Texture2D
+	reset_refund_icon.texture = load("res://assets/generated/gameplay_event_objects_v1/coin.png") as Texture2D
 	VisualStyle.apply_tab_theme(combat_tab, true, VisualStyle.COMBAT, VisualStyle.COMBAT_DARK)
 	VisualStyle.apply_tab_theme(support_tab, false, VisualStyle.SUPPORT, VisualStyle.SUPPORT_DARK)
+	combat_tab_outer_ring.add_theme_stylebox_override("panel", CommonLightUiStyle.create_outer_focus_ring_style(CommonLightUiStyle.COMBAT_MAIN))
+	support_tab_outer_ring.add_theme_stylebox_override("panel", CommonLightUiStyle.create_outer_focus_ring_style(CommonLightUiStyle.SUPPORT_MAIN))
+	combat_tab_outer_ring.hide()
+	support_tab_outer_ring.hide()
 
 func _layout_responsive() -> void:
 	if not is_node_ready():
@@ -293,10 +357,14 @@ func _layout_responsive() -> void:
 	var content_height := clampf(viewport_size.y - 40.0, 648.0, 900.0)
 	shop_content.custom_minimum_size = Vector2(content_width, content_height)
 	var compact := viewport_size.x < 1440.0 or viewport_size.y < 820.0
-	var header_height := 68.0 if compact else 80.0
+	main_panel_backdrop.custom_minimum_size = Vector2(
+		minf(content_width + (24.0 if compact else 64.0), viewport_size.x - 24.0),
+		minf(content_height + (16.0 if compact else 24.0), viewport_size.y - 24.0)
+	)
+	var header_height := 96.0
 	var header_gap := 12.0 if compact else 20.0
 	var tabs_gap := 20.0 if compact else 24.0
-	var body_height := 466.0 if compact else 560.0
+	var body_height := 438.0 if compact else 540.0
 	var footer_gap := 8.0 if compact else 12.0
 	var footer_height := 60.0 if compact else 64.0
 	header.custom_minimum_size.y = header_height
@@ -326,15 +394,29 @@ func _layout_responsive() -> void:
 	var detail_purchase := $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/PurchaseAndMascotRow/PurchaseButton as Button
 	var purchase_row := $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/PurchaseAndMascotRow as HBoxContainer
 	body.add_theme_constant_override("separation", 28)
-	card_section.custom_minimum_size.x = 580.0 if compact else 665.0
+	var card_width := 276.0 if compact else 300.0
+	var card_gap := 16.0 if compact else 18.0
+	card_section.custom_minimum_size.x = card_width * 2.0 + card_gap
+	grid.custom_minimum_size.x = card_width * 2.0 + card_gap
 	detail.custom_minimum_size.x = 605.0 if compact else minf(650.0, content_width - 693.0)
-	grid.add_theme_constant_override("h_separation", 16 if compact else 18)
+	grid.add_theme_constant_override("h_separation", int(card_gap))
 	grid.add_theme_constant_override("v_separation", 16 if compact else 18)
 	detail_content.add_theme_constant_override("separation", 5 if compact else 8)
-	var hero_height := 184.0 if compact else 214.0
-	var info_height := 282.0 if compact else 346.0
+	var hero_height := 168.0 if compact else 214.0
+	var info_height := 270.0 if compact else 326.0
+	detail.custom_minimum_size.y = hero_height + info_height
+	detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	$SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/HeroSection.offset_bottom = hero_height
-	$SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection.offset_top = -info_height
+	information_section.anchor_left = 0.0
+	information_section.anchor_top = 0.0
+	information_section.anchor_right = 1.0
+	information_section.anchor_bottom = 1.0
+	information_section.offset_left = 9.0
+	information_section.offset_top = hero_height
+	information_section.offset_right = -9.0
+	information_section.offset_bottom = 0.0
+	information_section.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	information_section.grow_vertical = Control.GROW_DIRECTION_END
 	icon_stage.custom_minimum_size = Vector2(136, 136) if compact else Vector2(176, 176)
 	icon_glow.custom_minimum_size = Vector2(128, 128) if compact else Vector2(166, 166)
 	icon_slot_large.custom_minimum_size = Vector2(88, 88) if compact else Vector2(104, 104)
@@ -359,7 +441,20 @@ func _layout_responsive() -> void:
 	information_margin.get_node("DetailContent").offset_right = -214.0 if compact else -230.0
 	information_margin.get_node("DetailContent").offset_bottom = -12.0 if compact else -14.0
 	mascot_presentation.custom_minimum_size.y = 120.0 if compact else 150.0
+	speech_bubble.offset_left = -190.0 if compact else -220.0
+	speech_bubble.offset_top = -216.0
+	speech_bubble.offset_right = -10.0
+	speech_bubble.offset_bottom = -162.0
+	_apply_card_dimensions(card_width)
 	progress_row.custom_minimum_size.y = 22.0
+
+func _apply_card_dimensions(card_width: float) -> void:
+	var card_gap := 16.0 if card_width < 300.0 else 18.0
+	card_grid.custom_minimum_size.x = card_width * 2.0 + card_gap
+	for item in _cards_by_id.values():
+		var card: PowerUpShopCard = item as PowerUpShopCard
+		if card != null and is_instance_valid(card):
+			card.custom_minimum_size = Vector2(card_width, 184.0)
 
 func _reset_transient_state() -> void:
 	_kill_tweens()
@@ -372,6 +467,10 @@ func _reset_transient_state() -> void:
 	_pending_card = null
 	_pending_previous_view.clear()
 	reset_confirm_visible = false
+	reset_dialog_snapshot.clear()
+	reset_execution_locked = false
+	reset_dialog_animation_locked = false
+	_reset_input_lock_remaining = 0.0
 	focus_area = FocusArea.CARDS
 	dialog_choice = DialogChoice.CANCEL
 	footer_choice = FooterChoice.BACK
@@ -405,11 +504,23 @@ func _reset_transient_state() -> void:
 		detail_accent_band.modulate = Color.WHITE
 		_refresh_focus_visuals()
 
+func _format_point_amount(value: int) -> String:
+	var normalized := maxi(0, value)
+	var digits := str(normalized)
+	var formatted := ""
+	var count := 0
+	for index in range(digits.length() - 1, -1, -1):
+		if count > 0 and count % 3 == 0:
+			formatted = "," + formatted
+		formatted = digits.substr(index, 1) + formatted
+		count += 1
+	return formatted
+
 func _refresh_view(keep_category_background: bool = false) -> void:
 	if not is_node_ready() or manager == null:
 		return
 	var points: int = int(manager.current_points())
-	pp_value.text = "%d" % points
+	pp_value.text = _format_point_amount(points)
 	_build_purchase_views(points)
 	_ensure_card_pool()
 	_refresh_cards()
@@ -454,6 +565,8 @@ func _refresh_cards() -> void:
 	var current_cards: Array = _cards_by_category.get(current_category, []) as Array
 	selected_index = clampi(selected_index, 0, maxi(0, current_cards.size() - 1))
 	_cards = current_cards.duplicate()
+	var viewport_size := size if size.x > 0.0 and size.y > 0.0 else get_viewport_rect().size
+	_apply_card_dimensions(276.0 if viewport_size.x < 1440.0 or viewport_size.y < 820.0 else 300.0)
 	for item in _database_upgrades:
 		var data: Dictionary = item as Dictionary
 		var id: String = String(data.get("id", ""))
@@ -467,6 +580,7 @@ func _refresh_cards() -> void:
 		card.visible = is_visible
 		card.mouse_filter = Control.MOUSE_FILTER_STOP if is_visible else Control.MOUSE_FILTER_IGNORE
 		card.configure(data, index, _purchase_views_by_id.get(id, {}) as Dictionary, is_visible and index == selected_index)
+		card.set_cursor_visible(is_visible and focus_area == FocusArea.CARDS)
 		card.set_logical_focus(is_visible and focus_area == FocusArea.CARDS and index == selected_index)
 
 func _rebuild_cards() -> void:
@@ -518,6 +632,7 @@ func _update_detail() -> void:
 	_update_target_tags(data)
 	comparison_current.text = String(_selected_purchase_view.get("currentEffectText", "なし"))
 	comparison_next.text = "MAX" if maxed else String(_selected_purchase_view.get("nextEffectText", "なし"))
+	_apply_effect_comparison_style(id)
 	_update_detail_level_gauge(level, max_level, String(data.get("category", CATEGORIES[category_index])))
 	_refresh_purchase_visuals(data, _selected_purchase_view)
 	for index in range(_cards.size()):
@@ -551,7 +666,9 @@ func _update_total_progress() -> void:
 	progress_value.text = "%d / %d" % [total_level, total_max_level]
 	progress_bar.max_value = float(maxi(1, total_max_level))
 	progress_bar.value = float(total_level)
-	progress_bar.add_theme_stylebox_override("fill", VisualStyle.progress_style(VisualStyle.COMBAT if category_index == 0 else VisualStyle.SUPPORT, VisualStyle.COMBAT if category_index == 0 else VisualStyle.SUPPORT))
+	var progress_fill := CommonLightUiStyle.COMBAT_LIGHT if category_index == 0 else CommonLightUiStyle.SUPPORT_LIGHT
+	var progress_border := CommonLightUiStyle.COMBAT_MAIN if category_index == 0 else CommonLightUiStyle.SUPPORT_MAIN
+	progress_bar.add_theme_stylebox_override("fill", VisualStyle.progress_style(progress_fill, progress_border))
 
 func _update_mascot(view: Dictionary) -> void:
 	if view.is_empty():
@@ -599,9 +716,8 @@ func _show_mascot_state(state: int, view: Dictionary, token: int) -> void:
 	mascot_message.text = _mascot_text(state, view)
 	speech_bubble.show()
 	var accent := VisualStyle.COMBAT if String(view.get("category", "combat")) == "combat" else VisualStyle.SUPPORT
-	speech_bubble.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(Color.WHITE, accent, 2, 14))
-	mascot_glow.color = VisualStyle.PP if state in [UiState.MascotState.PURCHASE_SUCCESS, UiState.MascotState.MAX_LEVEL] else accent
-	mascot_glow.modulate = Color(1, 1, 1, 0.20 if state in [UiState.MascotState.PURCHASE_SUCCESS, UiState.MascotState.MAX_LEVEL] else 0.10)
+	speech_bubble.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, accent, 2, 14))
+	mascot_glow.hide()
 	mascot_state_decoration.visible = state in [UiState.MascotState.PURCHASE_SUCCESS, UiState.MascotState.MAX_LEVEL]
 	mascot_state_decoration.text = "MAX" if state == UiState.MascotState.MAX_LEVEL else "✦"
 	mascot.scale = Vector2.ONE
@@ -644,7 +760,7 @@ func _clear_mascot() -> void:
 	mascot.texture = _mascot_default_texture
 	mascot.modulate = Color.WHITE
 	mascot.scale = Vector2.ONE
-	mascot_glow.modulate = Color(1, 1, 1, 0)
+	mascot_glow.hide()
 	mascot_state_decoration.hide()
 	speech_bubble.hide()
 	mascot_message.text = ""
@@ -686,49 +802,83 @@ func _refresh_purchase_visuals(data: Dictionary, view: Dictionary) -> void:
 	var base_color := Color(String(visual_style.get("baseColor", "#FCF9FF")))
 	var card_accent := Color(String(visual_style.get("accentColor", accent.to_html(false))))
 	var tier: int = int(view.get("visualTier", UiState.UpgradeVisualTier.UNPURCHASED))
-	detail_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.DETAIL, card_accent, 2, 18))
+	detail_panel.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.DETAIL, accent, 2, 24))
 	detail_accent_band.color = accent
+	detail_name.add_theme_color_override("font_color", CommonLightUiStyle.TEXT_PRIMARY if category == "combat" else Color("#29495B"))
 	detail_icon_plate.add_theme_stylebox_override("panel", VisualStyle.compact_panel(base_color.lerp(VisualStyle.tier_fill(tier, accent), 0.28), VisualStyle.tier_border(tier, card_accent), 2, 20, 0, 0))
 	icon_glow_plate.add_theme_stylebox_override("panel", VisualStyle.compact_panel(base_color.lightened(0.03), card_accent, 2, 40, 0, 0))
 	detail_category_tag.add_theme_stylebox_override("panel", VisualStyle.compact_panel(Color.WHITE, accent, 1, 12, 8, 3))
 	detail_category_label.add_theme_color_override("font_color", accent_dark)
-	combat_hero_background.color = VisualStyle.COMBAT.darkened(0.04)
-	support_hero_background.color = VisualStyle.SUPPORT.darkened(0.04)
-	hero_pattern.modulate = Color(card_accent, 0.18)
+	combat_hero_background.color = CommonLightUiStyle.COMBAT_HERO
+	support_hero_background.color = CommonLightUiStyle.SUPPORT_HERO
+	hero_pattern.call("configure", category)
+	hero_pattern.modulate = Color.WHITE
 	var state := int(view.get("state", UiState.PurchaseState.PURCHASABLE))
 	match state:
 		UiState.PurchaseState.PURCHASABLE:
 			purchase_button.text = "パワーアップする\n%d PP" % int(view.get("price", 0))
 			purchase_button.disabled = _purchase_lock_remaining > 0.0 or _pending_upgrade_id != ""
-			VisualStyle.apply_button_theme(purchase_button, accent_dark, accent, VisualStyle.TEXT_LIGHT)
+			var button_border := CommonLightUiStyle.COMBAT_LIGHT if category == "combat" else CommonLightUiStyle.SUPPORT_LIGHT
+			VisualStyle.apply_button_theme(purchase_button, accent, button_border, VisualStyle.TEXT_LIGHT)
 		UiState.PurchaseState.NOT_ENOUGH_PP:
 			purchase_button.text = "PPが足りません\nあと%d PP" % int(view.get("shortage", 0))
 			purchase_button.disabled = false
 			var insufficient := VisualStyle.button_style(VisualStyle.BUTTON_DISABLED_FILL, VisualStyle.BUTTON_DISABLED_BORDER, 1, 12)
-			for state_name in ["normal", "hover", "pressed", "focus"]:
+			for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
 				purchase_button.add_theme_stylebox_override(state_name, insufficient)
 			VisualStyle.apply_font(purchase_button, 17, true, VisualStyle.BUTTON_DISABLED_TEXT)
+			purchase_button.add_theme_color_override("font_disabled_color", VisualStyle.BUTTON_DISABLED_TEXT)
 		UiState.PurchaseState.MAX_LEVEL:
 			purchase_button.text = "強化完了\nMAX"
 			purchase_button.disabled = true
 			var max_style := VisualStyle.button_style(VisualStyle.MAX_FILL, VisualStyle.PP, 2, 12)
-			for state_name in ["normal", "hover", "pressed", "focus"]:
+			for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
 				purchase_button.add_theme_stylebox_override(state_name, max_style)
 			VisualStyle.apply_font(purchase_button, 17, true, VisualStyle.PP_DARK)
+			purchase_button.add_theme_color_override("font_disabled_color", VisualStyle.PP_DARK)
 	detail_level_gauge.modulate = Color.WHITE if state != UiState.PurchaseState.MAX_LEVEL else Color(1.0, 0.96, 0.76, 1.0)
 	var price: int = int(view.get("price", 0))
 	var points: int = int(view.get("points", 0))
 	if state == UiState.PurchaseState.MAX_LEVEL:
 		required_point_value.text = "-"
-		owned_or_shortage.text = "所持PP %d" % points
+		owned_or_shortage.text = "所持PP %s" % _format_point_amount(points)
 		required_point_value.add_theme_color_override("font_color", VisualStyle.SECONDARY)
 		owned_or_shortage.add_theme_color_override("font_color", VisualStyle.SECONDARY)
 	else:
-		required_point_value.text = "必要PP %d" % price
-		owned_or_shortage.text = "所持PP %d" % points if state == UiState.PurchaseState.PURCHASABLE else "あと%d PP" % int(view.get("shortage", 0))
+		required_point_value.text = "必要PP %s" % _format_point_amount(price)
+		owned_or_shortage.text = "所持PP %s" % _format_point_amount(points) if state == UiState.PurchaseState.PURCHASABLE else "あと%s PP" % _format_point_amount(int(view.get("shortage", 0)))
 		required_point_value.add_theme_color_override("font_color", VisualStyle.PP_DARK)
 		owned_or_shortage.add_theme_color_override("font_color", VisualStyle.SECONDARY if state == UiState.PurchaseState.PURCHASABLE else VisualStyle.WARNING)
 	_update_mascot(view)
+
+func _apply_effect_comparison_style(upgrade_id: String) -> void:
+	var is_gift_luck := upgrade_id == "gift_luck"
+	var current_size := GIFT_EFFECT_FONT_SIZE if is_gift_luck else STANDARD_CURRENT_EFFECT_FONT_SIZE
+	var next_size := GIFT_EFFECT_FONT_SIZE if is_gift_luck else STANDARD_NEXT_EFFECT_FONT_SIZE
+	VisualStyle.apply_font(comparison_current, current_size, true, VisualStyle.TEXT_DARK)
+	VisualStyle.apply_font(comparison_next, next_size, true, VisualStyle.COMBAT_DARK)
+	comparison_current.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	comparison_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	comparison_current.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	comparison_next.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	comparison_current.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if is_gift_luck else TextServer.AUTOWRAP_OFF
+	comparison_next.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if is_gift_luck else TextServer.AUTOWRAP_OFF
+	comparison_current.max_lines_visible = 2 if is_gift_luck else 1
+	comparison_next.max_lines_visible = 2 if is_gift_luck else 1
+	comparison_current.clip_text = false
+	comparison_next.clip_text = false
+	var current_box_style: StyleBoxFlat = comparison_current_box.get_theme_stylebox("panel") as StyleBoxFlat
+	var next_box_style: StyleBoxFlat = comparison_next_box.get_theme_stylebox("panel") as StyleBoxFlat
+	if current_box_style != null:
+		current_box_style.content_margin_left = 12.0 if is_gift_luck else 18.0
+		current_box_style.content_margin_right = 12.0 if is_gift_luck else 18.0
+		current_box_style.content_margin_top = 10.0 if is_gift_luck else 14.0
+		current_box_style.content_margin_bottom = 10.0 if is_gift_luck else 14.0
+	if next_box_style != null:
+		next_box_style.content_margin_left = 12.0 if is_gift_luck else 18.0
+		next_box_style.content_margin_right = 12.0 if is_gift_luck else 18.0
+		next_box_style.content_margin_top = 10.0 if is_gift_luck else 14.0
+		next_box_style.content_margin_bottom = 10.0 if is_gift_luck else 14.0
 
 func _refresh_focus_visuals() -> void:
 	for index in range(_cards.size()):
@@ -736,6 +886,7 @@ func _refresh_focus_visuals() -> void:
 		if card == null or not is_instance_valid(card):
 			continue
 		card.set_input_device(last_input_device)
+		card.set_cursor_visible(focus_area == FocusArea.CARDS)
 		card.set_logical_focus(focus_area == FocusArea.CARDS and index == selected_index)
 	var footer_back_active := focus_area == FocusArea.RESET and footer_choice == FooterChoice.BACK
 	var footer_reset_active := focus_area == FocusArea.RESET and footer_choice == FooterChoice.RESET
@@ -748,51 +899,37 @@ func _refresh_focus_visuals() -> void:
 	_apply_dialog_button_focus(reset_cancel_button, dialog_cancel_active, VisualStyle.SUPPORT)
 
 func _apply_footer_button_focus(button: Button, active: bool) -> void:
-	var fill := VisualStyle.COMBAT_DARK if active else VisualStyle.PRIMARY
-	var border := VisualStyle.COMBAT if active else VisualStyle.SECONDARY
-	var text_color := VisualStyle.TEXT_LIGHT if active else VisualStyle.CARD_SUBTLE
-	VisualStyle.apply_button_theme(button, fill, border, text_color)
-	button.add_theme_stylebox_override("normal", VisualStyle.button_style(fill, border, 4 if active else 1, 12))
-	if not active:
-		button.add_theme_stylebox_override("hover", VisualStyle.button_style(VisualStyle.PRIMARY.lightened(0.06), VisualStyle.SECONDARY, 2, 12))
+	if button == back_button:
+		VisualStyle.apply_back_button_theme(button, active)
+	else:
+		VisualStyle.apply_reset_button_theme(button, active)
 
 func _refresh_category_tab_focus() -> void:
 	var tab_focus := focus_area == FocusArea.CATEGORY_TABS
 	VisualStyle.apply_tab_theme(combat_tab, category_index == 0, VisualStyle.COMBAT, VisualStyle.COMBAT_DARK)
 	VisualStyle.apply_tab_theme(support_tab, category_index == 1, VisualStyle.SUPPORT, VisualStyle.SUPPORT_DARK)
+	combat_tab_outer_ring.visible = tab_focus and category_index == 0
+	support_tab_outer_ring.visible = tab_focus and category_index == 1
 	if not tab_focus:
 		return
 	var active_tab := combat_tab if category_index == 0 else support_tab
 	var accent := VisualStyle.COMBAT if category_index == 0 else VisualStyle.SUPPORT
-	var accent_dark := VisualStyle.COMBAT_DARK if category_index == 0 else VisualStyle.SUPPORT_DARK
-	active_tab.add_theme_stylebox_override("normal", VisualStyle.button_style(accent_dark, accent, 4, 14))
-	active_tab.add_theme_stylebox_override("hover", VisualStyle.button_style(accent_dark.lightened(0.08), accent, 4, 14))
-	active_tab.add_theme_stylebox_override("focus", VisualStyle.button_style(accent_dark, accent, 4, 14))
+	var focused_style := CommonLightUiStyle.create_panel_style(accent, accent.lightened(0.16), 4, 16, 16.0, 8.0)
+	active_tab.add_theme_stylebox_override("normal", focused_style)
+	active_tab.add_theme_stylebox_override("hover", CommonLightUiStyle.create_panel_style(accent.lightened(0.06), accent.lightened(0.16), 4, 16, 16.0, 8.0))
+	active_tab.add_theme_stylebox_override("focus", focused_style)
 
 func _apply_dialog_button_focus(button: Button, active: bool, accent: Color) -> void:
-	var fill := accent.darkened(0.30) if active else VisualStyle.SECONDARY
-	var border := VisualStyle.PP if active else VisualStyle.CARD_SUBTLE
-	button.add_theme_stylebox_override("normal", VisualStyle.button_style(fill, border, 4 if active else 2, 12))
-	button.add_theme_stylebox_override("hover", VisualStyle.button_style(fill.lightened(0.08), accent, 4, 12))
-
-func _format_effect(data: Dictionary, value: Variant, level: int) -> String:
-	if String(data.get("id", "")) == "gift_luck":
-		var luck: Dictionary = data.get("giftLuck", {}) as Dictionary
-		var hit: Array = luck.get("hitWeightMultipliers", []) as Array
-		var jackpot: Array = luck.get("jackpotWeightMultipliers", []) as Array
-		var index := clampi(level, 0, maxi(0, hit.size() - 1))
-		return "Hit x%.2f / Jackpot x%.2f" % [float(hit[index]), float(jackpot[index])]
-	var number := float(value)
-	if is_zero_approx(number):
-		return "なし"
-	var prefix := "-" if String(data.get("id", "")) == "damage_reduction" else "+"
-	return "%s%d%%" % [prefix, roundi(absf(number) * 100.0)]
+	if button == reset_confirm_button:
+		VisualStyle.apply_reset_button_theme(button, active)
+	else:
+		VisualStyle.apply_back_button_theme(button, active)
 
 func _upgrades() -> Array:
 	return manager.database.upgrades_for_category(CATEGORIES[category_index]) if manager != null and manager.database != null else []
 
 func _on_category_pressed(next_category: int) -> void:
-	if focus_area == FocusArea.RESET_DIALOG or _purchase_input_lock_remaining > 0.0:
+	if focus_area == FocusArea.RESET_DIALOG or _purchase_input_lock_remaining > 0.0 or _reset_input_lock_remaining > 0.0 or reset_execution_locked or reset_dialog_animation_locked:
 		return
 	if next_category == category_index:
 		return
@@ -806,7 +943,7 @@ func _on_category_pressed(next_category: int) -> void:
 	_play_se(cursor_se)
 
 func _on_card_selected(index: int) -> void:
-	if _purchase_input_lock_remaining > 0.0 or index < 0 or index >= _upgrades().size():
+	if focus_area == FocusArea.RESET_DIALOG or _purchase_input_lock_remaining > 0.0 or _reset_input_lock_remaining > 0.0 or reset_execution_locked or reset_dialog_animation_locked or index < 0 or index >= _upgrades().size():
 		return
 	_set_input_device("mouse")
 	focus_area = FocusArea.CARDS
@@ -818,7 +955,7 @@ func _on_card_hover_changed(_index: int, _hovering: bool) -> void:
 	_set_input_device("mouse")
 
 func _on_purchase_pressed() -> void:
-	if manager == null or _purchase_lock_remaining > 0.0 or _purchase_cooldown > 0.0 or _pending_upgrade_id != "":
+	if manager == null or focus_area == FocusArea.RESET_DIALOG or _purchase_lock_remaining > 0.0 or _purchase_cooldown > 0.0 or _pending_upgrade_id != "" or _reset_input_lock_remaining > 0.0 or reset_execution_locked or reset_dialog_animation_locked:
 		return
 	var id := _selected_upgrade_id()
 	if id == "":
@@ -842,51 +979,180 @@ func _selected_upgrade_id() -> String:
 	return String((list[selected_index] as Dictionary).get("id", "")) if selected_index < list.size() else ""
 
 func _show_reset_dialog() -> void:
-	if _purchase_lock_remaining > 0.0 or _purchase_input_lock_remaining > 0.0:
+	if manager == null or _purchase_lock_remaining > 0.0 or _purchase_input_lock_remaining > 0.0 or _reset_input_lock_remaining > 0.0 or reset_execution_locked or reset_dialog_animation_locked:
 		return
+	var view_data := _create_reset_confirmation_view_data()
+	var purchased_level_count := int(view_data.get("purchasedLevelCount", 0))
+	var refund_points := int(view_data.get("refundPoints", 0))
+	if purchased_level_count <= 0:
+		_play_se(error_se)
+		_show_toast("リセットできる強化がありません", 1.5)
+		return
+	if refund_points <= 0:
+		_warn_reset_refund_unavailable(view_data)
+		_show_toast("PP返還額を取得できませんでした", 1.5)
+		return
+	reset_dialog_snapshot = view_data.duplicate(true)
 	reset_confirm_visible = true
 	focus_area = FocusArea.RESET_DIALOG
 	dialog_choice = DialogChoice.CANCEL
 	footer_choice = FooterChoice.RESET
+	_update_reset_dialog_view()
 	dialog_layer.show()
 	reset_dialog.show()
 	dialog_layer.mouse_filter = Control.MOUSE_FILTER_STOP
+	_set_reset_dialog_buttons_disabled(true)
 	_refresh_focus_visuals()
+	_kill_reset_dialog_tween()
 	reset_dialog.modulate = Color(1, 1, 1, 0)
-	var tween := create_tween()
-	_track_tween(tween)
-	tween.tween_property(reset_dialog, "modulate", Color.WHITE, 0.16)
+	reset_dialog.scale = Vector2(0.94, 0.94)
+	reset_dialog_animation_locked = true
+	_reset_dialog_tween = create_tween()
+	_track_tween(_reset_dialog_tween)
+	_reset_dialog_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_reset_dialog_tween.tween_property(reset_dialog, "modulate", Color.WHITE, 0.12)
+	_reset_dialog_tween.parallel().tween_property(reset_dialog, "scale", Vector2(1.02, 1.02), 0.10)
+	_reset_dialog_tween.tween_property(reset_dialog, "scale", Vector2.ONE, 0.08)
+	_reset_dialog_tween.tween_callback(_finish_reset_dialog_show)
+
+func _create_reset_confirmation_view_data() -> Dictionary:
+	if manager == null:
+		return {"currentPoints": 0, "refundPoints": 0, "pointsAfterReset": 0, "purchasedLevelCount": 0}
+	var current_points := maxi(0, int(manager.current_points()))
+	var refund_points := maxi(0, int(manager.calculate_refund_points()))
+	return {
+		"currentPoints": current_points,
+		"refundPoints": refund_points,
+		"pointsAfterReset": current_points + refund_points,
+		"purchasedLevelCount": maxi(0, int(manager.total_upgrade_level()))
+	}
+
+func _update_reset_dialog_view() -> void:
+	var view_data := reset_dialog_snapshot
+	reset_title.text = "全強化をリセットしますか？"
+	reset_description.text = "購入したすべての強化がLv0に戻ります。\n強化に使用したPPは、すべて返還されます。"
+	reset_refund_amount.text = "%s PP" % _format_point_amount(int(view_data.get("refundPoints", 0)))
+	reset_balance_before.text = _format_point_amount(int(view_data.get("currentPoints", 0)))
+	reset_balance_after.text = _format_point_amount(int(view_data.get("pointsAfterReset", 0)))
+	reset_confirm_button.text = "全強化をリセット"
+	reset_cancel_button.text = "キャンセル"
+
+func _warn_reset_refund_unavailable(view_data: Dictionary) -> void:
+	push_warning("PowerUpShop reset aborted: PP refund amount unavailable; totalLevel=%d currentPP=%d" % [int(view_data.get("purchasedLevelCount", 0)), int(view_data.get("currentPoints", 0))])
+	_play_se(error_se)
+
+func _set_reset_dialog_buttons_disabled(disabled: bool) -> void:
+	if not is_node_ready():
+		return
+	reset_confirm_button.disabled = disabled
+	reset_cancel_button.disabled = disabled
+
+func _finish_reset_dialog_show() -> void:
+	_reset_dialog_tween = null
+	reset_dialog_animation_locked = false
+	_set_reset_dialog_buttons_disabled(false)
+	_refresh_focus_visuals()
 
 func _hide_dialog() -> void:
+	_kill_reset_dialog_tween()
 	reset_confirm_visible = false
+	reset_dialog_snapshot.clear()
+	reset_dialog_animation_locked = false
+	_set_reset_dialog_buttons_disabled(false)
 	if is_node_ready():
 		reset_dialog.hide()
 		dialog_layer.hide()
 		dialog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		reset_dialog.modulate = Color.WHITE
+		reset_dialog.scale = Vector2.ONE
 
 func _close_dialog_to_reset() -> void:
-	_hide_dialog()
+	if reset_dialog_animation_locked:
+		return
+	reset_confirm_visible = false
 	focus_area = FocusArea.RESET
 	footer_choice = FooterChoice.RESET
 	_refresh_focus_visuals()
+	_animate_hide_reset_dialog()
 
 func _on_reset_confirm_button_pressed() -> void:
+	if reset_dialog_animation_locked or reset_execution_locked:
+		return
 	dialog_choice = DialogChoice.CONFIRM
 	_on_reset_confirmed()
 
 func _on_reset_cancel_button_pressed() -> void:
+	if reset_dialog_animation_locked or reset_execution_locked:
+		return
 	dialog_choice = DialogChoice.CANCEL
 	_close_dialog_to_reset()
 
 func _on_reset_confirmed() -> void:
-	_close_dialog_to_reset()
-	if manager != null:
-		manager.reset_all_upgrades()
+	if manager == null or reset_execution_locked or reset_dialog_animation_locked:
+		return
+	var current_level := int(manager.total_upgrade_level())
+	var refund_points := int(manager.calculate_refund_points())
+	if current_level <= 0:
+		_close_dialog_to_reset()
+		_play_se(error_se)
+		_show_toast("リセットできる強化がありません", 1.5)
+		return
+	if refund_points <= 0:
+		_warn_reset_refund_unavailable({"purchasedLevelCount": current_level, "currentPoints": manager.current_points()})
+		_show_toast("PP返還額を取得できませんでした", 1.5)
+		return
+	reset_execution_locked = true
+	_set_reset_dialog_buttons_disabled(true)
+	var result := int(manager.reset_all_upgrades())
+	if result != PowerUpShopManager.Result.SUCCESS and reset_execution_locked:
+		_handle_reset_failure(result)
+
+func _animate_hide_reset_dialog() -> void:
+	if not is_node_ready() or not dialog_layer.visible:
+		_hide_dialog()
+		return
+	_kill_reset_dialog_tween()
+	reset_dialog_animation_locked = true
+	_set_reset_dialog_buttons_disabled(true)
+	reset_dialog.modulate = Color.WHITE
+	reset_dialog.scale = Vector2.ONE
+	_reset_dialog_tween = create_tween()
+	_track_tween(_reset_dialog_tween)
+	_reset_dialog_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	_reset_dialog_tween.tween_property(reset_dialog, "modulate", Color(1, 1, 1, 0), 0.16)
+	_reset_dialog_tween.parallel().tween_property(reset_dialog, "scale", Vector2(0.97, 0.97), 0.16)
+	_reset_dialog_tween.tween_callback(_finish_reset_dialog_hide)
+
+func _finish_reset_dialog_hide() -> void:
+	_reset_dialog_tween = null
+	reset_dialog_animation_locked = false
+	reset_confirm_visible = false
+	reset_dialog_snapshot.clear()
+	_set_reset_dialog_buttons_disabled(false)
+	reset_dialog.hide()
+	dialog_layer.hide()
+	dialog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reset_dialog.modulate = Color.WHITE
+	reset_dialog.scale = Vector2.ONE
+
+func _handle_reset_failure(result: int) -> void:
+	reset_execution_locked = false
+	_set_reset_dialog_buttons_disabled(false)
+	var message := "リセットに失敗しました"
+	match result:
+		PowerUpShopManager.Result.SAVE_FAILED:
+			message = "保存に失敗しました。もう一度実行できます"
+		PowerUpShopManager.Result.BUSY:
+			message = "処理中です。少し待ってから実行してください"
+		PowerUpShopManager.Result.NOTHING_TO_RESET:
+			message = "リセットできる強化がありません"
+	_play_se(error_se)
+	_show_toast(message, 1.5)
 
 func _on_manager_changed(_previous: int, current: int) -> void:
 	if not is_node_ready():
 		return
-	pp_value.text = "%d" % current
+	pp_value.text = _format_point_amount(current)
 	if _pending_upgrade_id == "":
 		_refresh_view()
 	var tween := create_tween()
@@ -943,14 +1209,64 @@ func _complete_purchase_visual_update() -> void:
 	_play_se(max_se if purchased_level >= 5 else purchase_se)
 	_show_toast("購入しました", 1.0)
 
+func _animate_reset_success(_refunded_points: int) -> void:
+	for item in _cards:
+		var card: PowerUpShopCard = item as PowerUpShopCard
+		if card != null and is_instance_valid(card):
+			card.play_purchase_success(1)
+	var pp_tween := create_tween()
+	_track_tween(pp_tween)
+	pp_capsule.scale = Vector2.ONE
+	pp_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	pp_tween.tween_property(pp_capsule, "scale", Vector2(1.08, 1.08), 0.10)
+	pp_tween.tween_property(pp_capsule, "scale", Vector2.ONE, 0.18)
+	_show_reset_success_mascot()
+
+func _show_reset_success_mascot() -> void:
+	_mascot_generation += 1
+	var token := _mascot_generation
+	if _mascot_message_tween != null and is_instance_valid(_mascot_message_tween):
+		_mascot_message_tween.kill()
+		_mascot_message_tween = null
+	_mascot_presentation_state = UiState.MascotState.PURCHASE_SUCCESS
+	mascot.texture = _mascot_default_texture
+	mascot.modulate = Color.WHITE
+	mascot_message.text = "PPが戻ってきたよ！"
+	speech_bubble.show()
+	speech_bubble.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, CommonLightUiStyle.SUPPORT_MAIN, 2, 14))
+	mascot_glow.hide()
+	mascot_state_decoration.show()
+	mascot_state_decoration.text = "✦"
+	mascot.scale = Vector2.ONE
+	_mascot_message_tween = create_tween()
+	_track_tween(_mascot_message_tween)
+	_mascot_message_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_mascot_message_tween.tween_property(mascot, "scale", Vector2(1.08, 1.08), 0.14)
+	_mascot_message_tween.tween_property(mascot, "scale", Vector2.ONE, 0.18)
+	_mascot_message_tween.tween_interval(0.34)
+	_mascot_message_tween.tween_callback(_reset_success_mascot_timeout.bind(token))
+
+func _reset_success_mascot_timeout(token: int) -> void:
+	if token != _mascot_generation or not is_node_ready():
+		return
+	_update_mascot(_selected_purchase_view)
+
 func _on_reset(_refund: int) -> void:
+	var refunded_points := maxi(0, _refund)
+	reset_execution_locked = false
 	focus_area = FocusArea.RESET
 	footer_choice = FooterChoice.RESET
+	_reset_input_lock_remaining = 0.55
 	_refresh_view()
-	_play_se(purchase_se)
-	_show_toast("全強化をリセットしました", 1.0)
+	_animate_hide_reset_dialog()
+	_play_se(reset_success_se)
+	_animate_reset_success(refunded_points)
+	_show_toast("全強化をリセットし、%s PPを返還しました" % _format_point_amount(refunded_points), 1.5)
 
 func _on_purchase_failed(reason: int) -> void:
+	if reset_execution_locked and (reason == PowerUpShopManager.Result.SAVE_FAILED or reason == PowerUpShopManager.Result.BUSY or reason == PowerUpShopManager.Result.NOTHING_TO_RESET):
+		_handle_reset_failure(reason)
+		return
 	_pending_upgrade_id = ""
 	_pending_new_level = -1
 	_pending_card = null
@@ -995,8 +1311,9 @@ func _animate_insufficient_feedback() -> void:
 	pp_tween.tween_method(_set_pp_capsule_warning, 1.0, 0.0, 0.16)
 
 func _set_pp_capsule_warning(warning_value: float) -> void:
-	var border := VisualStyle.WARNING if warning_value > 0.5 else VisualStyle.PP_DARK
-	pp_capsule.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(VisualStyle.PRIMARY, border, 2, 24))
+	var border := CommonLightUiStyle.SHORTAGE_BORDER if warning_value > 0.5 else CommonLightUiStyle.PP_GOLD
+	var fill := CommonLightUiStyle.SHORTAGE_PALE if warning_value > 0.5 else CommonLightUiStyle.PP_PALE
+	pp_capsule.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(fill, border, 2, 24))
 
 func _animate_max_feedback() -> void:
 	for card in _cards:
@@ -1025,20 +1342,83 @@ func _hide_toast() -> void:
 		toast_panel.hide()
 		toast_label.text = ""
 
-func _animate_show() -> void:
+func _animate_show(_animate_transition: bool = false) -> void:
 	_kill_tweens()
 	var tabs := $SafeAreaMargin/MainCenter/ShopContent/CategoryTabs as Control
 	var body := $SafeAreaMargin/MainCenter/ShopContent/Body as Control
 	var footer := $SafeAreaMargin/MainCenter/ShopContent/Footer as Control
 	for node in [header, tabs, body, footer]:
-		node.modulate = Color(1, 1, 1, 0)
-	var tween := create_tween()
-	_track_tween(tween)
-	tween.set_parallel()
-	tween.tween_property(header, "modulate", Color.WHITE, 0.22).set_delay(0.08)
-	tween.tween_property(tabs, "modulate", Color.WHITE, 0.22).set_delay(0.12)
-	tween.tween_property(body, "modulate", Color.WHITE, 0.24).set_delay(0.18)
-	tween.tween_property(footer, "modulate", Color.WHITE, 0.20).set_delay(0.24)
+		node.modulate = Color.WHITE
+
+func _on_back_button_pressed() -> void:
+	if reset_confirm_visible or reset_dialog_animation_locked or reset_execution_locked or _reset_input_lock_remaining > 0.0:
+		return
+	request_common_close()
+
+func _setup_transition_visual_root() -> void:
+	_common_front_transition_base_position = transition_visual_root.position
+	_common_front_transition_nodes = [background, get_node("BackgroundWash") as Control, background_decoration, safe_area_margin, main_panel_backdrop, purchase_light, toast_layer, dialog_layer]
+	_common_front_transition_base_positions.clear()
+	for node in _common_front_transition_nodes:
+		_common_front_transition_base_positions[node] = node.position
+
+func _apply_common_front_transition_offset(offset_x: float) -> void:
+	var offset := Vector2(offset_x, 0.0)
+	transition_visual_root.position = _common_front_transition_base_position + offset
+	for node in _common_front_transition_nodes:
+		# MainPanelBackdrop is inside SafeAreaMargin; the parent offset moves it
+		# together with ShopContent, so applying a second local offset would double it.
+		if node == main_panel_backdrop:
+			continue
+		var base_position: Vector2 = _common_front_transition_base_positions.get(node, node.position)
+		node.position = base_position + offset
+
+func _set_transition_veil_alpha(alpha: float) -> void:
+	var veil_color := transition_veil.color
+	veil_color.a = clampf(alpha, 0.0, 1.0)
+	transition_veil.color = veil_color
+
+func begin_common_front_transition(role: String) -> void:
+	if not is_node_ready():
+		return
+	_common_front_transition_locked = true
+	_apply_common_front_transition_offset(0.0)
+	_set_transition_veil_alpha(0.0)
+	transition_veil.hide()
+	if role == "incoming":
+		hide()
+	else:
+		show()
+
+func apply_common_front_transition(offset_x: float, overlay_alpha: float, should_show: bool) -> void:
+	if not is_node_ready():
+		return
+	_apply_common_front_transition_offset(offset_x)
+	transition_visual_root.visible = should_show
+	_set_transition_veil_alpha(overlay_alpha)
+	transition_veil.visible = should_show and overlay_alpha > 0.0
+	if should_show and not visible:
+		show()
+	elif not should_show and visible:
+		hide()
+
+func finish_common_front_transition(keep_open: bool) -> void:
+	if not is_node_ready():
+		return
+	_apply_common_front_transition_offset(0.0)
+	transition_visual_root.visible = keep_open
+	_set_transition_veil_alpha(0.0)
+	transition_veil.hide()
+	_common_front_transition_locked = false
+	if keep_open:
+		show()
+	else:
+		hide()
+
+func request_common_close() -> void:
+	if _common_front_transition_locked or not visible:
+		return
+	close_requested.emit(origin)
 
 func _animate_category_switch() -> void:
 	var visible_cards: Array = _cards_by_category.get(CATEGORIES[category_index], []) as Array
@@ -1062,6 +1442,11 @@ func _play_se(player: AudioStreamPlayer) -> void:
 			player.stop()
 		player.play()
 
+func _kill_reset_dialog_tween() -> void:
+	if _reset_dialog_tween != null and is_instance_valid(_reset_dialog_tween):
+		_reset_dialog_tween.kill()
+	_reset_dialog_tween = null
+
 func _track_tween(tween: Tween) -> void:
 	_active_tweens.append(tween)
 
@@ -1082,6 +1467,7 @@ func _kill_tweens() -> void:
 	if _mascot_message_tween != null and is_instance_valid(_mascot_message_tween):
 		_mascot_message_tween.kill()
 		_mascot_message_tween = null
+	_kill_reset_dialog_tween()
 	if is_node_ready():
 		purchase_light.hide()
 		mascot.scale = Vector2.ONE
@@ -1093,6 +1479,9 @@ func _kill_tweens() -> void:
 
 func _input(event: InputEvent) -> void:
 	if not visible:
+		return
+	if _common_front_transition_locked:
+		get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseMotion:
 		_set_input_device("mouse")
@@ -1188,6 +1577,8 @@ func _accept_stick_direction(direction: Vector2i) -> bool:
 
 func _handle_action(action: String, device: String = "keyboard") -> void:
 	_set_input_device(device)
+	if reset_dialog_animation_locked or reset_execution_locked or _reset_input_lock_remaining > 0.0:
+		return
 	if _purchase_input_lock_remaining > 0.0 and action != "back":
 		return
 	if action == "back":
@@ -1211,7 +1602,7 @@ func _handle_action(action: String, device: String = "keyboard") -> void:
 
 func _move_cursor(direction: Vector2i, device: String) -> void:
 	_set_input_device(device)
-	if _purchase_input_lock_remaining > 0.0:
+	if reset_dialog_animation_locked or reset_execution_locked or _reset_input_lock_remaining > 0.0 or _purchase_input_lock_remaining > 0.0:
 		return
 	if focus_area == FocusArea.RESET_DIALOG:
 		_move_dialog_choice(direction)
@@ -1228,12 +1619,22 @@ func _move_cursor(direction: Vector2i, device: String) -> void:
 			if previous_index != selected_index:
 				_update_detail()
 			_play_se(cursor_se)
+		elif direction.y > 0:
+			focus_area = FocusArea.CATEGORY_TABS
+			_refresh_focus_visuals()
+			_play_se(cursor_se)
 		elif direction.x != 0:
-			_set_footer_choice(FooterChoice.RESET if direction.x > 0 else FooterChoice.BACK)
+			_set_footer_choice(FooterChoice.RESET if footer_choice == FooterChoice.BACK else FooterChoice.BACK)
 		return
 	_move_card_cursor(direction)
 
 func _move_category_cursor(direction: Vector2i) -> void:
+	if direction.y < 0:
+		focus_area = FocusArea.RESET
+		footer_choice = FooterChoice.BACK
+		_refresh_focus_visuals()
+		_play_se(cursor_se)
+		return
 	if direction.y > 0:
 		focus_area = FocusArea.CARDS
 		_refresh_focus_visuals()
@@ -1310,7 +1711,7 @@ func _activate_focused_target() -> void:
 			_on_purchase_pressed()
 		FocusArea.RESET:
 			if footer_choice == FooterChoice.BACK:
-				close_shop()
+				request_common_close()
 			else:
 				_show_reset_dialog()
 		FocusArea.CATEGORY_TABS:
@@ -1327,7 +1728,7 @@ func _cancel_current_layer() -> void:
 	if focus_area == FocusArea.RESET_DIALOG:
 		_close_dialog_to_reset()
 	else:
-		close_shop()
+		request_common_close()
 
 func _set_input_device(device: String) -> void:
 	if last_input_device == device:

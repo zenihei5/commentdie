@@ -7,28 +7,31 @@ signal hover_changed(index: int, hovering: bool)
 const UiState := preload("res://scripts/ui/power_up_shop_ui_state.gd")
 const VisualStyle := preload("res://scripts/ui/power_up_shop_visual_style.gd")
 
-@onready var card_icon: TextureRect = $CardContent/VBox/HeaderRow/IconSlot/IconPlate/Icon
-@onready var icon_plate: PanelContainer = $CardContent/VBox/HeaderRow/IconSlot/IconPlate
-@onready var title_label: Label = $CardContent/VBox/HeaderRow/TextColumn/UpgradeName
-@onready var level_label: Label = $CardContent/VBox/HeaderRow/TextColumn/LevelLabel
-@onready var price_capsule: PanelContainer = $CardContent/VBox/PriceCapsule
-@onready var price_label: Label = $CardContent/VBox/PriceCapsule/PriceLabel
-@onready var effect_summary: Label = $CardContent/VBox/EffectSummary
-@onready var selection_lamp: ColorRect = $SelectionLamp
-@onready var category_accent: ColorRect = $CategoryAccent
-@onready var tier_decoration: ColorRect = $TierDecoration
-@onready var card_pattern: Control = $CardPattern
-@onready var focus_ring: PanelContainer = $FocusRing
-@onready var max_badge: Label = $MaxBadge
-@onready var max_ribbon: PanelContainer = $MaxRibbon
-@onready var max_ribbon_label: Label = $MaxRibbon/Label
-@onready var star_burst: Label = $StarBurst
+@onready var card_icon: TextureRect = $VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate/Icon
+@onready var card_surface: PanelContainer = $VisualRoot/CardSurface
+@onready var icon_plate: PanelContainer = $VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate
+@onready var title_label: Label = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/UpgradeName
+@onready var level_label: Label = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/LevelLabel
+@onready var price_capsule: PanelContainer = $VisualRoot/CardContent/VBox/PriceCapsule
+@onready var price_label: Label = $VisualRoot/CardContent/VBox/PriceCapsule/PriceLabel
+@onready var effect_summary: Label = $VisualRoot/CardContent/VBox/EffectSummary
+@onready var selection_lamp: ColorRect = $VisualRoot/SelectionLamp
+@onready var category_accent: ColorRect = $VisualRoot/CategoryAccent
+@onready var tier_decoration: ColorRect = $VisualRoot/TierDecoration
+@onready var card_pattern: Control = $VisualRoot/CardPattern
+@onready var focus_ring: PanelContainer = $VisualRoot/FocusRing
+@onready var max_badge: Label = $VisualRoot/MaxBadge
+@onready var max_ribbon: PanelContainer = $VisualRoot/MaxRibbon
+@onready var max_ribbon_label: Label = $VisualRoot/MaxRibbon/Label
+@onready var star_burst: Label = $VisualRoot/StarBurst
+@onready var visual_root: Control = $VisualRoot
 
 var upgrade_data: Dictionary = {}
 var upgrade_index := 0
 var selected := false
 var hovered := false
 var logical_focused := false
+var cursor_visible := true
 var last_input_device := "keyboard"
 var affordable := true
 var maxed := false
@@ -43,12 +46,17 @@ var _level := 0
 var _focus_tween: Tween
 var _success_tween: Tween
 var _transform_tween: Tween
+var _base_visual_position := Vector2.ZERO
 
 func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_make_input_slot_transparent()
+	_base_visual_position = visual_root.position
+	visual_root.resized.connect(_on_visual_root_resized)
+	_on_visual_root_resized()
 	for index in range(5):
-		lamp_panels.append(get_node("CardContent/VBox/LevelIndicators/Lamp%d" % index) as PanelContainer)
+		lamp_panels.append(get_node("VisualRoot/CardContent/VBox/LevelIndicators/Lamp%d" % index) as PanelContainer)
 	if not pressed.is_connected(_on_pressed):
 		pressed.connect(_on_pressed)
 	if not mouse_entered.is_connected(_on_mouse_entered):
@@ -88,9 +96,15 @@ func set_logical_focus(value: bool) -> void:
 		return
 	logical_focused = value
 	if is_node_ready():
-		focus_ring.visible = value
+		focus_ring.visible = cursor_visible and value
 		focus_ring.add_theme_stylebox_override("panel", VisualStyle.focus_ring_style(category_color))
-		z_index = 3 if selected else (2 if value else 0)
+		_apply_card_style()
+		_apply_selection_transform()
+
+func set_cursor_visible(value: bool) -> void:
+	cursor_visible = value
+	if is_node_ready():
+		focus_ring.visible = cursor_visible and logical_focused
 		_apply_card_style()
 		_apply_selection_transform()
 
@@ -98,6 +112,7 @@ func set_input_device(device: String) -> void:
 	last_input_device = device
 	if is_node_ready():
 		_apply_card_style()
+		_apply_selection_transform()
 
 func stop_animations() -> void:
 	if _focus_tween != null and is_instance_valid(_focus_tween):
@@ -119,7 +134,7 @@ func stop_animations() -> void:
 		for lamp in lamp_panels:
 			lamp.scale = Vector2.ONE
 		_apply_card_style()
-		focus_ring.visible = logical_focused
+		focus_ring.visible = cursor_visible and logical_focused
 
 func play_purchase_success(new_level: int = -1) -> void:
 	stop_animations()
@@ -208,42 +223,57 @@ func _apply_card_style() -> void:
 	if not is_node_ready():
 		return
 	var hover_visible := hovered and last_input_device == "mouse"
-	selection_lamp.visible = logical_focused or hover_visible
+	var card_operation_focused := _has_card_operation_focus()
+	_refresh_z_order()
+	selection_lamp.visible = (cursor_visible and logical_focused) or hover_visible
 	var accent_color := Color(String(visual_style.get("accentColor", category_color.to_html(false))))
 	selection_lamp.color = accent_color
-	var border := accent_color if selected or hover_visible else VisualStyle.tier_border(visual_tier, category_color)
-	var border_width := 4 if selected else (2 if hover_visible else 1)
+	var border := accent_color if card_operation_focused or hover_visible else VisualStyle.tier_border(visual_tier, category_color)
+	var border_width := 4 if card_operation_focused else (2 if hover_visible else 1)
 	var fill := Color(String(visual_style.get("baseColor", "#F7F3FF")))
 	fill = fill.lerp(VisualStyle.tier_fill(visual_tier, category_color), 0.18)
-	if selected:
+	if card_operation_focused:
 		fill = fill.lightened(0.025)
 	var normal_style := VisualStyle.button_style(fill, border, border_width, 16)
-	if selected:
-		normal_style.shadow_color = Color(0.06, 0.04, 0.16, 0.28)
-		normal_style.shadow_size = 10
-		normal_style.shadow_offset = Vector2(4, 5)
-	add_theme_stylebox_override("normal", normal_style)
-	add_theme_stylebox_override("hover", VisualStyle.button_style(fill.lightened(0.03), accent_color, maxi(2, border_width), 16))
-	add_theme_stylebox_override("pressed", VisualStyle.button_style(fill.darkened(0.04), accent_color, 3, 16))
-	add_theme_stylebox_override("focus", normal_style)
+	if card_operation_focused:
+		normal_style.shadow_color = Color(accent_color, 0.18)
+		normal_style.shadow_size = 7
+		normal_style.shadow_offset = Vector2.ZERO
+	card_surface.add_theme_stylebox_override("panel", normal_style)
+
+func _has_card_operation_focus() -> bool:
+	return selected and logical_focused and cursor_visible
+
+func _make_input_slot_transparent() -> void:
+	var empty_style := StyleBoxEmpty.new()
+	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+		add_theme_stylebox_override(state_name, empty_style)
+
+func _refresh_z_order() -> void:
+	var hover_visible := hovered and last_input_device == "mouse"
+	z_index = 3 if _has_card_operation_focus() else (2 if hover_visible or (logical_focused and cursor_visible) else 0)
 
 func _apply_selection_transform(instant: bool = false) -> void:
 	if not is_node_ready():
 		return
 	if _transform_tween != null and is_instance_valid(_transform_tween):
 		_transform_tween.kill()
-	_transform_tween = null
+		_transform_tween = null
 	var hover_visible := hovered and last_input_device == "mouse"
-	var target_scale := Vector2(1.04, 1.04) if selected else (Vector2(1.01, 1.01) if hover_visible else Vector2.ONE)
-	var target_position := Vector2(8, 0) if selected else Vector2.ZERO
+	var target_scale := Vector2(1.025, 1.025) if _has_card_operation_focus() else (Vector2(1.01, 1.01) if hover_visible else Vector2.ONE)
+	var target_position := _base_visual_position
 	if instant:
-		scale = target_scale
-		position = target_position
+		visual_root.scale = target_scale
+		visual_root.position = target_position
 		return
 	_transform_tween = create_tween()
 	_transform_tween.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_transform_tween.parallel().tween_property(self, "scale", target_scale, 0.16)
-	_transform_tween.parallel().tween_property(self, "position", target_position, 0.16)
+	_transform_tween.parallel().tween_property(visual_root, "scale", target_scale, 0.16)
+	_transform_tween.parallel().tween_property(visual_root, "position", target_position, 0.16)
+
+func _on_visual_root_resized() -> void:
+	if is_node_ready():
+		visual_root.pivot_offset = visual_root.size * 0.5
 
 func _on_pressed() -> void:
 	card_selected.emit(upgrade_index)

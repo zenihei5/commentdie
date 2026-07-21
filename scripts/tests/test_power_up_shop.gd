@@ -5,6 +5,7 @@ const SaveStoreScript := preload("res://scripts/systems/power_up_save_store.gd")
 const ShopManagerScript := preload("res://scripts/systems/power_up_shop_manager.gd")
 const EffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 const RewardCalculatorScript := preload("res://scripts/systems/stream_point_reward_calculator.gd")
+const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
 const GameScript := preload("res://scripts/game.gd")
 
 var failures: Array[String] = []
@@ -28,6 +29,7 @@ func _run_all_tests() -> void:
 	if not bool(database.is_valid):
 		return
 	_test_reward_expectations(database)
+	_test_result_reward_view_adapter()
 	_test_effect_snapshots(database)
 	_test_purchase_reset_and_save_rollback(database)
 	_test_reward_deduplication(database)
@@ -57,6 +59,41 @@ func _test_reward_expectations(_database) -> void:
 		for price in upgrade.get("prices", []) as Array:
 			total_cost += int(price)
 	_check_equal("all upgrade cost", total_cost, 14720)
+
+func _test_result_reward_view_adapter() -> void:
+	var normal := {
+		"participationPp": 5,
+		"progressPp": 45,
+		"clearPp": 100,
+		"totalPp": 150
+	}
+	var normal_view: Dictionary = ResultSystemScript.build_point_reward_view(normal, "granted", 52, 150, 202, false)
+	_check_equal("result view before", int(normal_view.get("pointsBefore", -1)), 52)
+	_check_equal("result view earned", int(normal_view.get("pointsEarned", -1)), 150)
+	_check_equal("result view after", int(normal_view.get("pointsAfter", -1)), 202)
+	_check_equal("result view row count", (normal_view.get("rewardRows", []) as Array).size(), 3)
+	_check_equal("result view row sum", _reward_row_sum(normal_view), 150)
+	var relay := {
+		"participationPp": 10,
+		"relayStagePp": 250,
+		"relayFinalReachedPp": 150,
+		"relayFinalClearPp": 200,
+		"bossDefeatPp": 150,
+		"firstRelayClearPp": 200,
+		"totalPp": 960
+	}
+	var relay_view: Dictionary = ResultSystemScript.build_point_reward_view(relay, "granted", 0, 960, 960, true)
+	_check_equal("relay row sum", _reward_row_sum(relay_view), 960)
+	var already: Dictionary = ResultSystemScript.build_point_reward_view(normal, "already_granted", 52, 0, 52, false)
+	_check_equal("already granted rows hidden", (already.get("rewardRows", []) as Array).size(), 0)
+	for row_value in normal_view.get("rewardRows", []) as Array:
+		_check(int((row_value as Dictionary).get("amount", 0)) > 0, "result view excludes zero rows")
+
+func _reward_row_sum(view: Dictionary) -> int:
+	var total := 0
+	for row_value in view.get("rewardRows", []) as Array:
+		total += int((row_value as Dictionary).get("amount", 0))
+	return total
 
 func _test_effect_snapshots(database) -> void:
 	var store = SaveStoreScript.new()
@@ -88,6 +125,7 @@ func _test_purchase_reset_and_save_rollback(database) -> void:
 	var store = SaveStoreScript.new()
 	store.save_override = Callable(self, "_save_override")
 	var manager = ShopManagerScript.new(database, store)
+	manager.profile = store.default_data(database)
 	manager.profile["unlocked"] = true
 	manager.profile["currentPoints"] = 1000
 	var initial_level: int = manager.get_upgrade_level("max_hp")
@@ -109,6 +147,38 @@ func _test_purchase_reset_and_save_rollback(database) -> void:
 	_check_equal("reset save failure", manager.reset_all_upgrades(), 6)
 	_check_equal("reset rollback", JSON.stringify(manager.profile), before_reset_failure)
 	save_should_fail = false
+	var levels: Dictionary = manager.profile["upgrades"] as Dictionary
+	levels["max_hp"] = 5
+	levels["attack_power"] = 3
+	manager.profile["currentPoints"] = 100
+	var mixed_before := manager.current_points()
+	var mixed_refund := manager.calculate_refund_points()
+	_check(mixed_refund > 0, "mixed levels have a refund")
+	_check_equal("mixed reset success", manager.reset_all_upgrades(), 0)
+	_check_equal("mixed reset balance", manager.current_points(), mixed_before + mixed_refund)
+	_check_equal("mixed reset max hp", manager.get_upgrade_level("max_hp"), 0)
+	_check_equal("mixed reset attack", manager.get_upgrade_level("attack_power"), 0)
+	_check_equal("second reset without levels", manager.reset_all_upgrades(), 7)
+	levels = manager.profile["upgrades"] as Dictionary
+	for id in levels.keys():
+		levels[id] = 5
+	manager.profile["currentPoints"] = 0
+	var all_five_refund := manager.calculate_refund_points()
+	_check(all_five_refund > mixed_refund, "all Lv5 refund is cumulative")
+	_check_equal("all Lv5 reset success", manager.reset_all_upgrades(), 0)
+	_check_equal("all Lv5 reset balance", manager.current_points(), all_five_refund)
+	_check_equal("all Lv5 reset total level", manager.total_upgrade_level(), 0)
+	var inconsistent_store = SaveStoreScript.new()
+	var inconsistent_manager = ShopManagerScript.new(database, inconsistent_store)
+	inconsistent_manager.profile = inconsistent_store.default_data(database)
+	inconsistent_manager.profile["unlocked"] = true
+	inconsistent_manager.profile["currentPoints"] = 77
+	var inconsistent_levels: Dictionary = inconsistent_manager.profile["upgrades"] as Dictionary
+	inconsistent_levels["unknown_upgrade"] = 1
+	var inconsistent_before := JSON.stringify(inconsistent_manager.profile)
+	_check_equal("inconsistent refund is zero", inconsistent_manager.calculate_refund_points(), 0)
+	_check_equal("inconsistent reset aborts", inconsistent_manager.reset_all_upgrades(), 7)
+	_check_equal("inconsistent reset preserves profile", JSON.stringify(inconsistent_manager.profile), inconsistent_before)
 	var atomic_store = SaveStoreScript.new()
 	atomic_store.path = "user://power_up_shop_atomic_test.json"
 	atomic_store.backup_path = "user://power_up_shop_atomic_test.json.bak"

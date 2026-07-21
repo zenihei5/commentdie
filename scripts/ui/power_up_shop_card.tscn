@@ -4,14 +4,32 @@
 [ext_resource type="Script" path="res://scripts/ui/power_up_shop_card_pattern.gd" id="2_pattern"]
 
 [node name="PowerUpShopCard" type="Button"]
-custom_minimum_size = Vector2(300, 184)
+custom_minimum_size = Vector2(276, 184)
 layout_mode = 2
 mouse_default_cursor_shape = 2
 focus_mode = 0
-flat = false
+flat = true
 script = ExtResource("1_card")
 
-[node name="SelectionLamp" type="ColorRect" parent="."]
+[node name="VisualRoot" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="CardSurface" type="PanelContainer" parent="VisualRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SelectionLamp" type="ColorRect" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -20,7 +38,7 @@ grow_horizontal = 2
 mouse_filter = 2
 color = Color(1, 0.560784, 0.741176, 1)
 
-[node name="TierDecoration" type="ColorRect" parent="."]
+[node name="TierDecoration" type="ColorRect" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -30,7 +48,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0)
 
-[node name="CardPattern" type="Control" parent="."]
+[node name="CardPattern" type="Control" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -40,7 +58,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("2_pattern")
 
-[node name="FocusRing" type="PanelContainer" parent="."]
+[node name="FocusRing" type="PanelContainer" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -50,7 +68,7 @@ grow_vertical = 2
 mouse_filter = 2
 visible = false
 
-[node name="CategoryAccent" type="ColorRect" parent="."]
+[node name="CategoryAccent" type="ColorRect" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 6
 anchor_right = 0.0
@@ -60,7 +78,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 0.560784, 0.741176, 1)
 
-[node name="CardContent" type="MarginContainer" parent="."]
+[node name="CardContent" type="MarginContainer" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -73,18 +91,18 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="CardContent"]
+[node name="VBox" type="VBoxContainer" parent="VisualRoot/CardContent"]
 layout_mode = 2
 theme_override_constants/separation = 8
 mouse_filter = 2
 
-[node name="HeaderRow" type="HBoxContainer" parent="CardContent/VBox"]
+[node name="HeaderRow" type="HBoxContainer" parent="VisualRoot/CardContent/VBox"]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 theme_override_constants/separation = 12
 mouse_filter = 2
 
-[node name="EffectSummary" type="Label" parent="CardContent/VBox"]
+[node name="EffectSummary" type="Label" parent="VisualRoot/CardContent/VBox"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 text = "最大メンタルを強化"
@@ -93,30 +111,30 @@ clip_text = false
 max_lines_visible = 1
 mouse_filter = 2
 
-[node name="IconSlot" type="CenterContainer" parent="CardContent/VBox/HeaderRow"]
+[node name="IconSlot" type="CenterContainer" parent="VisualRoot/CardContent/VBox/HeaderRow"]
 custom_minimum_size = Vector2(68, 68)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="IconPlate" type="PanelContainer" parent="CardContent/VBox/HeaderRow/IconSlot"]
+[node name="IconPlate" type="PanelContainer" parent="VisualRoot/CardContent/VBox/HeaderRow/IconSlot"]
 custom_minimum_size = Vector2(66, 66)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Icon" type="TextureRect" parent="CardContent/VBox/HeaderRow/IconSlot/IconPlate"]
+[node name="Icon" type="TextureRect" parent="VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate"]
 custom_minimum_size = Vector2(52, 52)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2
 
-[node name="TextColumn" type="VBoxContainer" parent="CardContent/VBox/HeaderRow"]
+[node name="TextColumn" type="VBoxContainer" parent="VisualRoot/CardContent/VBox/HeaderRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 2
 mouse_filter = 2
 
-[node name="UpgradeName" type="Label" parent="CardContent/VBox/HeaderRow/TextColumn"]
+[node name="UpgradeName" type="Label" parent="VisualRoot/CardContent/VBox/HeaderRow/TextColumn"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -126,55 +144,55 @@ clip_text = false
 max_lines_visible = 2
 mouse_filter = 2
 
-[node name="LevelLabel" type="Label" parent="CardContent/VBox/HeaderRow/TextColumn"]
+[node name="LevelLabel" type="Label" parent="VisualRoot/CardContent/VBox/HeaderRow/TextColumn"]
 layout_mode = 2
 text = "Lv 0 / 5"
 mouse_filter = 2
 
-[node name="LevelIndicators" type="HBoxContainer" parent="CardContent/VBox"]
+[node name="LevelIndicators" type="HBoxContainer" parent="VisualRoot/CardContent/VBox"]
 custom_minimum_size = Vector2(0, 18)
 layout_mode = 2
 theme_override_constants/separation = 8
 mouse_filter = 2
 
-[node name="Lamp0" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+[node name="Lamp0" type="PanelContainer" parent="VisualRoot/CardContent/VBox/LevelIndicators"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Lamp1" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+[node name="Lamp1" type="PanelContainer" parent="VisualRoot/CardContent/VBox/LevelIndicators"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Lamp2" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+[node name="Lamp2" type="PanelContainer" parent="VisualRoot/CardContent/VBox/LevelIndicators"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Lamp3" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+[node name="Lamp3" type="PanelContainer" parent="VisualRoot/CardContent/VBox/LevelIndicators"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Lamp4" type="PanelContainer" parent="CardContent/VBox/LevelIndicators"]
+[node name="Lamp4" type="PanelContainer" parent="VisualRoot/CardContent/VBox/LevelIndicators"]
 custom_minimum_size = Vector2(18, 18)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="PriceCapsule" type="PanelContainer" parent="CardContent/VBox"]
+[node name="PriceCapsule" type="PanelContainer" parent="VisualRoot/CardContent/VBox"]
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="PriceLabel" type="Label" parent="CardContent/VBox/PriceCapsule"]
+[node name="PriceLabel" type="Label" parent="VisualRoot/CardContent/VBox/PriceCapsule"]
 layout_mode = 2
 text = "次の強化 120 PP"
 horizontal_alignment = 1
 vertical_alignment = 1
 mouse_filter = 2
 
-[node name="MaxBadge" type="Label" parent="."]
+[node name="MaxBadge" type="Label" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -189,7 +207,7 @@ horizontal_alignment = 1
 visible = false
 mouse_filter = 2
 
-[node name="MaxRibbon" type="PanelContainer" parent="."]
+[node name="MaxRibbon" type="PanelContainer" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -202,14 +220,14 @@ grow_horizontal = 0
 mouse_filter = 2
 visible = false
 
-[node name="Label" type="Label" parent="MaxRibbon"]
+[node name="Label" type="Label" parent="VisualRoot/MaxRibbon"]
 layout_mode = 2
 text = "MAX"
 horizontal_alignment = 1
 vertical_alignment = 1
 mouse_filter = 2
 
-[node name="StarBurst" type="Label" parent="."]
+[node name="StarBurst" type="Label" parent="VisualRoot"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

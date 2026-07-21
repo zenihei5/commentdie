@@ -9,6 +9,7 @@ const RelayBossMovementSystemScript := preload("res://scripts/systems/relay_boss
 const RelayBossContactSystemScript := preload("res://scripts/systems/relay_boss_contact_system.gd")
 const RelayBossDefenseSystemScript := preload("res://scripts/systems/relay_boss_defense_system.gd")
 const ModifierSystemScript := preload("res://scripts/systems/modifier_system.gd")
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 
 static func _clear_support_modifiers_for_target(target: Node) -> void:
@@ -474,6 +475,11 @@ static func choose_instruction_for_target(target: Node, index: int, choice_box: 
 	if index < 0 or index >= offer.size():
 		return {"selected": false}
 	var comment: Dictionary = offer[index] as Dictionary
+	var buzz_state: Dictionary = BuzzSystemScript.instruction_transition(int(target.get("burn_combo")), int(target.get("burn_combo_max")), int(comment.get("riskLevel", 1)))
+	var buzz_before: int = int(buzz_state["buzzBefore"])
+	var buzz_gain: int = int(buzz_state["buzzGainRequested"])
+	var buzz_after: int = int(buzz_state["buzzAfter"])
+	var buzz_max: int = int(buzz_state["burnComboMax"])
 	clear_active_instruction_for_target(target)
 	target.set("relay_boss_instruction", comment.duplicate(true))
 	target.set("relay_boss_instruction_last_id", String(comment.get("id", "")))
@@ -483,12 +489,14 @@ static func choose_instruction_for_target(target: Node, index: int, choice_box: 
 	target.set("relay_boss_support_selected", support_selected)
 	target.set("relay_boss_support_selected_id", String(comment.get("id", "")) if support_selected else "")
 	target.set("relay_boss_support_heal_amount", heal_amount)
+	target.set("burn_combo", buzz_after)
+	target.set("burn_combo_max", buzz_max)
 	target.set("state", "playing")
 	target.set("comment_timer", 15.0)
 	target.set("comment_warning_step", 0)
 	choice_box.visible = false
 	PauseReasonSystemScript.remove(target, "InstructionComment")
-	return {"selected": true, "commentId": String(comment.get("id", "")), "chat": String(comment.get("displayName", "")) + " を選択", "supportSelected": support_selected, "supportId": String(comment.get("id", "")) if support_selected else "", "healAmount": heal_amount}
+	return {"selected": true, "commentId": String(comment.get("id", "")), "chat": String(comment.get("displayName", "")) + " を選択", "supportSelected": support_selected, "supportId": String(comment.get("id", "")) if support_selected else "", "healAmount": heal_amount, "buzzBefore": buzz_before, "buzzAfter": buzz_after, "buzzDelta": int(buzz_state["buzzDelta"]), "buzzGainRequested": buzz_gain, "buzzChanged": bool(buzz_state["buzzChanged"]), "buzzReachedMax": bool(buzz_state["buzzReachedMax"])}
 	return {"selected": true, "commentId": String(comment.get("id", "")), "chat": String(comment.get("displayName", "指示コメ")) + " を選択"}
 
 static func clear_active_instruction_for_target(target: Node) -> void:

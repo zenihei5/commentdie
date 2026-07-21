@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/power_up_shop_screen.gd" id="1_screen"]
 [ext_resource type="AudioStream" path="res://assets/audio/confirm_select.mp3" id="2_confirm"]
@@ -12,6 +12,9 @@
 [ext_resource type="Texture2D" path="res://assets/generated/equipment_icons_v1/icons/comment_radar.png" id="10_comment"]
 [ext_resource type="Texture2D" path="res://assets/generated/weapon_fx_v1/listener_summon.png" id="11_listener"]
 [ext_resource type="Script" path="res://scripts/ui/power_up_shop_room_decoration.gd" id="13_room"]
+[ext_resource type="Script" path="res://scripts/ui/power_up_shop_hero_pattern.gd" id="14_hero_pattern"]
+[ext_resource type="AudioStream" path="res://assets/audio/power_up_upgrade.mp3" id="15_power_up_upgrade"]
+[ext_resource type="AudioStream" path="res://assets/audio/power_up_reset.mp3" id="16_power_up_reset"]
 
 [node name="PowerUpShopScreen" type="Control"]
 layout_mode = 3
@@ -24,6 +27,26 @@ mouse_filter = 0
 focus_mode = 2
 script = ExtResource("1_screen")
 
+[node name="TransitionVisualRoot" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="TransitionVeil" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0)
+z_index = 100
+
 [node name="FullScreenBackground" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -34,6 +57,16 @@ grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
+
+[node name="BackgroundWash" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.968627, 0.933333, 1, 0.15)
 
 [node name="BackgroundDecoration" type="Control" parent="."]
 layout_mode = 1
@@ -223,6 +256,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="MainPanelBackdrop" type="PanelContainer" parent="SafeAreaMargin/MainCenter"]
+custom_minimum_size = Vector2(1400, 810)
+layout_mode = 2
+mouse_filter = 2
+
 [node name="ShopContent" type="VBoxContainer" parent="SafeAreaMargin/MainCenter"]
 custom_minimum_size = Vector2(1180, 648)
 layout_mode = 2
@@ -247,6 +285,11 @@ text = "POWER-UP SHOP"
 [node name="Title" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea"]
 layout_mode = 2
 text = "パワーアップショップ"
+
+[node name="Description" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+text = "配信ポイントを使って能力を強化できます"
 
 [node name="TotalProgressRow" type="HBoxContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Header/TitleArea"]
 custom_minimum_size = Vector2(0, 22)
@@ -310,11 +353,41 @@ layout_mode = 2
 focus_mode = 0
 text = "戦闘"
 
+[node name="FocusOuterRing" type="Panel" parent="SafeAreaMargin/MainCenter/ShopContent/CategoryTabs/CombatTab"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = -5.0
+offset_right = 5.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+z_index = 1
+
 [node name="SupportTab" type="Button" parent="SafeAreaMargin/MainCenter/ShopContent/CategoryTabs"]
 custom_minimum_size = Vector2(210, 42)
 layout_mode = 2
 focus_mode = 0
 text = "配信サポート"
+
+[node name="FocusOuterRing" type="Panel" parent="SafeAreaMargin/MainCenter/ShopContent/CategoryTabs/SupportTab"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5.0
+offset_top = -5.0
+offset_right = 5.0
+offset_bottom = 5.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+visible = false
+z_index = 1
 
 [node name="TabsToBodyGap" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent"]
 custom_minimum_size = Vector2(0, 28)
@@ -400,18 +473,21 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+script = ExtResource("14_hero_pattern")
 
 [node name="InformationSection" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin"]
 layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
+anchors_preset = 15
+anchor_left = 0.0
+anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 9.0
-offset_top = -340.0
+offset_top = 220.0
 offset_right = -9.0
+offset_bottom = 0.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 1
 
 [node name="InformationMargin" type="Control" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection"]
 layout_mode = 2
@@ -653,17 +729,21 @@ grow_horizontal = 0
 grow_vertical = 0
 mouse_filter = 2
 color = Color(1, 0.843137, 0.403922, 0.12)
+visible = false
 
 [node name="SpeechBubble" type="PanelContainer" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation"]
 layout_mode = 1
-anchors_preset = 1
+anchors_preset = 12
 anchor_left = 1.0
+anchor_top = 1.0
 anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = -222.0
-offset_top = -132.0
+offset_top = -216.0
 offset_right = -12.0
-offset_bottom = -72.0
+offset_bottom = -162.0
 grow_horizontal = 0
+grow_vertical = 0
 mouse_filter = 2
 
 [node name="Message" type="Label" parent="SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/MascotPresentation/SpeechBubble"]
@@ -799,53 +879,141 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+mouse_filter = 0
 color = Color(0.039, 0.031, 0.11, 0.72)
 
 [node name="ResetDialog" type="PanelContainer" parent="DialogLayer"]
-custom_minimum_size = Vector2(560, 292)
+custom_minimum_size = Vector2(620, 390)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -280.0
-offset_top = -146.0
-offset_right = 280.0
-offset_bottom = 146.0
+offset_left = -310.0
+offset_top = -195.0
+offset_right = 310.0
+offset_bottom = 195.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(310, 195)
 visible = false
 
-[node name="Content" type="VBoxContainer" parent="DialogLayer/ResetDialog"]
+[node name="ContentMargin" type="MarginContainer" parent="DialogLayer/ResetDialog"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/margin_left = 38
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 38
+theme_override_constants/margin_bottom = 22
 
-[node name="Title" type="Label" parent="DialogLayer/ResetDialog/Content"]
+[node name="Content" type="VBoxContainer" parent="DialogLayer/ResetDialog/ContentMargin"]
 layout_mode = 2
-text = "強化をリセットしますか？"
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+text = "全強化をリセットしますか？"
 horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Description" type="Label" parent="DialogLayer/ResetDialog/Content"]
+[node name="Description" type="RichTextLabel" parent="DialogLayer/ResetDialog/ContentMargin/Content"]
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
-text = "使用したPPを全額返還し、すべてLv0に戻します。"
+bbcode_enabled = false
+fit_content = false
+scroll_active = false
+text = "購入したすべての強化がLv0に戻ります。\n強化に使用したPPは、すべて返還されます。"
 horizontal_alignment = 1
-autowrap_mode = 2
+vertical_alignment = 1
 
-[node name="Buttons" type="HBoxContainer" parent="DialogLayer/ResetDialog/Content"]
+[node name="RefundPanel" type="PanelContainer" parent="DialogLayer/ResetDialog/ContentMargin/Content"]
+custom_minimum_size = Vector2(0, 106)
 layout_mode = 2
-theme_override_constants/separation = 12
 
-[node name="Confirm" type="Button" parent="DialogLayer/ResetDialog/Content/Buttons"]
-custom_minimum_size = Vector2(0, 48)
+[node name="RefundMargin" type="MarginContainer" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 12
+
+[node name="RefundRows" type="VBoxContainer" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="RefundRow" type="HBoxContainer" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PpIcon" type="TextureRect" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/RefundRow"]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="RefundCaption" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/RefundRow"]
+layout_mode = 2
+text = "返還予定PP"
+vertical_alignment = 1
+
+[node name="Spacer" type="Control" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/RefundRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RefundAmount" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/RefundRow"]
+layout_mode = 2
+text = "0 PP"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="BalanceRow" type="HBoxContainer" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BalanceCaption" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/BalanceRow"]
+layout_mode = 2
+text = "所持PP"
+vertical_alignment = 1
+
+[node name="BalanceBefore" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/BalanceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="BalanceArrow" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/BalanceRow"]
+custom_minimum_size = Vector2(28, 0)
+layout_mode = 2
+text = "→"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BalanceAfter" type="Label" parent="DialogLayer/ResetDialog/ContentMargin/Content/RefundPanel/RefundMargin/RefundRows/BalanceRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="DialogLayer/ResetDialog/ContentMargin/Content"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Confirm" type="Button" parent="DialogLayer/ResetDialog/ContentMargin/Content/Buttons"]
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-text = "リセットする"
+text = "全強化をリセット"
 
-[node name="Cancel" type="Button" parent="DialogLayer/ResetDialog/Content/Buttons"]
-custom_minimum_size = Vector2(0, 48)
+[node name="Cancel" type="Button" parent="DialogLayer/ResetDialog/ContentMargin/Content/Buttons"]
+custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
@@ -857,7 +1025,10 @@ text = "キャンセル"
 stream = ExtResource("5_cursor")
 
 [node name="PurchaseSe" type="AudioStreamPlayer" parent="UiSeGroup"]
-stream = ExtResource("2_confirm")
+stream = ExtResource("15_power_up_upgrade")
+
+[node name="ResetSuccessSe" type="AudioStreamPlayer" parent="UiSeGroup"]
+stream = ExtResource("16_power_up_reset")
 
 [node name="ErrorSe" type="AudioStreamPlayer" parent="UiSeGroup"]
 stream = ExtResource("3_back")

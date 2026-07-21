@@ -4,6 +4,7 @@ const DatabaseScript := preload("res://scripts/systems/power_up_database.gd")
 const SaveStoreScript := preload("res://scripts/systems/power_up_save_store.gd")
 const ShopManagerScript := preload("res://scripts/systems/power_up_shop_manager.gd")
 const UiStateScript := preload("res://scripts/ui/power_up_shop_ui_state.gd")
+const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
 const ScreenScene := preload("res://scripts/ui/power_up_shop_screen.tscn")
 const LogicTestScript := preload("res://scripts/tests/test_power_up_shop.gd")
 const GameScript := preload("res://scripts/game.gd")
@@ -11,6 +12,7 @@ const GameScript := preload("res://scripts/game.gd")
 var failures: Array[String] = []
 var screen
 var save_override_calls := 0
+var save_override_should_fail := false
 var signal_order: Array[String] = []
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func _run_tests() -> void:
 	var store = SaveStoreScript.new()
 	store.save_override = Callable(self, "_save_override")
 	var manager = ShopManagerScript.new(database, store)
+	manager.profile = store.default_data(database)
 	manager.profile["unlocked"] = true
 	manager.profile["currentPoints"] = 10000
 	screen = ScreenScene.instantiate()
@@ -48,7 +51,32 @@ func _run_tests() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_check(screen.visible, "shop visible")
+	_check(screen.purchase_se.stream != null and String(screen.purchase_se.stream.resource_path) == "res://assets/audio/power_up_upgrade.mp3", "upgrade success uses status treatment SE")
+	_check(screen.reset_success_se.stream != null and String(screen.reset_success_se.stream.resource_path) == "res://assets/audio/power_up_reset.mp3", "reset success uses item obtain SE")
 	_check(screen.get_node("FullScreenBackground").size == Vector2(1280, 720), "full viewport background")
+	_check(screen.background.texture != null and String(screen.background.texture.resource_path) == "res://assets/title/title_back.png", "shop shares ranking and options background")
+	var background_wash: ColorRect = screen.get_node("BackgroundWash") as ColorRect
+	_check(background_wash != null and background_wash.color.a >= 0.12 and background_wash.color.a <= 0.18 and is_equal_approx(background_wash.color.r, 0.968627), "shop uses the common light background wash")
+	_check(screen.main_panel_backdrop != null, "shop has a large white main panel backdrop")
+	_check(screen.main_panel_backdrop.get_index() < screen.shop_content.get_index(), "main panel backdrop is behind shop content")
+	_check(screen._common_front_transition_nodes.has(screen.main_panel_backdrop), "main panel backdrop participates in common transition")
+	var main_panel_style: StyleBoxFlat = screen.main_panel_backdrop.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(main_panel_style != null and is_equal_approx(main_panel_style.bg_color.a, 0.93) and main_panel_style.border_color == CommonLightUiStyle.MAIN_PANEL_BORDER, "main panel uses common light style")
+	_check(screen.title_description.text == "配信ポイントを使って能力を強化できます", "shop header has common-theme description")
+	_check(not screen.mascot_glow.visible, "mascot glow rectangle is hidden")
+	var combat_tab_style: StyleBoxFlat = screen.combat_tab.get_theme_stylebox("normal") as StyleBoxFlat
+	var support_tab_style: StyleBoxFlat = screen.support_tab.get_theme_stylebox("normal") as StyleBoxFlat
+	_check(combat_tab_style != null and combat_tab_style.bg_color == CommonLightUiStyle.COMBAT_MAIN, "combat tab uses common pink selection")
+	_check(support_tab_style != null and support_tab_style.bg_color == CommonLightUiStyle.MAIN_PANEL, "support tab uses light unselected style")
+	var pp_style: StyleBoxFlat = screen.pp_capsule.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(pp_style != null and pp_style.bg_color == CommonLightUiStyle.PP_PALE, "PP capsule uses light gold style")
+	var back_style: StyleBoxFlat = screen.back_button.get_theme_stylebox("normal") as StyleBoxFlat
+	var reset_style: StyleBoxFlat = screen.reset_button.get_theme_stylebox("normal") as StyleBoxFlat
+	_check(back_style != null and back_style.border_color == CommonLightUiStyle.BACK_BUTTON_BORDER, "back footer uses common blue style")
+	_check(reset_style != null and reset_style.border_color == CommonLightUiStyle.RESET_BUTTON_BORDER, "reset footer uses common pink style")
+	_check(screen.reset_dialog.custom_minimum_size == Vector2(620, 390), "reset dialog uses 620x390 base size")
+	_check(screen.dialog_layer.mouse_filter == Control.MOUSE_FILTER_STOP, "reset dialog layer blocks background input")
+	_check((screen.get_node("DialogLayer/Dim") as Control).mouse_filter == Control.MOUSE_FILTER_STOP, "reset dialog dim blocks outside clicks")
 	_check(screen.shop_content.custom_minimum_size == Vector2(1232, 680), "1280x720 safe content")
 	screen.size = Vector2(1600, 900)
 	screen._layout_responsive()
@@ -64,8 +92,12 @@ func _run_tests() -> void:
 	_check(screen.detail_panel.get_rect().size.x > 0.0, "detail panel laid out")
 	_check(screen.purchase_button.get_rect().size.x > 0.0, "purchase button laid out")
 	_check(screen.reset_button.get_rect().size.x > 0.0, "footer reset button laid out")
+	_test_common_transition_clock()
+	_test_common_transition_adapter(manager)
 	_test_v3_display_and_state(database, manager)
 	_test_v4_growth_expression(database, manager)
+	await _test_v5_geometry()
+	_test_reset_dialog_geometry()
 	screen.category_index = 0
 	screen.selected_index = 0
 	screen._refresh_view()
@@ -86,8 +118,19 @@ func _run_tests() -> void:
 	_check(screen.card_grid.get_child_count() == 8, "support keeps the reusable card pool")
 	_check(_visible_card_count() == 4, "support category shows four cards")
 	screen._on_card_selected(3)
-	_check(not screen.comparison_current.text.contains("%"), "gift luck current value is special text")
-	_check(not screen.comparison_next.text.contains("%"), "gift luck next value is special text")
+	_check(screen.comparison_current.text == "補正なし", "gift luck Lv0 current effect is none")
+	_check(screen.comparison_next.text == "当たり ×1.08\n大当たり ×1.12", "gift luck Lv0 next effect uses two lines")
+	_check(screen.comparison_current.get_theme_font_size("font_size") == 20, "gift luck current effect uses compact font")
+	_check(screen.comparison_next.get_theme_font_size("font_size") == 20, "gift luck next effect uses compact font")
+	_check(screen.comparison_current.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART and screen.comparison_next.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "gift luck enables two-line wrapping")
+	var gift_current_box_style: StyleBoxFlat = screen.comparison_current_box.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(gift_current_box_style.content_margin_left >= 12.0 and gift_current_box_style.content_margin_left <= 18.0 and gift_current_box_style.content_margin_top >= 8.0 and gift_current_box_style.content_margin_top <= 12.0, "gift luck effect box uses compact padding")
+	screen._on_card_selected(0)
+	_check(screen.comparison_current.get_theme_font_size("font_size") == 22 and screen.comparison_next.get_theme_font_size("font_size") == 24, "standard effect font restores after gift luck")
+	_check(screen.comparison_current.autowrap_mode == TextServer.AUTOWRAP_OFF and screen.comparison_next.autowrap_mode == TextServer.AUTOWRAP_OFF, "standard effect wrapping restores after gift luck")
+	var standard_current_box_style: StyleBoxFlat = screen.comparison_current_box.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(standard_current_box_style.content_margin_left == 18.0 and standard_current_box_style.content_margin_top == 14.0, "standard effect box padding restores")
+	screen._on_card_selected(3)
 
 	manager.profile["currentPoints"] = 0
 	screen._refresh_view()
@@ -100,6 +143,8 @@ func _run_tests() -> void:
 	screen._refresh_view()
 	_check(screen.purchase_button.disabled, "max level disables purchase button")
 	_check(screen.purchase_button.text == "強化完了\nMAX", "max level button label")
+	_check(screen.comparison_current.text == "当たり ×1.40\n大当たり ×1.60", "gift luck Lv5 current effect uses two lines")
+	_check(screen.comparison_next.text == "MAX", "gift luck Lv5 next effect is MAX")
 
 	screen._show_reset_dialog()
 	_check(screen.reset_dialog.visible and screen.dialog_layer.visible, "reset dialog opens")
@@ -111,6 +156,71 @@ func _run_tests() -> void:
 	await get_tree().process_frame
 	_check(not screen.reset_dialog.visible and not screen.toast_panel.visible, "reopen has no transient leftovers")
 	_test_input_navigation(manager)
+
+func _test_reset_dialog_geometry() -> void:
+	var modal_size := Vector2(620, 390)
+	for viewport_size in [Vector2(1280, 720), Vector2(1600, 900), Vector2(1920, 1080), Vector2(2560, 1440)]:
+		var modal_rect := Rect2((viewport_size - modal_size) * 0.5, modal_size)
+		_check(modal_rect.position.x >= 0.0 and modal_rect.position.y >= 0.0 and modal_rect.end.x <= viewport_size.x and modal_rect.end.y <= viewport_size.y, "reset dialog fits %s" % viewport_size)
+
+func _test_common_transition_clock() -> void:
+	var probe = GameScript.new()
+	probe.front_screen_transition_direction = "forward"
+	var expected_samples := [
+		[0.0, -0.0, 52.0, 0.0],
+		[0.05, -21.0, 52.0, 0.4375],
+		[0.10, -42.0, 52.0, 0.70],
+		[0.17, -42.0, 6.5, 0.4083333333],
+		[0.24, -42.0, 0.0, 0.0],
+	]
+	for sample in expected_samples:
+		probe.front_screen_transition_elapsed = float(sample[0])
+		var frame: Dictionary = probe._front_screen_transition_frame()
+		_check(is_equal_approx(float(frame["outgoingOffsetX"]), float(sample[1])), "common clock outgoing offset at %.2f" % float(sample[0]))
+		_check(is_equal_approx(float(frame["incomingOffsetX"]), float(sample[2])), "common clock incoming offset at %.2f" % float(sample[0]))
+		_check(is_equal_approx(float(frame["overlayAlpha"]), float(sample[3])), "common clock veil alpha at %.2f" % float(sample[0]))
+	probe.front_screen_transition_reduced_motion = true
+	probe.front_screen_transition_elapsed = 0.12
+	var reduced_frame: Dictionary = probe._front_screen_transition_frame()
+	_check(is_equal_approx(probe._front_screen_transition_total_duration(), 0.12), "reduced motion uses common short duration")
+	_check(is_equal_approx(float(reduced_frame["outgoingOffsetX"]), 0.0) and is_equal_approx(float(reduced_frame["incomingOffsetX"]), 0.0), "reduced motion disables movement")
+	_check(is_equal_approx(float(reduced_frame["overlayAlpha"]), 0.0), "reduced motion veil completes at 0.12")
+	probe.free()
+
+func _test_common_transition_adapter(manager) -> void:
+	var transition_nodes: Array[Control] = [
+		screen.background,
+		screen.get_node("BackgroundWash") as Control,
+		screen.background_decoration,
+		screen.safe_area_margin,
+		screen.main_panel_backdrop,
+		screen.purchase_light,
+		screen.toast_layer,
+		screen.dialog_layer,
+	]
+	var base_positions: Dictionary = {}
+	for node in transition_nodes:
+		base_positions[node] = node.global_position
+	var veil_base_position := screen.transition_veil.position
+	screen.begin_common_front_transition("incoming")
+	_check(not screen.visible, "common incoming hides shop before midpoint")
+	screen.apply_common_front_transition(52.0, 0.70, true)
+	_check(screen.visible, "common incoming shows shop at midpoint")
+	_check(is_equal_approx(screen.transition_veil.color.a, 0.70), "common incoming applies midpoint veil")
+	for node in transition_nodes:
+		var base_position: Vector2 = base_positions[node]
+		_check(is_equal_approx(node.global_position.x, base_position.x + 52.0), "common incoming moves all visual layers")
+	_check(screen.transition_veil.position == veil_base_position, "transition veil stays fixed")
+	screen.apply_common_front_transition(0.0, 0.0, true)
+	screen.finish_common_front_transition(true)
+	_check(screen.visible and not screen._common_front_transition_locked, "common incoming unlocks after finish")
+	screen.begin_common_front_transition("outgoing")
+	screen.apply_common_front_transition(42.0, 0.70, true)
+	var safe_area_base_position: Vector2 = base_positions[screen.safe_area_margin]
+	_check(screen.visible and is_equal_approx(screen.safe_area_margin.global_position.x, safe_area_base_position.x + 42.0), "common outgoing moves shop right")
+	screen.finish_common_front_transition(false)
+	_check(not screen.visible and not screen._common_front_transition_locked, "common outgoing hides and unlocks")
+	_check(screen.open_shop("title", manager), "direct API reopens after common transition")
 
 func _test_input_navigation(manager) -> void:
 	manager.profile["currentPoints"] = 10000
@@ -149,10 +259,17 @@ func _test_input_navigation(manager) -> void:
 	screen._handle_action("up")
 	_check(screen.focus_area == screen.FocusArea.CATEGORY_TABS, "top card up enters category tabs")
 	_check(screen.cursor_se.playing, "category tab entry plays cursor SE")
+	_check(not screen._cards[0].selection_lamp.visible and not screen._cards[0].focus_ring.visible, "category tab focus clears card cursor")
 	screen._handle_action("right")
 	_check(screen.focus_area == screen.FocusArea.CATEGORY_TABS and screen.category_index == 1, "category tab right moves to support")
+	_check(not screen._cards[0].selection_lamp.visible and not screen._cards[0].focus_ring.visible, "support tab focus clears card cursor")
 	screen._handle_action("left")
 	_check(screen.category_index == 0 and screen.focus_area == screen.FocusArea.CATEGORY_TABS, "category tab left moves to combat")
+	screen._handle_action("up")
+	_check(screen.focus_area == screen.FocusArea.RESET and screen.footer_choice == screen.FooterChoice.BACK, "category tab up moves to Back footer")
+	_check(screen.cursor_se.playing, "category tab up plays cursor SE")
+	screen._handle_action("down")
+	_check(screen.focus_area == screen.FocusArea.CATEGORY_TABS and screen.category_index == 0, "footer down returns to current category tab")
 	screen._handle_action("down")
 	_check(screen.focus_area == screen.FocusArea.CARDS and screen.selected_index == 0, "category tab down returns to card")
 	screen._handle_action("up")
@@ -178,7 +295,15 @@ func _test_input_navigation(manager) -> void:
 	_check(screen.footer_choice == screen.FooterChoice.RESET, "footer right selects reset")
 	screen._handle_action("left")
 	_check(screen.footer_choice == screen.FooterChoice.BACK, "footer left selects Back")
+	screen._handle_action("left")
+	_check(screen.footer_choice == screen.FooterChoice.RESET, "footer left from Back selects reset")
 	screen._handle_action("right")
+	_check(screen.footer_choice == screen.FooterChoice.BACK, "footer right from reset selects Back")
+	screen._handle_action("down")
+	_check(screen.focus_area == screen.FocusArea.CATEGORY_TABS and screen.category_index == 0 and screen.selected_index == 2, "footer down moves to current category tab")
+	_check(not screen._cards[0].selection_lamp.visible and not screen._cards[0].focus_ring.visible, "footer focus clears card cursor")
+	screen._handle_action("down")
+	_check(screen.focus_area == screen.FocusArea.CARDS and screen.selected_index == 2, "category tab down returns to remembered card")
 
 	levels["max_hp"] = 1
 	manager.profile["totalSpentPoints"] = 120
@@ -189,18 +314,39 @@ func _test_input_navigation(manager) -> void:
 	screen._handle_action("down")
 	screen._handle_action("right")
 	screen._handle_action("confirm")
+	screen._finish_reset_dialog_show()
 	_check(screen.reset_confirm_visible and screen.dialog_choice == 1, "dialog defaults to cancel")
+	var selected_before_modal_guard := screen.selected_index
+	screen._on_card_selected(1)
+	_check(screen.selected_index == selected_before_modal_guard, "reset modal blocks card mouse selection")
+	_check(screen.reset_title.text == "全強化をリセットしますか？", "reset dialog title")
+	_check(screen.reset_description.text.count("\n") == 1, "reset dialog uses two-line description")
+	_check(screen.reset_refund_amount.text == "120 PP", "reset dialog shows refund snapshot")
+	_check(screen.reset_balance_before.text == "10,000" and screen.reset_balance_after.text == "10,120", "reset dialog formats PP before and after")
 	_check(int(levels["max_hp"]) == 1, "opening dialog does not reset")
 	screen._handle_action("confirm")
+	screen._finish_reset_dialog_hide()
 	_check(not screen.reset_confirm_visible and screen.focus_area == 1, "cancel choice closes only dialog")
 	_check(int(levels["max_hp"]) == 1, "cancel choice does not reset")
 	screen._handle_action("confirm")
+	screen._finish_reset_dialog_show()
 	screen._handle_action("left")
 	_check(screen.dialog_choice == 0, "dialog left selects reset")
+	save_override_should_fail = true
 	screen._handle_action("confirm")
+	_check(screen.reset_confirm_visible and int(levels["max_hp"]) == 1, "save failure keeps dialog and profile")
+	save_override_should_fail = false
+	screen._handle_action("confirm")
+	screen._finish_reset_dialog_hide()
 	levels = manager.profile["upgrades"] as Dictionary
 	_check(int(levels["max_hp"]) == 0, "only confirm choice resets")
+	_check(screen.toast_label.text.contains("120 PP"), "reset success toast uses actual refund")
 	_check(screen.focus_area == 1 and not screen.reset_confirm_visible, "reset returns focus to reset button")
+	screen._reset_input_lock_remaining = 0.0
+	screen._hide_toast()
+	screen._show_reset_dialog()
+	_check(not screen.reset_confirm_visible and not screen.reset_dialog.visible, "Lv0 does not open reset dialog")
+	_check(screen.toast_label.text == "リセットできる強化がありません", "Lv0 reset warning text")
 	screen._handle_action("confirm")
 	screen._handle_action("back")
 	_check(screen.visible and screen.focus_area == 1, "dialog cancel returns to reset")
@@ -378,8 +524,18 @@ func _test_v4_growth_expression(database, manager) -> void:
 	var reduction_view: Dictionary = UiStateScript.build(reduction, 2, 10000)
 	_check(String(reduction_view["currentEffectText"]) == "-4%", "damage reduction uses minus display")
 	var gift: Dictionary = database.get_upgrade("gift_luck") as Dictionary
-	var gift_view: Dictionary = UiStateScript.build(gift, 3, 10000)
-	_check(String(gift_view["cardEffectSummary"]) == "当たり・大当たり率UP" and not String(gift_view["currentEffectText"]).contains("%"), "gift luck uses fixed wording")
+	var gift_cases := [
+		[0, "補正なし", "当たり ×1.08\n大当たり ×1.12"],
+		[1, "当たり ×1.08\n大当たり ×1.12", "当たり ×1.16\n大当たり ×1.24"],
+		[2, "当たり ×1.16\n大当たり ×1.24", "当たり ×1.24\n大当たり ×1.36"],
+		[3, "当たり ×1.24\n大当たり ×1.36", "当たり ×1.32\n大当たり ×1.48"],
+		[4, "当たり ×1.32\n大当たり ×1.48", "当たり ×1.40\n大当たり ×1.60"],
+		[5, "当たり ×1.40\n大当たり ×1.60", "MAX"],
+	]
+	for gift_case in gift_cases:
+		var gift_view: Dictionary = UiStateScript.build(gift, int(gift_case[0]), 10000)
+		_check(String(gift_view["cardEffectSummary"]) == ("当たり抽選を強化" if int(gift_case[0]) == 0 else "当たり・大当たり率UP"), "gift luck card summary stays short Lv%d" % int(gift_case[0]))
+		_check(String(gift_view["currentEffectText"]) == String(gift_case[1]) and String(gift_view["nextEffectText"]) == String(gift_case[2]), "gift luck effect text boundary Lv%d" % int(gift_case[0]))
 	var shortage_view: Dictionary = UiStateScript.build(max_hp, 0, 52)
 	_check(String(shortage_view["cardPriceText"]).contains("120") and String(shortage_view["cardPriceText"]).contains("あと68"), "card price includes required and shortage")
 	for item in database.upgrades:
@@ -406,7 +562,31 @@ func _test_v4_growth_expression(database, manager) -> void:
 	_check(screen.detail_accent_band.size.x >= 7.0 and screen.detail_accent_band.size.x <= 10.0, "detail accent band width")
 	_check(screen.hero_section != null and screen.information_section != null, "hero and information sections exist")
 	_check(screen._cards[0].visual_style.has("patternId"), "card receives visual style view")
-	_check(screen._cards[0].scale.x >= 1.03 and screen._cards[0].position.x >= 7.0, "selected card lift and scale")
+	screen._cards[0]._apply_selection_transform(true)
+	_check(screen._cards[0].scale == Vector2.ONE, "selected card root keeps Grid scale")
+	_check(is_equal_approx(screen._cards[0].visual_root.position.x, 0.0) and screen._cards[0].visual_root.scale.x <= 1.025, "selected card uses restrained internal visual transform")
+	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
+		_check(screen._cards[0].get_theme_stylebox(state_name) is StyleBoxEmpty, "card input slot stays transparent %s" % state_name)
+	_check(screen._cards[0].card_surface.get_theme_stylebox("panel") != screen._cards[0].get_theme_stylebox("normal"), "CardSurface owns the visible card style")
+	screen.focus_area = screen.FocusArea.CATEGORY_TABS
+	screen._refresh_view()
+	_check(screen._cards[0].selected and screen._cards[0].z_index < 3, "detail-selected card returns to normal z while category tab is focused")
+	_check(screen._cards[0].visual_root.scale == Vector2.ONE, "detail-selected card has no scale while category tab is focused")
+	var tab_card_style: StyleBoxFlat = screen._cards[0].card_surface.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(tab_card_style.border_width_left < 4 and tab_card_style.shadow_size == 0, "detail-selected card has no cursor frame or shadow while category tab is focused")
+	_check(screen.combat_tab_outer_ring.visible and not screen.support_tab_outer_ring.visible, "combat tab has the outer focus ring")
+	screen._handle_action("right")
+	_check(not screen.combat_tab_outer_ring.visible and screen.support_tab_outer_ring.visible, "support tab has the outer focus ring")
+	screen._handle_action("down")
+	_check(not screen.combat_tab_outer_ring.visible and not screen.support_tab_outer_ring.visible, "tab outer rings hide after leaving category tabs")
+	_check(screen._cards[1].z_index < 3, "unselected card does not take selected z order")
+	screen.focus_area = screen.FocusArea.RESET
+	screen._refresh_view()
+	_check(screen._cards[0].z_index < 3 and screen._cards[0].visual_root.scale == Vector2.ONE, "detail-selected card has no cursor transform while footer is focused")
+	_check(not screen.combat_tab_outer_ring.visible and not screen.support_tab_outer_ring.visible, "tab outer rings hide while footer is focused")
+	screen.focus_area = screen.FocusArea.CARDS
+	screen._refresh_view()
+	_check(screen._cards[0].z_index == 3 and screen._cards[0].visual_root.scale.x <= 1.025, "card cursor returns with card focus")
 	screen._cards[1]._on_mouse_entered()
 	_check(screen._cards[1].scale.x <= 1.011, "hover-only scale stays below selected scale")
 	screen.last_input_device = "keyboard"
@@ -463,6 +643,110 @@ func _visible_card_count() -> int:
 			count += 1
 	return count
 
+func _test_v5_geometry() -> void:
+	var manager = screen.manager
+	manager.profile["currentPoints"] = 10000
+	var levels: Dictionary = manager.profile["upgrades"] as Dictionary
+	for id in levels.keys():
+		levels[id] = 0
+	screen.category_index = 0
+	screen.selected_index = 0
+	screen.focus_area = screen.FocusArea.CARDS
+	screen.size = Vector2(1280, 720)
+	screen._layout_responsive()
+	screen._refresh_view()
+	await get_tree().process_frame
+	screen.card_grid.force_update_transform()
+	for card in screen._cards:
+		card.force_update_transform()
+	var root_positions: Array[Vector2] = []
+	var root_rects: Array[Rect2] = []
+	for card in screen._cards:
+		root_positions.append(card.position)
+		root_rects.append(card.get_global_rect())
+		card._apply_selection_transform(true)
+	var baseline_surface_rect: Rect2 = screen._cards[1].card_surface.get_global_rect()
+	for selected_index in range(screen._cards.size()):
+		screen.selected_index = selected_index
+		screen._refresh_view()
+		await get_tree().process_frame
+		for card in screen._cards:
+			card._apply_selection_transform(true)
+		var rects: Array[Rect2] = []
+		var surface_rects: Array[Rect2] = []
+		for index in range(screen._cards.size()):
+			var card: PowerUpShopCard = screen._cards[index] as PowerUpShopCard
+			_check(card.position.distance_to(root_positions[index]) < 0.01, "Grid card root position remains stable %d" % index)
+			_check(card.scale == Vector2.ONE, "Grid card root scale remains one %d" % index)
+			_check(card.get_global_rect() == root_rects[index], "Grid card root rect remains stable %d" % index)
+			rects.append(card.get_global_rect())
+			surface_rects.append(card.card_surface.get_global_rect())
+			if index == selected_index:
+				_check(is_equal_approx(card.visual_root.position.x, 0.0), "selected internal visual offset is neutral %d" % index)
+				_check(absf(card.visual_root.scale.x - 1.025) < 0.001, "selected internal visual scale is restrained %d" % index)
+			else:
+				_check(card.visual_root.position.distance_to(Vector2.ZERO) < 0.01, "unselected internal visual reset %d" % index)
+		for left in range(rects.size()):
+			for right in range(left + 1, rects.size()):
+				_check(not rects[left].intersects(rects[right]), "four card roots do not overlap %d/%d" % [left, right])
+				_check(not surface_rects[left].intersects(surface_rects[right]), "four card surfaces do not overlap %d/%d" % [left, right])
+		var selected_card: PowerUpShopCard = screen._cards[selected_index] as PowerUpShopCard
+		var selected_surface_rect: Rect2 = selected_card.card_surface.get_global_rect()
+		_check(selected_surface_rect.size.x > 0.0 and selected_surface_rect.size.y > 0.0, "selected internal surface is rendered")
+		if selected_index == 1:
+			_check(selected_surface_rect != baseline_surface_rect, "selected surface transform moves background and border")
+		var hover_index := (selected_index + 1) % screen._cards.size()
+		var hover_card: PowerUpShopCard = screen._cards[hover_index] as PowerUpShopCard
+		hover_card.hovered = true
+		hover_card.last_input_device = "mouse"
+		hover_card._apply_selection_transform(true)
+		_check(hover_card.scale == Vector2.ONE and absf(hover_card.visual_root.scale.x - 1.01) < 0.001, "hover transforms internal surface only")
+		hover_card.hovered = false
+		hover_card.last_input_device = "keyboard"
+		hover_card._apply_selection_transform(true)
+
+	for dimensions in [Vector2(1280, 720), Vector2(1600, 900)]:
+		screen.size = dimensions
+		screen._layout_responsive()
+		await get_tree().process_frame
+		screen.force_update_transform()
+		var info_rect: Rect2 = screen.information_section.get_global_rect()
+		var hero_rect: Rect2 = screen.hero_section.get_global_rect()
+		var bubble_rect: Rect2 = screen.speech_bubble.get_global_rect()
+		var mascot_rect: Rect2 = screen.mascot.get_global_rect()
+		var comparison_current_rect: Rect2 = screen.comparison_current_box.get_global_rect()
+		var comparison_next_rect: Rect2 = screen.comparison_next_box.get_global_rect()
+		var price_rect: Rect2 = screen.required_point_row.get_global_rect()
+		var purchase_rect: Rect2 = screen.purchase_button.get_global_rect()
+		_check(_contains_rect(info_rect, bubble_rect), "speech bubble stays inside information section %s" % dimensions)
+		_check(_contains_rect(info_rect, mascot_rect), "mascot stays inside information section %s" % dimensions)
+		_check(hero_rect.end.y <= info_rect.position.y + 0.5, "hero stays above information section %s" % dimensions)
+		_check(not bubble_rect.intersects(comparison_current_rect), "speech bubble avoids current comparison %s" % dimensions)
+		_check(not bubble_rect.intersects(comparison_next_rect), "speech bubble avoids next comparison %s" % dimensions)
+		_check(not bubble_rect.intersects(price_rect), "speech bubble avoids price row %s" % dimensions)
+		_check(not bubble_rect.intersects(purchase_rect), "speech bubble avoids purchase button %s" % dimensions)
+		_check(not mascot_rect.intersects(purchase_rect), "mascot avoids purchase button %s" % dimensions)
+		var body_rect: Rect2 = screen.get_node("SafeAreaMargin/MainCenter/ShopContent/Body").get_global_rect()
+		var content_rect: Rect2 = screen.shop_content.get_global_rect()
+		var detail_rect: Rect2 = screen.detail_panel.get_global_rect()
+		_check(body_rect.size.x <= content_rect.size.x + 0.5, "body fits shop content %s" % dimensions)
+		_check(body_rect.end.y <= content_rect.end.y + 0.5, "body fits shop content vertically %s" % dimensions)
+		_check(_contains_rect(detail_rect, hero_rect) and _contains_rect(detail_rect, info_rect), "detail sections stay inside detail panel %s" % dimensions)
+		_check(not screen.card_grid.get_global_rect().intersects(detail_rect), "grid and detail do not overlap %s" % dimensions)
+		var required_rect_before_lock: Rect2 = screen.required_point_row.get_global_rect()
+		var purchase_rect_before_lock: Rect2 = screen.purchase_button.get_global_rect()
+		screen.purchase_button.disabled = true
+		await get_tree().process_frame
+		_check(screen.detail_panel.get_global_rect() == detail_rect, "purchase lock keeps detail panel fixed %s" % dimensions)
+		_check(screen.required_point_row.get_global_rect() == required_rect_before_lock, "purchase lock keeps price row fixed %s" % dimensions)
+		_check(screen.purchase_button.get_global_rect() == purchase_rect_before_lock, "purchase lock keeps purchase button fixed %s" % dimensions)
+		screen.purchase_button.disabled = false
+	screen.size = Vector2(1280, 720)
+	screen._layout_responsive()
+
+func _contains_rect(outer: Rect2, inner: Rect2) -> bool:
+	return inner.position.x >= outer.position.x - 0.5 and inner.position.y >= outer.position.y - 0.5 and inner.end.x <= outer.end.x + 0.5 and inner.end.y <= outer.end.y + 0.5
+
 func _record_points_signal(_previous: int, _current: int) -> void:
 	signal_order.append("points")
 
@@ -472,7 +756,7 @@ func _record_purchase_signal(_id: String, _level: int, _price: int) -> void:
 
 func _save_override(_data: Dictionary) -> bool:
 	save_override_calls += 1
-	return true
+	return not save_override_should_fail
 
 func _check(condition: bool, label: String) -> void:
 	if not condition:

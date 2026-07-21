@@ -4,14 +4,21 @@ extends RefCounted
 const StreamPointRewardCalculatorScript := preload("res://scripts/systems/stream_point_reward_calculator.gd")
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
 const StreamPointRewardResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+
+static func max_buzz_value(stats: Dictionary) -> int:
+	var maximum: int = maxi(int(stats.get("burnComboMax", 0)), int(stats.get("maxBurnCombo", 0)))
+	maximum = maxi(maximum, int(stats.get("relayMaxBurnCombo", 0)))
+	return BuzzSystemScript.clamp_percent(maximum)
 
 static func calculate_kami_point(stats: Dictionary) -> int:
 	var cleared_bonus: int = 40 if bool(stats.get("cleared", false)) else 0
+	var max_buzz: int = max_buzz_value(stats)
 	return int(
 		float(stats.get("elapsed", 0.0))
 		+ int(stats.get("score", 0)) / 1000.0
 		+ float(stats.get("maxMultiplier", 1.0)) * 8.0
-		+ int(stats.get("burnComboMax", 0)) * 5.0
+		+ BuzzSystemScript.result_points(max_buzz)
 		+ int(stats.get("dangerCommentsChosen", 0)) * 3.0
 		+ int(stats.get("giftsTaken", 0)) * 3.0
 		+ cleared_bonus
@@ -147,7 +154,7 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"cleared": bool(stats.get("cleared", false)),
 		"maxMultiplier": float(stats.get("maxMultiplier", 1.0)),
 		"maxVoltage": float(stats.get("maxVoltage", stats.get("maxMultiplier", 1.0))),
-		"maxBurnCombo": int(stats.get("maxBurnCombo", stats.get("burnComboMax", 0))),
+		"maxBurnCombo": max_buzz_value(stats),
 		"modeId": String(stats.get("modeId", "")),
 		"stageId": String(stats.get("stageId", stats.get("streamFrameId", ""))),
 		"modeName": String(stats.get("modeName", "")),
@@ -178,7 +185,7 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 	var max_viewer_count: int = maxi(int(stats.get("relayMaxScore", 0)), int(stats.get("viewerCount", stats.get("score", 0))))
 	var total_viewer_count: int = int(stats.get("score", stats.get("relayTotalScore", 0)))
 	var max_voltage: float = maxf(float(stats.get("relayMaxMultiplier", 1.0)), float(stats.get("maxVoltage", stats.get("maxMultiplier", 1.0))))
-	var max_burn_combo: int = maxi(int(stats.get("relayMaxBurnCombo", 0)), int(stats.get("maxBurnCombo", stats.get("burnComboMax", 0))))
+	var max_burn_combo: int = max_buzz_value(stats)
 	var relay_completed: bool = _is_relay_completed(stats)
 	var ended_reason: String = "death"
 	var culprit_comment: Variant = String(stats.get("currentComment", "なし"))
@@ -244,8 +251,8 @@ static func build_run_stats(
 		"viewerCount": int(core.get("viewerCount", core.get("score", 0))),
 		"maxMultiplier": float(core.get("maxMultiplier", 1.0)),
 		"maxVoltage": float(core.get("maxVoltage", core.get("maxMultiplier", 1.0))),
-		"burnComboMax": int(core.get("burnComboMax", 0)),
-		"maxBurnCombo": int(core.get("maxBurnCombo", core.get("burnComboMax", 0))),
+		"burnComboMax": BuzzSystemScript.clamp_percent(int(core.get("burnComboMax", 0))),
+		"maxBurnCombo": BuzzSystemScript.clamp_percent(int(core.get("maxBurnCombo", core.get("burnComboMax", 0)))),
 		"giftsTaken": int(core.get("giftsTaken", 0)),
 		"maxGiftHype": int(core.get("maxGiftHype", 0)),
 		"dangerCommentsChosen": int(core.get("dangerCommentsChosen", 0)),
@@ -257,7 +264,7 @@ static func build_run_stats(
 		"relayTotalScore": int(core.get("relayTotalScore", 0)),
 		"relayMaxScore": int(core.get("relayMaxScore", 0)),
 		"relayMaxMultiplier": float(core.get("relayMaxMultiplier", core.get("maxMultiplier", 1.0))),
-		"relayMaxBurnCombo": int(core.get("relayMaxBurnCombo", core.get("maxBurnCombo", core.get("burnComboMax", 0)))),
+		"relayMaxBurnCombo": BuzzSystemScript.clamp_percent(int(core.get("relayMaxBurnCombo", core.get("maxBurnCombo", core.get("burnComboMax", 0))))),
 		"currentComment": String(core.get("currentComment", "なし")),
 		"currentDeathText": String(core.get("currentDeathText", "発動中の指示コメなし")),
 		"lastDeathSource": String(core.get("lastDeathSource", "接触")),
@@ -315,8 +322,8 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"viewerCount": int(target.get("score")),
 		"maxMultiplier": float(target.get("max_multiplier")),
 		"maxVoltage": float(target.get("max_multiplier")),
-		"burnComboMax": int(target.get("burn_combo_max")),
-		"maxBurnCombo": int(target.get("burn_combo_max")),
+		"burnComboMax": BuzzSystemScript.clamp_percent(int(target.get("burn_combo_max"))),
+		"maxBurnCombo": BuzzSystemScript.clamp_percent(int(target.get("burn_combo_max"))),
 		"giftsTaken": int(target.get("gifts_taken")),
 		"maxGiftHype": int(target.get("max_gift_hype")),
 		"dangerCommentsChosen": int(target.get("danger_comments_chosen")),
@@ -328,7 +335,7 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"relayTotalScore": int(target.get("score")),
 		"relayMaxScore": maxi(int(target.get("relay_max_score")), int(target.get("score"))),
 		"relayMaxMultiplier": maxf(float(target.get("relay_max_multiplier")), float(target.get("max_multiplier"))),
-		"relayMaxBurnCombo": maxi(int(target.get("relay_max_burn_combo")), int(target.get("burn_combo_max"))),
+		"relayMaxBurnCombo": BuzzSystemScript.clamp_percent(maxi(int(target.get("relay_max_burn_combo")), int(target.get("burn_combo_max")))),
 		"currentComment": String(target.get("current_comment")),
 		"currentDeathText": String(target.get("current_death_text")),
 		"lastDeathSource": String(target.get("last_death_source")),
@@ -406,9 +413,22 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	result = complete_run_stats(result)
 	var reward_commit := _commit_power_up_reward(result, target)
 	var committed_reward = reward_commit.get("reward", null)
-	result["streamPointReward"] = committed_reward.to_dictionary() if committed_reward != null and committed_reward.has_method("to_dictionary") else {}
-	result["ppGrantState"] = String(reward_commit.get("state", "unavailable"))
-	result["streamPointBalance"] = int(reward_commit.get("balance", 0))
+	var reward_data: Dictionary = committed_reward.to_dictionary() if committed_reward != null and committed_reward.has_method("to_dictionary") else {}
+	var grant_state := String(reward_commit.get("state", "unavailable"))
+	var points_before := int(reward_commit.get("beforeBalance", 0))
+	var points_after := int(reward_commit.get("balance", points_before))
+	var points_earned := int(reward_commit.get("earnedPoints", 0))
+	result["streamPointReward"] = reward_data
+	result["ppGrantState"] = grant_state
+	result["streamPointBalance"] = points_after
+	result["pointRewardView"] = build_point_reward_view(
+		reward_data,
+		grant_state,
+		points_before,
+		points_earned,
+		points_after,
+		relay_mode
+	)
 	var unlock_result: Dictionary = {"message": ""}
 	if not relay_mode:
 		unlock_result = StreamFrameSystem.clear_frame_for_target(target, result)
@@ -451,13 +471,20 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		bool(profile.get("firstRelayClear", false)),
 		manager.database.reward_rules
 	)
+	var before_balance: int = int(manager.current_points())
 	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward)
 	if bool(grant.get("ok", false)):
 		tracker.result_committed = true
 		target.set("pending_power_up_reward", null)
-		return {"state": String(grant.get("state", "granted")), "balance": int(grant.get("balance", manager.current_points())), "reward": reward}
+		var after_balance: int = int(grant.get("balance", manager.current_points()))
+		var grant_state := String(grant.get("state", "granted"))
+		var earned_points := maxi(0, after_balance - before_balance) if grant_state == "granted" else 0
+		return {"state": grant_state, "beforeBalance": before_balance, "earnedPoints": earned_points, "balance": after_balance, "reward": reward}
 	target.set("pending_power_up_reward", reward)
-	return {"state": String(grant.get("state", "save_failed")), "balance": manager.current_points(), "reward": reward}
+	var failure_state := String(grant.get("state", "save_failed"))
+	if failure_state != "save_failed":
+		failure_state = "save_failed"
+	return {"state": failure_state, "beforeBalance": before_balance, "earnedPoints": 0, "balance": int(manager.current_points()), "reward": reward}
 
 static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 	var tracker_variant: Variant = target.get("power_up_run_tracker")
@@ -467,6 +494,7 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 		return {"ok": false, "state": "nothing_to_retry"}
 	var tracker = tracker_variant
 	var reward = pending_variant
+	var before_balance: int = int(manager.current_points())
 	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward)
 	if bool(grant.get("ok", false)):
 		tracker.result_committed = true
@@ -475,9 +503,76 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 		result_data["ppGrantState"] = String(grant.get("state", "granted"))
 		result_data["streamPointBalance"] = int(grant.get("balance", manager.current_points()))
 		result_data["streamPointReward"] = reward.to_dictionary()
+		var after_balance: int = int(grant.get("balance", manager.current_points()))
+		var previous_view: Dictionary = result_data.get("pointRewardView", {}) as Dictionary
+		result_data["pointRewardView"] = build_point_reward_view(
+			reward.to_dictionary(),
+			String(grant.get("state", "granted")),
+			int(previous_view.get("pointsBefore", before_balance)),
+			maxi(0, after_balance - int(previous_view.get("pointsBefore", before_balance))),
+			after_balance,
+			bool(result_data.get("relayMode", false))
+		)
 		target.set("last_result_data", result_data)
 		return {"ok": true, "state": "granted", "balance": manager.current_points()}
 	return {"ok": false, "state": String(grant.get("state", "save_failed"))}
+
+static func point_reward_display_rows(stream_reward: Dictionary, relay_mode: bool) -> Array:
+	var entries: Array = []
+	if relay_mode:
+		entries = [
+			{"key": "participationPp", "id": "relay_participation", "displayName": "リレー参加", "isOneTimeBonus": false},
+			{"key": "relayStagePp", "id": "relay_stage", "displayName": "配信枠突破", "isOneTimeBonus": false},
+			{"key": "relayFinalReachedPp", "id": "relay_final_reached", "displayName": "ラスボス戦到達", "isOneTimeBonus": false},
+			{"key": "relayFinalClearPp", "id": "relay_final_clear", "displayName": "ラストオフライン撃破", "isOneTimeBonus": false},
+			{"key": "bossDefeatPp", "id": "relay_boss_defeat", "displayName": "指示コメボス討伐", "isOneTimeBonus": false},
+			{"key": "firstRelayClearPp", "id": "first_relay_clear", "displayName": "リレー初回完走", "isOneTimeBonus": true}
+		]
+	else:
+		entries = [
+			{"key": "participationPp", "id": "participation", "displayName": "参加報酬", "isOneTimeBonus": false},
+			{"key": "progressPp", "id": "progress", "displayName": "配信継続", "isOneTimeBonus": false},
+			{"key": "clearPp", "id": "clear", "displayName": "配信クリア", "isOneTimeBonus": false},
+			{"key": "bossDefeatPp", "id": "boss_defeat", "displayName": "ボス討伐", "isOneTimeBonus": false},
+			{"key": "firstStageClearPp", "id": "first_stage_clear", "displayName": "配信枠初回クリア", "isOneTimeBonus": true},
+			{"key": "firstBossDefeatPp", "id": "first_boss_defeat", "displayName": "ボス初回討伐", "isOneTimeBonus": true}
+		]
+	var rows: Array = []
+	var subtotal := 0
+	for entry_value in entries:
+		var entry: Dictionary = entry_value as Dictionary
+		var amount := int(stream_reward.get(String(entry["key"]), 0))
+		if amount <= 0:
+			continue
+		subtotal += amount
+		rows.append({
+			"id": String(entry["id"]),
+			"displayName": String(entry["displayName"]),
+			"amount": amount,
+			"isOneTimeBonus": bool(entry["isOneTimeBonus"])
+		})
+	var total := int(stream_reward.get("totalPp", subtotal))
+	var adjustment := total - subtotal
+	if adjustment != 0:
+		rows.append({
+			"id": "difficulty_adjustment",
+			"displayName": "難易度調整",
+			"amount": adjustment,
+			"isOneTimeBonus": false
+		})
+	return rows
+
+static func build_point_reward_view(stream_reward: Dictionary, grant_state: String, points_before: int, points_earned: int, points_after: int, relay_mode: bool) -> Dictionary:
+	var rows: Array = []
+	if grant_state != "already_granted" and grant_state != "unavailable":
+		rows = point_reward_display_rows(stream_reward, relay_mode)
+	return {
+		"grantState": grant_state,
+		"pointsBefore": points_before,
+		"pointsEarned": points_earned,
+		"pointsAfter": points_after,
+		"rewardRows": rows
+	}
 
 static func build_result_data(result: Dictionary) -> Dictionary:
 	var end_type := String(result.get("endType", ""))
@@ -499,7 +594,9 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"resultTitle": result_header_for_end_type(end_type, bool(result.get("cleared", false))),
 		"modeId": String(result.get("modeId", "")),
 		"modeName": String(result.get("modeName", "")),
+		"relayMode": bool(result.get("relayMode", false)),
 		"isRankingEligible": bool(result.get("isRankingEligible", false)),
+		"rankingRegistered": bool(result.get("isRankingEligible", false)),
 		"characterId": String(result.get("characterId", "")),
 		"characterName": String(result.get("characterName", "配信者")),
 		"streamFrameId": String(result.get("streamFrameId", "")),
@@ -510,7 +607,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"relayMaxViewerCount": maxi(int(result.get("relayMaxScore", 0)), int(result.get("viewerCount", result.get("score", 0)))),
 		"relayTotalViewerCount": int(result.get("score", result.get("relayTotalScore", 0))),
 		"relayMaxVoltage": maxf(float(result.get("relayMaxMultiplier", 1.0)), float(result.get("maxVoltage", result.get("maxMultiplier", 1.0)))),
-		"relayMaxBurnCombo": maxi(int(result.get("relayMaxBurnCombo", 0)), int(result.get("maxBurnCombo", result.get("burnComboMax", 0)))),
+		"relayMaxBurnCombo": BuzzSystemScript.clamp_percent(maxi(int(result.get("relayMaxBurnCombo", 0)), int(result.get("maxBurnCombo", result.get("burnComboMax", 0))))),
 		"isRelayCompleted": _is_relay_completed(result),
 		"score": int(result.get("score", 0)),
 		"viewerCount": int(result.get("viewerCount", result.get("score", 0))),
@@ -520,7 +617,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"cleared": bool(result.get("cleared", false)),
 		"maxMultiplier": float(result.get("maxMultiplier", 1.0)),
 		"maxVoltage": float(result.get("maxVoltage", result.get("maxMultiplier", 1.0))),
-		"maxBurnCombo": int(result.get("maxBurnCombo", result.get("burnComboMax", 0))),
+		"maxBurnCombo": BuzzSystemScript.clamp_percent(int(result.get("maxBurnCombo", result.get("burnComboMax", 0)))),
 		"dangerCommentSelectedCount": int(result.get("dangerCommentsChosen", 0)),
 		"heartActivatedCount": int(result.get("heartUsedCount", 0)),
 		"giftCount": int(result.get("giftsTaken", 0)),
@@ -544,6 +641,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"streamPointReward": result.get("streamPointReward", {}),
 		"ppGrantState": String(result.get("ppGrantState", "unavailable")),
 		"streamPointBalance": int(result.get("streamPointBalance", 0)),
+		"pointRewardView": result.get("pointRewardView", {}),
 		"rankingText": String(result.get("rankingText", "")),
 		"bossSummoned": bool(result.get("bossSummoned", false)),
 		"bossDefeated": bool(result.get("bossDefeated", false)),
@@ -616,11 +714,11 @@ static func build_result_text(stats: Dictionary) -> String:
 			String(stats.get("streamFrameName", "雑談枠")),
 			String(stats.get("weaponName", "BANハンマー"))
 		],
-		"最大同時視聴者数：%d人  生存：%s  最大ボルテージ：x%.1f  最大バズ度：%d" % [
+		"最大同時視聴者数：%d人  生存：%s  最大ボルテージ：x%.1f  最大バズ度：%d%%" % [
 			int(stats.get("score", 0)),
 			String(stats.get("timeText", "00:00")),
 			float(stats.get("maxMultiplier", 1.0)),
-			int(stats.get("burnComboMax", 0))
+			max_buzz_value(stats)
 		],
 		"ギフト：%d  最高期待度：%d%%  危険指示コメ：%d  ♡：%d" % [
 			int(stats.get("giftsTaken", 0)),
@@ -634,6 +732,8 @@ static func build_result_text(stats: Dictionary) -> String:
 		""
 	]
 	if completed:
+		var completed_point_view: Dictionary = stats.get("pointRewardView", {}) as Dictionary
+		lines[0] = "%s  %s  +%d PP" % [header, String(stats.get("rank", "D")), int(completed_point_view.get("pointsEarned", 0))]
 		if relay_mode and _is_relay_completed(stats):
 			lines.append("RELAY COMPLETE")
 		lines.append("配信結果：最後まで配信を走り切った！")

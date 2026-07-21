@@ -2,6 +2,7 @@ class_name ChoiceCardSystem
 extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 
 static func hidden_card() -> Dictionary:
 	return {"text": "", "fill": Color(1.0, 1.0, 1.0, 0.88), "border": Color("#c6dfff")}
@@ -130,19 +131,11 @@ static func is_select(action: Dictionary) -> bool:
 	return String(action["kind"]) == "select"
 
 static func buzz_gain_for_risk(risk: int) -> int:
-	if risk >= 4:
-		return 2
-	if risk >= 2:
-		return 1
-	return 0
+	return BuzzSystemScript.gain_for_risk(risk)
 
 static func buzz_gain_text(risk: int) -> String:
 	var gain := buzz_gain_for_risk(risk)
-	if gain >= 2:
-		return "📈 大バズ +%d" % gain
-	if gain == 1:
-		return "📈 バズ度 +1"
-	return "📈 バズ度 +0"
+	return "📈 バズ度 +%d%%" % gain
 
 static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_timer: float, elapsed: float) -> Dictionary:
 	var risk: int = int(view["riskLevel"])

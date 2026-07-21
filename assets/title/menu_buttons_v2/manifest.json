@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "sourceDirectory": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定\\ボタン",
+  "processing": {
+    "method": "green chroma key with edge alpha and green despill",
+    "preserveCommonCanvas": true
+  },
+  "assets": [
+    {
+      "sourceFile": "01ニューゲーム.png",
+      "output": "assets/title/menu_buttons_v2/title_menu_new_game.png",
+      "originalSize": [
+        2694,
+        584
+      ],
+      "contentBoundsInSource": [
+        119,
+        26,
+        2592,
+        576
+      ],
+      "outputSize": [
+        2694,
+        584
+      ],
+      "aspectRatio": 4.613,
+      "preserveCanvas": true,
+      "transparentPixels": 342330,
+      "partialAlphaPixels": 5052,
+      "opaquePixels": 1225914
+    },
+    {
+      "sourceFile": "02パワーアップショップ.png",
+      "output": "assets/title/menu_buttons_v2/title_menu_power_up_shop.png",
+      "originalSize": [
+        2694,
+        584
+      ],
+      "contentBoundsInSource": [
+        90,
+        41,
+        2605,
+        549
+      ],
+      "outputSize": [
+        2694,
+        584
+      ],
+      "aspectRatio": 4.613,
+      "preserveCanvas": true,
+      "transparentPixels": 416976,
+      "partialAlphaPixels": 3024,
+      "opaquePixels": 1153296
+    },
+    {
+      "sourceFile": "03ランキング.png",
+      "output": "assets/title/menu_buttons_v2/title_menu_ranking.png",
+      "originalSize": [
+        2694,
+        584
+      ],
+      "contentBoundsInSource": [
+        97,
+        33,
+        2597,
+        573
+      ],
+      "outputSize": [
+        2694,
+        584
+      ],
+      "aspectRatio": 4.613,
+      "preserveCanvas": true,
+      "transparentPixels": 349982,
+      "partialAlphaPixels": 1084,
+      "opaquePixels": 1222230
+    },
+    {
+      "sourceFile": "04オプション.png",
+      "output": "assets/title/menu_buttons_v2/title_menu_options.png",
+      "originalSize": [
+        2694,
+        584
+      ],
+      "contentBoundsInSource": [
+        97,
+        24,
+        2606,
+        574
+      ],
+      "outputSize": [
+        2694,
+        584
+      ],
+      "aspectRatio": 4.613,
+      "preserveCanvas": true,
+      "transparentPixels": 323071,
+      "partialAlphaPixels": 5306,
+      "opaquePixels": 1244919
+    },
+    {
+      "sourceFile": "05終了する.png",
+      "output": "assets/title/menu_buttons_v2/title_menu_quit.png",
+      "originalSize": [
+        2694,
+        584
+      ],
+      "contentBoundsInSource": [
+        117,
+        32,
+        2589,
+        581
+      ],
+      "outputSize": [
+        2694,
+        584
+      ],
+      "aspectRatio": 4.613,
+      "preserveCanvas": true,
+      "transparentPixels": 346020,
+      "partialAlphaPixels": 5006,
+      "opaquePixels": 1222270
+    }
+  ]
+}

@@ -773,7 +773,7 @@ static func hud_value_data(context: Dictionary) -> Dictionary:
 			"time": "%02d:%02d" % [remaining / 60, remaining % 60],
 			"streamFrame": String(context.get("streamFrameName", "雑談枠")),
 			"multiplier": "x%.1f" % float(context["multiplier"]),
-			"burn": "%d / 10" % int(context["burnCombo"]),
+			"burn": "%d%%" % int(context["burnCombo"]),
 			"hype": "%d%%" % int(context["giftHype"]),
 			"heart": "待機中" if bool(context["heartPending"]) else "なし",
 			"viewer": "%s人が視聴中" % format_viewer_count(int(context.get("score", 0))),

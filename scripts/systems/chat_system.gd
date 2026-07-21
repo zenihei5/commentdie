@@ -2,6 +2,7 @@ class_name ChatSystem
 extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 const COMMENT_POOLS_PATH := "res://data/comment_pools.json"
 const LINKED_TROLL_COMMENTS_PATH := "res://data/linked_troll_comments.json"
 const FALLBACK_VISIBLE_LINE_LIMIT := 18
@@ -781,7 +782,7 @@ static func _target_pool_keys(target: Node) -> Array[String]:
 		keys.append("low_mental")
 	if _near_enemy_count(target) >= 1:
 		keys.append("danger")
-	if int(target.get("burn_combo")) >= 8 or float(target.get("multiplier")) >= 3.0 or int(target.get("gift_hype")) >= 85:
+	if BuzzSystemScript.is_high(int(target.get("burn_combo"))) or float(target.get("multiplier")) >= 3.0 or int(target.get("gift_hype")) >= 85:
 		keys.append("high_buzz")
 	if _is_endgame_target(target):
 		keys.append("endgame")

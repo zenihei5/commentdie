@@ -2,42 +2,43 @@ class_name PowerUpShopVisualStyle
 extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
 
 const BACKGROUND_TOP := Color("#292252")
 const BACKGROUND_BOTTOM := Color("#141226")
-const PANEL := Color("#211B43")
-const CARD := Color("#F7F3FF")
-const CARD_SUBTLE := Color("#EDE6FA")
-const DETAIL := Color("#FCF9FF")
-const PRIMARY := Color("#302846")
-const SECONDARY := Color("#746B8D")
-const TEXT_DARK := Color("#292252")
-const TEXT_LIGHT := Color("#FFF9FF")
-const COMBAT := Color("#FF8FBD")
-const COMBAT_DARK := Color("#D9699D")
-const SUPPORT := Color("#79D9EF")
-const SUPPORT_DARK := Color("#51B8D2")
-const PP := Color("#FFD767")
-const PP_DARK := Color("#E6B93B")
-const WARNING := Color("#F16F87")
-const DISABLED := Color("#AAA2BB")
-const LAMP_OFF := Color("#F8F5FD")
-const LAMP_BORDER := Color("#D0C4DF")
-const PRICE_FILL := Color("#FFF3C4")
-const INSUFFICIENT_FILL := Color("#FFE4EB")
-const MAX_FILL := Color("#FFF1B8")
-const TAG_FILL := Color("#EEE8F7")
-const TAG_TEXT := Color("#665D7B")
-const BUTTON_DISABLED_FILL := Color("#D8D2E2")
-const BUTTON_DISABLED_BORDER := Color("#BDB4CA")
-const BUTTON_DISABLED_TEXT := Color("#81788F")
+const PANEL := CommonLightUiStyle.MAIN_PANEL
+const CARD := Color("#FFFFFF")
+const CARD_SUBTLE := CommonLightUiStyle.LILAC
+const DETAIL := Color("#FFFDFE")
+const PRIMARY := CommonLightUiStyle.TEXT_PRIMARY
+const SECONDARY := CommonLightUiStyle.TEXT_SECONDARY
+const TEXT_DARK := CommonLightUiStyle.TEXT_PRIMARY
+const TEXT_LIGHT := Color("#FFFFFF")
+const COMBAT := CommonLightUiStyle.COMBAT_MAIN
+const COMBAT_DARK := CommonLightUiStyle.COMBAT_DARK
+const SUPPORT := CommonLightUiStyle.SUPPORT_MAIN
+const SUPPORT_DARK := CommonLightUiStyle.SUPPORT_DARK
+const PP := CommonLightUiStyle.PP_GOLD
+const PP_DARK := CommonLightUiStyle.PP_TEXT
+const WARNING := CommonLightUiStyle.SHORTAGE_TEXT
+const DISABLED := CommonLightUiStyle.DISABLED_TEXT
+const LAMP_OFF := Color("#FCF9FF")
+const LAMP_BORDER := CommonLightUiStyle.LILAC_BORDER
+const PRICE_FILL := CommonLightUiStyle.PP_PALE
+const INSUFFICIENT_FILL := CommonLightUiStyle.SHORTAGE_PALE
+const MAX_FILL := CommonLightUiStyle.MAX_PALE
+const TAG_FILL := CommonLightUiStyle.LILAC
+const TAG_TEXT := Color("#67556C")
+const BUTTON_DISABLED_FILL := CommonLightUiStyle.DISABLED_FILL
+const BUTTON_DISABLED_BORDER := CommonLightUiStyle.DISABLED_BORDER
+const BUTTON_DISABLED_TEXT := CommonLightUiStyle.DISABLED_TEXT
 const TIER_UNPURCHASED_FILL := Color("#F3EFF9")
 const TIER_LOW_FILL := Color("#FFF4FA")
 const TIER_HIGH_FILL := Color("#EFFBFF")
 const TIER_MAX_FILL := Color("#FFF8D5")
 const TIER_MAX_BORDER := Color("#E7B83D")
-const PROGRESS_TRACK := Color("#4D456D")
-const MASCOT_DIM := Color("#B8B0CB")
+const PROGRESS_TRACK := Color("#E8DDEB")
+const MASCOT_DIM := Color("#B9AABC")
 
 static func tier_fill(tier: int, category_color: Color) -> Color:
 	match tier:
@@ -88,16 +89,7 @@ static func background_texture() -> GradientTexture2D:
 	return texture
 
 static func rounded_panel(fill: Color, border: Color = Color.TRANSPARENT, border_width: int = 0, radius: int = 16) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = fill
-	style.border_color = border
-	style.set_border_width_all(border_width)
-	style.set_corner_radius_all(radius)
-	style.content_margin_left = 18.0
-	style.content_margin_right = 18.0
-	style.content_margin_top = 14.0
-	style.content_margin_bottom = 14.0
-	return style
+	return CommonLightUiStyle.create_panel_style(fill, border, border_width, radius)
 
 static func button_style(fill: Color, border: Color, border_width: int = 2, radius: int = 12) -> StyleBoxFlat:
 	return rounded_panel(fill, border, border_width, radius)
@@ -133,19 +125,34 @@ static func apply_button_theme(button: Button, fill: Color, accent: Color, text_
 	var normal := button_style(fill, accent, 2, 12)
 	var hover := button_style(fill.lightened(0.09), accent.lightened(0.08), 3, 12)
 	var pressed := button_style(fill.darkened(0.08), accent, 3, 12)
+	var disabled := button_style(BUTTON_DISABLED_FILL, BUTTON_DISABLED_BORDER, 2, 12)
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", pressed)
 	button.add_theme_stylebox_override("focus", hover)
+	button.add_theme_stylebox_override("disabled", disabled)
 	apply_font(button, 17, true, text_color)
+	button.add_theme_color_override("font_disabled_color", BUTTON_DISABLED_TEXT)
 
 static func apply_tab_theme(button: Button, active: bool, accent: Color, accent_dark: Color) -> void:
-	var fill := accent.darkened(0.12) if active else PANEL.darkened(0.04)
-	var border := accent if active else SECONDARY
-	var normal := button_style(fill, border, 3 if active else 1, 14)
-	var hover := button_style(fill.lightened(0.08), accent, 3, 14)
+	var normal := CommonLightUiStyle.create_tab_style(active, accent)
+	var hover := CommonLightUiStyle.create_tab_style(true, accent.lightened(0.04))
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
 	button.add_theme_stylebox_override("pressed", button_style(accent_dark, accent, 3, 14))
 	button.add_theme_stylebox_override("focus", hover)
-	apply_font(button, 17, true, TEXT_LIGHT)
+	apply_font(button, 17, true, TEXT_LIGHT if active else TEXT_DARK)
+
+static func apply_back_button_theme(button: Button, selected: bool = false) -> void:
+	button.add_theme_stylebox_override("normal", CommonLightUiStyle.create_back_button_style(selected))
+	button.add_theme_stylebox_override("hover", CommonLightUiStyle.create_back_button_style(true))
+	button.add_theme_stylebox_override("pressed", CommonLightUiStyle.create_back_button_style(true))
+	button.add_theme_stylebox_override("focus", CommonLightUiStyle.create_back_button_style(true))
+	apply_font(button, 17, true, CommonLightUiStyle.BACK_BUTTON_BORDER)
+
+static func apply_reset_button_theme(button: Button, selected: bool = false) -> void:
+	button.add_theme_stylebox_override("normal", CommonLightUiStyle.create_reset_button_style(selected))
+	button.add_theme_stylebox_override("hover", CommonLightUiStyle.create_reset_button_style(true))
+	button.add_theme_stylebox_override("pressed", CommonLightUiStyle.create_reset_button_style(true))
+	button.add_theme_stylebox_override("focus", CommonLightUiStyle.create_reset_button_style(true))
+	apply_font(button, 17, true, CommonLightUiStyle.RESET_BUTTON_BORDER)

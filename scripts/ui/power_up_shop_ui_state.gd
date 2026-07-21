@@ -42,19 +42,37 @@ static func visual_tier_for_level(level: int, max_level: int) -> int:
 		return UpgradeVisualTier.LOW
 	return UpgradeVisualTier.UNPURCHASED
 
-static func _gift_luck_effect(upgrade: Dictionary, level: int) -> String:
+static func get_gift_luck_effect_text(upgrade: Dictionary, level: int, is_next_level: bool) -> String:
+	var target_level: int = level + 1 if is_next_level else level
+	var max_level: int = int(upgrade.get("maxLevel", 5))
+	if not is_next_level and level <= 0:
+		return "補正なし"
+	if is_next_level and target_level > max_level:
+		return "MAX"
 	var luck: Dictionary = upgrade.get("giftLuck", {}) as Dictionary
 	var hit_weights: Array = luck.get("hitWeightMultipliers", []) as Array
 	var jackpot_weights: Array = luck.get("jackpotWeightMultipliers", []) as Array
 	if hit_weights.is_empty() or jackpot_weights.is_empty():
-		return "当たり抽選を強化"
+		return "MAX" if is_next_level else "補正なし"
 	var last_index: int = mini(hit_weights.size(), jackpot_weights.size()) - 1
-	var index: int = clampi(level, 0, maxi(0, last_index))
-	return "当たり x%.2f / 大当たり x%.2f" % [float(hit_weights[index]), float(jackpot_weights[index])]
+	var index: int = clampi(target_level, 0, maxi(0, last_index))
+	return "当たり ×%.2f\n大当たり ×%.2f" % [float(hit_weights[index]), float(jackpot_weights[index])]
+
+static func get_standard_upgrade_effect_text(upgrade: Dictionary, level: int, is_next_level: bool) -> String:
+	var target_level: int = level + 1 if is_next_level else level
+	var max_level: int = int(upgrade.get("maxLevel", 5))
+	if is_next_level and target_level > max_level:
+		return "MAX"
+	var values: Array = upgrade.get("values", []) as Array
+	var value: Variant = values[clampi(target_level, 0, maxi(0, values.size() - 1))] if not values.is_empty() else 0.0
+	return _format_effect(upgrade, target_level, value)
+
+static func get_shop_effect_text(upgrade: Dictionary, level: int, is_next_level: bool) -> String:
+	if String(upgrade.get("id", "")) == "gift_luck":
+		return get_gift_luck_effect_text(upgrade, level, is_next_level)
+	return get_standard_upgrade_effect_text(upgrade, level, is_next_level)
 
 static func _format_effect(upgrade: Dictionary, level: int, value: Variant) -> String:
-	if String(upgrade.get("id", "")) == "gift_luck":
-		return _gift_luck_effect(upgrade, level)
 	var number: float = float(value)
 	if is_zero_approx(number):
 		return "なし"
@@ -84,8 +102,8 @@ static func build(upgrade: Dictionary, level: int, points: int) -> Dictionary:
 	var values: Array = upgrade.get("values", []) as Array
 	var current_value: Variant = values[clampi(level, 0, maxi(0, values.size() - 1))] if not values.is_empty() else 0.0
 	var next_value: Variant = values[clampi(level + 1, 0, maxi(0, values.size() - 1))] if not values.is_empty() else 0.0
-	var current_effect: String = _format_effect(upgrade, level, current_value)
-	var next_effect: String = "MAX" if maxed else _format_effect(upgrade, level + 1, next_value)
+	var current_effect: String = get_shop_effect_text(upgrade, level, false)
+	var next_effect: String = get_shop_effect_text(upgrade, level, true)
 	var card_price_text: String = "強化完了 MAX"
 	if state == PurchaseState.PURCHASABLE:
 		card_price_text = "次の強化 %d PP" % price

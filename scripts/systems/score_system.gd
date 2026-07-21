@@ -1,6 +1,8 @@
 extends RefCounted
 class_name ScoreSystem
 
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+
 static func genre_score_rate(streaming_skill_level: int) -> float:
 	return 1.0 + 0.1 * float(streaming_skill_level)
 
@@ -24,7 +26,7 @@ static func enemy_score(enemy: Dictionary, context: Dictionary) -> int:
 		gift_bonus += 0.60
 	if bool(context.get("genreActive", false)):
 		gift_bonus *= genre_score_rate(int(context.get("streamingSkillLevel", 0)))
-	var combo_bonus: float = 1.0 + float(burn_combo) * 0.1
+	var combo_bonus: float = BuzzSystemScript.score_multiplier(burn_combo)
 	var passive_rate: float = float(context.get("passiveScoreRate", 1.0))
 	var enemy_score_multiplier: float = float(enemy.get("scoreMultiplier", 1.0))
 	return int(float(enemy["score"]) * enemy_score_multiplier * multiplier * combo_bonus * gift_bonus * passive_rate)

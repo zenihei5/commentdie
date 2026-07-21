@@ -4,6 +4,7 @@ extends RefCounted
 const RelayStageProfileSystemScript := preload("res://scripts/systems/relay_stage_profile_system.gd")
 const ModifierSystemScript := preload("res://scripts/systems/modifier_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 
 const LEGACY_HP_UNIT := 20
 const DEFAULT_CONTACT_DAMAGE := 12
@@ -19,17 +20,20 @@ const STAGE_HAZARD_DAMAGE := 12
 const REVIVE_HP := 20
 
 static func apply_hit(context: Dictionary) -> Dictionary:
-	var damage: int = maxi(1, int(context.get("damage", DEFAULT_CONTACT_DAMAGE)))
+	var damage: int = maxi(0, int(context.get("damage", DEFAULT_CONTACT_DAMAGE)))
+	var initial_hp: int = int(context.get("playerHp", 1))
+	var initial_charges: int = maxi(0, int(context.get("burnResistCharges", 0)))
+	var initial_buzz: int = BuzzSystemScript.clamp_percent(int(context.get("burnCombo", 0)))
+	if damage <= 0:
+		return {"damage": 0, "playerHp": initial_hp, "burnResistCharges": initial_charges, "burnCombo": initial_buzz, "giftHype": int(context.get("giftHype", 0)), "reviveAvailable": bool(context.get("reviveAvailable", false)), "revived": false, "invincible": float(context.get("baseInvincibleTime", 0.7)), "activeCommentHurt": false, "buzzBefore": initial_buzz, "buzzAfter": initial_buzz, "buzzDelta": 0, "buzzChanged": false, "buzzProtected": false, "buzzProtectionConsumed": false}
 	if bool(context.get("zeroTauntResist", false)) and float(context.get("multiplier", 1.0)) >= 3.0:
 		damage += LEGACY_HP_UNIT
 
 	var hp: int = int(context.get("playerHp", 1)) - damage
-	var burn_resist_charges: int = int(context.get("burnResistCharges", 0))
-	var burn_combo: int = int(context.get("burnCombo", 0))
-	if burn_resist_charges > 0:
-		burn_resist_charges -= 1
-	else:
-		burn_combo = maxi(0, burn_combo - 1)
+	var burn_resist_charges: int = initial_charges
+	var buzz_transition: Dictionary = BuzzSystemScript.damage_transition(initial_buzz, burn_resist_charges, true)
+	burn_resist_charges = int(buzz_transition["burnResistChargesAfter"])
+	var burn_combo: int = int(buzz_transition["buzzAfter"])
 
 	var gift_hype: int = maxi(0, int(context.get("giftHype", 0)) - 10)
 	var revive_available: bool = bool(context.get("reviveAvailable", false))
@@ -50,7 +54,13 @@ static func apply_hit(context: Dictionary) -> Dictionary:
 		"reviveAvailable": revive_available,
 		"revived": revived,
 		"invincible": invincible,
-		"activeCommentHurt": true
+		"activeCommentHurt": true,
+		"buzzBefore": int(buzz_transition["buzzBefore"]),
+		"buzzAfter": int(buzz_transition["buzzAfter"]),
+		"buzzDelta": int(buzz_transition["buzzDelta"]),
+		"buzzChanged": bool(buzz_transition["buzzChanged"]),
+		"buzzProtected": bool(buzz_transition["buzzProtected"]),
+		"buzzProtectionConsumed": bool(buzz_transition["buzzProtectionConsumed"])
 	}
 
 static func source_damage(source: String, fallback: int = DEFAULT_CONTACT_DAMAGE) -> int:
@@ -112,7 +122,13 @@ static func apply_damage_for_target(target: Node, source_text: String, damage: i
 		"revived": bool(result["revived"]),
 		"dead": dead,
 		"chat": "メンタル%dで復帰" % REVIVE_HP if bool(result["revived"]) else "",
-		"deathReason": death_text
+		"deathReason": death_text,
+		"buzzBefore": int(result.get("buzzBefore", target.get("burn_combo"))),
+		"buzzAfter": int(result.get("buzzAfter", target.get("burn_combo"))),
+		"buzzDelta": int(result.get("buzzDelta", 0)),
+		"buzzChanged": bool(result.get("buzzChanged", false)),
+		"buzzProtected": bool(result.get("buzzProtected", false)),
+		"buzzProtectionConsumed": bool(result.get("buzzProtectionConsumed", false))
 	}
 
 static func apply_damage_source_for_target(target: Node, source: String, damage: int = -1, debug_enemy_id: String = "", debug_runtime_variant: String = "", debug_attack_type: String = "") -> Dictionary:
@@ -180,7 +196,7 @@ static func _is_non_enemy_damage_source(source: String) -> bool:
 	return source == "damage_pit" or source == "stopped moving" or source.contains("ダメージ床") or source == "boss_bullet" or source == "boss_attack" or source.contains("boss_")
 
 static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dictionary:
-	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false}
+	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false, "buzzChanged": false, "buzzDelta": 0, "buzzBefore": BuzzSystemScript.clamp_percent(int(target.get("burn_combo"))), "buzzAfter": BuzzSystemScript.clamp_percent(int(target.get("burn_combo"))), "buzzProtected": false, "buzzProtectionConsumed": false}
 	var chats: Array = feedback["chats"] as Array
 	for source_item in sources:
 		var source: String = String(source_item)
@@ -188,6 +204,7 @@ static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dic
 		if bool(result["ignored"]):
 			continue
 		feedback["damaged"] = true
+		_merge_buzz_feedback(feedback, result)
 		if bool(result["revived"]):
 			chats.append(String(result["chat"]))
 			continue
@@ -198,7 +215,7 @@ static func apply_damage_sources_for_target(target: Node, sources: Array) -> Dic
 	return feedback
 
 static func apply_damage_events_for_target(target: Node, damage_events: Array) -> Dictionary:
-	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false}
+	var feedback: Dictionary = {"chats": [], "dead": false, "deathReason": "", "damaged": false, "buzzChanged": false, "buzzDelta": 0, "buzzBefore": BuzzSystemScript.clamp_percent(int(target.get("burn_combo"))), "buzzAfter": BuzzSystemScript.clamp_percent(int(target.get("burn_combo"))), "buzzProtected": false, "buzzProtectionConsumed": false}
 	var chats: Array = feedback["chats"] as Array
 	for item in damage_events:
 		var event: Dictionary = item as Dictionary
@@ -215,6 +232,7 @@ static func apply_damage_events_for_target(target: Node, damage_events: Array) -
 		if bool(result["ignored"]):
 			continue
 		feedback["damaged"] = true
+		_merge_buzz_feedback(feedback, result)
 		if bool(result["revived"]):
 			chats.append(String(result["chat"]))
 			continue
@@ -223,6 +241,16 @@ static func apply_damage_events_for_target(target: Node, damage_events: Array) -
 			feedback["deathReason"] = String(result["deathReason"])
 			return feedback
 	return feedback
+
+static func _merge_buzz_feedback(feedback: Dictionary, result: Dictionary) -> void:
+	if not feedback.has("buzzChanges"):
+		feedback["buzzChanges"] = []
+	(feedback["buzzChanges"] as Array).append({"buzzBefore": int(result.get("buzzBefore", feedback.get("buzzAfter", 0))), "buzzAfter": int(result.get("buzzAfter", feedback.get("buzzAfter", 0))), "buzzDelta": int(result.get("buzzDelta", 0)), "buzzProtected": bool(result.get("buzzProtected", false)), "buzzProtectionConsumed": bool(result.get("buzzProtectionConsumed", false))})
+	feedback["buzzAfter"] = int(result.get("buzzAfter", feedback.get("buzzAfter", 0)))
+	feedback["buzzDelta"] = int(feedback.get("buzzDelta", 0)) + int(result.get("buzzDelta", 0))
+	feedback["buzzChanged"] = bool(feedback.get("buzzChanged", false)) or bool(result.get("buzzChanged", false))
+	feedback["buzzProtected"] = bool(feedback.get("buzzProtected", false)) or bool(result.get("buzzProtected", false))
+	feedback["buzzProtectionConsumed"] = bool(feedback.get("buzzProtectionConsumed", false)) or bool(result.get("buzzProtectionConsumed", false))
 
 static func death_reason(current_comment: String, current_death_text: String, damage_source_text: String) -> String:
 	if current_comment == "" or current_comment == "なし" or current_comment == "縺ｪ縺・":

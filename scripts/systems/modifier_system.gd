@@ -2,6 +2,7 @@ class_name ModifierSystem
 extends RefCounted
 
 const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
+const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 
 static func aliases() -> Dictionary:
 	return {
@@ -118,23 +119,20 @@ static func updated_recent_categories(recent: Array[String], category: String) -
 	return result
 
 static func buzz_gain_for_risk(risk: int) -> int:
-	if risk >= 4:
-		return 2
-	if risk >= 2:
-		return 1
-	return 0
+	return BuzzSystemScript.gain_for_risk(risk)
 
 static func apply_choice_numbers(context: Dictionary) -> Dictionary:
 	var view: Dictionary = context["view"] as Dictionary
 	var multiplier: float = float(view["multiplier"]) * (1.2 if bool(context.get("commentBoost", false)) else 1.0)
 	var max_multiplier: float = maxf(float(context.get("maxMultiplier", 1.0)), multiplier)
-	var burn_combo: int = int(context.get("burnCombo", 0))
 	var danger_comments_chosen: int = int(context.get("dangerCommentsChosen", 0))
 	var risk: int = int(view["riskLevel"])
-	burn_combo += buzz_gain_for_risk(risk)
+	var buzz_state: Dictionary = BuzzSystemScript.instruction_transition(int(context.get("burnCombo", 0)), int(context.get("burnComboMax", 0)), risk)
+	var buzz_before: int = int(buzz_state["buzzBefore"])
+	var burn_combo: int = int(buzz_state["buzzAfter"])
 	if risk >= 3:
 		danger_comments_chosen += 1
-	var burn_combo_max: int = maxi(int(context.get("burnComboMax", 0)), burn_combo)
+	var burn_combo_max: int = int(buzz_state["burnComboMax"])
 	var hype_gain: int = int(view["giftHypeOnSelect"])
 	if bool(context.get("yesListener", false)):
 		hype_gain = int(round(float(hype_gain) * 1.3))
@@ -145,6 +143,12 @@ static func apply_choice_numbers(context: Dictionary) -> Dictionary:
 		"maxMultiplier": max_multiplier,
 		"burnCombo": burn_combo,
 		"burnComboMax": burn_combo_max,
+		"buzzBefore": buzz_before,
+		"buzzAfter": burn_combo,
+		"buzzDelta": burn_combo - buzz_before,
+		"buzzGainRequested": int(buzz_state["buzzGainRequested"]),
+		"buzzChanged": bool(buzz_state["buzzChanged"]),
+		"buzzReachedMax": bool(buzz_state["buzzReachedMax"]),
 		"dangerCommentsChosen": danger_comments_chosen,
 		"giftHype": gift_hype,
 		"maxGiftHype": max_gift_hype,
@@ -197,7 +201,7 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 	target.set("last_comment_id", String(comment["id"]))
 	var recent: Array[String] = target.get("recent_comment_categories") as Array[String]
 	target.set("recent_comment_categories", updated_recent_categories(recent, String(comment.get("category", "default"))))
-	apply_choice_numbers_to_target(target, view)
+	var number_state: Dictionary = apply_choice_numbers_to_target(target, view)
 	var effect_duration := _effect_duration_for_target(target, comment)
 	if bool(target.get("relay_mode")):
 		var relay_config: Dictionary = target.get("relay_mode_config") as Dictionary
@@ -222,6 +226,12 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 		var event_id := _collab_instruction_event_id(String(comment.get("id", "")))
 		if event_id != "":
 			feedback["commentEventIds"] = [event_id]
+	feedback["buzzBefore"] = int(number_state.get("buzzBefore", target.get("burn_combo")))
+	feedback["buzzAfter"] = int(number_state.get("buzzAfter", target.get("burn_combo")))
+	feedback["buzzDelta"] = int(number_state.get("buzzDelta", 0))
+	feedback["buzzGainRequested"] = int(number_state.get("buzzGainRequested", 0))
+	feedback["buzzChanged"] = bool(number_state.get("buzzChanged", false))
+	feedback["buzzReachedMax"] = bool(number_state.get("buzzReachedMax", false))
 	return {"commentId": String(comment["id"]), "feedback": feedback}
 
 static func _song_instruction_event_id(comment_id: String) -> String:
