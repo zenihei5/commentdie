@@ -76,7 +76,10 @@ static func _format_effect(upgrade: Dictionary, level: int, value: Variant) -> S
 	var number: float = float(value)
 	if is_zero_approx(number):
 		return "なし"
-	var prefix: String = "-" if String(upgrade.get("id", "")) == "damage_reduction" else "+"
+	var summary: Dictionary = upgrade.get("cardSummary", {}) as Dictionary
+	if String(summary.get("format", "")) == "count":
+		return "%d回" % roundi(absf(number))
+	var prefix: String = "-" if String(summary.get("format", "")) == "percent_down" or String(upgrade.get("id", "")) == "damage_reduction" else "+"
 	return "%s%d%%" % [prefix, roundi(absf(number) * 100.0)]
 
 static func _card_effect_summary(upgrade: Dictionary, level: int, max_level: int) -> String:

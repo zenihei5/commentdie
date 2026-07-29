@@ -66,6 +66,32 @@
       "prices": [120, 220, 360, 540, 760]
     },
     {
+      "id": "attack_area",
+      "category": "combat",
+      "displayName": "攻撃範囲レッスン",
+      "description": "プレイヤー武器の攻撃判定の大きさを広げます。飛距離や索敵距離は変わりません。",
+      "cardSummary": {"levelZero": "攻撃範囲を強化", "valueLabel": "攻撃範囲", "format": "percent_up"},
+      "visualStyle": {"baseColor": "#FFF0F4", "accentColor": "#F36C91", "patternId": "range_ripple", "patternAlpha": 0.06},
+      "effectTags": ["プレイヤー武器", "判定サイズ"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/wide_angle.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.02, 0.04, 0.06, 0.08, 0.10],
+      "prices": [120, 220, 360, 540, 760]
+    },
+    {
+      "id": "attack_interval",
+      "category": "combat",
+      "displayName": "攻撃テンポ練習",
+      "description": "プレイヤー武器の次の攻撃までの周期を短縮します。",
+      "cardSummary": {"levelZero": "攻撃間隔を短縮", "valueLabel": "攻撃間隔", "format": "percent_down"},
+      "visualStyle": {"baseColor": "#FFF5EA", "accentColor": "#F29A5B", "patternId": "tempo_rhythm", "patternAlpha": 0.06},
+      "effectTags": ["プレイヤー武器", "発動周期"],
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/high_speed_connection.png",
+      "maxLevel": 5,
+      "values": [0.0, 0.02, 0.04, 0.06, 0.08, 0.10],
+      "prices": [120, 220, 360, 540, 760]
+    },
+    {
       "id": "move_speed",
       "category": "combat",
       "displayName": "フットワーク練習",
@@ -146,6 +172,32 @@
         "hitWeightMultipliers": [1.0, 1.08, 1.16, 1.24, 1.32, 1.40],
         "jackpotWeightMultipliers": [1.0, 1.12, 1.24, 1.36, 1.48, 1.60]
       }
+    },
+    {
+      "id": "buzz_keep",
+      "category": "support",
+      "displayName": "バズキープ術",
+      "description": "正式な被弾時にバズ度の低下を防ぐチャージを、ラン開始時に得ます。",
+      "cardSummary": {"levelZero": "バズ低下防止チャージ", "valueLabel": "初期チャージ", "format": "count"},
+      "visualStyle": {"baseColor": "#EEF9FF", "accentColor": "#4AAFE6", "patternId": "buzz_lock", "patternAlpha": 0.06},
+      "effectTags": ["初期チャージ", "バズ度"],
+      "iconPath": "res://assets/generated/power_up_shop_icons_v2/buzz_keep.png",
+      "maxLevel": 5,
+      "values": [0, 1, 2, 3, 4, 5],
+      "prices": [100, 180, 300, 450, 650]
+    },
+    {
+      "id": "gift_reroll",
+      "category": "support",
+      "displayName": "ギフト再抽選術",
+      "description": "ギフト選択画面で、進化枠を固定したまま候補を再抽選できます。",
+      "cardSummary": {"levelZero": "ギフト再抽選回数", "valueLabel": "初期回数", "format": "count"},
+      "visualStyle": {"baseColor": "#F2EEFF", "accentColor": "#8B78D9", "patternId": "reroll_shuffle", "patternAlpha": 0.06},
+      "effectTags": ["ギフト選択", "進化枠固定"],
+      "iconPath": "res://assets/generated/power_up_shop_icons_v2/gift_reroll.png",
+      "maxLevel": 5,
+      "values": [0, 1, 2, 3, 4, 5],
+      "prices": [100, 180, 300, 450, 650]
     }
   ]
 }

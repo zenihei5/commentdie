@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "processing": {
+    "method": "border-connected green chroma key with local edge despill",
+    "tightCropPadding": 16,
+    "batonSheetSplit": "vertical midpoint after chroma cleanup; full sheets are never used by runtime",
+    "resized": false
+  },
+  "assets": [
+    {
+      "id": "icon",
+      "sourceFile": "icon_fansa_climax.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/icon_fansa_climax.png",
+      "output": "assets/weapons/fansa_climax/icon_fansa_climax.png",
+      "sourceSha256": "e539685ece6b21501d8066a4fb23c4fdf346fce60a009acfce70fe262b8fc9b8",
+      "backupSha256": "e539685ece6b21501d8066a4fb23c4fdf346fce60a009acfce70fe262b8fc9b8",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        118,
+        32,
+        1148,
+        1218
+      ],
+      "outputSize": [
+        1030,
+        1186
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 701,
+      "transparentPixels": 845965,
+      "partialAlphaPixels": 24281,
+      "opaquePixels": 351334
+    },
+    {
+      "id": "slash1",
+      "sourceFile": "fansa_climax_slash_1.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_slash_1.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_slash_1.png",
+      "sourceSha256": "21bbfecaa359a09e810f1e8c7f033454847f5375f8beadc256efe0f8f5b66e9c",
+      "backupSha256": "21bbfecaa359a09e810f1e8c7f033454847f5375f8beadc256efe0f8f5b66e9c",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        16,
+        30,
+        1250,
+        1218
+      ],
+      "outputSize": [
+        1234,
+        1188
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 3314,
+      "transparentPixels": 876350,
+      "partialAlphaPixels": 37162,
+      "opaquePixels": 552480
+    },
+    {
+      "id": "slash2",
+      "sourceFile": "fansa_climax_slash_2.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_slash_2.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_slash_2.png",
+      "sourceSha256": "69e584c2051ee95b24025f0b182c4f4430cf3c4e776b0a73de11440ff0da94b9",
+      "backupSha256": "69e584c2051ee95b24025f0b182c4f4430cf3c4e776b0a73de11440ff0da94b9",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        0,
+        30,
+        1223,
+        1218
+      ],
+      "outputSize": [
+        1223,
+        1188
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 5880,
+      "transparentPixels": 855940,
+      "partialAlphaPixels": 36220,
+      "opaquePixels": 560764
+    },
+    {
+      "id": "echo",
+      "sourceFile": "fansa_climax_echo.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_echo.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_echo.png",
+      "sourceSha256": "94c896e237e783ab2b0ad21878a0c5a2ea4cabdf0b7185931fb2a1a4bc6007c8",
+      "backupSha256": "94c896e237e783ab2b0ad21878a0c5a2ea4cabdf0b7185931fb2a1a4bc6007c8",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        52,
+        70,
+        1214,
+        1156
+      ],
+      "outputSize": [
+        1162,
+        1086
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 22486,
+      "transparentPixels": 878003,
+      "partialAlphaPixels": 47859,
+      "opaquePixels": 336070
+    },
+    {
+      "id": "finisher",
+      "sourceFile": "fansa_climax_finisher.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_finisher.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_finisher.png",
+      "sourceSha256": "9163b77d387fa08b85049ff5d8ad8806a5ddbfd7fe1966de1a2a491349bbd8d9",
+      "backupSha256": "9163b77d387fa08b85049ff5d8ad8806a5ddbfd7fe1966de1a2a491349bbd8d9",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        20,
+        36,
+        1253,
+        1235
+      ],
+      "outputSize": [
+        1233,
+        1199
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 12859,
+      "transparentPixels": 462903,
+      "partialAlphaPixels": 49994,
+      "opaquePixels": 965470
+    },
+    {
+      "id": "xSlash",
+      "sourceFile": "fansa_climax_xslash.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_xslash.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_xslash.png",
+      "sourceSha256": "ed09af98e9a3fcb3272fbf195521edbdfa8a58cb7b0b2a19099df3df3d7eef26",
+      "backupSha256": "ed09af98e9a3fcb3272fbf195521edbdfa8a58cb7b0b2a19099df3df3d7eef26",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        6,
+        56,
+        1250,
+        1184
+      ],
+      "outputSize": [
+        1244,
+        1128
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 8397,
+      "transparentPixels": 733458,
+      "partialAlphaPixels": 49526,
+      "opaquePixels": 620248
+    },
+    {
+      "id": "wave",
+      "sourceFile": "fansa_climax_wave.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_wave.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_wave.png",
+      "sourceSha256": "66b268aa1bde3f148e0a0fcc6ec233a5a53c1f512edf2c8a90b4adf322f01516",
+      "backupSha256": "66b268aa1bde3f148e0a0fcc6ec233a5a53c1f512edf2c8a90b4adf322f01516",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        2,
+        13,
+        1252,
+        1248
+      ],
+      "outputSize": [
+        1250,
+        1235
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 87914,
+      "transparentPixels": 543847,
+      "partialAlphaPixels": 59874,
+      "opaquePixels": 940029
+    },
+    {
+      "id": "spark",
+      "sourceFile": "fansa_climax_spark.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_spark.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_spark.png",
+      "sourceSha256": "3a9f5b7e821c34836d9b56737da6b9d013653284604e17267ead33b05caa8076",
+      "backupSha256": "3a9f5b7e821c34836d9b56737da6b9d013653284604e17267ead33b05caa8076",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        271,
+        294,
+        982,
+        932
+      ],
+      "outputSize": [
+        711,
+        638
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 25,
+      "transparentPixels": 302646,
+      "partialAlphaPixels": 24352,
+      "opaquePixels": 126620
+    },
+    {
+      "id": "finisherBg",
+      "sourceFile": "fansa_climax_finisher_bg.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_finisher_bg.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_finisher_bg.png",
+      "sourceSha256": "367aa1465569c6d8aadb3e72aeb4f1e69db7609e976b3af96aada6101e2550a5",
+      "backupSha256": "367aa1465569c6d8aadb3e72aeb4f1e69db7609e976b3af96aada6101e2550a5",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        12,
+        18,
+        1252,
+        1239
+      ],
+      "outputSize": [
+        1240,
+        1221
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 8896,
+      "transparentPixels": 838235,
+      "partialAlphaPixels": 97137,
+      "opaquePixels": 578668
+    },
+    {
+      "id": "confetti",
+      "sourceFile": "fansa_climax_confetti.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_confetti.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_confetti.png",
+      "sourceSha256": "fff193a360629aca962025af6e732ab5ef6e3abb5dcd7cbb563eaf57b9378e9e",
+      "backupSha256": "fff193a360629aca962025af6e732ab5ef6e3abb5dcd7cbb563eaf57b9378e9e",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        19,
+        52,
+        1234,
+        1211
+      ],
+      "outputSize": [
+        1215,
+        1159
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 959,
+      "transparentPixels": 1075511,
+      "partialAlphaPixels": 86799,
+      "opaquePixels": 245875
+    },
+    {
+      "id": "batonBodyFull",
+      "sourceFile": "fansa_climax_baton_body.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_baton_body.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_baton_body.png",
+      "sourceSha256": "79f2fc29cfd25b821a9039eff311c53c47c06ec18c075f04152189736bed7402",
+      "backupSha256": "79f2fc29cfd25b821a9039eff311c53c47c06ec18c075f04152189736bed7402",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        275,
+        28,
+        936,
+        1228
+      ],
+      "outputSize": [
+        661,
+        1200
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 280,
+      "transparentPixels": 475925,
+      "partialAlphaPixels": 16911,
+      "opaquePixels": 300364
+    },
+    {
+      "id": "batonBodyLeft",
+      "sourceFile": "fansa_climax_baton_body.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_baton_body.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_baton_body_left.png",
+      "sourceSha256": "79f2fc29cfd25b821a9039eff311c53c47c06ec18c075f04152189736bed7402",
+      "backupSha256": "79f2fc29cfd25b821a9039eff311c53c47c06ec18c075f04152189736bed7402",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        279,
+        32,
+        597,
+        1224
+      ],
+      "outputSize": [
+        326,
+        1200
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 90,
+      "transparentPixels": 229721,
+      "partialAlphaPixels": 8655,
+      "opaquePixels": 152824,
+      "splitRegionInCleanedSource": [
+        0,
+        0,
+        627,
+        1254
+      ]
+    },
+    {
+      "id": "batonBodyRight",
+      "sourceFile": "fansa_climax_baton_body.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_baton_body.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_baton_body_right.png",
+      "sourceSha256": "79f2fc29cfd25b821a9039eff311c53c47c06ec18c075f04152189736bed7402",
+      "backupSha256": "79f2fc29cfd25b821a9039eff311c53c47c06ec18c075f04152189736bed7402",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        3,
+        55,
+        305,
+        1224
+      ],
+      "outputSize": [
+        310,
+        1177
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 190,
+      "transparentPixels": 209074,
+      "partialAlphaPixels": 8256,
+      "opaquePixels": 147540,
+      "splitRegionInCleanedSource": [
+        627,
+        0,
+        1254,
+        1254
+      ]
+    },
+    {
+      "id": "batonGlowFull",
+      "sourceFile": "fansa_climax_baton_glow.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_baton_glow.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_baton_glow.png",
+      "sourceSha256": "4397d624a4785100905c3dbb791fa636d582f44516c39bf28c1af56b11a247b3",
+      "backupSha256": "4397d624a4785100905c3dbb791fa636d582f44516c39bf28c1af56b11a247b3",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        370,
+        3,
+        878,
+        1236
+      ],
+      "outputSize": [
+        508,
+        1233
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 7768,
+      "transparentPixels": 313416,
+      "partialAlphaPixels": 25379,
+      "opaquePixels": 287569
+    },
+    {
+      "id": "batonGlowLeft",
+      "sourceFile": "fansa_climax_baton_glow.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_baton_glow.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_baton_glow_left.png",
+      "sourceSha256": "4397d624a4785100905c3dbb791fa636d582f44516c39bf28c1af56b11a247b3",
+      "backupSha256": "4397d624a4785100905c3dbb791fa636d582f44516c39bf28c1af56b11a247b3",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        374,
+        11,
+        627,
+        1232
+      ],
+      "outputSize": [
+        261,
+        1229
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 2796,
+      "transparentPixels": 164736,
+      "partialAlphaPixels": 12890,
+      "opaquePixels": 143143,
+      "splitRegionInCleanedSource": [
+        0,
+        0,
+        627,
+        1254
+      ]
+    },
+    {
+      "id": "batonGlowRight",
+      "sourceFile": "fansa_climax_baton_glow.png",
+      "sourceBackup": "assets/source_backups/fansa_climax_visuals/fansa_climax_baton_glow.png",
+      "output": "assets/weapons/fansa_climax/fansa_climax_baton_glow_right.png",
+      "sourceSha256": "4397d624a4785100905c3dbb791fa636d582f44516c39bf28c1af56b11a247b3",
+      "backupSha256": "4397d624a4785100905c3dbb791fa636d582f44516c39bf28c1af56b11a247b3",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        0,
+        7,
+        247,
+        1232
+      ],
+      "outputSize": [
+        255,
+        1233
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 4972,
+      "transparentPixels": 157500,
+      "partialAlphaPixels": 12489,
+      "opaquePixels": 144426,
+      "splitRegionInCleanedSource": [
+        627,
+        0,
+        1254,
+        1254
+      ]
+    }
+  ]
+}

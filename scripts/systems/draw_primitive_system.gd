@@ -140,7 +140,16 @@ static func draw_line_item(target: CanvasItem, item: Dictionary, prefix: String 
 	target.draw_line(item[start_key] as Vector2, item[end_key] as Vector2, color_value, width_value)
 
 static func draw_arc_item(target: CanvasItem, item: Dictionary, prefix: String) -> void:
-	draw_fixed_arc(target, item["pos"] as Vector2, float(item[prefix + "Radius"]), float(item[prefix + "Start"]), float(item[prefix + "End"]), int(item[prefix + "Points"]), item[prefix + "Color"] as Color, float(item[prefix + "Width"]))
+	var radius_key := prefix + "Radius"
+	var start_key := prefix + "Start"
+	var end_key := prefix + "End"
+	var points_key := prefix + "Points"
+	var color_key := prefix + "Color"
+	var width_key := prefix + "Width"
+	for key in ["pos", radius_key, start_key, end_key, points_key, color_key, width_key]:
+		if not item.has(key):
+			return
+	draw_fixed_arc(target, item["pos"] as Vector2, float(item[radius_key]), float(item[start_key]), float(item[end_key]), int(item[points_key]), item[color_key] as Color, float(item[width_key]))
 
 static func draw_fixed_arc(target: CanvasItem, pos: Vector2, radius: float, start_angle: float, end_angle: float, points: int, color: Color, width: float) -> void:
 	target.draw_arc(pos, radius, start_angle, end_angle, points, color, width)

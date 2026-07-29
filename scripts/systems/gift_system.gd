@@ -72,6 +72,77 @@ static func build_offer(context: Dictionary) -> Array:
 		result.append(pick_gift_by_level_gain(context, 1, result))
 	return result
 
+static func gift_offer_signature(gift: Dictionary) -> String:
+	return "%s|%s|%d|%s" % [
+		String(gift.get("type", gift.get("effectType", ""))),
+		String(gift.get("id", "")),
+		gift_level_gain(gift),
+		String(gift.get("bonus", gift.get("giftQuality", "")))
+	]
+
+static func reroll_offer_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator) -> Dictionary:
+	if int(target.get("gift_reroll_remaining")) <= 0 or String(target.get("gift_choice_return_state")) == "relay_break":
+		return {"success": false, "reason": "unavailable", "offer": []}
+	var current: Array = target.get("offered_gifts") as Array
+	if current.size() < 3:
+		return {"success": false, "reason": "invalid_offer", "offer": []}
+	var original_value: Variant = target.get("gift_reroll_original_offer")
+	var original: Array = current.duplicate(true)
+	if original_value is Array and (original_value as Array).size() >= 3:
+		original = (original_value as Array).duplicate(true)
+	var elapsed: float = float(target.get("elapsed"))
+	var gift_time: float = elapsed * (3.0 if bool(target.get("quick_test_mode")) else 1.0)
+	var context := build_offer_context_for_target(target, gifts, gift_time, rng)
+	context["evolutionGift"] = {}
+	var result: Array = current.duplicate(true)
+	var fixed_signatures: Array[String] = []
+	var current_signatures: Array[String] = []
+	for item in original:
+		var gift: Dictionary = item as Dictionary
+		if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+			fixed_signatures.append(gift_offer_signature(gift))
+	for item in current:
+		current_signatures.append(gift_offer_signature(item as Dictionary))
+	for item in original:
+		var original_signature := gift_offer_signature(item as Dictionary)
+		if not current_signatures.has(original_signature):
+			current_signatures.append(original_signature)
+	var changed := 0
+	var used: Array = []
+	for index in range(result.size()):
+		var current_gift: Dictionary = current[index] as Dictionary
+		if WeaponEvolutionSystemScript.is_evolution_gift(current_gift):
+			used.append(current_gift)
+			continue
+		var current_signature := gift_offer_signature(current_gift)
+		var replacement: Dictionary = {}
+		for _attempt in range(10):
+			# Re-roll the normal slot through the same hype/luck weighted level
+			# selection used by the first offer. Evolution slots remain untouched.
+			var target_gain := roll_level_gain(int(context.get("giftHype", 0)), rng, context.get("permanent_upgrade_snapshot", null))
+			var candidate := pick_gift_by_level_gain(context, target_gain, used)
+			var signature := gift_offer_signature(candidate)
+			if signature == current_signature or current_signatures.has(signature) or fixed_signatures.has(signature):
+				continue
+			var duplicate := false
+			for used_item in used:
+				if gift_offer_signature(used_item as Dictionary) == signature:
+					duplicate = true
+					break
+			if duplicate:
+				continue
+			replacement = candidate
+			break
+		if not replacement.is_empty():
+			result[index] = replacement
+			used.append(replacement)
+			changed += 1
+		else:
+			used.append(current_gift)
+	if changed <= 0:
+		return {"success": false, "reason": "no_candidate", "offer": current.duplicate(true)}
+	return {"success": true, "reason": "rerolled", "offer": result, "changed": changed}
+
 static func build_forced_offer(context: Dictionary, quality: String, count: int = 3) -> Array:
 	var result: Array = []
 	var level_gain: int = level_gain_for_quality_key(quality)
@@ -87,6 +158,8 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		initial_weapon_id = String(current_weapon.get("baseWeaponId", current_weapon.get("id", "")))
 	return {
 		"gifts": gifts,
+		"weaponRegistry": target.get("weapons") as Array,
+		"currentCharacter": current_character,
 		"streamFrame": target.get("current_stream_frame"),
 		"giftHype": target.get("gift_hype"),
 		"giftTime": gift_time,
@@ -98,6 +171,35 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
 		"rng": rng
 	}
+
+static func _weapon_level_description(weapon: Dictionary, level: int) -> String:
+	var stats: Array = weapon.get("levelStats", []) as Array
+	if stats.is_empty():
+		return String(weapon.get("description", ""))
+	var index := clampi(level - 1, 0, stats.size() - 1)
+	return String((stats[index] as Dictionary).get("description", weapon.get("description", "")))
+
+static func _owned_initial_weapon_candidate(context: Dictionary) -> Dictionary:
+	var initial_id := String(context.get("initialWeaponId", ""))
+	if initial_id == "" or initial_id == "phase1_null_weapon":
+		return {}
+	var weapons: Array = context.get("weaponRegistry", []) as Array
+	var weapon := WeaponSystem.find_weapon(weapons, initial_id, {})
+	if weapon.is_empty() or not bool(weapon.get("ownedUpgradeOnly", false)) or not EquipmentSystem.is_weapon(weapon):
+		return {}
+	var current_character: Dictionary = context.get("currentCharacter", {}) as Dictionary
+	var owner_id := String(weapon.get("ownerCharacterId", ""))
+	if owner_id != "" and String(current_character.get("id", "")) != owner_id:
+		return {}
+	var current_level := EquipmentSystem.level(context.get("playerWeapons", []) as Array, initial_id)
+	var max_level := int(weapon.get("maxLevel", 1))
+	if current_level <= 0 or current_level >= max_level:
+		return {}
+	var candidate: Dictionary = weapon.duplicate(true)
+	candidate["currentLevel"] = current_level
+	candidate["description"] = _weapon_level_description(candidate, mini(max_level, current_level + 1))
+	candidate["weight"] = maxi(1, int(candidate.get("weight", 1)))
+	return candidate
 
 static func start_offer_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("state", "gift_choice")
@@ -217,6 +319,8 @@ static func gift_card_summary(gift: Dictionary) -> String:
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		var base_name: String = String(gift.get("baseDisplayName", gift.get("displayName", "武器")))
 		return "%sが進化" % base_name
+	if bool(gift.get("ownedUpgradeOnly", false)):
+		return String(gift.get("description", _weapon_level_description(gift, 1)))
 	match String(gift.get("id", "")):
 		"ban_hammer":
 			return "前方を広く攻撃"
@@ -320,6 +424,9 @@ static func pick_gift_by_level_gain(context: Dictionary, level_gain: int, used: 
 	if EquipmentSystem.is_instant(selected):
 		target_gain = 1
 	selected["levelGain"] = target_gain
+	if bool(selected.get("ownedUpgradeOnly", false)):
+		var current_level := EquipmentSystem.level(context.get("playerWeapons", []) as Array, String(selected.get("id", "")))
+		selected["description"] = _weapon_level_description(selected, mini(int(selected.get("maxLevel", 1)), current_level + target_gain))
 	selected["giftQuality"] = gift_quality(selected)
 	return selected
 
@@ -329,6 +436,11 @@ static func _gift_candidate_pool(context: Dictionary, level_gain: int, used: Arr
 	var available_ids: Array = context["availableIds"] as Array
 	var frame: Dictionary = context["streamFrame"] as Dictionary
 	var used_ids: Array[String] = _used_gift_ids(used)
+	var owned_weapon := _owned_initial_weapon_candidate(context)
+	if not owned_weapon.is_empty() and not used_ids.has(String(owned_weapon.get("id", ""))):
+		if not strict_remaining or _gift_remaining_level(context, owned_weapon) >= level_gain:
+			for i in range(_gift_pick_weight(context, owned_weapon)):
+				pool.append(owned_weapon)
 	for item in gifts:
 		var gift: Dictionary = item as Dictionary
 		if not _data_allowed_for_frame(frame, gift, "giftPoolTags"):
@@ -370,10 +482,7 @@ static func _used_gift_ids(used: Array) -> Array[String]:
 	return result
 
 static func _gift_pick_weight(context: Dictionary, gift: Dictionary) -> int:
-	var weight: int = maxi(1, int(gift.get("weight", 1)))
-	if String(gift.get("id", "")) == String(context.get("initialWeaponId", "")):
-		return weight * 3
-	return weight
+	return maxi(1, int(gift.get("weight", 1)))
 
 static func consume_for_gift(gift: Dictionary) -> int:
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
@@ -535,6 +644,8 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	var main_range_rate: float = 1.0 + 0.10 * float(wide_angle_level) + 0.08 * float(main_weapon_level - 1)
 	var main_interval_rate: float = pow(0.92, float(high_speed_level)) * pow(0.94, float(main_weapon_level - 1))
 	var shop_snapshot = target.get("permanent_upgrade_snapshot")
+	if shop_snapshot != null:
+		main_interval_rate *= float(shop_snapshot.attack_interval_multiplier)
 	var previous_max_hp: int = int(target.get("player_max_hp"))
 	var previous_hp: int = int(target.get("player_hp"))
 	var base_hp: int = _scaled_player_hp(int(stats.get("hp", current_character.get("initialHp", 100))))
@@ -559,9 +670,9 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	target.set("hammer_damage", hammer_damage)
 	target.set("hammer_range", WeaponSystem.range_base(current_weapon) * main_range_rate)
 	var min_main_interval: float = float(current_weapon.get("minAttackInterval", current_weapon.get("minCooldown", 0.28)))
-	target.set("hammer_interval", maxf(min_main_interval, WeaponSystem.attack_interval(current_weapon, 0.85) * main_interval_rate))
+	target.set("hammer_interval", maxf(min_main_interval, WeaponSystem.player_attack_interval(WeaponSystem.attack_interval(current_weapon, 0.85), main_interval_rate)))
 	target.set("knockback_power", WeaponSystem.scaled_knockback(float(current_weapon.get("knockback", 1.0))) * (1.0 + 0.10 * float(main_weapon_level - 1)))
-	var player_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * (1.0 + 0.05 * float(sneaker_level))
+	var player_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * CharacterSystem.move_speed_multiplier(current_character) * (1.0 + 0.05 * float(sneaker_level))
 	if shop_snapshot != null:
 		player_speed = PowerUpEffectProviderScript.move_speed(player_speed, shop_snapshot)
 	target.set("player_speed", player_speed)

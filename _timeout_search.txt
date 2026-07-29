@@ -1,0 +1,127 @@
+﻿scripts\ui\relay_break_screen.gd:379:	await get_tree().create_timer(0.72).timeout
+scripts\ui\relay_break_screen.gd:383:	await get_tree().create_timer(0.18).timeout
+data\stream_frames.json:41:    "mainGimmicks": ["ジャンルイベント", "ゲーム実況用指示コメ", "ボス乱入"],
+data\gifts.json:246:    "description": "次の指示コメが全部ちょっと甘くなる",
+scripts\ui\power_up_shop_screen.gd:755:		_mascot_message_tween.tween_callback(_mascot_success_timeout.bind(token, view.duplicate(true)))
+scripts\ui\power_up_shop_screen.gd:762:		_mascot_message_tween.tween_callback(_mascot_temporary_timeout.bind(token, view.duplicate(true)))
+scripts\ui\power_up_shop_screen.gd:764:func _mascot_success_timeout(token: int, view: Dictionary) -> void:
+scripts\ui\power_up_shop_screen.gd:771:func _mascot_temporary_timeout(token: int, view: Dictionary) -> void:
+scripts\ui\power_up_shop_screen.gd:1272:	_mascot_message_tween.tween_callback(_reset_success_mascot_timeout.bind(token))
+scripts\ui\power_up_shop_screen.gd:1274:func _reset_success_mascot_timeout(token: int) -> void:
+data\marshmallows.json:8:  {"id":"god_heart","displayName":"神マロ","messageText":"これは神回","type":"good","rarity":"god","visualType":"gold_rainbow","effectType":"add_heart_pending","params":{"amount":1},"toastText":"神マロ！ 次の指示コメが甘くなる","weight":5,"minTime":60},
+data\comment_pools.json:1664:          "text": "あと5秒で指示コメが来る",
+data\comment_pools.json:1702:          "text": "指示コメが来た！",
+data\comment_pools.json:1768:          "text": "指示コメ完走ボーナス！",
+data\balance_reference.json:126:    {"id": "drawing_fix_note", "displayName": "修正指示コメント", "frames": ["drawing"], "expDrop": 3, "attacks": [{"type": "contact", "damage": 10}]},
+scripts\game.gd:945:var gift_choice_delay_timer := 0.0
+scripts\game.gd:1231:var choice_timer := 0.0
+scripts\game.gd:1232:var comment_choice_enter_time := 0.0
+scripts\game.gd:1233:var gift_choice_enter_time := 0.0
+scripts\game.gd:1299:var choice_time_bonus := 0.0
+scripts\game.gd:1300:var choice_time_penalty := 0.0
+scripts\game.gd:1362:var current_death_text := "発動中の指示コメなし"
+scripts\game.gd:1677:		comment_choice_enter_time += delta
+scripts\game.gd:1680:		gift_choice_enter_time += delta
+scripts\game.gd:5355:		var bonus_text: String = "指示コメ完走ボーナス！"
+scripts\game.gd:5401:		comment_choice_enter_time = 0.0
+scripts\game.gd:5544:		if gift_choice_delay_timer <= 0.0:
+scripts\game.gd:5551:	if state == "playing" and pending_gift_choices > 0 and gift_choice_delay_timer <= 0.0:
+scripts\game.gd:5638:	if gift_choice_delay_timer <= 0.0:
+scripts\game.gd:5640:	gift_choice_delay_timer = maxf(0.0, gift_choice_delay_timer - delta)
+scripts\game.gd:6720:	gift_choice_enter_time = 0.0
+scripts\game.gd:6883:		if gift_choice_delay_timer <= 0.0:
+scripts\game.gd:7321:	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "現在の指示コメ", "width": 230, "size": 21, "color": Color("#e73763")})
+scripts\game.gd:7343:	var text: String = "移動：WASD / 方向キー\nダッシュ：同方向2回\n指示コメ：1 / 2 / 3\nEsc：ポーズ解除"
+scripts\game.gd:7386:	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "現在の指示コメ", "width": 220, "size": 22, "color": Color("#e73763")})
+scripts\game.gd:7396:	var text: String = "移動：WASD / 方向キー　ダッシュ：同じ方向を2回押し\n指示コメ選択：1 / 2 / 3　Esc：ポーズ解除"
+scripts\game.gd:7458:		return "現在の指示コメ：なし"
+scripts\game.gd:7592:	gift_choice_delay_timer = 0.0
+scripts\game.gd:7781:	gift_choice_enter_time = 0.0
+scripts\game.gd:8347:	gift_choice_delay_timer = 0.0
+scripts\game.gd:8378:	current_death_text = "発動中の指示コメなし"
+scripts\game.gd:8600:		comment_choice_enter_time = 0.0
+scripts\game.gd:11996:	_draw_text_item({"pos": rect.position + Vector2(24, 25), "text": "現在の指示コメ", "width": 126, "size": 14, "color": Color("#e73783")})
+scripts\game.gd:12133:	_draw_text_item({"pos": rect.position + Vector2(22, 39), "text": "現在の指示コメ", "width": 230, "size": 18, "color": Color("#101420")})
+scripts\game.gd:13309:	_draw_ranking_text(String(detail.get("instructionTitle", "指示コメ")), rect.position + Vector2(18, 31), 19, Color("#ff5aa5"), rect.size.x - 36)
+scripts\game.gd:14074:		{"icon": "comment", "label": "ラスト指示コメ", "value": String(data.get("lastInstructionComment", "なし")), "accent": true},
+scripts\game.gd:14093:		rows.append({"icon": "comment", "label": "戦犯指示コメ", "value": culprit, "accent": true})
+scripts\game.gd:14125:		_draw_ranking_text("戦犯指示コメ", culprit_rect.position + Vector2(12, 21), 13, Color("#b24488"), 104)
+scripts\game.gd:14144:			{"text": "戦犯指示コメ：%s" % culprit, "color": Color("#b24488") if culprit != "なし" else Color("#4f3149")}
+scripts\game.gd:14152:			{"text": "戦犯指示コメ：%s" % String(data.get("culpritInstructionComment", "なし")), "color": Color("#4f3149")},
+scripts\game.gd:16097:	var t: float = clampf(gift_choice_enter_time / duration, 0.0, 1.0)
+scripts\game.gd:16106:	var t: float = clampf(comment_choice_enter_time / duration, 0.0, 1.0)
+scripts\game.gd:16330:	if choice_timer <= 5.0:
+scripts\game.gd:16615:	var remain: float = maxf(0.0, choice_timer)
+scripts\game.gd:16619:	if choice_timer <= 5.0:
+scripts\game.gd:17847:	current_death_text = "発動中の指示コメなし"
+scripts\systems\boss_system.gd:411:	target.set("gift_choice_delay_timer", maxf(float(target.get("gift_choice_delay_timer")), BOSS_DEFEAT_GIFT_DELAY))
+scripts\systems\choice_card_system.gd:140:static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_timer: float, elapsed: float) -> Dictionary:
+scripts\systems\choice_card_system.gd:147:	if choice_timer <= 5.0:
+scripts\systems\choice_card_system.gd:200:static func comment_cards(comments: Array, _ng_cards: Array, heart_cards: Array, choice_timer: float, elapsed: float) -> Array:
+scripts\systems\choice_card_system.gd:206:		cards.append(comment_card(i, view, has_heart, choice_timer, elapsed))
+scripts\systems\choice_card_system.gd:229:	choice_timer: float,
+scripts\systems\choice_card_system.gd:234:		return comment_cards(offered_comments, ng_cards, heart_cards, choice_timer, elapsed)
+scripts\systems\choice_card_system.gd:246:		float(target.get("choice_timer")),
+scripts\systems\destructible_system.gd:340:			return {"chat": "♡を拾った！", "toast": "♡を拾った！ 次の指示コメが全部ちょっと甘くなる", "popup": "♡待機", "color": Color("#ff5fa8")}
+scripts\systems\enemy_system.gd:463:		return {"displayName": "修正指示コメント", "description": "赤字の修正メモで接近してくるお絵かき枠の妨害敵", "hp": 13.5, "speed": 72.0, "radius": 24.0, "score": 70, "exp": 3, "behavior": "chase", "contactDamage": 10}
+scripts\systems\enemy_system.gd:489:		return {"displayName": "指示厨コントローラー", "description": "操作指示コメントがコントローラー型になった中型敵", "hp": 24.0, "speed": 104.0, "radius": 28.0, "score": 82, "exp": 3, "behavior": "zigzag_chase", "contactDamage": 14}
+scripts\systems\hud_text_system.gd:39:			"choiceTimer": float(target.get("choice_timer")),
+scripts\systems\gift_system.gd:368:			return "次の指示コメを甘くする"
+scripts\systems\gift_system.gd:568:		chats.append("♡を受け取った！ 次の指示コメが全部ちょっと甘くなる")
+scripts\systems\gift_system.gd:831:		"choiceTimePenalty": target.get("choice_time_penalty"),
+scripts\systems\gift_system.gd:847:		"choiceTimeBonus": target.get("choice_time_bonus"),
+scripts\systems\gift_system.gd:881:	target.set("choice_time_penalty", float(result["choiceTimePenalty"]))
+scripts\systems\gift_system.gd:893:	target.set("choice_time_bonus", float(result["choiceTimeBonus"]))
+scripts\systems\modifier_system.gd:375:		"currentDeathText": "発動中の指示コメなし",
+scripts\systems\relay_boss_system.gd:436:	target.set("choice_timer", float((boss_config.get("bossInstructionSettings", {}) as Dictionary).get("choiceTime", 10.0)))
+scripts\systems\relay_boss_system.gd:460:	var timer := float(target.get("choice_timer")) - delta
+scripts\systems\relay_boss_system.gd:461:	target.set("choice_timer", timer)
+scripts\systems\relay_boss_system.gd:500:	return {"selected": true, "commentId": String(comment.get("id", "")), "chat": String(comment.get("displayName", "指示コメ")) + " を選択"}
+scripts\systems\ranking_system.gd:474:		"戦犯指示コメ：%s" % String(entry.get("culpritInstructionComment", "なし")),
+scripts\systems\ranking_system.gd:511:			"title": "戦犯指示コメ",
+scripts\systems\ranking_system.gd:552:		"戦犯指示コメ：%s" % culprit,
+scripts\systems\ranking_system.gd:602:			"title": "戦犯指示コメ",
+scripts\systems\ranking_system.gd:913:		return "中断時の指示コメ"
+scripts\systems\ranking_system.gd:914:	return "戦犯指示コメ"
+scripts\systems\run_state_system.gd:159:		"currentDeathText": "発動中の指示コメなし",
+scripts\systems\run_state_system.gd:220:	target.set("gift_choice_delay_timer", 0.0)
+scripts\systems\run_state_system.gd:295:	target.set("choice_time_bonus", float(defaults["choiceTimeBonus"]))
+scripts\systems\run_state_system.gd:296:	target.set("choice_time_penalty", float(defaults["choiceTimePenalty"]))
+scripts\systems\result_system.gd:67:	if comment == "なし" or comment == "発動中の指示コメなし":
+scripts\systems\result_system.gd:125:		if death_text != "" and death_text != "発動中の指示コメなし" and not death_text.contains(culprit_comment):
+scripts\systems\result_system.gd:271:		"currentDeathText": String(core.get("currentDeathText", "発動中の指示コメなし")),
+scripts\systems\result_system.gd:534:			{"key": "bossDefeatPp", "id": "relay_boss_defeat", "displayName": "指示コメボス討伐", "isOneTimeBonus": false},
+scripts\systems\result_system.gd:731:		"ギフト：%d  最高期待度：%d%%  危険指示コメ：%d  ♡：%d" % [
+scripts\systems\result_system.gd:748:		lines.append("最終指示コメ：%s" % String(stats.get("currentComment", "なし")))
+scripts\systems\result_system.gd:750:		lines.append("戦犯指示コメ：%s" % String(stats.get("currentComment", "なし")))
+scripts\tests\test_clear_result_v2.gd:97:		"bossName": "指示コメボス",
+scripts\tests\test_clear_result_v2.gd:197:	_check_equal("mental trouble keeps culprit second", String((mental_rows[1] as Dictionary).get("label", "")), "戦犯指示コメ")
+scripts\systems\comment_system.gd:86:static func start_choice_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float) -> Dictionary:
+scripts\systems\comment_system.gd:90:	target.set("choice_timer", maxf(1.0, base_choice_time + float(target.get("choice_time_bonus")) - float(target.get("choice_time_penalty"))))
+scripts\systems\comment_system.gd:99:		target.set("choice_timer", float(instruction.get("choiceTime", 10.0)))
+scripts\systems\comment_system.gd:107:		return {"chat": "♡発動！ 指示コメが全部ちょっと甘くなった"}
+scripts\systems\comment_system.gd:108:	return {"chat": "指示コメが来た！"}
+scripts\systems\comment_system.gd:110:static func start_choice_ui_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float, choice_box: Control) -> Dictionary:
+scripts\systems\comment_system.gd:111:	var result: Dictionary = start_choice_for_target(target, comments, rng, base_choice_time)
+scripts\systems\comment_system.gd:253:static func update_choice_timer_for_target(target: Node, delta: float) -> Dictionary:
+scripts\systems\comment_system.gd:254:	var timer: float = float(target.get("choice_timer")) - delta
+scripts\systems\comment_system.gd:263:	target.set("choice_timer", timer)
+scripts\systems\comment_system.gd:271:	var timer_result: Dictionary = update_choice_timer_for_target(target, delta)
+scripts\systems\comment_system.gd:291:		chats.append("指示コメに押し切られた！")
+scripts\systems\comment_system.gd:310:		chats.append("あと5秒で指示コメが来る")
+scripts\systems\comment_system.gd:315:		chats.append("指示コメがざわついている……")
+scripts\systems\damage_system.gd:257:		return "%sでやられた。指示コメは発動していなかった。" % damage_source_text
+scripts\systems\draw_data_system.gd:719:		"label": "WARNING" if comment_alert else "次の指示コメ",
+scripts\systems\draw_data_system.gd:722:	items.append({"key": "currentComment", "rect": Rect2(34, 74, 764, 42), "label": "現在の指示コメ", "accent": Color("#f3f0ff")})
+scripts\systems\chat_system.gd:112:	var fast: bool = state == "comment_choice" or kuso_chat_timer > 0.0
+scripts\systems\chat_system.gd:819:	if line.contains("あと5秒で指示コメ"):
+scripts\systems\chat_system.gd:821:	if line.contains("指示コメが来た"):
+scripts\systems\chat_system.gd:825:	if line.contains("指示コメ完走ボーナス"):
+scripts\systems\chat_system.gd:1046:	var fast := state == "comment_choice" or float(target.get("kuso_chat_timer")) > 0.0
+scripts\systems\debug_system.gd:320:static func force_do_everything_choice_ui_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float, choice_box: Control) -> Dictionary:
+scripts\systems\debug_system.gd:326:	target.set("choice_timer", maxf(1.0, base_choice_time + float(target.get("choice_time_bonus")) - float(target.get("choice_time_penalty"))))
+scripts\systems\display_text_system.gd:11:		"15秒ごとに指示コメが来ます",
+scripts\systems\display_text_system.gd:13:		"危険度の高い指示コメでバズ度が上がり、被弾すると5％下がります",
+scripts\systems\display_text_system.gd:41:	return "指示コメ襲来" if alert else "次の指示コメ"
+scripts\systems\display_text_system.gd:47:	return "指示コメが配信を壊しにくる"
+scripts\systems\display_text_system.gd:143:		return "修正指示コメント"

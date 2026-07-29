@@ -23,6 +23,7 @@ const WIKI_BULLET_LIFE := 2.9
 const DRONE_FIRE_INTERVAL_MIN := 2.55
 const DRONE_FIRE_INTERVAL_MAX := 3.25
 const DRONE_BULLET_LIFE := 2.9
+static var _spawn_token_serial: int = 0
 const DRAWING_MAX_NORMAL_ENEMY_PROJECTILES := 18
 const DRAWING_MAX_SHOOTER_ENEMIES := 4
 const DRAWING_LATE_MAX_SHOOTER_ENEMIES := 6
@@ -354,6 +355,55 @@ static func pick_default_wave_enemy(elapsed: float, quick_test_mode: bool, rng: 
 
 static func is_genre_event_enemy(kind: String) -> bool:
 	return kind == "enemy_wrong_way_kart" or kind == "enemy_jammer_cone" or kind == "enemy_dot_invader" or kind == "enemy_bullet_drone" or kind == "enemy_fake_gift_box" or kind == "enemy_noise_ghost_comment"
+
+static func is_boss_enemy(enemy: Dictionary) -> bool:
+	var kind := String(enemy.get("kind", ""))
+	var boss_id := String(enemy.get("bossId", ""))
+	return bool(enemy.get("isBoss", false)) or boss_id != "" or kind.begins_with("boss_") or kind in [
+		"bugged_final_boss", "bugged_final_boss_stun", "last_offline", "pitch_police_chief", "red_pen_review_chief", "red_pen_retake_dragon", "collab_crusher"
+	]
+
+static func is_large_enemy(enemy: Dictionary) -> bool:
+	return is_boss_enemy(enemy) or float(enemy.get("radius", 20.0)) >= 38.0
+
+static func _default_can_be_pulled(enemy: Dictionary) -> bool:
+	var kind := String(enemy.get("kind", ""))
+	if is_boss_enemy(enemy) or is_genre_event_enemy(kind):
+		return false
+	if bool(enemy.get("relayBossSummon", false)) or not bool(enemy.get("canBeKnockedBack", true)):
+		return false
+	if bool(enemy.get("isDashing", false)) or bool(enemy.get("dashing", false)) or float(enemy.get("dashTimer", 0.0)) > 0.0:
+		return false
+	if float(enemy.get("radius", 20.0)) >= 38.0:
+		return false
+	if kind.begins_with("collab_") or kind in [
+		"enemy_backseat_controller", "enemy_strategy_wiki_ojisan", "enemy_wrong_way_kart",
+		"enemy_jammer_cone", "enemy_lag_comment", "enemy_fake_first_timer",
+		"song_noise_comment", "song_lyric_spoiler_comment", "layer_lost", "undo_ghost"
+	]:
+		return false
+	if String(enemy.get("behavior", "")) in ["stationary", "stationary_obstacle", "fixed", "charge"]:
+		return false
+	return true
+
+static func can_be_pulled(enemy: Dictionary) -> bool:
+	if enemy.has("canBePulled"):
+		return bool(enemy.get("canBePulled", false))
+	return _default_can_be_pulled(enemy)
+
+static func is_pullable_small_enemy(enemy: Dictionary) -> bool:
+	return can_be_pulled(enemy) and not is_boss_enemy(enemy) and float(enemy.get("radius", 20.0)) < 38.0
+
+static func is_collision_pullable_enemy(enemy: Dictionary) -> bool:
+	if is_boss_enemy(enemy) or not can_be_pulled(enemy):
+		return false
+	var kind := String(enemy.get("kind", ""))
+	if is_genre_event_enemy(kind) or bool(enemy.get("relayBossSummon", false)):
+		return false
+	if not bool(enemy.get("canBeKnockedBack", true)) or bool(enemy.get("isDashing", false)) or bool(enemy.get("dashing", false)) or float(enemy.get("dashTimer", 0.0)) > 0.0 or String(enemy.get("behavior", "")) in ["stationary", "stationary_obstacle", "fixed", "charge"]:
+		return false
+	return true
+
 static func hit_flash_duration_for_kind(kind: String, is_boss: bool = false) -> float:
 	if is_boss or kind.begins_with("boss_"):
 		return 0.06
@@ -705,7 +755,10 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 	var data: Dictionary = enemy_data(kind)
 	if kind == "noise_ghost_comment":
 		data["displayName"] = "召喚ノイズ"
-	var is_boss_kind: bool = kind.begins_with("boss_")
+	var is_boss_kind: bool = bool(data.get("isBoss", false)) or kind.begins_with("boss_") or kind in [
+		"bugged_final_boss", "bugged_final_boss_stun", "last_offline", "pitch_police_chief", "red_pen_review_chief", "red_pen_retake_dragon", "collab_crusher"
+	]
+	_spawn_token_serial += 1
 	if giant_power > 0.0:
 		data["hp"] = float(data["hp"]) * lerpf(1.25, 1.5, giant_power)
 		data["radius"] = float(data["radius"]) * lerpf(1.5, 2.0, giant_power)
@@ -718,6 +771,9 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"max_hp": data["hp"],
 		"speed": data["speed"],
 		"radius": data["radius"],
+		"isBoss": is_boss_kind,
+		"bossId": String(data.get("bossId", kind if is_boss_kind else "")),
+		"spawnToken": "%s:%d:%d" % [kind, uid, _spawn_token_serial],
 		"score": data["score"],
 		"exp": data["exp"],
 		"expValue": data["exp"],
@@ -728,6 +784,7 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"hitFlashTimer": 0.0,
 		"knockbackResistance": float(data.get("knockbackResistance", knockback_resistance_for_kind(kind, is_boss_kind))),
 		"canBeKnockedBack": bool(data.get("canBeKnockedBack", can_knockback_kind(kind, is_boss_kind))),
+		"pullResistance": clampf(float(data.get("pullResistance", 0.0)), 0.0, 1.0),
 		"contactDamage": int(data.get("contactDamage", contact_damage_for_kind(kind, is_boss_kind))),
 		"knockbackVelocity": Vector2.ZERO,
 		"stunTimer": 0.0,
@@ -743,6 +800,10 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		enemy["noRewards"] = true
 	if bool(data.get("relayBossSummon", false)):
 		enemy["relayBossSummon"] = true
+	if data.has("canBePulled"):
+		enemy["canBePulled"] = bool(data.get("canBePulled", false))
+	else:
+		enemy["canBePulled"] = _default_can_be_pulled(enemy)
 	if kind == "enemy_backseat_controller" or kind == "enemy_dot_invader" or kind == "enemy_lag_comment" or kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone" or kind == "enemy_noise_ghost_comment":
 		enemy["movePhase"] = float(uid % 19) * 0.37
 	if kind == "enemy_backseat_controller":
@@ -1866,7 +1927,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			if float(enemy["shoot"]) <= 0.0 and dist < 650.0:
 				enemy["shoot"] = rng.randf_range(SHOOTER_FIRE_INTERVAL_MIN, SHOOTER_FIRE_INTERVAL_MAX)
 				if bullets.size() < max_enemy_bullets:
-					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "clearableByPlayerWeapon": true, "erasableByPinkPaint": true})
 		elif behavior == "zigzag_chase":
 			var base_dir := to_player_dir
 			if base_dir.length() < 0.1:
@@ -1898,7 +1959,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.RIGHT
-					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "armchair_comment", "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "armchair_comment", "clearableByPlayerWeapon": true, "erasableByPinkPaint": true})
 		elif behavior == "drawing_red_pen_teacher":
 			var red_pen_preferred_distance := 315.0
 			var red_pen_base := to_player_dir

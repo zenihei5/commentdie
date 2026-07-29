@@ -12,6 +12,7 @@ const StreamFrameSystemScript := preload("res://scripts/systems/stream_frame_sys
 const DisplayTextSystemScript := preload("res://scripts/systems/display_text_system.gd")
 const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 const CharacterSystemScript := preload("res://scripts/systems/character_system.gd")
+const CollabComboSystemScript := preload("res://scripts/systems/collab_combo_system.gd")
 const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
 const RankingSystemScript := preload("res://scripts/systems/ranking_system.gd")
 const UiStyleSystemScript := preload("res://scripts/systems/ui_style_system.gd")
@@ -104,6 +105,10 @@ const RANKING_FOCUS_ENTRIES := "entries"
 const RANKING_FOCUS_BACK := "back"
 const PRE_RUN_SELECT_FOCUS_ITEMS := "items"
 const PRE_RUN_SELECT_FOCUS_BACK := "back"
+const GIFT_CHOICE_FOCUS_CARDS := "cards"
+const GIFT_CHOICE_FOCUS_REROLL := "reroll"
+const BUZZ_PROTECTION_ICON_PATH := "res://assets/generated/ranking_icons_v1/lock.png"
+const GIFT_REROLL_ICON_PATH := "res://assets/generated/power_up_shop_icons_v2/gift_reroll.png"
 const BAN_JUDGEMENT_WEAPON_SPRITE_PATH := "res://assets/generated/ban_judgement_weapon_sprite_v1/clean.png"
 const NO_BRAKE_SWEAT_IMAGE := "res://assets/generated/no_brake_sweat_icon_v1/sweat.png"
 const TITLE_BGM_PATH := "res://assets/audio/title_bgm.mp3"
@@ -132,6 +137,7 @@ const FRONT_SCREEN_TRANSITION_OVERLAY_COLOR := Color(0.965, 0.95, 1.0, 1.0)
 const FRONT_SCREEN_TRANSITION_OVERLAY_MAX_ALPHA := 0.70
 const CURSOR_MOVE_SE_PATH := "res://assets/audio/cursor_move.mp3"
 const CONFIRM_SELECT_SE_PATH := "res://assets/audio/confirm_select.mp3"
+const GIFT_REROLL_SE_PATH := "res://assets/audio/gift_reroll.mp3"
 const PAUSE_OPEN_SE_PATH := "res://assets/audio/pause_open.mp3"
 const BACK_TRANSITION_SE_PATH := "res://assets/audio/back_transition.mp3"
 const DASH_SE_PATH := "res://assets/audio/dash_move.mp3"
@@ -825,6 +831,7 @@ var cached_map_frame_id := ""
 var cached_map_genre_event := ""
 var cached_map_data: Dictionary = {}
 var current_character_id := "ban_chan"
+var run_difficulty_id := "normal"
 var current_weapon_id := "ban_hammer"
 var player_sprite: Texture2D
 var player_idle_sprite: Texture2D
@@ -855,6 +862,8 @@ var collab_combo_sequence_state := ""
 var collab_combo_sequence_timer := 0.0
 var collab_combo_pair_key := ""
 var collab_combo_skill_name := ""
+var collab_combo_definition: Dictionary = {}
+var collab_combo_runtime: Dictionary = {}
 var collab_combo_barrier_timer := 0.0
 var collab_combo_pickup_pull_timer := 0.0
 var collab_combo_pull_all_items := false
@@ -919,9 +928,19 @@ var equipment_icon_cache: Dictionary = {}
 var ui_part_cache: Dictionary = {}
 var field_pickup_icon_cache: Dictionary = {}
 var raw_png_texture_cache: Dictionary = {}
+var missing_hit_fx_visual_paths: Dictionary = {}
 var song_note_gray_texture_cache: Dictionary = {}
 var offered_comments: Array = []
 var offered_gifts: Array = []
+var gift_reroll_original_offer: Array = []
+var gift_reroll_locked := false
+var gift_reroll_pending_offer: Array = []
+var gift_reroll_timer := 0.0
+var gift_reroll_notice := ""
+var gift_choice_focus_area := GIFT_CHOICE_FOCUS_CARDS
+var gift_choice_return_card := 0
+var gift_reroll_hovered := false
+var gift_reroll_press_timer := 0.0
 var pending_gift_choices := 0
 var gift_choice_delay_timer := 0.0
 var do_everything_offer_count := 0
@@ -1298,6 +1317,7 @@ var mini_humidifier_hurt_cooldown := 0.0
 var superchat_level := 0
 var boomerang_level := 0
 var burn_resist_charges := 0
+var gift_reroll_remaining := 0
 var clip_bonus_level := 0
 var ng_stock := 0
 var ng_used_count := 0
@@ -1337,6 +1357,7 @@ var buzz_feedback_color := Color("#ff6faf")
 var buzz_card_shake_timer := 0.0
 var buzz_glow_timer := 0.0
 var buzz_max_fx_timer := 0.0
+var buzz_protection_badge_pulse_timer := 0.0
 var current_comment := "なし"
 var current_death_text := "発動中の指示コメなし"
 var last_comment_id := ""
@@ -1455,6 +1476,7 @@ var result_bgm_active_path := ""
 var boss_bgm_mix := 0.0
 var ui_se_player: AudioStreamPlayer
 var confirm_se_player: AudioStreamPlayer
+var gift_reroll_se_player: AudioStreamPlayer
 var pause_open_se_player: AudioStreamPlayer
 var back_transition_se_player: AudioStreamPlayer
 var dash_se_player: AudioStreamPlayer
@@ -1547,6 +1569,7 @@ func _ready() -> void:
 	_setup_result_bgm()
 	_setup_ui_se()
 	_setup_confirm_se()
+	_setup_gift_reroll_se()
 	_setup_pause_open_se()
 	_setup_back_transition_se()
 	_setup_dash_se()
@@ -1603,8 +1626,12 @@ func _ready() -> void:
 	_setup_drawing_progress_milestone_se()
 	_setup_drawing_inking_stroke_attack_se()
 	_setup_song_scale_note_se()
-	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
 	power_up_shop_manager = PowerUpShopManagerScript.new()
+	current_character_id = String(power_up_shop_manager.selected_character_id())
+	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
+	CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+	current_character_id = CharacterSystemScript.validated_character_id(characters, current_character_id)
+	CharacterSystemScript.apply_selected_character_for_target(self, characters, weapons, current_character_id, character_sprite_cache)
 	_build_ui()
 	ChatSystemScript.seed_box_for_target(self, chat_box, "normal")
 	_update_ui()
@@ -1624,6 +1651,8 @@ func _process(delta: float) -> void:
 	buzz_card_shake_timer = maxf(0.0, buzz_card_shake_timer - delta)
 	buzz_glow_timer = maxf(0.0, buzz_glow_timer - delta)
 	buzz_max_fx_timer = maxf(0.0, buzz_max_fx_timer - delta)
+	buzz_protection_badge_pulse_timer = maxf(0.0, buzz_protection_badge_pulse_timer - delta)
+	gift_reroll_press_timer = maxf(0.0, gift_reroll_press_timer - delta)
 	_update_viewer_score_countup(delta)
 	_update_display_gauge_values(delta)
 	_update_genre_change_banner(delta)
@@ -1650,6 +1679,7 @@ func _process(delta: float) -> void:
 	if state == "gift_choice":
 		gift_choice_enter_time += delta
 		_update_gift_choice_box_drop()
+		_update_gift_reroll_animation(delta)
 	if state != "stream_start_intro" and state != "game_over_intro" and state != "collab_partner_select" and state != "relay_break":
 		_update_pause_input_with_se()
 	if _update_front_state(delta):
@@ -1831,6 +1861,13 @@ func _setup_confirm_se() -> void:
 	confirm_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	confirm_se_player.stream = _load_audio_stream(CONFIRM_SELECT_SE_PATH, false)
 	add_child(confirm_se_player)
+
+func _setup_gift_reroll_se() -> void:
+	gift_reroll_se_player = AudioStreamPlayer.new()
+	gift_reroll_se_player.name = "GiftRerollSePlayer"
+	gift_reroll_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	gift_reroll_se_player.stream = _load_audio_stream(GIFT_REROLL_SE_PATH, false)
+	add_child(gift_reroll_se_player)
 
 func _setup_pause_open_se() -> void:
 	pause_open_se_player = AudioStreamPlayer.new()
@@ -2466,6 +2503,14 @@ func _play_confirm_se() -> void:
 		confirm_se_player.stop()
 	confirm_se_player.play()
 
+func _play_gift_reroll_se() -> void:
+	if gift_reroll_se_player == null or gift_reroll_se_player.stream == null:
+		return
+	gift_reroll_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	if gift_reroll_se_player.playing:
+		gift_reroll_se_player.stop()
+	gift_reroll_se_player.play()
+
 func _play_relay_boss_barrier_hit_se() -> void:
 	if relay_boss_barrier_hit_se_player == null or relay_boss_barrier_hit_se_player.stream == null:
 		return
@@ -2989,11 +3034,12 @@ func _cursor_sound_snapshot() -> Array:
 		pause_weapon_slot_index,
 		pause_accessory_slot_index,
 		selected_card,
-		result_hover_button
+		result_hover_button,
+		gift_choice_focus_area
 	]
 
 func _cursor_sound_snapshot_changed(before: Array) -> bool:
-	if before.size() < 18 or String(before[0]) != state:
+	if before.size() < 19 or String(before[0]) != state:
 		return false
 	return (
 		int(before[1]) != title_menu_index
@@ -3013,6 +3059,7 @@ func _cursor_sound_snapshot_changed(before: Array) -> bool:
 		or int(before[15]) != pause_accessory_slot_index
 		or int(before[16]) != selected_card
 		or String(before[17]) != result_hover_button
+		or String(before[18]) != gift_choice_focus_area
 	)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -3098,6 +3145,33 @@ func _unhandled_input(event: InputEvent) -> void:
 				_play_back_transition_se()
 				_back_to_title()
 				get_viewport().set_input_as_handled()
+	elif state == "gift_choice":
+		var reroll_requested := false
+		if event is InputEventMouseButton:
+			var gift_mouse := event as InputEventMouseButton
+			if gift_mouse.button_index == MOUSE_BUTTON_LEFT and gift_mouse.pressed and _gift_reroll_button_rect().has_point(gift_mouse.position):
+				_set_gift_choice_reroll_focus(true)
+				reroll_requested = true
+		elif event is InputEventMouseMotion:
+			var gift_motion := event as InputEventMouseMotion
+			var was_hovered := gift_reroll_hovered
+			gift_reroll_hovered = gift_choice_return_state != "relay_break" and _gift_reroll_button_rect().has_point(gift_motion.position)
+			if was_hovered != gift_reroll_hovered:
+				queue_redraw()
+		elif event is InputEventKey:
+			var gift_key := event as InputEventKey
+			var gift_accept := gift_key.pressed and not gift_key.echo and (gift_key.keycode == KEY_ENTER or gift_key.keycode == KEY_SPACE or gift_key.is_action_pressed("ui_accept"))
+			reroll_requested = gift_key.pressed and not gift_key.echo and gift_key.keycode == KEY_R
+			if gift_accept and gift_choice_focus_area == GIFT_CHOICE_FOCUS_REROLL:
+				reroll_requested = true
+		elif event is InputEventJoypadButton:
+			var gift_pad := event as InputEventJoypadButton
+			reroll_requested = gift_pad.pressed and gift_pad.button_index == JOY_BUTTON_Y
+			if gift_pad.pressed and gift_pad.button_index == JOY_BUTTON_A and gift_choice_focus_area == GIFT_CHOICE_FOCUS_REROLL:
+				reroll_requested = true
+		if reroll_requested:
+			_request_gift_reroll(true)
+			get_viewport().set_input_as_handled()
 	elif state == "playing":
 		if event is InputEventMouseButton:
 			var play_mouse_button := event as InputEventMouseButton
@@ -3386,7 +3460,12 @@ func _commit_character_select() -> void:
 	var character: Dictionary = selected["character"] as Dictionary
 	if not CharacterSystemScript.is_selectable(character):
 		return
-	current_character_id = String(selected["characterId"])
+	var next_character_id := String(selected["characterId"])
+	if power_up_shop_manager != null and not power_up_shop_manager.save_selected_character_id(next_character_id):
+		toast_text = "キャラクター選択の保存に失敗しました"
+		toast_timer = 2.0
+		return
+	current_character_id = next_character_id
 	if relay_mode:
 		relay_intro_kind = "initial"
 		relay_intro_resume = false
@@ -3463,16 +3542,8 @@ func _move_stream_frame_select_page(direction: int) -> void:
 	queue_redraw()
 
 func _collab_partner_selection_items() -> Array:
-	var result: Array = []
-	for item in characters:
-		var character: Dictionary = item as Dictionary
-		var character_id := String(character.get("id", ""))
-		if character_id == "" or character_id == current_character_id:
-			continue
-		if not CharacterSystemScript.is_selectable(character):
-			continue
-		result.append(character)
-	return result
+	var unlocked_ids: Array = power_up_shop_manager.unlocked_character_ids() if power_up_shop_manager != null else []
+	return CollabComboSystemScript.partner_candidates(characters, current_character_id, unlocked_ids)
 
 func _update_collab_partner_select_mouse_selection(pos: Vector2) -> void:
 	var index: int = _collab_partner_select_index_at(pos)
@@ -3550,6 +3621,9 @@ func _start_collab_partner_select() -> void:
 	_prepare_collab_partner_select()
 
 func _prepare_collab_partner_select() -> void:
+	_clear_collab_combo_runtime("partner_changed")
+	collab_combo_sequence_state = ""
+	collab_combo_sequence_timer = 0.0
 	StateFlowSystemScript.open_pre_run_select_for_target(self, "collab_partner_select", choice_box, result_panel)
 	collab_partner_candidates = _collab_partner_selection_items()
 	selected_collab_partner_index = clampi(selected_collab_partner_index, 0, maxi(0, collab_partner_candidates.size() - 1))
@@ -3575,17 +3649,45 @@ func _update_collab_partner_select() -> void:
 			_play_confirm_se()
 			_start_stream_start_intro()
 		return
+	if collab_partner_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK:
+		if _selection_latch_pressed(KEY_DOWN) or _selection_latch_pressed(KEY_S) or _selection_latch_pressed(KEY_RIGHT) or _selection_latch_pressed(KEY_D):
+			collab_partner_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+			_play_cursor_move_se()
+		if _selection_latch_pressed(KEY_ENTER) or _selection_latch_pressed(KEY_SPACE):
+			_play_back_transition_se()
+			_start_stream_frame_select()
+		return
 	var previous_index := selected_collab_partner_index
 	var left_pressed := _selection_latch_pressed(KEY_LEFT) or _selection_latch_pressed(KEY_A) or _selection_latch_pressed(KEY_Q)
 	var right_pressed := _selection_latch_pressed(KEY_RIGHT) or _selection_latch_pressed(KEY_D) or _selection_latch_pressed(KEY_E)
+	var up_pressed := _selection_latch_pressed(KEY_UP) or _selection_latch_pressed(KEY_W)
+	var down_pressed := _selection_latch_pressed(KEY_DOWN) or _selection_latch_pressed(KEY_S)
+	if up_pressed and selected_collab_partner_index < 3:
+		collab_partner_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
+	if down_pressed and selected_collab_partner_index < 3 and collab_partner_candidates.size() > 3:
+		selected_collab_partner_index = mini(collab_partner_candidates.size() - 1, selected_collab_partner_index + 3)
+	if down_pressed and selected_collab_partner_index < 3 and collab_partner_candidates.size() <= 3:
+		collab_partner_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
+	if up_pressed and selected_collab_partner_index >= 3:
+		selected_collab_partner_index -= 3
 	if left_pressed:
-		selected_collab_partner_index = maxi(0, selected_collab_partner_index - 1)
+		if selected_collab_partner_index % 3 == 0:
+			collab_partner_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
+		else:
+			selected_collab_partner_index -= 1
 	if right_pressed:
-		selected_collab_partner_index = mini(collab_partner_candidates.size() - 1, selected_collab_partner_index + 1)
+		if selected_collab_partner_index % 3 < 2 and selected_collab_partner_index + 1 < collab_partner_candidates.size():
+			selected_collab_partner_index += 1
 	if _selection_latch_pressed(KEY_1):
 		selected_collab_partner_index = 0
 	if collab_partner_candidates.size() >= 2 and _selection_latch_pressed(KEY_2):
 		selected_collab_partner_index = 1
+	if collab_partner_candidates.size() >= 3 and _selection_latch_pressed(KEY_3):
+		selected_collab_partner_index = 2
+	if collab_partner_candidates.size() >= 4 and _selection_latch_pressed(KEY_4):
+		selected_collab_partner_index = 3
+	if collab_partner_candidates.size() >= 5 and _selection_latch_pressed(KEY_5):
+		selected_collab_partner_index = 4
 	if previous_index != selected_collab_partner_index:
 		collab_partner_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 		var selected_partner: Dictionary = collab_partner_candidates[selected_collab_partner_index] as Dictionary
@@ -3684,6 +3786,7 @@ func _start_stream_complete_intro(reason: String) -> void:
 func _start_ending_cutin(reason: String, end_type: String) -> void:
 	if state == "result" or state == "game_over_intro":
 		return
+	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "ending_cutin")
 	_clear_troll_linked_comments(true)
 	_clear_toast()
 	_clear_drawing_toast()
@@ -4946,6 +5049,7 @@ func _draw_world_layer() -> void:
 	_draw_boss_guide_lines()
 	var hit_fx_draw_items: Array = DrawDataSystemScript.hit_fx_draw_data(hit_fx, visible_world_rect)
 	_draw_hit_fx(true, hit_fx_draw_items)
+	_draw_hit_fx(false, hit_fx_draw_items, "back")
 	_draw_click_move_marker()
 	_draw_genre_event_objects(visible_world_rect)
 	_draw_song_chorus_objects(visible_world_rect)
@@ -4969,7 +5073,7 @@ func _draw_world_layer() -> void:
 	_draw_player()
 	_draw_collab_partner()
 	_draw_song_spotlight_labels(visible_world_rect)
-	_draw_hit_fx(false, hit_fx_draw_items)
+	_draw_hit_fx(false, hit_fx_draw_items, "front")
 	_draw_map_foreground()
 	world_draw_active = false
 	_reset_world_transform()
@@ -5329,6 +5433,9 @@ func _start_stream_end_banner() -> void:
 		return
 	if _is_collab_frame():
 		_cancel_collab_challenge(false)
+		_clear_collab_combo_runtime("finish")
+		collab_combo_sequence_state = ""
+		collab_combo_sequence_timer = 0.0
 	stream_end_banner_duration = STREAM_END_BANNER_DURATION
 	stream_end_banner_timer = stream_end_banner_duration
 	_play_stream_end_whistle_se()
@@ -5501,6 +5608,8 @@ func _update_relay_boss_combo_watchdog(delta: float) -> void:
 	collab_combo_sequence_timer = 0.0
 	collab_combo_pair_key = ""
 	collab_combo_skill_name = ""
+	_clear_collab_combo_runtime("stage_reset")
+	collab_combo_definition.clear()
 	RelayBossAttackSystemScript.clear_runtime_objects_for_target(self)
 	RelayBossMovementSystemScript.force_resume_for_target(self, _current_arena())
 	invincible = 0.0
@@ -5736,6 +5845,12 @@ func _start_character_select() -> void:
 
 func _prepare_character_select() -> void:
 	_reset_pre_run_select_press_feedback()
+	if power_up_shop_manager != null:
+		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+		current_character_id = CharacterSystemScript.validated_character_id(characters, power_up_shop_manager.selected_character_id())
+		if power_up_shop_manager.consume_senior_unit_unlock_notice():
+			toast_text = "シニアユニットの3人が解禁されました"
+			toast_timer = 4.0
 	var result: Dictionary = CharacterSystemScript.start_selection_for_target(self, choice_box, result_panel, characters)
 	character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["chat"])]}, chat_box)
@@ -5752,7 +5867,7 @@ func _selection_latch_would_press(keycode: Key) -> bool:
 	return Input.is_key_pressed(keycode) and not bool(debug_key_latch.get(keycode, false))
 
 func _prime_choice_selection_latch() -> void:
-	for keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_ENTER, KEY_SPACE, KEY_1, KEY_2, KEY_3, KEY_4]:
+	for keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_W, KEY_A, KEY_S, KEY_D, KEY_Q, KEY_E, KEY_ENTER, KEY_SPACE, KEY_1, KEY_2, KEY_3, KEY_4]:
 		debug_key_latch[keycode] = Input.is_key_pressed(keycode)
 
 func _character_select_can_move_down_to_footer() -> bool:
@@ -5772,7 +5887,7 @@ func _update_character_select_back_focus() -> bool:
 	var backspace_pressed := _selection_latch_pressed(KEY_BACKSPACE)
 	var enter_pressed := _selection_latch_pressed(KEY_ENTER)
 	var space_pressed := _selection_latch_pressed(KEY_SPACE)
-	var up_pressed := _selection_latch_pressed(KEY_UP)
+	var up_pressed := _selection_latch_pressed(KEY_UP) or _selection_latch_pressed(KEY_W)
 	_selection_latch_pressed(KEY_DOWN)
 	_selection_latch_pressed(KEY_LEFT)
 	_selection_latch_pressed(KEY_RIGHT)
@@ -5780,6 +5895,7 @@ func _update_character_select_back_focus() -> bool:
 	_selection_latch_pressed(KEY_D)
 	_selection_latch_pressed(KEY_Q)
 	_selection_latch_pressed(KEY_E)
+	_selection_latch_pressed(KEY_S)
 	if escape_pressed or backspace_pressed or enter_pressed or space_pressed:
 		_play_back_transition_se()
 		_back_to_title()
@@ -5792,7 +5908,7 @@ func _update_character_select_back_focus() -> bool:
 func _update_character_select() -> void:
 	if _update_character_select_back_focus():
 		return
-	var footer_down_requested := _selection_latch_would_press(KEY_DOWN) and _character_select_can_move_down_to_footer()
+	var footer_down_requested := (_selection_latch_would_press(KEY_DOWN) or _selection_latch_would_press(KEY_S)) and _character_select_can_move_down_to_footer()
 	var before_state := state
 	var result: Dictionary = CharacterSystemScript.update_selection_for_target(self, debug_key_latch, characters)
 	if before_state == "character_select" and state == "title":
@@ -6168,6 +6284,7 @@ func _prepare_back_to_title_from_transition() -> void:
 	_prepare_back_to_title(false)
 
 func _prepare_back_to_title(play_title_intro: bool) -> void:
+	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "title_transition")
 	options_return_state = "title"
 	state = "title"
 	game_over_intro_timer = 0.0
@@ -6519,6 +6636,8 @@ func _apply_damage_feedback(feedback: Dictionary) -> void:
 func _apply_buzz_feedback(feedback: Dictionary) -> void:
 	var delta: int = int(feedback.get("buzzDelta", 0))
 	var protected: bool = bool(feedback.get("buzzProtected", false))
+	if bool(feedback.get("buzzProtectionConsumed", false)):
+		buzz_protection_badge_pulse_timer = 0.30
 	if delta == 0 and not protected and not bool(feedback.get("buzzChanged", false)):
 		return
 	buzz_feedback_timer = 0.85
@@ -6606,12 +6725,84 @@ func _start_gift_choice() -> void:
 		drawing_next_gift_choice_hype_bonus = 0
 		gift_hype = clampi(gift_hype + applied_drawing_hype_bonus, 0, 100)
 	var result: Dictionary = GiftSystemScript.start_offer_ui_for_target(self, gifts, rng, choice_box)
+	gift_reroll_original_offer = offered_gifts.duplicate(true)
+	gift_reroll_locked = false
+	gift_reroll_pending_offer.clear()
+	gift_reroll_timer = 0.0
+	gift_reroll_notice = ""
+	gift_choice_focus_area = GIFT_CHOICE_FOCUS_CARDS
+	gift_choice_return_card = 0
+	gift_reroll_hovered = false
+	gift_reroll_press_timer = 0.0
 	if applied_drawing_hype_bonus > 0:
 		gift_hype = base_gift_hype
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["arrivalText"])]}, chat_box)
 	_refresh_choice_cards()
 
+func _gift_choice_input_just_pressed(keycode: Key, action_name: String = "") -> bool:
+	var pressed := _selection_latch_pressed(keycode)
+	if action_name != "" and InputMap.has_action(action_name):
+		pressed = pressed or Input.is_action_just_pressed(action_name)
+	return pressed
+
+func _gift_reroll_focus_available() -> bool:
+	return state == "gift_choice" and gift_choice_return_state != "relay_break" and gift_reroll_remaining > 0 and not gift_reroll_locked
+
+func _set_gift_choice_reroll_focus(play_se: bool = false) -> bool:
+	if not _gift_reroll_focus_available():
+		return false
+	var changed := gift_choice_focus_area != GIFT_CHOICE_FOCUS_REROLL
+	if changed:
+		gift_choice_return_card = clampi(selected_card, 0, maxi(0, offered_gifts.size() - 1))
+		gift_choice_focus_area = GIFT_CHOICE_FOCUS_REROLL
+	if play_se and changed:
+		_play_cursor_move_se()
+	queue_redraw()
+	return true
+
+func _restore_gift_choice_card_focus(play_se: bool = false) -> bool:
+	var changed := gift_choice_focus_area != GIFT_CHOICE_FOCUS_CARDS
+	if changed:
+		selected_card = clampi(gift_choice_return_card, 0, maxi(0, offered_gifts.size() - 1))
+		gift_choice_focus_area = GIFT_CHOICE_FOCUS_CARDS
+	if play_se and changed:
+		_play_cursor_move_se()
+	queue_redraw()
+	return changed
+
 func _update_gift_choice() -> void:
+	if gift_reroll_locked:
+		return
+	if gift_choice_focus_area == GIFT_CHOICE_FOCUS_REROLL:
+		if _gift_choice_input_just_pressed(KEY_UP, "ui_up") or _selection_latch_pressed(KEY_W):
+			_restore_gift_choice_card_focus()
+			return
+		if _gift_choice_input_just_pressed(KEY_ENTER, "ui_accept") or _selection_latch_pressed(KEY_SPACE):
+			_request_gift_reroll()
+			return
+		return
+	var reroll_down := _gift_choice_input_just_pressed(KEY_DOWN, "ui_down") or _selection_latch_pressed(KEY_S)
+	if reroll_down and _gift_reroll_focus_available():
+		_set_gift_choice_reroll_focus()
+		return
+	var left_pressed := _gift_choice_input_just_pressed(KEY_LEFT, "ui_left") or _selection_latch_pressed(KEY_A)
+	var right_pressed := _gift_choice_input_just_pressed(KEY_RIGHT, "ui_right") or _selection_latch_pressed(KEY_D)
+	var up_pressed := _gift_choice_input_just_pressed(KEY_UP, "ui_up") or _selection_latch_pressed(KEY_W)
+	if left_pressed:
+		selected_card = posmod(selected_card - 1, maxi(1, mini(3, offered_gifts.size())))
+		_refresh_choice_cards()
+		return
+	if right_pressed or reroll_down:
+		selected_card = posmod(selected_card + 1, maxi(1, mini(3, offered_gifts.size())))
+		_refresh_choice_cards()
+		return
+	if up_pressed:
+		selected_card = posmod(selected_card - 1, maxi(1, mini(3, offered_gifts.size())))
+		_refresh_choice_cards()
+		return
+	if _gift_choice_input_just_pressed(KEY_ENTER, "ui_accept") or _selection_latch_pressed(KEY_SPACE):
+		_choose_gift(selected_card)
+		return
 	var result: Dictionary = GiftSystemScript.update_choice_input_for_target(self, debug_key_latch)
 	if bool(result["refresh"]):
 		_refresh_choice_cards()
@@ -6620,6 +6811,8 @@ func _update_gift_choice() -> void:
 		_choose_gift(int(result["chooseIndex"]))
 
 func _choose_gift(index: int) -> void:
+	if gift_reroll_locked:
+		return
 	var result: Dictionary = GiftSystemScript.choose_offer_index_with_feedback_for_target(self, index, choice_box, genre_events, rng)
 	if not bool(result["selected"]):
 		return
@@ -6633,6 +6826,45 @@ func _choose_gift(index: int) -> void:
 		return
 	if pending_gift_choices > 0:
 		_start_gift_choice()
+
+func _request_gift_reroll(_from_external_input: bool = false) -> void:
+	if state != "gift_choice" or gift_choice_return_state == "relay_break" or gift_reroll_locked:
+		return
+	if gift_reroll_remaining > 0 and gift_choice_focus_area != GIFT_CHOICE_FOCUS_REROLL:
+		_set_gift_choice_reroll_focus(_from_external_input)
+	if gift_reroll_remaining <= 0:
+		gift_reroll_notice = "再抽選は残っていません"
+		queue_redraw()
+		return
+	var result: Dictionary = GiftSystemScript.reroll_offer_for_target(self, gifts, rng)
+	if not bool(result.get("success", false)):
+		gift_reroll_notice = "これ以上候補を変更できません" if String(result.get("reason", "")) == "no_candidate" else "再抽選できません"
+		queue_redraw()
+		return
+	gift_reroll_locked = true
+	gift_reroll_pending_offer = result.get("offer", []) as Array
+	gift_reroll_timer = 0.34
+	gift_reroll_notice = ""
+	gift_reroll_press_timer = 0.17
+	queue_redraw()
+
+func _update_gift_reroll_animation(delta: float) -> void:
+	if not gift_reroll_locked:
+		return
+	var previous := gift_reroll_timer
+	gift_reroll_timer = maxf(0.0, gift_reroll_timer - delta)
+	if previous > 0.17 and gift_reroll_timer <= 0.17 and not gift_reroll_pending_offer.is_empty():
+		offered_gifts = gift_reroll_pending_offer.duplicate(true)
+		gift_reroll_pending_offer.clear()
+		gift_reroll_remaining = maxi(0, gift_reroll_remaining - 1)
+		_play_gift_reroll_se()
+		selected_card = clampi(selected_card, 0, maxi(0, offered_gifts.size() - 1))
+		if gift_reroll_remaining <= 0:
+			gift_choice_focus_area = GIFT_CHOICE_FOCUS_CARDS
+		_refresh_choice_cards()
+	if gift_reroll_timer <= 0.0:
+		gift_reroll_locked = false
+		queue_redraw()
 
 func _suppress_dash_button_after_ui_confirm() -> void:
 	dash_enter_down = Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_SPACE)
@@ -6752,6 +6984,10 @@ func _finish_run(reason: String) -> void:
 	if pending_game_over_end_type == "mental_breakdown":
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": _ending_cutin_reaction_lines("mental_breakdown")}, chat_box)
 	ResultSystemScript.open_result_ui_for_target(reason, self, quick_test_mode, choice_box, result_panel, result_label, heart_cards, chat_box)
+	if bool(last_result_data.get("seniorUnitUnlocked", false)):
+		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+		toast_text = "シニアユニットの3人が解禁されました"
+		toast_timer = 4.0
 
 func _end_type_for_finish_reason(reason: String) -> String:
 	if reason.contains("成功") or reason.contains("完走") or player_hp > 0:
@@ -7319,10 +7555,12 @@ func _restart() -> void:
 		_prepare_relay_start()
 	if power_up_shop_manager != null:
 		power_up_run_tracker = PowerUpRunTrackerScript.start(shop_upgrades_enabled, power_up_shop_manager.total_upgrade_level(), not quick_test_mode)
+		power_up_run_tracker.difficulty_id = run_difficulty_id
 		run_id = power_up_run_tracker.run_id
 		permanent_upgrade_snapshot = power_up_shop_manager.create_snapshot(shop_upgrades_enabled)
 	else:
 		power_up_run_tracker = PowerUpRunTrackerScript.start(false, 0, not quick_test_mode)
+		power_up_run_tracker.difficulty_id = run_difficulty_id
 		run_id = power_up_run_tracker.run_id
 		permanent_upgrade_snapshot = PermanentUpgradeSnapshotScript.new()
 	pending_power_up_reward = null
@@ -7352,6 +7590,16 @@ func _restart() -> void:
 	screen_flash_duration = 0.0
 	screen_flash_color = Color.TRANSPARENT
 	gift_choice_delay_timer = 0.0
+	gift_reroll_locked = false
+	gift_reroll_original_offer.clear()
+	gift_reroll_pending_offer.clear()
+	gift_reroll_timer = 0.0
+	gift_reroll_notice = ""
+	gift_choice_focus_area = GIFT_CHOICE_FOCUS_CARDS
+	gift_choice_return_card = 0
+	gift_reroll_hovered = false
+	gift_reroll_press_timer = 0.0
+	buzz_protection_badge_pulse_timer = 0.0
 	var restart_state: Dictionary = RunStateSystemScript.restart_run_for_target(
 		self,
 		characters,
@@ -7444,6 +7692,7 @@ func _advance_relay_frame() -> void:
 	return
 
 func _start_relay_break() -> void:
+	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "relay_break")
 	state = "relay_break"
 	previous_state = "playing"
 	_clear_toast()
@@ -7520,7 +7769,12 @@ func _on_relay_break_gift_selected(_context: Dictionary) -> void:
 	PauseReasonSystemScript.add(self, "GiftSelection")
 	var offer: Array = RelayBreakSystemScript.build_gift_offer(self, gifts, rng, relay_mode_config)
 	offered_gifts = offer
+	gift_reroll_original_offer = offered_gifts.duplicate(true)
 	selected_card = 0
+	gift_choice_focus_area = GIFT_CHOICE_FOCUS_CARDS
+	gift_choice_return_card = 0
+	gift_reroll_hovered = false
+	gift_reroll_press_timer = 0.0
 	heart_cards = [false, false, false]
 	ng_cards = [false, false, false]
 	gift_choice_return_state = "relay_break"
@@ -7559,6 +7813,7 @@ func _after_relay_break_reward(kind: String) -> void:
 
 func _begin_relay_segment_from_intro() -> void:
 	relay_intro_resume = false
+	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "relay_segment")
 	current_stream_frame_id = RelayFlowSystemScript.segment_id(relay_segment_index)
 	StreamFrameSystemScript.apply_selected_frame_for_target(self, stream_frames, current_stream_frame_id)
 	relay_flow_state = RelayFlowSystemScript.playing_state_for_segment(current_stream_frame_id)
@@ -7905,6 +8160,7 @@ func _prepare_normal_boss_cutin() -> void:
 	drawing_eraser_waves.clear()
 	drawing_spilled_paints.clear()
 	drawing_clean_lines.clear()
+	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "boss_cutin")
 	hit_fx.clear()
 	GenreEventSystemScript.clear_temp_objects_for_target(self)
 	active_genre_event = ""
@@ -8063,6 +8319,9 @@ func _complete_relay_boss() -> void:
 	_start_stream_complete_intro("RELAY COMPLETE")
 
 func _start_next_relay_segment() -> void:
+	_clear_collab_combo_runtime("relay_segment")
+	collab_combo_sequence_state = ""
+	collab_combo_sequence_timer = 0.0
 	elapsed = 0.0
 	comment_timer = COMMENT_INTERVAL
 	comment_warning_step = 0
@@ -8086,6 +8345,15 @@ func _start_next_relay_segment() -> void:
 	screen_flash_duration = 0.0
 	screen_flash_color = Color.TRANSPARENT
 	gift_choice_delay_timer = 0.0
+	gift_reroll_locked = false
+	gift_reroll_original_offer.clear()
+	gift_reroll_pending_offer.clear()
+	gift_reroll_timer = 0.0
+	gift_reroll_notice = ""
+	gift_choice_focus_area = GIFT_CHOICE_FOCUS_CARDS
+	gift_choice_return_card = 0
+	gift_reroll_hovered = false
+	gift_reroll_press_timer = 0.0
 	next_mallow_time = 30.0
 	stop_timer = 0.0
 	mute_timer = 0.0
@@ -8116,6 +8384,7 @@ func _start_next_relay_segment() -> void:
 	active_sub_comment_ids.clear()
 	effect_walls.clear()
 	effect_pits.clear()
+	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "run_reset")
 	enemies.clear()
 	_clear_troll_linked_comments(true)
 	enemy_bullets.clear()
@@ -8178,12 +8447,21 @@ func _start_next_relay_segment() -> void:
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["次の配信枠へ！ " + String(current_stream_frame.get("displayName", "配信枠"))]}, chat_box)
 
 func _handle_debug_keys() -> void:
-	if state == "comment_choice" or state == "gift_choice":
-		return
 	for action in DebugSystemScript.pressed_actions(debug_key_latch):
+		if (state == "comment_choice" or state == "gift_choice") and action != "unlock_senior_unit":
+			continue
 		_apply_debug_action(action)
 
 func _apply_debug_action(action: String) -> void:
+	if action == "unlock_senior_unit":
+		if power_up_shop_manager == null or not power_up_shop_manager.debug_unlock_senior_unit():
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["DEBUG: シニアユニット解放の保存に失敗しました"]}, chat_box)
+			return
+		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+		toast_text = "DEBUG: 新キャラ3人を解放しました"
+		toast_timer = 4.0
+		queue_redraw()
+		return
 	if DebugSystemScript.should_spawn_current_frame_boss(action):
 		_start_current_frame_boss_debug()
 		return
@@ -9526,10 +9804,15 @@ func _draw_collab_combo_cutin_overlay() -> void:
 	draw_line(Vector2(824.0, 58.0), Vector2(706.0, 842.0), Color(1.0, 0.74, 0.30, 0.66 * alpha), 3.0, true)
 	var left_slide := -360.0 * (1.0 - enter) - 220.0 * (1.0 - exit)
 	var right_slide := 360.0 * (1.0 - enter) + 220.0 * (1.0 - exit)
-	_draw_collab_combo_cutin_character(current_character_id, Rect2(Vector2(24.0 + left_slide, 98.0), Vector2(720.0, 650.0)), alpha)
-	_draw_collab_combo_cutin_character(collab_partner_id, Rect2(Vector2(856.0 + right_slide, 98.0), Vector2(720.0, 650.0)), alpha)
-	_draw_ranking_text("PLAYER", Vector2(52.0 + left_slide, 116.0), 20, Color(1.0, 0.82, 0.92, alpha), 180)
-	_draw_ranking_text("PARTNER", Vector2(1368.0 + right_slide, 116.0), 20, Color(0.74, 0.94, 1.0, alpha), 180, HORIZONTAL_ALIGNMENT_RIGHT)
+	var ordered_ids := _collab_ordered_pair_ids()
+	var left_id := String(ordered_ids[0]) if ordered_ids.size() > 0 else current_character_id
+	var right_id := String(ordered_ids[1]) if ordered_ids.size() > 1 else collab_partner_id
+	_draw_collab_combo_cutin_character(left_id, Rect2(Vector2(24.0 + left_slide, 98.0), Vector2(720.0, 650.0)), alpha)
+	_draw_collab_combo_cutin_character(right_id, Rect2(Vector2(856.0 + right_slide, 98.0), Vector2(720.0, 650.0)), alpha)
+	var left_character := CharacterSystemScript.find_character(characters, left_id)
+	var right_character := CharacterSystemScript.find_character(characters, right_id)
+	_draw_ranking_text(String(left_character.get("displayName", "")), Vector2(52.0 + left_slide, 116.0), 20, Color(1.0, 0.82, 0.92, alpha), 420)
+	_draw_ranking_text(String(right_character.get("displayName", "")), Vector2(1128.0 + right_slide, 116.0), 20, Color(0.74, 0.94, 1.0, alpha), 420, HORIZONTAL_ALIGNMENT_RIGHT)
 	var name_progress := clampf((cutin_elapsed - 0.20) / 0.28, 0.0, 1.0)
 	if name_progress > 0.0:
 		var name_rect := Rect2(Vector2(348.0, 660.0), Vector2(904.0, 108.0))
@@ -9539,7 +9822,7 @@ func _draw_collab_combo_cutin_overlay() -> void:
 		_draw_outlined_text(name_rect.position + Vector2(0.0, 74.0), collab_combo_skill_name, int(name_rect.size.x), font_size, Color(1.0, 0.96, 0.78, name_alpha), Color(0.50, 0.08, 0.24, 0.96 * name_alpha), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_collab_combo_cutin_character(character_id: String, container: Rect2, alpha: float) -> void:
-	var path := _stream_complete_result_image_path(character_id)
+	var path := _collab_cut_in_image_path(character_id)
 	if path == "":
 		return
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
@@ -9547,6 +9830,15 @@ func _draw_collab_combo_cutin_character(character_id: String, container: Rect2, 
 		return
 	var rect := _fit_texture_rect(container, texture.get_size())
 	_draw_texture_with_silhouette_outline(texture, rect, Color(1.0, 1.0, 1.0, alpha), Color(0.02, 0.01, 0.04, 0.74 * alpha), 5.0)
+
+func _collab_cut_in_image_path(character_id: String) -> String:
+	var character := CharacterSystemScript.find_character(characters, character_id)
+	for path_value in [String(character.get("comboCutInSprite", "")), _stream_complete_result_image_path(character_id), String(character.get("selectSprite", "")), String(character.get("sprite", ""))]:
+		if path_value == "":
+			continue
+		if ResourceLoader.exists(path_value) or FileAccess.file_exists(path_value):
+			return path_value
+	return ""
 
 func _collab_partner_display_name() -> String:
 	if collab_partner_id == "":
@@ -10900,6 +11192,11 @@ func _draw_player_bullets(visible_rect: Rect2) -> void:
 func _draw_boomerang() -> void:
 	if _normal_weapons_disabled_by_song_bad_light():
 		return
+	var boomerang_draw_state: Dictionary = equipment_weapon_timers.duplicate()
+	var attack_area_rate := 1.0
+	if permanent_upgrade_snapshot != null:
+		attack_area_rate = float(permanent_upgrade_snapshot.attack_area_multiplier)
+	boomerang_draw_state["attackAreaRate"] = WeaponSystemScript.attack_area_rate({"attackAreaRate": attack_area_rate})
 	WeaponDrawSystemScript.draw_boomerangs(
 		self,
 		player_pos,
@@ -10909,7 +11206,7 @@ func _draw_boomerang() -> void:
 		elapsed,
 		comment_boomerang_sprite,
 		Callable(self, "_draw_rotated_texture"),
-		equipment_weapon_timers,
+		boomerang_draw_state,
 		equipment_bullet_support_level,
 		Callable(self, "_load_raw_png_texture")
 	)
@@ -11035,7 +11332,7 @@ func _draw_boss_hp_overlay() -> void:
 	_draw_text_item({"pos": rect.position + Vector2(18, 34), "text": String(boss.get("displayName", "超長文ニキ")), "width": 132, "size": 20, "color": name_color})
 	_draw_text_item({"pos": rect.position + Vector2(516, 20), "text": "%d/%d" % [maxi(0, int(ceil(float(boss.get("hp", 0.0))))), int(ceil(max_hp))], "width": 108, "size": 14, "color": name_color})
 
-func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null) -> void:
+func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null, image_layer: String = "front") -> void:
 	var fx_draw_items: Array = []
 	if draw_items is Array:
 		fx_draw_items = draw_items as Array
@@ -11046,18 +11343,63 @@ func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null) -> void
 		var is_field_fx := String(data.get("kind", "")) == "emote_mine"
 		if is_field_fx != field_layer:
 			continue
-		_draw_hit_fx_item(data)
+		_draw_hit_fx_item(data, image_layer)
 
-func _draw_hit_fx_item(data: Dictionary) -> void:
-	for part in DrawDataSystemScript.hit_fx_parts(data):
-		_draw_simple_draw_part(data, part as Dictionary)
+func _draw_hit_fx_item(data: Dictionary, image_layer: String = "front") -> void:
+	_draw_hit_fx_visual_lines(data, image_layer)
+	var loaded_visual_roles := _hit_fx_loaded_visual_roles(data, image_layer)
+	var valid_image_line_roles := _hit_fx_valid_image_line_roles(data, image_layer)
+	for part in DrawDataSystemScript.hit_fx_procedural_parts(data, loaded_visual_roles, valid_image_line_roles):
+		var part_data: Dictionary = part as Dictionary
+		if String(part_data.get("drawLayer", "front")) != image_layer:
+			continue
+		_draw_simple_draw_part(data, part_data)
+	if image_layer != "front":
+		_draw_hit_fx_texture(data, image_layer)
+		return
 	var hammer_texture: Texture2D = _hammer_weapon_sprite_for_data(data)
 	if bool(data.get("showHammer", false)):
 		_draw_ban_hammer_afterimages(data, hammer_texture)
-	_draw_hit_fx_texture(data)
+	_draw_hit_fx_texture(data, image_layer)
 	if bool(data.get("showHammer", false)):
 		_draw_rotated_texture(hammer_texture, data["hammerPos"] as Vector2, data["hammerSize"] as Vector2, float(data["hammerAngle"]), float(data["hammerAlpha"]))
 		_draw_ban_hammer_sparks(data)
+
+func _hit_fx_loaded_visual_roles(data: Dictionary, image_layer: String) -> Dictionary:
+	var roles: Dictionary = {}
+	for layer_item in (data.get("imageLayers", []) as Array):
+		var layer: Dictionary = layer_item as Dictionary
+		if String(layer.get("drawLayer", "front")) != image_layer:
+			continue
+		var role := String(layer.get("role", ""))
+		var path := String(layer.get("path", ""))
+		if role == "" or path == "":
+			continue
+		if TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path) != null:
+			roles[role] = true
+		elif layer.get("fallbackConfig", null) is Dictionary:
+			var fallback_config: Dictionary = layer.get("fallbackConfig", {}) as Dictionary
+			var fallback_path := String(fallback_config.get("path", ""))
+			if fallback_path != "" and TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, fallback_path) != null:
+				roles[role] = true
+				var fallback_role := String(layer.get("fallbackRole", ""))
+				if fallback_role != "":
+					roles[fallback_role] = true
+	return roles
+
+func _hit_fx_valid_image_line_roles(data: Dictionary, image_layer: String) -> Dictionary:
+	var roles: Dictionary = {}
+	for line_item in (data.get("imageLines", []) as Array):
+		var line: Dictionary = line_item as Dictionary
+		if String(line.get("drawLayer", "back")) != image_layer:
+			continue
+		var role := String(line.get("role", ""))
+		var source_role := String(line.get("sourceRole", ""))
+		if source_role != "" and not bool(_hit_fx_loaded_visual_roles(data, image_layer).get(source_role, false)):
+			continue
+		if role != "" and line.has("from") and line.has("to"):
+			roles[role] = true
+	return roles
 
 func _hammer_weapon_sprite_for_data(data: Dictionary) -> Texture2D:
 	if String(data.get("hammerSprite", "ban_hammer")) == "ban_judgement" and ban_judgement_weapon_sprite != null:
@@ -11095,13 +11437,68 @@ func _draw_ban_hammer_sparks(data: Dictionary) -> void:
 	draw_line(pos - (dir + side).normalized() * size * 0.58, pos + (dir + side).normalized() * size * 0.72, pink, 2.0)
 	draw_circle(pos, size * 0.22, hot, true)
 
-func _draw_hit_fx_texture(data: Dictionary) -> bool:
-	var path: String = String(data.get("imagePath", ""))
+func _draw_hit_fx_visual_lines(data: Dictionary, image_layer: String) -> void:
+	for line_item in (data.get("imageLines", []) as Array):
+		var line: Dictionary = line_item as Dictionary
+		if String(line.get("drawLayer", "back")) != image_layer:
+			continue
+		var line_color: Color = line.get("color", Color.WHITE) as Color
+		draw_line(Vector2(line.get("from", Vector2.ZERO)), Vector2(line.get("to", Vector2.ZERO)), line_color, float(line.get("width", 2.0)), true)
+
+func _draw_hit_fx_image_layer(layer: Dictionary) -> bool:
+	var path := String(layer.get("path", ""))
 	if path == "":
 		return false
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
 	if texture == null:
+		if layer.get("fallbackConfig", null) is Dictionary:
+			var fallback_config: Dictionary = layer.get("fallbackConfig", {}) as Dictionary
+			var fallback_path := String(fallback_config.get("path", ""))
+			if fallback_path != "":
+				var fallback_layer := layer.duplicate(true)
+				fallback_layer.erase("fallbackConfig")
+				fallback_layer["path"] = fallback_path
+				fallback_layer["size"] = fallback_config.get("size", layer.get("size", Vector2(1, 1)))
+				fallback_layer["pivotNormalized"] = fallback_config.get("pivotNormalized", layer.get("pivotNormalized", Vector2(0.5, 0.5)))
+				fallback_layer["role"] = String(layer.get("fallbackRole", layer.get("role", "")))
+				return _draw_hit_fx_image_layer(fallback_layer)
+		if OS.is_debug_build() and not bool(missing_hit_fx_visual_paths.get(path, false)):
+			missing_hit_fx_visual_paths[path] = true
+			push_warning("Missing hit-fx visual '%s'; using procedural fallback." % path)
 		return false
+	var anchor := Vector2(layer.get("pos", Vector2.ZERO))
+	var size := Vector2(layer.get("size", texture.get_size()))
+	var angle := float(layer.get("rotation", 0.0))
+	var pivot_value: Variant = layer.get("pivotNormalized", Vector2(0.5, 0.5))
+	var pivot := Vector2(0.5, 0.5)
+	if pivot_value is Vector2:
+		pivot = pivot_value as Vector2
+	elif pivot_value is Array and (pivot_value as Array).size() >= 2:
+		var pivot_array: Array = pivot_value as Array
+		pivot = Vector2(float(pivot_array[0]), float(pivot_array[1]))
+	var center := anchor - Vector2((pivot.x - 0.5) * size.x, (pivot.y - 0.5) * size.y).rotated(angle)
+	_draw_rotated_texture(texture, center, size, angle, float(layer.get("alpha", 1.0)))
+	return true
+
+func _draw_hit_fx_texture(data: Dictionary, image_layer: String = "front") -> bool:
+	var drawn := false
+	var image_layers: Array = (data.get("imageLayers", []) as Array).duplicate()
+	image_layers.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("zIndex", 0)) < int(b.get("zIndex", 0))
+	)
+	for layer_item in image_layers:
+		var layer: Dictionary = layer_item as Dictionary
+		if String(layer.get("drawLayer", "front")) != image_layer:
+			continue
+		drawn = _draw_hit_fx_image_layer(layer) or drawn
+	if image_layer != "front":
+		return drawn
+	var path: String = String(data.get("imagePath", ""))
+	if path == "":
+		return drawn
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	if texture == null:
+		return drawn
 	var pos: Vector2 = Vector2(data.get("imagePos", data.get("pos", Vector2.ZERO)))
 	var size: Vector2 = Vector2(data.get("imageSize", texture.get_size()))
 	var alpha: float = float(data.get("imageAlpha", 1.0))
@@ -11311,18 +11708,89 @@ func _draw_buzz_status_card_v25(rect: Rect2) -> void:
 		_draw_text_item({"pos": rect.position + Vector2(16, 47), "text": "↗", "width": 42, "size": 31, "color": accent})
 		_draw_text_item({"pos": rect.position + Vector2(36, 24), "text": "✦", "width": 24, "size": 14, "color": Color("#ff8fd0")})
 	var text_x := rect.position.x + (72.0 if image_drawn else 58.0)
-	var text_width := int(rect.end.x - text_x - 14.0)
+	var text_widths := _buzz_status_card_text_widths(rect, text_x, burn_resist_charges)
+	var base_text_width: int = int(text_widths["baseTextWidth"])
+	var top_text_width: int = int(text_widths["topTextWidth"])
+	var protection_badge_rect := _buzz_protection_badge_rect(rect)
 	var buzz_label := buzz_feedback_text if buzz_feedback_timer > 0.0 else "バズ度"
 	var buzz_label_color := buzz_feedback_color if buzz_feedback_timer > 0.0 else Color("#51316c")
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28), "text": buzz_label, "width": text_width, "size": 15, "color": buzz_label_color})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 53), "text": "%d%%" % BuzzSystemScript.clamp_percent(burn_combo), "width": text_width, "size": 25, "color": Color("#2b1738")})
+	var buzz_label_size := 11 if buzz_feedback_timer > 0.0 else 15
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28), "text": buzz_label, "width": top_text_width, "size": buzz_label_size, "color": buzz_label_color})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 53), "text": "%d%%" % BuzzSystemScript.clamp_percent(burn_combo), "width": top_text_width, "size": 25, "color": Color("#2b1738")})
 	var bonus_text := "撃破スコア ×%.2f" % BuzzSystemScript.score_multiplier(burn_combo)
-	var bonus_rect := Rect2(Vector2(text_x - 18.0, rect.position.y + 58.0), Vector2(float(text_width) + 23.0, 18.0))
+	var bonus_rect := Rect2(Vector2(text_x - 18.0, rect.position.y + 58.0), Vector2(float(base_text_width) + 23.0, 18.0))
 	_draw_ranking_panel(bonus_rect, Color(1.0, 1.0, 1.0, 0.70), Color(1.0, 0.58, 0.86, 0.46), 8, 1, false)
 	draw_line(bonus_rect.position + Vector2(7.0, 3.0), bonus_rect.position + Vector2(bonus_rect.size.x - 7.0, 3.0), Color(0.72, 0.94, 1.0, 0.34), 1.0)
-	_draw_text_item({"pos": Vector2(text_x + 1.0, rect.position.y + 74.0), "text": bonus_text, "width": text_width, "size": 13, "color": Color(0.34, 0.12, 0.48, 0.26)})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 73.0), "text": bonus_text, "width": text_width, "size": 13, "color": Color("#8a37cf")})
+	_draw_text_item({"pos": Vector2(text_x + 1.0, rect.position.y + 74.0), "text": bonus_text, "width": base_text_width, "size": 13, "color": Color(0.34, 0.12, 0.48, 0.26)})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 73.0), "text": bonus_text, "width": base_text_width, "size": 13, "color": Color("#8a37cf")})
+	if burn_resist_charges > 0:
+		_draw_buzz_protection_badge(protection_badge_rect, burn_resist_charges)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+static func _buzz_protection_badge_rect(card_rect: Rect2) -> Rect2:
+	var badge_size := Vector2(86.0, 26.0)
+	return Rect2(Vector2(card_rect.end.x - badge_size.x - 6.0, card_rect.position.y + 5.0), badge_size)
+
+static func _buzz_protection_badge_visual_rect(rect: Rect2, pulse_ratio: float) -> Rect2:
+	var badge_scale := 1.0 + clampf(pulse_ratio, 0.0, 1.0) * 0.06
+	var badge_size := rect.size * badge_scale
+	return Rect2(rect.get_center() - badge_size * 0.5, badge_size)
+
+static func _buzz_protection_badge_count_text(charges: int) -> String:
+	return str(charges) if charges < 100 else "9+"
+
+static func _buzz_protection_badge_chip_rect(rect: Rect2, pulse_ratio: float) -> Rect2:
+	var visual_rect := _buzz_protection_badge_visual_rect(rect, pulse_ratio)
+	var content_scale := visual_rect.size.x / maxf(1.0, rect.size.x)
+	return Rect2(visual_rect.position + Vector2(55.0, 3.0) * content_scale, Vector2(28.0, 20.0) * content_scale)
+
+static func _buzz_status_card_text_widths(card_rect: Rect2, text_x: float, protection_charges: int) -> Dictionary:
+	var base_text_width: int = int(card_rect.end.x - text_x - 14.0)
+	var top_text_width: int = base_text_width
+	if protection_charges > 0:
+		top_text_width = mini(base_text_width, maxi(58, int(_buzz_protection_badge_rect(card_rect).position.x - text_x - 8.0)))
+	return {
+		"baseTextWidth": base_text_width,
+		"topTextWidth": top_text_width,
+		"bonusTextWidth": base_text_width
+	}
+
+func _draw_buzz_protection_badge(rect: Rect2, charges: int) -> void:
+	if charges <= 0:
+		return
+	var pulse_ratio := 0.0
+	if buzz_protection_badge_pulse_timer > 0.0:
+		pulse_ratio = sin(clampf(buzz_protection_badge_pulse_timer / 0.30, 0.0, 1.0) * PI)
+	var visual_rect := _buzz_protection_badge_visual_rect(rect, pulse_ratio)
+	if pulse_ratio > 0.01:
+		var glow_style := CommonLightUiStyle.create_panel_style(Color(0.74, 0.98, 1.0, 0.24 * pulse_ratio), Color(0.36, 0.86, 0.94, 0.66 * pulse_ratio), 2, 11, 0.0, 0.0)
+		draw_style_box(glow_style, visual_rect.grow(3.0))
+	var badge_style := CommonLightUiStyle.create_panel_style(Color("#F2FEFF"), Color("#5CCFE6"), 1, 10, 0.0, 0.0)
+	draw_style_box(badge_style, visual_rect)
+	draw_rect(visual_rect.grow(-3.0), Color(0.75, 0.96, 0.98, 0.46), false, 1.0)
+	var icon := TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, BUZZ_PROTECTION_ICON_PATH)
+	var content_scale := visual_rect.size.x / maxf(1.0, rect.size.x)
+	var icon_rect := Rect2(visual_rect.position + Vector2(5.0, 5.0) * content_scale, Vector2(16.0, 16.0) * content_scale)
+	if icon != null:
+		draw_texture_rect(icon, icon_rect, false, Color.WHITE)
+	_draw_text_item({
+		"pos": visual_rect.position + Vector2(25.0, 18.0) * content_scale,
+		"text": "保護",
+		"width": int(30.0 * content_scale),
+		"size": 12,
+		"color": Color("#267A99"),
+		"fontWeight": "black"
+	}, "", HORIZONTAL_ALIGNMENT_LEFT)
+	var count_chip := _buzz_protection_badge_chip_rect(rect, pulse_ratio)
+	draw_style_box(CommonLightUiStyle.create_panel_style(Color("#31B9D5"), Color("#31B9D5"), 1, 8, 0.0, 0.0), count_chip)
+	_draw_text_item({
+		"pos": count_chip.position + Vector2(0.0, 15.0) * content_scale,
+		"text": _buzz_protection_badge_count_text(charges),
+		"width": int(count_chip.size.x),
+		"size": 14,
+		"color": Color.WHITE,
+		"fontWeight": "black"
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_mental_breakdown_viewer_card(rect: Rect2) -> void:
 	var clock := float(Time.get_ticks_msec()) / 1000.0
@@ -11480,11 +11948,11 @@ func _draw_character_status_card_v25(rect: Rect2) -> void:
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 56), "text": String(current_character.get("displayName", "")), "width": int(rect.size.x - 98), "size": 22, "color": Color("#101420")})
 
 func _current_character_hud_icon_path_v25() -> String:
-	if current_character_id == "superchat_chan" or current_character_id == "supana":
-		return HUD_ICON_SUPANA_IMAGE
-	if current_character_id == "maro_chan" or current_character_id == "maron":
-		return HUD_ICON_MARON_IMAGE
-	return HUD_ICON_BANRI_IMAGE
+	for key in ["hudIcon", "iconPath", "selectSprite", "sprite"]:
+		var path := String(current_character.get(key, ""))
+		if path != "":
+			return path
+	return ""
 
 func _draw_character_hud_icon_texture_v25(texture: Texture2D, rect: Rect2) -> void:
 	var focus := Vector2(0.50, 0.30)
@@ -11590,6 +12058,15 @@ func _draw_texture_cover_rect(texture: Texture2D, container: Rect2, focus: Vecto
 		source_rect.position += Vector2(zoom_margin.x * focus.x, zoom_margin.y * focus.y)
 		source_rect.size = zoomed_size
 	draw_texture_rect_region(texture, container, source_rect, modulate)
+
+func _draw_texture_contain_rect(texture: Texture2D, container: Rect2, modulate: Color = Color.WHITE) -> void:
+	var tex_size := texture.get_size()
+	if tex_size.x <= 0.0 or tex_size.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
+		return
+	var scale := minf(container.size.x / tex_size.x, container.size.y / tex_size.y)
+	var size := tex_size * scale
+	var rect := Rect2(container.get_center() - size * 0.5, size)
+	draw_texture_rect(texture, rect, false, modulate)
 
 func _draw_texture_cover_rect_reveal(texture: Texture2D, container: Rect2, reveal: float, focus: Vector2 = Vector2(0.5, 0.46), zoom: float = 1.0, modulate: Color = Color.WHITE) -> void:
 	reveal = clampf(reveal, 0.0, 1.0)
@@ -12567,6 +13044,10 @@ func _ranking_formal_character_name(row: Dictionary) -> String:
 		return "星投すぱな"
 	if character_id == "maro_chan" or character_id == "maron" or name == "まろんちゃん" or name == "まろ" or name == "白綿まろん":
 		return "白綿まろん"
+	if name == "":
+		var character: Dictionary = _ranking_character_for_row(character_id, name)
+		if not character.is_empty():
+			return String(character.get("displayName", ""))
 	return name
 
 func _draw_ranking_row_build_icons(area: Rect2, weapons: Array, accessories: Array) -> void:
@@ -12673,10 +13154,10 @@ func _draw_ranking_character_avatar(center: Vector2, radius: float, row: Diction
 	var character: Dictionary = _ranking_character_for_row(String(row.get("characterId", "")), character_name)
 	var texture: Texture2D = null
 	if not character.is_empty():
-		var idle_path: String = _ranking_idle_sprite_path(character)
-		texture = CharacterSystemScript.texture_from_cache(character_sprite_cache, idle_path)
+		var sprite_path: String = _ranking_avatar_sprite_path(character)
+		texture = CharacterSystemScript.texture_from_cache(character_sprite_cache, sprite_path)
 		if texture != null:
-			var source_rect: Rect2 = _ranking_avatar_source_rect(character, idle_path, texture)
+			var source_rect: Rect2 = _ranking_avatar_source_rect(character, sprite_path, texture)
 			var image_rect := Rect2(center - Vector2(radius - 3.0, radius - 3.0), Vector2((radius - 3.0) * 2.0, (radius - 3.0) * 2.0))
 			draw_texture_rect_region(texture, image_rect, source_rect, Color(1, 1, 1, 0.98))
 	if texture == null:
@@ -12716,6 +13197,13 @@ func _ranking_idle_sprite_path(character: Dictionary) -> String:
 	if idle_path == "" and String(character.get("id", "")) == "ban_chan":
 		return "res://assets/generated/ban_chan_idle_3x3/sheet-transparent.png"
 	return idle_path
+
+func _ranking_avatar_sprite_path(character: Dictionary) -> String:
+	var idle_path := _ranking_idle_sprite_path(character)
+	for path in [String(character.get("rankingSprite", "")), String(character.get("resultSprite", "")), idle_path, String(character.get("selectSprite", "")), String(character.get("sprite", ""))]:
+		if path != "":
+			return path
+	return ""
 
 func _ranking_avatar_source_rect(character: Dictionary, sprite_path: String, texture: Texture2D) -> Rect2:
 	var cols: int = maxi(1, int(character.get("idleSpriteCols", 1)))
@@ -14075,9 +14563,11 @@ func _result_defeat_character_line(character_id: String) -> String:
 func _draw_result_mental_breakdown_character(rect: Rect2, data: Dictionary) -> void:
 	var breakdown_path := _mental_breakdown_result_image_path(String(data.get("characterId", "")))
 	if breakdown_path == "":
+		_draw_result_character_bust(rect, String(data.get("characterId", "")), String(data.get("characterName", "配信者")), true)
 		return
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, breakdown_path)
 	if texture == null:
+		_draw_result_character_bust(rect, String(data.get("characterId", "")), String(data.get("characterName", "配信者")), true)
 		return
 	var clock := float(Time.get_ticks_msec()) / 1000.0
 	var sway := Vector2(sin(clock * 1.7) * 2.0, sin(clock * 2.1) * 2.5)
@@ -14102,9 +14592,11 @@ func _draw_result_stream_complete_character(rect: Rect2, data: Dictionary) -> vo
 	var character_id := String(data.get("characterId", ""))
 	var image_path := _stream_complete_result_image_path(character_id)
 	if image_path == "":
+		_draw_result_character_bust(rect, character_id, String(data.get("characterName", "配信者")), false)
 		return
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, image_path)
 	if texture == null:
+		_draw_result_character_bust(rect, character_id, String(data.get("characterName", "配信者")), false)
 		return
 	var clock := float(Time.get_ticks_msec()) / 1000.0
 	var sway := Vector2(0.0, sin(clock * 2.0) * 3.0)
@@ -14153,7 +14645,13 @@ func _draw_result_character_bust(rect: Rect2, character_id: String, character_na
 				draw_texture_rect(breakdown_tex, _fit_texture_rect(rect, breakdown_tex.get_size()), false)
 				return
 	var character: Dictionary = CharacterSystemScript.find_character(characters, character_id)
-	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(character.get("sprite", "")))
+	var tex: Texture2D = null
+	for path in [String(character.get("resultSprite", "")), String(character.get("resultImage", "")), String(character.get("selectSprite", "")), String(character.get("sprite", ""))]:
+		if path == "":
+			continue
+		tex = CharacterSystemScript.texture_from_cache(character_sprite_cache, path)
+		if tex != null:
+			break
 	if tex != null:
 		draw_texture_rect(tex, _fit_texture_rect(rect, tex.get_size()), false)
 	else:
@@ -14170,6 +14668,10 @@ func _mental_breakdown_result_image_path(character_id: String) -> String:
 	return ""
 
 func _stream_complete_result_image_path(character_id: String) -> String:
+	var character: Dictionary = CharacterSystemScript.find_character(characters, character_id)
+	var registry_path := String(character.get("streamCompleteSprite", ""))
+	if registry_path != "":
+		return registry_path
 	if character_id == "ban_chan" or character_id == "banri":
 		return STREAM_COMPLETE_BANRI_IMAGE
 	if character_id == "superchat_chan" or character_id == "supana":
@@ -14319,13 +14821,23 @@ func _draw_character_select_card(rect: Rect2, index: int) -> void:
 	else:
 		_draw_character_select_tag(status_rect, String(view.get("statusText", "使用可能")), Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.90), accent)
 	var image_rect := Rect2(draw_rect.position + Vector2(18, 62), Vector2(draw_rect.size.x - 36, 136))
-	if selectable:
-		var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
-		if tex != null:
-			_draw_texture_cover_rect(tex, image_rect, Vector2(0.5, 0.10), 1.24)
+	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
+	if tex != null:
+		if String(view.get("statusId", "")) == "locked":
+			draw_texture_rect(tex, _fit_texture_rect(image_rect, tex.get_size()), false, Color(0.38, 0.38, 0.46, 0.72))
+			_draw_ranking_text("LOCK", image_rect.position + Vector2(0, 84), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+			var unlock_text := String(view.get("unlockConditionText", ""))
+			if unlock_text != "":
+				_draw_multiline_text_item({"pos": image_rect.position + Vector2(10, 106), "text": unlock_text, "width": int(image_rect.size.x - 20), "size": 12, "color": Color("#f7f2fb")}, HORIZONTAL_ALIGNMENT_CENTER)
+		else:
+			var select_rect := _fit_texture_rect(image_rect, tex.get_size())
+			var select_scale := maxf(0.1, float(view.get("selectSpriteScale", 1.0)))
+			select_rect.size *= select_scale
+			select_rect.position = image_rect.get_center() - select_rect.size * 0.5 + Vector2(view.get("selectSpriteOffset", {"x": 0, "y": 0}).get("x", 0), view.get("selectSpriteOffset", {"x": 0, "y": 0}).get("y", 0))
+			draw_texture_rect(tex, select_rect, false)
 	else:
 		draw_circle(image_rect.get_center() + Vector2(0, -6), 44, Color("#dfd8e3"))
-		_draw_ranking_text("LOCK", image_rect.position + Vector2(0, 84), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_text("LOCK" if not selectable else "?", image_rect.position + Vector2(0, 84), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_tag_row(Rect2(draw_rect.position + Vector2(18, 198), Vector2(draw_rect.size.x - 36, 30)), view.get("cardTags", []) as Array, accent, 2, 13)
 	_draw_character_select_weapon_line(Rect2(draw_rect.position + Vector2(18, 238), Vector2(draw_rect.size.x - 36, 30)), view, "weaponName", "weaponIconPath", accent)
 	_draw_pre_run_selection_focus_front(focus_feedback, accent)
@@ -14415,7 +14927,11 @@ func _draw_character_select_detail_panel(panel: Rect2) -> void:
 		if tex != null:
 			draw_texture_rect(tex, _fit_texture_rect(image_rect, tex.get_size()), false)
 	else:
-		draw_circle(image_rect.get_center() + Vector2(0, -10), 68, Color("#dfd8e3"))
+		var locked_tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
+		if locked_tex != null:
+			draw_texture_rect(locked_tex, _fit_texture_rect(image_rect, locked_tex.get_size()), false, Color(0.38, 0.38, 0.46, 0.72))
+		else:
+			draw_circle(image_rect.get_center() + Vector2(0, -10), 68, Color("#dfd8e3"))
 		_draw_ranking_text("LOCK", image_rect.position + Vector2(0, 148), 30, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	if not selectable:
 		var lock_rect := Rect2(panel.position + Vector2(28, 390), Vector2(panel.size.x - 56, 170))
@@ -14560,10 +15076,13 @@ func _collab_partner_select_layout() -> Dictionary:
 
 func _collab_partner_card_rect(index: int) -> Rect2:
 	var panel: Rect2 = (_collab_partner_select_layout()["listPanel"] as Rect2)
-	var card_w := 438.0
-	var card_h := 526.0
-	var gap := 36.0
-	return Rect2(panel.position + Vector2(38.0 + float(index) * (card_w + gap), 82.0), Vector2(card_w, card_h))
+	var card_w := 300.0
+	var card_h := 276.0
+	var gap_x := 16.0
+	var gap_y := 16.0
+	var col := index % 3
+	var row := index / 3
+	return Rect2(panel.position + Vector2(28.0 + float(col) * (card_w + gap_x), 78.0 + float(row) * (card_h + gap_y)), Vector2(card_w, card_h))
 
 func _draw_collab_partner_select_header(rect: Rect2) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.95), Color("#ffd19a"), 22, 2, true)
@@ -14581,7 +15100,7 @@ func _draw_collab_partner_current_panel(panel: Rect2) -> void:
 	_draw_ranking_panel(image_rect, Color(1.0, 0.96, 0.99, 0.82), Color(accent.r, accent.g, accent.b, 0.32), 22, 2, false)
 	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 	if tex != null:
-		_draw_texture_cover_rect(tex, image_rect.grow(-10.0), Vector2(0.5, 0.12), 1.16)
+		_draw_texture_contain_rect(tex, image_rect.grow(-10.0), Color.WHITE)
 	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 474), Vector2(panel.size.x - 60, 116)), "コラボ開始", "選んだ相方がステージ中に追従し、一定間隔で支援します。", Color("#e96f42"), Color("#fff8f2"), 17)
 
 func _draw_collab_partner_list_panel(panel: Rect2) -> void:
@@ -14608,14 +15127,14 @@ func _draw_collab_partner_card(rect: Rect2, character: Dictionary, index: int) -
 		var badge := Rect2(rect.position + Vector2(rect.size.x - 112, 16), Vector2(90, 30))
 		_draw_ranking_panel(badge, Color(accent.r, accent.g, accent.b, 0.88), accent, 14, 1, false)
 		_draw_ranking_text("選択中", badge.position + Vector2(0, 22), 16, Color.WHITE, badge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	var image_rect := Rect2(rect.position + Vector2(28, 70), Vector2(rect.size.x - 56, 268))
+	var image_rect := Rect2(rect.position + Vector2(18, 54), Vector2(rect.size.x - 36, 116))
 	_draw_ranking_panel(image_rect, Color(1.0, 1.0, 1.0, 0.58), Color(accent.r, accent.g, accent.b, 0.28), 20, 2, false)
 	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 	if tex != null:
-		_draw_texture_cover_rect(tex, image_rect.grow(-10.0), Vector2(0.5, 0.12), 1.18)
+		_draw_texture_contain_rect(tex, image_rect.grow(-10.0), Color.WHITE)
 	var character_id := String(character.get("id", ""))
-	_draw_character_select_detail_section(Rect2(rect.position + Vector2(26, 360), Vector2(rect.size.x - 52, 56)), "支援", _collab_partner_support_text(character_id), accent, Color(1, 1, 1, 0.92), 16)
-	_draw_character_select_detail_section(Rect2(rect.position + Vector2(26, 428), Vector2(rect.size.x - 52, 70)), "ペア技", _collab_partner_pair_text(current_character_id, character_id), Color("#e96f42"), Color("#fff8f2"), 15)
+	_draw_character_select_detail_section(Rect2(rect.position + Vector2(18, 180), Vector2(rect.size.x - 36, 42)), "支援", _collab_partner_support_text(character_id), accent, Color(1, 1, 1, 0.92), 13, -3.0)
+	_draw_character_select_detail_section(Rect2(rect.position + Vector2(18, 230), Vector2(rect.size.x - 36, 34)), "ペア技", _collab_partner_pair_text(current_character_id, character_id), Color("#e96f42"), Color("#fff8f2"), 12, -5.0)
 
 func _draw_collab_partner_select_footer(layout: Dictionary) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
@@ -14628,6 +15147,10 @@ func _draw_collab_partner_select_footer(layout: Dictionary) -> void:
 	_draw_ranking_text("相方: %s" % selected_name, rect.position + Vector2(0, 34), 20, Color("#75503e"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _collab_partner_support_text(character_id: String) -> String:
+	var data_character := CharacterSystemScript.find_character(characters, character_id)
+	var data_type := String(data_character.get("partnerSupportType", ""))
+	if data_type != "":
+		return "%s / %s" % [data_type, String(data_character.get("partnerSupportDescription", "データ駆動サポート"))]
 	match character_id:
 		"ban_chan":
 			return "近くの敵へハンマー衝撃波"
@@ -14639,6 +15162,10 @@ func _collab_partner_support_text(character_id: String) -> String:
 
 func _collab_partner_pair_text(player_id: String, partner_id: String) -> String:
 	var pair_key := _collab_pair_key(player_id, partner_id)
+	var definition := CollabComboSystemScript.resolve_pair(player_id, partner_id, characters)
+	var display_name := String(definition.get("displayName", ""))
+	if display_name != "":
+		return display_name
 	match pair_key:
 		"ban_chan+superchat_chan":
 			return "BAN☆スターラッシュ"
@@ -14649,9 +15176,7 @@ func _collab_partner_pair_text(player_id: String, partner_id: String) -> String:
 	return "シンクロスター3個で発動"
 
 func _collab_pair_key(a: String, b: String) -> String:
-	var ids := [a, b]
-	ids.sort()
-	return "%s+%s" % [String(ids[0]), String(ids[1])]
+	return CollabComboSystemScript.pair_key(a, b)
 
 func _draw_stream_frame_select_overlay() -> void:
 	_draw_stream_frame_select_background()
@@ -15237,10 +15762,14 @@ func _draw_stream_complete_cutin_character(progress: float, clock: float) -> voi
 	var size := base_rect.size * scale
 	var bob := Vector2(0, sin(clock * 4.2) * 5.0)
 	var pos := base_rect.position + (base_rect.size - size) * 0.5 + Vector2(0, (1.0 - eased) * 30.0) + bob
-	draw_texture_rect(texture, Rect2(pos, size), false, Color(1, 1, 1, clampf(progress * 5.0, 0.0, 1.0)))
+	var image_rect := Rect2(pos, size)
+	var character := CharacterSystemScript.find_character(characters, _stream_complete_cutin_character_id())
+	if bool(character.get("streamCompleteContain", false)):
+		image_rect = _fit_texture_rect(image_rect, texture.get_size())
+	draw_texture_rect(texture, image_rect, false, Color(1, 1, 1, clampf(progress * 5.0, 0.0, 1.0)))
 
 func _stream_complete_cutin_image_path() -> String:
-	return _stream_complete_result_image_path(_stream_complete_cutin_character_id())
+	return _collab_cut_in_image_path(_stream_complete_cutin_character_id())
 
 func _stream_complete_cutin_rect() -> Rect2:
 	var character_id := _stream_complete_cutin_character_id()
@@ -15283,6 +15812,9 @@ func _mental_breakdown_cutin_image_path() -> String:
 	var character_id := current_character_id
 	if character_id == "":
 		character_id = String(current_character.get("id", ""))
+	var registry_path := String(current_character.get("gameOverIntroSprite", ""))
+	if registry_path != "":
+		return registry_path
 	if character_id == "ban_chan" or character_id == "banri":
 		return MENTAL_BREAKDOWN_INTRO_BANRI_IMAGE
 	if character_id == "superchat_chan" or character_id == "supana":
@@ -15589,6 +16121,20 @@ func _choice_drop_offset() -> Vector2:
 func _gift_choice_card_rect(index: int) -> Rect2:
 	return Rect2(Vector2(386.0 + float(index) * 230.0, 320.0) + _gift_choice_drop_offset(), Vector2(206.0, 280.0))
 
+static func _gift_reroll_action_rect(panel_rect: Rect2, cards_bottom: float) -> Rect2:
+	var width := minf(340.0, maxf(220.0, panel_rect.size.x - 72.0))
+	var size := Vector2(width, 52.0)
+	var x := panel_rect.position.x + (panel_rect.size.x - width) * 0.5
+	var y := minf(cards_bottom + 6.0, panel_rect.end.y - size.y - 2.0)
+	return Rect2(Vector2(x, y), size)
+
+func _gift_reroll_button_rect() -> Rect2:
+	var data: Dictionary = DrawDataSystemScript.choice_backplate_data("gift_choice")
+	var panel_rect: Rect2 = data["rect"] as Rect2
+	var drop := _gift_choice_drop_offset()
+	var shifted_panel := Rect2(panel_rect.position + drop, panel_rect.size)
+	return _gift_reroll_action_rect(shifted_panel, _gift_choice_card_rect(0).end.y)
+
 func _comment_choice_card_rect(index: int) -> Rect2:
 	return Rect2(Vector2(326.0 + float(index) * 278.0, 322.0) + _comment_choice_drop_offset(), Vector2(265.0, 326.0))
 
@@ -15605,7 +16151,7 @@ func _draw_gift_choice_card_contents() -> void:
 	for i in range(mini(offered_gifts.size(), 3)):
 		var gift: Dictionary = offered_gifts[i] as Dictionary
 		var rect: Rect2 = _gift_choice_card_rect(i)
-		if i == selected_card:
+		if i == selected_card and gift_choice_focus_area == GIFT_CHOICE_FOCUS_CARDS:
 			_draw_gift_choice_cursor(rect)
 		var center_x: float = rect.position.x + rect.size.x * 0.5
 		var gift_level: int = GiftSystemScript.gift_level_for_target(self, String(gift["id"]))
@@ -15637,6 +16183,52 @@ func _draw_gift_choice_card_contents() -> void:
 			_draw_centered_card_text(String(line), center_x, summary_y, rect.size.x - 28.0, 16, sub_color)
 			summary_y += 20.0
 		_draw_centered_card_text(GiftSystemScript.gift_level_status_text(gift, gift_level), center_x, rect.position.y + 259.0, rect.size.x - 28.0, 15, Color("#6b7280"))
+	_draw_gift_reroll_button()
+
+func _draw_gift_reroll_button() -> void:
+	if gift_choice_return_state == "relay_break":
+		return
+	var rect := _gift_reroll_button_rect()
+	var enabled := gift_reroll_remaining > 0 and not gift_reroll_locked
+	var press_progress := 1.0 - clampf(gift_reroll_press_timer / 0.17, 0.0, 1.0)
+	var press_scale := 1.0
+	var press_offset_y := 0.0
+	if gift_reroll_press_timer > 0.0:
+		if press_progress < 0.55:
+			press_scale = lerpf(1.0, 0.975, press_progress / 0.55)
+			press_offset_y = lerpf(0.0, 2.0, press_progress / 0.55)
+		else:
+			press_scale = lerpf(0.975, 1.0, (press_progress - 0.55) / 0.45)
+			press_offset_y = lerpf(2.0, 0.0, (press_progress - 0.55) / 0.45)
+	var visual_size := rect.size * press_scale
+	var visual_rect := Rect2(rect.get_center() - visual_size * 0.5 + Vector2(0.0, press_offset_y), visual_size)
+	var focused := enabled and (gift_choice_focus_area == GIFT_CHOICE_FOCUS_REROLL or gift_reroll_hovered)
+	if focused:
+		draw_style_box(CommonLightUiStyle.create_panel_style(Color(0.96, 0.87, 0.98, 0.55), Color("#C6A4DF"), 2, 19, 0.0, 0.0), visual_rect.grow(4.0))
+	var fill := Color("#FFF9FD") if enabled else Color("#F1EAF3")
+	var border := Color("#EA679F") if enabled else Color("#C2B4C7")
+	var main_style := CommonLightUiStyle.create_panel_style(fill, border, 2, 16, 0.0, 0.0)
+	main_style.shadow_color = Color(0.32, 0.20, 0.42, 0.12) if enabled else Color(0.32, 0.20, 0.42, 0.06)
+	main_style.shadow_size = 5
+	main_style.shadow_offset = Vector2(0.0, 2.0)
+	draw_style_box(main_style, visual_rect)
+	draw_rect(visual_rect.grow(-5.0), Color("#D6C5E2") if enabled else Color("#D2C7D8"), false, 1.0)
+	var icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, GIFT_REROLL_ICON_PATH)
+	var icon_rect := Rect2(visual_rect.position + Vector2(2.0, -4.0), Vector2(60.0, 60.0))
+	if icon != null:
+		draw_texture_rect(icon, icon_rect, false, Color.WHITE if enabled else Color(0.67, 0.61, 0.70, 0.78))
+	var label := "再抽選中…" if gift_reroll_locked else "ギフトを再抽選"
+	var text_color := Color("#A36C92") if gift_reroll_locked else (Color("#6B3F64") if enabled else Color("#8D718D"))
+	_draw_centered_card_text(label, visual_rect.position.x + 158.0, visual_rect.position.y + 32.0, 190.0, 17, text_color)
+	var count_chip := Rect2(visual_rect.end.x - 78.0, visual_rect.position.y + 13.0, 64.0, 26.0)
+	draw_style_box(CommonLightUiStyle.create_panel_style(Color("#F4D7EC") if enabled else Color("#E6DDE9"), Color("#D59AC0") if enabled else Color("#C6B8CC"), 1, 12, 0.0, 0.0), count_chip)
+	_draw_centered_card_text("残り %d" % gift_reroll_remaining, count_chip.get_center().x, count_chip.position.y + 18.0, count_chip.size.x - 4.0, 14, Color("#8B4D76") if enabled else Color("#8D718D"))
+	if gift_reroll_notice != "":
+		var notice_panel: Rect2 = DrawDataSystemScript.choice_backplate_data("gift_choice")["rect"] as Rect2
+		var drop := _gift_choice_drop_offset()
+		var notice_rect := Rect2(notice_panel.position + drop + Vector2(185.0, 120.0), Vector2(520.0, 28.0))
+		draw_style_box(CommonLightUiStyle.create_panel_style(Color("#FFF8FC"), Color("#D6B1CF"), 1, 12, 0.0, 0.0), notice_rect)
+		_draw_centered_card_text(gift_reroll_notice, notice_rect.get_center().x, notice_rect.position.y + 19.0, notice_rect.size.x - 12.0, 13, Color("#8B5071"))
 
 func _gift_choice_category_tag_rect(rect: Rect2) -> Rect2:
 	return Rect2(rect.position + Vector2(16.0, 54.0), Vector2(54.0, 24.0))
@@ -18959,6 +19551,7 @@ func _start_collab_challenge(arena: Rect2, hard_challenge: bool = false) -> void
 	_push_collab_challenge_start_chat()
 
 func _start_collab_dash_sync() -> void:
+	_clear_collab_partner_support_effects()
 	var hard_challenge := _collab_challenge_hard()
 	collab_challenge_data = {
 		"hardChallenge": hard_challenge,
@@ -18975,6 +19568,16 @@ func _start_collab_dash_sync() -> void:
 		"dashVisual": {},
 		"finalSuccess": false
 	}
+
+func _clear_collab_partner_support_effects() -> void:
+	var kept: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		var kind := String(effect.get("kind", ""))
+		if kind in ["partner_rizumu_support", "partner_rizumu_fan_hit", "partner_kyasumi_wall", "partner_miimu_gather", "collab_module_defense", "collab_module_gather"]:
+			continue
+		kept.append(effect)
+	collab_effects = kept
 
 func _update_collab_dash_sync(delta: float) -> void:
 	var data := collab_challenge_data
@@ -19667,25 +20270,85 @@ func _update_collab_partner_follow(delta: float, arena: Rect2) -> void:
 
 func _collab_partner_support_interval() -> float:
 	var interval := 3.3
-	match collab_partner_id:
-		"ban_chan":
-			interval = 3.4
-		"superchat_chan", "supana":
-			interval = 3.0
-		"maro_chan", "maron":
-			interval = 3.6
+	var partner_character := CharacterSystemScript.find_character(characters, collab_partner_id)
+	var config: Dictionary = partner_character.get("partnerSupportConfig", {}) as Dictionary
+	if config.has("interval"):
+		interval = float(config.get("interval", interval))
+	else:
+		match String(partner_character.get("partnerSupportHandler", "")):
+			"ban_hammer": interval = 3.4
+			"spana_star": interval = 3.0
+			"maro_boomerang": interval = 3.6
 	return interval * _collab_partner_support_interval_multiplier()
 
 func _fire_collab_partner_support(_arena: Rect2) -> void:
-	match collab_partner_id:
-		"ban_chan":
-			_fire_collab_ban_support()
-		"superchat_chan", "supana":
-			_fire_collab_spana_support()
-		"maro_chan", "maron":
-			_fire_collab_maro_support()
+	var partner_character := CharacterSystemScript.find_character(characters, collab_partner_id)
+	var support_type := String(partner_character.get("partnerSupportType", ""))
+	if support_type == "防御":
+		_fire_collab_kyasumi_support()
+		return
+	if support_type == "追撃":
+		_fire_collab_rizumu_support()
+		return
+	if support_type == "集敵":
+		_fire_collab_miimu_support()
+		return
+	var support_handler := String(partner_character.get("partnerSupportHandler", ""))
+	if support_handler == "ban_hammer":
+		_fire_collab_ban_support()
+		return
+	if support_handler == "spana_star":
+		_fire_collab_spana_support()
+		return
+	if support_handler == "maro_boomerang":
+		_fire_collab_maro_support()
+		return
+	# The handler metadata above is the compatibility path for all six partners.
 	if rng.randf() < 0.12:
 		_emit_collab_chat(["ナイスフォロー", "相方たすかる", "いいサポート", "今の支援うまい", "ちゃんと助け合ってる"])
+
+func _fire_collab_kyasumi_support() -> void:
+	var danger := Vector2(collab_partner_facing_x, 0.0)
+	var best_distance := INF
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy) or _collab_combo_enemy_is_boss(enemy):
+			continue
+		var offset := Vector2(enemy.get("pos", collab_partner_pos)) - collab_partner_pos
+		if offset.length_squared() < best_distance:
+			best_distance = offset.length_squared()
+			danger = offset.normalized()
+	if danger.length_squared() < 0.01:
+		danger = Vector2(collab_partner_facing_x, 0.0)
+	var wall_center := collab_partner_pos + danger * 180.0
+	var wall_rect := Rect2(wall_center - Vector2(72.0, 24.0), Vector2(144.0, 48.0))
+	var cleared := _clear_collab_support_projectiles(wall_rect, 2)
+	_song_apply_area_damage(wall_center, 72.0, 1.8 * _collab_partner_damage_multiplier(), 20.0, "collab_kyasumi_wall")
+	collab_effects.append({"kind": "partner_kyasumi_wall", "from": collab_partner_pos, "to": wall_center, "rect": wall_rect, "cleared": cleared, "life": 0.46, "maxLife": 0.46, "color": Color("#74e5ff")})
+
+func _fire_collab_rizumu_support() -> void:
+	var config: Dictionary = CharacterSystemScript.find_character(characters, collab_partner_id).get("partnerSupportConfig", {}) as Dictionary
+	var targets := _collab_nearest_enemies(collab_partner_pos, float(config.get("searchRange", 300.0)), 1)
+	collab_effects.append({"kind": "partner_rizumu_support", "source": "collab_rizumu_fan", "from": collab_partner_pos, "targets": targets, "step": 0, "age": 0.0, "life": 1.25, "maxLife": 1.25, "hitSet": {}})
+
+func _fire_collab_miimu_support() -> void:
+	var targets := _collab_nearest_enemies(collab_partner_pos, 360.0, 5)
+	if targets.is_empty():
+		return
+	var center := Vector2.ZERO
+	for enemy_item in targets:
+		center += Vector2((enemy_item as Dictionary).get("pos", collab_partner_pos))
+	center /= float(targets.size())
+	if center.distance_squared_to(player_pos) < 150.0 * 150.0:
+		var away := (center - player_pos).normalized()
+		center = player_pos + (away if away.length_squared() > 0.01 else Vector2.RIGHT) * 150.0
+	for enemy_item in targets:
+		var target: Dictionary = enemy_item as Dictionary
+		if not _collab_enemy_pull_safe(target):
+			continue
+		var direction := (center - Vector2(target.get("pos", center))).normalized()
+		EnemySystemScript.add_knockback_for_enemy(target, direction, 25.0 * clampf(1.0 - float(target.get("pullResistance", 0.0)), 0.0, 1.0))
+	collab_effects.append({"kind": "partner_miimu_gather", "pos": center, "radius": 105.0, "life": 0.62, "maxLife": 0.62, "color": Color("#c5a1ff")})
 
 func _fire_collab_ban_support() -> void:
 	var targets := _collab_nearest_enemies(collab_partner_pos, 360.0, 1)
@@ -19819,7 +20482,7 @@ func _collab_nearest_enemies(origin: Vector2, range: float, limit: int) -> Array
 	return result
 
 func _is_collab_partner_support_source(source: String) -> bool:
-	return source == "collab_ban_hammer" or source == "collab_spana_star" or source == "collab_maro_boomerang"
+	return source in ["collab_ban_hammer", "collab_spana_star", "collab_maro_boomerang", "collab_kyasumi_wall", "collab_rizumu_fan", "collab_miimu_gather"]
 
 func _record_collab_partner_hit(enemy: Dictionary, damage: float) -> void:
 	var last_hit_time := float(enemy.get("collabPartnerLastHitTime", -1000.0))
@@ -19839,6 +20502,16 @@ func _update_collab_effects(delta: float) -> void:
 			continue
 		effect["life"] = life
 		var kind := String(effect.get("kind", ""))
+		if kind == "partner_rizumu_support":
+			effect["age"] = float(effect.get("age", 0.0)) + delta
+			var step := int(effect.get("step", 0))
+			if step < 3 and float(effect.get("age", 0.0)) >= float(step) * 0.35:
+				var targets := _collab_nearest_enemies(Vector2(effect.get("from", collab_partner_pos)), 300.0, 1)
+				if not targets.is_empty():
+					var target: Dictionary = targets[0] as Dictionary
+					_song_apply_enemy_damage(target, [0.35, 0.35, 0.90][step] * _collab_partner_damage_multiplier(), Vector2(effect.get("from", collab_partner_pos)), 10.0, "collab_rizumu_fan")
+					collab_effects.append({"kind": "partner_rizumu_fan_hit", "from": Vector2(effect.get("from", collab_partner_pos)), "to": Vector2(target.get("pos", player_pos)), "life": 0.24, "maxLife": 0.24, "color": Color("#ff9fca")})
+				effect["step"] = step + 1
 		if kind == "combo_ban_star_rush":
 			var effect_progress := 1.0 - clampf(life / maxf(0.01, float(effect.get("maxLife", 1.08))), 0.0, 1.0)
 			if not bool(effect.get("hammerImpactPlayed", false)) and effect_progress >= 0.34:
@@ -20022,6 +20695,9 @@ func _update_collab_combo_sequence(delta: float) -> void:
 		collab_sync_star_slot_fx[i] = maxf(0.0, float(collab_sync_star_slot_fx[i]) - delta)
 	if not _collab_combo_sequence_active():
 		return
+	if collab_combo_sequence_state == "execute":
+		_update_collab_combo_runtime(delta)
+		return
 	collab_combo_sequence_timer = maxf(0.0, collab_combo_sequence_timer - delta)
 	if collab_combo_sequence_timer > 0.0:
 		return
@@ -20034,13 +20710,15 @@ func _update_collab_combo_sequence(delta: float) -> void:
 			_request_screen_shake(0.08, 0.16)
 		"cutin":
 			_execute_collab_pair_skill()
-			collab_combo_sequence_state = "post"
-			collab_combo_sequence_timer = COLLAB_COMBO_POST_DELAY
+			if collab_combo_runtime.is_empty():
+				collab_combo_sequence_state = "post"
+				collab_combo_sequence_timer = COLLAB_COMBO_POST_DELAY
 		"post":
 			collab_combo_sequence_state = ""
 			collab_combo_sequence_timer = 0.0
 			collab_combo_pair_key = ""
 			collab_combo_skill_name = ""
+			collab_combo_definition.clear()
 			collab_pass_spawn_timer = maxf(collab_pass_spawn_timer, 1.0 * _collab_pass_interval_multiplier())
 			if relay_boss_active:
 				RelayBossSystemScript.begin_pending_phase_transition_for_target(self)
@@ -20057,6 +20735,7 @@ func _start_collab_combo_ready() -> void:
 	if collab_pass_target_uid >= 0:
 		_clear_collab_pass(false)
 	collab_combo_pair_key = _collab_pair_key(current_character_id, collab_partner_id)
+	collab_combo_definition = _collab_resolve_pair()
 	collab_combo_skill_name = _collab_pair_skill_name(collab_combo_pair_key)
 	collab_combo_sequence_state = "ready"
 	collab_combo_sequence_timer = COLLAB_COMBO_READY_DURATION
@@ -20069,7 +20748,30 @@ func _start_collab_combo_ready() -> void:
 	_request_screen_flash(Color(1.0, 0.90, 0.44, 0.16), 0.18)
 	_request_screen_shake(0.06, 0.14)
 
+func _collab_resolve_pair() -> Dictionary:
+	return CollabComboSystemScript.resolve_pair(current_character_id, collab_partner_id, characters)
+
+func _collab_ordered_pair_ids() -> Array:
+	var definition := collab_combo_definition if not collab_combo_definition.is_empty() else _collab_resolve_pair()
+	var ordered: Array = []
+	for module_item in definition.get("orderedModules", []) as Array:
+		var module: Dictionary = module_item as Dictionary
+		var id := String(module.get("characterId", ""))
+		if id != "" and not ordered.has(id):
+			ordered.append(id)
+	if ordered.size() < 2:
+		var pair := [current_character_id, collab_partner_id]
+		pair.sort_custom(func(a: String, b: String) -> bool:
+			return int(CharacterSystemScript.find_character(characters, a).get("comboExecutionPriority", 999)) < int(CharacterSystemScript.find_character(characters, b).get("comboExecutionPriority", 999))
+		)
+		return pair
+	return ordered
+
 func _collab_pair_skill_name(pair_key: String) -> String:
+	var definition := CollabComboSystemScript.resolve_pair(current_character_id, collab_partner_id, characters)
+	var data_name := String(definition.get("displayName", ""))
+	if data_name != "":
+		return data_name
 	match pair_key:
 		"ban_chan+superchat_chan":
 			return "BAN☆スターラッシュ"
@@ -20174,6 +20876,8 @@ func _collab_point_segment_distance_sq(point: Vector2, start: Vector2, end: Vect
 	return point.distance_squared_to(start + segment * t)
 
 func _collab_partner_is_blocked() -> bool:
+	if collab_challenge_type == "dash_sync" and collab_challenge_status in ["starting", "active"]:
+		return true
 	if collab_boss_partner_muted:
 		return true
 	for enemy_item in enemies:
@@ -20670,17 +21374,165 @@ func _execute_collab_pair_skill() -> void:
 	var pair_key := collab_combo_pair_key
 	if pair_key == "":
 		pair_key = _collab_pair_key(current_character_id, collab_partner_id)
-	match pair_key:
-		"ban_chan+superchat_chan":
+	var definition := collab_combo_definition if not collab_combo_definition.is_empty() else _collab_resolve_pair()
+	var handler := String(definition.get("handler", ""))
+	if handler == "":
+		match pair_key:
+			"ban_chan+superchat_chan": handler = "ban_spana"
+			"ban_chan+maro_chan": handler = "ban_maro"
+			"maro_chan+superchat_chan": handler = "spana_maro"
+	match handler:
+		"ban_spana":
 			_collab_pair_ban_spana_skill()
-		"ban_chan+maro_chan":
+		"ban_maro":
 			_collab_pair_ban_maro_skill()
-		"maro_chan+superchat_chan":
+		"spana_maro":
 			_collab_pair_spana_maro_skill()
+		"kyasumi_rizumu":
+			_collab_pair_kyasumi_rizumu_skill()
+		"kyasumi_miimu":
+			_collab_pair_kyasumi_miimu_skill()
+		"rizumu_miimu":
+			_collab_pair_rizumu_miimu_skill()
+		"composite_modules":
+			_start_collab_combo_runtime(definition)
 		_:
 			_collab_pair_generic_skill()
 	_emit_collab_pair_skill_reaction(pair_key)
 	_emit_collab_chat(["うおおおお", "派手すぎｗ", "連携つよ！", "これ好き", "画面すごいｗ", "コラボ技きた！"])
+
+func _start_collab_combo_runtime(definition: Dictionary) -> void:
+	var modules: Array = definition.get("orderedModules", []) as Array
+	if modules.is_empty():
+		_collab_pair_generic_skill()
+		return
+	collab_combo_runtime = {
+		"active": true,
+		"generation": collab_pair_skill_count,
+		"pairKey": String(definition.get("pairKey", collab_combo_pair_key)),
+		"comboId": String(definition.get("comboId", "cross_unit_combo")),
+		"modules": modules.duplicate(true),
+		"moduleIndex": 0,
+		"timer": 0.01,
+		"hitSets": {},
+		"cleanupReason": ""
+	}
+	collab_combo_sequence_state = "execute"
+	collab_combo_sequence_timer = 0.0
+
+func _update_collab_combo_runtime(delta: float) -> void:
+	if collab_combo_runtime.is_empty() or not bool(collab_combo_runtime.get("active", false)):
+		collab_combo_sequence_state = "post"
+		collab_combo_sequence_timer = COLLAB_COMBO_POST_DELAY
+		return
+	collab_combo_runtime["timer"] = float(collab_combo_runtime.get("timer", 0.0)) - maxf(0.0, delta)
+	if float(collab_combo_runtime.get("timer", 0.0)) > 0.0:
+		return
+	var modules: Array = collab_combo_runtime.get("modules", []) as Array
+	var index := int(collab_combo_runtime.get("moduleIndex", 0))
+	if index >= modules.size():
+		_clear_collab_combo_runtime("completed")
+		collab_combo_sequence_state = "post"
+		collab_combo_sequence_timer = COLLAB_COMBO_POST_DELAY
+		return
+	var module: Dictionary = modules[index] as Dictionary
+	_apply_collab_combo_module(module, index == modules.size() - 1)
+	collab_combo_runtime["moduleIndex"] = index + 1
+	collab_combo_runtime["timer"] = maxf(0.12, float(module.get("duration", 0.28)))
+
+func _clear_collab_combo_runtime(reason: String) -> void:
+	if not collab_combo_runtime.is_empty():
+		collab_combo_runtime["active"] = false
+		collab_combo_runtime["cleanupReason"] = reason
+	collab_combo_runtime.clear()
+
+func _apply_collab_combo_module(module: Dictionary, is_last: bool) -> void:
+	var kind := String(module.get("kind", ""))
+	var source := "collab_module_%s" % String(module.get("id", "sync"))
+	var area := _collab_combo_attack_rect()
+	match kind:
+		"defense":
+			var cleared := _clear_collab_support_projectiles(area, 2)
+			collab_effects.append({"kind": "collab_module_defense", "pos": area.get_center(), "radius": 180.0, "cleared": cleared, "life": 0.46, "maxLife": 0.46, "color": Color("#76e5ff")})
+		"gather":
+			_collab_gather_module_targets(area.get_center(), 5)
+			collab_effects.append({"kind": "collab_module_gather", "pos": area.get_center(), "radius": 105.0, "life": 0.62, "maxLife": 0.62, "color": Color("#c6a7ff")})
+		"area":
+			_apply_collab_combo_screen_attack(source, 0.42, 0.035)
+			collab_effects.append({"kind": "shockwave", "pos": area.get_center(), "radius": area.size.length() * 0.36, "life": 0.36, "maxLife": 0.36, "color": Color("#8ee8d8"), "label": "AREA"})
+		"firepower":
+			_apply_collab_combo_screen_attack(source, 0.34, 0.03)
+			collab_effects.append({"kind": "star_line", "from": player_pos, "to": area.get_center(), "life": 0.30, "maxLife": 0.30, "color": Color("#ffe16a")})
+		"followup":
+			_apply_collab_combo_screen_attack(source, 0.30, 0.025)
+			collab_effects.append({"kind": "collab_module_followup", "pos": area.get_center(), "life": 0.32, "maxLife": 0.32, "color": Color("#ff9fca")})
+		"finisher":
+			_apply_collab_combo_screen_attack(source, 0.78, 0.08)
+			_request_screen_shake(0.56, 0.30)
+		"common_finisher":
+			_apply_collab_combo_screen_attack("collab_composite_finisher", 0.72, 0.07)
+			collab_effects.append({"kind": "shockwave", "pos": area.get_center(), "radius": area.size.length() * 0.55, "life": 0.64, "maxLife": 0.64, "color": Color("#ffd36a"), "label": "SYNC!"})
+	if is_last:
+		_request_screen_flash(Color(1.0, 0.84, 0.38, 0.24), 0.20)
+
+func _clear_collab_support_projectiles(area: Rect2, limit: int) -> int:
+	var cleared := 0
+	for i in range(enemy_bullets.size() - 1, -1, -1):
+		if cleared >= limit:
+			break
+		var bullet: Dictionary = enemy_bullets[i] as Dictionary
+		if not _collab_support_projectile_is_clearable(bullet):
+			continue
+		if not area.grow(float(bullet.get("hitRadius", 16.0))).has_point(Vector2(bullet.get("pos", Vector2.ZERO))):
+			continue
+		enemy_bullets.remove_at(i)
+		cleared += 1
+	return cleared
+
+func _collab_support_projectile_is_clearable(bullet: Dictionary) -> bool:
+	if not bool(bullet.get("clearableByPlayerWeapon", false)):
+		return false
+	var visual := String(bullet.get("visualKind", "")).to_lower()
+	var source_kind := String(bullet.get("sourceKind", bullet.get("source", ""))).to_lower()
+	var attack_type := String(bullet.get("attackType", "")).to_lower()
+	if visual in ["laser", "boss_laser", "giant_bullet", "warning_line"] or source_kind.contains("boss") or source_kind.contains("laser"):
+		return false
+	return attack_type in ["projectile", "spreadprojectile", "spread_projectile"]
+
+func _collab_gather_module_targets(center: Vector2, limit: int) -> void:
+	var targets := _collab_nearest_enemies(center, 300.0, limit)
+	for enemy in targets:
+		if not _collab_enemy_pull_safe(enemy):
+			continue
+		var direction := (center - Vector2(enemy.get("pos", center))).normalized()
+		if direction.length_squared() < 0.01:
+			continue
+		EnemySystemScript.add_knockback_for_enemy(enemy, direction, 25.0 * clampf(1.0 - float(enemy.get("pullResistance", 0.0)), 0.0, 1.0))
+
+func _collab_enemy_pull_safe(enemy: Dictionary) -> bool:
+	if _collab_combo_enemy_is_boss(enemy) or _song_enemy_inactive(enemy):
+		return false
+	if not bool(enemy.get("canBePulled", true)) or bool(enemy.get("fixedPosition", false)) or bool(enemy.get("isDashing", false)):
+		return false
+	return float(enemy.get("radius", 22.0)) < 38.0
+
+func _collab_pair_kyasumi_rizumu_skill() -> void:
+	var stats := _apply_collab_combo_screen_attack("collab_pair_kyasumi_rizumu", 0.70, 0.06)
+	var area: Rect2 = stats["area"] as Rect2
+	collab_effects.append({"kind": "collab_senior_guard_live", "pos": area.get_center(), "radius": area.size.length() * 0.46, "life": 1.0, "maxLife": 1.0, "color": Color("#76e5ff")})
+	_request_screen_flash(Color(0.35, 0.85, 1.0, 0.25), 0.24)
+
+func _collab_pair_kyasumi_miimu_skill() -> void:
+	var stats := _apply_collab_combo_screen_attack("collab_pair_kyasumi_miimu", 0.68, 0.06)
+	var area: Rect2 = stats["area"] as Rect2
+	collab_effects.append({"kind": "collab_senior_moderate_finish", "pos": area.get_center(), "radius": area.size.length() * 0.52, "life": 1.0, "maxLife": 1.0, "color": Color("#b9a0ff")})
+	_request_screen_flash(Color(0.56, 0.40, 1.0, 0.24), 0.24)
+
+func _collab_pair_rizumu_miimu_skill() -> void:
+	var stats := _apply_collab_combo_screen_attack("collab_pair_rizumu_miimu", 0.70, 0.06)
+	var area: Rect2 = stats["area"] as Rect2
+	collab_effects.append({"kind": "collab_senior_buzz_fishing", "pos": area.get_center(), "radius": area.size.length() * 0.50, "life": 1.0, "maxLife": 1.0, "color": Color("#ff9fca")})
+	_request_screen_flash(Color(1.0, 0.45, 0.72, 0.24), 0.24)
 
 func _emit_collab_pair_skill_reaction(pair_key: String) -> void:
 	match pair_key:

@@ -5,6 +5,8 @@ const MAX_WEAPONS := 5
 const MAX_ACCESSORIES := 5
 
 static func initial_weapons(initial_weapon_id: String) -> Array:
+	if initial_weapon_id == "" or initial_weapon_id == "phase1_null_weapon":
+		return []
 	return [{"id": initial_weapon_id, "level": 1}]
 
 static func empty_accessories() -> Array:
@@ -65,6 +67,24 @@ static func can_offer(target: Node, item: Dictionary, gift_time: float) -> bool:
 	if gift_time < float(item.get("minTime", 0.0)):
 		return false
 	var item_type: String = equipment_type(item)
+	if item_type == "weapon":
+		# Phase-locked weapons can remain in the registry for runtime/HUD use,
+		# but must never leak into upgrade generation until explicitly enabled.
+		if item.has("offerEnabled") and not bool(item.get("offerEnabled", true)):
+			return false
+		if item.has("canAppearAsUpgrade") and not bool(item.get("canAppearAsUpgrade", true)):
+			return false
+		if bool(item.get("ownedUpgradeOnly", false)):
+			var current_character: Dictionary = target.get("current_character") as Dictionary
+			var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+			var initial_id := String(current_character.get("initialWeapon", current_weapon.get("baseWeaponId", current_weapon.get("id", ""))))
+			if String(item.get("id", "")) != initial_id:
+				return false
+			var owner_character_id := String(item.get("ownerCharacterId", ""))
+			if owner_character_id != "" and String(current_character.get("id", "")) != owner_character_id:
+				return false
+	if item.has("giftEnabled") and not bool(item.get("giftEnabled", true)):
+		return false
 	if item_type == "instant":
 		return true
 	var id: String = String(item.get("id", ""))
@@ -75,6 +95,8 @@ static func can_offer(target: Node, item: Dictionary, gift_time: float) -> bool:
 		if has_evolved_from(items, id):
 			return false
 	var current_level: int = level(items, id)
+	if item_type == "weapon" and bool(item.get("ownedUpgradeOnly", false)) and current_level <= 0:
+		return false
 	if current_level > 0:
 		return current_level < max_level
 	var max_slots: int = MAX_WEAPONS if item_type == "weapon" else MAX_ACCESSORIES

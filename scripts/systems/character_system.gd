@@ -5,6 +5,7 @@ const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_s
 
 const SELECT_PAGE_SIZE := 6
 const SELECT_COLUMNS := 3
+const DEFAULT_CHARACTER_ID := "ban_chan"
 
 static func selection_visible_count(character_count: int) -> int:
 	return maxi(SELECT_PAGE_SIZE, character_count)
@@ -18,6 +19,36 @@ static func find_character(characters: Array, id: String) -> Dictionary:
 		return characters[0] as Dictionary
 	return fallback_character()
 
+static func validated_character_id(characters: Array, id: String) -> String:
+	for item in characters:
+		var character: Dictionary = item as Dictionary
+		if String(character.get("id", "")) == id and is_selectable(character):
+			return id
+	for item in characters:
+		var character: Dictionary = item as Dictionary
+		if String(character.get("id", "")) == DEFAULT_CHARACTER_ID:
+			return DEFAULT_CHARACTER_ID
+	return String((characters[0] as Dictionary).get("id", DEFAULT_CHARACTER_ID)) if not characters.is_empty() else DEFAULT_CHARACTER_ID
+
+static func apply_unlock_profile(characters: Array, unlocked_ids: Array) -> void:
+	var unlocked: Dictionary = {}
+	for value in unlocked_ids:
+		unlocked[String(value)] = true
+	for item in characters:
+		var character: Dictionary = item as Dictionary
+		var id := String(character.get("id", ""))
+		var always_unlocked := id in ["ban_chan", "superchat_chan", "maro_chan"]
+		var is_unlocked := always_unlocked or bool(unlocked.get(id, false))
+		character["isUnlocked"] = is_unlocked
+		if is_unlocked:
+			if String(character.get("status", "")) == "locked":
+				character["status"] = "unlocked"
+		else:
+			character["status"] = "locked"
+
+static func collab_partner_enabled(character: Dictionary) -> bool:
+	return bool(character.get("collabPartnerEnabled", true))
+
 static func selected_index(characters: Array, id: String) -> int:
 	for i in range(characters.size()):
 		var character: Dictionary = characters[i] as Dictionary
@@ -27,8 +58,11 @@ static func selected_index(characters: Array, id: String) -> int:
 
 static func selected_character_state(characters: Array, weapons: Array, id: String, cache: Dictionary) -> Dictionary:
 	var character: Dictionary = find_character(characters, id)
-	var weapon_id: String = String(character.get("initialWeapon", "ban_hammer"))
-	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, fallback_weapon())
+	var weapon_id: String = String(character.get("initialWeapon", ""))
+	if weapon_id == "":
+		weapon_id = "phase1_null_weapon" if String(character.get("unlockGroup", "")) == "senior_unit" else "ban_hammer"
+	var weapon_fallback := fallback_weapon() if String(character.get("unlockGroup", "")) != "senior_unit" else fallback_null_weapon()
+	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, weapon_fallback)
 	var sprite_path: String = String(character.get("sprite", ""))
 	var character_id: String = String(character.get("id", "ban_chan"))
 	var idle_sprite_path: String = String(character.get("idleSprite", ""))
@@ -131,10 +165,12 @@ static func is_unlocked(character: Dictionary) -> bool:
 
 static func status_id(character: Dictionary) -> String:
 	var explicit_status: String = String(character.get("status", "")).strip_edges()
-	if explicit_status != "":
-		return explicit_status
 	if not is_unlocked(character):
 		return "locked"
+	if explicit_status == "locked":
+		return "unlocked"
+	if explicit_status != "":
+		return explicit_status
 	return "playable"
 
 static func is_selectable(character: Dictionary) -> bool:
@@ -154,6 +190,14 @@ static func status_text(character: Dictionary) -> String:
 			return "使用可能"
 
 static func theme_colors(character: Dictionary) -> Dictionary:
+	var raw_theme: Variant = character.get("themeColors", {})
+	if raw_theme is Dictionary:
+		var theme_data: Dictionary = raw_theme as Dictionary
+		var accent_text := String(theme_data.get("accent", ""))
+		var accent2_text := String(theme_data.get("accent2", ""))
+		var soft_text := String(theme_data.get("soft", ""))
+		if accent_text != "" and accent2_text != "" and soft_text != "":
+			return {"accent": Color(accent_text), "accent2": Color(accent2_text), "soft": Color(soft_text)}
 	var theme: String = String(character.get("themeColor", ""))
 	var id: String = String(character.get("id", ""))
 	if theme == "yellow_orange" or id == "superchat_chan":
@@ -191,11 +235,17 @@ static func default_detail_tags(character_id: String) -> Array:
 	return ["#近距離制圧", "#初心者向け", "#正面突破"]
 
 static func selection_card_view(character: Dictionary, weapons: Array) -> Dictionary:
-	var weapon_id: String = String(character.get("initialWeapon", "ban_hammer"))
-	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, fallback_weapon())
+	var weapon_id: String = String(character.get("initialWeapon", ""))
+	if weapon_id == "":
+		weapon_id = "phase1_null_weapon" if String(character.get("unlockGroup", "")) == "senior_unit" else "ban_hammer"
+	var weapon_fallback := fallback_weapon() if String(character.get("unlockGroup", "")) != "senior_unit" else fallback_null_weapon()
+	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, weapon_fallback)
 	var passive_data: Dictionary = passive(character)
 	var character_id: String = String(character.get("id", "ban_chan"))
 	var colors: Dictionary = theme_colors(character)
+	var select_sprite_path := String(character.get("selectSprite", ""))
+	if select_sprite_path == "":
+		select_sprite_path = String(character.get("sprite", ""))
 	var evolution: Dictionary = weapon.get("evolution", {}) as Dictionary
 	var evolved_weapon_id: String = String(character.get("evolvedWeaponId", evolution.get("evolvedWeaponId", "")))
 	var evolved_weapon: Dictionary = WeaponSystem.find_weapon(weapons, evolved_weapon_id, {})
@@ -216,7 +266,10 @@ static func selection_card_view(character: Dictionary, weapons: Array) -> Dictio
 		"specialtyText": String(character.get("specialtyText", default_specialty_text(character_id))),
 		"cardTags": character.get("cardTags", default_card_tags(character_id)) as Array,
 		"detailTags": character.get("detailTags", default_detail_tags(character_id)) as Array,
-		"spritePath": String(character.get("sprite", "")),
+		"spritePath": select_sprite_path,
+		"gameplaySpritePath": String(character.get("sprite", "")),
+		"selectSpriteScale": float(character.get("selectSpriteScale", 1.0)),
+		"selectSpriteOffset": character.get("selectSpriteOffset", {"x": 0, "y": 0}) as Dictionary,
 		"isUnlocked": is_unlocked(character),
 		"isSelectable": is_selectable(character),
 		"statusId": status_id(character),
@@ -254,6 +307,25 @@ static func fallback_weapon() -> Dictionary:
 		"knockback": 18.0,
 		"magnetRange": 95.0
 	}
+
+static func fallback_null_weapon() -> Dictionary:
+	return {
+		"id": "phase1_null_weapon",
+		"displayName": "固有武器は次段階で追加予定",
+		"attackType": "none",
+		"damage": 0.0,
+		"range": 0.0,
+		"knockback": 0.0,
+		"attackInterval": 0.0,
+		"magnetRange": 0.0,
+		"isPhase1Placeholder": true
+	}
+
+static func attack_multiplier(character: Dictionary) -> float:
+	return maxf(0.01, float(character.get("attackMultiplier", 1.0)))
+
+static func move_speed_multiplier(character: Dictionary) -> float:
+	return maxf(0.01, float(character.get("moveSpeedMultiplier", 1.0)))
 
 static func base_stats(character: Dictionary) -> Dictionary:
 	if character.has("baseStats") and character["baseStats"] is Dictionary:

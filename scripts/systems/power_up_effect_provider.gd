@@ -21,11 +21,15 @@ static func create_snapshot(profile: Dictionary, database, enabled: bool):
 		match id:
 			"max_hp": snapshot.max_hp_bonus = value
 			"attack_power": snapshot.attack_power_bonus = value
+			"attack_area": snapshot.attack_area_multiplier = 1.0 + value
+			"attack_interval": snapshot.attack_interval_multiplier = 1.0 - value
 			"move_speed": snapshot.move_speed_bonus = value
 			"damage_reduction": snapshot.damage_reduction = value
 			"exp_gain": snapshot.exp_gain_bonus = value
 			"pickup_range": snapshot.pickup_range_bonus = value
 			"healing_power": snapshot.healing_power_bonus = value
+			"buzz_keep": snapshot.initial_buzz_keep_charges = maxi(0, roundi(value))
+			"gift_reroll": snapshot.initial_gift_reroll_count = maxi(0, roundi(value))
 			"gift_luck":
 				var luck: Dictionary = data.get("giftLuck", {}) as Dictionary
 				var hits: Array = luck.get("hitWeightMultipliers", []) as Array

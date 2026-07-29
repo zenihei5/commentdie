@@ -5,7 +5,10 @@ const DatabaseScript := preload("res://scripts/systems/power_up_database.gd")
 
 const DATA_PATH := "res://data/power_up_shop.json"
 const VALID_CATEGORIES := ["combat", "support"]
-const UPGRADE_IDS := ["max_hp", "attack_power", "move_speed", "damage_reduction", "exp_gain", "pickup_range", "healing_power", "gift_luck"]
+const UPGRADE_IDS := [
+	"max_hp", "attack_power", "attack_area", "attack_interval", "move_speed", "damage_reduction",
+	"exp_gain", "pickup_range", "healing_power", "gift_luck", "buzz_keep", "gift_reroll"
+]
 
 var schema_version := 0
 var currency: Dictionary = {}

@@ -1,0 +1,364 @@
+{
+  "schemaVersion": 1,
+  "processing": {
+    "method": "border-connected green chroma key with local edge despill",
+    "tightCropPadding": 16,
+    "resized": false
+  },
+  "notes": {
+    "line": "processed for backup/QC but intentionally not referenced; the runtime dynamic line is the single fishing line"
+  },
+  "assets": [
+    {
+      "id": "icon",
+      "sourceFile": "icon_buzz_thumbnail.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/icon_buzz_thumbnail.png",
+      "output": "assets/weapons/buzz_thumbnail/icon_buzz_thumbnail.png",
+      "sourceSha256": "55183047550145f63d4e45150b987d7274cdba96a036f656970de5eeac30e861",
+      "backupSha256": "55183047550145f63d4e45150b987d7274cdba96a036f656970de5eeac30e861",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        0,
+        0,
+        1215,
+        1218
+      ],
+      "outputSize": [
+        1215,
+        1218
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 800947,
+      "partialAlphaPixels": 38322,
+      "opaquePixels": 640601
+    },
+    {
+      "id": "body",
+      "sourceFile": "buzz_thumbnail_rod_body.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_rod_body.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_rod_body.png",
+      "sourceSha256": "eb769a7f5f7e07eac48577dce71126e4a9a83f77ca39a25b6c5c7f2c473098d9",
+      "backupSha256": "eb769a7f5f7e07eac48577dce71126e4a9a83f77ca39a25b6c5c7f2c473098d9",
+      "originalSize": [
+        1448,
+        1086
+      ],
+      "contentBoundsInSource": [
+        17,
+        15,
+        1426,
+        1053
+      ],
+      "outputSize": [
+        1409,
+        1038
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 1174291,
+      "partialAlphaPixels": 14224,
+      "opaquePixels": 274027
+    },
+    {
+      "id": "lure",
+      "sourceFile": "buzz_thumbnail_lure.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_lure.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_lure.png",
+      "sourceSha256": "434bc5d5e5416dd228d80f7fb846ad73fa0cbac13756aaeb62e53ce7862d23e2",
+      "backupSha256": "434bc5d5e5416dd228d80f7fb846ad73fa0cbac13756aaeb62e53ce7862d23e2",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        145,
+        97,
+        1094,
+        1094
+      ],
+      "outputSize": [
+        949,
+        997
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 384191,
+      "partialAlphaPixels": 15381,
+      "opaquePixels": 546581
+    },
+    {
+      "id": "zone",
+      "sourceFile": "buzz_thumbnail_zone.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_zone.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_zone.png",
+      "sourceSha256": "205c51698a171304b8b09a3e96da031b3061bc536a05d343b7440676c2a10d42",
+      "backupSha256": "205c51698a171304b8b09a3e96da031b3061bc536a05d343b7440676c2a10d42",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        25,
+        28,
+        1222,
+        1199
+      ],
+      "outputSize": [
+        1197,
+        1171
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 901321,
+      "partialAlphaPixels": 113524,
+      "opaquePixels": 386842
+    },
+    {
+      "id": "pull",
+      "sourceFile": "buzz_thumbnail_pull.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_pull.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_pull.png",
+      "sourceSha256": "9077a8627d257d5f206cab1f00ceafb3439c61259c61c8f2a8730c381b386207",
+      "backupSha256": "9077a8627d257d5f206cab1f00ceafb3439c61259c61c8f2a8730c381b386207",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        96,
+        73,
+        1178,
+        1144
+      ],
+      "outputSize": [
+        1082,
+        1071
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 1008698,
+      "partialAlphaPixels": 42356,
+      "opaquePixels": 107768
+    },
+    {
+      "id": "throw",
+      "sourceFile": "buzz_thumbnail_throw.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_throw.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_throw.png",
+      "sourceSha256": "586b032ef3cefe14efc9af30037f4a8598fa2dfdb2cdb76dbf60357a39870e64",
+      "backupSha256": "586b032ef3cefe14efc9af30037f4a8598fa2dfdb2cdb76dbf60357a39870e64",
+      "originalSize": [
+        1774,
+        887
+      ],
+      "contentBoundsInSource": [
+        37,
+        109,
+        1732,
+        763
+      ],
+      "outputSize": [
+        1695,
+        654
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 799455,
+      "partialAlphaPixels": 23894,
+      "opaquePixels": 285181
+    },
+    {
+      "id": "hit",
+      "sourceFile": "buzz_thumbnail_hit.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_hit.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_hit.png",
+      "sourceSha256": "8b1afff02d5fcaf284be0934ce9497c1b5d73d3304cf9166bf38b0a1ddfde5b0",
+      "backupSha256": "8b1afff02d5fcaf284be0934ce9497c1b5d73d3304cf9166bf38b0a1ddfde5b0",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        312,
+        357,
+        897,
+        885
+      ],
+      "outputSize": [
+        585,
+        528
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 251132,
+      "partialAlphaPixels": 12843,
+      "opaquePixels": 44905
+    },
+    {
+      "id": "explosion",
+      "sourceFile": "buzz_thumbnail_explosion.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_explosion.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_explosion.png",
+      "sourceSha256": "bd17eee55b7e61575f594e9af0d7a760e23b1e4505b38a56c8c4b82413adb945",
+      "backupSha256": "bd17eee55b7e61575f594e9af0d7a760e23b1e4505b38a56c8c4b82413adb945",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        1,
+        40,
+        1254,
+        1204
+      ],
+      "outputSize": [
+        1253,
+        1164
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 709915,
+      "partialAlphaPixels": 43148,
+      "opaquePixels": 705429
+    },
+    {
+      "id": "line",
+      "sourceFile": "buzz_thumbnail_line.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_line.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_line.png",
+      "sourceSha256": "1b9fa188d7ca42b79fbd17448be760ac42ec81d6c0d51ee76bcca2e0863a4976",
+      "backupSha256": "1b9fa188d7ca42b79fbd17448be760ac42ec81d6c0d51ee76bcca2e0863a4976",
+      "originalSize": [
+        2172,
+        724
+      ],
+      "contentBoundsInSource": [
+        44,
+        324,
+        2124,
+        408
+      ],
+      "outputSize": [
+        2080,
+        84
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 113520,
+      "partialAlphaPixels": 10726,
+      "opaquePixels": 50474
+    },
+    {
+      "id": "targetMark",
+      "sourceFile": "buzz_thumbnail_target_mark.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_target_mark.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_target_mark.png",
+      "sourceSha256": "7f9d6e32209b24302c23782179991e8ecf464ef03e90d7b82b95ecbdf0a88b70",
+      "backupSha256": "7f9d6e32209b24302c23782179991e8ecf464ef03e90d7b82b95ecbdf0a88b70",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        110,
+        126,
+        1130,
+        1119
+      ],
+      "outputSize": [
+        1020,
+        993
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 639596,
+      "partialAlphaPixels": 44717,
+      "opaquePixels": 328547
+    },
+    {
+      "id": "bearFlash",
+      "sourceFile": "buzz_thumbnail_bear_flash.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_bear_flash.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_bear_flash.png",
+      "sourceSha256": "83ba8b0a03ee3cf950276024b761c624d25c89f54d1a7c1e6a2afdfb11df394f",
+      "backupSha256": "83ba8b0a03ee3cf950276024b761c624d25c89f54d1a7c1e6a2afdfb11df394f",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        239,
+        263,
+        1015,
+        963
+      ],
+      "outputSize": [
+        776,
+        700
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 432657,
+      "partialAlphaPixels": 21881,
+      "opaquePixels": 88662
+    },
+    {
+      "id": "catchMark",
+      "sourceFile": "buzz_thumbnail_catch_mark.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_catch_mark.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_catch_mark.png",
+      "sourceSha256": "446acbb4c991ffe087f4cde11d2f94e0cf8041c61a403118a52fdf27e1102c44",
+      "backupSha256": "446acbb4c991ffe087f4cde11d2f94e0cf8041c61a403118a52fdf27e1102c44",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        315,
+        253,
+        927,
+        990
+      ],
+      "outputSize": [
+        612,
+        737
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 299411,
+      "partialAlphaPixels": 25209,
+      "opaquePixels": 126424
+    },
+    {
+      "id": "burstDeco",
+      "sourceFile": "buzz_thumbnail_burst_deco.png",
+      "sourceBackup": "assets/source_backups/buzz_thumbnail_visuals/buzz_thumbnail_burst_deco.png",
+      "output": "assets/weapons/buzz_thumbnail/buzz_thumbnail_burst_deco.png",
+      "sourceSha256": "f2a90046ce8ac86c47edfb2edd9beb548f689a9effffc1edd7434a8e889bddb9",
+      "backupSha256": "f2a90046ce8ac86c47edfb2edd9beb548f689a9effffc1edd7434a8e889bddb9",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        31,
+        46,
+        1202,
+        1199
+      ],
+      "outputSize": [
+        1171,
+        1153
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 1002010,
+      "partialAlphaPixels": 43084,
+      "opaquePixels": 305069
+    }
+  ]
+}

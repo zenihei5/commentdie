@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "crossUnitDisplayName": "共通合成技・シンクロバースト",
+  "commonFinisher": {
+    "id": "syncro_burst",
+    "displayName": "シンクロバースト",
+    "kind": "common_finisher",
+    "duration": 0.34
+  },
+  "modules": {
+    "kyasumi_defense": {"displayName": "モデレートウォール", "kind": "defense", "priority": 10, "supportType": "防御"},
+    "miimu_gather": {"displayName": "サムネサークル", "kind": "gather", "priority": 20, "supportType": "集敵"},
+    "maro_area": {"displayName": "まろコメントリング", "kind": "area", "priority": 30, "supportType": "範囲"},
+    "superchat_firepower": {"displayName": "スパチャスター", "kind": "firepower", "priority": 40, "supportType": "火力"},
+    "rizumu_followup": {"displayName": "ファンサラッシュ", "kind": "followup", "priority": 50, "supportType": "追撃"},
+    "ban_finisher": {"displayName": "BANクラッシュ", "kind": "finisher", "priority": 60, "supportType": "決着"}
+  },
+  "dedicatedPairs": [
+    {"pairKey": "ban_chan+superchat_chan", "comboId": "ban_spana_star_rush", "displayName": "BAN☆スターラッシュ", "handler": "ban_spana", "kind": "dedicated"},
+    {"pairKey": "ban_chan+maro_chan", "comboId": "ban_maro_circle", "displayName": "まろBANサークル", "handler": "ban_maro", "kind": "dedicated"},
+    {"pairKey": "maro_chan+superchat_chan", "comboId": "spana_maro_shower", "displayName": "スターコメントシャワー", "handler": "spana_maro", "kind": "dedicated"},
+    {"pairKey": "aosumi_kyasumi+akarine_rizumu", "comboId": "kyasumi_rizumu_guard_live", "displayName": "ガードライブ・フィナーレ", "handler": "kyasumi_rizumu", "kind": "dedicated"},
+    {"pairKey": "aosumi_kyasumi+shizuki_miimu", "comboId": "kyasumi_miimu_moderate_finish", "displayName": "モデレート・フィニッシング", "handler": "kyasumi_miimu", "kind": "dedicated"},
+    {"pairKey": "akarine_rizumu+shizuki_miimu", "comboId": "rizumu_miimu_buzz_fishing", "displayName": "バズ釣りフェス", "handler": "rizumu_miimu", "kind": "dedicated"}
+  ]
+}

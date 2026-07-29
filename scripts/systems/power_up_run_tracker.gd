@@ -12,6 +12,7 @@ var rewarded_boss_keys: Dictionary = {}
 var defeated_bosses: Array[Dictionary] = []
 var relay_final_reached := false
 var relay_final_defeated := false
+var difficulty_id := "normal"
 
 static func start(enabled: bool, total_level: int, eligible: bool = true):
 	var tracker = TrackerScript.new()
@@ -38,6 +39,14 @@ func mark_relay_final_defeated() -> void:
 	relay_final_reached = true
 	relay_final_defeated = true
 
+func should_unlock_senior_unit(input: Dictionary) -> bool:
+	return bool(input.get("rewardEligible", false)) \
+		and bool(input.get("official", input.get("rewardEligible", false))) \
+		and bool(input.get("isRelay", false)) \
+		and String(input.get("difficultyId", "normal")) == "normal" \
+		and String(input.get("outcome", "")) == "completed" \
+		and bool(input.get("relayFinalDefeated", false))
+
 func reward_input(is_relay: bool, outcome: String, active_seconds: float, stage_id: String, stage_cleared: bool, cleared_frame_ids: Array) -> Dictionary:
 	return {
 		"outcome": outcome,
@@ -46,7 +55,8 @@ func reward_input(is_relay: bool, outcome: String, active_seconds: float, stage_
 		"activePlaySeconds": active_seconds,
 		"stageId": stage_id,
 		"stageCleared": stage_cleared,
-		"difficultyId": "normal",
+		"difficultyId": difficulty_id,
+		"official": reward_eligible,
 		"defeatedBosses": defeated_bosses.duplicate(true),
 		"relayClearedFrameIds": cleared_frame_ids.duplicate(),
 		"relayFinalReached": relay_final_reached,
@@ -60,6 +70,7 @@ func to_dictionary() -> Dictionary:
 		"resultCommitted": result_committed,
 		"shopUpgradesEnabled": shop_upgrades_enabled,
 		"totalShopUpgradeLevel": total_shop_upgrade_level,
+		"difficultyId": difficulty_id,
 		"rewardedBossKeys": rewarded_boss_keys.duplicate(true),
 		"defeatedBosses": defeated_bosses.duplicate(true),
 		"relayFinalReached": relay_final_reached,

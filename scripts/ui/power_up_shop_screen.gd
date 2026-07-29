@@ -400,7 +400,7 @@ func _layout_responsive() -> void:
 	grid.custom_minimum_size.x = card_width * 2.0 + card_gap
 	detail.custom_minimum_size.x = 605.0 if compact else minf(650.0, content_width - 693.0)
 	grid.add_theme_constant_override("h_separation", int(card_gap))
-	grid.add_theme_constant_override("v_separation", 16 if compact else 18)
+	grid.add_theme_constant_override("v_separation", 10 if compact else 14)
 	detail_content.add_theme_constant_override("separation", 5 if compact else 8)
 	var hero_height := 168.0 if compact else 214.0
 	var info_height := 270.0 if compact else 326.0
@@ -451,10 +451,35 @@ func _layout_responsive() -> void:
 func _apply_card_dimensions(card_width: float) -> void:
 	var card_gap := 16.0 if card_width < 300.0 else 18.0
 	card_grid.custom_minimum_size.x = card_width * 2.0 + card_gap
+	var compact := card_width < 300.0
+	var card_height := 132.0 if compact else 154.0
 	for item in _cards_by_id.values():
 		var card: PowerUpShopCard = item as PowerUpShopCard
 		if card != null and is_instance_valid(card):
-			card.custom_minimum_size = Vector2(card_width, 184.0)
+			card.custom_minimum_size = Vector2(card_width, card_height)
+			var content := card.get_node("VisualRoot/CardContent") as MarginContainer
+			var vbox := card.get_node("VisualRoot/CardContent/VBox") as VBoxContainer
+			var header_row := card.get_node("VisualRoot/CardContent/VBox/HeaderRow") as HBoxContainer
+			var icon_slot := card.get_node("VisualRoot/CardContent/VBox/HeaderRow/IconSlot") as CenterContainer
+			var icon_plate := card.get_node("VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate") as PanelContainer
+			var icon := card.get_node("VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate/Icon") as TextureRect
+			var summary := card.get_node("VisualRoot/CardContent/VBox/EffectSummary") as Label
+			var indicators := card.get_node("VisualRoot/CardContent/VBox/LevelIndicators") as HBoxContainer
+			var price := card.get_node("VisualRoot/CardContent/VBox/PriceCapsule") as PanelContainer
+			content.offset_left = 12.0 if compact else 16.0
+			content.offset_top = 8.0 if compact else 10.0
+			content.offset_right = -12.0 if compact else -16.0
+			content.offset_bottom = -8.0 if compact else -10.0
+			vbox.add_theme_constant_override("separation", 4 if compact else 6)
+			header_row.custom_minimum_size.y = 48.0 if compact else 56.0
+			icon_slot.custom_minimum_size = Vector2(48, 48) if compact else Vector2(56, 56)
+			icon_plate.custom_minimum_size = Vector2(46, 46) if compact else Vector2(54, 54)
+			icon.custom_minimum_size = Vector2(38, 38) if compact else Vector2(46, 46)
+			summary.custom_minimum_size.y = 16.0 if compact else 18.0
+			indicators.custom_minimum_size.y = 14.0 if compact else 16.0
+			for lamp in indicators.get_children():
+				(lamp as Control).custom_minimum_size = Vector2(14, 14) if compact else Vector2(16, 16)
+			price.custom_minimum_size.y = 24.0 if compact else 28.0
 
 func _reset_transient_state() -> void:
 	_kill_tweens()
@@ -474,7 +499,7 @@ func _reset_transient_state() -> void:
 	focus_area = FocusArea.CARDS
 	dialog_choice = DialogChoice.CANCEL
 	footer_choice = FooterChoice.BACK
-	reset_return_index = clampi(selected_index, 0, 3)
+	reset_return_index = clampi(selected_index, 0, maxi(0, _upgrades().size() - 1))
 	_stick_direction = Vector2i.ZERO
 	_stick_repeat_remaining = 0.0
 	_hide_dialog()

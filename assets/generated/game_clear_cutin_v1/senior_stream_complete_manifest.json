@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "processing": {
+    "method": "border-connected green chroma key with local edge despill",
+    "tightCropPadding": 16,
+    "resized": false
+  },
+  "assets": [
+    {
+      "id": "aosumi_kyasumi",
+      "sourceFile": "GCきゃすみ.png",
+      "sourceBackup": "assets/source_backups/stream_complete_cutin/GCきゃすみ.png",
+      "output": "assets/generated/game_clear_cutin_v1/kyasumi_stream_complete.png",
+      "sourceSha256": "a28b15ba952ce17a4c25cbf4ddc2a057cdfa6136e4606522b6adb3f7cf1091f7",
+      "backupSha256": "a28b15ba952ce17a4c25cbf4ddc2a057cdfa6136e4606522b6adb3f7cf1091f7",
+      "originalSize": [
+        1122,
+        1402
+      ],
+      "contentBoundsInSource": [
+        50,
+        39,
+        1072,
+        1402
+      ],
+      "outputSize": [
+        1022,
+        1363
+      ],
+      "borderOpaquePixels": 650,
+      "transparentPixels": 574738,
+      "partialAlphaPixels": 21540,
+      "opaquePixels": 796708
+    },
+    {
+      "id": "akarine_rizumu",
+      "sourceFile": "GCりずむ.png",
+      "sourceBackup": "assets/source_backups/stream_complete_cutin/GCりずむ.png",
+      "output": "assets/generated/game_clear_cutin_v1/rizumu_stream_complete.png",
+      "sourceSha256": "02922faf2080280cae0cb4f90939f07f3634265dd380baef71d283c0393b28c1",
+      "backupSha256": "02922faf2080280cae0cb4f90939f07f3634265dd380baef71d283c0393b28c1",
+      "originalSize": [
+        1086,
+        1448
+      ],
+      "contentBoundsInSource": [
+        10,
+        0,
+        1086,
+        1448
+      ],
+      "outputSize": [
+        1076,
+        1448
+      ],
+      "borderOpaquePixels": 765,
+      "transparentPixels": 611725,
+      "partialAlphaPixels": 46033,
+      "opaquePixels": 900290
+    },
+    {
+      "id": "shizuki_miimu",
+      "sourceFile": "GCみぃむ.png",
+      "sourceBackup": "assets/source_backups/stream_complete_cutin/GCみぃむ.png",
+      "output": "assets/generated/game_clear_cutin_v1/miimu_stream_complete.png",
+      "sourceSha256": "0fc4be6e3e087915d2a66c976b775bbbb3e7bb1e7e2c3660bef8b117276d6725",
+      "backupSha256": "0fc4be6e3e087915d2a66c976b775bbbb3e7bb1e7e2c3660bef8b117276d6725",
+      "originalSize": [
+        1086,
+        1448
+      ],
+      "contentBoundsInSource": [
+        51,
+        25,
+        1051,
+        1448
+      ],
+      "outputSize": [
+        1000,
+        1423
+      ],
+      "borderOpaquePixels": 895,
+      "transparentPixels": 412461,
+      "partialAlphaPixels": 18487,
+      "opaquePixels": 992052
+    }
+  ]
+}

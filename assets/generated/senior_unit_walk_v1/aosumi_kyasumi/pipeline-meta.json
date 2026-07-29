@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "assetId": "aosumi_kyasumi",
+  "motion": "run",
+  "sourceFile": "kyasumi-walk-new-transparent_front_run_run_sheet.png",
+  "sourceSize": [
+    6400,
+    640
+  ],
+  "frameCount": 10,
+  "fps": 12,
+  "cellSize": [
+    640,
+    640
+  ],
+  "alphaPreserved": true,
+  "processing": "deterministic equal-cell split and lossless RGBA strip assembly",
+  "runtime": {
+    "texture": "res://assets/generated/senior_unit_walk_v1/aosumi_kyasumi/walk-strip-transparent.png",
+    "cols": 10,
+    "rows": 1
+  },
+  "frames": [
+    {
+      "index": 0,
+      "file": "frames/frame-01.png",
+      "contentBounds": [
+        124,
+        29,
+        516,
+        620
+      ],
+      "transparentPixels": 293690,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 115910
+    },
+    {
+      "index": 1,
+      "file": "frames/frame-02.png",
+      "contentBounds": [
+        109,
+        40,
+        499,
+        618
+      ],
+      "transparentPixels": 300534,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 109066
+    },
+    {
+      "index": 2,
+      "file": "frames/frame-03.png",
+      "contentBounds": [
+        130,
+        30,
+        495,
+        618
+      ],
+      "transparentPixels": 305022,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 104578
+    },
+    {
+      "index": 3,
+      "file": "frames/frame-04.png",
+      "contentBounds": [
+        153,
+        15,
+        494,
+        608
+      ],
+      "transparentPixels": 296952,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 112648
+    },
+    {
+      "index": 4,
+      "file": "frames/frame-05.png",
+      "contentBounds": [
+        133,
+        23,
+        518,
+        613
+      ],
+      "transparentPixels": 293887,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 115713
+    },
+    {
+      "index": 5,
+      "file": "frames/frame-06.png",
+      "contentBounds": [
+        167,
+        38,
+        499,
+        618
+      ],
+      "transparentPixels": 297415,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 112185
+    },
+    {
+      "index": 6,
+      "file": "frames/frame-07.png",
+      "contentBounds": [
+        126,
+        31,
+        497,
+        617
+      ],
+      "transparentPixels": 305956,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 103644
+    },
+    {
+      "index": 7,
+      "file": "frames/frame-08.png",
+      "contentBounds": [
+        153,
+        15,
+        495,
+        617
+      ],
+      "transparentPixels": 296653,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 112947
+    },
+    {
+      "index": 8,
+      "file": "frames/frame-09.png",
+      "contentBounds": [
+        153,
+        22,
+        496,
+        608
+      ],
+      "transparentPixels": 293960,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 115640
+    },
+    {
+      "index": 9,
+      "file": "frames/frame-10.png",
+      "contentBounds": [
+        123,
+        29,
+        518,
+        620
+      ],
+      "transparentPixels": 290747,
+      "partialAlphaPixels": 0,
+      "opaquePixels": 118853
+    }
+  ]
+}

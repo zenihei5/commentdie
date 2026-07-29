@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 1,
+  "processing": {
+    "method": "border-connected green chroma key with local edge despill",
+    "tightCropPadding": 16,
+    "resized": false
+  },
+  "assets": [
+    {
+      "id": "moderator_shield_body",
+      "sourceFile": "moderator_shield_body.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/moderator_shield_body.png",
+      "output": "assets/weapons/moderator_shield/moderator_shield_body.png",
+      "sourceSha256": "5548a816f6e76e2ed773e1b19ce72d21779f37aad03823e7bc94ba700c1ac6e6",
+      "backupSha256": "5548a816f6e76e2ed773e1b19ce72d21779f37aad03823e7bc94ba700c1ac6e6",
+      "originalSize": [
+        941,
+        1672
+      ],
+      "contentBoundsInSource": [
+        154,
+        93,
+        826,
+        1573
+      ],
+      "outputSize": [
+        672,
+        1480
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 324788,
+      "partialAlphaPixels": 10133,
+      "opaquePixels": 659639
+    },
+    {
+      "id": "moderator_shield_trail",
+      "sourceFile": "moderator_shield_trail.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/moderator_shield_trail.png",
+      "output": "assets/weapons/moderator_shield/moderator_shield_trail.png",
+      "sourceSha256": "9b2d7b8e1559bbe7ecd773c6a16798b7ff5f2c9922d77c5a63dfc29420ed5b2d",
+      "backupSha256": "9b2d7b8e1559bbe7ecd773c6a16798b7ff5f2c9922d77c5a63dfc29420ed5b2d",
+      "originalSize": [
+        1721,
+        914
+      ],
+      "contentBoundsInSource": [
+        64,
+        134,
+        1641,
+        812
+      ],
+      "outputSize": [
+        1577,
+        678
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 672492,
+      "partialAlphaPixels": 28412,
+      "opaquePixels": 368302
+    },
+    {
+      "id": "moderator_shield_bullet_clear",
+      "sourceFile": "moderator_shield_bullet_clear.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/moderator_shield_bullet_clear.png",
+      "output": "assets/weapons/moderator_shield/moderator_shield_bullet_clear.png",
+      "sourceSha256": "307f5d39fce0942485607256e922c9c73dc90a028004960bfa838dbf4d0c10d1",
+      "backupSha256": "307f5d39fce0942485607256e922c9c73dc90a028004960bfa838dbf4d0c10d1",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        404,
+        404,
+        850,
+        840
+      ],
+      "outputSize": [
+        446,
+        436
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 141866,
+      "partialAlphaPixels": 10677,
+      "opaquePixels": 41913
+    },
+    {
+      "id": "moderator_shield_end_shockwave",
+      "sourceFile": "moderator_shield_end_shockwave.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/moderator_shield_end_shockwave.png",
+      "output": "assets/weapons/moderator_shield/moderator_shield_end_shockwave.png",
+      "sourceSha256": "08526c8ea45c80469d64835f1669625b07c7b5f704058baf50748a74d8359640",
+      "backupSha256": "08526c8ea45c80469d64835f1669625b07c7b5f704058baf50748a74d8359640",
+      "originalSize": [
+        1536,
+        1024
+      ],
+      "contentBoundsInSource": [
+        84,
+        172,
+        1426,
+        900
+      ],
+      "outputSize": [
+        1342,
+        728
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 684842,
+      "partialAlphaPixels": 35892,
+      "opaquePixels": 256242
+    },
+    {
+      "id": "fansa_baton_body",
+      "sourceFile": "fansa_baton_body.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/fansa_baton_body.png",
+      "output": "assets/weapons/fansa_baton/fansa_baton_body.png",
+      "sourceSha256": "c24db931f881f3bb7601ac2b55f40771843be5ba4e3ca015283b6a8bf950b97c",
+      "backupSha256": "c24db931f881f3bb7601ac2b55f40771843be5ba4e3ca015283b6a8bf950b97c",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        554,
+        46,
+        700,
+        1219
+      ],
+      "outputSize": [
+        146,
+        1173
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 67643,
+      "partialAlphaPixels": 6760,
+      "opaquePixels": 96855
+    },
+    {
+      "id": "fansa_baton_swing_right",
+      "sourceFile": "fansa_baton_swing_right.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/fansa_baton_swing_right.png",
+      "output": "assets/weapons/fansa_baton/fansa_baton_swing_right.png",
+      "sourceSha256": "85fbd69902c6c53662a1c3311f0776baebacab6eb3497d8c30eb508bbaa35f01",
+      "backupSha256": "85fbd69902c6c53662a1c3311f0776baebacab6eb3497d8c30eb508bbaa35f01",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        65,
+        282,
+        1231,
+        947
+      ],
+      "outputSize": [
+        1166,
+        665
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 571730,
+      "partialAlphaPixels": 20587,
+      "opaquePixels": 183073
+    },
+    {
+      "id": "fansa_baton_swing_left",
+      "sourceFile": "fansa_baton_swing_left.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/fansa_baton_swing_left.png",
+      "output": "assets/weapons/fansa_baton/fansa_baton_swing_left.png",
+      "sourceSha256": "312e5e56564538ab1cb02ab4b775cc93b2ba1889e43e12be4116900d44b178f8",
+      "backupSha256": "312e5e56564538ab1cb02ab4b775cc93b2ba1889e43e12be4116900d44b178f8",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        64,
+        109,
+        1190,
+        1098
+      ],
+      "outputSize": [
+        1126,
+        989
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 852493,
+      "partialAlphaPixels": 21435,
+      "opaquePixels": 239686
+    },
+    {
+      "id": "fansa_baton_finisher",
+      "sourceFile": "fansa_baton_finisher.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/fansa_baton_finisher.png",
+      "output": "assets/weapons/fansa_baton/fansa_baton_finisher.png",
+      "sourceSha256": "556b6d9d96bd61e0145c49a85ef8072852d8fc3368eb88ed2afe1f75a9080e52",
+      "backupSha256": "556b6d9d96bd61e0145c49a85ef8072852d8fc3368eb88ed2afe1f75a9080e52",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        18,
+        23,
+        1235,
+        1219
+      ],
+      "outputSize": [
+        1217,
+        1196
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 978573,
+      "partialAlphaPixels": 57110,
+      "opaquePixels": 419849
+    },
+    {
+      "id": "fansa_baton_x_slash",
+      "sourceFile": "fansa_baton_x_slash.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/fansa_baton_x_slash.png",
+      "output": "assets/weapons/fansa_baton/fansa_baton_x_slash.png",
+      "sourceSha256": "2a765174ce6b37e95a2ccbf262a49bbd15d7e8847dc6c0aa43c548570e2aa7e6",
+      "backupSha256": "2a765174ce6b37e95a2ccbf262a49bbd15d7e8847dc6c0aa43c548570e2aa7e6",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        32,
+        59,
+        1247,
+        1195
+      ],
+      "outputSize": [
+        1215,
+        1136
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 978093,
+      "partialAlphaPixels": 49186,
+      "opaquePixels": 352961
+    },
+    {
+      "id": "tsuri_thumbnail_rod_body",
+      "sourceFile": "tsuri_thumbnail_rod_body.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/tsuri_thumbnail_rod_body.png",
+      "output": "assets/weapons/tsuri_thumbnail_rod/tsuri_thumbnail_rod_body.png",
+      "sourceSha256": "0482565540b9411c6490c1b6178430aa620072971a289abdbcbfa04ddcfcf42e",
+      "backupSha256": "0482565540b9411c6490c1b6178430aa620072971a289abdbcbfa04ddcfcf42e",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        549,
+        48,
+        701,
+        1217
+      ],
+      "outputSize": [
+        152,
+        1169
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 132001,
+      "partialAlphaPixels": 11104,
+      "opaquePixels": 34583
+    },
+    {
+      "id": "tsuri_thumbnail_bear_lure",
+      "sourceFile": "tsuri_thumbnail_bear_lure.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/tsuri_thumbnail_bear_lure.png",
+      "output": "assets/weapons/tsuri_thumbnail_rod/tsuri_thumbnail_bear_lure.png",
+      "sourceSha256": "b8a2a35d84f4f4b1fac24e1ba12894715f19f611392b8c3a3449fc8089e92c64",
+      "backupSha256": "b8a2a35d84f4f4b1fac24e1ba12894715f19f611392b8c3a3449fc8089e92c64",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        337,
+        111,
+        917,
+        1143
+      ],
+      "outputSize": [
+        580,
+        1032
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 279736,
+      "partialAlphaPixels": 13685,
+      "opaquePixels": 305139
+    },
+    {
+      "id": "tsuri_thumbnail_gather",
+      "sourceFile": "tsuri_thumbnail_gather.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/tsuri_thumbnail_gather.png",
+      "output": "assets/weapons/tsuri_thumbnail_rod/tsuri_thumbnail_gather.png",
+      "sourceSha256": "3fea8f5de46a2fe5f3f371231ef036c738fcf0c922d5fa1dbe30c450066a66db",
+      "backupSha256": "3fea8f5de46a2fe5f3f371231ef036c738fcf0c922d5fa1dbe30c450066a66db",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        207,
+        268,
+        1020,
+        980
+      ],
+      "outputSize": [
+        813,
+        712
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 279630,
+      "partialAlphaPixels": 18449,
+      "opaquePixels": 280777
+    },
+    {
+      "id": "tsuri_thumbnail_reel_hit",
+      "sourceFile": "tsuri_thumbnail_reel_hit.png",
+      "sourceBackup": "assets/source_backups/stage2_weapon_visuals/tsuri_thumbnail_reel_hit.png",
+      "output": "assets/weapons/tsuri_thumbnail_rod/tsuri_thumbnail_reel_hit.png",
+      "sourceSha256": "e7211d0a16fd00613d19049ad4ca2c1cd671acaf6c5ed165430eac2ef5549279",
+      "backupSha256": "e7211d0a16fd00613d19049ad4ca2c1cd671acaf6c5ed165430eac2ef5549279",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        382,
+        68,
+        860,
+        1150
+      ],
+      "outputSize": [
+        478,
+        1082
+      ],
+      "borderOpaquePixels": 0,
+      "transparentPixels": 398296,
+      "partialAlphaPixels": 31669,
+      "opaquePixels": 87231
+    }
+  ]
+}

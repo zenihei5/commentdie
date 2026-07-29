@@ -101,13 +101,13 @@ static func character_grid_selection_action(latch: Dictionary, current: int, cou
 		if page + 1 < page_count:
 			return {"kind": "move", "index": _page_target(page + 1, 0, count, safe_page_size)}
 		return {"kind": "", "index": safe_current}
-	if _pressed(latch, KEY_UP):
+	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
 		if local >= safe_columns:
 			return {"kind": "move", "index": safe_current - safe_columns}
 		if page > 0:
 			return {"kind": "move", "index": _page_target(page - 1, safe_columns + col, count, safe_page_size)}
 		return {"kind": "", "index": safe_current}
-	if _pressed(latch, KEY_DOWN):
+	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
 		if local + safe_columns < safe_page_size and safe_current + safe_columns < count:
 			return {"kind": "move", "index": safe_current + safe_columns}
 		if page + 1 < page_count:

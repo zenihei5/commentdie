@@ -24,6 +24,7 @@ static func draw_simple_bullet_item(target: CanvasItem, bullet: Dictionary, from
 	var vel_sq := raw_vel.length_squared()
 	var vel: Vector2 = raw_vel / sqrt(vel_sq) if vel_sq > 0.01 else Vector2.RIGHT
 	var visual_kind: String = String(bullet.get("visualKind", ""))
+	var player_visual_scale: float = clampf(float(bullet.get("visualScale", 1.0)), 1.0, 1.60) if from_player else 1.0
 	var trail_length: float = 22.0
 	var trail_color := Color(0.25, 0.73, 1.0, 0.28)
 	var trail_width: float = 8.0
@@ -87,6 +88,11 @@ static func draw_simple_bullet_item(target: CanvasItem, bullet: Dictionary, from
 			outer_color = Color("#6fe7ff")
 			inner_radius = 3.1
 			inner_color = Color("#ffffff")
+	if from_player:
+		trail_length *= player_visual_scale
+		trail_width *= player_visual_scale
+		outer_radius *= player_visual_scale
+		inner_radius *= player_visual_scale
 	target.draw_line(pos - vel * trail_length, pos, trail_color, trail_width)
 	target.draw_circle(pos, outer_radius, outer_color)
 	target.draw_circle(pos, inner_radius, inner_color)

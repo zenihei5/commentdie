@@ -838,6 +838,9 @@ static func equipment_icon(id: String, is_weapon: bool) -> String:
 		"emote_mine": "雷",
 		"ng_word_laser": "NG",
 		"listener_summon": "聴",
+		"moderator_shield": "盾",
+		"fansa_baton": "棒",
+		"tsuri_thumbnail_rod": "釣",
 		"stream_power": "力",
 		"bullet_support": "援",
 		"high_speed_connection": "速",
@@ -2358,7 +2361,8 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 			var star_color: Color = visual["starColor"] as Color
 			var center_scale: float = 1.10 if bool(bullet_item.get("centerShot", true)) else 0.90
 			var premium_scale: float = 1.20 if visual_kind == "high_superchat" else 1.0
-			var scale: float = center_scale * premium_scale
+			var area_scale: float = clampf(float(bullet_item.get("visualScale", 1.0)), 1.0, 1.60)
+			var scale: float = center_scale * premium_scale * area_scale
 			var seed: float = float(bullet_item.get("starlightSeed", 0.0))
 			var seed_angle: float = seed * TAU
 			var image_size := Vector2(128.0, 76.0) * scale
@@ -2561,23 +2565,24 @@ static func maro_comment_ring_halo_image_path() -> String:
 static func maro_comment_bullet_clear_image_path() -> String:
 	return "res://assets/generated/weapon_fx_v1/maro_comment_ring_bullet_clear.png"
 
-static func maro_comment_ring_badge(center: Vector2, angle: float, index: int, flash_strength: float, pulse_strength: float) -> Dictionary:
+static func maro_comment_ring_badge(center: Vector2, angle: float, index: int, flash_strength: float, pulse_strength: float, visual_scale: float = 1.0) -> Dictionary:
 	var pop := maxf(flash_strength, pulse_strength)
-	var size := Vector2(86.0, 64.5) + Vector2(10.0, 7.5) * pop
+	var safe_scale := clampf(visual_scale, 1.0, 1.6)
+	var size := (Vector2(86.0, 64.5) + Vector2(10.0, 7.5) * pop) * safe_scale
 	var tangent := Vector2(-sin(angle), cos(angle)).normalized()
 	var outward := Vector2(cos(angle), sin(angle)).normalized()
 	return {
 		"visualKind": "maro_comment_ring_bubble",
 		"pos": center,
 		"shadowPos": center + Vector2(0.0, 17.0),
-		"shadowSize": Vector2(size.x * 0.82, 13.0),
+		"shadowSize": Vector2(size.x * 0.82, 13.0 * safe_scale),
 		"shadowAlpha": 0.24,
 		"trailStart": center - tangent * (43.0 + 13.0 * pop) - outward * 2.0,
 		"trailEnd": center - tangent * 10.0 + outward * 2.0,
 		"trailColor": Color(0.70, 0.95, 1.0, 0.26 + 0.22 * flash_strength),
-		"trailWidth": 6.0 + 4.0 * pop,
+		"trailWidth": (6.0 + 4.0 * pop) * safe_scale,
 		"glowPos": center,
-		"glowRadius": 36.0 + 14.0 * pop,
+		"glowRadius": (36.0 + 14.0 * pop) * safe_scale,
 		"glowColor": Color(1.0, 0.74, 0.90, 0.15 + flash_strength * 0.22 + pulse_strength * 0.14),
 		"imagePath": maro_comment_ring_badge_image_path(index),
 		"imagePos": center,
@@ -2586,31 +2591,32 @@ static func maro_comment_ring_badge(center: Vector2, angle: float, index: int, f
 		"imageAlpha": 0.98
 	}
 
-static func maro_comment_ring_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float, pulse_strength: float, flash_strength: float) -> Array:
+static func maro_comment_ring_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float, pulse_strength: float, flash_strength: float, visual_scale: float = 1.0) -> Array:
 	var items: Array = []
+	var safe_scale := clampf(visual_scale, 1.0, 1.6)
 	var phase: float = elapsed_time * orbit_speed
 	var halo_alpha: float = 0.22 + pulse_strength * 0.22 + flash_strength * 0.30
 	var halo := {
 		"visualKind": "maro_comment_ring_halo",
 		"pos": player_pos,
 		"softPos": player_pos,
-		"softRadius": radius + 42.0 + pulse_strength * 24.0,
+		"softRadius": radius + (42.0 + pulse_strength * 24.0) * safe_scale,
 		"softColor": Color(1.0, 0.74, 0.90, halo_alpha * 0.40),
 		"imagePath": maro_comment_ring_halo_image_path(),
 		"imagePos": player_pos,
-		"imageSize": Vector2.ONE * ((radius + 62.0 + pulse_strength * 24.0 + flash_strength * 18.0) * 2.0),
+		"imageSize": Vector2.ONE * ((radius + (62.0 + pulse_strength * 24.0 + flash_strength * 18.0) * safe_scale) * 2.0),
 		"imageAngle": phase * 0.018,
 		"imageAlpha": 0.86 + flash_strength * 0.12,
 		"ringPos": player_pos,
 		"ringRadius": radius,
 		"ringColor": Color(1.0, 0.94, 0.99, halo_alpha),
 		"innerPos": player_pos,
-		"innerRadius": radius - 15.0,
+		"innerRadius": radius - 15.0 * safe_scale,
 		"innerColor": Color(0.74, 1.0, 0.94, halo_alpha * 0.52),
 		"wavePoints": wavy_ring_points(player_pos, radius, 2.2 + 4.0 * maxf(pulse_strength, flash_strength), phase, 6.0),
 		"waveColor": Color(0.78, 0.98, 1.0, 0.36 + flash_strength * 0.32 + pulse_strength * 0.26),
-		"waveWidth": 4.0 + pulse_strength * 4.0 + flash_strength * 2.4,
-		"dotRadius": 3.0 + maxf(pulse_strength, flash_strength) * 2.2,
+		"waveWidth": (4.0 + pulse_strength * 4.0 + flash_strength * 2.4) * safe_scale,
+		"dotRadius": (3.0 + maxf(pulse_strength, flash_strength) * 2.2) * safe_scale,
 		"dotColor": Color(1.0, 0.86, 0.96, 0.58 + flash_strength * 0.24)
 	}
 	for i in range(6):
@@ -2620,7 +2626,7 @@ static func maro_comment_ring_draw_data(player_pos: Vector2, count: int, radius:
 		halo["trail%dStart" % (i + 1)] = trail_pos - trail_tangent * (34.0 + flash_strength * 18.0)
 		halo["trail%dEnd" % (i + 1)] = trail_pos - trail_tangent * 6.0
 		halo["trail%dColor" % (i + 1)] = Color(0.74, 0.96, 1.0, 0.22 + flash_strength * 0.16)
-		halo["trail%dWidth" % (i + 1)] = 4.0 + flash_strength * 3.0
+		halo["trail%dWidth" % (i + 1)] = (4.0 + flash_strength * 3.0) * safe_scale
 	for i in range(6):
 		var sparkle_angle: float = -phase * 0.45 + TAU * (float(i) + 0.5) / 6.0
 		var sparkle_pos: Vector2 = player_pos + Vector2(cos(sparkle_angle), sin(sparkle_angle)) * (radius + 30.0 + sin(elapsed_time * 3.0 + float(i)) * 5.0)
@@ -2637,31 +2643,32 @@ static func maro_comment_ring_draw_data(player_pos: Vector2, count: int, radius:
 	for i in range(count):
 		var angle: float = phase + TAU * float(i) / float(count)
 		var pos: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * radius
-		items.append(maro_comment_ring_badge(pos, angle, i, flash_strength, pulse_strength))
+		items.append(maro_comment_ring_badge(pos, angle, i, flash_strength, pulse_strength, safe_scale))
 	return items
 
-static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float) -> Array:
+static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, orbit_speed: float, elapsed_time: float, visual_scale: float = 1.0) -> Array:
 	var visual: Dictionary = boomerang_visual()
 	var items: Array = []
+	var safe_scale := clampf(visual_scale, 1.0, 1.6)
 	if count <= 0:
 		return items
 	for i in range(count):
 		var angle: float = elapsed_time * orbit_speed + TAU * float(i) / float(count)
 		items.append({
 			"pos": player_pos + Vector2(cos(angle), sin(angle)) * radius,
-			"outerRadius": visual["outerRadius"],
+			"outerRadius": float(visual["outerRadius"]) * safe_scale,
 			"outerStart": angle,
 			"outerEnd": angle + PI * 1.25,
 			"outerPoints": visual["outerPoints"],
 			"outerColor": visual["outerColor"] as Color,
-			"outerWidth": visual["outerWidth"],
-			"innerRadius": visual["innerRadius"],
+			"outerWidth": float(visual["outerWidth"]) * safe_scale,
+			"innerRadius": float(visual["innerRadius"]) * safe_scale,
 			"innerStart": angle + PI,
 			"innerEnd": angle + TAU * 1.2,
 			"innerPoints": visual["innerPoints"],
 			"innerColor": visual["innerColor"] as Color,
-			"innerWidth": visual["innerWidth"],
-			"textureSize": visual["textureSize"] as Vector2,
+			"innerWidth": float(visual["innerWidth"]) * safe_scale,
+			"textureSize": (visual["textureSize"] as Vector2) * safe_scale,
 			"textureAngle": angle + PI * 0.15
 		})
 	return items
@@ -2669,6 +2676,7 @@ static func boomerang_draw_data(player_pos: Vector2, count: int, radius: float, 
 static func boomerang_draw_data_for_weapon(player_pos: Vector2, weapon: Dictionary, boomerang_level: int, weapon_range: float, elapsed_time: float, weapon_state: Dictionary = {}, bullet_support_level: int = 0) -> Array:
 	var is_main_orbit: bool = WeaponSystem.attack_type(weapon) == "orbit"
 	var is_maro_ring: bool = String(weapon.get("id", "")) == "maro_comment_ring"
+	var visual_scale := clampf(float(weapon_state.get("attackAreaRate", 1.0)), 1.0, 1.6)
 	var count: int = WeaponSystem.orbit_count(weapon, boomerang_level)
 	if count > 0 and not is_maro_ring:
 		count += bullet_support_level
@@ -2686,8 +2694,8 @@ static func boomerang_draw_data_for_weapon(player_pos: Vector2, weapon: Dictiona
 		var flash_strength: float = 0.0
 		if elapsed_time < flash_until:
 			flash_strength = clampf((flash_until - elapsed_time) / 0.18, 0.0, 1.0)
-		return maro_comment_ring_draw_data(player_pos, count, radius, orbit_speed, elapsed_time, pulse_strength, flash_strength)
-	return boomerang_draw_data(player_pos, count, radius, orbit_speed, elapsed_time)
+		return maro_comment_ring_draw_data(player_pos, count, radius, orbit_speed, elapsed_time, pulse_strength, flash_strength, visual_scale)
+	return boomerang_draw_data(player_pos, count, radius, orbit_speed, elapsed_time, visual_scale)
 
 static func boomerang_parts(data: Dictionary = {}) -> Array:
 	var visual_kind: String = String(data.get("visualKind", ""))
@@ -4170,27 +4178,28 @@ static func ng_word_laser_fx_data(pos: Vector2, dir: Vector2, life: float, max_l
 		data[spark_prefix + "Width"] = 1.7 + 1.0 * burst
 	return data
 
-static func listener_summon_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float) -> Dictionary:
+static func listener_summon_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, area_rate: float = 1.0) -> Dictionary:
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var normalized_dir: Vector2 = dir.normalized()
 	if normalized_dir.length() < 0.1:
 		normalized_dir = Vector2.RIGHT
 	var bob: float = sin(life * 10.0) * 2.0
 	var pulse: float = 0.5 + 0.5 * sin(life * 8.0)
-	var image_size: float = 52.0 + pulse * 3.0
+	var visual_scale := clampf(area_rate, 1.0, 1.60)
+	var image_size: float = (52.0 + pulse * 3.0) * visual_scale
 	return {
 		"kind": "listener_summon",
 		"shadowPos": pos + Vector2(0, 15),
-		"shadowSize": Vector2(34, 9),
+		"shadowSize": Vector2(34, 9) * visual_scale,
 		"shadowAlpha": 0.22 * alpha,
 		"imagePath": "res://assets/generated/weapon_fx_v1/listener_summon.png",
 		"imagePos": pos + Vector2(0, bob - 4),
 		"imageSize": Vector2(image_size, image_size),
 		"imageAlpha": alpha,
-		"trailStart": pos + Vector2(0, bob) - normalized_dir * 7.0,
-		"trailEnd": pos + Vector2(0, bob) + normalized_dir * 23.0,
+		"trailStart": pos + Vector2(0, bob) - normalized_dir * 7.0 * visual_scale,
+		"trailEnd": pos + Vector2(0, bob) + normalized_dir * 23.0 * visual_scale,
 		"trailColor": Color(0.55, 0.86, 1.0, 0.46 * alpha),
-		"trailWidth": 4.0
+		"trailWidth": 4.0 * visual_scale
 	}
 
 static func listener_burst_fx_data(pos: Vector2, life: float, max_life: float) -> Dictionary:
@@ -4339,6 +4348,443 @@ static func relay_boss_contact_noise_fx_data(pos: Vector2, dir: Vector2, life: f
 		"spark3Width": 1.8
 	}
 
+static func _visual_config(visuals: Dictionary, role: String) -> Dictionary:
+	return visuals.get(role, {}) as Dictionary
+
+static func _visual_size(config: Dictionary, fallback: Vector2) -> Vector2:
+	var value: Variant = config.get("size", [fallback.x, fallback.y])
+	var scale_value := float(config.get("scale", 1.0))
+	if value is Array and (value as Array).size() >= 2:
+		var values: Array = value as Array
+		return Vector2(float(values[0]), float(values[1])) * scale_value
+	return fallback
+
+static func _visual_pivot(config: Dictionary) -> Vector2:
+	var value: Variant = config.get("pivotNormalized", [0.5, 0.5])
+	if value is Array and (value as Array).size() >= 2:
+		var values: Array = value as Array
+		return Vector2(float(values[0]), float(values[1]))
+	return Vector2(0.5, 0.5)
+
+static func _visual_rotation(direction: Vector2, config: Dictionary) -> float:
+	var dir := direction.normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	var forward_axis := Vector2.RIGHT
+	var axis_value: Variant = config.get("forwardAxis", [1, 0])
+	if axis_value is Array and (axis_value as Array).size() >= 2:
+		var axis_array: Array = axis_value as Array
+		forward_axis = Vector2(float(axis_array[0]), float(axis_array[1])).normalized()
+		if forward_axis.length() < 0.1:
+			forward_axis = Vector2.RIGHT
+	return dir.angle() - forward_axis.angle() + deg_to_rad(float(config.get("rotationOffsetDegrees", 0.0)))
+
+static func _visual_alpha(config: Dictionary, life: float, max_life: float) -> float:
+	var duration := float(config.get("durationSeconds", 0.0))
+	var denominator := duration if duration > 0.0 else max_life
+	return clampf(life / maxf(0.01, denominator), 0.0, 1.0) * float(config.get("alpha", 1.0))
+
+static func _visual_image_layer(role: String, config: Dictionary, anchor: Vector2, rotation: float, alpha: float) -> Dictionary:
+	var layer := {
+		"path": String(config.get("path", "")),
+		"pos": anchor,
+		"size": _visual_size(config, Vector2(1, 1)),
+		"rotation": rotation,
+		"alpha": clampf(alpha, 0.0, 1.0),
+		"pivotNormalized": _visual_pivot(config),
+		"drawLayer": String(config.get("drawLayer", "front")),
+		"role": role,
+		"zIndex": int(config.get("zIndex", 0)),
+		"rodTipNormalized": _visual_pivot(config) if not config.has("rodTipNormalized") else Vector2(float((config["rodTipNormalized"] as Array)[0]), float((config["rodTipNormalized"] as Array)[1]))
+	}
+	var fallback_path := String(config.get("fallbackPath", ""))
+	if fallback_path != "":
+		layer["fallbackConfig"] = {
+			"path": fallback_path,
+			"size": _visual_size(config, Vector2(1, 1)),
+			"pivotNormalized": _visual_pivot(config)
+		}
+		layer["fallbackRole"] = String(config.get("fallbackRole", role))
+	return layer
+
+static func _visual_point_from_anchor(anchor: Vector2, size: Vector2, pivot: Vector2, point: Vector2, rotation: float) -> Vector2:
+	return anchor + Vector2((point.x - pivot.x) * size.x, (point.y - pivot.y) * size.y).rotated(rotation)
+
+static func _visual_line(role: String, config: Dictionary, from_pos: Vector2, to_pos: Vector2, alpha: float) -> Dictionary:
+	return {
+		"from": from_pos,
+		"to": to_pos,
+		"width": float(config.get("width", 2.0)),
+		"color": Color(String(config.get("color", "#8df9e8")), clampf(alpha * float(config.get("alpha", 1.0)), 0.0, 1.0)),
+		"drawLayer": String(config.get("drawLayer", "back")),
+		"role": role
+	}
+
+static func _shield_image_layers(pos: Vector2, direction: Vector2, life: float, max_life: float, visuals: Dictionary, include_wave: bool = false, level_value: int = 1, absorbed_count: int = 0) -> Array:
+	var dir := direction.normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	var side := Vector2(-dir.y, dir.x)
+	var layers: Array = []
+	if include_wave:
+		var wave_role := "endShockwave"
+		var wave := _visual_config(visuals, wave_role)
+		if not _visual_config(visuals, "shockwave").is_empty():
+			wave_role = "shockwave"
+			wave = _visual_config(visuals, wave_role)
+			var charged_threshold := int(visuals.get("chargedShockwaveThreshold", 999999))
+			if absorbed_count >= charged_threshold and not _visual_config(visuals, "shockwaveCharged").is_empty():
+				wave_role = "shockwaveCharged"
+				wave = _visual_config(visuals, wave_role)
+		if not wave.is_empty() and level_value >= int(wave.get("minLevel", 1)):
+			var wave_layer := _visual_image_layer(wave_role, wave, pos, _visual_rotation(dir, wave), _visual_alpha(wave, life, max_life))
+			if wave_role == "shockwaveCharged":
+				wave_layer["fallbackRole"] = "shockwave"
+				wave_layer["fallbackConfig"] = _visual_config(visuals, "shockwave")
+			layers.append(wave_layer)
+		return layers
+	var trail := _visual_config(visuals, "trail")
+	if not trail.is_empty():
+		layers.append(_visual_image_layer("trail", trail, pos - dir * float(trail.get("backOffset", 0.0)), _visual_rotation(dir, trail), _visual_alpha(trail, life, max_life)))
+	var body_role := "body"
+	var body := _visual_config(visuals, body_role)
+	var charged_threshold := int(visuals.get("chargedBodyThreshold", 999999))
+	if absorbed_count >= charged_threshold and not _visual_config(visuals, "bodyCharged").is_empty():
+		body_role = "bodyCharged"
+		body = _visual_config(visuals, body_role)
+	if not body.is_empty():
+		var body_layer := _visual_image_layer(body_role, body, pos + dir * float(body.get("forwardOffset", 0.0)) + side * float(body.get("sideOffset", 0.0)), _visual_rotation(dir, body), _visual_alpha(body, life, max_life))
+		if body_role == "bodyCharged":
+			body_layer["fallbackRole"] = "body"
+			body_layer["fallbackConfig"] = _visual_config(visuals, "body")
+		layers.append(body_layer)
+	return layers
+
+static func moderator_shield_fx_data(pos: Vector2, direction: Vector2, progress: float, life: float, max_life: float, width: float, thickness: float, visuals: Dictionary = {}, include_wave: bool = false, level_value: int = 1, absorbed_count: int = 0) -> Dictionary:
+	var dir := direction.normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	var side := Vector2(-dir.y, dir.x)
+	var half_width := width * 0.5
+	var half_thickness := thickness * 0.5
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var points := PackedVector2Array([
+		pos - dir * half_thickness - side * half_width,
+		pos + dir * half_thickness - side * half_width,
+		pos + dir * half_thickness + side * half_width,
+		pos - dir * half_thickness + side * half_width
+	])
+	var edge := PackedVector2Array([points[0], points[1], points[2], points[3], points[0]])
+	return {
+		"kind": "moderator_shield_active",
+		"shieldPoints": points,
+		"shieldColors": PackedColorArray([Color(0.05, 0.12, 0.28, 0.62 * alpha)]),
+		"shieldEdge": edge,
+		"shieldEdgeColor": Color(0.88, 0.98, 1.0, 0.96 * alpha),
+		"shieldEdgeWidth": 3.0,
+		"glowStart": pos - dir * half_thickness,
+		"glowEnd": pos + dir * half_thickness,
+		"glowColor": Color(0.18, 0.94, 1.0, (0.35 + 0.35 * progress) * alpha),
+		"glowWidth": 7.0,
+		"pos": pos,
+		"imageLayers": _shield_image_layers(pos, dir, life, max_life, visuals, include_wave, level_value, absorbed_count),
+		"proceduralFallbackRole": ("shockwaveCharged" if include_wave and absorbed_count >= int(visuals.get("chargedShockwaveThreshold", 999999)) and not _visual_config(visuals, "shockwaveCharged").is_empty() else ("shockwave" if include_wave and not _visual_config(visuals, "shockwave").is_empty() else ("bodyCharged" if not include_wave and absorbed_count >= int(visuals.get("chargedBodyThreshold", 999999)) and not _visual_config(visuals, "bodyCharged").is_empty() else "body")))
+	}
+
+static func moderator_fortress_hit_fx_data(pos: Vector2, direction: Vector2, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var hit := _visual_config(visuals, "hit")
+	var radius := 14.0 + (1.0 - alpha) * 18.0
+	return {
+		"kind": "moderator_fortress_hit",
+		"pos": pos,
+		"glowPos": pos,
+		"glowRadius": radius,
+		"glowColor": Color(0.18, 0.95, 1.0, 0.42 * alpha),
+		"ringPos": pos,
+		"ringRadius": radius,
+		"ringColor": Color(0.78, 1.0, 1.0, 0.90 * alpha),
+		"ringWidth": 2.0,
+		"imageLayers": [_visual_image_layer("hit", hit, pos, _visual_rotation(direction, hit), _visual_alpha(hit, life, max_life))] if not hit.is_empty() else []
+	}
+
+static func moderator_fortress_bullet_clear_fx_data(bullet_pos: Vector2, shield_pos: Vector2, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var data := moderator_shield_bullet_clear_fx_data(bullet_pos, life, max_life, {})
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var absorb := _visual_config(visuals, "absorb")
+	var bullet_break := _visual_config(visuals, "bulletBreak")
+	var absorb_radius := 10.0 + (1.0 - alpha) * 14.0
+	data["kind"] = "moderator_fortress_bullet_clear"
+	data["shieldPos"] = shield_pos
+	data["absorbGlowPos"] = shield_pos
+	data["absorbGlowRadius"] = absorb_radius
+	data["absorbGlowColor"] = Color(0.18, 0.95, 1.0, 0.32 * alpha)
+	data["absorbRingPos"] = shield_pos
+	data["absorbRingRadius"] = absorb_radius
+	data["absorbRingColor"] = Color(0.76, 1.0, 1.0, 0.82 * alpha)
+	data["absorbRingWidth"] = 2.0
+	data["imageLayers"] = []
+	if not bullet_break.is_empty():
+		data["imageLayers"].append(_visual_image_layer("bulletBreak", bullet_break, bullet_pos, 0.0, _visual_alpha(bullet_break, life, max_life)))
+	if not absorb.is_empty():
+		data["imageLayers"].append(_visual_image_layer("absorb", absorb, shield_pos, 0.0, _visual_alpha(absorb, life, max_life)))
+	return data
+
+static func moderator_shield_bullet_clear_fx_data(pos: Vector2, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var progress := 1.0 - clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var radius := 8.0 + progress * 18.0
+	return {
+		"kind": "moderator_shield_bullet_clear",
+		"pos": pos,
+		"glowPos": pos,
+		"glowRadius": radius,
+		"glowColor": Color(0.15, 0.95, 1.0, 0.30),
+		"ringPos": pos,
+		"ringRadius": radius,
+		"ringColor": Color(0.72, 1.0, 1.0, 0.88),
+		"spark1Start": pos + Vector2(-radius, -radius),
+		"spark1End": pos + Vector2(radius, radius),
+		"spark2Start": pos + Vector2(-radius, radius),
+		"spark2End": pos + Vector2(radius, -radius),
+		"sparkColor": Color(0.62, 1.0, 1.0, 0.88),
+		"spark1Color": Color(0.62, 1.0, 1.0, 0.88),
+		"spark2Color": Color(0.62, 1.0, 1.0, 0.88),
+		"spark1Width": 2.0,
+		"spark2Width": 2.0,
+		"imageLayers": [_visual_image_layer("bulletClear", _visual_config(visuals, "bulletClear"), pos, 0.0, _visual_alpha(_visual_config(visuals, "bulletClear"), life, max_life))] if not _visual_config(visuals, "bulletClear").is_empty() else []
+	}
+
+static func fansa_baton_fx_data(pos: Vector2, direction: Vector2, combo_step: int, life: float, max_life: float, range_value: float, arc_angle: float, visuals: Dictionary = {}, visual_role: String = "", level_value: int = 1) -> Dictionary:
+	var dir := direction.normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	var side := Vector2(-dir.y, dir.x)
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var reach := range_value * (0.30 + 0.70 * (1.0 - alpha))
+	var half_arc := deg_to_rad(arc_angle * 0.5)
+	var left_dir := dir.rotated(-half_arc)
+	var right_dir := dir.rotated(half_arc)
+	var points := PackedVector2Array([pos + left_dir * reach, pos + dir * (reach * 0.94), pos + right_dir * reach])
+	var cross1 := PackedVector2Array([pos - side * 12.0, pos + dir * reach + side * 16.0])
+	var cross2 := PackedVector2Array([pos + side * 12.0, pos + dir * reach - side * 16.0])
+	var image_layers: Array = []
+	var body := _visual_config(visuals, "body")
+	var has_climax_baton_sheet := visuals.has("batonBodyLeft") or visuals.has("batonBodyRight")
+	if visual_role == "":
+		if has_climax_baton_sheet:
+			for body_role in ["batonGlowLeft", "batonGlowRight", "batonBodyLeft", "batonBodyRight"]:
+				var baton_part := _visual_config(visuals, body_role)
+				if baton_part.is_empty() or level_value < int(baton_part.get("minLevel", 1)):
+					continue
+				var hand_pos := pos + dir * float(baton_part.get("handForwardOffset", 0.0)) + side * float(baton_part.get("handSideOffset", 0.0))
+				image_layers.append(_visual_image_layer(body_role, baton_part, hand_pos, _visual_rotation(dir, baton_part), _visual_alpha(baton_part, life, max_life)))
+		elif not body.is_empty():
+			var hand_pos := pos + dir * float(body.get("handForwardOffset", 0.0)) + side * float(body.get("handSideOffset", 0.0))
+			image_layers.append(_visual_image_layer("body", body, hand_pos, _visual_rotation(dir, body), _visual_alpha(body, life, max_life)))
+	var attack_role := visual_role
+	if attack_role == "":
+		attack_role = "swingRight" if combo_step == 0 else ("swingLeft" if combo_step == 1 else "finisher")
+	var attack_visual := _visual_config(visuals, attack_role)
+	if not attack_visual.is_empty() and level_value >= int(attack_visual.get("minLevel", 1)):
+		var attack_forward_offset := float(attack_visual.get("attackForwardOffset", -1.0))
+		if attack_forward_offset < 0.0:
+			attack_forward_offset = range_value * float(attack_visual.get("attackForwardRatio", 0.0))
+		var attack_anchor := pos + dir * attack_forward_offset + side * float(attack_visual.get("attackSideOffset", 0.0))
+		image_layers.append(_visual_image_layer(attack_role, attack_visual, attack_anchor, _visual_rotation(dir, attack_visual), _visual_alpha(attack_visual, life, max_life)))
+		if has_climax_baton_sheet and visual_role == "" and combo_step == 2:
+			for extra_role in ["finisherBg", "confetti"]:
+				var extra_visual := _visual_config(visuals, extra_role)
+				if extra_visual.is_empty() or level_value < int(extra_visual.get("minLevel", 1)):
+					continue
+				var extra_forward_offset := float(extra_visual.get("attackForwardOffset", attack_forward_offset))
+				var extra_anchor := pos + dir * extra_forward_offset + side * float(extra_visual.get("attackSideOffset", 0.0))
+				image_layers.append(_visual_image_layer(extra_role, extra_visual, extra_anchor, _visual_rotation(dir, extra_visual), _visual_alpha(extra_visual, life, max_life)))
+	return {
+		"kind": "fansa_baton_hit",
+		"attackVisualRole": attack_role,
+		"trailPoints": points,
+		"trailColor": Color(1.0, 0.42, 0.10, 0.92 * alpha),
+		"trailWidth": 7.0 if combo_step != 2 else 10.0,
+		"trailGlowColor": Color(1.0, 0.74, 0.32, 0.34 * alpha),
+		"trailGlowWidth": 17.0 if combo_step != 2 else 23.0,
+		"cross1": cross1,
+		"cross2": cross2,
+		"crossColor": Color(1.0, 0.74, 0.20, 0.84 * alpha),
+		"crossWidth": 6.0,
+		"pos": pos,
+		"imageLayers": image_layers
+	}
+
+static func tsuri_rod_fx_data(pos: Vector2, phase: String, player_pos: Vector2, reel_destination: Vector2, life: float, max_life: float, path_width: float, gather_radius: float, visuals: Dictionary = {}, direction_hint: Vector2 = Vector2.RIGHT) -> Dictionary:
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var direction := (pos - player_pos).normalized()
+	if direction.length() < 0.1:
+		direction = direction_hint.normalized()
+	if direction.length() < 0.1:
+		direction = Vector2.RIGHT
+	var side := Vector2(-direction.y, direction.x)
+	var image_layers: Array = []
+	var image_lines: Array = []
+	var body := _visual_config(visuals, "body")
+	var body_rotation := _visual_rotation(direction, body)
+	if not body.is_empty():
+		var body_size := _visual_size(body, Vector2(18, 142))
+		var body_pivot := _visual_pivot(body)
+		image_layers.append(_visual_image_layer("body", body, player_pos, body_rotation, _visual_alpha(body, life, max_life)))
+		var tip_value: Variant = body.get("rodTipNormalized", [0.5, 0.05])
+		var tip := Vector2(0.5, 0.05)
+		if tip_value is Array and (tip_value as Array).size() >= 2:
+			var tip_array: Array = tip_value as Array
+			tip = Vector2(float(tip_array[0]), float(tip_array[1]))
+		var line := _visual_config(visuals, "line")
+		if not line.is_empty():
+			var tip_pos := _visual_point_from_anchor(player_pos, body_size, body_pivot, tip, body_rotation)
+			var fishing_line := _visual_line("line", line, tip_pos, pos, _visual_alpha(body, life, max_life))
+			fishing_line["sourceRole"] = "body"
+			image_lines.append(fishing_line)
+	var lure := _visual_config(visuals, "lure")
+	if not lure.is_empty():
+		image_layers.append(_visual_image_layer("lure", lure, pos, _visual_rotation(direction, lure), _visual_alpha(lure, life, max_life)))
+	return {
+		"kind": "tsuri_rod_cast",
+		"lineStart": player_pos,
+		"lineEnd": pos,
+		"lineColor": Color(0.30, 0.96, 1.0, 0.62 * alpha),
+		"lineWidth": 2.0,
+		"speedStart": pos - direction * 28.0 + side * 4.0,
+		"speedEnd": pos + direction * 7.0 + side * 4.0,
+		"speedColor": Color(0.78, 0.68, 1.0, 0.58 * alpha),
+		"speedWidth": 4.0,
+		"lurePos": pos,
+		"lureRadius": 8.0,
+		"lureColor": Color(0.74, 0.30, 0.98, 0.96 * alpha),
+		"gatherPos": pos,
+		"gatherRadius": gather_radius,
+		"gatherColor": Color(0.75, 0.55, 1.0, 0.20 * alpha),
+		"gatherWidth": 2.0,
+		"reelStart": pos,
+		"reelEnd": reel_destination,
+		"reelColor": Color(0.38, 0.96, 1.0, 0.45 * alpha),
+		"reelWidth": maxf(2.0, path_width * 0.12),
+		"imageLayers": image_layers,
+		"imageLines": image_lines
+	}
+
+static func buzz_thumbnail_rod_visual_fx_data(kind: String, role: String, pos: Vector2, direction: Vector2, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var config := _visual_config(visuals, role)
+	var alpha := _visual_alpha(config, life, max_life)
+	var radius := maxf(12.0, _visual_size(config, Vector2(48, 48)).x * 0.5)
+	return {
+		"kind": kind,
+		"visualRole": role,
+		"pos": pos,
+		"glowPos": pos,
+		"glowRadius": radius,
+		"glowColor": Color(0.66, 0.35, 1.0, 0.42 * alpha),
+		"ringPos": pos,
+		"ringRadius": radius,
+		"ringColor": Color(0.42, 0.96, 1.0, 0.78 * alpha),
+		"ringWidth": 2.0,
+		"imageLayers": [_visual_image_layer(role, config, pos, _visual_rotation(direction, config), alpha)] if not config.is_empty() else []
+	}
+
+static func buzz_thumbnail_rod_gather_fx_data(pos: Vector2, radius: float, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var data := tsuri_rod_gather_fx_data(pos, radius, life, max_life, visuals)
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var image_layers: Array = []
+	for role in ["zone", "pull"]:
+		var config := _visual_config(visuals, role)
+		if config.is_empty():
+			continue
+		image_layers.append(_visual_image_layer(role, config, pos, 0.0, _visual_alpha(config, life, max_life)))
+	data["kind"] = "buzz_thumbnail_rod_gather"
+	data["imageLayers"] = image_layers
+	data["gatherAlpha"] = alpha
+	return data
+
+static func buzz_thumbnail_rod_explosion_fx_data(pos: Vector2, radius: float, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var image_layers: Array = []
+	for role in ["explosion", "burstDeco"]:
+		var config := _visual_config(visuals, role)
+		if config.is_empty():
+			continue
+		image_layers.append(_visual_image_layer(role, config, pos, 0.0, _visual_alpha(config, life, max_life)))
+	return {
+		"kind": "buzz_thumbnail_rod_explosion",
+		"pos": pos,
+		"ringPos": pos,
+		"ringRadius": radius,
+		"ringColor": Color(0.82, 0.42, 1.0, 0.60 * alpha),
+		"ringWidth": 3.0,
+		"imageLayers": image_layers
+	}
+
+static func tsuri_rod_gather_fx_data(pos: Vector2, radius: float, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	return {
+		"kind": "tsuri_rod_gather",
+		"pos": pos,
+		"ringPos": pos,
+		"ringRadius": radius * (1.0 - 0.25 * alpha),
+		"ringColor": Color(0.78, 0.62, 1.0, 0.42 * alpha),
+		"ringWidth": 2.5,
+		"imageLayers": [_visual_image_layer("gather", _visual_config(visuals, "gather"), pos, 0.0, _visual_alpha(_visual_config(visuals, "gather"), life, max_life))] if not _visual_config(visuals, "gather").is_empty() else []
+	}
+
+static func tsuri_rod_reel_hit_fx_data(pos: Vector2, direction: Vector2, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var hit := _visual_config(visuals, "reelHit")
+	var alpha := _visual_alpha(hit, life, max_life)
+	return {
+		"kind": "tsuri_rod_reel_hit",
+		"pos": pos,
+		"ringPos": pos,
+		"ringRadius": 20.0,
+		"ringColor": Color(0.78, 0.62, 1.0, 0.54 * alpha),
+		"ringWidth": 2.0,
+		"imageLayers": [_visual_image_layer("reelHit", hit, pos, _visual_rotation(direction, hit), _visual_alpha(hit, life, max_life))] if not hit.is_empty() else []
+	}
+
+static func fansa_climax_fan_wave_fx_data(pos: Vector2, radius: float, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var wave := _visual_config(visuals, "wave")
+	return {
+		"kind": "fansa_climax_fan_wave",
+		"pos": pos,
+		"ringPos": pos,
+		"ringRadius": radius * (1.0 - 0.22 * alpha),
+		"ringColor": Color(1.0, 0.56, 0.16, 0.58 * alpha),
+		"ringWidth": 4.0,
+		"waveColor": Color(1.0, 0.84, 0.30, 0.38 * alpha),
+		"waveWidth": 8.0,
+		"imageLayers": [_visual_image_layer("wave", wave, pos, 0.0, _visual_alpha(wave, life, max_life))] if not wave.is_empty() else []
+	}
+
+static func fansa_climax_spark_fx_data(pos: Vector2, life: float, max_life: float, visuals: Dictionary = {}, spark_multiplier: float = 1.0) -> Dictionary:
+	var spark := _visual_config(visuals, "spark")
+	var spark_config := spark.duplicate(true)
+	if not spark_config.is_empty():
+		spark_config["scale"] = float(spark_config.get("scale", 1.0)) * maxf(0.1, spark_multiplier)
+	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+	var radius := 12.0 + (1.0 - alpha) * 12.0
+	return {
+		"kind": "fansa_climax_spark",
+		"pos": pos,
+		"glowPos": pos,
+		"glowRadius": radius,
+		"glowColor": Color(1.0, 0.68, 0.16, 0.42 * alpha),
+		"spark1Start": pos + Vector2(-radius, -radius),
+		"spark1End": pos + Vector2(radius, radius),
+		"spark2Start": pos + Vector2(-radius, radius),
+		"spark2End": pos + Vector2(radius, -radius),
+		"sparkColor": Color(1.0, 0.88, 0.28, 0.86 * alpha),
+		"spark1Color": Color(1.0, 0.98, 0.72, 0.92 * alpha),
+		"spark2Color": Color(1.0, 0.58, 0.10, 0.84 * alpha),
+		"spark1Width": 2.0,
+		"spark2Width": 2.0,
+		"imageLayers": [_visual_image_layer("spark", spark_config, pos, 0.0, _visual_alpha(spark_config, life, max_life))] if not spark_config.is_empty() else []
+	}
+
 static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Array:
 	var items: Array = []
 	var use_culling := visible_rect.size != Vector2.ZERO
@@ -4347,6 +4793,108 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 		if float(fx_item.get("delay", 0.0)) > 0.0:
 			continue
 		if use_culling and fx_item.has("pos") and not visible_rect.has_point(Vector2(fx_item.get("pos", Vector2.ZERO))):
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_shield_active":
+			items.append(moderator_shield_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item.get("progress", 0.0)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.70)), float(fx_item.get("width", 130.0)), float(fx_item.get("thickness", 48.0)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_fortress_active":
+			var fortress_data := moderator_shield_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item.get("progress", 0.0)), float(fx_item.get("life", 0.70)), float(fx_item.get("maxLife", 0.70)), float(fx_item.get("width", 170.0)), float(fx_item.get("thickness", 54.0)), fx_item.get("visuals", {}) as Dictionary, false, int(fx_item.get("level", 1)), int(fx_item.get("bulletClears", 0)))
+			fortress_data["kind"] = "moderator_fortress_active"
+			items.append(fortress_data)
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_shield_end_wave":
+			var wave_data := moderator_shield_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), 1.0, float(fx_item["life"]), float(fx_item.get("maxLife", 0.24)), float(fx_item.get("width", 150.0)), float(fx_item.get("depth", 26.0)), fx_item.get("visuals", {}) as Dictionary, true, int(fx_item.get("level", 5)))
+			wave_data["kind"] = "moderator_shield_end_wave"
+			wave_data["shieldColors"] = PackedColorArray([Color(0.22, 0.10, 0.48, 0.52)])
+			wave_data["shieldEdgeColor"] = Color(0.92, 0.70, 1.0, 0.92)
+			wave_data["glowColor"] = Color(0.76, 0.50, 1.0, 0.72)
+			items.append(wave_data)
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_fortress_shockwave":
+			var fortress_wave := moderator_shield_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), 1.0, float(fx_item.get("life", 0.28)), float(fx_item.get("maxLife", 0.28)), float(fx_item.get("radius", 120.0)) * 1.35, 28.0, fx_item.get("visuals", {}) as Dictionary, true, 5, int(fx_item.get("absorbed", 0)))
+			fortress_wave["kind"] = "moderator_fortress_shockwave"
+			fortress_wave["shieldColors"] = PackedColorArray([Color(0.18, 0.12, 0.48, 0.46)])
+			fortress_wave["shieldEdgeColor"] = Color(0.86, 0.68, 1.0, 0.90)
+			items.append(fortress_wave)
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_fortress_hit":
+			items.append(moderator_fortress_hit_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item.get("life", 0.19)), float(fx_item.get("maxLife", 0.19)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_fortress_bullet_clear":
+			items.append(moderator_fortress_bullet_clear_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("shieldPos", fx_item.get("pos", Vector2.ZERO))), float(fx_item.get("life", 0.18)), float(fx_item.get("maxLife", 0.18)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "moderator_shield_bullet_clear":
+			var bullet_clear_data := moderator_shield_bullet_clear_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("life", 0.20)), float(fx_item.get("maxLife", 0.24)), fx_item.get("visuals", {}) as Dictionary)
+			bullet_clear_data["kind"] = String(fx_item.get("kind", "moderator_shield_bullet_clear"))
+			items.append(bullet_clear_data)
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_baton_hit":
+			items.append(fansa_baton_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), int(fx_item.get("comboStep", 0)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.24)), float(fx_item.get("range", 110.0)), float(fx_item.get("arcAngle", 50.0)), fx_item.get("visuals", {}) as Dictionary, "", int(fx_item.get("level", 1))))
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_climax_hit":
+			var climax_data := fansa_baton_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), int(fx_item.get("comboStep", 0)), float(fx_item.get("life", 0.24)), float(fx_item.get("maxLife", 0.24)), float(fx_item.get("range", 125.0)), float(fx_item.get("arcAngle", 55.0)), fx_item.get("visuals", {}) as Dictionary, "", 1)
+			climax_data["kind"] = "fansa_climax_hit"
+			items.append(climax_data)
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_climax_echo":
+			var echo_data := fansa_baton_fx_data(Vector2(fx_item.get("origin", fx_item.get("pos", Vector2.ZERO))), Vector2(fx_item.get("dir", Vector2.RIGHT)), 0, float(fx_item.get("life", 0.22)), float(fx_item.get("maxLife", 0.22)), float(fx_item.get("range", 125.0)), float(fx_item.get("arcAngle", 55.0)), fx_item.get("visuals", {}) as Dictionary, "echo", 1)
+			echo_data["kind"] = "fansa_climax_echo"
+			items.append(echo_data)
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_climax_x":
+			var climax_x := fansa_baton_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), 2, float(fx_item.get("life", 0.30)), float(fx_item.get("maxLife", 0.30)), float(fx_item.get("range", 160.0)), float(fx_item.get("arcAngle", 80.0)), fx_item.get("visuals", {}) as Dictionary, "xSlash", 5)
+			climax_x["kind"] = "fansa_climax_x"
+			items.append(climax_x)
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_climax_fan_wave":
+			items.append(fansa_climax_fan_wave_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("radius", 105.0)), float(fx_item.get("life", 0.28)), float(fx_item.get("maxLife", 0.28)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_climax_spark":
+			items.append(fansa_climax_spark_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("life", 0.18)), float(fx_item.get("maxLife", 0.18)), fx_item.get("visuals", {}) as Dictionary, float(fx_item.get("sparkMultiplier", 1.0))))
+			continue
+		if String(fx_item.get("kind", "")) == "fansa_baton_cross_followup":
+			var cross_data := fansa_baton_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), 2, float(fx_item["life"]), float(fx_item.get("maxLife", 0.30)), float(fx_item.get("range", 140.0)), float(fx_item.get("arcAngle", 70.0)), fx_item.get("visuals", {}) as Dictionary, "xSlash", int(fx_item.get("level", 1)))
+			cross_data["kind"] = "fansa_baton_cross_followup"
+			cross_data["trailColor"] = Color(1.0, 0.58, 0.08, 0.96)
+			cross_data["crossColor"] = Color(1.0, 0.90, 0.32, 0.96)
+			items.append(cross_data)
+			continue
+		if String(fx_item.get("kind", "")) == "tsuri_rod_cast":
+			var rod_data := tsuri_rod_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), String(fx_item.get("phase", "casting")), Vector2(fx_item.get("displayPlayerPos", Vector2.ZERO)), Vector2(fx_item.get("reelDestination", Vector2.ZERO)), float(fx_item["life"]), float(fx_item.get("maxLife", 8.0)), float(fx_item.get("pathWidth", 22.0)), float(fx_item.get("gatherRadius", 90.0)), fx_item.get("visuals", {}) as Dictionary, Vector2(fx_item.get("dir", Vector2.RIGHT)))
+			if bool(fx_item.get("collisionEnabled", false)) and String(fx_item.get("phase", "")) == "reeling":
+				rod_data["collisionPos"] = Vector2(fx_item.get("pos", Vector2.ZERO))
+				rod_data["collisionRadius"] = float(fx_item.get("collisionRadius", 24.0))
+				rod_data["collisionColor"] = Color(0.90, 0.62, 1.0, 0.34)
+			items.append(rod_data)
+			continue
+		if String(fx_item.get("kind", "")) == "buzz_thumbnail_rod_cast":
+			var buzz_rod_data := tsuri_rod_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), String(fx_item.get("phase", "casting")), Vector2(fx_item.get("displayPlayerPos", Vector2.ZERO)), Vector2(fx_item.get("reelDestination", Vector2.ZERO)), float(fx_item.get("life", 10.0)), float(fx_item.get("maxLife", 10.0)), 22.0, float(fx_item.get("gatherRadius", 125.0)), fx_item.get("visuals", {}) as Dictionary, Vector2(fx_item.get("dir", Vector2.RIGHT)))
+			buzz_rod_data["kind"] = "buzz_thumbnail_rod_cast"
+			items.append(buzz_rod_data)
+			continue
+		if String(fx_item.get("kind", "")) == "tsuri_rod_gather":
+			items.append(tsuri_rod_gather_fx_data(Vector2(fx_item["pos"]), float(fx_item.get("radius", 90.0)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "tsuri_rod_reel_hit":
+			items.append(tsuri_rod_reel_hit_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.20)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "buzz_thumbnail_rod_gather":
+			items.append(buzz_thumbnail_rod_gather_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("radius", 125.0)), float(fx_item.get("life", 0.80)), float(fx_item.get("maxLife", 0.80)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) == "buzz_thumbnail_rod_explosion":
+			items.append(buzz_thumbnail_rod_explosion_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("radius", 78.0)), float(fx_item.get("life", 0.30)), float(fx_item.get("maxLife", 0.30)), fx_item.get("visuals", {}) as Dictionary))
+			continue
+		if String(fx_item.get("kind", "")) in ["buzz_thumbnail_rod_target_mark", "buzz_thumbnail_rod_throw", "buzz_thumbnail_rod_bear_flash", "buzz_thumbnail_rod_catch_mark", "buzz_thumbnail_rod_hit"]:
+			var visual_role := String(fx_item.get("visualRole", ""))
+			if visual_role == "":
+				visual_role = {
+					"buzz_thumbnail_rod_target_mark": "targetMark",
+					"buzz_thumbnail_rod_throw": "throw",
+					"buzz_thumbnail_rod_bear_flash": "bearFlash",
+					"buzz_thumbnail_rod_catch_mark": "catchMark",
+					"buzz_thumbnail_rod_hit": "hit"
+				}.get(String(fx_item.get("kind", "")), "hit")
+			items.append(buzz_thumbnail_rod_visual_fx_data(String(fx_item.get("kind", "")), visual_role, Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item.get("life", 0.18)), float(fx_item.get("maxLife", 0.18)), fx_item.get("visuals", {}) as Dictionary))
 			continue
 		if String(fx_item.get("kind", "")) == "comment_pin":
 			items.append(comment_pin_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.45))))
@@ -4364,7 +4912,7 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 			items.append(ng_word_laser_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 0.25)), float(fx_item.get("range", 640.0)), float(fx_item.get("width", 44.0)), int(fx_item.get("count", 0))))
 			continue
 		if String(fx_item.get("kind", "")) == "listener_summon":
-			items.append(listener_summon_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 6.0))))
+			items.append(listener_summon_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item.get("dir", Vector2.RIGHT)), float(fx_item["life"]), float(fx_item.get("maxLife", 6.0)), float(fx_item.get("attackAreaRate", 1.0))))
 			continue
 		if String(fx_item.get("kind", "")) == "listener_burst":
 			items.append(listener_burst_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.22))))
@@ -4485,7 +5033,7 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 				Vector2(fx_item.get("dir", Vector2.RIGHT)),
 				float(fx_item["life"]),
 				float(fx_item.get("maxLife", 1.0)),
-				float(fx_item.get("sizeScale", 1.0)),
+				float(fx_item.get("sizeScale", 1.0)) * clampf(float(fx_item.get("attackAreaRate", 1.0)), 1.0, 1.60),
 				float(fx_item.get("distanceTraveled", 0.0)) / maxf(1.0, float(fx_item.get("maxDistance", fx_item.get("range", 450.0)))),
 				int(fx_item.get("bouncesLeft", 0))
 			))
@@ -4551,6 +5099,89 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 	return items
 
 static func hit_fx_parts(data: Dictionary) -> Array:
+	if String(data.get("kind", "")) in ["moderator_shield_active", "moderator_shield_end_wave", "moderator_fortress_active", "moderator_fortress_shockwave"]:
+		var shield_fallback_role := "endShockwave" if String(data.get("kind", "")) in ["moderator_shield_end_wave", "moderator_fortress_shockwave"] else "body"
+		shield_fallback_role = String(data.get("proceduralFallbackRole", shield_fallback_role))
+		return [
+			{"kind": "polygon", "pointsKey": "shieldPoints", "colorsKey": "shieldColors", "fallbackRole": shield_fallback_role},
+			{"kind": "polyline", "pointsKey": "shieldEdge", "colorKey": "shieldEdgeColor", "widthKey": "shieldEdgeWidth", "fallbackRole": shield_fallback_role},
+			{"kind": "line", "prefix": "glow", "fallbackRole": shield_fallback_role}
+		]
+	if String(data.get("kind", "")) == "moderator_fortress_hit":
+		return [
+			{"kind": "circle", "prefix": "glow", "fallbackRole": "hit"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.0, "fallbackRole": "hit"}
+		]
+	if String(data.get("kind", "")) == "moderator_fortress_bullet_clear":
+		return [
+			{"kind": "circle", "prefix": "glow", "fallbackRole": "bulletBreak"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.0, "fallbackRole": "bulletBreak"},
+			{"kind": "line", "prefix": "spark1", "fallbackRole": "bulletBreak"},
+			{"kind": "line", "prefix": "spark2", "fallbackRole": "bulletBreak"},
+			{"kind": "circle", "prefix": "absorbGlow", "fallbackRole": "absorb"},
+			{"kind": "circle", "prefix": "absorbRing", "filled": false, "width": 2.0, "fallbackRole": "absorb"}
+		]
+	if String(data.get("kind", "")) == "moderator_shield_bullet_clear":
+		return [
+			{"kind": "circle", "prefix": "glow", "fallbackRole": "bulletClear"},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.0, "fallbackRole": "bulletClear"},
+			{"kind": "line", "prefix": "spark1", "fallbackRole": "bulletClear"},
+			{"kind": "line", "prefix": "spark2", "fallbackRole": "bulletClear"}
+		]
+	if String(data.get("kind", "")) in ["fansa_baton_hit", "fansa_baton_cross_followup", "fansa_climax_hit", "fansa_climax_echo", "fansa_climax_x"]:
+		var baton_fallback_role := String(data.get("attackVisualRole", ""))
+		if baton_fallback_role == "":
+			baton_fallback_role = "xSlash" if String(data.get("kind", "")) in ["fansa_baton_cross_followup", "fansa_climax_x"] else ("swingRight" if int(data.get("comboStep", 0)) == 0 else ("swingLeft" if int(data.get("comboStep", 0)) == 1 else "finisher"))
+		return [
+			{"kind": "polyline", "pointsKey": "trailPoints", "colorKey": "trailGlowColor", "widthKey": "trailGlowWidth", "fallbackRole": baton_fallback_role},
+			{"kind": "polyline", "pointsKey": "trailPoints", "colorKey": "trailColor", "widthKey": "trailWidth", "fallbackRole": baton_fallback_role},
+			{"kind": "polyline", "pointsKey": "cross1", "colorKey": "crossColor", "widthKey": "crossWidth", "fallbackRole": baton_fallback_role},
+			{"kind": "polyline", "pointsKey": "cross2", "colorKey": "crossColor", "widthKey": "crossWidth", "fallbackRole": baton_fallback_role}
+		]
+	if String(data.get("kind", "")) == "fansa_climax_spark":
+		return [
+			{"kind": "circle", "prefix": "glow", "fallbackRole": "spark"},
+			{"kind": "line", "prefix": "spark1", "fallbackRole": "spark"},
+			{"kind": "line", "prefix": "spark2", "fallbackRole": "spark"}
+		]
+	if String(data.get("kind", "")) == "tsuri_rod_cast":
+		var rod_parts: Array = [
+			{"kind": "line", "prefix": "line", "drawLayer": "back", "fallbackLineRole": "line"},
+			{"kind": "line", "prefix": "speed"},
+			{"kind": "line", "prefix": "reel", "fallbackLineRole": "line"},
+			{"kind": "circle", "prefix": "gather", "filled": false, "width": 2.0, "colorKey": "gatherColor"},
+			{"kind": "circle", "prefix": "lure", "fallbackRole": "lure"}
+		]
+		if data.has("collisionPos"):
+			rod_parts.append({"kind": "circle", "prefix": "collision", "filled": false, "width": 1.5, "colorKey": "collisionColor"})
+		return rod_parts
+	if String(data.get("kind", "")) == "buzz_thumbnail_rod_cast":
+		return [
+			{"kind": "line", "prefix": "line", "drawLayer": "back", "fallbackLineRole": "line"},
+			{"kind": "line", "prefix": "speed"},
+			{"kind": "line", "prefix": "reel", "fallbackLineRole": "line"},
+			{"kind": "circle", "prefix": "gather", "filled": false, "width": 2.0, "colorKey": "gatherColor"},
+			{"kind": "circle", "prefix": "lure", "fallbackRole": "lure"}
+		]
+	if String(data.get("kind", "")) == "tsuri_rod_gather":
+		return [
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.5}
+		]
+	if String(data.get("kind", "")) == "tsuri_rod_reel_hit":
+		return [
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.0, "fallbackRole": "reelHit"}
+		]
+	if String(data.get("kind", "")) == "buzz_thumbnail_rod_gather":
+		return [{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.5, "fallbackRole": String(data.get("proceduralFallbackRole", "zone"))}]
+	if String(data.get("kind", "")) == "buzz_thumbnail_rod_explosion":
+		return [{"kind": "circle", "prefix": "ring", "filled": false, "width": 3.0, "fallbackRole": String(data.get("proceduralFallbackRole", "explosion"))}]
+	if String(data.get("kind", "")) in ["buzz_thumbnail_rod_target_mark", "buzz_thumbnail_rod_throw", "buzz_thumbnail_rod_bear_flash", "buzz_thumbnail_rod_catch_mark", "buzz_thumbnail_rod_hit"]:
+		return [
+			{"kind": "circle", "prefix": "glow", "fallbackRole": String(data.get("visualRole", "hit"))},
+			{"kind": "circle", "prefix": "ring", "filled": false, "width": 2.0, "fallbackRole": String(data.get("visualRole", "hit"))}
+		]
+	if String(data.get("kind", "")) == "fansa_climax_fan_wave":
+		return [{"kind": "circle", "prefix": "ring", "filled": false, "width": 4.0, "fallbackRole": "wave"}]
 	if String(data.get("kind", "")) == "pickup_text":
 		return [
 			{"kind": "text", "prefix": "shadow"},
@@ -4933,7 +5564,7 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 	else:
 		parts.append({"kind": "arc", "prefix": "main"})
 		parts.append({"kind": "arc", "prefix": "core"})
-	if bool(data["showBurst"]):
+	if bool(data.get("showBurst", false)):
 		parts.append({"kind": "circle", "prefix": "burstGlow"})
 		parts.append({"kind": "circle", "prefix": "burst"})
 		parts.append({"kind": "circle", "prefix": "burstRing", "filled": false, "width": 2.5})
@@ -4942,3 +5573,16 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		parts.append({"kind": "text", "prefix": "labelShadow"})
 		parts.append({"kind": "text", "prefix": "label"})
 	return parts
+
+static func hit_fx_procedural_parts(data: Dictionary, loaded_visual_roles: Dictionary = {}, valid_image_line_roles: Dictionary = {}) -> Array:
+	var result: Array = []
+	for part_item in hit_fx_parts(data):
+		var part: Dictionary = part_item as Dictionary
+		var fallback_role := String(part.get("fallbackRole", ""))
+		if fallback_role != "" and bool(loaded_visual_roles.get(fallback_role, false)):
+			continue
+		var fallback_line_role := String(part.get("fallbackLineRole", ""))
+		if fallback_line_role != "" and bool(valid_image_line_roles.get(fallback_line_role, false)):
+			continue
+		result.append(part)
+	return result

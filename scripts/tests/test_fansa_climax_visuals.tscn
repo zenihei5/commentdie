@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://scripts/tests/test_fansa_climax_visuals.gd" type="Script" id="1"]
+
+[node name="FansaClimaxVisualTests" type="Node"]
+script = ExtResource("1")

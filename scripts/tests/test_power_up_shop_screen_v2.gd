@@ -87,8 +87,8 @@ func _run_tests() -> void:
 	screen.size = Vector2(1280, 720)
 	screen._layout_responsive()
 	_check(screen.card_grid.columns == 2, "card grid has two columns")
-	_check(screen.card_grid.get_child_count() == 8, "card pool has eight reusable cards")
-	_check(_visible_card_count() == 4, "combat category shows four cards")
+	_check(screen.card_grid.get_child_count() == 12, "card pool has twelve reusable cards")
+	_check(_visible_card_count() == 6, "combat category shows six cards")
 	_check(screen.detail_panel.get_rect().size.x > 0.0, "detail panel laid out")
 	_check(screen.purchase_button.get_rect().size.x > 0.0, "purchase button laid out")
 	_check(screen.reset_button.get_rect().size.x > 0.0, "footer reset button laid out")
@@ -115,8 +115,8 @@ func _run_tests() -> void:
 
 	screen._on_category_pressed(1)
 	await get_tree().process_frame
-	_check(screen.card_grid.get_child_count() == 8, "support keeps the reusable card pool")
-	_check(_visible_card_count() == 4, "support category shows four cards")
+	_check(screen.card_grid.get_child_count() == 12, "support keeps the reusable card pool")
+	_check(_visible_card_count() == 6, "support category shows six cards")
 	screen._on_card_selected(3)
 	_check(screen.comparison_current.text == "補正なし", "gift luck Lv0 current effect is none")
 	_check(screen.comparison_next.text == "当たり ×1.08\n大当たり ×1.12", "gift luck Lv0 next effect uses two lines")
@@ -237,8 +237,10 @@ func _test_input_navigation(manager) -> void:
 	var transitions := [
 		[0, "left", 0, 0], [0, "right", 1, 0], [0, "up", 0, 3], [0, "down", 2, 0],
 		[1, "left", 0, 0], [1, "right", 1, 0], [1, "up", 1, 3], [1, "down", 3, 0],
-		[2, "left", 2, 0], [2, "right", 3, 0], [2, "up", 0, 0], [2, "down", 2, 1],
-		[3, "left", 2, 0], [3, "right", 3, 0], [3, "up", 1, 0], [3, "down", 3, 1],
+		[2, "left", 2, 0], [2, "right", 3, 0], [2, "up", 0, 0], [2, "down", 4, 0],
+		[3, "left", 2, 0], [3, "right", 3, 0], [3, "up", 1, 0], [3, "down", 5, 0],
+		[4, "left", 4, 0], [4, "right", 5, 0], [4, "up", 2, 0], [4, "down", 4, 1],
+		[5, "left", 4, 0], [5, "right", 5, 0], [5, "up", 3, 0], [5, "down", 5, 1],
 	]
 	for item in transitions:
 		screen.focus_area = 0
@@ -246,8 +248,8 @@ func _test_input_navigation(manager) -> void:
 		screen.selected_index = int(item[0])
 		screen._refresh_focus_visuals()
 		screen._handle_action(String(item[1]))
-		_check(screen.selected_index == int(item[2]), "2x2 transition %s from %d" % [String(item[1]), int(item[0])])
-		_check(screen.focus_area == int(item[3]), "2x2 focus area %s from %d" % [String(item[1]), int(item[0])])
+		_check(screen.selected_index == int(item[2]), "2x3 transition %s from %d" % [String(item[1]), int(item[0])])
+		_check(screen.focus_area == int(item[3]), "2x3 focus area %s from %d" % [String(item[1]), int(item[0])])
 		if int(item[3]) == 1:
 			_check(not screen.reset_confirm_visible, "down to reset does not open dialog")
 
@@ -286,7 +288,7 @@ func _test_input_navigation(manager) -> void:
 	screen._handle_action("down")
 	screen._handle_action("up")
 	_check(screen.focus_area == 0 and screen.selected_index == 3, "reset up returns to card 3")
-	screen.selected_index = 2
+	screen.selected_index = 4
 	screen.focus_area = 0
 	screen._handle_action("down")
 	_check(screen.focus_area == 1 and screen.footer_choice == screen.FooterChoice.BACK, "footer entry selects Back")
@@ -435,7 +437,7 @@ func _test_v3_display_and_state(database, manager) -> void:
 	screen.selected_index = 0
 	manager.profile["currentPoints"] = 10000
 	screen._refresh_view()
-	_check(screen._cards.size() == 4, "combat v3 cards exist")
+	_check(screen._cards.size() == 6, "combat lineup cards exist")
 	_check(screen._cards[0].title_label.text == "メンタルトレーニング", "card name uses displayName")
 	_check(screen._cards[0].lamp_panels.size() == 5, "card has five independent lamps")
 	_check(not screen._cards[0].title_label.clip_text and screen._cards[0].title_label.max_lines_visible == 2, "card name is two-line unclipped")
@@ -511,7 +513,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 		var style: Dictionary = visual_upgrade.get("visualStyle", {}) as Dictionary
 		_check(style.has("baseColor") and style.has("accentColor") and style.has("patternId") and style.has("patternAlpha"), "visual style fields %s" % String(visual_upgrade.get("id", "")))
 		pattern_ids.append(String(style.get("patternId", "")))
-	_check(pattern_ids.size() == 8 and pattern_ids.duplicate().size() == 8, "eight upgrades have unique visual patterns")
+	_check(pattern_ids.size() == 12 and pattern_ids.duplicate().size() == 12, "twelve upgrades have unique visual patterns")
 	_check((database.mascot_messages as Dictionary).has("purchaseSuccess"), "mascot messages are loaded from database")
 	for item in [[0, UiStateScript.UpgradeVisualTier.UNPURCHASED], [1, UiStateScript.UpgradeVisualTier.LOW], [2, UiStateScript.UpgradeVisualTier.LOW], [3, UiStateScript.UpgradeVisualTier.HIGH], [4, UiStateScript.UpgradeVisualTier.HIGH], [5, UiStateScript.UpgradeVisualTier.MAX]]:
 		var view: Dictionary = UiStateScript.build(max_hp, int(item[0]), 10000)
@@ -554,7 +556,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 	screen.focus_area = screen.FocusArea.CARDS
 	screen._refresh_view()
 	var combat_first = screen._cards[0]
-	_check(screen.card_grid.get_child_count() == 8 and _visible_card_count() == 4, "v4 card pool visibility")
+	_check(screen.card_grid.get_child_count() == 12 and _visible_card_count() == 6, "v4 card pool visibility")
 	_check(screen.progress_value.text == "0 / %d" % expected_max_level, "total progress starts at zero")
 	_check(screen.detail_level_gauge.get_child_count() == 5, "detail has five level lamps")
 	_check(screen.category_background.get_child_count() == 3, "common and category room backgrounds are resident")
@@ -598,7 +600,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 	screen._refresh_view()
 	screen._on_category_pressed(1)
 	var support_first = screen._cards[0]
-	_check(support_first != combat_first and _visible_card_count() == 4, "category switches visible cards")
+	_check(support_first != combat_first and _visible_card_count() == 6, "category switches visible cards")
 	screen._on_category_pressed(0)
 	_check(screen._cards[0] == combat_first, "category switch reuses card instance")
 	for id in levels.keys():
@@ -688,8 +690,8 @@ func _test_v5_geometry() -> void:
 				_check(card.visual_root.position.distance_to(Vector2.ZERO) < 0.01, "unselected internal visual reset %d" % index)
 		for left in range(rects.size()):
 			for right in range(left + 1, rects.size()):
-				_check(not rects[left].intersects(rects[right]), "four card roots do not overlap %d/%d" % [left, right])
-				_check(not surface_rects[left].intersects(surface_rects[right]), "four card surfaces do not overlap %d/%d" % [left, right])
+				_check(not rects[left].intersects(rects[right]), "six card roots do not overlap %d/%d" % [left, right])
+				_check(not surface_rects[left].intersects(surface_rects[right]), "six card surfaces do not overlap %d/%d" % [left, right])
 		var selected_card: PowerUpShopCard = screen._cards[selected_index] as PowerUpShopCard
 		var selected_surface_rect: Rect2 = selected_card.card_surface.get_global_rect()
 		_check(selected_surface_rect.size.x > 0.0 and selected_surface_rect.size.y > 0.0, "selected internal surface is rendered")

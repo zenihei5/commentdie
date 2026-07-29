@@ -18,6 +18,7 @@ var database
 var store
 var profile: Dictionary = {}
 var busy := false
+const SENIOR_UNIT_CHARACTER_IDS := ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"]
 
 func _init(database_instance = null, store_instance = null) -> void:
 	database = database_instance if database_instance != null else PowerUpDatabaseScript.load_default()
@@ -46,6 +47,73 @@ func get_upgrade_level(id: String) -> int:
 
 func upgrade_levels() -> Dictionary:
 	return (profile.get("upgrades", {}) as Dictionary).duplicate(true)
+
+func selected_character_id() -> String:
+	return String(profile.get("selectedCharacterId", "ban_chan"))
+
+func unlocked_character_ids() -> Array:
+	return (profile.get("unlockedCharacterIds", ["ban_chan", "superchat_chan", "maro_chan"]) as Array).duplicate()
+
+func is_character_unlocked(id: String) -> bool:
+	return unlocked_character_ids().has(id)
+
+func save_selected_character_id(id: String) -> bool:
+	var normalized_id := id.strip_edges()
+	if normalized_id == "" or not is_character_unlocked(normalized_id):
+		return false
+	if selected_character_id() == normalized_id:
+		return true
+	var candidate := profile.duplicate(true)
+	candidate["selectedCharacterId"] = normalized_id
+	return _commit(candidate)
+
+func grant_senior_unit_unlock_if_eligible(eligible: bool) -> bool:
+	if not eligible:
+		return false
+	var candidate := profile.duplicate(true)
+	var already_cleared := bool(candidate.get("normalRelayCleared", false))
+	var unlocked: Array = candidate.get("unlockedCharacterIds", []) as Array
+	var changed := false
+	for id in SENIOR_UNIT_CHARACTER_IDS:
+		if not unlocked.has(id):
+			unlocked.append(id)
+			changed = true
+	candidate["unlockedCharacterIds"] = unlocked
+	if not already_cleared:
+		candidate["normalRelayCleared"] = true
+		changed = true
+	if not bool(candidate.get("seniorUnitUnlockShown", false)):
+		candidate["seniorUnitUnlockShown"] = true
+		changed = true
+	if not changed:
+		return false
+	return _commit(candidate)
+
+func debug_unlock_senior_unit() -> bool:
+	var candidate := profile.duplicate(true)
+	var unlocked: Array = candidate.get("unlockedCharacterIds", []) as Array
+	var changed := false
+	for id in SENIOR_UNIT_CHARACTER_IDS:
+		if not unlocked.has(id):
+			unlocked.append(id)
+			changed = true
+	candidate["unlockedCharacterIds"] = unlocked
+	if not bool(candidate.get("normalRelayCleared", false)):
+		candidate["normalRelayCleared"] = true
+		changed = true
+	if not bool(candidate.get("seniorUnitUnlockShown", false)):
+		candidate["seniorUnitUnlockShown"] = true
+		changed = true
+	if not changed:
+		return true
+	return _commit(candidate)
+
+func consume_senior_unit_unlock_notice() -> bool:
+	if not bool(profile.get("normalRelayCleared", false)) or bool(profile.get("seniorUnitUnlockShown", false)):
+		return false
+	var candidate := profile.duplicate(true)
+	candidate["seniorUnitUnlockShown"] = true
+	return _commit(candidate)
 
 func create_snapshot(enabled: bool):
 	return PowerUpEffectProviderScript.create_snapshot(profile, database, enabled)
@@ -123,7 +191,7 @@ func reset_all_upgrades() -> int:
 	upgrades_reset.emit(refund)
 	return Result.SUCCESS
 
-func grant_reward(run_id: String, reward) -> Dictionary:
+func grant_reward(run_id: String, reward, senior_unit_unlock_eligible: bool = false) -> Dictionary:
 	if busy:
 		return {"ok": false, "state": "busy", "totalPp": 0}
 	if run_id.strip_edges() == "":
@@ -134,6 +202,7 @@ func grant_reward(run_id: String, reward) -> Dictionary:
 	busy = true
 	var candidate := profile.duplicate(true)
 	var before_unlocked := bool(candidate.get("unlocked", false))
+	var before_senior_unlocked := bool(candidate.get("normalRelayCleared", false))
 	var reward_keys: Array = candidate.get("rewardedRewardKeys", []) as Array
 	var original_boss_defeat_pp := int(reward.boss_defeat_pp)
 	var duplicate_boss_points := 0
@@ -185,6 +254,15 @@ func grant_reward(run_id: String, reward) -> Dictionary:
 	candidate["firstBossDefeats"] = boss_flags
 	if reward.grants_first_relay_clear:
 		candidate["firstRelayClear"] = true
+	if senior_unit_unlock_eligible:
+		candidate["normalRelayCleared"] = true
+		var unlocked_character_ids: Array = candidate.get("unlockedCharacterIds", []) as Array
+		for character_id in SENIOR_UNIT_CHARACTER_IDS:
+			if not unlocked_character_ids.has(character_id):
+				unlocked_character_ids.append(character_id)
+		candidate["unlockedCharacterIds"] = unlocked_character_ids
+		if not bool(candidate.get("seniorUnitUnlockShown", false)):
+			candidate["seniorUnitUnlockShown"] = true
 	if not _commit(candidate):
 		busy = false
 		return {"ok": false, "state": "save_failed", "totalPp": 0}
@@ -192,7 +270,7 @@ func grant_reward(run_id: String, reward) -> Dictionary:
 	if not before_unlocked and bool(profile.get("unlocked", false)):
 		shop_unlocked.emit()
 	reward_granted.emit(run_id, points)
-	return {"ok": true, "state": "granted", "totalPp": points, "balance": current_points()}
+	return {"ok": true, "state": "granted", "totalPp": points, "balance": current_points(), "seniorUnitUnlocked": senior_unit_unlock_eligible and not before_senior_unlocked}
 
 func _commit(candidate: Dictionary) -> bool:
 	var normalized: Dictionary = store.normalize(candidate, database) as Dictionary

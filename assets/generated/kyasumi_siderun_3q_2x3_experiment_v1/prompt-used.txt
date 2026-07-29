@@ -1,0 +1,15 @@
+Use case: stylized-concept
+Asset type: production-ready 2D action-game player run animation sprite sheet
+Input image: use the image just shown as the sole visual reference; preserve the exact same character identity and project-native pixel-art-inspired rendering.
+Primary request: create a smooth 6-frame looping run cycle of this same chibi girl running toward screen-right.
+
+Make exactly 6 equal invisible cells arranged as a 2-row by 3-column grid, read left-to-right across the top row and then left-to-right across the bottom row. No visible cell borders, dividers, labels, or guide marks.
+
+Identity invariants in every frame: same large navy-blue bob haircut with long tied side ponytail and bright cyan tips, same white-and-cyan flower hair ornament, same large cyan-blue eyes and cute face, same white long jacket with navy and cyan trim, same dark inner top, dark shorts, belt ornament, bare legs, and white/navy boots. Preserve the same proportions, palette, crisp dark pixel outlines, pixel density, shading language, and polished modern pixel-art-inspired style as the reference. Do not redesign or simplify the costume.
+
+View and motion: full-body side/three-quarter side view facing right, suitable for a side-scrolling action game. Six continuous run phases: 1) right-facing contact pose with one leg forward and opposite arm forward, 2) low compression/down pose, 3) passing pose and rising body, 4) airborne/extended stride with legs exchanging, 5) opposite-foot contact pose, 6) opposite passing/lift pose that loops cleanly back to frame 1. Make the run energetic and readable, with convincing arm swing, knee lift, and alternating feet. The side ponytail, cyan hair tips, ribbon, and jacket tails bounce and trail backward naturally across frames, but remain attached and controlled. No detached dust, speed lines, shadows, or effects.
+
+Animation consistency: same character identity, face, costume details, silhouette scale, body height, pixel scale, and bounding-box size in all six cells. Keep the body centerline near the center of each cell and the ground/feet anchor on the same horizontal line except for the small intentional airborne lift. The full character must stay inside the central 60–70% safe area of every cell with generous padding. No hair, ribbon, coat tail, hand, boot, or any body part may touch or cross a cell edge. Ensure each frame is a distinct animation pose, not duplicates.
+
+Backdrop: 100% perfectly flat solid #FF00FF magenta chroma-key background across the entire sheet. No gradients, no texture, no floor plane, no shadows, no lighting variation, no transparency.
+Avoid: extra characters, extra limbs, costume drift, accessory drift, inconsistent scale, cropping, visible grid lines, borders, text, logos, watermark, UI, speech bubbles.

@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "static": {
+    "sourceFile": "すぱな歩き新.png",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "output": "assets/generated/supana_walk_v1/supana-static-transparent.png",
+    "contentBounds": [
+      419,
+      202,
+      829,
+      1056
+    ],
+    "transparentPixels": 1356606,
+    "partialAlphaPixels": 2135,
+    "opaquePixels": 213775
+  },
+  "walk": {
+    "sourceFile": "untitled_1784872992031_front_run_run.png",
+    "sourceSize": [
+      6400,
+      640
+    ],
+    "output": "assets/generated/supana_walk_v1/walk-strip-transparent.png",
+    "frameCount": 10,
+    "fps": 12,
+    "cellSize": [
+      640,
+      640
+    ],
+    "frames": [
+      {
+        "index": 0,
+        "file": "frames/frame-01.png",
+        "contentBounds": [
+          128,
+          30,
+          514,
+          620
+        ],
+        "transparentPixels": 292263,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 117337
+      },
+      {
+        "index": 1,
+        "file": "frames/frame-02.png",
+        "contentBounds": [
+          199,
+          34,
+          501,
+          621
+        ],
+        "transparentPixels": 301923,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 107677
+      },
+      {
+        "index": 2,
+        "file": "frames/frame-03.png",
+        "contentBounds": [
+          164,
+          16,
+          502,
+          620
+        ],
+        "transparentPixels": 308196,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 101404
+      },
+      {
+        "index": 3,
+        "file": "frames/frame-04.png",
+        "contentBounds": [
+          125,
+          21,
+          511,
+          600
+        ],
+        "transparentPixels": 300236,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 109364
+      },
+      {
+        "index": 4,
+        "file": "frames/frame-05.png",
+        "contentBounds": [
+          168,
+          39,
+          510,
+          619
+        ],
+        "transparentPixels": 303828,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 105772
+      },
+      {
+        "index": 5,
+        "file": "frames/frame-06.png",
+        "contentBounds": [
+          177,
+          19,
+          503,
+          621
+        ],
+        "transparentPixels": 307376,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 102224
+      },
+      {
+        "index": 6,
+        "file": "frames/frame-07.png",
+        "contentBounds": [
+          134,
+          14,
+          510,
+          583
+        ],
+        "transparentPixels": 307613,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 101987
+      },
+      {
+        "index": 7,
+        "file": "frames/frame-08.png",
+        "contentBounds": [
+          167,
+          36,
+          510,
+          620
+        ],
+        "transparentPixels": 304737,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 104863
+      },
+      {
+        "index": 8,
+        "file": "frames/frame-09.png",
+        "contentBounds": [
+          196,
+          24,
+          501,
+          620
+        ],
+        "transparentPixels": 302548,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 107052
+      },
+      {
+        "index": 9,
+        "file": "frames/frame-10.png",
+        "contentBounds": [
+          129,
+          11,
+          511,
+          606
+        ],
+        "transparentPixels": 292371,
+        "partialAlphaPixels": 0,
+        "opaquePixels": 117229
+      }
+    ]
+  },
+  "processing": {
+    "static": "border-connected green chroma key with edge despill",
+    "walk": "deterministic equal-cell split and RGBA strip cleanup"
+  }
+}

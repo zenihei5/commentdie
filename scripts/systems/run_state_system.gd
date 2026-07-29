@@ -30,7 +30,7 @@ static func load_boot_data_for_target(target: Node, sprite_cache: Dictionary) ->
 
 static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dictionary, resources: Dictionary, start_arena: Rect2 = Rect2(), snapshot = null) -> Dictionary:
 	var max_hp: int = _scaled_player_hp(int(stats.get("hp", character.get("initialHp", 100))))
-	var move_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", character.get("moveSpeed", 5.0))))
+	var move_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", character.get("moveSpeed", 5.0)))) * CharacterSystem.move_speed_multiplier(character)
 	var weapon_range: float = WeaponSystem.range_base(weapon)
 	var weapon_interval: float = WeaponSystem.attack_interval(weapon, 0.85)
 	var pickup_rate: float = float(stats.get("pickupRange", 1.0))
@@ -40,6 +40,7 @@ static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dic
 		max_hp = PowerUpEffectProviderScript.max_hp(max_hp, snapshot)
 		move_speed = PowerUpEffectProviderScript.move_speed(move_speed, snapshot)
 		hammer_damage = PowerUpEffectProviderScript.damage(hammer_damage, snapshot)
+		weapon_interval = WeaponSystem.player_attack_interval(weapon_interval, float(snapshot.attack_interval_multiplier))
 		magnet_range = PowerUpEffectProviderScript.normal_attract_radius(magnet_range, snapshot)
 	if start_arena.size == Vector2.ZERO:
 		start_arena = MapBackgroundSystemScript.zatsudan_world_rect()
@@ -50,6 +51,7 @@ static func initial_values(character: Dictionary, weapon: Dictionary, stats: Dic
 		"playerMaxHp": max_hp,
 		"playerHp": max_hp,
 		"playerSpeed": move_speed,
+		"characterAttackMultiplier": CharacterSystem.attack_multiplier(character),
 		"hammerDamage": hammer_damage,
 		"hammerRange": weapon_range,
 		"hammerInterval": weapon_interval,
@@ -67,7 +69,12 @@ static func _scaled_player_hp(value: int) -> int:
 		return maxi(1, value * 20)
 	return value
 
-static func gift_flags() -> Dictionary:
+static func gift_flags(snapshot = null) -> Dictionary:
+	var initial_buzz_keep := 0
+	var initial_gift_reroll := 0
+	if snapshot != null and bool(snapshot.enabled):
+		initial_buzz_keep = maxi(0, int(snapshot.initial_buzz_keep_charges))
+		initial_gift_reroll = maxi(0, int(snapshot.initial_gift_reroll_count))
 	return {
 		"passiveScoreRate": 1.0,
 		"passiveMaroGoodRate": 1.0,
@@ -107,7 +114,8 @@ static func gift_flags() -> Dictionary:
 		"equipmentBulletSupportLevel": 0,
 		"superchatLevel": 0,
 		"boomerangLevel": 0,
-		"burnResistCharges": 0,
+		"burnResistCharges": initial_buzz_keep,
+		"giftRerollRemaining": initial_gift_reroll,
 		"clipBonusLevel": 0,
 		"heartPending": false,
 		"heartUsedCount": 0,
@@ -203,7 +211,7 @@ static func start_run_for_target(target: Node, character: Dictionary, weapon: Di
 	var map_data := MapBackgroundSystemScript.background_data_for_stream_frame(frame_id)
 	var initial: Dictionary = initial_values(character, weapon, stats, resources, MapBackgroundSystemScript.world_rect(map_data), target.get("permanent_upgrade_snapshot"))
 	apply_initial_values(target, initial)
-	apply_gift_flags(target, gift_flags())
+	apply_gift_flags(target, gift_flags(target.get("permanent_upgrade_snapshot")))
 	clear_run_collections(target)
 	apply_timers(target, timers())
 	(target.get("marshmallows") as Array).clear()
@@ -249,6 +257,7 @@ static func apply_initial_values(target: Node, initial: Dictionary) -> void:
 	target.set("player_max_hp", int(initial["playerMaxHp"]))
 	target.set("player_hp", int(initial["playerHp"]))
 	target.set("player_speed", float(initial["playerSpeed"]))
+	target.set("character_attack_multiplier", float(initial.get("characterAttackMultiplier", 1.0)))
 	target.set("dash_cd", 0.0)
 	target.set("dash_tap_timer", 0.0)
 	target.set("dash_tap_last_dir", Vector2.ZERO)
@@ -310,6 +319,7 @@ static func apply_gift_flags(target: Node, defaults: Dictionary) -> void:
 	target.set("superchat_level", int(defaults["superchatLevel"]))
 	target.set("boomerang_level", int(defaults["boomerangLevel"]))
 	target.set("burn_resist_charges", int(defaults["burnResistCharges"]))
+	target.set("gift_reroll_remaining", int(defaults.get("giftRerollRemaining", 0)))
 	target.set("clip_bonus_level", int(defaults["clipBonusLevel"]))
 	target.set("heart_pending", bool(defaults["heartPending"]))
 	target.set("heart_used_count", int(defaults["heartUsedCount"]))

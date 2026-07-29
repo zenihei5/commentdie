@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "sourceDirectory": "C:\\Users\\zenih\\Desktop\\ぜんぶコメントのせいだ設定",
+  "processing": {
+    "method": "border-connected green chroma key with edge despill",
+    "tightCropPadding": 16
+  },
+  "assets": [
+    {
+      "id": "aosumi_kyasumi_select",
+      "sourceFile": "きゃすみ選択画面2.png",
+      "output": "assets/generated/senior_unit_characters_v1/aosumi_kyasumi_select.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": null,
+      "outputSize": [
+        1017,
+        1181
+      ],
+      "reusedExisting": true,
+      "transparentPixels": 645345,
+      "partialAlphaPixels": 26065,
+      "opaquePixels": 529667
+    },
+    {
+      "id": "aosumi_kyasumi_gameplay_right",
+      "sourceFile": "きゃすみ歩き.png",
+      "output": "assets/generated/senior_unit_characters_v1/aosumi_kyasumi_gameplay_right.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": null,
+      "outputSize": [
+        498,
+        795
+      ],
+      "reusedExisting": true,
+      "transparentPixels": 166670,
+      "partialAlphaPixels": 10534,
+      "opaquePixels": 218706
+    },
+    {
+      "id": "akarine_rizumu_select",
+      "sourceFile": "りずむ選択画面.png",
+      "output": "assets/generated/senior_unit_characters_v1/akarine_rizumu_select.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": null,
+      "outputSize": [
+        911,
+        1195
+      ],
+      "reusedExisting": true,
+      "transparentPixels": 720593,
+      "partialAlphaPixels": 24351,
+      "opaquePixels": 343701
+    },
+    {
+      "id": "akarine_rizumu_gameplay_right",
+      "sourceFile": "りずむ歩き.png",
+      "output": "assets/generated/senior_unit_characters_v1/akarine_rizumu_gameplay_right.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": null,
+      "outputSize": [
+        504,
+        860
+      ],
+      "reusedExisting": true,
+      "transparentPixels": 208046,
+      "partialAlphaPixels": 14059,
+      "opaquePixels": 211335
+    },
+    {
+      "id": "shizuki_miimu_select",
+      "sourceFile": "みぃむ選択画2.png",
+      "output": "assets/generated/senior_unit_characters_v1/shizuki_miimu_select.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": null,
+      "outputSize": [
+        1034,
+        1173
+      ],
+      "reusedExisting": true,
+      "transparentPixels": 714640,
+      "partialAlphaPixels": 27033,
+      "opaquePixels": 471209
+    },
+    {
+      "id": "shizuki_miimu_gameplay_right",
+      "sourceFile": "みぃむ歩き.png",
+      "output": "assets/generated/senior_unit_characters_v1/shizuki_miimu_gameplay_right.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        413,
+        320,
+        827,
+        1071
+      ],
+      "outputSize": [
+        414,
+        751
+      ],
+      "reusedExisting": false,
+      "transparentPixels": 141172,
+      "partialAlphaPixels": 8052,
+      "opaquePixels": 161690
+    }
+  ]
+}

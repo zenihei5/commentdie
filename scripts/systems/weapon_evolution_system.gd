@@ -42,6 +42,8 @@ static func evolution_state_for_target(target: Node, weapon_data: Array) -> Dict
 	var base_weapon: Dictionary = WeaponSystem.find_weapon(weapon_data, base_id, {})
 	if base_weapon.is_empty():
 		return {"canEvolve": false}
+	if base_weapon.has("evolutionEnabled") and not bool(base_weapon.get("evolutionEnabled", false)):
+		return {"canEvolve": false}
 	var evolution: Dictionary = base_weapon.get("evolution", {}) as Dictionary
 	if evolution.is_empty():
 		return {"canEvolve": false}
@@ -81,6 +83,9 @@ static func apply_evolution_gift_for_target(target: Node, gift: Dictionary) -> D
 	var evolved_weapon: Dictionary = WeaponSystem.find_weapon(weapon_data, evolved_id, {})
 	if base_id == "" or evolved_id == "" or evolved_weapon.is_empty():
 		return _empty_apply_result({})
+	var state: Dictionary = evolution_state_for_target(target, weapon_data)
+	if not bool(state.get("canEvolve", false)) or String(state.get("baseWeaponId", "")) != base_id or String(state.get("evolvedWeaponId", "")) != evolved_id:
+		return _empty_apply_result({})
 
 	var player_weapons: Array = target.get("player_weapons") as Array
 	var target_index: int = -1
@@ -93,6 +98,7 @@ static func apply_evolution_gift_for_target(target: Node, gift: Dictionary) -> D
 		return _empty_apply_result({})
 
 	var previous_level: int = EquipmentSystem.level(player_weapons, base_id)
+	WeaponSystem.cleanup_runtime_for_weapon(target, base_id, evolved_id, "evolution")
 	player_weapons[target_index] = {
 		"id": evolved_id,
 		"level": 1,

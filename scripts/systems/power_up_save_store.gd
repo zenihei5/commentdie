@@ -4,9 +4,12 @@ extends RefCounted
 const SAVE_PATH := "user://power_up_shop.json"
 const BACKUP_PATH := "user://power_up_shop.json.bak"
 const TEMP_PATH := "user://power_up_shop.json.tmp"
-const SCHEMA_VERSION := 1
+const SCHEMA_VERSION := 2
 const MAX_REWARDED_RUN_IDS := 100
 const MAX_REWARDED_REWARD_KEYS := 200
+const DEFAULT_CHARACTER_ID := "ban_chan"
+const ALWAYS_UNLOCKED_CHARACTER_IDS := ["ban_chan", "superchat_chan", "maro_chan"]
+const SENIOR_UNIT_CHARACTER_IDS := ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"]
 
 var path := SAVE_PATH
 var backup_path := BACKUP_PATH
@@ -70,6 +73,10 @@ func default_data(database) -> Dictionary:
 		"firstStageClears": stage_flags,
 		"firstBossDefeats": boss_flags,
 		"firstRelayClear": false,
+		"selectedCharacterId": DEFAULT_CHARACTER_ID,
+		"unlockedCharacterIds": ALWAYS_UNLOCKED_CHARACTER_IDS.duplicate(),
+		"seniorUnitUnlockShown": false,
+		"normalRelayCleared": false,
 		"rewardedRunIds": [],
 		"rewardedRewardKeys": []
 	}
@@ -91,6 +98,24 @@ func normalize(data: Dictionary, database) -> Dictionary:
 	result["firstStageClears"] = _normalize_flags(source.get("firstStageClears", {}), result["firstStageClears"] as Dictionary)
 	result["firstBossDefeats"] = _normalize_flags(source.get("firstBossDefeats", {}), result["firstBossDefeats"] as Dictionary)
 	result["firstRelayClear"] = bool(source.get("firstRelayClear", false))
+	var unlocked_ids := _normalize_character_ids(source.get("unlockedCharacterIds", source.get("unlocked_character_ids", [])))
+	var normal_relay_cleared := bool(source.get("normalRelayCleared", source.get("normal_relay_cleared", false)))
+	var source_schema := int(source.get("schemaVersion", 0))
+	if source_schema < SCHEMA_VERSION and bool(result.get("firstRelayClear", false)):
+		normal_relay_cleared = true
+	if source_schema < SCHEMA_VERSION and _legacy_rankings_normal_relay_clear():
+		normal_relay_cleared = true
+	if SENIOR_UNIT_CHARACTER_IDS.all(func(id: String) -> bool: return unlocked_ids.has(id)):
+		normal_relay_cleared = true
+	if normal_relay_cleared:
+		for id in SENIOR_UNIT_CHARACTER_IDS:
+			if not unlocked_ids.has(id):
+				unlocked_ids.append(id)
+	result["unlockedCharacterIds"] = unlocked_ids
+	result["normalRelayCleared"] = normal_relay_cleared
+	result["seniorUnitUnlockShown"] = bool(source.get("seniorUnitUnlockShown", source.get("senior_unit_unlock_shown", false)))
+	var selected_id := String(source.get("selectedCharacterId", source.get("selected_character_id", DEFAULT_CHARACTER_ID)))
+	result["selectedCharacterId"] = selected_id if unlocked_ids.has(selected_id) else DEFAULT_CHARACTER_ID
 	result["rewardedRunIds"] = _normalize_string_list(source.get("rewardedRunIds", []), MAX_REWARDED_RUN_IDS)
 	result["rewardedRewardKeys"] = _normalize_string_list(source.get("rewardedRewardKeys", []), MAX_REWARDED_REWARD_KEYS)
 	return result
@@ -127,11 +152,43 @@ func _migrate_legacy(database) -> Dictionary:
 		var entry: Dictionary = item as Dictionary
 		if bool(entry.get("isRelayCompleted", false)) or String(entry.get("endedReason", "")) == "completed":
 			result["firstRelayClear"] = true
+		if _legacy_normal_relay_clear(entry):
+			result["normalRelayCleared"] = true
 		if bool(entry.get("bossDefeated", false)) and String(entry.get("bossName", "")) != "":
 			var boss_flags: Dictionary = result["firstBossDefeats"] as Dictionary
 			boss_flags["last_offline"] = true
 			result["firstBossDefeats"] = boss_flags
+	if bool(result.get("normalRelayCleared", false)):
+		result["unlockedCharacterIds"] = ALWAYS_UNLOCKED_CHARACTER_IDS.duplicate() + SENIOR_UNIT_CHARACTER_IDS.duplicate()
 	return result
+
+func _normalize_character_ids(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	for id in ALWAYS_UNLOCKED_CHARACTER_IDS:
+		result.append(String(id))
+	if value is Array:
+		for item in value as Array:
+			var id := String(item)
+			if SENIOR_UNIT_CHARACTER_IDS.has(id) and not result.has(id):
+				result.append(id)
+	return result
+
+func _legacy_normal_relay_clear(entry: Dictionary) -> bool:
+	if bool(entry.get("isDebug", false)) or String(entry.get("modeId", "")) == "debug" or String(entry.get("endType", "")) == "debug":
+		return false
+	var is_relay := String(entry.get("modeId", "")) == "relay" or String(entry.get("stageId", "")) == "relay"
+	var difficulty_id := String(entry.get("difficultyId", entry.get("difficulty_id", "normal")))
+	var completed := bool(entry.get("isRelayCompleted", false)) or String(entry.get("endedReason", "")) == "completed"
+	var final_defeated := bool(entry.get("finalDefeated", entry.get("bossDefeated", false)))
+	return is_relay and difficulty_id == "normal" and completed and final_defeated
+
+func _legacy_rankings_normal_relay_clear() -> bool:
+	var rankings := _read_json("user://rankings.json")
+	var relay_entries: Array = rankings.get("relayRankingEntries", []) as Array
+	for item in relay_entries:
+		if item is Dictionary and _legacy_normal_relay_clear(item as Dictionary):
+			return true
+	return false
 
 func _legacy_boss_id(entry: Dictionary) -> String:
 	var id := String(entry.get("bossPpRewardId", entry.get("ppRewardId", "")))

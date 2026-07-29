@@ -1,0 +1,253 @@
+{
+  "schemaVersion": 1,
+  "processing": {
+    "method": "border-connected green chroma key with local edge despill",
+    "tightCropPadding": 16,
+    "resized": false
+  },
+  "assets": [
+    {
+      "id": "icon",
+      "sourceFile": "icon_moderator_fortress.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/icon_moderator_fortress.png",
+      "output": "assets/weapons/moderator_fortress/icon_moderator_fortress.png",
+      "sourceSha256": "dfb9b5f42c10ac86a9fe5037d48a03a4a5142f24cbdbdd928cc2a3f9edf18ee9",
+      "backupSha256": "dfb9b5f42c10ac86a9fe5037d48a03a4a5142f24cbdbdd928cc2a3f9edf18ee9",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        8,
+        83,
+        1227,
+        1200
+      ],
+      "outputSize": [
+        1219,
+        1117
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 326534,
+      "partialAlphaPixels": 12031,
+      "opaquePixels": 1023058
+    },
+    {
+      "id": "body",
+      "sourceFile": "moderator_fortress_body.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_body.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_body.png",
+      "sourceSha256": "dea289460aa95d2fb27cd22e5bb7adf5651d91afbd9070234b72b69747cd0b60",
+      "backupSha256": "dea289460aa95d2fb27cd22e5bb7adf5651d91afbd9070234b72b69747cd0b60",
+      "originalSize": [
+        1448,
+        1086
+      ],
+      "contentBoundsInSource": [
+        171,
+        27,
+        1277,
+        1062
+      ],
+      "outputSize": [
+        1106,
+        1035
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 189875,
+      "partialAlphaPixels": 9469,
+      "opaquePixels": 945366
+    },
+    {
+      "id": "hit",
+      "sourceFile": "moderator_fortress_hit.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_hit.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_hit.png",
+      "sourceSha256": "49b66d6e0f7ea7bce74d56bf83f1e87934baa3b7a72a49f402e024fa517bcc3c",
+      "backupSha256": "49b66d6e0f7ea7bce74d56bf83f1e87934baa3b7a72a49f402e024fa517bcc3c",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        30,
+        339,
+        1219,
+        893
+      ],
+      "outputSize": [
+        1189,
+        554
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 10422,
+      "transparentPixels": 381235,
+      "partialAlphaPixels": 28882,
+      "opaquePixels": 248589
+    },
+    {
+      "id": "shockwave",
+      "sourceFile": "moderator_fortress_shockwave.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_shockwave.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_shockwave.png",
+      "sourceSha256": "59827a03942738d74e6d27bdcb0846949e454ccf111b6a58ed8deaf163eb1d49",
+      "backupSha256": "59827a03942738d74e6d27bdcb0846949e454ccf111b6a58ed8deaf163eb1d49",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        34,
+        56,
+        1223,
+        1210
+      ],
+      "outputSize": [
+        1189,
+        1154
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 79253,
+      "transparentPixels": 723153,
+      "partialAlphaPixels": 45095,
+      "opaquePixels": 603858
+    },
+    {
+      "id": "absorb",
+      "sourceFile": "moderator_fortress_absorb.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_absorb.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_absorb.png",
+      "sourceSha256": "f5320755f031ded4258d6bd98dc166c6b5e5b6930f6f30f733b893d7b4b89c3d",
+      "backupSha256": "f5320755f031ded4258d6bd98dc166c6b5e5b6930f6f30f733b893d7b4b89c3d",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        111,
+        229,
+        1105,
+        996
+      ],
+      "outputSize": [
+        994,
+        767
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 5364,
+      "transparentPixels": 609205,
+      "partialAlphaPixels": 34294,
+      "opaquePixels": 118899
+    },
+    {
+      "id": "bodyCharged",
+      "sourceFile": "moderator_fortress_body_charged.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_body_charged.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_body_charged.png",
+      "sourceSha256": "df10cdc1136a3c407e371bc1b7aa163249bfbe7e2b2fef5f1226cf47371f48d0",
+      "backupSha256": "df10cdc1136a3c407e371bc1b7aa163249bfbe7e2b2fef5f1226cf47371f48d0",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        50,
+        79,
+        1203,
+        1165
+      ],
+      "outputSize": [
+        1153,
+        1086
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 1,
+      "transparentPixels": 204466,
+      "partialAlphaPixels": 10189,
+      "opaquePixels": 1037503
+    },
+    {
+      "id": "trail",
+      "sourceFile": "moderator_fortress_trail.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_trail.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_trail.png",
+      "sourceSha256": "3824e91d1c61bff3d730d0847ba7eca73028e2c49bfa2058caaa4f5820afb307",
+      "backupSha256": "3824e91d1c61bff3d730d0847ba7eca73028e2c49bfa2058caaa4f5820afb307",
+      "originalSize": [
+        1774,
+        887
+      ],
+      "contentBoundsInSource": [
+        268,
+        179,
+        1663,
+        680
+      ],
+      "outputSize": [
+        1395,
+        501
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 5153,
+      "transparentPixels": 385367,
+      "partialAlphaPixels": 31861,
+      "opaquePixels": 281667
+    },
+    {
+      "id": "bulletBreak",
+      "sourceFile": "moderator_fortress_bullet_break.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_bullet_break.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_bullet_break.png",
+      "sourceSha256": "18c2a20475f504dc2cf693217947e205bc31527b882138a2aa6a6a2965759ec2",
+      "backupSha256": "18c2a20475f504dc2cf693217947e205bc31527b882138a2aa6a6a2965759ec2",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        270,
+        290,
+        984,
+        944
+      ],
+      "outputSize": [
+        714,
+        654
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 1371,
+      "transparentPixels": 423718,
+      "partialAlphaPixels": 15087,
+      "opaquePixels": 28151
+    },
+    {
+      "id": "shockwaveCharged",
+      "sourceFile": "moderator_fortress_shockwave_charged.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_shockwave_charged.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_shockwave_charged.png",
+      "sourceSha256": "c0be4c442b3c5a8578a28c196b57faf64523ff87a2b1e9977378ea1b8b6855dd",
+      "backupSha256": "c0be4c442b3c5a8578a28c196b57faf64523ff87a2b1e9977378ea1b8b6855dd",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        0,
+        3,
+        1254,
+        1248
+      ],
+      "outputSize": [
+        1254,
+        1245
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 140852,
+      "transparentPixels": 773700,
+      "partialAlphaPixels": 86202,
+      "opaquePixels": 701328
+    }
+  ]
+}

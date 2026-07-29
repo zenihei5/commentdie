@@ -42,6 +42,30 @@
     "maron": {
       "aliasOf": "maro_chan"
     },
+    "aosumi_kyasumi": {
+      "displayName": "\u9752\u6f84\u304d\u3083\u3059\u307f",
+      "imageKey": "kyasumi_ready_pc",
+      "imagePath": "res://assets/generated/stream_start_intro_ready_pc/kyasumi_ready_pc.png",
+      "accentColor": "#5aa9ff",
+      "subColor": "#8defff",
+      "softColor": "#eaf4ff"
+    },
+    "akarine_rizumu": {
+      "displayName": "\u706f\u97f3\u308a\u305a\u3080",
+      "imageKey": "rizumu_ready_pc",
+      "imagePath": "res://assets/generated/stream_start_intro_ready_pc/rizumu_ready_pc.png",
+      "accentColor": "#ff6a9f",
+      "subColor": "#ffb36b",
+      "softColor": "#fff0f5"
+    },
+    "shizuki_miimu": {
+      "displayName": "\u7d2b\u6708\u307f\u3043\u3080",
+      "imageKey": "miimu_ready_pc",
+      "imagePath": "res://assets/generated/stream_start_intro_ready_pc/miimu_ready_pc.png",
+      "accentColor": "#9d74ff",
+      "subColor": "#67e4e6",
+      "softColor": "#f3efff"
+    },
     "default": {
       "displayName": "配信者",
       "imageKey": "default_ready_pc",

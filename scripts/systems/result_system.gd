@@ -156,6 +156,7 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"maxVoltage": float(stats.get("maxVoltage", stats.get("maxMultiplier", 1.0))),
 		"maxBurnCombo": max_buzz_value(stats),
 		"modeId": String(stats.get("modeId", "")),
+		"difficultyId": String(stats.get("difficultyId", "normal")),
 		"stageId": String(stats.get("stageId", stats.get("streamFrameId", ""))),
 		"modeName": String(stats.get("modeName", "")),
 		"characterId": String(stats.get("characterId", "")),
@@ -199,6 +200,7 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 		"runId": String(stats.get("runId", "")),
 		"endType": String(stats.get("endType", "")),
 		"modeId": "relay",
+		"difficultyId": String(stats.get("difficultyId", "normal")),
 		"isRankingEligible": true,
 		"characterId": String(stats.get("characterId", "")),
 		"characterName": String(stats.get("characterName", "配信者")),
@@ -401,6 +403,7 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	var relay_mode: bool = bool(target.get("relay_mode"))
 	result["modeId"] = "relay" if relay_mode else ("test_60" if quick_test_mode else "normal_180")
 	result["modeName"] = "配信リレー" if relay_mode else ("テスト配信" if quick_test_mode else "通常配信")
+	result["difficultyId"] = String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else "normal"
 	result["stageId"] = "relay" if relay_mode else String(result.get("streamFrameId", ""))
 	result["isRankingEligible"] = (not quick_test_mode) and (not relay_mode or bool(target.get("relay_boss_score_awarded")))
 	result["isRelayRankingEligible"] = false
@@ -420,6 +423,7 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	var points_earned := int(reward_commit.get("earnedPoints", 0))
 	result["streamPointReward"] = reward_data
 	result["ppGrantState"] = grant_state
+	result["seniorUnitUnlocked"] = bool(reward_commit.get("seniorUnitUnlocked", false))
 	result["streamPointBalance"] = points_after
 	result["pointRewardView"] = build_point_reward_view(
 		reward_data,
@@ -463,6 +467,7 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		bool(result.get("cleared", false)),
 		(result.get("relayCompletedFrameIds", []) as Array)
 	)
+	input["difficultyId"] = String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else String(input.get("difficultyId", "normal"))
 	var profile: Dictionary = manager.profile as Dictionary
 	var reward = StreamPointRewardCalculatorScript.calculate(
 		input,
@@ -472,19 +477,20 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		manager.database.reward_rules
 	)
 	var before_balance: int = int(manager.current_points())
-	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward)
+	var senior_unlock_eligible: bool = tracker.should_unlock_senior_unit(input)
+	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward, senior_unlock_eligible)
 	if bool(grant.get("ok", false)):
 		tracker.result_committed = true
 		target.set("pending_power_up_reward", null)
 		var after_balance: int = int(grant.get("balance", manager.current_points()))
 		var grant_state := String(grant.get("state", "granted"))
 		var earned_points := maxi(0, after_balance - before_balance) if grant_state == "granted" else 0
-		return {"state": grant_state, "beforeBalance": before_balance, "earnedPoints": earned_points, "balance": after_balance, "reward": reward}
+		return {"state": grant_state, "beforeBalance": before_balance, "earnedPoints": earned_points, "balance": after_balance, "reward": reward, "seniorUnitUnlocked": bool(grant.get("seniorUnitUnlocked", false))}
 	target.set("pending_power_up_reward", reward)
 	var failure_state := String(grant.get("state", "save_failed"))
 	if failure_state != "save_failed":
 		failure_state = "save_failed"
-	return {"state": failure_state, "beforeBalance": before_balance, "earnedPoints": 0, "balance": int(manager.current_points()), "reward": reward}
+	return {"state": failure_state, "beforeBalance": before_balance, "earnedPoints": 0, "balance": int(manager.current_points()), "reward": reward, "seniorUnitUnlocked": false}
 
 static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 	var tracker_variant: Variant = target.get("power_up_run_tracker")
@@ -594,10 +600,12 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"resultTitle": result_header_for_end_type(end_type, bool(result.get("cleared", false))),
 		"modeId": String(result.get("modeId", "")),
 		"modeName": String(result.get("modeName", "")),
+		"difficultyId": String(result.get("difficultyId", "normal")),
 		"relayMode": bool(result.get("relayMode", false)),
 		"isRankingEligible": bool(result.get("isRankingEligible", false)),
 		"rankingRegistered": bool(result.get("isRankingEligible", false)),
 		"characterId": String(result.get("characterId", "")),
+		"seniorUnitUnlocked": bool(result.get("seniorUnitUnlocked", false)),
 		"characterName": String(result.get("characterName", "配信者")),
 		"streamFrameId": String(result.get("streamFrameId", "")),
 		"streamFrameName": String(result.get("streamFrameName", "配信枠")),

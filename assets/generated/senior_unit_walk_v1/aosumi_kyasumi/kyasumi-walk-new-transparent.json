@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "sourceFile": "kyasumi-walk-new-transparent.png",
+  "sourceSize": [
+    1254,
+    1254
+  ],
+  "output": "assets/generated/senior_unit_walk_v1/aosumi_kyasumi/kyasumi-walk-new-transparent.png",
+  "outputSize": [
+    1254,
+    1254
+  ],
+  "processing": "provided RGBA static sprite copied losslessly",
+  "alpha": {
+    "transparentPixels": 1364584,
+    "partialAlphaPixels": 2167,
+    "opaquePixels": 205765
+  }
+}

@@ -20,6 +20,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_O, "hype_90")
 	_add_if_pressed(actions, latch, KEY_P, "hype_100")
 	_add_if_pressed(actions, latch, KEY_F6, "heart_pending_on")
+	_add_if_pressed(actions, latch, KEY_HOME, "unlock_senior_unit")
 	_add_if_pressed(actions, latch, KEY_U, "unlock_stream_frames")
 	_add_if_pressed(actions, latch, KEY_H, "toggle_rare_comment_boost")
 	_add_if_pressed(actions, latch, KEY_K, "clear_enemies")

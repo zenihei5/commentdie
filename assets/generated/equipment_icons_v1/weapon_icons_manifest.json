@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "processing": "border-connected green chroma key with edge despill, transparent trim, nearest-neighbor 96x96 fit",
+  "assets": [
+    {
+      "id": "moderator_shield",
+      "sourceFile": "モデレーターシールド.png",
+      "output": "assets/generated/equipment_icons_v1/icons/moderator_shield.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        290,
+        28,
+        1025,
+        1225
+      ],
+      "outputSize": [
+        96,
+        96
+      ],
+      "transparentPixels": 6307,
+      "partialAlphaPixels": 35,
+      "opaquePixels": 2874
+    },
+    {
+      "id": "fansa_baton",
+      "sourceFile": "ファンサバトン.png",
+      "output": "assets/generated/equipment_icons_v1/icons/fansa_baton.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        266,
+        68,
+        1011,
+        1222
+      ],
+      "outputSize": [
+        96,
+        96
+      ],
+      "transparentPixels": 7604,
+      "partialAlphaPixels": 92,
+      "opaquePixels": 1520
+    },
+    {
+      "id": "tsuri_thumbnail_rod",
+      "sourceFile": "釣りサムネロッド.png",
+      "output": "assets/generated/equipment_icons_v1/icons/tsuri_thumbnail_rod.png",
+      "originalSize": [
+        1254,
+        1254
+      ],
+      "contentBoundsInSource": [
+        132,
+        31,
+        1159,
+        1208
+      ],
+      "outputSize": [
+        96,
+        96
+      ],
+      "transparentPixels": 7286,
+      "partialAlphaPixels": 174,
+      "opaquePixels": 1756
+    }
+  ]
+}
