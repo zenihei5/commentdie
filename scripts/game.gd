@@ -9,6 +9,8 @@ const BossCutinSystemScript := preload("res://scripts/systems/boss_cutin_system.
 const MarshmallowSystemScript := preload("res://scripts/systems/marshmallow_system.gd")
 const GenreEventSystemScript := preload("res://scripts/systems/genre_event_system.gd")
 const StreamFrameSystemScript := preload("res://scripts/systems/stream_frame_system.gd")
+const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 const DisplayTextSystemScript := preload("res://scripts/systems/display_text_system.gd")
 const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 const CharacterSystemScript := preload("res://scripts/systems/character_system.gd")
@@ -85,6 +87,7 @@ const TITLE_MENU_COUNT := 5
 const TITLE_QUIT_INDEX := 4
 const CHARACTER_SELECT_HEADER_ICON := "res://assets/generated/character_select_icons_v1/character_select.png"
 const STREAM_FRAME_SELECT_HEADER_ICON := "res://assets/generated/stream_frame_select_icons_v1/stream_frame_select.png"
+const HARD_CLIMAX_BANNER_IMAGE := "res://assets/generated/instruction_comment_icons_v1/hard_climax_banner.png"
 const OPTIONS_HEADER_ICON := "res://assets/generated/options_icons_v1/options_header.png"
 const OPTIONS_BGM_ICON := "res://assets/generated/options_icons_v1/option_bgm.png"
 const OPTIONS_SE_ICON := "res://assets/generated/options_icons_v1/option_se.png"
@@ -101,6 +104,8 @@ const RANKING_RANK_ICON_4_PLUS := "res://assets/generated/ranking_icons_v1/rank_
 const RANKING_END_MENTAL_ICON := "res://assets/generated/ranking_icons_v1/end_mental_breakdown.png"
 const RANKING_END_COMPLETE_ICON := "res://assets/generated/ranking_icons_v1/end_stream_complete.png"
 const RANKING_FOCUS_TABS := "tabs"
+const RANKING_FOCUS_DIFFICULTY := "difficulty"
+const RANKING_FOCUS_STAGE := "stage"
 const RANKING_FOCUS_ENTRIES := "entries"
 const RANKING_FOCUS_BACK := "back"
 const PRE_RUN_SELECT_FOCUS_ITEMS := "items"
@@ -812,8 +817,20 @@ var bosses: Array = []
 var stream_start_intro_config: Dictionary = {}
 var comment_pools: Dictionary = {}
 var relay_mode_config: Dictionary = {}
+var difficulty_mode_config: Dictionary = {}
+var difficulty_runtime: Dictionary = {}
+var hard_boss_role := "firstHardBoss"
+var hard_boss_spawn_source := ""
+var hard_climax_banner_timer := 0.0
+var hard_climax_banner_text := ""
+var hard_danger_events: Dictionary = {}
+var hard_run_exp_stats: Dictionary = {"generated": 0, "collected": 0, "uncollected": 0, "expired": 0, "discarded": 0}
+var active_comment_score_rate := 1.0
+var active_comment_selection_reason := "manual"
 var boss_cutin_v2_config: Dictionary = {}
 var stream_frame_progress: Dictionary = {}
+var difficulty_progress: Dictionary = {}
+var difficulty_progress_recorded_run_id := ""
 var relay_mode_unlocked := false
 var power_up_shop_manager
 var power_up_run_tracker
@@ -924,6 +941,7 @@ var option_menu_index := 0
 var options_return_state := "title"
 var character_sprite_cache: Dictionary = {}
 var ranking_avatar_source_cache: Dictionary = {}
+var ranking_view_cache: Dictionary = {}
 var equipment_icon_cache: Dictionary = {}
 var ui_part_cache: Dictionary = {}
 var field_pickup_icon_cache: Dictionary = {}
@@ -942,6 +960,9 @@ var gift_choice_return_card := 0
 var gift_reroll_hovered := false
 var gift_reroll_press_timer := 0.0
 var pending_gift_choices := 0
+var pending_gift_requests: Array = []
+var active_gift_request: Dictionary = {}
+var gift_request_serial := 0
 var gift_choice_delay_timer := 0.0
 var do_everything_offer_count := 0
 var taken_gift_names: Array[String] = []
@@ -1238,6 +1259,8 @@ var effect_timer := 0.0
 var spawn_timer := 0.0
 var balance_debug_last: Dictionary = {}
 var balance_debug_stats: Dictionary = {}
+var gift_debug_last: Dictionary = {}
+var hard_balance_debug_overlay_enabled := false
 var balance_debug_damage_last: Dictionary = {}
 var balance_debug_damage_logging := false
 var attack_timer := 0.25
@@ -1387,6 +1410,10 @@ var result_hover_button := ""
 var ranking_tab_index: int = 0
 var ranking_selected_index: int = 0
 var ranking_focus_area := RANKING_FOCUS_TABS
+var ranking_difficulty_id := "normal"
+var ranking_stage_index: int = 0
+var ranking_page_index: int = 0
+var ranking_detail_visible := false
 var ranking_reset_confirm_visible := false
 var ranking_reset_confirm_index := 1
 var debug_key_latch: Dictionary = {}
@@ -1418,6 +1445,8 @@ var genre_event_timer := 0.0
 var genre_event_duration := GenreEventSystemScript.GENRE_EVENT_DURATION
 var genre_event_source := ""
 var active_genre_event := ""
+var comment_genre_mix_queue: Array = []
+var comment_genre_mix_transition_timer := 0.0
 var next_known_genre_event := ""
 var genre_event_hurt := false
 var genre_race_move_timer := 0.0
@@ -1494,6 +1523,8 @@ var song_lyrics_card_pickup_se_player: AudioStreamPlayer
 var kusa_wave_se_player: AudioStreamPlayer
 var comment_pin_se_player: AudioStreamPlayer
 var comment_boomerang_se_player: AudioStreamPlayer
+var weapon_activation_se_player: AudioStreamPlayer
+var weapon_activation_se_active_path := ""
 var listener_attack_se_player: AudioStreamPlayer
 var marshmallow_pickup_se_player: AudioStreamPlayer
 var kuso_marshmallow_pickup_se_player: AudioStreamPlayer
@@ -1587,6 +1618,7 @@ func _ready() -> void:
 	_setup_kusa_wave_se()
 	_setup_comment_pin_se()
 	_setup_comment_boomerang_se()
+	_setup_weapon_activation_se()
 	_setup_listener_attack_se()
 	_setup_marshmallow_pickup_se()
 	_setup_kuso_marshmallow_pickup_se()
@@ -1987,6 +2019,12 @@ func _setup_comment_boomerang_se() -> void:
 	comment_boomerang_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
 	comment_boomerang_se_player.stream = _load_audio_stream(COMMENT_BOOMERANG_SWING_SE_PATH, false)
 	add_child(comment_boomerang_se_player)
+
+func _setup_weapon_activation_se() -> void:
+	weapon_activation_se_player = AudioStreamPlayer.new()
+	weapon_activation_se_player.name = "WeaponActivationSePlayer"
+	weapon_activation_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
+	add_child(weapon_activation_se_player)
 
 func _setup_listener_attack_se() -> void:
 	listener_attack_se_player = AudioStreamPlayer.new()
@@ -2689,6 +2727,34 @@ func _play_comment_boomerang_se() -> void:
 		comment_boomerang_se_player.stop()
 	comment_boomerang_se_player.play()
 
+func _play_weapon_activation_se(path: String, volume_db_offset: float = 0.0) -> void:
+	if weapon_activation_se_player == null or path == "":
+		return
+	if weapon_activation_se_player.stream == null or weapon_activation_se_active_path != path:
+		var stream := _load_audio_stream(path, false)
+		if stream == null:
+			return
+		weapon_activation_se_player.stream = stream
+		weapon_activation_se_active_path = path
+	weapon_activation_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume) + volume_db_offset
+	if weapon_activation_se_player.playing:
+		weapon_activation_se_player.stop()
+	weapon_activation_se_player.play()
+
+func _stop_weapon_activation_se(path: String = "") -> void:
+	if weapon_activation_se_player == null or not weapon_activation_se_player.playing:
+		return
+	if path != "" and weapon_activation_se_active_path != path:
+		return
+	weapon_activation_se_player.stop()
+
+func _play_weapon_activation_se_from_result(result: Dictionary) -> void:
+	for item in (result.get("hitFx", []) as Array):
+		var fx: Dictionary = item as Dictionary
+		var path := String(fx.get("activationSePath", ""))
+		if path != "":
+			_play_weapon_activation_se(path, float(fx.get("activationSeVolumeDb", 0.0)))
+
 func _play_listener_attack_se_once_per_frame() -> void:
 	if listener_attack_se_player == null or listener_attack_se_player.stream == null:
 		return
@@ -3114,6 +3180,21 @@ func _unhandled_input(event: InputEvent) -> void:
 			if frame_mouse_button.button_index == MOUSE_BUTTON_LEFT and frame_mouse_button.pressed:
 				if _activate_stream_frame_select_mouse(frame_mouse_button.position):
 					get_viewport().set_input_as_handled()
+		elif event is InputEventJoypadButton:
+			var frame_joypad_button := event as InputEventJoypadButton
+			if frame_joypad_button.pressed and frame_joypad_button.button_index == JOY_BUTTON_LEFT_SHOULDER:
+				_change_selected_difficulty(-1)
+				get_viewport().set_input_as_handled()
+			elif frame_joypad_button.pressed and frame_joypad_button.button_index == JOY_BUTTON_RIGHT_SHOULDER:
+				_change_selected_difficulty(1)
+				get_viewport().set_input_as_handled()
+			elif frame_joypad_button.pressed and frame_joypad_button.button_index == JOY_BUTTON_A:
+				_confirm_stream_frame_select()
+				get_viewport().set_input_as_handled()
+			elif frame_joypad_button.pressed and frame_joypad_button.button_index == JOY_BUTTON_B:
+				_play_back_transition_se()
+				_start_character_select()
+				get_viewport().set_input_as_handled()
 	elif state == "collab_partner_select":
 		if event is InputEventMouseMotion:
 			_update_collab_partner_select_mouse_selection((event as InputEventMouseMotion).position)
@@ -3128,6 +3209,36 @@ func _unhandled_input(event: InputEvent) -> void:
 			if ranking_mouse_button.button_index == MOUSE_BUTTON_LEFT and ranking_mouse_button.pressed:
 				if _activate_ranking_mouse(ranking_mouse_button.position):
 					get_viewport().set_input_as_handled()
+		elif event is InputEventJoypadButton:
+			var ranking_pad := event as InputEventJoypadButton
+			if ranking_pad.pressed and ranking_pad.button_index == JOY_BUTTON_LEFT_SHOULDER:
+				if ranking_reset_confirm_visible:
+					_handle_ranking_reset_confirm_action("ranking_difficulty_left")
+				else:
+					_ranking_difficulty_left()
+				get_viewport().set_input_as_handled()
+			elif ranking_pad.pressed and ranking_pad.button_index == JOY_BUTTON_RIGHT_SHOULDER:
+				if ranking_reset_confirm_visible:
+					_handle_ranking_reset_confirm_action("ranking_difficulty_right")
+				else:
+					_ranking_difficulty_right()
+				get_viewport().set_input_as_handled()
+			elif ranking_pad.pressed and ranking_pad.button_index == JOY_BUTTON_DPAD_LEFT:
+				if ranking_reset_confirm_visible:
+					_handle_ranking_reset_confirm_action("ranking_stage_left")
+				elif ranking_focus_area == RANKING_FOCUS_DIFFICULTY:
+					_ranking_difficulty_left()
+				elif ranking_focus_area == RANKING_FOCUS_STAGE:
+					_ranking_stage_left()
+				get_viewport().set_input_as_handled()
+			elif ranking_pad.pressed and ranking_pad.button_index == JOY_BUTTON_DPAD_RIGHT:
+				if ranking_reset_confirm_visible:
+					_handle_ranking_reset_confirm_action("ranking_stage_right")
+				elif ranking_focus_area == RANKING_FOCUS_DIFFICULTY:
+					_ranking_difficulty_right()
+				elif ranking_focus_area == RANKING_FOCUS_STAGE:
+					_ranking_stage_right()
+				get_viewport().set_input_as_handled()
 	elif state == "result" and not result_showing_ranking:
 		if event is InputEventMouseMotion:
 			_update_result_mouse_selection((event as InputEventMouseMotion).position)
@@ -3475,7 +3586,60 @@ func _commit_character_select() -> void:
 	_start_stream_frame_select()
 
 func _stream_frame_selection_items() -> Array:
+	if not difficulty_progress.is_empty():
+		return DifficultyProgressSystemScript.selection_frames_for_target(self, stream_frames, relay_mode_config)
 	return StreamFrameSystemScript.selection_frames(stream_frames, relay_mode_unlocked)
+
+func _difficulty_tab_ids() -> Array:
+	return DifficultyProgressSystemScript.DIFFICULTY_IDS
+
+func _difficulty_tab_rect(index: int) -> Rect2:
+	var header: Rect2 = _stream_frame_select_layout()["header"] as Rect2
+	var width := 126.0
+	var gap := 8.0
+	var start_x := header.end.x - (width * 3.0 + gap * 2.0) - 22.0
+	return Rect2(Vector2(start_x + float(index) * (width + gap), header.position.y + 11.0), Vector2(width, 50.0))
+
+func _difficulty_tab_index_at(pos: Vector2) -> int:
+	for index in range(_difficulty_tab_ids().size()):
+		if _difficulty_tab_rect(index).has_point(pos):
+			return index
+	return -1
+
+func _change_selected_difficulty(direction_or_id: Variant) -> bool:
+	var ids := _difficulty_tab_ids()
+	if ids.is_empty():
+		return false
+	var current := DifficultyProgressSystemScript.normalize_difficulty_id(run_difficulty_id)
+	var current_index := ids.find(current)
+	var next_index := int(direction_or_id) if direction_or_id is int else ids.find(DifficultyProgressSystemScript.normalize_difficulty_id(direction_or_id))
+	if direction_or_id is int:
+		next_index = clampi(current_index + int(direction_or_id), 0, ids.size() - 1)
+	else:
+		next_index = clampi(next_index, 0, ids.size() - 1)
+	if next_index == current_index:
+		return false
+	run_difficulty_id = DifficultyProgressSystemScript.normalize_difficulty_id(ids[next_index])
+	if not difficulty_progress.is_empty():
+		DifficultyProgressSystemScript.set_selected_difficulty_for_target(self, run_difficulty_id)
+		DifficultyProgressSystemScript.consume_difficulty_new_for_target(self, run_difficulty_id)
+	var frames := _stream_frame_selection_items()
+	var last_stage := DifficultyProgressSystemScript.last_selected_stage(difficulty_progress, run_difficulty_id)
+	selected_stream_frame_index = StreamFrameSystemScript.selected_index(frames, last_stage)
+	selected_stream_frame_index = clampi(selected_stream_frame_index, 0, maxi(0, frames.size() - 1))
+	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+	_play_cursor_move_se()
+	queue_redraw()
+	return true
+
+func _remember_stream_frame_cursor() -> void:
+	var frames := _stream_frame_selection_items()
+	if frames.is_empty() or selected_stream_frame_index < 0 or selected_stream_frame_index >= frames.size():
+		return
+	var frame: Dictionary = frames[selected_stream_frame_index] as Dictionary
+	if difficulty_progress.is_empty():
+		return
+	DifficultyProgressSystemScript.remember_selected_stage_for_target(self, String(frame.get("id", "zatsudan")))
 
 func _update_stream_frame_select_mouse_selection(pos: Vector2) -> void:
 	var index: int = _stream_frame_select_index_at(pos)
@@ -3485,11 +3649,16 @@ func _update_stream_frame_select_mouse_selection(pos: Vector2) -> void:
 		return
 	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	selected_stream_frame_index = index
+	_remember_stream_frame_cursor()
 	_play_cursor_move_se()
 	queue_redraw()
 
 func _activate_stream_frame_select_mouse(pos: Vector2) -> bool:
 	var layout: Dictionary = _stream_frame_select_layout()
+	var difficulty_index := _difficulty_tab_index_at(pos)
+	if difficulty_index >= 0:
+		_change_selected_difficulty(_difficulty_tab_ids()[difficulty_index])
+		return true
 	if (layout["backButton"] as Rect2).has_point(pos):
 		_play_back_transition_se()
 		_start_character_select()
@@ -3510,6 +3679,7 @@ func _activate_stream_frame_select_mouse(pos: Vector2) -> bool:
 			return true
 		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 		selected_stream_frame_index = index
+		_remember_stream_frame_cursor()
 		queue_redraw()
 		return true
 	return false
@@ -3539,6 +3709,7 @@ func _move_stream_frame_select_page(direction: int) -> void:
 		return
 	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	selected_stream_frame_index = StreamFrameSystemScript.selection_index_for_page(frames, next_page, 0)
+	_remember_stream_frame_cursor()
 	queue_redraw()
 
 func _collab_partner_selection_items() -> Array:
@@ -3586,6 +3757,10 @@ func _confirm_stream_frame_select() -> void:
 		return
 	var frame: Dictionary = selected["frame"] as Dictionary
 	if not StreamFrameSystemScript.is_selectable(frame):
+		_notify_stream_frame_locked(frame)
+		return
+	if not _difficulty_gameplay_implemented(run_difficulty_id):
+		_notify_stream_frame_locked({"disabledReason": "EXPERTは現在準備中です"})
 		return
 	_request_pre_run_select_press("stream_frame_select", selected_stream_frame_index)
 
@@ -3596,7 +3771,12 @@ func _commit_stream_frame_select() -> void:
 		return
 	var frame: Dictionary = selected["frame"] as Dictionary
 	if not StreamFrameSystemScript.is_selectable(frame):
+		_notify_stream_frame_locked(frame)
 		return
+	if not _difficulty_gameplay_implemented(run_difficulty_id):
+		_notify_stream_frame_locked({"disabledReason": "EXPERTは現在準備中です"})
+		return
+	_remember_stream_frame_cursor()
 	if bool(frame.get("isRelayMode", false)):
 		relay_mode = true
 		quick_test_mode = false
@@ -3614,6 +3794,115 @@ func _commit_stream_frame_select() -> void:
 		return
 	collab_partner_id = ""
 	_start_stream_start_intro()
+
+func _difficulty_gameplay_implemented(difficulty_id: String) -> bool:
+	return DifficultyProgressSystemScript.gameplay_implemented(difficulty_mode_config, difficulty_id)
+
+func _initialize_hard_runtime(final_boss: bool = false) -> void:
+	if not difficulty_runtime.is_empty():
+		HardModeSystemScript.clear_hard_comment_events_for_target(self, "runtime_reinitialize")
+	if not relay_mode or (not final_boss and relay_segment_index == 0):
+		hard_run_exp_stats = {"generated": 0, "collected": 0, "uncollected": 0, "expired": 0, "discarded": 0}
+	difficulty_runtime = HardModeSystemScript.build_runtime(
+		run_difficulty_id,
+		relay_mode,
+		current_stream_frame_id,
+		difficulty_mode_config,
+		relay_mode_config,
+		final_boss
+	)
+	difficulty_runtime["runExpStats"] = hard_run_exp_stats
+	hard_boss_role = "firstHardBoss"
+	hard_boss_spawn_source = ""
+	hard_climax_banner_timer = 0.0
+	hard_climax_banner_text = ""
+	hard_danger_events.clear()
+	active_comment_score_rate = 1.0
+	active_comment_selection_reason = "manual"
+
+func _hard_active_boss_count() -> int:
+	var count := 0
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		if not bool(enemy.get("isBoss", false)) and not bool(enemy.get("relayBoss", false)):
+			continue
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		count += 1
+	return count
+
+func _update_hard_runtime(gameplay_delta: float) -> void:
+	if difficulty_runtime.is_empty():
+		return
+	var run_length := _current_run_length()
+	var remaining := 0.0 if is_inf(run_length) else maxf(0.0, run_length - elapsed)
+	var result := HardModeSystemScript.advance_runtime_for_target(
+		self,
+		elapsed,
+		remaining,
+		gameplay_delta,
+		_hard_active_boss_count(),
+		boss_requested or boss_active or relay_boss_active or _collab_combo_sequence_active()
+	)
+	if boss_active or relay_boss_active:
+		HardModeSystemScript.begin_danger_for_target(self, "boss_major_attack", "active_boss", 100)
+	else:
+		HardModeSystemScript.end_danger_for_target(self, "boss_major_attack", "active_boss")
+	if _is_collab_frame() and collab_challenge_status in ["starting", "active"]:
+		HardModeSystemScript.begin_danger_for_target(self, "collab_challenge", "collab", 60)
+	else:
+		HardModeSystemScript.end_danger_for_target(self, "collab_challenge", "collab")
+	var collab_spawn_event_active := _is_collab_frame() and collab_challenge_status in ["starting", "active"]
+	difficulty_runtime["stageEventActive"] = collab_spawn_event_active
+	difficulty_runtime["spawnBreakdown"] = HardModeSystemScript.spawn_rate_breakdown(difficulty_runtime, elapsed, boss_active, collab_spawn_event_active)
+	difficulty_runtime["currentSpawnRate"] = float((difficulty_runtime["spawnBreakdown"] as Dictionary).get("final", 1.0))
+	if bool(result.get("climaxStarted", false)):
+		hard_climax_banner_timer = 1.8
+		hard_climax_banner_text = "ここからが本番！"
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["ここからが本番！"]}, chat_box)
+		_play_confirm_se()
+	if bool(result.get("requestAutoBoss", false)):
+		var pending := HardModeSystemScript.consume_pending_spawn(self)
+		if not pending.is_empty():
+			_request_hard_boss_spawn("firstHardBoss", "hard_auto_forced")
+	hard_climax_banner_timer = maxf(0.0, hard_climax_banner_timer - gameplay_delta)
+
+func _request_hard_boss_spawn(role: String, source: String = "") -> bool:
+	if not HardModeSystemScript.is_hard_target(self) or relay_mode or state != "playing" or boss_active or relay_boss_active:
+		return false
+	if source == "hard_auto_forced":
+		SpawnerSystemScript.prepare_capacity_for_boss(self, 1)
+	hard_boss_spawn_source = ""
+	hard_boss_role = role
+	var request := BossSystemScript.request_summon_for_target(self, {"params": {}}, false)
+	if not bool(request.get("bossWarningStarted", false)):
+		return false
+	hard_boss_spawn_source = source
+	return true
+
+func _on_regular_boss_defeated(enemy: Dictionary) -> void:
+	if not HardModeSystemScript.is_hard_target(self):
+		return
+	var role := String(enemy.get("hardBossRole", hard_boss_role))
+	HardModeSystemScript.mark_boss_defeated(self, "reignition" if role == "reignition" else "firstHardBoss")
+
+func _start_hard_reignition_if_selected(comment_id: String) -> void:
+	if comment_id != "hard_reignition_boss" or not HardModeSystemScript.is_hard_target(self):
+		return
+	var runtime := HardModeSystemScript.runtime_for_target(self)
+	var state_data: Dictionary = runtime.get("bossState", {}) as Dictionary
+	if not bool(state_data.get("firstBossDefeated", false)) or bool(state_data.get("secondBossSpawned", false)):
+		return
+	_request_hard_boss_spawn("reignition", "hard_reignition")
+
+func _notify_stream_frame_locked(frame: Dictionary) -> void:
+	_play_cursor_move_se()
+	var reason := String(frame.get("disabledReason", "この配信枠は現在選択できません。"))
+	if reason == "":
+		reason = String(frame.get("unlockConditionText", "この配信枠は現在選択できません。"))
+	toast_text = reason
+	toast_timer = 2.2
+	queue_redraw()
 
 func _start_collab_partner_select() -> void:
 	if _request_front_screen_transition("collab_partner_select", "forward", Callable(self, "_prepare_collab_partner_select")):
@@ -3786,6 +4075,23 @@ func _start_stream_complete_intro(reason: String) -> void:
 func _start_ending_cutin(reason: String, end_type: String) -> void:
 	if state == "result" or state == "game_over_intro":
 		return
+	if HardModeSystemScript.is_hard_target(self):
+		HardModeSystemScript.clear_dangers_for_target(self)
+		HardModeSystemScript.clear_hard_comment_events_for_target(self, "ending_cutin")
+		HardModeSystemScript.clear_active_comment_for_target(self)
+		var runtime := HardModeSystemScript.runtime_for_target(self)
+		runtime["pendingSpawn"] = {}
+		runtime["pendingSpawnRequests"] = []
+		runtime["currentWave"] = ""
+		runtime["hardWaveCooldowns"] = {}
+		hard_boss_spawn_source = ""
+		active_comment_score_rate = 1.0
+		hard_climax_banner_timer = 0.0
+		active_effects.clear()
+		active_effect_rates.clear()
+		effect_walls.clear()
+		effect_pits.clear()
+		effect_timer = 0.0
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "ending_cutin")
 	_clear_troll_linked_comments(true)
 	_clear_toast()
@@ -4237,6 +4543,10 @@ func _update_front_state(delta: float) -> bool:
 			_update_ui()
 			queue_redraw()
 			return true
+	# Ranking is static between inputs. Reusing the existing canvas avoids
+	# rebuilding every panel, text run and icon on every frame.
+	if ranking_action == "" and (state == "ranking" or (state == "result" and result_showing_ranking)):
+		return true
 	var title_action: String = DebugSystemScript.title_action(debug_key_latch) if state == "title" else ""
 	var result_action: String = DebugSystemScript.result_action(debug_key_latch) if state == "result" and not result_showing_ranking else ""
 	var options_action: String = DebugSystemScript.options_action(debug_key_latch) if state == "options" else ""
@@ -4268,9 +4578,15 @@ func _update_front_state(delta: float) -> bool:
 		"reset_title_ranking": Callable(self, "_reset_title_ranking"),
 		"ranking_tab_left": Callable(self, "_ranking_tab_left"),
 		"ranking_tab_right": Callable(self, "_ranking_tab_right"),
-		"ranking_up": Callable(self, "_ranking_up"),
-		"ranking_down": Callable(self, "_ranking_down"),
-		"ranking_select": Callable(self, "_ranking_select"),
+		"ranking_difficulty_left": Callable(self, "_ranking_difficulty_left"),
+		"ranking_difficulty_right": Callable(self, "_ranking_difficulty_right"),
+		"ranking_stage_left": Callable(self, "_ranking_stage_left"),
+		"ranking_stage_right": Callable(self, "_ranking_stage_right"),
+		"ranking_page_left": Callable(self, "_ranking_page_left"),
+		"ranking_page_right": Callable(self, "_ranking_page_right"),
+		"ranking_up": Callable(self, "_ranking_up_v2"),
+		"ranking_down": Callable(self, "_ranking_down_v2"),
+		"ranking_select": Callable(self, "_ranking_select_v2"),
 		"back_to_title": Callable(self, "_back_from_front_screen"),
 		"update_character_select": Callable(self, "_update_character_select"),
 		"update_stream_frame_select": Callable(self, "_update_stream_frame_select"),
@@ -4939,6 +5255,12 @@ func _consume_hit_stop(delta: float) -> bool:
 	return true
 
 func _apply_hit_reaction_feedback(feedback: Dictionary) -> void:
+	for request_item in (feedback.get("weaponSeRequests", []) as Array):
+		var request: Dictionary = request_item as Dictionary
+		if String(request.get("action", "play")) == "stop":
+			_stop_weapon_activation_se(String(request.get("path", "")))
+		else:
+			_play_weapon_activation_se(String(request.get("path", "")), float(request.get("volumeDb", 0.0)))
 	_request_screen_shake(float(feedback.get("screenShakePower", 0.0)), float(feedback.get("screenShakeDuration", 0.10)))
 	_request_hit_stop(float(feedback.get("hitStop", 0.0)))
 	if float(feedback.get("screenFlashDuration", 0.0)) > 0.0:
@@ -5005,6 +5327,9 @@ func _draw_status_overlay_layer() -> void:
 	if _should_draw_relay_progress_overlay() and state != "relay_break":
 		_draw_relay_progress_overlay()
 	_draw_screen_flash()
+	_draw_hard_climax_banner()
+	_draw_hard_balance_debug_overlay()
+	_draw_direct_pp_debug_overlay()
 	_draw_genre_change_banner()
 	_draw_genre_event_timer()
 	_draw_genre_result_card()
@@ -5022,6 +5347,76 @@ func _draw_status_overlay_layer() -> void:
 	_draw_drawing_stage_toast()
 	_draw_toast()
 	_draw_collab_combo_cutin_overlay()
+
+func _draw_hard_climax_banner() -> void:
+	if hard_climax_banner_timer <= 0.0 or hard_climax_banner_text == "":
+		return
+	var viewport_size := get_viewport_rect().size
+	var alpha := clampf(hard_climax_banner_timer / 0.45, 0.0, 1.0)
+	var banner_texture := TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, HARD_CLIMAX_BANNER_IMAGE)
+	var text_y := 132.0
+	if banner_texture != null:
+		var image_rect := Rect2(Vector2(viewport_size.x * 0.5 - 54.0, 38.0), Vector2(108.0, 108.0))
+		var fitted_image := _fit_texture_rect(image_rect, banner_texture.get_size())
+		draw_texture_rect(banner_texture, fitted_image, false, Color(1.0, 1.0, 1.0, alpha * 0.88))
+		text_y = 166.0
+	_draw_text_item({"pos": Vector2(0.0, text_y), "text": hard_climax_banner_text, "width": int(viewport_size.x), "size": 30, "fontWeight": "black", "color": Color(1.0, 0.45, 0.72, alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_hard_balance_debug_overlay() -> void:
+	if not hard_balance_debug_overlay_enabled or not OS.is_debug_build() or not HardModeSystemScript.is_hard_target(self):
+		return
+	var snapshot: Dictionary = balance_debug_last
+	var runtime := HardModeSystemScript.runtime_for_target(self)
+	var duration := float(runtime.get("durationSeconds", 0.0))
+	var duration_text := "∞" if is_inf(duration) else ("%.1fs" % duration)
+	var remaining := float(runtime.get("remainingSeconds", duration))
+	var active_count := int(snapshot.get("activeEnemyOccupancy", EnemySystemScript.active_enemy_occupancy(enemies)))
+	var cap := int(snapshot.get("activeNormalWaveCap", 0))
+	var breakdown: Dictionary = runtime.get("spawnBreakdown", snapshot.get("hardSpawnBreakdown", {})) as Dictionary
+	var hard_rate := float(breakdown.get("final", runtime.get("currentSpawnRate", 1.0)))
+	var exp_stats: Dictionary = runtime.get("expStats", {}) as Dictionary
+	var exp_rate := HardModeSystemScript.effective_exp_rate(runtime)
+	var active_comment := String((runtime.get("activeComment", {}) as Dictionary).get("id", ""))
+	var pressure: Dictionary = runtime.get("pendingPressureWave", {}) as Dictionary
+	if pressure.is_empty():
+		pressure = runtime.get("lastPressureWave", {}) as Dictionary
+	var avalanche: Dictionary = runtime.get("commentAvalanche", {}) as Dictionary
+	var pressure_text := "none"
+	if not pressure.is_empty():
+		pressure_text = "%s %.1f/%.1f planned/actual %d/%d" % [String(pressure.get("stageId", "")), float(runtime.get("elapsedSeconds", 0.0)) - float(pressure.get("requestedAt", 0.0)), float(pressure.get("maxDelay", 0.0)), int(pressure.get("plannedCount", 0)), int(pressure.get("actualCount", 0))]
+	var avalanche_text := "none"
+	if not avalanche.is_empty():
+		avalanche_text = "%d rows dir %.0f %.1fs/%0.1fs hits %d" % [int(avalanche.get("rows", 0)), float(avalanche.get("direction", 1.0)), float(avalanche.get("elapsed", 0.0)), float(avalanche.get("duration", 0.0)), int(avalanche.get("playerHitCount", 0))]
+	var level_ups := int(balance_debug_stats.get("levelUps", 0))
+	var evolved_count := 0
+	for weapon in player_weapons:
+		if EquipmentSystem.is_evolved_entry(weapon):
+			evolved_count += 1
+	var text := "HARD DEBUG\nDifficulty: %s  Mode: %s  Stage: %s\nElapsed: %.1f / %s  Remaining: %.1f\nEXP Rate: %.2f  Level: %d  Level Ups: %d\nSpawn base/stage/time: %.2f / %.2f / %.2f\nSpawn boss/event/safety: %.2f / %.2f / %.2f\nSpawn final: %.2f  Active/Limit: %d / %d\nCurrent Wave: %s\nActive Comment: %s\nOverclock attack/projectile: %.2f / %.2f\nComment spawn/move: %.2f / %.2f\nPressure: %s\nAvalanche: %s\nWeapons: %d / 5  Accessories: %d / 5  Evolved: %d\nEXP Generated: %d  Collected: %d  Uncollected: %d  Expired: %d  Discarded: %d" % [String(runtime.get("difficulty", "")), String(runtime.get("playMode", "")), String(runtime.get("stageId", "")), float(runtime.get("elapsedSeconds", elapsed)), duration_text, remaining, exp_rate, exp_level, level_ups, float(breakdown.get("base", 1.0)), float(breakdown.get("stage", 1.0)), float(breakdown.get("time", 1.0)), float(breakdown.get("boss", 1.0)), float(breakdown.get("event", 1.0)), float(breakdown.get("safety", 1.0)), hard_rate, active_count, cap, String(runtime.get("currentWave", "")), active_comment, HardModeSystemScript.active_comment_param(runtime, "attackIntervalRate", 1.0), HardModeSystemScript.active_comment_param(runtime, "projectileSpeedRate", 1.0), HardModeSystemScript.active_comment_param(runtime, "enemySpawnRate", 1.0), HardModeSystemScript.active_comment_param(runtime, "enemyMoveSpeedRate", 1.0), pressure_text, avalanche_text, player_weapons.size(), player_accessories.size(), evolved_count, int(exp_stats.get("generated", balance_debug_stats.get("expGenerated", 0))), int(exp_stats.get("collected", balance_debug_stats.get("expCollected", 0))), int(exp_stats.get("uncollected", balance_debug_stats.get("expUncollected", 0))), int(exp_stats.get("expired", balance_debug_stats.get("expExpired", 0))), int(exp_stats.get("discarded", balance_debug_stats.get("expDiscarded", 0)))]
+	var panel := Rect2(18.0, 146.0, 430.0, 390.0)
+	draw_rect(panel, Color(0.12, 0.04, 0.16, 0.84), true)
+	draw_rect(panel, Color(1.0, 0.38, 0.70, 0.92), false, 2.0)
+	_draw_text_item({"pos": panel.position + Vector2(10.0, 20.0), "text": text, "width": int(panel.size.x - 20.0), "size": 13, "fontWeight": "normal", "color": Color(1.0, 0.92, 0.98, 0.96)}, "", HORIZONTAL_ALIGNMENT_LEFT)
+
+func _draw_direct_pp_debug_overlay() -> void:
+	if not hard_balance_debug_overlay_enabled or not OS.is_debug_build():
+		return
+	var tracker = power_up_run_tracker
+	var field_pp := int(tracker.field_gift_pp) if tracker != null else 0
+	var fallback_pp := int(tracker.fallback_gift_pp) if tracker != null else 0
+	var full_build_pp := int(tracker.full_build_conversion_pp) if tracker != null else 0
+	var run_total := field_pp + fallback_pp + full_build_pp
+	var request: Dictionary = active_gift_request
+	var roll_state := String(request.get("ppRandomState", "NOT_RUN"))
+	var roll_text := roll_state
+	if request.has("ppRandomRoll"):
+		roll_text += " %.3f" % float(request.get("ppRandomRoll", 0.0))
+	var gift_debug: Dictionary = gift_debug_last
+	var text := "DIRECT PP DEBUG\nPP FIELD: %d  FALLBACK: %d  FULLBUILD: %d  RUN TOTAL: %d\nVALID GIFT CANDIDATES: %d\nPP RANDOM ROLL: %s\nGIFT SOURCE: %s  PP ELIGIBLE: %s" % [field_pp, fallback_pp, full_build_pp, run_total, int(gift_debug.get("validGiftCandidateCount", 0)), roll_text, String(request.get("source", "")), str(bool(request.get("ppEligible", false)))]
+	var panel := Rect2(18.0, 458.0, 430.0, 148.0)
+	draw_rect(panel, Color(0.12, 0.04, 0.16, 0.84), true)
+	draw_rect(panel, Color(0.42, 0.82, 1.0, 0.92), false, 2.0)
+	_draw_text_item({"pos": panel.position + Vector2(10.0, 20.0), "text": text, "width": int(panel.size.x - 20.0), "size": 13, "fontWeight": "normal", "color": Color(0.92, 0.98, 1.0, 0.96)}, "", HORIZONTAL_ALIGNMENT_LEFT)
 
 func _should_draw_relay_progress_overlay() -> bool:
 	if not relay_mode:
@@ -5315,11 +5710,15 @@ func _build_ui() -> void:
 	power_up_shop_screen.close_requested.connect(_on_power_up_shop_close_requested)
 
 func _current_run_length() -> float:
-	if relay_mode and relay_flow_state == "PlayingBoss":
-		return INF
-	if relay_mode:
-		return float(relay_mode_config.get("segmentDuration", 120.0))
-	return RunStateSystemScript.run_length(quick_test_mode, QUICK_RUN_LENGTH, NORMAL_RUN_LENGTH)
+	if quick_test_mode:
+		return QUICK_RUN_LENGTH
+	return DifficultyProgressSystemScript.duration_for(
+		run_difficulty_id,
+		relay_mode,
+		relay_mode and relay_flow_state == "PlayingBoss",
+		relay_mode_config,
+		difficulty_mode_config
+	)
 
 func _update_world(delta: float) -> void:
 	var run_length := _current_run_length()
@@ -5363,6 +5762,7 @@ func _update_world(delta: float) -> void:
 		return
 
 	var gameplay_delta := delta * _collab_combo_world_time_scale()
+	_update_hard_runtime(gameplay_delta)
 	if not relay_boss_active:
 		_update_stream_frame_events(gameplay_delta)
 	_update_world_systems(gameplay_delta, delta)
@@ -5401,9 +5801,10 @@ func _update_comment_timer(delta: float) -> bool:
 		comment_choice_enter_time = 0.0
 		_play_instruction_comment_arrival_se()
 		var choice_result: Dictionary = CommentSystemScript.start_choice_ui_for_target(self, comments, rng, CHOICE_TIME, choice_box)
-		_prime_choice_selection_latch()
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(choice_result["chat"])]}, chat_box)
-		_refresh_choice_cards()
+		if bool(choice_result.get("opened", false)):
+			_prime_choice_selection_latch()
+			_refresh_choice_cards()
 		return true
 	return false
 
@@ -5431,6 +5832,8 @@ func _update_stream_end_countdown_feedback(remaining: float) -> void:
 func _start_stream_end_banner() -> void:
 	if stream_end_banner_timer > 0.0:
 		return
+	if HardModeSystemScript.is_hard_target(self) and not relay_mode and boss_active:
+		BossSystemScript.retreat_for_target(self)
 	if _is_collab_frame():
 		_cancel_collab_challenge(false)
 		_clear_collab_combo_runtime("finish")
@@ -5529,6 +5932,10 @@ func _update_world_systems(delta: float, boss_delta: float = -1.0) -> void:
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, barrier_hit_feedback, chat_box)
 		_update_collab_effects(delta)
 		return
+	# Front shields defend before EnemySystem resolves contact/projectile damage.
+	# This keeps the same-frame contact case deterministic without moving the
+	# general enemy update order used by the other weapons.
+	WeaponSystemScript.prepare_shield_defense_for_target(self)
 	_update_enemies(delta, arena)
 	_update_collab_stage(delta, arena)
 	if state != "playing":
@@ -5540,13 +5947,15 @@ func _update_world_systems(delta: float, boss_delta: float = -1.0) -> void:
 	if int(exp_result.get("collectedExp", 0)) > 0:
 		_play_exp_pickup_se()
 	if bool(exp_result["levelUp"]):
-		pending_gift_choices += int(exp_result.get("levelUps", 1))
+		for _level_up in range(int(exp_result.get("levelUps", 1))):
+			_enqueue_gift_request("level_up", "normal", true, false, true)
 		if gift_choice_delay_timer <= 0.0:
 			_start_gift_choice()
 	_update_marshmallow(delta, arena)
 	var hit_fx_feedback: Dictionary = WeaponSystemScript.update_hit_fx_for_target(self, delta, arena, rng)
 	_apply_hit_reaction_feedback(hit_fx_feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, hit_fx_feedback, chat_box)
+	HardModeSystemScript.update_comment_avalanche_for_target(self, delta, rng)
 	_resolve_collab_pass_target()
 	if state == "playing" and pending_gift_choices > 0 and gift_choice_delay_timer <= 0.0:
 		_start_gift_choice()
@@ -5566,9 +5975,7 @@ func _update_relay_boss_phase_lock_watchdog(delta: float) -> void:
 		relay_boss_phase_lock_watchdog = 0.0
 		return
 	relay_boss_phase_lock_watchdog += maxf(0.0, delta)
-	var boss_config: Dictionary = relay_mode_config.get("boss", {}) as Dictionary
-	var movement_config: Dictionary = boss_config.get("movement", {}) as Dictionary
-	var max_lock := maxf(2.5, float(movement_config.get("phaseTransitionCenterTime", 0.7)) + float(boss_config.get("phaseTransitionTime", 1.5)) + 0.5)
+	var max_lock := maxf(0.5, RelayBossSystemScript.phase_transition_lock_timeout_for_target(self))
 	if relay_boss_phase_lock_watchdog < max_lock:
 		return
 	# A phase lock is a short presentation state, never a game-over state.
@@ -5585,7 +5992,7 @@ func _update_relay_boss_phase_lock_watchdog(delta: float) -> void:
 	else:
 		pending_phase = maxi(pending_phase, reached_phase)
 	if pending_phase >= 0:
-		relay_boss_phase = clampi(pending_phase, 0, 4)
+		relay_boss_phase = clampi(pending_phase, 0, RelayBossSystemScript.max_phase_for_target(self))
 	relay_boss_pending_phase = -1
 	relay_boss_phase_center_timer = 0.0
 	relay_boss_phase_transition_timer = 0.0
@@ -5684,6 +6091,7 @@ func _update_accessory_effects(delta: float) -> void:
 	if actual_heal <= 0:
 		return
 	player_hp = mini(player_max_hp, player_hp + actual_heal)
+	_append_mental_heal_fx(actual_heal, "mini_humidifier")
 	_append_mini_humidifier_heal_fx(actual_heal)
 
 func _notify_accessory_player_damaged() -> void:
@@ -5712,6 +6120,33 @@ func _append_mini_humidifier_heal_fx(amount: int) -> void:
 		"maxLife": 0.72,
 		"text": "HP +%d" % amount,
 		"color": Color("#65e9ff")
+	})
+
+func _append_mental_heal_fx(actual_amount: int, source: String = "") -> void:
+	if actual_amount <= 0 or not _relay_heal_allowed():
+		return
+	var config: Dictionary = DrawDataSystemScript.mental_heal_fx_config()
+	var max_life := maxf(0.1, float(config.get("life", 0.68)))
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "mental_heal" or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		# Reuse one active common heal effect so continuous healing cannot grow
+		# hit_fx without bound.  The lifetime is refreshed and the amount is
+		# accumulated for the same visual burst.
+		fx["amount"] = int(fx.get("amount", 0)) + actual_amount
+		fx["life"] = max_life
+		fx["maxLife"] = max_life
+		fx["source"] = source
+		return
+	hit_fx.append({
+		"kind": "mental_heal",
+		"pos": player_pos + Vector2(0.0, -18.0),
+		"life": max_life,
+		"maxLife": max_life,
+		"amount": actual_amount,
+		"source": source,
+		"followPlayer": true
 	})
 
 func _update_genre_event(delta: float) -> void:
@@ -5930,8 +6365,16 @@ func _start_stream_frame_select() -> void:
 
 func _prepare_stream_frame_select() -> void:
 	_reset_pre_run_select_press_feedback()
+	if not difficulty_progress.is_empty():
+		DifficultyProgressSystemScript.evaluate_all_unlocks(difficulty_progress)
+		run_difficulty_id = DifficultyProgressSystemScript.selected_difficulty(difficulty_progress)
 	var result: Dictionary = StreamFrameSystemScript.start_selection_for_target(self, choice_box, result_panel, stream_frames)
 	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+	if not difficulty_progress.is_empty():
+		var selection_items := _stream_frame_selection_items()
+		var last_stage := DifficultyProgressSystemScript.last_selected_stage(difficulty_progress, run_difficulty_id)
+		selected_stream_frame_index = StreamFrameSystemScript.selected_index(selection_items, last_stage)
+		selected_stream_frame_index = clampi(selected_stream_frame_index, 0, maxi(0, selection_items.size() - 1))
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["chat"])]}, chat_box)
 	if bool(result["restart"]):
 		_restart()
@@ -6040,11 +6483,20 @@ func _update_stream_frame_select() -> void:
 		return
 	if _selection_latch_pressed(KEY_O):
 		_toggle_shop_upgrades()
+	var difficulty_left := _selection_latch_pressed(KEY_Q)
+	var difficulty_right := _selection_latch_pressed(KEY_E)
+	if difficulty_left or difficulty_right:
+		_change_selected_difficulty(-1 if difficulty_left else 1)
+		return
 	var footer_down_requested := _selection_latch_would_press(KEY_DOWN) and _stream_frame_select_can_move_down_to_footer()
 	var result: Dictionary = StreamFrameSystemScript.update_selection_for_target(self, debug_key_latch, stream_frames)
 	var chat: String = String(result.get("chat", ""))
 	if chat != "":
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [chat]}, chat_box)
+		if bool(result.get("locked", false)):
+			toast_text = chat
+			toast_timer = 2.2
+			_play_cursor_move_se()
 	if bool(result["backToCharacterSelect"]):
 		_play_back_transition_se()
 		_start_character_select()
@@ -6055,6 +6507,7 @@ func _update_stream_frame_select() -> void:
 		# the collab partner screen before relay initialization resets to zatsudan.
 		_confirm_stream_frame_select()
 		return
+	_remember_stream_frame_cursor()
 	if footer_down_requested:
 		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
 
@@ -6074,7 +6527,13 @@ func _prepare_title_ranking() -> void:
 	state = "ranking"
 	ranking_tab_index = 0
 	ranking_selected_index = 0
-	ranking_focus_area = RANKING_FOCUS_TABS
+	var saved_ui_state := RankingSystemScript.ranking_ui_state()
+	ranking_difficulty_id = RankingSystemScript.normalize_difficulty_id(saved_ui_state.get("difficulty", "normal"))
+	ranking_stage_index = clampi(int(saved_ui_state.get("stageIndex", 0)), 0, RankingSystemScript.RANKING_STAGE_IDS.size() - 1)
+	_normalize_ranking_stage_index()
+	ranking_page_index = int(saved_ui_state.get("page", 0))
+	ranking_detail_visible = false
+	ranking_focus_area = RANKING_FOCUS_DIFFICULTY
 	ranking_reset_confirm_visible = false
 	ranking_reset_confirm_index = 1
 	choice_box.visible = false
@@ -6088,10 +6547,12 @@ func _reset_title_ranking() -> void:
 		_refresh_ranking_screen()
 
 func _execute_ranking_reset() -> void:
-	RankingSystemScript.reset_tab(ranking_tab_index, relay_mode_unlocked)
+	RankingSystemScript.reset_board(ranking_difficulty_id, RankingSystemScript.RANKING_STAGE_IDS[ranking_stage_index])
 	ranking_selected_index = 0
+	ranking_page_index = 0
+	ranking_detail_visible = false
 	if ranking_focus_area == RANKING_FOCUS_ENTRIES:
-		ranking_focus_area = RANKING_FOCUS_TABS
+		ranking_focus_area = RANKING_FOCUS_STAGE
 	ranking_reset_confirm_visible = false
 	ranking_reset_confirm_index = 1
 	if state == "ranking" or (state == "result" and result_showing_ranking):
@@ -6106,8 +6567,9 @@ func _cancel_ranking_reset() -> void:
 func _handle_ranking_reset_confirm_action(action: String) -> bool:
 	if action == "reset_ranking":
 		return true
-	if action == "ranking_tab_left" or action == "ranking_tab_right" or action == "ranking_up" or action == "ranking_down":
+	if action == "ranking_tab_left" or action == "ranking_tab_right" or action == "ranking_difficulty_left" or action == "ranking_difficulty_right" or action == "ranking_stage_left" or action == "ranking_stage_right" or action == "ranking_page_left" or action == "ranking_page_right" or action == "ranking_up" or action == "ranking_down":
 		ranking_reset_confirm_index = 1 - ranking_reset_confirm_index
+		queue_redraw()
 		return true
 	if action == "ranking_select":
 		if ranking_reset_confirm_index == 0:
@@ -6129,6 +6591,55 @@ func _activate_ranking_mouse(pos: Vector2) -> bool:
 	if _ranking_back_button_rect().has_point(pos):
 		_activate_ranking_back_button()
 		return true
+	var diff_gap := 12.0
+	var diff_width := (1448.0 - diff_gap * 2.0) / 3.0
+	for index in range(RankingSystemScript.DIFFICULTY_IDS.size()):
+		var rect := Rect2(76 + float(index) * (diff_width + diff_gap), 100, diff_width, 60)
+		if rect.has_point(pos):
+			ranking_difficulty_id = String(RankingSystemScript.DIFFICULTY_IDS[index])
+			_normalize_ranking_stage_index()
+			ranking_page_index = 0
+			ranking_selected_index = 0
+			ranking_detail_visible = false
+			ranking_focus_area = RANKING_FOCUS_DIFFICULTY
+			_refresh_ranking_screen()
+			return true
+	var stage_gap := 8.0
+	var stage_width := (1448.0 - stage_gap * 5.0) / 6.0
+	var stage_tabs: Array = _ranking_stage_tabs()
+	for index in range(RankingSystemScript.RANKING_STAGE_IDS.size()):
+		var stage_rect := Rect2(76 + float(index) * (stage_width + stage_gap), 174, stage_width, 48)
+		if stage_rect.has_point(pos):
+			var stage_tab: Dictionary = stage_tabs[index] as Dictionary if index < stage_tabs.size() and stage_tabs[index] is Dictionary else {}
+			if bool(stage_tab.get("locked", true)):
+				toast_text = String(stage_tab.get("unlockText", "この配信枠はまだ解禁されていません"))
+				toast_timer = 2.2
+				_play_cursor_move_se()
+				queue_redraw()
+				return true
+			ranking_stage_index = index
+			ranking_page_index = 0
+			ranking_selected_index = 0
+			ranking_detail_visible = false
+			ranking_focus_area = RANKING_FOCUS_STAGE
+			_refresh_ranking_screen()
+			return true
+	var view := _ranking_view()
+	if Rect2(620, 850, 42, 28).has_point(pos):
+		_ranking_page_left()
+		return true
+	if Rect2(668, 850, 42, 28).has_point(pos):
+		_ranking_page_right()
+		return true
+	var rows: Array = view.get("rows", []) as Array
+	for index in range(rows.size()):
+		var row_rect := Rect2(96, 318 + float(index) * 106.0, 734, 100)
+		if row_rect.has_point(pos):
+			ranking_selected_index = index
+			ranking_focus_area = RANKING_FOCUS_ENTRIES
+			ranking_detail_visible = true
+			_refresh_ranking_screen()
+			return true
 	return false
 
 func _activate_ranking_back_button() -> void:
@@ -6139,7 +6650,7 @@ func _activate_ranking_back_button() -> void:
 		_back_from_front_screen()
 
 func _ranking_current_entry_count() -> int:
-	return RankingSystemScript.entry_count_for_tab(ranking_tab_index, relay_mode_unlocked)
+	return (RankingSystemScript.entries_for_board(ranking_difficulty_id, RankingSystemScript.RANKING_STAGE_IDS[ranking_stage_index])).size()
 
 func _ranking_focus_entries_at(index: int) -> void:
 	var count := _ranking_current_entry_count()
@@ -6147,12 +6658,20 @@ func _ranking_focus_entries_at(index: int) -> void:
 	ranking_selected_index = 0 if count <= 0 else clampi(index, 0, count - 1)
 
 func _refresh_ranking_screen() -> void:
-	var footer: String = "←→：タブ  ↑↓：記録  Enter：詳細  Esc：戻る  R：リセット"
+	var footer: String = "←→：枠/難易度  ↑↓：記録  A/D：ページ  Esc：戻る  R：リセット"
 	if state == "result" and result_showing_ranking:
-		footer = "←→：タブ  ↑↓：記録  Enter：詳細  Esc：戻る  R：リセット"
-	result_label.text = RankingSystemScript.format_ranking_screen(ranking_tab_index, ranking_selected_index, relay_mode_unlocked) + "\n\n" + footer
+		footer = "←→：枠/難易度  ↑↓：記録  A/D：ページ  Esc：戻る  R：リセット"
+	_rebuild_ranking_view_cache()
+	var view := ranking_view_cache
+	result_label.text = String(view.get("title", "ランキング")) + "\n" + " / ".join(view.get("messageLines", []) as Array) + "\n\n" + footer
+	# Only the board selector is restored when this screen opens. Row/detail
+	# focus changes therefore do not need to rewrite the full ranking file.
+	var saved_ui_state := RankingSystemScript.ranking_ui_state()
+	if RankingSystemScript.normalize_difficulty_id(saved_ui_state.get("difficulty", "normal")) != ranking_difficulty_id or int(saved_ui_state.get("stageIndex", 0)) != ranking_stage_index or int(saved_ui_state.get("page", 0)) != ranking_page_index:
+		RankingSystemScript.save_ranking_ui_state({"difficulty": ranking_difficulty_id, "stageIndex": ranking_stage_index, "page": ranking_page_index, "row": ranking_selected_index, "detail": ranking_detail_visible})
 	if state == "ranking" or (state == "result" and result_showing_ranking):
 		result_panel.visible = false
+		queue_redraw()
 
 func _ranking_tab_left() -> void:
 	if ranking_reset_confirm_visible:
@@ -6246,6 +6765,175 @@ func _ranking_select() -> void:
 			_ranking_focus_entries_at(0)
 	_refresh_ranking_screen()
 
+func _ranking_progress() -> Dictionary:
+	return difficulty_progress if difficulty_progress is Dictionary else {}
+
+
+func _ranking_view() -> Dictionary:
+	if ranking_view_cache.is_empty():
+		_rebuild_ranking_view_cache()
+	return ranking_view_cache
+
+
+func _rebuild_ranking_view_cache() -> void:
+	ranking_view_cache = RankingSystemScript.ranking_view_for_board(_ranking_progress(), ranking_difficulty_id, RankingSystemScript.RANKING_STAGE_IDS[clampi(ranking_stage_index, 0, RankingSystemScript.RANKING_STAGE_IDS.size() - 1)], ranking_page_index, ranking_selected_index, ranking_detail_visible)
+
+
+func _ranking_stage_tabs() -> Array:
+	return RankingSystemScript.ranking_stage_tabs(_ranking_progress(), ranking_difficulty_id)
+
+
+func _ranking_stage_is_selectable(index: int) -> bool:
+	var tabs := _ranking_stage_tabs()
+	if index < 0 or index >= tabs.size() or not (tabs[index] is Dictionary):
+		return false
+	return not bool((tabs[index] as Dictionary).get("locked", true))
+
+
+func _ranking_has_selectable_stage() -> bool:
+	for tab_item in _ranking_stage_tabs():
+		if tab_item is Dictionary and not bool((tab_item as Dictionary).get("locked", true)):
+			return true
+	return false
+
+
+func _normalize_ranking_stage_index() -> void:
+	ranking_stage_index = clampi(ranking_stage_index, 0, RankingSystemScript.RANKING_STAGE_IDS.size() - 1)
+	var tabs := _ranking_stage_tabs()
+	if ranking_stage_index < tabs.size() and tabs[ranking_stage_index] is Dictionary and not bool((tabs[ranking_stage_index] as Dictionary).get("locked", true)):
+		return
+	for index in range(RankingSystemScript.RANKING_STAGE_IDS.size()):
+		if index < tabs.size() and tabs[index] is Dictionary and not bool((tabs[index] as Dictionary).get("locked", true)):
+			ranking_stage_index = index
+			return
+
+
+func _move_ranking_stage(direction: int) -> bool:
+	var count := RankingSystemScript.RANKING_STAGE_IDS.size()
+	if count <= 0:
+		return false
+	var tabs := _ranking_stage_tabs()
+	for offset in range(1, count + 1):
+		var candidate := wrapi(ranking_stage_index + direction * offset, 0, count)
+		if candidate < tabs.size() and tabs[candidate] is Dictionary and not bool((tabs[candidate] as Dictionary).get("locked", true)):
+			ranking_stage_index = candidate
+			return true
+	return false
+
+
+func _ranking_difficulty_left() -> void:
+	ranking_difficulty_id = RankingSystemScript.normalize_difficulty_id(RankingSystemScript.DIFFICULTY_IDS[wrapi(RankingSystemScript.DIFFICULTY_IDS.find(ranking_difficulty_id) - 1, 0, RankingSystemScript.DIFFICULTY_IDS.size())])
+	_normalize_ranking_stage_index()
+	ranking_page_index = 0
+	ranking_selected_index = 0
+	ranking_detail_visible = false
+	ranking_focus_area = RANKING_FOCUS_DIFFICULTY
+	_refresh_ranking_screen()
+
+
+func _ranking_difficulty_right() -> void:
+	var index := RankingSystemScript.DIFFICULTY_IDS.find(ranking_difficulty_id)
+	ranking_difficulty_id = String(RankingSystemScript.DIFFICULTY_IDS[wrapi(index + 1, 0, RankingSystemScript.DIFFICULTY_IDS.size())])
+	_normalize_ranking_stage_index()
+	ranking_page_index = 0
+	ranking_selected_index = 0
+	ranking_detail_visible = false
+	ranking_focus_area = RANKING_FOCUS_DIFFICULTY
+	_refresh_ranking_screen()
+
+
+func _ranking_stage_left() -> void:
+	if ranking_focus_area == RANKING_FOCUS_DIFFICULTY:
+		_ranking_difficulty_left()
+		return
+	if ranking_focus_area != RANKING_FOCUS_STAGE:
+		return
+	if not _move_ranking_stage(-1):
+		return
+	ranking_page_index = 0
+	ranking_selected_index = 0
+	ranking_detail_visible = false
+	ranking_focus_area = RANKING_FOCUS_STAGE
+	_refresh_ranking_screen()
+
+
+func _ranking_stage_right() -> void:
+	if ranking_focus_area == RANKING_FOCUS_DIFFICULTY:
+		_ranking_difficulty_right()
+		return
+	if ranking_focus_area != RANKING_FOCUS_STAGE:
+		return
+	if not _move_ranking_stage(1):
+		return
+	ranking_page_index = 0
+	ranking_selected_index = 0
+	ranking_detail_visible = false
+	ranking_focus_area = RANKING_FOCUS_STAGE
+	_refresh_ranking_screen()
+
+
+func _ranking_page_left() -> void:
+	ranking_page_index = maxi(0, ranking_page_index - 1)
+	ranking_selected_index = 0
+	_refresh_ranking_screen()
+
+
+func _ranking_page_right() -> void:
+	var view := _ranking_view()
+	ranking_page_index = mini(int(view.get("pageCount", 1)) - 1, ranking_page_index + 1)
+	ranking_selected_index = 0
+	_refresh_ranking_screen()
+
+
+func _ranking_up_v2() -> void:
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		var rows: Array = _ranking_view().get("rows", []) as Array
+		if not rows.is_empty():
+			ranking_focus_area = RANKING_FOCUS_ENTRIES
+			ranking_selected_index = rows.size() - 1
+		elif _ranking_has_selectable_stage():
+			ranking_focus_area = RANKING_FOCUS_STAGE
+		else:
+			ranking_focus_area = RANKING_FOCUS_DIFFICULTY
+	elif ranking_focus_area == RANKING_FOCUS_ENTRIES:
+		if ranking_selected_index <= 0:
+			ranking_focus_area = RANKING_FOCUS_STAGE if _ranking_has_selectable_stage() else RANKING_FOCUS_DIFFICULTY
+		else:
+			ranking_selected_index -= 1
+	elif ranking_focus_area == RANKING_FOCUS_STAGE:
+		ranking_focus_area = RANKING_FOCUS_DIFFICULTY
+	else:
+		ranking_focus_area = RANKING_FOCUS_BACK
+	_refresh_ranking_screen()
+
+
+func _ranking_down_v2() -> void:
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		ranking_focus_area = RANKING_FOCUS_DIFFICULTY
+	elif ranking_focus_area == RANKING_FOCUS_DIFFICULTY:
+		ranking_focus_area = RANKING_FOCUS_STAGE if _ranking_has_selectable_stage() else RANKING_FOCUS_BACK
+	elif ranking_focus_area == RANKING_FOCUS_STAGE:
+		var rows: Array = _ranking_view().get("rows", []) as Array
+		if rows.is_empty():
+			ranking_focus_area = RANKING_FOCUS_BACK
+		else:
+			ranking_focus_area = RANKING_FOCUS_ENTRIES
+			ranking_selected_index = 0
+	else:
+		var count := (_ranking_view().get("rows", []) as Array).size()
+		if ranking_selected_index >= count - 1:
+			ranking_focus_area = RANKING_FOCUS_BACK
+		else:
+			ranking_selected_index += 1
+	_refresh_ranking_screen()
+
+
+func _ranking_select_v2() -> void:
+	if ranking_focus_area == RANKING_FOCUS_BACK:
+		_activate_ranking_back_button()
+		return
+
+
 func _open_title_options() -> void:
 	if _request_front_screen_transition("options", "forward", Callable(self, "_prepare_title_options")):
 		return
@@ -6284,7 +6972,9 @@ func _prepare_back_to_title_from_transition() -> void:
 	_prepare_back_to_title(false)
 
 func _prepare_back_to_title(play_title_intro: bool) -> void:
+	HardModeSystemScript.clear_hard_comment_events_for_target(self, "title_transition")
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "title_transition")
+	_clear_toast()
 	options_return_state = "title"
 	state = "title"
 	game_over_intro_timer = 0.0
@@ -6562,6 +7252,9 @@ func _update_enemies(delta: float, arena: Rect2) -> void:
 	_resolve_troll_linked_comments(result.get("linkedTrollCommentIds", []) as Array)
 	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, result.get("damageEvents", []) as Array))
 
+func _enemy_contact_blocked_by_shield(enemy: Dictionary) -> bool:
+	return WeaponSystemScript.enemy_contact_blocked_by_shield(self, enemy)
+
 func _update_weapons(delta: float, arena: Rect2) -> void:
 	var result: Dictionary = WeaponSystemScript.update_for_target(self, delta, arena, rng)
 	if _weapon_update_has_fx(result, "ng_word_laser"):
@@ -6584,6 +7277,7 @@ func _update_weapons(delta: float, arena: Rect2) -> void:
 		_play_comment_boomerang_se()
 	if _weapon_update_has_fx(result, "emote_mine"):
 		_play_emote_mine_place_se()
+	_play_weapon_activation_se_from_result(result)
 	var feedback: Dictionary = WeaponSystemScript.apply_update_result_for_target(self, result, arena, rng)
 	_apply_hit_reaction_feedback(feedback)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
@@ -6710,13 +7404,27 @@ func _choose_comment(index: int) -> void:
 	_apply_song_instruction_comment(String(result.get("commentId", "")))
 	_apply_drawing_instruction_comment(String(result.get("commentId", "")))
 	_apply_collab_instruction_comment(String(result.get("commentId", "")))
+	_start_hard_reignition_if_selected(String(result.get("commentId", "")))
 	if not had_banana_floor and ModifierSystemScript.has_effect_for_target(self, "banana_floor"):
 		_start_banana_floor_appear()
 
+func _enqueue_gift_request(source: String, gift_quality: String = "normal", pp_eligible: bool = true, field_random_eligible: bool = false, fallback_eligible: bool = true, reward_id: String = "", debug: bool = false) -> Dictionary:
+	return GiftSystemScript.enqueue_gift_request(self, source, gift_quality, pp_eligible, field_random_eligible, fallback_eligible, reward_id, debug)
+
+func _show_direct_pp_toast(amount: int, _source: String) -> void:
+	if amount <= 0:
+		return
+	toast_text = "PP GET! +%d PP" % amount
+	toast_timer = 1.35
+	queue_redraw()
+
 func _start_gift_choice() -> void:
-	if pending_gift_choices <= 0:
-		pending_gift_choices = 1
-	pending_gift_choices -= 1
+	var request: Dictionary = GiftSystemScript.dequeue_gift_request(self)
+	if request.is_empty() and pending_gift_choices > 0:
+		pending_gift_choices = maxi(0, pending_gift_choices - 1)
+		request = GiftSystemScript.build_gift_request_for_target(self, "level_up", "normal", true, false, true)
+	if request.is_empty():
+		return
 	gift_choice_enter_time = 0.0
 	_play_level_up_se()
 	var base_gift_hype := gift_hype
@@ -6724,7 +7432,7 @@ func _start_gift_choice() -> void:
 	if applied_drawing_hype_bonus > 0:
 		drawing_next_gift_choice_hype_bonus = 0
 		gift_hype = clampi(gift_hype + applied_drawing_hype_bonus, 0, 100)
-	var result: Dictionary = GiftSystemScript.start_offer_ui_for_target(self, gifts, rng, choice_box)
+	var result: Dictionary = GiftSystemScript.start_offer_ui_for_target(self, gifts, rng, choice_box, request)
 	gift_reroll_original_offer = offered_gifts.duplicate(true)
 	gift_reroll_locked = false
 	gift_reroll_pending_offer.clear()
@@ -6788,16 +7496,17 @@ func _update_gift_choice() -> void:
 	var left_pressed := _gift_choice_input_just_pressed(KEY_LEFT, "ui_left") or _selection_latch_pressed(KEY_A)
 	var right_pressed := _gift_choice_input_just_pressed(KEY_RIGHT, "ui_right") or _selection_latch_pressed(KEY_D)
 	var up_pressed := _gift_choice_input_just_pressed(KEY_UP, "ui_up") or _selection_latch_pressed(KEY_W)
+	var gift_count := maxi(1, _gift_choice_count())
 	if left_pressed:
-		selected_card = posmod(selected_card - 1, maxi(1, mini(3, offered_gifts.size())))
+		selected_card = posmod(selected_card - 1, gift_count)
 		_refresh_choice_cards()
 		return
 	if right_pressed or reroll_down:
-		selected_card = posmod(selected_card + 1, maxi(1, mini(3, offered_gifts.size())))
+		selected_card = posmod(selected_card + 1, gift_count)
 		_refresh_choice_cards()
 		return
 	if up_pressed:
-		selected_card = posmod(selected_card - 1, maxi(1, mini(3, offered_gifts.size())))
+		selected_card = posmod(selected_card - 1, gift_count)
 		_refresh_choice_cards()
 		return
 	if _gift_choice_input_just_pressed(KEY_ENTER, "ui_accept") or _selection_latch_pressed(KEY_SPACE):
@@ -6819,6 +7528,8 @@ func _choose_gift(index: int) -> void:
 	_play_confirm_se()
 	_suppress_dash_button_after_ui_confirm()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
+	if gift_choice_return_state != "relay_break":
+		_append_mental_heal_fx(int(result.get("mentalHealAmount", 0)), "gift_rest")
 	if gift_choice_return_state == "relay_break":
 		gift_choice_return_state = "playing"
 		PauseReasonSystemScript.remove(self, "GiftSelection")
@@ -6878,8 +7589,10 @@ func _update_marshmallow(delta: float, arena: Rect2) -> void:
 	elif bool(feedback.get("goodPickupSe", false)):
 		_play_marshmallow_pickup_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
+	_append_mental_heal_fx(int(feedback.get("mentalHealAmount", 0)), "marshmallow")
 	if bool(feedback["levelUp"]):
-		pending_gift_choices += int(feedback.get("levelUps", 1))
+		for _level_up in range(int(feedback.get("levelUps", 1))):
+			_enqueue_gift_request("marshmallow", "normal", true, false, true)
 		if gift_choice_delay_timer <= 0.0:
 			_start_gift_choice()
 	MarshmallowSystemScript.update_effect_timers_for_target(self, delta)
@@ -6889,6 +7602,7 @@ func _update_destructibles(delta: float, arena: Rect2) -> void:
 	if bool(feedback.get("dropPickupSe", false)):
 		_play_gift_box_item_pickup_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
+	_append_mental_heal_fx(int(feedback.get("mentalHealAmount", 0)), "heal_drink")
 
 func _choose_index(index: int) -> void:
 	if state == "comment_choice":
@@ -6905,9 +7619,10 @@ func _layout_choice_ui() -> void:
 	if choice_box == null:
 		return
 	if state == "gift_choice":
-		choice_box.position = Vector2(386, 320) + _gift_choice_drop_offset()
+		choice_box.position = Vector2(_gift_choice_origin_x(), 320) + _gift_choice_drop_offset()
 		choice_box.add_theme_constant_override("separation", 24)
-		for button_item in choice_buttons:
+		for i in range(choice_buttons.size()):
+			var button_item = choice_buttons[i]
 			var button: Button = button_item as Button
 			button.custom_minimum_size = Vector2(206, 280)
 	elif state == "comment_choice":
@@ -6926,7 +7641,7 @@ func _layout_choice_ui() -> void:
 func _update_gift_choice_box_drop() -> void:
 	if choice_box == null or state != "gift_choice":
 		return
-	choice_box.position = Vector2(386, 320) + _gift_choice_drop_offset()
+	choice_box.position = Vector2(_gift_choice_origin_x(), 320) + _gift_choice_drop_offset()
 
 func _update_comment_choice_box_drop() -> void:
 	if choice_box == null or state != "comment_choice":
@@ -7002,9 +7717,14 @@ func _toggle_result_ranking() -> void:
 	ranking_reset_confirm_visible = false
 	ranking_reset_confirm_index = 1
 	if result_showing_ranking:
-		ranking_tab_index = 0
+		var result_difficulty := RankingSystemScript.normalize_difficulty_id(last_result_data.get("difficultyId", "normal"))
+		ranking_difficulty_id = result_difficulty
+		var result_stage := "relay" if bool(last_result_data.get("relayMode", false)) else String(last_result_data.get("streamFrameId", last_result_data.get("stageId", "zatsudan")))
+		ranking_stage_index = RankingSystemScript.stage_index(result_stage)
+		ranking_page_index = 0
 		ranking_selected_index = 0
-		ranking_focus_area = RANKING_FOCUS_TABS
+		ranking_detail_visible = false
+		ranking_focus_area = RANKING_FOCUS_DIFFICULTY
 		result_panel.visible = false
 		_refresh_ranking_screen()
 	else:
@@ -7549,7 +8269,9 @@ func _short_pause_text(text: String, max_chars: int) -> String:
 	return one_line.substr(0, max_chars - 1) + "…"
 
 func _restart() -> void:
+	HardModeSystemScript.clear_hard_comment_events_for_target(self, "retry")
 	_cancel_boss_cutin(false)
+	difficulty_progress_recorded_run_id = ""
 	RelayBossDefenseSystemScript.force_clear(self, RelayBossDefenseSystemScript.STATE_NORMAL)
 	if relay_mode:
 		_prepare_relay_start()
@@ -7621,6 +8343,7 @@ func _restart() -> void:
 	_reset_song_chorus_state()
 	_reset_drawing_stage_state()
 	_reset_collab_stage_state()
+	_initialize_hard_runtime(false)
 	_suppress_dash_button_after_ui_confirm()
 
 func _prepare_relay_start() -> void:
@@ -7692,12 +8415,22 @@ func _advance_relay_frame() -> void:
 	return
 
 func _start_relay_break() -> void:
+	if HardModeSystemScript.is_hard_target(self):
+		HardModeSystemScript.clear_dangers_for_target(self)
+		HardModeSystemScript.clear_hard_comment_events_for_target(self, "relay_break")
+		HardModeSystemScript.clear_active_comment_for_target(self)
+		var hard_runtime := HardModeSystemScript.runtime_for_target(self)
+		hard_runtime["pendingSpawn"] = {}
+		hard_runtime["pendingSpawnRequests"] = []
+		hard_runtime["currentWave"] = ""
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "relay_break")
 	state = "relay_break"
 	previous_state = "playing"
 	_clear_toast()
 	if not balance_debug_stats.is_empty():
 		balance_debug_last["segmentSummary"] = balance_debug_stats.duplicate(true)
+	if not hard_run_exp_stats.is_empty():
+		balance_debug_last["runExpSummary"] = hard_run_exp_stats.duplicate(true)
 	_sync_gameplay_bgm()
 	_sync_relay_break_bgm()
 	relay_break_selection = 0
@@ -7723,7 +8456,7 @@ func _relay_break_screen_context() -> Dictionary:
 		"isBeforeBoss": relay_break_count >= 5 or current_stream_frame_id == "collab",
 		"currentHp": player_hp,
 		"maxHp": player_max_hp,
-		"healRate": float((relay_mode_config.get("break", {}) as Dictionary).get("healRate", 0.30)),
+		"healRate": float((relay_mode_config.get("finalPreparation", {}) as Dictionary).get("healRate", 0.40)) if relay_break_count >= 5 else float((relay_mode_config.get("break", {}) as Dictionary).get("healRate", 0.30)),
 		"playerCharacterId": current_character_id,
 		"lastInputDevice": "keyboard"
 	}
@@ -7791,6 +8524,7 @@ func _on_relay_break_gift_selected(_context: Dictionary) -> void:
 
 func _after_relay_break_reward(kind: String) -> void:
 	PauseReasonSystemScript.remove(self, "Break")
+	GiftSystemScript.reset_pending_gift_requests_for_target(self)
 	relay_run_data = RelayRunDataScript.capture(self)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["休憩：%s" % kind]}, chat_box)
 	if relay_break_count >= 5:
@@ -7836,8 +8570,10 @@ func _boss_cutin_data(boss_id: String) -> Dictionary:
 
 func _start_boss_cutin(boss_id: String, completion_action: String) -> bool:
 	if state == "boss_cutin" or bool(boss_cutin_runtime.get("active", false)):
+		hard_boss_spawn_source = ""
 		return false
 	if boss_id == "" or completion_action == "":
+		hard_boss_spawn_source = ""
 		return false
 	var cutin_data := _boss_cutin_data(boss_id)
 	cutin_data["reducedShake"] = not screen_shake_enabled
@@ -7849,7 +8585,10 @@ func _start_boss_cutin(boss_id: String, completion_action: String) -> bool:
 		# Running it after the 90% handoff would delete the newly spawned boss.
 		_start_next_relay_segment()
 	var return_state := state
-	boss_cutin_runtime = BossCutinSystemScript.start(cutin_data, completion_action, return_state)
+	var spawn_source := hard_boss_spawn_source if completion_action == "spawn_normal_boss" else ""
+	boss_cutin_runtime = BossCutinSystemScript.start(cutin_data, completion_action, return_state, spawn_source)
+	if completion_action != "spawn_normal_boss":
+		hard_boss_spawn_source = ""
 	if is_v2:
 		boss_cutin_runtime["selectedComments"] = _select_boss_cutin_comments(cutin_data)
 		_prepare_boss_cutin_spawn(completion_action, cutin_data)
@@ -7882,6 +8621,7 @@ func _update_boss_cutin(delta: float) -> void:
 func _finish_boss_cutin() -> void:
 	if boss_cutin_runtime.is_empty():
 		PauseReasonSystemScript.remove(self, "BossCutin")
+		hard_boss_spawn_source = ""
 		return
 	var action := String(boss_cutin_runtime.get("completionAction", ""))
 	var return_state := String(boss_cutin_runtime.get("previousState", "playing"))
@@ -7896,6 +8636,7 @@ func _finish_boss_cutin() -> void:
 		else:
 			BossSystemScript.unlock_intro_for_target(self, spawn_uid)
 	boss_cutin_runtime = BossCutinSystemScript.cancel(boss_cutin_runtime)
+	hard_boss_spawn_source = ""
 	PauseReasonSystemScript.remove(self, "BossCutin")
 	if use_final_release:
 		boss_cutin_bgm_release_from_scale = clampf(boss_cutin_bgm_duck_scale, 0.0, 1.0)
@@ -7933,6 +8674,7 @@ func _cancel_boss_cutin(restore_previous_state: bool = true) -> void:
 	if boss_cutin_runtime.is_empty() and state != "boss_cutin":
 		PauseReasonSystemScript.remove(self, "BossCutin")
 		boss_cutin_bgm_duck_scale = 1.0
+		hard_boss_spawn_source = ""
 		return
 	var action := String(boss_cutin_runtime.get("completionAction", ""))
 	var return_state := String(boss_cutin_runtime.get("previousState", "playing"))
@@ -7944,6 +8686,7 @@ func _cancel_boss_cutin(restore_previous_state: bool = true) -> void:
 		else:
 			BossSystemScript.remove_intro_spawn_for_target(self, spawn_uid)
 	boss_cutin_runtime = BossCutinSystemScript.cancel(boss_cutin_runtime)
+	hard_boss_spawn_source = ""
 	PauseReasonSystemScript.remove(self, "BossCutin")
 	boss_cutin_bgm_release_timer = 0.0
 	boss_cutin_bgm_duck_scale = 1.0
@@ -8072,8 +8815,11 @@ func _spawn_boss_from_cutin_reservation() -> void:
 	var prepared: Dictionary = boss_cutin_runtime.get("preparedSpawn", {}) as Dictionary
 	if prepared.is_empty():
 		boss_cutin_runtime["handoffFallback"] = true
+		boss_cutin_runtime["spawnSource"] = ""
+		hard_boss_spawn_source = ""
 		return
 	var action := String(boss_cutin_runtime.get("completionAction", ""))
+	var spawn_source := String(boss_cutin_runtime.get("spawnSource", ""))
 	var uid := -1
 	if action == "spawn_normal_boss":
 		var feedback := BossSystemScript.spawn_prepared_for_target(self, prepared)
@@ -8083,11 +8829,113 @@ func _spawn_boss_from_cutin_reservation() -> void:
 		uid = RelayBossSystemScript.start_prepared_for_target(self, _current_arena(), rng, prepared)
 	if uid < 0:
 		boss_cutin_runtime["handoffFallback"] = true
+		boss_cutin_runtime["spawnSource"] = ""
+		hard_boss_spawn_source = ""
 		return
+	if action == "spawn_normal_boss" and spawn_source == "hard_auto_forced" and HardModeSystemScript.is_hard_target(self) and not relay_mode:
+		_force_clear_instruction_for_hard_auto_boss()
+	if action == "spawn_normal_boss" and HardModeSystemScript.is_hard_target(self):
+		HardModeSystemScript.mark_boss_spawned(self, hard_boss_role, elapsed)
+	boss_cutin_runtime["spawnSource"] = ""
+	hard_boss_spawn_source = ""
 	boss_cutin_runtime["bossSpawned"] = true
 	boss_cutin_runtime["spawnUid"] = uid
 	var world_pos: Vector2 = prepared.get("worldPosition", Vector2.ZERO) as Vector2
 	boss_cutin_runtime["spawnScreenPosition"] = _boss_cutin_screen_position(world_pos)
+
+func _force_clear_instruction_for_hard_auto_boss() -> void:
+	var active_ids: Array[String] = []
+	for raw_id in active_effects:
+		var effect_id := String(raw_id)
+		if effect_id != "" and not active_ids.has(effect_id):
+			active_ids.append(effect_id)
+	if last_comment_id != "" and not active_ids.has(last_comment_id):
+		active_ids.append(last_comment_id)
+	for raw_id in active_sub_comment_ids:
+		var sub_id := String(raw_id)
+		if sub_id != "" and not active_ids.has(sub_id):
+			active_ids.append(sub_id)
+	_clear_instruction_owned_stage_runtime(active_ids)
+	# This is a boss interruption, not an ordinary timeout.  Suppressing the
+	# clear bonus keeps pending_clear_hype and gift_hype unchanged.
+	ModifierSystemScript.clear_state_for_target(self, true)
+	if not relay_mode:
+		multiplier = 1.0
+	active_comment_score_rate = 1.0
+	current_comment = "なし"
+	current_death_text = "発動中の指示コメなし"
+	hard_boss_spawn_source = ""
+	queue_redraw()
+
+func _clear_instruction_owned_stage_runtime(active_ids: Array[String]) -> void:
+	if active_ids.has("song_mic_howling"):
+		song_howling_emitters.clear()
+		song_howling_waves.clear()
+	if active_ids.has("song_lighting_mistake"):
+		song_bad_lights.clear()
+		song_bad_light_respawn_timer = 0.0
+		song_bad_light_inside = false
+	if active_ids.has("song_lyrics_lost"):
+		song_lyrics_cards.clear()
+		song_lyrics_card_locked_pos = Vector2.ZERO
+		song_lyrics_card_has_locked_pos = false
+		song_lyrics_lost_card_collected = false
+	if active_ids.has("song_force_chorus"):
+		song_chorus_telegraph_timer = 0.0
+		song_chorus_timer = 0.0
+		song_chorus_banner_timer = 0.0
+		song_chorus_enemy_spawn_timer = 0.0
+		song_forced_chorus_active = false
+		song_chorus_reward_multiplier = 1.0
+		song_notes.clear()
+		song_spotlights.clear()
+		song_live_heat_fx.clear()
+	if active_ids.has("dont_fail_collab"):
+		_cancel_collab_challenge(false)
+	if active_ids.has("collab_talking_over"):
+		var kept_hazards: Array = []
+		for field_value in collab_hazard_fields:
+			var field: Dictionary = field_value as Dictionary
+			if String(field.get("source", "")) != "talking_over":
+				kept_hazards.append(field)
+		collab_hazard_fields = kept_hazards
+		collab_talking_over_timer = 0.0
+	if active_ids.has("out_of_sync"):
+		collab_partner_interference_slow_timer = 0.0
+		var kept_collab_effects: Array = []
+		for effect_value in collab_effects:
+			var effect: Dictionary = effect_value as Dictionary
+			var kind := String(effect.get("kind", ""))
+			if kind == "partner_interference":
+				continue
+			if kind == "partner_superchat_bullet" or kind == "boomerang":
+				effect["playerInterference"] = false
+			kept_collab_effects.append(effect)
+		collab_effects = kept_collab_effects
+	if active_ids.has("fast_collab_pass") or active_ids.has("collab_quick_pass"):
+		_clear_collab_pass(false)
+	if active_ids.has("collab_stay_close"):
+		collab_distance_grace_timer = 0.0
+	if active_ids.has("keep_sync"):
+		collab_keep_sync_star_loss_cooldown = 0.0
+	if active_ids.has("collab_no_sync"):
+		collab_no_sync_was_active = false
+	# These arrays contain both ordinary stage objects and instruction-created
+	# objects.  Only entries explicitly tagged by an instruction are removed.
+	drawing_correction_points = _keep_non_instruction_stage_objects(drawing_correction_points)
+	drawing_correction_completion_fx = _keep_non_instruction_stage_objects(drawing_correction_completion_fx)
+	drawing_erasers = _keep_non_instruction_stage_objects(drawing_erasers)
+	drawing_eraser_waves = _keep_non_instruction_stage_objects(drawing_eraser_waves)
+	drawing_spilled_paints = _keep_non_instruction_stage_objects(drawing_spilled_paints)
+	drawing_paint_orbs = _keep_non_instruction_stage_objects(drawing_paint_orbs)
+
+func _keep_non_instruction_stage_objects(items: Array) -> Array:
+	var kept: Array = []
+	for value in items:
+		if value is Dictionary and String((value as Dictionary).get("source", "stage")) == "instruction":
+			continue
+		kept.append(value)
+	return kept
 
 func _update_boss_cutin_field_visuals(view: Dictionary) -> void:
 	if not bool(boss_cutin_runtime.get("bossSpawned", false)):
@@ -8163,6 +9011,7 @@ func _prepare_normal_boss_cutin() -> void:
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "boss_cutin")
 	hit_fx.clear()
 	GenreEventSystemScript.clear_temp_objects_for_target(self)
+	GenreEventSystemScript.clear_comment_genre_mix_for_target(self)
 	active_genre_event = ""
 	genre_event_timer = 0.0
 	_clear_toast()
@@ -8183,6 +9032,7 @@ func debug_play_boss_cutin(boss_id: String) -> bool:
 func _start_relay_boss() -> void:
 	if not relay_boss_active:
 		_start_next_relay_segment()
+		_initialize_hard_runtime(true)
 		RelayBossSystemScript.start_for_target(self, _current_arena(), rng)
 		if power_up_run_tracker != null:
 			power_up_run_tracker.mark_relay_final_reached()
@@ -8238,7 +9088,15 @@ func _relay_boss_emit_travel_attack(attack_id: String, arena: Rect2, travel_cont
 func _on_relay_boss_noise_summon_defeated(enemy: Dictionary) -> void:
 	if not relay_boss_active or relay_boss_score_awarded or relay_boss_defeat_pending:
 		return
+	if bool(enemy.get("hardFinalBossSummonRewardable", false)):
+		var heal_rate := clampf(float(enemy.get("healDropRate", 0.10)), 0.0, 1.0)
+		var remove_reason := String(enemy.get("removeReason", ""))
+		if remove_reason == "" or remove_reason == "combat_defeat":
+			if bool(enemy.get("healDropEnabled", true)) and _relay_heal_allowed() and rng.randf() < heal_rate:
+				drop_items.append({"id": "heal_drink", "displayName": "回復ドリンク", "pos": Vector2(enemy.get("pos", player_pos)), "life": 12.0, "age": 0.0})
 	if not bool(enemy.get("syncStarCarrier", false)) or bool(enemy.get("syncStarDropped", false)):
+		return
+	if bool(enemy.get("hardFinalBossSummonRewardable", false)) and not bool(enemy.get("starDropEnabled", false)):
 		return
 	var owner := String(enemy.get("defeatOwner", ""))
 	var allowed_owners: Array = ["player", "partner"]
@@ -8263,7 +9121,7 @@ func _on_relay_boss_noise_summon_defeated(enemy: Dictionary) -> void:
 	runtime["sync_star_carrier_uid"] = -1
 	var normal_cooldown := float(sync_config.get("normalCooldownSeconds", 18.0))
 	var final_cooldown := float(sync_config.get("finalPhaseCooldownSeconds", 14.0))
-	runtime["sync_star_drop_cooldown"] = final_cooldown if relay_boss_phase >= 4 else normal_cooldown
+	runtime["sync_star_drop_cooldown"] = final_cooldown if relay_boss_phase >= RelayBossSystemScript.max_phase_for_target(self) else normal_cooldown
 
 func _relay_boss_reserved_sync_stars() -> int:
 	var count := collab_sync_stars + collab_sync_star_transfers.size()
@@ -8322,6 +9180,7 @@ func _start_next_relay_segment() -> void:
 	_clear_collab_combo_runtime("relay_segment")
 	collab_combo_sequence_state = ""
 	collab_combo_sequence_timer = 0.0
+	RunStateSystemScript.reset_comment_state_for_target(self)
 	elapsed = 0.0
 	comment_timer = COMMENT_INTERVAL
 	comment_warning_step = 0
@@ -8400,6 +9259,7 @@ func _start_next_relay_segment() -> void:
 	next_destructible_uid = 1
 	next_care_package_time = 15.0
 	active_genre_event = ""
+	GenreEventSystemScript.clear_comment_genre_mix_for_target(self)
 	genre_event_count = 0
 	genre_event_timer = 0.0
 	genre_event_duration = GenreEventSystemScript.GENRE_EVENT_DURATION
@@ -8444,6 +9304,8 @@ func _start_next_relay_segment() -> void:
 		collab_challenge_next_timer = float(collab_timeline.get("firstChallengeAt", 25.0))
 	if relay_mode and not relay_run_data.is_empty():
 		RelayRunDataScript.apply(self, relay_run_data)
+	if relay_mode:
+		_initialize_hard_runtime(false)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["次の配信枠へ！ " + String(current_stream_frame.get("displayName", "配信枠"))]}, chat_box)
 
 func _handle_debug_keys() -> void:
@@ -8453,6 +9315,12 @@ func _handle_debug_keys() -> void:
 		_apply_debug_action(action)
 
 func _apply_debug_action(action: String) -> void:
+	if action == "hard_balance_toggle":
+		if OS.is_debug_build():
+			hard_balance_debug_overlay_enabled = not hard_balance_debug_overlay_enabled
+			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["HARD BALANCE DEBUG: " + ("ON" if hard_balance_debug_overlay_enabled else "OFF")]}, chat_box)
+			queue_redraw()
+		return
 	if action == "unlock_senior_unit":
 		if power_up_shop_manager == null or not power_up_shop_manager.debug_unlock_senior_unit():
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["DEBUG: シニアユニット解放の保存に失敗しました"]}, chat_box)
@@ -10100,6 +10968,8 @@ func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 				_draw_collab_partner_hammer_effect(effect, draw_rect_world)
 			"partner_superchat_bullet":
 				_draw_collab_partner_superchat_bullet_effect(effect, draw_rect_world)
+			"partner_kyasumi_wall", "partner_rizumu_fan_hit", "partner_miimu_gather":
+				_draw_collab_partner_weapon_effect(effect, draw_rect_world)
 			"star_line":
 				_draw_collab_star_line_effect(effect, draw_rect_world)
 			"boomerang":
@@ -10122,6 +10992,63 @@ func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 				_draw_collab_crusher_combo_hit_effect(effect, draw_rect_world)
 			"crusher_combo_finish":
 				_draw_collab_crusher_combo_finish_effect(effect, draw_rect_world)
+
+func _draw_collab_partner_weapon_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var kind := String(effect.get("kind", ""))
+	var life := float(effect.get("life", 0.0))
+	var max_life := maxf(0.01, float(effect.get("maxLife", life)))
+	var from_pos := Vector2(effect.get("from", collab_partner_pos))
+	var to_pos := Vector2(effect.get("to", effect.get("pos", from_pos)))
+	if not visible_rect.has_point(to_pos) and not visible_rect.has_point(from_pos):
+		return
+	var direction := (to_pos - from_pos).normalized()
+	if direction.length_squared() < 0.01:
+		direction = Vector2(collab_partner_facing_x, 0.0)
+	var visuals: Dictionary = effect.get("visuals", {}) as Dictionary
+	var draw_data_items: Array = []
+	match kind:
+		"partner_kyasumi_wall":
+			var wall_rect: Rect2 = effect.get("rect", Rect2(to_pos - Vector2(72.0, 24.0), Vector2(144.0, 48.0))) as Rect2
+			draw_data_items.append(DrawDataSystemScript.moderator_shield_fx_data(
+				to_pos,
+				direction,
+				1.0 - clampf(life / max_life, 0.0, 1.0),
+				life,
+				max_life,
+				wall_rect.size.x,
+				wall_rect.size.y,
+				visuals
+			))
+		"partner_rizumu_fan_hit":
+			draw_data_items.append(DrawDataSystemScript.fansa_baton_fx_data(
+				from_pos,
+				direction,
+				int(effect.get("comboStep", 0)),
+				life,
+				max_life,
+				float(effect.get("range", 110.0)),
+				float(effect.get("arcAngle", 50.0)),
+				visuals
+			))
+		"partner_miimu_gather":
+			var radius := float(effect.get("radius", 105.0))
+			draw_data_items.append(DrawDataSystemScript.tsuri_rod_fx_data(
+				to_pos,
+				"gathering",
+				from_pos,
+				from_pos,
+				life,
+				max_life,
+				float(effect.get("pathWidth", 22.0)),
+				radius,
+				visuals,
+				direction
+			))
+			draw_data_items.append(DrawDataSystemScript.tsuri_rod_gather_fx_data(to_pos, radius, life, max_life, visuals))
+	for draw_data_item in draw_data_items:
+		var draw_data: Dictionary = draw_data_item as Dictionary
+		_draw_hit_fx_item(draw_data, "back")
+		_draw_hit_fx_item(draw_data, "front")
 
 func _draw_collab_dash_sync_world_effects(visible_rect: Rect2) -> void:
 	if not _collab_challenge_active() or collab_challenge_type != "dash_sync" or collab_challenge_status != "active":
@@ -11238,7 +12165,8 @@ func _draw_relay_boss_hud() -> void:
 	draw_rect(rect, Color(0.12, 0.03, 0.14, 0.94 * dim), true)
 	_draw_rect_outline(rect, Color("#ff507f") if not defense_active else Color("#d9c7ff"), 3.0)
 	_draw_outlined_text(rect.position + Vector2(18.0, 29.0), "LAST OFFLINE", 250, 21, Color("#fff3a6"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_LEFT)
-	_draw_outlined_text(rect.position + Vector2(716.0, 28.0), "PHASE %d / 5" % (relay_boss_phase + 1), 155, 16, Color("#ffc1d4") if not defense_active else Color("#e8dcff"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_RIGHT)
+	var phase_count := RelayBossSystemScript.phase_count_for_target(self)
+	_draw_outlined_text(rect.position + Vector2(716.0, 28.0), "PHASE %d / %d" % [mini(relay_boss_phase + 1, phase_count), phase_count], 155, 16, Color("#ffc1d4") if not defense_active else Color("#e8dcff"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_RIGHT)
 	var bar := Rect2(rect.position + Vector2(18.0, 42.0), Vector2(864.0, 20.0))
 	draw_rect(bar, Color("#32172d"), true)
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), Color("#ff4f92") if not defense_active else Color("#9a76c7"), true)
@@ -11346,6 +12274,30 @@ func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null, image_l
 		_draw_hit_fx_item(data, image_layer)
 
 func _draw_hit_fx_item(data: Dictionary, image_layer: String = "front") -> void:
+	if String(data.get("kind", "")) == "hard_comment_avalanche_row":
+		if image_layer != "front":
+			return
+		var center := Vector2(data.get("pos", Vector2.ZERO))
+		var size := Vector2(float(data.get("width", 180.0)), float(data.get("height", 46.0)))
+		var age := float(data.get("age", 0.0))
+		var life := float(data.get("life", 1.0))
+		var fade := minf(clampf(age / 0.18, 0.0, 1.0), clampf(life / 0.35, 0.0, 1.0))
+		var palette := [Color("#ff74b8"), Color("#6cdcf1"), Color("#aa8cff"), Color("#ffb45f")]
+		var accent: Color = palette[posmod(int(data.get("paletteIndex", 0)), palette.size())]
+		var rect := Rect2(center - size * 0.5, size)
+		_draw_collab_challenge_round_rect(Rect2(rect.position + Vector2(3.0, 4.0), rect.size), Color(0.18, 0.05, 0.18, 0.22 * fade), Color.TRANSPARENT, 12, 0)
+		_draw_collab_challenge_round_rect(rect, Color(1.0, 0.97, 1.0, 0.94 * fade), Color(accent.r, accent.g, accent.b, 0.96 * fade), 12, 2)
+		var direction := float(data.get("direction", 1.0))
+		var avatar_center := Vector2(rect.position.x + 22.0 if direction > 0.0 else rect.end.x - 22.0, center.y)
+		draw_circle(avatar_center, 13.0, Color(accent.r, accent.g, accent.b, 0.92 * fade))
+		draw_circle(avatar_center + Vector2(0.0, -3.0), 3.8, Color(1.0, 1.0, 1.0, 0.94 * fade))
+		draw_arc(avatar_center + Vector2(0.0, 6.0), 6.0, PI, TAU, 12, Color(1.0, 1.0, 1.0, 0.94 * fade), 2.0)
+		var text_left := rect.position.x + (42.0 if direction > 0.0 else 10.0)
+		var text_width := int(size.x - 52.0)
+		_draw_outlined_text(Vector2(text_left, center.y + 7.0), String(data.get("text", "コメント欄が加速中！")), text_width, 16, Color(0.25, 0.10, 0.24, fade), Color(1.0, 1.0, 1.0, 0.92 * fade), HORIZONTAL_ALIGNMENT_CENTER)
+		var tail_x := rect.position.x + 28.0 if direction > 0.0 else rect.end.x - 28.0
+		draw_colored_polygon(PackedVector2Array([Vector2(tail_x - 7.0, rect.end.y - 1.0), Vector2(tail_x + 8.0, rect.end.y - 1.0), Vector2(tail_x, rect.end.y + 8.0)]), Color(1.0, 0.97, 1.0, 0.94 * fade))
+		return
 	_draw_hit_fx_visual_lines(data, image_layer)
 	var loaded_visual_roles := _hit_fx_loaded_visual_roles(data, image_layer)
 	var valid_image_line_roles := _hit_fx_valid_image_line_roles(data, image_layer)
@@ -11443,7 +12395,17 @@ func _draw_hit_fx_visual_lines(data: Dictionary, image_layer: String) -> void:
 		if String(line.get("drawLayer", "back")) != image_layer:
 			continue
 		var line_color: Color = line.get("color", Color.WHITE) as Color
+		line_color.a *= clampf(float(line.get("alpha", 1.0)), 0.0, 1.0)
 		draw_line(Vector2(line.get("from", Vector2.ZERO)), Vector2(line.get("to", Vector2.ZERO)), line_color, float(line.get("width", 2.0)), true)
+	if image_layer != "front":
+		return
+	for particle_item in (data.get("collectionParticles", []) as Array):
+		var particle: Dictionary = particle_item as Dictionary
+		if String(particle.get("drawLayer", "front")) != image_layer:
+			continue
+		var particle_color: Color = particle.get("color", Color.WHITE) as Color
+		particle_color.a *= clampf(float(particle.get("alpha", 1.0)), 0.0, 1.0)
+		draw_circle(Vector2(particle.get("pos", Vector2.ZERO)), float(particle.get("radius", 3.0)), particle_color)
 
 func _draw_hit_fx_image_layer(layer: Dictionary) -> bool:
 	var path := String(layer.get("path", ""))
@@ -11476,8 +12438,12 @@ func _draw_hit_fx_image_layer(layer: Dictionary) -> bool:
 	elif pivot_value is Array and (pivot_value as Array).size() >= 2:
 		var pivot_array: Array = pivot_value as Array
 		pivot = Vector2(float(pivot_array[0]), float(pivot_array[1]))
-	var center := anchor - Vector2((pivot.x - 0.5) * size.x, (pivot.y - 0.5) * size.y).rotated(angle)
-	_draw_rotated_texture(texture, center, size, angle, float(layer.get("alpha", 1.0)))
+	var flip_x := bool(layer.get("flipX", false))
+	var pivot_offset := Vector2((pivot.x - 0.5) * size.x, (pivot.y - 0.5) * size.y)
+	if flip_x:
+		pivot_offset.x = -pivot_offset.x
+	var center := anchor - pivot_offset.rotated(angle)
+	_draw_rotated_texture(texture, center, size, angle, float(layer.get("alpha", 1.0)), flip_x)
 	return true
 
 func _draw_hit_fx_texture(data: Dictionary, image_layer: String = "front") -> bool:
@@ -11935,34 +12901,35 @@ func _draw_character_status_card_v25(rect: Rect2) -> void:
 		draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	var avatar_rect := Rect2(rect.position + Vector2(12, 9), Vector2(62, 62))
 	_draw_ranking_panel(avatar_rect, Color(1.0, 0.94, 0.98, 0.90), Color(1.0, 0.56, 0.76, 0.34), 8, 1, false)
-	var hud_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _current_character_hud_icon_path_v25())
-	if hud_icon != null:
-		draw_texture_rect(hud_icon, _fit_texture_rect(avatar_rect.grow(-3), hud_icon.get_size()), false)
+	var hud_sprite_path := String(current_character.get("hudSprite", ""))
+	var hud_sprite: Texture2D = null
+	if hud_sprite_path != "":
+		hud_sprite = CharacterSystemScript.texture_from_cache(character_sprite_cache, hud_sprite_path)
+	if hud_sprite != null:
+		_draw_character_hud_icon_texture_v25(hud_sprite, avatar_rect.grow(-3))
 	else:
-		var sprite_path: String = String(current_character.get("sprite", ""))
-		var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, sprite_path)
-		if tex != null:
-			_draw_character_hud_icon_texture_v25(tex, avatar_rect.grow(-3))
+		var hud_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, _current_character_hud_icon_path_v25())
+		if hud_icon != null:
+			draw_texture_rect(hud_icon, _fit_texture_rect(avatar_rect.grow(-3), hud_icon.get_size()), false)
+		else:
+			var sprite_path: String = String(current_character.get("sprite", ""))
+			var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, sprite_path)
+			if tex != null:
+				_draw_character_hud_icon_texture_v25(tex, avatar_rect.grow(-3))
 	var text_x := rect.position.x + 86.0
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 24), "text": "使用キャラ", "width": int(rect.size.x - 98), "size": 13, "color": Color("#8a6b82")})
 	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 56), "text": String(current_character.get("displayName", "")), "width": int(rect.size.x - 98), "size": 22, "color": Color("#101420")})
 
 func _current_character_hud_icon_path_v25() -> String:
-	for key in ["hudIcon", "iconPath", "selectSprite", "sprite"]:
-		var path := String(current_character.get(key, ""))
-		if path != "":
-			return path
-	return ""
+	return String(current_character.get("hudIcon", ""))
 
 func _draw_character_hud_icon_texture_v25(texture: Texture2D, rect: Rect2) -> void:
-	var focus := Vector2(0.50, 0.30)
-	var zoom := 2.35
-	if current_character_id == "maro_chan" or current_character_id == "maron":
-		focus = Vector2(0.50, 0.28)
-		zoom = 2.25
-	elif current_character_id == "superchat_chan" or current_character_id == "supana":
-		focus = Vector2(0.50, 0.30)
-		zoom = 2.45
+	var focus_data: Dictionary = current_character.get("hudSpriteFocus", {}) as Dictionary
+	var focus := Vector2(
+		clampf(float(focus_data.get("x", 0.50)), 0.0, 1.0),
+		clampf(float(focus_data.get("y", 0.30)), 0.0, 1.0)
+	)
+	var zoom := maxf(1.0, float(current_character.get("hudSpriteZoom", 2.35)))
 	_draw_texture_cover_rect(texture, rect, focus, zoom)
 
 func _draw_instruction_countdown_v25() -> void:
@@ -12856,15 +13823,16 @@ func _draw_title_overlay() -> void:
 		_draw_overlay_part(part as Dictionary)
 
 func _draw_ranking_overlay() -> void:
-	var view: Dictionary = RankingSystemScript.ranking_view(ranking_tab_index, ranking_selected_index, relay_mode_unlocked)
+	var view: Dictionary = _ranking_view()
 	_draw_ranking_background()
 	_draw_ranking_header(view)
 	_draw_ranking_tabs(view["tabs"] as Array)
-	var list_rect := Rect2(76, 174, 780, 660)
-	var detail_rect := Rect2(876, 174, 648, 660)
+	_draw_ranking_stage_tabs(view.get("stageTabs", []) as Array)
+	var list_rect := Rect2(76, 244, 780, 598)
+	var detail_rect := Rect2(876, 244, 648, 590)
 	_draw_ranking_list_panel(list_rect, view)
 	_draw_ranking_detail_panel(detail_rect, view)
-	_draw_ranking_footer()
+	_draw_ranking_footer(view)
 	_draw_ranking_reset_confirm()
 
 func _draw_ranking_background() -> void:
@@ -12952,7 +13920,7 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 		var tab: Dictionary = tabs[index] as Dictionary
 		var rect := Rect2(76 + float(index) * (tab_width + gap), y, tab_width, 60)
 		var selected: bool = bool(tab.get("selected", false))
-		var focused: bool = selected and ranking_focus_area == RANKING_FOCUS_TABS
+		var focused: bool = selected and (ranking_focus_area == RANKING_FOCUS_TABS or ranking_focus_area == RANKING_FOCUS_DIFFICULTY)
 		var locked: bool = bool(tab.get("locked", false))
 		var fill := Color(1, 1, 1, 0.93)
 		var border := Color("#e7d7e5")
@@ -12985,6 +13953,27 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 			var p3 := rect.position + Vector2(rect.size.x * 0.5, rect.size.y + 22.0)
 			draw_colored_polygon(PackedVector2Array([p1, p2, p3]), Color("#ff62b5") if focused else Color("#ffb9dc"))
 
+
+func _draw_ranking_stage_tabs(tabs: Array) -> void:
+	var count := maxi(1, tabs.size())
+	var gap := 8.0
+	var total_width := 1448.0
+	var tab_width := (total_width - gap * float(count - 1)) / float(count)
+	for index in range(tabs.size()):
+		var tab: Dictionary = tabs[index] as Dictionary
+		var rect := Rect2(76 + float(index) * (tab_width + gap), 174, tab_width, 48)
+		var selected := bool(tab.get("selected", false))
+		var locked := bool(tab.get("locked", false))
+		var focused := selected and ranking_focus_area == RANKING_FOCUS_STAGE and not locked
+		var fill := Color("#f2eef2") if locked else (Color("#ff9acb") if focused else (Color("#fff3fb") if selected else Color(1, 1, 1, 0.90)))
+		var border := Color("#d8cfd7") if locked else (Color("#ff62b5") if selected else Color("#e7d7e5"))
+		var text_color := Color("#9a8f98") if locked else (Color.WHITE if focused else Color("#6d4562"))
+		_draw_ranking_panel(rect, fill, border, 14, 3 if focused else 2, false)
+		var text_width := rect.size.x - (30.0 if locked else 0.0)
+		_draw_ranking_text(String(tab.get("label", "配信枠")), rect.position + Vector2(0, 31), 15, text_color, text_width, HORIZONTAL_ALIGNMENT_CENTER)
+		if locked:
+			_draw_ranking_lock_icon(Rect2(rect.position + Vector2(rect.size.x - 30.0, 12.0), Vector2(24.0, 24.0)), false)
+
 func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 	var empty_or_locked := bool(view.get("locked", false)) or bool(view.get("empty", false))
 	var panel_focused := ranking_focus_area == RANKING_FOCUS_ENTRIES and empty_or_locked
@@ -12999,13 +13988,14 @@ func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 	var selected_index: int = int(view.get("selectedIndex", 0))
 	var start: int = clampi(selected_index - 2, 0, maxi(0, rows.size() - visible_count))
 	var row_y := panel.position.y + 74.0
-	var row_height := 106.0
+	var row_height := 100.0
+	var row_gap := 6.0
 	for i in range(visible_count):
 		var row_index: int = start + i
 		if row_index >= rows.size():
 			break
 		var row: Dictionary = rows[row_index] as Dictionary
-		var rect := Rect2(panel.position.x + 20, row_y + float(i) * (row_height + 10.0), panel.size.x - 46, row_height)
+		var rect := Rect2(panel.position.x + 20, row_y + float(i) * (row_height + row_gap), panel.size.x - 46, row_height)
 		_draw_ranking_row(rect, row, ranking_focus_area == RANKING_FOCUS_ENTRIES)
 	if rows.size() > visible_count:
 		var bar_rect := Rect2(panel.end.x - 22, panel.position.y + 72, 8, panel.size.y - 104)
@@ -13031,7 +14021,8 @@ func _draw_ranking_row(rect: Rect2, row: Dictionary, selection_active: bool = tr
 	var avatar_pos := rect.position + Vector2(132, 54)
 	_draw_ranking_character_avatar(avatar_pos, 36.0, row, accent)
 	_draw_ranking_text(_short_pause_text(_ranking_formal_character_name(row), 13), rect.position + Vector2(188, 36), 25, accent, 190)
-	_draw_ranking_text(_short_pause_text(String(row.get("scoreText", "")), 18), rect.position + Vector2(188, 68), 26, Color("#ff4d9f"), 190)
+	_draw_ranking_text(_short_pause_text(String(row.get("scoreLabel", "最大同時視聴者数")), 12), rect.position + Vector2(188, 56), 12, Color("#8a6b82"), 190)
+	_draw_ranking_text(_short_pause_text(String(row.get("scoreText", "")), 18), rect.position + Vector2(188, 84), 22, Color("#ff4d9f"), 190)
 	_draw_ranking_row_build_icons(Rect2(rect.position + Vector2(370, 28), Vector2(238, 72)), row.get("weapons", []) as Array, row.get("accessories", []) as Array)
 	_draw_ranking_end_type_badge(Rect2(rect.end - Vector2(126, 82), Vector2(108, 64)), String(row.get("endTypeLabel", "")), String(row.get("endType", "")))
 
@@ -13192,18 +14183,8 @@ func _ranking_character_id_for_row(character_id: String, character_name: String)
 		return "maro_chan"
 	return ""
 
-func _ranking_idle_sprite_path(character: Dictionary) -> String:
-	var idle_path: String = String(character.get("idleSprite", ""))
-	if idle_path == "" and String(character.get("id", "")) == "ban_chan":
-		return "res://assets/generated/ban_chan_idle_3x3/sheet-transparent.png"
-	return idle_path
-
 func _ranking_avatar_sprite_path(character: Dictionary) -> String:
-	var idle_path := _ranking_idle_sprite_path(character)
-	for path in [String(character.get("rankingSprite", "")), String(character.get("resultSprite", "")), idle_path, String(character.get("selectSprite", "")), String(character.get("sprite", ""))]:
-		if path != "":
-			return path
-	return ""
+	return RankingSystemScript.ranking_character_sprite_path(character)
 
 func _ranking_avatar_source_rect(character: Dictionary, sprite_path: String, texture: Texture2D) -> Rect2:
 	var cols: int = maxi(1, int(character.get("idleSpriteCols", 1)))
@@ -13315,7 +14296,8 @@ func _draw_ranking_detail_instruction(rect: Rect2, detail: Dictionary) -> void:
 		var color := Color("#5d4658") if index > 0 else Color("#b1509c")
 		_draw_ranking_text(_short_pause_text(String(lines[index]), 44), rect.position + Vector2(18, 61 + float(index) * 23.0), 16, color, rect.size.x - 36)
 	var boss_text: String = String(detail.get("bossText", "なし"))
-	_draw_ranking_text("ボス：%s" % _short_pause_text(boss_text, 28), rect.position + Vector2(18, rect.size.y - 18), 14, Color("#7a6d79"), rect.size.x - 36)
+	var boss_label: String = String(detail.get("bossLabel", "ボス"))
+	_draw_ranking_text("%s：%s" % [boss_label, _short_pause_text(boss_text, 28)], rect.position + Vector2(18, rect.size.y - 18), 14, Color("#7a6d79"), rect.size.x - 36)
 
 func _draw_ranking_detail_meta(rect: Rect2, detail: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color("#fffaf0"), Color("#f2c96e"), 14, 2, false)
@@ -13341,12 +14323,16 @@ func _ranking_back_button_rect() -> Rect2:
 	var footer := _ranking_footer_rect()
 	return Rect2(footer.end.x - 154.0, footer.position.y + 6.0, 132.0, 32.0)
 
-func _draw_ranking_footer() -> void:
+func _draw_ranking_footer(page_view: Dictionary) -> void:
 	var rect := _ranking_footer_rect()
 	var back_rect := _ranking_back_button_rect()
 	var back_selected := ranking_focus_area == RANKING_FOCUS_BACK
+	var page_text := "%d / %d" % [int(page_view.get("pageIndex", 0)) + 1, int(page_view.get("pageCount", 1))]
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	_draw_ranking_text("←→：タブ　↑↓：記録　Enter：詳細　Esc：戻る　R：リセット", rect.position + Vector2(0, 29), 18, Color("#6b4a63"), back_rect.position.x - rect.position.x - 18.0, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(page_text, rect.position + Vector2(350, 29), 16, Color("#6b4a63"), 90, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("<", rect.position + Vector2(350, 29), 16, Color("#6b4a63"), 28, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(">", rect.position + Vector2(412, 29), 16, Color("#6b4a63"), 28, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("←→：枠/難易度　↑↓：記録　A/D：ページ　Esc：戻る　R：リセット", rect.position + Vector2(0, 29), 16, Color("#6b4a63"), back_rect.position.x - rect.position.x - 18.0, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_panel(back_rect, Color("#ff93cd") if back_selected else Color("#eef9ff"), Color("#ff62b5") if back_selected else Color("#9ed9f4"), 14, 3 if back_selected else 2, false)
 	_draw_ranking_text("戻る", back_rect.position + Vector2(0, 23), 16, Color.WHITE if back_selected else Color("#2587b8"), back_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
@@ -13356,7 +14342,7 @@ func _draw_ranking_reset_confirm() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(0.16, 0.06, 0.13, 0.42), true)
 	var rect := Rect2(500, 282, 600, 284)
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.98), Color("#ff7dbc"), 22, 3, true)
-	var target_label: String = RankingSystemScript.tab_reset_label(ranking_tab_index, relay_mode_unlocked)
+	var target_label: String = "%s・%s" % [RankingSystemScript.stage_label(RankingSystemScript.RANKING_STAGE_IDS[ranking_stage_index]), ranking_difficulty_id.to_upper()]
 	_draw_ranking_text("%sランキングをリセットしますか？" % target_label, rect.position + Vector2(0, 76), 28, Color("#4f3149"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("この操作は元に戻せません。", rect.position + Vector2(0, 118), 19, Color("#8a6b82"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var labels: Array[String] = ["はい", "いいえ"]
@@ -14813,7 +15799,9 @@ func _draw_character_select_card(rect: Rect2, index: int) -> void:
 		fill = Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.96) if selectable else Color("#f4eff7")
 	_draw_ranking_panel(draw_rect, fill, border, 20, 5 if selected else 2, false)
 	_draw_ranking_text("[%d]" % (index + 1), draw_rect.position + Vector2(16, 31), 18, accent if selectable else Color("#8f8793"), 42)
-	_draw_ranking_text(_short_pause_text(String(view.get("displayName", "配信者")), 9), draw_rect.position + Vector2(58, 35), 23, text_color, draw_rect.size.x - 76)
+	var display_name := _short_pause_text(String(view.get("displayName", "配信者")), 9)
+	var name_font_size := 18 if display_name.length() >= 6 else 23
+	_draw_ranking_text(display_name, draw_rect.position + Vector2(58, 35), name_font_size, text_color, draw_rect.size.x - 76)
 	var status_rect := Rect2(draw_rect.position + Vector2(draw_rect.size.x - 92, 12), Vector2(74, 26))
 	if selected:
 		_draw_ranking_panel(status_rect, Color(accent.r, accent.g, accent.b, 0.88), accent, 13, 1, false)
@@ -14824,23 +15812,38 @@ func _draw_character_select_card(rect: Rect2, index: int) -> void:
 	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 	if tex != null:
 		if String(view.get("statusId", "")) == "locked":
-			draw_texture_rect(tex, _fit_texture_rect(image_rect, tex.get_size()), false, Color(0.38, 0.38, 0.46, 0.72))
+			_draw_character_select_card_portrait(tex, image_rect, view, Color(0.38, 0.38, 0.46, 0.72))
 			_draw_ranking_text("LOCK", image_rect.position + Vector2(0, 84), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 			var unlock_text := String(view.get("unlockConditionText", ""))
 			if unlock_text != "":
 				_draw_multiline_text_item({"pos": image_rect.position + Vector2(10, 106), "text": unlock_text, "width": int(image_rect.size.x - 20), "size": 12, "color": Color("#f7f2fb")}, HORIZONTAL_ALIGNMENT_CENTER)
 		else:
-			var select_rect := _fit_texture_rect(image_rect, tex.get_size())
-			var select_scale := maxf(0.1, float(view.get("selectSpriteScale", 1.0)))
-			select_rect.size *= select_scale
-			select_rect.position = image_rect.get_center() - select_rect.size * 0.5 + Vector2(view.get("selectSpriteOffset", {"x": 0, "y": 0}).get("x", 0), view.get("selectSpriteOffset", {"x": 0, "y": 0}).get("y", 0))
-			draw_texture_rect(tex, select_rect, false)
+			_draw_character_select_card_portrait(tex, image_rect, view)
 	else:
 		draw_circle(image_rect.get_center() + Vector2(0, -6), 44, Color("#dfd8e3"))
 		_draw_ranking_text("LOCK" if not selectable else "?", image_rect.position + Vector2(0, 84), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_tag_row(Rect2(draw_rect.position + Vector2(18, 198), Vector2(draw_rect.size.x - 36, 30)), view.get("cardTags", []) as Array, accent, 2, 13)
 	_draw_character_select_weapon_line(Rect2(draw_rect.position + Vector2(18, 238), Vector2(draw_rect.size.x - 36, 30)), view, "weaponName", "weaponIconPath", accent)
 	_draw_pre_run_selection_focus_front(focus_feedback, accent)
+
+func _draw_character_select_card_portrait(texture: Texture2D, container: Rect2, view: Dictionary, modulate: Color = Color.WHITE) -> void:
+	var texture_size := texture.get_size()
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
+		return
+	var portrait_rect := _fit_texture_rect(container, texture_size)
+	var portrait_scale := maxf(0.1, float(view.get("selectSpriteScale", 1.0)))
+	portrait_rect.size *= portrait_scale
+	var offset_data: Dictionary = view.get("selectSpriteOffset", {"x": 0, "y": 0}) as Dictionary
+	var portrait_offset := Vector2(float(offset_data.get("x", 0.0)), float(offset_data.get("y", 0.0)))
+	portrait_rect.position = container.get_center() - portrait_rect.size * 0.5 + portrait_offset
+	var visible_rect := portrait_rect.intersection(container)
+	if visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0:
+		return
+	var source_rect := Rect2(
+		(visible_rect.position - portrait_rect.position) / portrait_rect.size * texture_size,
+		visible_rect.size / portrait_rect.size * texture_size
+	)
+	draw_texture_rect_region(texture, visible_rect, source_rect, modulate)
 
 func _character_select_placeholder_status(index: int) -> String:
 	var local_index := index % CharacterSystemScript.SELECT_PAGE_SIZE
@@ -14967,6 +15970,7 @@ func _draw_character_select_footer(layout: Dictionary, page: int, page_count: in
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
 	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#ff93cd") if character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#f8f2ff"), Color.WHITE if character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#6b4a63"), true, character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK)
 	_draw_ranking_text("%d / %d" % [page + 1, page_count], rect.position + Vector2(0, 34), 19, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("方向キー: 枠選択   Q/E・LB/RB: 難易度   A/D: ページ   Enter: 決定   Esc: 戻る", rect.position + Vector2(450, 34), 14, Color("#6b4a63"), 720, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_button(layout["prevButton"] as Rect2, "← 前", Color("#ffffff"), Color("#6b4a63"), page > 0)
 	_draw_character_select_button(layout["nextButton"] as Rect2, "次 →", Color("#ffffff"), Color("#6b4a63"), page + 1 < page_count)
 
@@ -15100,7 +16104,7 @@ func _draw_collab_partner_current_panel(panel: Rect2) -> void:
 	_draw_ranking_panel(image_rect, Color(1.0, 0.96, 0.99, 0.82), Color(accent.r, accent.g, accent.b, 0.32), 22, 2, false)
 	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 	if tex != null:
-		_draw_texture_contain_rect(tex, image_rect.grow(-10.0), Color.WHITE)
+		_draw_character_select_card_portrait(tex, image_rect.grow(-6.0), view)
 	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 474), Vector2(panel.size.x - 60, 116)), "コラボ開始", "選んだ相方がステージ中に追従し、一定間隔で支援します。", Color("#e96f42"), Color("#fff8f2"), 17)
 
 func _draw_collab_partner_list_panel(panel: Rect2) -> void:
@@ -15131,7 +16135,7 @@ func _draw_collab_partner_card(rect: Rect2, character: Dictionary, index: int) -
 	_draw_ranking_panel(image_rect, Color(1.0, 1.0, 1.0, 0.58), Color(accent.r, accent.g, accent.b, 0.28), 20, 2, false)
 	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
 	if tex != null:
-		_draw_texture_contain_rect(tex, image_rect.grow(-10.0), Color.WHITE)
+		_draw_character_select_card_portrait(tex, image_rect.grow(-4.0), view)
 	var character_id := String(character.get("id", ""))
 	_draw_character_select_detail_section(Rect2(rect.position + Vector2(18, 180), Vector2(rect.size.x - 36, 42)), "支援", _collab_partner_support_text(character_id), accent, Color(1, 1, 1, 0.92), 13, -3.0)
 	_draw_character_select_detail_section(Rect2(rect.position + Vector2(18, 230), Vector2(rect.size.x - 36, 34)), "ペア技", _collab_partner_pair_text(current_character_id, character_id), Color("#e96f42"), Color("#fff8f2"), 12, -5.0)
@@ -15197,6 +16201,8 @@ func _stream_frame_select_layout() -> Dictionary:
 		"footer": Rect2(76, 828, 1448, 52),
 		"backButton": Rect2(108, 838, 176, 34),
 		"shopToggleButton": Rect2(302, 838, 270, 34),
+		"guide": Rect2(594, 838, 492, 34),
+		"pageIndicator": Rect2(1098, 838, 110, 34),
 		"prevButton": Rect2(1230, 838, 96, 34),
 		"nextButton": Rect2(1352, 838, 96, 34)
 	}
@@ -15866,6 +16872,7 @@ func _draw_mental_breakdown_cutin_status(panel: Rect2, clock: float) -> void:
 
 func _draw_stream_frame_select_header(rect: Rect2) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.95), Color("#ead7e9"), 22, 2, true)
+	_draw_difficulty_tabs()
 	var header_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, STREAM_FRAME_SELECT_HEADER_ICON)
 	if header_icon != null:
 		var icon_rect := Rect2(rect.position + Vector2(14, 16), Vector2(66, 40))
@@ -15874,7 +16881,36 @@ func _draw_stream_frame_select_header(rect: Rect2) -> void:
 		draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
 		_draw_ranking_text("枠", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("今日の配信枠を選択", rect.position + Vector2(88, 47), 34, Color("#4f3149"), 520)
-	_draw_ranking_text("←→：選択　A/D：ページ　Enter：決定　Esc：戻る", rect.position + Vector2(682, 45), 20, Color("#6b4a63"), 710, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("難易度", rect.position + Vector2(920, 43), 16, Color("#8a6b82"), 92, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_difficulty_tabs() -> void:
+	var progress: Dictionary = difficulty_progress
+	var difficulties: Dictionary = progress.get("difficulties", {}) as Dictionary
+	var selected := DifficultyProgressSystemScript.normalize_difficulty_id(run_difficulty_id)
+	for index in range(_difficulty_tab_ids().size()):
+		var difficulty_id := String(_difficulty_tab_ids()[index])
+		var rect := _difficulty_tab_rect(index)
+		var data: Dictionary = difficulties.get(difficulty_id, {}) as Dictionary
+		var unlocked := bool(data.get("unlocked", difficulty_id == DifficultyProgressSystemScript.DIFFICULTY_NORMAL))
+		var is_selected := difficulty_id == selected
+		var accent := Color("#e954a5") if difficulty_id == DifficultyProgressSystemScript.DIFFICULTY_NORMAL else (Color("#8b5bd8") if difficulty_id == DifficultyProgressSystemScript.DIFFICULTY_HARD else Color("#5d72c7"))
+		var fill := Color(accent.r, accent.g, accent.b, 0.18 if is_selected else (0.08 if unlocked else 0.035))
+		var border := accent if is_selected else Color(accent.r, accent.g, accent.b, 0.34 if unlocked else 0.16)
+		_draw_ranking_panel(rect, fill, border, 15, 3 if is_selected else 1, false)
+		_draw_ranking_text(DifficultyProgressSystemScript.difficulty_display_name(difficulty_id), rect.position + Vector2(0, 26), 18, accent if unlocked else Color("#9b94a1"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		if not unlocked:
+			_draw_difficulty_lock_icon(rect.position + Vector2(18, 25), Color("#8f8793"))
+		if bool(data.get("isNew", false)):
+			var new_rect := Rect2(rect.position + Vector2(rect.size.x - 45, 5), Vector2(38, 17))
+			_draw_ranking_panel(new_rect, Color("#ff78b5"), Color("#ff4c99"), 8, 1, false)
+			_draw_ranking_text("NEW", new_rect.position + Vector2(0, 13), 10, Color.WHITE, new_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var relay: Dictionary = data.get("relay", {}) as Dictionary
+		if bool(relay.get("cleared", false)):
+			_draw_ranking_text("CLEAR", rect.position + Vector2(0, 45), 10, Color("#b17b22"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_difficulty_lock_icon(center: Vector2, color: Color) -> void:
+	draw_rect(Rect2(center + Vector2(-8, -2), Vector2(16, 12)), color, true)
+	draw_arc(center + Vector2(0, -2), 6.0, PI, TAU, 16, color, 2.0, true)
 
 func _draw_stream_frame_select_list_panel(panel: Rect2, frames: Array, page: int) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
@@ -15912,7 +16948,7 @@ func _draw_stream_frame_select_card(rect: Rect2, frame: Dictionary, index: int) 
 	_draw_ranking_panel(draw_rect, fill, border, 20, 5 if selected else 2, false)
 	_draw_stream_frame_select_icon(Rect2(draw_rect.position + Vector2(66, 34), Vector2(132, 92)), view, accent, not selectable)
 	_draw_ranking_text("%d. %s" % [index + 1, _short_pause_text(String(view.get("plainName", "配信枠")), 9)], draw_rect.position + Vector2(20, 150), 24, text_color if selectable else Color("#8f8793"), draw_rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(String(view.get("difficultyText", "難易度：★")), draw_rect.position + Vector2(20, 180), 17, accent if selectable else Color("#8f8793"), draw_rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(String(view.get("difficultyText", "枠難度：★")), draw_rect.position + Vector2(20, 180), 17, accent if selectable else Color("#8f8793"), draw_rect.size.x - 40, HORIZONTAL_ALIGNMENT_CENTER)
 	var badge_rect := Rect2(draw_rect.position + Vector2(52, 207), Vector2(draw_rect.size.x - 104, 32))
 	_draw_character_select_tag(badge_rect, String(view.get("statusText", "解放済み")), status_fill, status_text_color)
 	_draw_rect_outline(badge_rect, status_border, 1)
@@ -15944,7 +16980,7 @@ func _draw_stream_frame_select_detail_panel(panel: Rect2, frames: Array) -> void
 	var selectable: bool = bool(view.get("isSelectable", true))
 	_draw_stream_frame_select_icon(Rect2(panel.position + Vector2(176, 62), Vector2(190, 126)), view, accent, not selectable, true)
 	_draw_ranking_text(String(view.get("plainName", "配信枠")), panel.position + Vector2(30, 230), 31, accent if selectable else Color("#7f7480"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 272), Vector2(232, 52)), "難易度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
+	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 272), Vector2(232, 52)), "枠難度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
 	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 272), Vector2(232, 52)), "状態", String(view.get("statusText", "解放済み")), Color("#f3ecff"), accent2)
 	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 336), Vector2(panel.size.x - 56, 52)), "特徴", String(view.get("featureText", "")), Color("#e8f7ff"), Color("#4d8ab5"))
 	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 402), Vector2(panel.size.x - 56, 68)), "主なギミック", String(view.get("mainGimmickText", "")), accent, Color("#fff8fc"), 15)
@@ -15955,7 +16991,10 @@ func _draw_stream_frame_select_detail_panel(panel: Rect2, frames: Array) -> void
 		note_title = "解放条件"
 		note_text = String(view.get("unlockConditionText", note_text))
 	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 612), Vector2(panel.size.x - 56, 66)), note_title, note_text, accent2, Color("#fff8fc"), 15)
-
+	if bool(frame.get("difficultyLocked", false)) or bool(frame.get("relayLocked", false)):
+		var lock_title := "HARD MODE" if bool(frame.get("difficultyLocked", false)) and run_difficulty_id == DifficultyProgressSystemScript.DIFFICULTY_HARD else ("EXPERT MODE" if bool(frame.get("difficultyLocked", false)) else "配信リレー")
+		var lock_text := String(frame.get("disabledReason", frame.get("unlockConditionText", "現在はロックされています。")))
+		_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 402), Vector2(panel.size.x - 56, 276)), lock_title, lock_text, accent2, Color("#fff8fc"), 17)
 
 func _draw_stream_frame_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 16) -> void:
 	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.28), 16, 2, false)
@@ -15967,7 +17006,12 @@ func _draw_stream_frame_select_footer(layout: Dictionary, frames: Array, page: i
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
 	_draw_character_select_button(layout["shopToggleButton"] as Rect2, "SHOP %s" % ("ON" if shop_upgrades_enabled else "OFF"), Color("#fff3b4") if shop_upgrades_enabled else Color("#ece8f0"), Color("#8a5d2b") if shop_upgrades_enabled else Color("#756b78"), true, false)
 	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#ff93cd") if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#f8f2ff"), Color.WHITE if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#6b4a63"), true, stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK)
-	_draw_ranking_text("%d / %d" % [page + 1, page_count], rect.position + Vector2(0, 34), 19, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var guide_rect: Rect2 = layout["guide"] as Rect2
+	_draw_ranking_panel(guide_rect, Color("#fffafd"), Color("#ead7e9"), 12, 1, false)
+	_draw_ranking_text("方向キー 枠選択　Q/E・LB/RB 難易度　A/D ページ　Enter 決定　Esc 戻る", guide_rect.position + Vector2(8, 23), 12, Color("#6b4a63"), guide_rect.size.x - 16, HORIZONTAL_ALIGNMENT_CENTER)
+	var page_rect: Rect2 = layout["pageIndicator"] as Rect2
+	_draw_ranking_panel(page_rect, Color("#f7f0ff"), Color("#d8c7ee"), 12, 1, false)
+	_draw_ranking_text("PAGE %d / %d" % [page + 1, page_count], page_rect.position + Vector2(0, 23), 13, Color("#76559b"), page_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_character_select_button(layout["prevButton"] as Rect2, "← 前", Color("#ffffff"), Color("#6b4a63"), page > 0)
 	_draw_character_select_button(layout["nextButton"] as Rect2, "次 →", Color("#ffffff"), Color("#6b4a63"), page + 1 < page_count)
 
@@ -16118,8 +17162,16 @@ func _choice_drop_offset() -> Vector2:
 		return _comment_choice_drop_offset()
 	return Vector2.ZERO
 
+func _gift_choice_count() -> int:
+	return clampi(offered_gifts.size(), 0, 3)
+
+func _gift_choice_origin_x() -> float:
+	# The three slots are baked into gift_choice_panel.png. Keep every live card
+	# aligned to those slots; centering a short offer creates overlapping frames.
+	return 386.0
+
 func _gift_choice_card_rect(index: int) -> Rect2:
-	return Rect2(Vector2(386.0 + float(index) * 230.0, 320.0) + _gift_choice_drop_offset(), Vector2(206.0, 280.0))
+	return Rect2(Vector2(_gift_choice_origin_x() + float(index) * 230.0, 320.0) + _gift_choice_drop_offset(), Vector2(206.0, 280.0))
 
 static func _gift_reroll_action_rect(panel_rect: Rect2, cards_bottom: float) -> Rect2:
 	var width := minf(340.0, maxf(220.0, panel_rect.size.x - 72.0))
@@ -16148,15 +17200,16 @@ func _comment_choice_special_card_rect() -> Rect2:
 	return Rect2(Vector2(326.0, 657.0) + _comment_choice_drop_offset(), Vector2(821.0, 70.0))
 
 func _draw_gift_choice_card_contents() -> void:
-	for i in range(mini(offered_gifts.size(), 3)):
+	for i in range(_gift_choice_count()):
 		var gift: Dictionary = offered_gifts[i] as Dictionary
 		var rect: Rect2 = _gift_choice_card_rect(i)
 		if i == selected_card and gift_choice_focus_area == GIFT_CHOICE_FOCUS_CARDS:
 			_draw_gift_choice_cursor(rect)
 		var center_x: float = rect.position.x + rect.size.x * 0.5
-		var gift_level: int = GiftSystemScript.gift_level_for_target(self, String(gift["id"]))
+		var is_pp := String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp"
+		var gift_level: int = 0 if is_pp else GiftSystemScript.gift_level_for_target(self, String(gift["id"]))
 		var category: String = GiftSystemScript.gift_category_tag(gift)
-		var display_name: String = EquipmentSystem.display_name_for_card(gift, gift_level)
+		var display_name: String = String(gift.get("displayName", "パワーアップポイント")) if is_pp else EquipmentSystem.display_name_for_card(gift, gift_level)
 		var quality_label: String = GiftSystemScript.gift_quality_label(gift)
 		var quality: String = GiftSystemScript.gift_quality(gift)
 		var quality_color: Color = GiftSystemScript.gift_quality_color(gift)
@@ -16167,7 +17220,15 @@ func _draw_gift_choice_card_contents() -> void:
 		_draw_gift_category_tag(_gift_choice_category_tag_rect(rect), category)
 		_draw_three_choice_number_badge(_three_choice_number_badge_rect(rect), i + 1)
 		var texture: Texture2D = _load_equipment_icon(String(gift.get("iconPath", "")))
-		if texture != null:
+		if is_pp:
+			if texture != null:
+				var pp_area := Rect2(Vector2(center_x - 62.0, rect.position.y + 72.0), Vector2(124.0, 82.0))
+				draw_texture_rect(texture, _fit_texture_rect(pp_area, texture.get_size()), false)
+			else:
+				draw_circle(Vector2(center_x, rect.position.y + 110.0), 34.0, Color("#ff6bb4"))
+				draw_circle(Vector2(center_x, rect.position.y + 110.0), 31.0, Color("#fff4fb"))
+				_draw_centered_card_text("PP", center_x, rect.position.y + 118.0, 58.0, 25, Color("#df3e8f"))
+		elif texture != null:
 			draw_texture_rect(texture, Rect2(Vector2(center_x - 34.0, rect.position.y + 76.0), Vector2(68.0, 68.0)), false)
 		elif not EquipmentSystem.is_instant(gift):
 			var fallback_icon: String = DrawDataSystemScript.equipment_icon(String(gift.get("id", "")), EquipmentSystem.is_weapon(gift))
@@ -16183,7 +17244,15 @@ func _draw_gift_choice_card_contents() -> void:
 			_draw_centered_card_text(String(line), center_x, summary_y, rect.size.x - 28.0, 16, sub_color)
 			summary_y += 20.0
 		_draw_centered_card_text(GiftSystemScript.gift_level_status_text(gift, gift_level), center_x, rect.position.y + 259.0, rect.size.x - 28.0, 15, Color("#6b7280"))
+	_draw_empty_gift_choice_slots()
 	_draw_gift_reroll_button()
+
+func _draw_empty_gift_choice_slots() -> void:
+	for i in range(_gift_choice_count(), 3):
+		var rect := _gift_choice_card_rect(i).grow(-4.0)
+		var style := CommonLightUiStyle.create_panel_style(Color(0.96, 0.94, 0.97, 0.94), Color("#d8cad9"), 2, 8, 0.0, 0.0)
+		draw_style_box(style, rect)
+		_draw_centered_card_text("候補なし", rect.get_center().x, rect.get_center().y + 6.0, rect.size.x - 24.0, 17, Color("#9b8d9d"))
 
 func _draw_gift_reroll_button() -> void:
 	if gift_choice_return_state == "relay_break":
@@ -16496,6 +17565,14 @@ func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
 		path = "res://assets/generated/instruction_comment_icons_v1/camera_zoom_icon.png"
 	elif comment_id == "summon_boss":
 		path = "res://assets/generated/instruction_comment_icons_v1/summon_boss_icon.png"
+	elif comment_id == "hard_overclock":
+		path = "res://assets/generated/instruction_comment_icons_v1/hard_overclock_icon.png"
+	elif comment_id == "hard_pressure_wave":
+		path = "res://assets/generated/instruction_comment_icons_v1/hard_pressure_wave_icon.png"
+	elif comment_id == "talk_comment_avalanche":
+		path = "res://assets/generated/instruction_comment_icons_v1/talk_comment_avalanche_icon.png"
+	elif comment_id == "game_genre_mix":
+		path = "res://assets/generated/instruction_comment_icons_v1/game_genre_mix_icon.png"
 	elif comment_id == "song_tempo_up":
 		path = "res://assets/generated/instruction_comment_icons_v1/song_tempo_up_icon.png"
 	elif comment_id == "song_force_chorus":
@@ -17295,8 +18372,15 @@ func _try_trigger_song_max_octave_audience_call_wave() -> bool:
 
 func _spawn_song_live_gift_drop(arena: Rect2, special: bool) -> void:
 	var drop_id := "song_special_live_gift" if special else "song_live_gift"
+	gift_request_serial += 1
+	var reward_id := "%s:field_gift:%d" % [run_id if run_id != "" else "untracked", gift_request_serial]
 	drop_items.append({
 		"id": drop_id,
+		"rewardId": reward_id,
+		"source": "field_gift",
+		"giftQuality": "hit" if special else "normal",
+		"ppEligible": true,
+		"fieldRandomEligible": true,
 		"displayName": "スペシャルライブギフト箱" if special else "ライブギフト箱",
 		"pos": _song_live_gift_position(arena),
 		"life": SONG_LIVE_GIFT_LIFETIME,
@@ -17639,29 +18723,29 @@ func _apply_drawing_instruction_comment(comment_id: String) -> void:
 			var burst_count := _drawing_more_corrections_burst_count()
 			for i in range(burst_count):
 				if drawing_correction_points.size() < DRAWING_CORRECTION_MAX + burst_count:
-					_spawn_drawing_correction_point(arena)
+					_spawn_drawing_correction_point(arena, "instruction")
 			_show_drawing_toast("修正指示ふえた！", "修正ポイント追加・処理報酬UP")
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 修正ポイント追加！", "> 今なら直すほどおいしい"]}, chat_box)
 		"drawing_spilled_bucket":
 			var spill_count := _drawing_spilled_bucket_count()
-			_spawn_drawing_spilled_bucket(arena, spill_count)
+			_spawn_drawing_spilled_bucket(arena, spill_count, "instruction")
 			_show_drawing_toast("バケツ倒した！", "汚れペイントを消しゴムで掃除")
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ バケツ倒した！", "> 汚れ踏むと足取られる"]}, chat_box)
 		"drawing_paint_rush":
 			for i in range(3):
 				if drawing_paint_orbs.size() < DRAWING_PAINT_ORB_MAX:
-					_spawn_drawing_paint_orb(arena)
+					_spawn_drawing_paint_orb(arena, "instruction")
 			_show_drawing_toast("一気に塗ろう！", "絵の具追加・線が少し太くなります")
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 絵の具追加！", "> 一気に塗る流れきた"]}, chat_box)
 		"drawing_fix_here":
 			for i in range(2):
 				if drawing_correction_points.size() < DRAWING_CORRECTION_MAX + 2:
-					_spawn_drawing_correction_point(arena)
+					_spawn_drawing_correction_point(arena, "instruction")
 			_show_drawing_toast("そこ修正して！", "修正ポイント追加・修正速度UP")
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 修正ポイント追加！", "> 赤字対応タイム"]}, chat_box)
 		"drawing_clean_screen":
-			_spawn_drawing_eraser(arena)
-			_collect_drawing_eraser(player_pos)
+			_spawn_drawing_eraser(arena, false, "instruction")
+			_collect_drawing_eraser(player_pos, "instruction")
 			_show_drawing_toast("画面きれいにして！", "消しゴム出現・周囲を掃除")
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ 画面掃除！", "> 見やすくなってきた"]}, chat_box)
 
@@ -17685,24 +18769,39 @@ func _drawing_instruction_variant_value(comment_id: String, inactive_value: floa
 	return heart_value
 
 func _drawing_fast_dry_lifetime_multiplier() -> float:
+	var hard_lifetime := HardModeSystemScript.active_comment_param(difficulty_runtime, "trailLifetime", -1.0)
+	if HardModeSystemScript.is_hard_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_fast_dry") and hard_lifetime > 0.0:
+		return hard_lifetime / maxf(0.01, DRAWING_TRAIL_LIFETIME)
 	return _drawing_instruction_variant_value("drawing_fast_dry", 1.0, 0.5, 8.0 / 12.0)
 
 func _drawing_too_much_paint_width_multiplier() -> float:
 	return _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.4, 1.25)
 
 func _drawing_too_much_paint_cost_multiplier() -> float:
+	var hard_cost := HardModeSystemScript.active_comment_param(difficulty_runtime, "paintCostMultiplier", -1.0)
+	if HardModeSystemScript.is_hard_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_too_much_paint") and hard_cost > 0.0:
+		return hard_cost
 	return _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.6, 1.3)
 
 func _drawing_palette_gray_paint_rate() -> float:
 	return _drawing_instruction_variant_value("drawing_palette_shuffle", 0.0, 1.0, DRAWING_PALETTE_SHUFFLE_WEAK_GRAY_RATE)
 
 func _drawing_more_corrections_burst_count() -> int:
+	var hard_burst := HardModeSystemScript.active_comment_param(difficulty_runtime, "correctionBurst", -1.0)
+	if HardModeSystemScript.is_hard_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_more_corrections") and hard_burst >= 0.0:
+		return int(round(hard_burst))
 	return int(round(_drawing_instruction_variant_value("drawing_more_corrections", 0.0, 2.0, 1.0)))
 
 func _drawing_more_corrections_reward_multiplier() -> float:
+	var hard_reward := HardModeSystemScript.active_comment_param(difficulty_runtime, "correctionRewardMultiplier", -1.0)
+	if HardModeSystemScript.is_hard_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_more_corrections") and hard_reward > 0.0:
+		return hard_reward
 	return _drawing_instruction_variant_value("drawing_more_corrections", 1.0, 1.3, 1.15)
 
 func _drawing_spilled_bucket_count() -> int:
+	var hard_spill := HardModeSystemScript.active_comment_param(difficulty_runtime, "spillCount", -1.0)
+	if HardModeSystemScript.is_hard_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_spilled_bucket") and hard_spill >= 0.0:
+		return int(round(hard_spill))
 	return int(round(_drawing_instruction_variant_value("drawing_spilled_bucket", 0.0, 6.0, 3.0)))
 
 func _drawing_focus_work_multiplier(active_value: float) -> float:
@@ -18474,7 +19573,7 @@ func _update_song_pitch_waves(delta: float) -> void:
 		var wave_rect: Rect2 = wave.get("rect", Rect2()) as Rect2
 		if active and not bool(wave.get("hit", false)) and wave_rect.has_point(player_pos):
 			wave["hit"] = true
-			_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "pitch_wave", "damage": SONG_PITCH_WAVE_DAMAGE}]))
+			_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "pitch_wave", "damage": int(wave.get("damage", SONG_PITCH_WAVE_DAMAGE))}]))
 		if float(wave.get("time", 0.0)) <= 0.0:
 			song_pitch_waves.remove_at(i)
 		else:
@@ -18482,7 +19581,7 @@ func _update_song_pitch_waves(delta: float) -> void:
 	if song_pitch_wave_cooldown > 0.0:
 		song_pitch_wave_cooldown = maxf(0.0, song_pitch_wave_cooldown - delta)
 
-func _spawn_song_pitch_wave(arena: Rect2) -> void:
+func _spawn_song_pitch_wave(arena: Rect2, boss_attack: bool = false) -> void:
 	var horizontal := rng.randf() < 0.55
 	var rect: Rect2
 	if horizontal:
@@ -18496,6 +19595,7 @@ func _spawn_song_pitch_wave(arena: Rect2) -> void:
 		"time": SONG_PITCH_WAVE_TELEGRAPH_DURATION + SONG_PITCH_WAVE_ACTIVE_DURATION,
 		"maxTime": SONG_PITCH_WAVE_TELEGRAPH_DURATION + SONG_PITCH_WAVE_ACTIVE_DURATION,
 		"horizontal": horizontal,
+		"damage": HardModeSystemScript.regular_boss_damage_for_target(self, SONG_PITCH_WAVE_DAMAGE) if boss_attack else SONG_PITCH_WAVE_DAMAGE,
 		"hit": false
 	})
 	song_pitch_wave_cooldown = _song_pitch_wave_interval()
@@ -18793,7 +19893,10 @@ func _song_live_heat_note_heal(amount: int) -> void:
 	if not _relay_heal_allowed() or amount <= 0 or player_hp >= player_max_hp:
 		return
 	amount = PowerUpEffectProviderScript.scaled_heal_amount(amount, permanent_upgrade_snapshot, "song_note_heal")
+	var before_hp := player_hp
 	player_hp = mini(player_max_hp, player_hp + amount)
+	var actual_heal := maxi(0, player_hp - before_hp)
+	_append_mental_heal_fx(actual_heal, "song_note")
 	hit_fx.append({
 		"kind": "pickup_text",
 		"pos": player_pos + Vector2(-24.0, -54.0),
@@ -19016,6 +20119,7 @@ func _clear_collab_crusher_boss_state(remove_spawned_enemies: bool = false) -> v
 func _update_collab_crusher_boss(boss: Dictionary, delta: float, arena: Rect2) -> void:
 	if not _is_collab_frame() or _song_enemy_inactive(boss):
 		return
+	var action_delta := HardModeSystemScript.boss_action_delta_for_target(self, boss, delta)
 	boss["collabCrusherComboHitFx"] = maxf(0.0, float(boss.get("collabCrusherComboHitFx", 0.0)) - delta)
 	boss["collabCrusherVsCrackFlash"] = maxf(0.0, float(boss.get("collabCrusherVsCrackFlash", 0.0)) - delta)
 	_update_collab_boss_attack_objects(delta)
@@ -19028,7 +20132,7 @@ func _update_collab_crusher_boss(boss: Dictionary, delta: float, arena: Rect2) -
 		_start_collab_crusher_final_phase(boss, arena)
 	var phase := int(boss.get("collabCrusherPhase", 1))
 	var division_interval_rate := 0.65 if phase >= 2 else 1.0
-	var division_timer := float(boss.get("collabCrusherDivisionTimer", COLLAB_CRUSHER_DIVISION_INTERVAL)) - delta
+	var division_timer := float(boss.get("collabCrusherDivisionTimer", COLLAB_CRUSHER_DIVISION_INTERVAL)) - action_delta
 	if division_timer <= 0.0:
 		_spawn_collab_division_noise(2, arena)
 		division_timer = COLLAB_CRUSHER_DIVISION_INTERVAL * division_interval_rate
@@ -19040,7 +20144,7 @@ func _update_collab_crusher_boss(boss: Dictionary, delta: float, arena: Rect2) -
 		boss["speed"] = 0.0
 		return
 	boss["speed"] = float(boss.get("baseSpeed", 48.0))
-	var attack_timer := float(boss.get("collabCrusherAttackTimer", 2.0)) - delta
+	var attack_timer := float(boss.get("collabCrusherAttackTimer", 2.0)) - action_delta
 	if attack_timer > 0.0:
 		boss["collabCrusherAttackTimer"] = attack_timer
 		return
@@ -19139,7 +20243,7 @@ func _start_collab_crusher_partner_mute(boss: Dictionary, arena: Rect2) -> void:
 	var core_pos := collab_partner_pos + away * 86.0
 	core_pos.x = clampf(core_pos.x, arena.position.x + 46.0, arena.end.x - 46.0)
 	core_pos.y = clampf(core_pos.y, arena.position.y + 46.0, arena.end.y - 46.0)
-	var core_uid := EnemySystemScript.spawn_enemy_for_target(self, COLLAB_MUTE_CORE_KIND, arena, rng, core_pos)
+	var core_uid := EnemySystemScript.spawn_enemy_for_target(self, COLLAB_MUTE_CORE_KIND, arena, rng, core_pos, "", "", "", "boss_summon")
 	if core_uid < 0:
 		return
 	collab_boss_partner_muted = true
@@ -19183,6 +20287,7 @@ func _on_enemy_defeated_for_collab_boss(enemy: Dictionary) -> void:
 func _spawn_collab_crusher_comparison_spam(boss: Dictionary, arena: Rect2, count: int) -> void:
 	var boss_pos := Vector2(boss.get("pos", arena.get_center()))
 	var spawned := 0
+	count = HardModeSystemScript.regular_boss_summon_count_for_target(self, count)
 	for i in range(maxi(0, count)):
 		if _active_collab_enemy_count() >= 16:
 			break
@@ -19195,7 +20300,7 @@ func _spawn_collab_crusher_comparison_spam(boss: Dictionary, arena: Rect2, count
 		if pos.distance_squared_to(player_pos) < 120.0 * 120.0:
 			pos = pos.lerp(arena.get_center(), 0.55)
 		var kind := "collab_comparison_troll" if rng.randf() < 0.5 else "collab_discord_troll"
-		if EnemySystemScript.spawn_enemy_for_target(self, kind, arena, rng, pos) >= 0:
+		if EnemySystemScript.spawn_enemy_for_target(self, kind, arena, rng, pos, "", "", "", "boss_summon") >= 0:
 			spawned += 1
 	if spawned > 0:
 		boss["speechText"] = "比較連投"
@@ -19225,7 +20330,8 @@ func _active_collab_enemy_count(kind_filter: String = "") -> int:
 
 func _spawn_collab_division_noise(count: int, arena: Rect2) -> void:
 	var active := _active_collab_enemy_count(COLLAB_DIVISION_NOISE_KIND)
-	var spawn_count := mini(maxi(0, count), COLLAB_CRUSHER_DIVISION_MAX_ACTIVE - active)
+	var requested_count := HardModeSystemScript.regular_boss_summon_count_for_target(self, count)
+	var spawn_count := mini(requested_count, COLLAB_CRUSHER_DIVISION_MAX_ACTIVE - active)
 	if spawn_count <= 0:
 		return
 	var boss := _collab_crusher_boss()
@@ -19235,7 +20341,7 @@ func _spawn_collab_division_noise(count: int, arena: Rect2) -> void:
 		var pos := center + Vector2(cos(angle), sin(angle)) * rng.randf_range(135.0, 205.0)
 		pos.x = clampf(pos.x, arena.position.x + 42.0, arena.end.x - 42.0)
 		pos.y = clampf(pos.y, arena.position.y + 42.0, arena.end.y - 42.0)
-		var uid := EnemySystemScript.spawn_enemy_for_target(self, COLLAB_DIVISION_NOISE_KIND, arena, rng, pos)
+		var uid := EnemySystemScript.spawn_enemy_for_target(self, COLLAB_DIVISION_NOISE_KIND, arena, rng, pos, "", "", "", "boss_summon")
 		if uid >= 0:
 			collab_effects.append({"kind": "shockwave", "pos": pos, "radius": 62.0, "life": 0.36, "maxLife": 0.36, "color": Color("#a963ff"), "label": "VS"})
 
@@ -19319,7 +20425,7 @@ func _apply_collab_crusher_line_hit(from_pos: Vector2, to_pos: Vector2) -> void:
 	if (player_pos - midpoint).dot(side) < 0.0:
 		side = -side
 	player_vel += side * 440.0
-	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher vs line", "damage": COLLAB_CRUSHER_VS_LINE_DAMAGE}]))
+	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher vs line", "damage": HardModeSystemScript.regular_boss_damage_for_target(self, COLLAB_CRUSHER_VS_LINE_DAMAGE)}]))
 
 func _trigger_collab_crusher_comment_pulse(center: Vector2) -> void:
 	collab_effects.append({"kind": "shockwave", "pos": center, "radius": COLLAB_CRUSHER_COMMENT_RADIUS, "life": 0.56, "maxLife": 0.56, "color": Color("#d94f9c"), "label": "VS!"})
@@ -19329,7 +20435,7 @@ func _trigger_collab_crusher_comment_pulse(center: Vector2) -> void:
 	if push.length_squared() < 0.01:
 		push = Vector2.RIGHT
 	player_vel += push * 400.0
-	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher comment divide", "damage": COLLAB_CRUSHER_COMMENT_DAMAGE}]))
+	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher comment divide", "damage": HardModeSystemScript.regular_boss_damage_for_target(self, COLLAB_CRUSHER_COMMENT_DAMAGE)}]))
 
 func _update_collab_stage(delta: float, arena: Rect2) -> void:
 	if not _is_collab_frame():
@@ -20308,6 +21414,7 @@ func _fire_collab_partner_support(_arena: Rect2) -> void:
 		_emit_collab_chat(["ナイスフォロー", "相方たすかる", "いいサポート", "今の支援うまい", "ちゃんと助け合ってる"])
 
 func _fire_collab_kyasumi_support() -> void:
+	var weapon_data := _collab_partner_initial_weapon_data()
 	var danger := Vector2(collab_partner_facing_x, 0.0)
 	var best_distance := INF
 	for enemy_item in enemies:
@@ -20324,14 +21431,16 @@ func _fire_collab_kyasumi_support() -> void:
 	var wall_rect := Rect2(wall_center - Vector2(72.0, 24.0), Vector2(144.0, 48.0))
 	var cleared := _clear_collab_support_projectiles(wall_rect, 2)
 	_song_apply_area_damage(wall_center, 72.0, 1.8 * _collab_partner_damage_multiplier(), 20.0, "collab_kyasumi_wall")
-	collab_effects.append({"kind": "partner_kyasumi_wall", "from": collab_partner_pos, "to": wall_center, "rect": wall_rect, "cleared": cleared, "life": 0.46, "maxLife": 0.46, "color": Color("#74e5ff")})
+	collab_effects.append({"kind": "partner_kyasumi_wall", "from": collab_partner_pos, "to": wall_center, "rect": wall_rect, "cleared": cleared, "life": 0.46, "maxLife": 0.46, "color": Color("#74e5ff"), "visuals": (weapon_data.get("visuals", {}) as Dictionary).duplicate(true)})
 
 func _fire_collab_rizumu_support() -> void:
 	var config: Dictionary = CharacterSystemScript.find_character(characters, collab_partner_id).get("partnerSupportConfig", {}) as Dictionary
+	var weapon_data := _collab_partner_initial_weapon_data()
 	var targets := _collab_nearest_enemies(collab_partner_pos, float(config.get("searchRange", 300.0)), 1)
-	collab_effects.append({"kind": "partner_rizumu_support", "source": "collab_rizumu_fan", "from": collab_partner_pos, "targets": targets, "step": 0, "age": 0.0, "life": 1.25, "maxLife": 1.25, "hitSet": {}})
+	collab_effects.append({"kind": "partner_rizumu_support", "source": "collab_rizumu_fan", "from": collab_partner_pos, "targets": targets, "step": 0, "age": 0.0, "life": 1.25, "maxLife": 1.25, "hitSet": {}, "visuals": (weapon_data.get("visuals", {}) as Dictionary).duplicate(true), "range": float(weapon_data.get("normalRange", 110.0)), "arcAngle": float(weapon_data.get("normalArcAngle", 50.0))})
 
 func _fire_collab_miimu_support() -> void:
+	var weapon_data := _collab_partner_initial_weapon_data()
 	var targets := _collab_nearest_enemies(collab_partner_pos, 360.0, 5)
 	if targets.is_empty():
 		return
@@ -20348,7 +21457,14 @@ func _fire_collab_miimu_support() -> void:
 			continue
 		var direction := (center - Vector2(target.get("pos", center))).normalized()
 		EnemySystemScript.add_knockback_for_enemy(target, direction, 25.0 * clampf(1.0 - float(target.get("pullResistance", 0.0)), 0.0, 1.0))
-	collab_effects.append({"kind": "partner_miimu_gather", "pos": center, "radius": 105.0, "life": 0.62, "maxLife": 0.62, "color": Color("#c5a1ff")})
+	collab_effects.append({"kind": "partner_miimu_gather", "from": collab_partner_pos, "to": center, "pos": center, "radius": 105.0, "life": 0.62, "maxLife": 0.62, "color": Color("#c5a1ff"), "visuals": (weapon_data.get("visuals", {}) as Dictionary).duplicate(true), "pathWidth": float(weapon_data.get("pathWidth", 22.0))})
+
+func _collab_partner_initial_weapon_data() -> Dictionary:
+	var partner_character := CharacterSystemScript.find_character(characters, collab_partner_id)
+	var weapon_id := String(partner_character.get("initialWeapon", ""))
+	if weapon_id == "":
+		return {}
+	return WeaponSystemScript.find_weapon(weapons, weapon_id, {})
 
 func _fire_collab_ban_support() -> void:
 	var targets := _collab_nearest_enemies(collab_partner_pos, 360.0, 1)
@@ -20495,6 +21611,7 @@ func _record_collab_partner_hit(enemy: Dictionary, damage: float) -> void:
 
 func _update_collab_effects(delta: float) -> void:
 	var kept: Array = []
+	var appended_effects: Array = []
 	for effect_item in collab_effects:
 		var effect: Dictionary = effect_item as Dictionary
 		var life := float(effect.get("life", 0.0)) - delta
@@ -20510,7 +21627,7 @@ func _update_collab_effects(delta: float) -> void:
 				if not targets.is_empty():
 					var target: Dictionary = targets[0] as Dictionary
 					_song_apply_enemy_damage(target, [0.35, 0.35, 0.90][step] * _collab_partner_damage_multiplier(), Vector2(effect.get("from", collab_partner_pos)), 10.0, "collab_rizumu_fan")
-					collab_effects.append({"kind": "partner_rizumu_fan_hit", "from": Vector2(effect.get("from", collab_partner_pos)), "to": Vector2(target.get("pos", player_pos)), "life": 0.24, "maxLife": 0.24, "color": Color("#ff9fca")})
+					appended_effects.append({"kind": "partner_rizumu_fan_hit", "from": Vector2(effect.get("from", collab_partner_pos)), "to": Vector2(target.get("pos", player_pos)), "comboStep": step, "life": 0.24, "maxLife": 0.24, "color": Color("#ff9fca"), "visuals": (effect.get("visuals", {}) as Dictionary).duplicate(true), "range": float(effect.get("range", 110.0)), "arcAngle": float(effect.get("arcAngle", 50.0))})
 				effect["step"] = step + 1
 		if kind == "combo_ban_star_rush":
 			var effect_progress := 1.0 - clampf(life / maxf(0.01, float(effect.get("maxLife", 1.08))), 0.0, 1.0)
@@ -20554,6 +21671,7 @@ func _update_collab_effects(delta: float) -> void:
 			var pos := _collab_boomerang_effect_pos(effect)
 			_pull_collab_exp_orbs(pos, 150.0, delta, 7.0)
 		kept.append(effect)
+	kept.append_array(appended_effects)
 	collab_effects = kept
 
 func _collab_partner_projectile_effect_pos(effect: Dictionary) -> Vector2:
@@ -21349,7 +22467,7 @@ func _clear_collab_pass(success: bool) -> void:
 	collab_pass_marker_appear_timer = 0.0
 	if relay_boss_active:
 		var boss_config: Dictionary = relay_mode_config.get("boss", {}) as Dictionary
-		collab_pass_spawn_timer = float(boss_config.get("finalPassInterval", 12.0) if relay_boss_phase >= 4 else boss_config.get("normalPassInterval", 20.0))
+		collab_pass_spawn_timer = float(boss_config.get("finalPassInterval", 12.0) if relay_boss_phase >= RelayBossSystemScript.max_phase_for_target(self) else boss_config.get("normalPassInterval", 20.0))
 	elif relay_mode and current_stream_frame_id == "collab":
 		var collab_timeline: Dictionary = ((relay_mode_config.get("segments", {}) as Dictionary).get("collab", {}) as Dictionary).get("timeline", {}) as Dictionary
 		var interval_range: Array = collab_timeline.get("lateInterval", [10.0, 14.0]) as Array if elapsed >= 90.0 else collab_timeline.get("interval", [18.0, 22.0]) as Array
@@ -22416,7 +23534,7 @@ func _update_drawing_spilled_paints(delta: float) -> void:
 		else:
 			drawing_spilled_paints[i] = spill
 
-func _spawn_drawing_spilled_bucket(arena: Rect2, count: int) -> void:
+func _spawn_drawing_spilled_bucket(arena: Rect2, count: int, source: String = "stage") -> void:
 	for i in range(count):
 		var radius := rng.randf_range(DRAWING_SPILLED_PAINT_RADIUS_MIN, DRAWING_SPILLED_PAINT_RADIUS_MAX)
 		var pos := _drawing_event_position(arena, radius, radius + 64.0)
@@ -22425,7 +23543,8 @@ func _spawn_drawing_spilled_bucket(arena: Rect2, count: int) -> void:
 			"radius": radius,
 			"time": DRAWING_SPILLED_PAINT_LIFETIME,
 			"maxTime": DRAWING_SPILLED_PAINT_LIFETIME,
-			"phase": rng.randf_range(0.0, TAU)
+			"phase": rng.randf_range(0.0, TAU),
+			"source": source
 		})
 
 func _spawn_drawing_enemy_spilled_paint(pos: Vector2, radius: float, lifetime: float, slow_rate: float) -> bool:
@@ -22520,11 +23639,11 @@ func _update_drawing_paint_orbs(delta: float, arena: Rect2) -> void:
 			orb_multiplier = 1.5 if elapsed >= 90.0 else 1.2
 		drawing_orb_spawn_timer = rng.randf_range(DRAWING_PAINT_ORB_INTERVAL_MIN, DRAWING_PAINT_ORB_INTERVAL_MAX) / orb_multiplier
 
-func _spawn_drawing_paint_orb(arena: Rect2) -> void:
+func _spawn_drawing_paint_orb(arena: Rect2, source: String = "stage") -> void:
 	var color_id := _pick_drawing_paint_color()
-	_add_drawing_paint_orb(_drawing_paint_orb_position(arena), color_id)
+	_add_drawing_paint_orb(_drawing_paint_orb_position(arena), color_id, source)
 
-func _add_drawing_paint_orb(pos: Vector2, color_id: String = "") -> void:
+func _add_drawing_paint_orb(pos: Vector2, color_id: String = "", source: String = "stage") -> void:
 	if color_id == "":
 		color_id = _pick_drawing_paint_color()
 	var orb := {
@@ -22533,7 +23652,8 @@ func _add_drawing_paint_orb(pos: Vector2, color_id: String = "") -> void:
 		"radius": DRAWING_PAINT_ORB_RADIUS,
 		"time": DRAWING_PAINT_ORB_LIFETIME,
 		"maxTime": DRAWING_PAINT_ORB_LIFETIME,
-		"phase": rng.randf_range(0.0, TAU)
+		"phase": rng.randf_range(0.0, TAU),
+		"source": source
 	}
 	_configure_drawing_paint_orb_palette_state(orb)
 	drawing_paint_orbs.append(orb)
@@ -22617,12 +23737,12 @@ func _nearest_drawing_paint_orb_data(origin: Vector2, max_distance: float = -1.0
 		}
 	return best
 
-func _ensure_drawing_paint_orb_near_correction(pos: Vector2, arena: Rect2) -> void:
+func _ensure_drawing_paint_orb_near_correction(pos: Vector2, arena: Rect2, source: String = "stage") -> void:
 	if not _nearest_drawing_paint_orb_data(pos, DRAWING_CORRECTION_ORB_ASSIST_RADIUS).is_empty():
 		return
 	if drawing_paint_orbs.size() >= DRAWING_PAINT_ORB_MAX + DRAWING_CORRECTION_MAX:
 		return
-	_add_drawing_paint_orb(_drawing_paint_orb_position_near(pos, arena))
+	_add_drawing_paint_orb(_drawing_paint_orb_position_near(pos, arena), "", source)
 
 func _pick_drawing_paint_color() -> String:
 	var roll := rng.randf()
@@ -23217,6 +24337,7 @@ func _apply_drawing_green_heal(amount: int, fx_pos: Vector2) -> int:
 	if actual_heal <= 0:
 		return 0
 	player_hp = mini(player_max_hp, player_hp + actual_heal)
+	_append_mental_heal_fx(actual_heal, "drawing_green")
 	hit_fx.append({
 		"kind": "pickup_text",
 		"pos": fx_pos,
@@ -23537,7 +24658,7 @@ func _update_drawing_correction_points(delta: float, arena: Rect2) -> void:
 			_spawn_drawing_correction_point(arena)
 		drawing_correction_spawn_timer = rng.randf_range(DRAWING_CORRECTION_INTERVAL_MIN, DRAWING_CORRECTION_INTERVAL_MAX)
 
-func _spawn_drawing_correction_point(arena: Rect2) -> void:
+func _spawn_drawing_correction_point(arena: Rect2, source: String = "stage") -> void:
 	var pos := _drawing_event_position(arena, DRAWING_CORRECTION_RADIUS, 120.0)
 	drawing_correction_points.append({
 		"pos": pos,
@@ -23552,15 +24673,16 @@ func _spawn_drawing_correction_point(arena: Rect2) -> void:
 		"arrowTime": 0.0,
 		"hasHintOrb": false,
 		"hintOrbPos": Vector2.ZERO,
-		"phase": rng.randf_range(0.0, TAU)
+		"phase": rng.randf_range(0.0, TAU),
+		"source": source
 	})
-	_ensure_drawing_paint_orb_near_correction(pos, arena)
+	_ensure_drawing_paint_orb_near_correction(pos, arena, source)
 
 func _trigger_drawing_correction_no_paint_feedback(point: Dictionary, arena: Rect2) -> void:
 	if float(point.get("noPaintCooldown", 0.0)) > 0.0:
 		return
 	var pos := Vector2(point.get("pos", Vector2.ZERO))
-	_ensure_drawing_paint_orb_near_correction(pos, arena)
+	_ensure_drawing_paint_orb_near_correction(pos, arena, String(point.get("source", "stage")))
 	var nearest := _nearest_drawing_paint_orb_data(pos)
 	if nearest.is_empty():
 		point["hasHintOrb"] = false
@@ -23623,7 +24745,8 @@ func _complete_drawing_correction_at(index: int) -> void:
 		"pos": pos,
 		"time": DRAWING_CORRECTION_COMPLETION_FLASH_DURATION,
 		"maxTime": DRAWING_CORRECTION_COMPLETION_FLASH_DURATION,
-		"phase": rng.randf_range(0.0, TAU)
+		"phase": rng.randf_range(0.0, TAU),
+		"source": String(point.get("source", "stage"))
 	})
 	drawing_correction_complete_count += 1
 	_play_drawing_correction_complete_se()
@@ -23668,7 +24791,7 @@ func _update_drawing_erasers(delta: float, arena: Rect2) -> void:
 			continue
 		var pos := Vector2(eraser.get("pos", Vector2.ZERO))
 		if pos.distance_squared_to(player_pos) <= 54.0 * 54.0:
-			_collect_drawing_eraser(player_pos)
+			_collect_drawing_eraser(player_pos, String(eraser.get("source", "stage")))
 			drawing_erasers.remove_at(i)
 	drawing_eraser_spawn_timer -= delta
 	if drawing_eraser_spawn_timer <= 0.0:
@@ -23676,17 +24799,18 @@ func _update_drawing_erasers(delta: float, arena: Rect2) -> void:
 			_spawn_drawing_eraser(arena)
 		drawing_eraser_spawn_timer = rng.randf_range(DRAWING_ERASER_INTERVAL_MIN, DRAWING_ERASER_INTERVAL_MAX)
 
-func _spawn_drawing_eraser(arena: Rect2, allow_over_cap: bool = false) -> void:
+func _spawn_drawing_eraser(arena: Rect2, allow_over_cap: bool = false, source: String = "stage") -> void:
 	if not allow_over_cap and drawing_erasers.size() >= DRAWING_ERASER_MAX:
 		return
 	drawing_erasers.append({
 		"pos": _drawing_event_position(arena, 32.0, 90.0),
 		"time": DRAWING_ERASER_LIFETIME,
 		"maxTime": DRAWING_ERASER_LIFETIME,
-		"phase": rng.randf_range(0.0, TAU)
+		"phase": rng.randf_range(0.0, TAU),
+		"source": source
 	})
 
-func _collect_drawing_eraser(pos: Vector2) -> void:
+func _collect_drawing_eraser(pos: Vector2, source: String = "stage") -> void:
 	drawing_eraser_used_count += 1
 	var eraser_inner_radius := _drawing_eraser_radius()
 	var eraser_outer_radius := maxf(eraser_inner_radius, _drawing_eraser_outer_radius())
@@ -23697,7 +24821,8 @@ func _collect_drawing_eraser(pos: Vector2) -> void:
 		"outerRadius": eraser_outer_radius,
 		"time": DRAWING_ERASER_WAVE_DURATION,
 		"maxTime": DRAWING_ERASER_WAVE_DURATION,
-		"phase": rng.randf_range(0.0, TAU)
+		"phase": rng.randf_range(0.0, TAU),
+		"source": source
 	})
 	var removed_bullets := _erase_enemy_bullets_near(pos, eraser_outer_radius)
 	var removed_lines := _erase_boss_guide_lines_near(pos, eraser_outer_radius)
@@ -26331,6 +27456,12 @@ func _draw_toast() -> void:
 	var data: Dictionary = DrawDataSystemScript.toast_data(toast_text)
 	for part in DrawDataSystemScript.toast_parts(data, toast_text):
 		_draw_overlay_part(part as Dictionary)
+	if toast_text.begins_with("PP GET!"):
+		var rect: Rect2 = data["rect"] as Rect2
+		var icon_center := rect.position + Vector2(rect.size.x - 28.0, rect.size.y * 0.5)
+		draw_circle(icon_center, 14.0, Color("#ff6bb4"))
+		draw_circle(icon_center, 11.0, Color("#fff4fb"))
+		_draw_centered_card_text("PP", icon_center.x, icon_center.y + 5.0, 28.0, 10, Color("#df3e8f"))
 
 func _draw_overlay_part(part: Dictionary) -> void:
 	var kind: String = String(part["kind"])
@@ -26385,10 +27516,12 @@ func _draw_arc_item(item: Dictionary, prefix: String) -> void:
 func _draw_fixed_arc(pos: Vector2, radius: float, start_angle: float, end_angle: float, points: int, color: Color, width: float) -> void:
 	DrawPrimitiveSystemScript.draw_fixed_arc(self, pos, radius, start_angle, end_angle, points, color, width)
 
-func _draw_rotated_texture(texture: Texture2D, center: Vector2, size: Vector2, angle: float, alpha: float = 1.0) -> void:
+func _draw_rotated_texture(texture: Texture2D, center: Vector2, size: Vector2, angle: float, alpha: float = 1.0, flip_x: bool = false) -> void:
 	if texture == null:
 		return
 	var transform_scale: Vector2 = Vector2(world_zoom, world_zoom) if world_draw_active else Vector2.ONE
+	if flip_x:
+		transform_scale.x *= -1.0
 	draw_set_transform(_screen_pos(center), angle, transform_scale)
 	draw_texture_rect(texture, Rect2(-size * 0.5, size), false, Color(1, 1, 1, alpha))
 	if world_draw_active:

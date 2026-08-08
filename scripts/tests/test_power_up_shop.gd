@@ -40,6 +40,7 @@ func _run_all_tests() -> void:
 	_test_purchase_reset_and_save_rollback(database)
 	_test_character_selection_save(database)
 	_test_reward_deduplication(database)
+	_test_direct_pp_reward_grant(database)
 	_test_legacy_migration(database)
 
 func _test_reward_expectations(_database) -> void:
@@ -317,6 +318,28 @@ func _test_reward_deduplication(database) -> void:
 	_check_equal("duplicate reward key points", balance_after_key_duplicate, balance_after_first + 150)
 	_check_equal("duplicate reward state", String(third.get("state", "")), "already_granted")
 	_check_equal("duplicate reward balance", manager.current_points(), balance_after_key_duplicate)
+
+func _test_direct_pp_reward_grant(database) -> void:
+	var store = SaveStoreScript.new()
+	store.save_override = Callable(self, "_save_override")
+	var manager = ShopManagerScript.new(database, store)
+	var reward = _reward({
+		"outcome": "defeated",
+		"rewardEligible": true,
+		"isRelay": false,
+		"activePlaySeconds": 0.0,
+		"stageId": "zatsudan",
+		"stageCleared": false,
+		"fieldGiftPp": 5,
+		"fallbackGiftPp": 10,
+		"fullBuildConversionPp": 15
+	})
+	var expected_total := int(reward.total_pp)
+	var before_balance := manager.current_points()
+	var grant: Dictionary = manager.grant_reward("run_direct_pp_test", reward)
+	_check(bool(grant.get("ok", false)), "direct PP reward grant succeeds")
+	_check_equal("direct PP subtotal survives manager grant", reward.direct_pp_subtotal, 30)
+	_check_equal("direct PP enters saved balance", manager.current_points(), before_balance + expected_total)
 
 func _test_character_selection_save(database) -> void:
 	save_should_fail = false

@@ -229,7 +229,8 @@ func grant_reward(run_id: String, reward, senior_unit_unlock_eligible: bool = fa
 	reward.first_boss_defeat_pp = maxi(0, int(reward.first_boss_defeat_pp) - duplicate_first_boss)
 	reward.first_relay_clear_pp = maxi(0, int(reward.first_relay_clear_pp) - duplicate_first_relay)
 	reward.one_time_subtotal = reward.first_stage_clear_pp + reward.first_boss_defeat_pp + reward.first_relay_clear_pp
-	reward.total_pp = reward.repeatable_subtotal + reward.one_time_subtotal
+	var direct_pp_subtotal: int = maxi(0, int(reward.direct_pp_subtotal))
+	reward.total_pp = reward.repeatable_subtotal + reward.one_time_subtotal + direct_pp_subtotal
 	var points := int(reward.total_pp)
 	for key in reward.reward_keys:
 		if reward_keys.has(key):

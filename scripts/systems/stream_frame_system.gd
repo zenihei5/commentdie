@@ -1,6 +1,7 @@
 extends RefCounted
 class_name StreamFrameSystem
 
+const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
 const PROGRESS_PATH := "user://stream_frame_progress.json"
 const SELECT_PAGE_SIZE := 6
 const SELECT_COLUMNS := 3
@@ -9,34 +10,13 @@ static func fallback_frame() -> Dictionary:
 	return {"id": "zatsudan", "displayName": "雑談枠", "isUnlocked": true, "isCleared": false}
 
 static func default_progress(frames: Array) -> Dictionary:
-	var progress: Dictionary = {"streamFrameProgress": {}, "relayModeUnlocked": false}
-	var frame_progress: Dictionary = progress["streamFrameProgress"] as Dictionary
-	for item in frames:
-		var frame: Dictionary = item as Dictionary
-		var frame_id: String = String(frame.get("id", ""))
-		if frame_id == "":
-			continue
-		frame_progress[frame_id] = {
-			"isUnlocked": bool(frame.get("initialUnlocked", false)),
-			"isCleared": false,
-			"bestViewerCount": 0,
-			"bestKamiRank": null
-		}
-	return progress
+	return DifficultyProgressSystemScript.create_default_save_data(frames)
 
 static func load_progress(frames: Array) -> Dictionary:
-	var progress: Dictionary = default_progress(frames)
-	if FileAccess.file_exists(PROGRESS_PATH):
-		var text: String = FileAccess.get_file_as_string(PROGRESS_PATH)
-		var parsed: Variant = JSON.parse_string(text)
-		if parsed is Dictionary:
-			progress = _merge_progress(progress, parsed as Dictionary)
-	return _ensure_initial_unlocks(frames, progress)
+	return DifficultyProgressSystemScript.load_progress(frames)
 
 static func save_progress(progress: Dictionary) -> void:
-	var file: FileAccess = FileAccess.open(PROGRESS_PATH, FileAccess.WRITE)
-	if file:
-		file.store_string(JSON.stringify(progress))
+	DifficultyProgressSystemScript.save_progress(progress)
 
 static func _merge_progress(default_data: Dictionary, saved_data: Dictionary) -> Dictionary:
 	var merged: Dictionary = default_data.duplicate(true)
@@ -71,6 +51,8 @@ static func _ensure_initial_unlocks(frames: Array, progress: Dictionary) -> Dict
 	return progress
 
 static func frames_with_progress(frames: Array, progress: Dictionary) -> Array:
+	if progress.has("difficulties"):
+		return DifficultyProgressSystemScript.frames_with_legacy_progress(frames, progress)
 	var result: Array = []
 	var frame_progress: Dictionary = progress.get("streamFrameProgress", {}) as Dictionary
 	for item in frames:
@@ -85,12 +67,7 @@ static func frames_with_progress(frames: Array, progress: Dictionary) -> Array:
 	return result
 
 static func load_progress_for_target(target: Node) -> void:
-	var source_frames: Array = target.get("stream_frames") as Array
-	var progress: Dictionary = load_progress(source_frames)
-	var merged_frames: Array = frames_with_progress(source_frames, progress)
-	target.set("stream_frame_progress", progress)
-	target.set("relay_mode_unlocked", bool(progress.get("relayModeUnlocked", false)))
-	target.set("stream_frames", merged_frames)
+	DifficultyProgressSystemScript.load_progress_for_target(target)
 
 static func find_frame(frames: Array, id: String) -> Dictionary:
 	for item in frames:
@@ -110,10 +87,11 @@ static func selected_index(frames: Array, id: String) -> int:
 
 static func selected_frame_state(frames: Array, id: String) -> Dictionary:
 	var frame: Dictionary = find_frame(frames, id)
-	return {
+	var view: Dictionary = {
 		"frame": frame,
 		"frameId": String(frame.get("id", "zatsudan"))
 	}
+	return view
 
 static func apply_selected_frame_for_target(target: Node, frames: Array, id: String) -> void:
 	var selected: Dictionary = selected_frame_state(frames, id)
@@ -171,7 +149,9 @@ static func relay_selection_frame(relay_mode_unlocked: bool) -> Dictionary:
 		"isRelayMode": true
 	}
 
-static func selection_frames(frames: Array, relay_mode_unlocked: bool) -> Array:
+static func selection_frames(frames: Array, relay_mode_unlocked: bool, difficulty_id: String = "normal", progress: Dictionary = {}, relay_config: Dictionary = {}) -> Array:
+	if progress.has("difficulties"):
+		return DifficultyProgressSystemScript.selection_frames_for_progress(frames, progress, difficulty_id, relay_config)
 	var result: Array = []
 	for item in frames:
 		result.append((item as Dictionary).duplicate(true))
@@ -234,16 +214,17 @@ static func update_selection_action(latch: Dictionary, frames: Array, current_in
 	return {"kind": "", "index": current_index}
 
 static func update_selection_for_target(target: Node, latch: Dictionary, frames: Array) -> Dictionary:
-	var selection_items: Array = selection_frames(frames, bool(target.get("relay_mode_unlocked")))
+	var progress: Dictionary = target.get("difficulty_progress") as Dictionary
+	var selection_items: Array = DifficultyProgressSystemScript.selection_frames_for_target(target, frames, target.get("relay_mode_config") as Dictionary) if not progress.is_empty() else selection_frames(frames, bool(target.get("relay_mode_unlocked")))
 	var action: Dictionary = update_selection_action(latch, selection_items, int(target.get("selected_stream_frame_index")))
 	var kind: String = String(action["kind"])
 	if kind == "escape":
-		return {"backToCharacterSelect": true, "restart": false, "chat": ""}
+		return {"backToCharacterSelect": true, "restart": false, "locked": false, "chat": ""}
 	if kind == "move":
 		target.set("selected_stream_frame_index", int(action["index"]))
 	elif kind == "locked":
 		target.set("selected_stream_frame_index", int(action["index"]))
-		return {"backToCharacterSelect": false, "restart": false, "chat": String(action.get("chat", ""))}
+		return {"backToCharacterSelect": false, "restart": false, "locked": true, "chat": String(action.get("chat", ""))}
 	elif kind == "select":
 		var frame: Dictionary = action["frame"] as Dictionary
 		var frame_id: String = String(action["frameId"])
@@ -254,12 +235,13 @@ static func update_selection_for_target(target: Node, latch: Dictionary, frames:
 			target.set("relay_mode", false)
 			target.set("current_stream_frame", frame)
 			target.set("current_stream_frame_id", frame_id)
-		return {"backToCharacterSelect": false, "restart": true, "chat": ""}
-	return {"backToCharacterSelect": false, "restart": false, "chat": ""}
+		return {"backToCharacterSelect": false, "restart": true, "locked": false, "chat": ""}
+	return {"backToCharacterSelect": false, "restart": false, "locked": false, "chat": ""}
 
 static func start_selection_for_target(target: Node, choice_box: Control, result_panel: Control, frames: Array) -> Dictionary:
 	StateFlowSystem.open_pre_run_select_for_target(target, "stream_frame_select", choice_box, result_panel)
-	var selection_items: Array = selection_frames(frames, bool(target.get("relay_mode_unlocked")))
+	var progress: Dictionary = target.get("difficulty_progress") as Dictionary
+	var selection_items: Array = DifficultyProgressSystemScript.selection_frames_for_target(target, frames, target.get("relay_mode_config") as Dictionary) if not progress.is_empty() else selection_frames(frames, bool(target.get("relay_mode_unlocked")))
 	var current_id: String = "relay" if bool(target.get("relay_mode")) else String(target.get("current_stream_frame_id"))
 	if selection_items.is_empty():
 		var fallback: Dictionary = selected_frame_state(frames, String(target.get("current_stream_frame_id")))
@@ -298,15 +280,15 @@ static func main_gimmick_labels(frame: Dictionary) -> Array[String]:
 static func selection_card_view(frame: Dictionary) -> Dictionary:
 	var unlocked: bool = is_unlocked(frame)
 	var cleared: bool = bool(frame.get("isCleared", false))
-	var status_id: String = _status_id(frame)
+	var status_id: String = String(frame.get("statusId", _status_id(frame)))
 	var coming_soon: bool = status_id == "coming_soon"
-	var status: String = _status_text(frame)
+	var status: String = String(frame.get("statusText", _status_text(frame)))
 	var display_name: String = String(frame.get("displayName", "配信枠"))
 	var accent: Color = _accent_color(frame)
 	var features: Array[String] = feature_labels(frame)
 	var gimmicks: Array[String] = main_gimmick_labels(frame)
 	var selectable: bool = is_selectable(frame)
-	return {
+	var view: Dictionary = {
 		"id": String(frame.get("id", "")),
 		"displayName": display_name,
 		"plainName": display_name,
@@ -336,6 +318,10 @@ static func selection_card_view(frame: Dictionary) -> Dictionary:
 		"isSelectable": selectable,
 		"isRelayMode": bool(frame.get("isRelayMode", false))
 	}
+	view["difficultyText"] = "枠難度：%s" % _difficulty_stars(frame)
+	view["unlockConditionText"] = String(frame.get("unlockConditionText", view.get("unlockConditionText", "")))
+	view["disabledReason"] = String(frame.get("disabledReason", view.get("disabledReason", "")))
+	return view
 
 static func _locked_description(frame: Dictionary) -> String:
 	if bool(frame.get("isRelayMode", false)):
@@ -525,6 +511,11 @@ static func _display_name_for_id(id: String) -> String:
 	return id
 
 static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionary:
+	# DifficultyProgressSystem records hard/expert runs separately.  The legacy
+	# projection is intentionally updated only by NORMAL single-stage results so
+	# a hard clear cannot silently unlock the normal sequence.
+	if DifficultyProgressSystemScript.normalize_difficulty_id(stats.get("difficultyId", "normal")) != DifficultyProgressSystemScript.DIFFICULTY_NORMAL:
+		return {"changed": false, "message": ""}
 	if bool(stats.get("isRankingEligible", false)) == false:
 		return {"changed": false, "message": ""}
 	if bool(stats.get("cleared", false)) == false:
@@ -561,7 +552,7 @@ static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionar
 			var next_frame: Dictionary = find_frame(frames, next_id)
 			message = "新しい配信枠が解放されました！\n%s" % String(next_frame.get("displayName", next_id))
 			changed = true
-	if _all_frames_unlocked(frames, frame_progress) and not bool(progress.get("relayModeUnlocked", false)):
+	if _all_frames_cleared(frames, frame_progress) and not bool(progress.get("relayModeUnlocked", false)):
 		progress["relayModeUnlocked"] = true
 		message = "全配信枠が解放されました！\n新モード解放：配信リレー"
 		changed = true
@@ -571,35 +562,22 @@ static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionar
 	target.set("stream_frames", frames_with_progress(frames, progress))
 	return {"changed": changed, "message": message}
 
-static func _all_frames_unlocked(frames: Array, frame_progress: Dictionary) -> bool:
+static func _all_frames_cleared(frames: Array, frame_progress: Dictionary) -> bool:
 	for item in frames:
 		var frame: Dictionary = item as Dictionary
 		var frame_id: String = String(frame.get("id", ""))
 		var entry: Dictionary = frame_progress.get(frame_id, {}) as Dictionary
-		if not bool(entry.get("isUnlocked", false)):
+		if not bool(entry.get("isCleared", false)):
 			return false
 	return true
 
+static func _all_frames_unlocked(frames: Array, frame_progress: Dictionary) -> bool:
+	# Kept as a compatibility helper for older callers.  Relay unlock itself is
+	# now based on cleared frames, not merely on the old unlock flags.
+	return _all_frames_cleared(frames, frame_progress)
+
 static func unlock_all_for_target(target: Node) -> void:
-	var frames: Array = target.get("stream_frames") as Array
-	var progress: Dictionary = target.get("stream_frame_progress") as Dictionary
-	if progress.is_empty():
-		progress = load_progress(frames)
-	var frame_progress: Dictionary = progress.get("streamFrameProgress", {}) as Dictionary
-	for item in frames:
-		var frame: Dictionary = item as Dictionary
-		var frame_id: String = String(frame.get("id", ""))
-		var entry: Dictionary = frame_progress.get(frame_id, {}) as Dictionary
-		entry["isUnlocked"] = true
-		entry["isCleared"] = bool(entry.get("isCleared", false))
-		entry["bestViewerCount"] = int(entry.get("bestViewerCount", 0))
-		entry["bestKamiRank"] = entry.get("bestKamiRank", null)
-		frame_progress[frame_id] = entry
-	progress["relayModeUnlocked"] = true
-	save_progress(progress)
-	target.set("stream_frame_progress", progress)
-	target.set("relay_mode_unlocked", true)
-	target.set("stream_frames", frames_with_progress(frames, progress))
+	DifficultyProgressSystemScript.unlock_all_for_target(target)
 
 static func has_event(frame: Dictionary, event_id: String) -> bool:
 	var events: Array = frame.get("events", []) as Array

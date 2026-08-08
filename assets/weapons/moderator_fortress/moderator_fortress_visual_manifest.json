@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "processing": {
-    "method": "border-connected green chroma key with local edge despill",
+    "method": "border-connected green chroma key with local edge despill; panel assets use border-connected neutral dark-background removal",
     "tightCropPadding": 16,
     "resized": false
   },
@@ -248,6 +248,60 @@
       "transparentPixels": 773700,
       "partialAlphaPixels": 86202,
       "opaquePixels": 701328
+    },
+    {
+      "id": "panelCenter",
+      "sourceFile": "moderator_fortress_panel_center.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_panel_center.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_panel_center.png",
+      "sourceSha256": "4c3b12bf0340fef7d5ccc5cbe9517faa846b57b9dc58a5457962b04506cd31ea",
+      "backupSha256": "4c3b12bf0340fef7d5ccc5cbe9517faa846b57b9dc58a5457962b04506cd31ea",
+      "originalSize": [
+        1024,
+        1024
+      ],
+      "contentBoundsInSource": [
+        269,
+        39,
+        754,
+        961
+      ],
+      "outputSize": [
+        485,
+        922
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 73560,
+      "partialAlphaPixels": 102225,
+      "opaquePixels": 271385
+    },
+    {
+      "id": "panelSide",
+      "sourceFile": "moderator_fortress_panel_side.png",
+      "sourceBackup": "assets/source_backups/moderator_fortress_visuals/moderator_fortress_panel_side.png",
+      "output": "assets/weapons/moderator_fortress/moderator_fortress_panel_side.png",
+      "sourceSha256": "9adfafce7a8ca13a2eeab7633790642e7fd6920625a63b9f4bbdc462ca42dad3",
+      "backupSha256": "9adfafce7a8ca13a2eeab7633790642e7fd6920625a63b9f4bbdc462ca42dad3",
+      "originalSize": [
+        1024,
+        1024
+      ],
+      "contentBoundsInSource": [
+        377,
+        34,
+        672,
+        956
+      ],
+      "outputSize": [
+        295,
+        922
+      ],
+      "borderOpaquePixels": 0,
+      "greenResidualPixels": 0,
+      "transparentPixels": 65310,
+      "partialAlphaPixels": 80647,
+      "opaquePixels": 126033
     }
   ]
 }

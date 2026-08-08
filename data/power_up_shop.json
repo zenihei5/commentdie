@@ -25,6 +25,25 @@
       "normal": 1.0,
       "hard": 1.0,
       "expert": 1.0
+    },
+    "directGiftPp": {
+      "enabled": true,
+      "amountByQuality": {
+        "normal": 5,
+        "hit": 10,
+        "jackpot": 15
+      },
+      "difficultyRate": {
+        "normal": 1.0,
+        "hard": 1.0,
+        "expert": 1.0
+      },
+      "fieldOptionChance": {
+        "normal": 0.10,
+        "hard": 0.10,
+        "expert": 0.10
+      },
+      "maxPpOptions": 1
     }
   },
   "mascotMessages": {

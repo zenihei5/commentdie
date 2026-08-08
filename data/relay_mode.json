@@ -21,6 +21,9 @@
     "giftLevelGainHit": 2,
     "giftLevelGainBigHit": 3
   },
+  "finalPreparation": {
+    "healRate": 0.40
+  },
   "enemyMultipliers": {
     "zatsudan": {"hp": 1.00, "damage": 1.00, "speed": 1.00},
     "gameplay": {"hp": 1.15, "damage": 1.00, "speed": 1.03},

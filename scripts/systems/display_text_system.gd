@@ -113,7 +113,7 @@ static func stream_frame_select_title() -> String:
 	return "今日の配信枠を選択"
 
 static func stream_frame_difficulty_text(difficulty: String) -> String:
-	return "難易度：%s" % difficulty
+	return "枠難度：%s" % difficulty
 
 static func stream_frame_feature_text(features: Array[String]) -> String:
 	var feature_text: String = " / ".join(features) if not features.is_empty() else "標準"

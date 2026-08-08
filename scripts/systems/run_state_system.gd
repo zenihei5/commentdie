@@ -5,6 +5,7 @@ const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_eff
 
 const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
 const GenreEventSystemScript := preload("res://scripts/systems/genre_event_system.gd")
+const ExpSystemScript := preload("res://scripts/systems/exp_system.gd")
 
 static func run_length(quick_test_mode: bool, quick_length: float, normal_length: float) -> float:
 	return quick_length if quick_test_mode else normal_length
@@ -216,7 +217,12 @@ static func start_run_for_target(target: Node, character: Dictionary, weapon: Di
 	apply_timers(target, timers())
 	(target.get("marshmallows") as Array).clear()
 	apply_score_state(target, score_state(int(initial["giftHype"])))
+	reset_comment_state_for_target(target, false)
 	target.set("pending_gift_choices", 0)
+	target.set("pending_gift_requests", [])
+	target.set("active_gift_request", {})
+	target.set("gift_request_serial", 0)
+	target.set("gift_debug_last", {})
 	target.set("gift_choice_delay_timer", 0.0)
 	target.set("do_everything_offer_count", 0)
 	apply_marshmallow_state(target, marshmallow_state())
@@ -362,6 +368,14 @@ static func apply_score_state(target: Node, defaults: Dictionary) -> void:
 	target.set("danger_comments_chosen", int(defaults["dangerCommentsChosen"]))
 	target.set("max_gift_hype", int(defaults["maxGiftHype"]))
 	target.set("run_rank", String(defaults["runRank"]))
+	# These are run-local comment selection preferences.  They must never leak
+	# from a completed run into the first offer of a new/retried run.
+	target.set("last_comment_id", "")
+	var recent_categories: Variant = target.get("recent_comment_categories")
+	if recent_categories is Array:
+		(recent_categories as Array).clear()
+	else:
+		target.set("recent_comment_categories", [])
 
 static func apply_marshmallow_state(target: Node, defaults: Dictionary) -> void:
 	target.set("marshmallow_answered", int(defaults["answered"]))
@@ -402,6 +416,8 @@ static func apply_genre_state(target: Node, defaults: Dictionary) -> void:
 	target.set("kusoge_resist_level", int(defaults["kusogeResistLevel"]))
 
 static func clear_run_collections(target: Node) -> void:
+	clear_comment_offer_state(target)
+	ExpSystemScript.discard_orbs_for_target(target)
 	(target.get("taken_gift_names") as Array).clear()
 	(target.get("player_weapons") as Array).clear()
 	(target.get("player_accessories") as Array).clear()
@@ -429,6 +445,27 @@ static func clear_run_collections(target: Node) -> void:
 		(target.get("genre_horror_fake_gifts") as Array).clear()
 	target.set("next_destructible_uid", 1)
 	target.set("next_care_package_time", 15.0)
+
+static func clear_comment_offer_state(target: Node) -> void:
+	for property_name in ["offered_comments", "heart_cards", "ng_cards"]:
+		var value: Variant = target.get(property_name)
+		if value is Array:
+			(value as Array).clear()
+	target.set("selected_card", 0)
+	target.set("special_choice_return_card", 0)
+	target.set("choice_timer", 0.0)
+
+static func reset_comment_state_for_target(target: Node, reset_timer: bool = true) -> void:
+	target.set("last_comment_id", "")
+	var recent_categories: Variant = target.get("recent_comment_categories")
+	if recent_categories is Array:
+		(recent_categories as Array).clear()
+	else:
+		target.set("recent_comment_categories", [])
+	clear_comment_offer_state(target)
+	target.set("comment_warning_step", 0)
+	if reset_timer:
+		target.set("comment_timer", 15.0)
 
 static func clear_stage_effect_collections(target: Node) -> void:
 	(target.get("effect_walls") as Array).clear()

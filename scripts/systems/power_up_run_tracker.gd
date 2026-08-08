@@ -13,6 +13,10 @@ var defeated_bosses: Array[Dictionary] = []
 var relay_final_reached := false
 var relay_final_defeated := false
 var difficulty_id := "normal"
+var field_gift_pp := 0
+var fallback_gift_pp := 0
+var full_build_conversion_pp := 0
+var claimed_reward_ids: Dictionary = {}
 
 static func start(enabled: bool, total_level: int, eligible: bool = true):
 	var tracker = TrackerScript.new()
@@ -39,6 +43,29 @@ func mark_relay_final_defeated() -> void:
 	relay_final_reached = true
 	relay_final_defeated = true
 
+func grant_direct_pp(amount: int, source: String, reward_id: String) -> Dictionary:
+	var normalized_amount := maxi(0, int(amount))
+	var normalized_source := String(source).to_lower()
+	var normalized_id := String(reward_id).strip_edges()
+	if not reward_eligible:
+		return {"granted": false, "amount": 0, "source": normalized_source, "rewardId": normalized_id, "reason": "ineligible"}
+	if normalized_amount <= 0 or normalized_id == "":
+		return {"granted": false, "amount": 0, "source": normalized_source, "rewardId": normalized_id, "reason": "invalid"}
+	if claimed_reward_ids.has(normalized_id):
+		return {"granted": false, "amount": 0, "source": normalized_source, "rewardId": normalized_id, "reason": "duplicate"}
+	claimed_reward_ids[normalized_id] = true
+	match normalized_source:
+		"field_random", "field_gift":
+			field_gift_pp += normalized_amount
+		"full_build_conversion":
+			full_build_conversion_pp += normalized_amount
+		_:
+			fallback_gift_pp += normalized_amount
+	return {"granted": true, "amount": normalized_amount, "source": normalized_source, "rewardId": normalized_id, "reason": "granted"}
+
+func direct_pp_subtotal() -> int:
+	return maxi(0, field_gift_pp) + maxi(0, fallback_gift_pp) + maxi(0, full_build_conversion_pp)
+
 func should_unlock_senior_unit(input: Dictionary) -> bool:
 	return bool(input.get("rewardEligible", false)) \
 		and bool(input.get("official", input.get("rewardEligible", false))) \
@@ -60,7 +87,12 @@ func reward_input(is_relay: bool, outcome: String, active_seconds: float, stage_
 		"defeatedBosses": defeated_bosses.duplicate(true),
 		"relayClearedFrameIds": cleared_frame_ids.duplicate(),
 		"relayFinalReached": relay_final_reached,
-		"relayFinalDefeated": relay_final_defeated
+		"relayFinalDefeated": relay_final_defeated,
+		"fieldGiftPp": maxi(0, field_gift_pp),
+		"fallbackGiftPp": maxi(0, fallback_gift_pp),
+		"fullBuildConversionPp": maxi(0, full_build_conversion_pp),
+		"directPpSubtotal": direct_pp_subtotal(),
+		"claimedRewardIds": claimed_reward_ids.keys()
 	}
 
 func to_dictionary() -> Dictionary:
@@ -74,7 +106,12 @@ func to_dictionary() -> Dictionary:
 		"rewardedBossKeys": rewarded_boss_keys.duplicate(true),
 		"defeatedBosses": defeated_bosses.duplicate(true),
 		"relayFinalReached": relay_final_reached,
-		"relayFinalDefeated": relay_final_defeated
+		"relayFinalDefeated": relay_final_defeated,
+		"fieldGiftPp": maxi(0, field_gift_pp),
+		"fallbackGiftPp": maxi(0, fallback_gift_pp),
+		"fullBuildConversionPp": maxi(0, full_build_conversion_pp),
+		"directPpSubtotal": direct_pp_subtotal(),
+		"claimedRewardIds": claimed_reward_ids.duplicate(true)
 	}
 
 static func _new_run_id() -> String:

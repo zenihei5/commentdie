@@ -4,6 +4,8 @@ class_name GiftSystem
 const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+const PowerUpDatabaseScript := preload("res://scripts/systems/power_up_database.gd")
+const DIRECT_PP_ICON_PATH := "res://assets/generated/gift_icons_v1/pp.png"
 
 const MENTAL_CARE_MAX_HP_PER_LEVEL := 10
 const NOTIFICATION_BELL_EXP_RATE_PER_LEVEL := 0.08
@@ -58,19 +60,171 @@ static func arrival_text(gift_hype: int) -> String:
 
 static func build_offer(context: Dictionary) -> Array:
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
-	var gift_hype: int = int(context["giftHype"])
+	var request: Dictionary = context.get("giftRequest", {}) as Dictionary
+	var evolution_gift: Dictionary = (context.get("evolutionGift", {}) as Dictionary).duplicate(true)
+	var candidates: Array = _valid_equipment_candidates(context)
+	var valid_count := candidates.size() + (1 if not evolution_gift.is_empty() else 0)
+	context["validGiftCandidateCount"] = valid_count
+	var debug_target = context.get("target")
+	if debug_target is Node:
+		debug_target.set("gift_debug_last", {"validGiftCandidateCount": valid_count, "giftRequest": request.duplicate(true)})
+	if valid_count <= 0:
+		context["exhaustedGiftPool"] = true
+		var exhausted_offer := _build_exhausted_offer(context)
+		context["exhaustedGiftOptionCount"] = exhausted_offer.size()
+		if debug_target is Node:
+			debug_target.set("gift_debug_last", {"validGiftCandidateCount": valid_count, "exhaustedGiftOptionCount": exhausted_offer.size(), "giftRequest": request.duplicate(true)})
+		return exhausted_offer
+
 	var result: Array = []
-	var evolution_gift: Dictionary = context.get("evolutionGift", {}) as Dictionary
 	if not evolution_gift.is_empty():
 		result.append(evolution_gift)
-	var level_gains: Array[int] = build_level_gain_slots(gift_hype, rng, 3 - result.size(), context.get("permanent_upgrade_snapshot", null))
-	for level_gain in level_gains:
-		if result.size() >= 3:
-			break
-		result.append(pick_gift_by_level_gain(context, level_gain, result))
-	while result.size() < 3:
-		result.append(pick_gift_by_level_gain(context, 1, result))
+	var normal_slots := maxi(0, 3 - result.size())
+	var random_pp := false
+	if bool(request.get("fieldRandomEligible", false)) and _pp_allowed_for_request(request) and valid_count >= 3:
+		var roll := rng.randf()
+		var chance := field_pp_chance(context)
+		random_pp = roll < chance
+		_update_pp_roll(context, roll, random_pp, chance)
+	if random_pp:
+		normal_slots = maxi(0, normal_slots - 1)
+	var selected := _pick_equipment_candidates(context, candidates, normal_slots)
+	for gift in selected:
+		result.append(gift)
+	if result.size() < 3 and _pp_allowed_for_request(request) and (random_pp or bool(request.get("fallbackEligible", true))) and bool(direct_pp_rules(context).get("enabled", true)) and int(context.get("maxPpOptions", 1)) > 0:
+		var pp_source := "field_random" if random_pp else "candidate_fallback"
+		result.append(_build_pp_option(context, pp_source))
+	if result.size() < 3 and bool(request.get("fallbackEligible", true)):
+		var instant_pool := _instant_fallback_pool(context, result)
+		var instant_options := _draw_unique_options(instant_pool, rng, 3 - result.size())
+		result.append_array(instant_options)
 	return result
+
+static func _pp_allowed_for_request(request: Dictionary) -> bool:
+	var source := String(request.get("source", "")).to_lower()
+	if source in ["debug", "final_boss_summon", "infinite_summon", "dummy_event", "repeatable_event"]:
+		return false
+	return bool(request.get("ppEligible", true))
+
+static func _build_exhausted_offer(context: Dictionary) -> Array:
+	var pool: Array = _instant_fallback_pool(context)
+	var request: Dictionary = context.get("giftRequest", {}) as Dictionary
+	if _pp_allowed_for_request(request) and bool(request.get("fallbackEligible", true)) and bool(direct_pp_rules(context).get("enabled", true)) and int(context.get("maxPpOptions", 1)) > 0:
+		pool.append(_build_pp_option(context, "full_build_conversion"))
+	return _draw_unique_options(pool, context["rng"] as RandomNumberGenerator, 3)
+
+static func _instant_fallback_pool(context: Dictionary, excluded_options: Array = []) -> Array:
+	var pool: Array = []
+	var gifts: Array = context.get("gifts", []) as Array
+	var target = context.get("target")
+	var gift_time := float(context.get("giftTime", 0.0))
+	var excluded_ids: Dictionary = {}
+	for excluded_value in excluded_options:
+		if excluded_value is Dictionary:
+			var excluded_id := String((excluded_value as Dictionary).get("id", ""))
+			if excluded_id != "":
+				excluded_ids[excluded_id] = true
+	for wanted_id in ["rest", "heart_mark", "viewer_burst"]:
+		if excluded_ids.has(wanted_id):
+			continue
+		for item in gifts:
+			if not (item is Dictionary):
+				continue
+			var gift: Dictionary = item as Dictionary
+			if String(gift.get("id", "")) != wanted_id or not EquipmentSystem.is_instant(gift):
+				continue
+			var available := true
+			if target is Node:
+				available = gift_available_for_target(target, gift, gift_time)
+			if not available:
+				continue
+			var option := gift.duplicate(true)
+			option["levelGain"] = 1
+			option["giftQuality"] = "normal"
+			pool.append(option)
+			break
+	return pool
+
+static func _draw_unique_options(pool: Array, rng: RandomNumberGenerator, count: int) -> Array:
+	var remaining: Array = pool.duplicate(true)
+	var result: Array = []
+	while not remaining.is_empty() and result.size() < maxi(0, count):
+		var index := rng.randi_range(0, remaining.size() - 1)
+		var picked: Dictionary = (remaining[index] as Dictionary).duplicate(true)
+		remaining.remove_at(index)
+		var duplicate_id := false
+		for existing in result:
+			if String((existing as Dictionary).get("id", "")) == String(picked.get("id", "")):
+				duplicate_id = true
+				break
+		if not duplicate_id:
+			result.append(picked)
+	return result
+
+static func normalize_gift_quality(value: Variant) -> String:
+	match String(value).to_lower().strip_edges():
+		"hit", "rare":
+			return "hit"
+		"jackpot", "big_hit", "god", "flame":
+			return "jackpot"
+		_:
+			return "normal"
+
+static func direct_pp_rules(context: Dictionary) -> Dictionary:
+	var configured: Dictionary = context.get("directPpConfig", {}) as Dictionary
+	if not configured.is_empty():
+		return configured
+	var database: PowerUpDatabase = PowerUpDatabaseScript.load_default()
+	return database.direct_gift_pp_rules() if database != null else {}
+
+static func field_pp_chance(context: Dictionary) -> float:
+	var rules := direct_pp_rules(context)
+	var chances: Dictionary = rules.get("fieldOptionChance", {}) as Dictionary
+	var difficulty := String(context.get("difficultyId", "normal"))
+	return clampf(float(chances.get(difficulty, chances.get("normal", 0.10))), 0.0, 1.0)
+
+static func pp_amount_for_context(context: Dictionary) -> int:
+	var rules := direct_pp_rules(context)
+	var amounts: Dictionary = rules.get("amountByQuality", {}) as Dictionary
+	var quality := normalize_gift_quality((context.get("giftRequest", {}) as Dictionary).get("giftQuality", "normal"))
+	var base := maxi(0, int(amounts.get(quality, amounts.get("normal", 5))))
+	var difficulty := String(context.get("difficultyId", "normal"))
+	var rates: Dictionary = rules.get("difficultyRate", {}) as Dictionary
+	return maxi(0, roundi(float(base) * maxf(0.0, float(rates.get(difficulty, rates.get("normal", 1.0))))))
+
+static func _update_pp_roll(context: Dictionary, roll: float, succeeded: bool, chance: float) -> void:
+	var request: Dictionary = context.get("giftRequest", {}) as Dictionary
+	request["ppRandomRoll"] = roll
+	request["ppRandomState"] = "SUCCEEDED" if succeeded else "FAILED"
+	request["ppRandomChance"] = chance
+	context["giftRequest"] = request
+	var target = context.get("target")
+	if target is Node:
+		target.set("active_gift_request", request.duplicate(true))
+
+static func _build_pp_option(context: Dictionary, source: String) -> Dictionary:
+	var request: Dictionary = context.get("giftRequest", {}) as Dictionary
+	var reward_id := String(request.get("rewardId", ""))
+	if reward_id == "":
+		reward_id = "gift:%s:%d" % [source, Time.get_ticks_usec()]
+	var quality := normalize_gift_quality(request.get("giftQuality", "normal"))
+	return {
+		"id": "direct_pp",
+		"type": "pp",
+		"category": "pp",
+		"displayName": "パワーアップポイント",
+		"description": "パワーアップショップで使えるPPを獲得する",
+		"title": "パワーアップポイント",
+		"amount": pp_amount_for_context(context),
+		"quality": quality,
+		"giftQuality": quality,
+		"source": source,
+		"rewardId": reward_id,
+		"ppEligible": bool(request.get("ppEligible", true)),
+		"iconPath": DIRECT_PP_ICON_PATH,
+		"levelGain": 0,
+		"maxLevel": 0
+	}
 
 static func gift_offer_signature(gift: Dictionary) -> String:
 	return "%s|%s|%d|%s" % [
@@ -84,15 +238,22 @@ static func reroll_offer_for_target(target: Node, gifts: Array, rng: RandomNumbe
 	if int(target.get("gift_reroll_remaining")) <= 0 or String(target.get("gift_choice_return_state")) == "relay_break":
 		return {"success": false, "reason": "unavailable", "offer": []}
 	var current: Array = target.get("offered_gifts") as Array
-	if current.size() < 3:
+	if current.is_empty():
 		return {"success": false, "reason": "invalid_offer", "offer": []}
 	var original_value: Variant = target.get("gift_reroll_original_offer")
 	var original: Array = current.duplicate(true)
-	if original_value is Array and (original_value as Array).size() >= 3:
+	if original_value is Array and (original_value as Array).size() >= 1:
 		original = (original_value as Array).duplicate(true)
 	var elapsed: float = float(target.get("elapsed"))
 	var gift_time: float = elapsed * (3.0 if bool(target.get("quick_test_mode")) else 1.0)
-	var context := build_offer_context_for_target(target, gifts, gift_time, rng)
+	var active_request: Dictionary = target.get("active_gift_request") as Dictionary
+	var context := build_offer_context_for_target(target, gifts, gift_time, rng, active_request)
+	var debug_last: Dictionary = target.get("gift_debug_last") as Dictionary
+	if int(debug_last.get("validGiftCandidateCount", -1)) == 0:
+		var exhausted_offer := _build_exhausted_offer(context)
+		if exhausted_offer.is_empty():
+			return {"success": false, "reason": "no_candidate", "offer": current.duplicate(true)}
+		return {"success": true, "reason": "rerolled", "offer": exhausted_offer, "changed": 1}
 	context["evolutionGift"] = {}
 	var result: Array = current.duplicate(true)
 	var fixed_signatures: Array[String] = []
@@ -107,12 +268,46 @@ static func reroll_offer_for_target(target: Node, gifts: Array, rng: RandomNumbe
 		var original_signature := gift_offer_signature(item as Dictionary)
 		if not current_signatures.has(original_signature):
 			current_signatures.append(original_signature)
+	var forced_initial: Dictionary = {}
+	var forced_initial_index := -1
+	var initial_id := ""
+	var current_character: Dictionary = context.get("currentCharacter", {}) as Dictionary
+	if current_character.has("initialWeaponGiftChance"):
+		initial_id = String(context.get("initialWeaponId", current_character.get("initialWeapon", "")))
+		var initial_already_seen := false
+		for item in current + original:
+			if String((item as Dictionary).get("id", "")) == initial_id:
+				initial_already_seen = true
+				break
+		var normal_indices: Array[int] = []
+		for index in range(result.size()):
+			var option: Dictionary = result[index] as Dictionary
+			var option_type := String(option.get("type", option.get("category", "")))
+			if not WeaponEvolutionSystemScript.is_evolution_gift(option) and option_type != "pp" and String(option.get("category", "")) != "pp":
+				normal_indices.append(index)
+		for candidate_value in _valid_equipment_candidates(context):
+			var candidate: Dictionary = candidate_value as Dictionary
+			if String(candidate.get("id", "")) == initial_id:
+				forced_initial = candidate.duplicate(true)
+				break
+		var initial_chance := clampf(float(current_character.get("initialWeaponGiftChance", 0.0)), 0.0, 1.0)
+		if not initial_already_seen and not forced_initial.is_empty() and not normal_indices.is_empty() and rng.randf() < initial_chance:
+			forced_initial_index = normal_indices[rng.randi_range(0, normal_indices.size() - 1)]
 	var changed := 0
 	var used: Array = []
+	if not forced_initial.is_empty():
+		used.append({"id": initial_id})
 	for index in range(result.size()):
 		var current_gift: Dictionary = current[index] as Dictionary
-		if WeaponEvolutionSystemScript.is_evolution_gift(current_gift):
+		if WeaponEvolutionSystemScript.is_evolution_gift(current_gift) or String(current_gift.get("type", current_gift.get("category", ""))) == "pp" or String(current_gift.get("category", "")) == "pp":
 			used.append(current_gift)
+			continue
+		if index == forced_initial_index:
+			var desired_gain := roll_level_gain(int(context.get("giftHype", 0)), rng, context.get("permanent_upgrade_snapshot", null))
+			var initial_replacement := _finalize_equipment_candidate(context, forced_initial, desired_gain)
+			result[index] = initial_replacement
+			used.append(initial_replacement)
+			changed += 1
 			continue
 		var current_signature := gift_offer_signature(current_gift)
 		var replacement: Dictionary = {}
@@ -150,14 +345,88 @@ static func build_forced_offer(context: Dictionary, quality: String, count: int 
 		result.append(pick_gift_by_level_gain(context, level_gain, result))
 	return result
 
-static func build_offer_context_for_target(target: Node, gifts: Array, gift_time: float, rng: RandomNumberGenerator) -> Dictionary:
+static func build_gift_request_for_target(
+	target: Node,
+	source: String,
+	gift_quality: String = "normal",
+	pp_eligible: bool = true,
+	field_random_eligible: bool = false,
+	fallback_eligible: bool = true,
+	reward_id: String = "",
+	debug: bool = false
+) -> Dictionary:
+	if String(source) in ["debug", "final_boss_summon", "infinite_summon", "dummy_event", "repeatable_event"]:
+		pp_eligible = false
+		field_random_eligible = false
+		fallback_eligible = false
+		debug = true
+	var serial := int(target.get("gift_request_serial")) + 1
+	target.set("gift_request_serial", serial)
+	var run_id := String(target.get("run_id"))
+	if run_id == "":
+		run_id = "untracked"
+	if reward_id == "":
+		reward_id = "%s:gift:%d" % [run_id, serial]
+	return {
+		"requestId": "%s:request:%d" % [run_id, serial],
+		"rewardId": reward_id,
+		"source": String(source),
+		"giftQuality": normalize_gift_quality(gift_quality),
+		"ppEligible": pp_eligible,
+		"fieldRandomEligible": field_random_eligible,
+		"fallbackEligible": fallback_eligible,
+		"debug": debug,
+		"ppRandomState": "NOT_RUN"
+	}
+
+static func enqueue_gift_request(
+	target: Node,
+	source: String,
+	gift_quality: String = "normal",
+	pp_eligible: bool = true,
+	field_random_eligible: bool = false,
+	fallback_eligible: bool = true,
+	reward_id: String = "",
+	debug: bool = false
+) -> Dictionary:
+	var request := build_gift_request_for_target(target, source, gift_quality, pp_eligible, field_random_eligible, fallback_eligible, reward_id, debug)
+	var pending: Array = target.get("pending_gift_requests") as Array
+	if pending == null:
+		pending = []
+	pending.append(request)
+	target.set("pending_gift_requests", pending)
+	target.set("pending_gift_choices", pending.size())
+	return request
+
+static func dequeue_gift_request(target: Node) -> Dictionary:
+	var pending: Array = target.get("pending_gift_requests") as Array
+	if pending == null or pending.is_empty():
+		return {}
+	var request: Dictionary = (pending.pop_front() as Dictionary).duplicate(true)
+	target.set("pending_gift_requests", pending)
+	target.set("pending_gift_choices", pending.size())
+	target.set("active_gift_request", request.duplicate(true))
+	return request
+
+static func reset_pending_gift_requests_for_target(target: Node) -> void:
+	target.set("pending_gift_requests", [])
+	target.set("pending_gift_choices", 0)
+	target.set("active_gift_request", {})
+
+static func build_offer_context_for_target(target: Node, gifts: Array, gift_time: float, rng: RandomNumberGenerator, request: Dictionary = {}) -> Dictionary:
 	var current_character: Dictionary = target.get("current_character") as Dictionary
 	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
 	var initial_weapon_id: String = String(current_character.get("initialWeapon", ""))
 	if initial_weapon_id == "":
 		initial_weapon_id = String(current_weapon.get("baseWeaponId", current_weapon.get("id", "")))
+	var resolved_request := request.duplicate(true)
+	if resolved_request.is_empty():
+		resolved_request = build_gift_request_for_target(target, "level_up", "normal", true, false, true)
+	var database: PowerUpDatabase = PowerUpDatabaseScript.load_default()
+	var pp_config: Dictionary = database.direct_gift_pp_rules() if database != null else {}
 	return {
 		"gifts": gifts,
+		"target": target,
 		"weaponRegistry": target.get("weapons") as Array,
 		"currentCharacter": current_character,
 		"streamFrame": target.get("current_stream_frame"),
@@ -169,6 +438,10 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"playerAccessories": target.get("player_accessories"),
 		"permanent_upgrade_snapshot": target.get("permanent_upgrade_snapshot"),
 		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
+		"giftRequest": resolved_request,
+		"difficultyId": String(target.get("run_difficulty_id")),
+		"directPpConfig": pp_config,
+		"maxPpOptions": int(pp_config.get("maxPpOptions", 1)),
 		"rng": rng
 	}
 
@@ -201,19 +474,23 @@ static func _owned_initial_weapon_candidate(context: Dictionary) -> Dictionary:
 	candidate["weight"] = maxi(1, int(candidate.get("weight", 1)))
 	return candidate
 
-static func start_offer_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator) -> Dictionary:
-	target.set("state", "gift_choice")
-	PauseReasonSystemScript.add(target, "GiftSelection")
-	target.set("selected_card", 0)
+static func start_offer_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator, request: Dictionary = {}) -> Dictionary:
 	var elapsed: float = float(target.get("elapsed"))
 	var quick_test: bool = bool(target.get("quick_test_mode"))
 	var gift_time: float = elapsed * (3.0 if quick_test else 1.0)
-	var context: Dictionary = build_offer_context_for_target(target, gifts, gift_time, rng)
-	target.set("offered_gifts", build_offer(context))
+	var resolved_request := request.duplicate(true)
+	if resolved_request.is_empty():
+		resolved_request = build_gift_request_for_target(target, "level_up", "normal", true, false, true)
+	var context: Dictionary = build_offer_context_for_target(target, gifts, gift_time, rng, resolved_request)
+	var offer: Array = build_offer(context)
+	target.set("offered_gifts", offer)
+	target.set("state", "gift_choice")
+	PauseReasonSystemScript.add(target, "GiftSelection")
+	target.set("selected_card", 0)
 	return {"arrivalText": arrival_text(int(target.get("gift_hype")))}
 
-static func start_offer_ui_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator, choice_box: Control) -> Dictionary:
-	var result: Dictionary = start_offer_for_target(target, gifts, rng)
+static func start_offer_ui_for_target(target: Node, gifts: Array, rng: RandomNumberGenerator, choice_box: Control, request: Dictionary = {}) -> Dictionary:
+	var result: Dictionary = start_offer_for_target(target, gifts, rng, request)
 	choice_box.visible = true
 	return result
 
@@ -261,7 +538,7 @@ static func roll_level_gain(gift_hype: int, rng: RandomNumberGenerator, snapshot
 	return 1
 
 static func level_gain_for_quality_key(quality: String) -> int:
-	if quality == "big_hit" or quality == "god" or quality == "flame":
+	if quality == "big_hit" or quality == "jackpot" or quality == "god" or quality == "flame":
 		return 3
 	if quality == "hit" or quality == "rare":
 		return 2
@@ -273,6 +550,8 @@ static func gift_level_gain(gift: Dictionary) -> int:
 	return clampi(int(gift.get("levelGain", 1)), 1, 3)
 
 static func gift_quality(gift: Dictionary) -> String:
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		return normalize_gift_quality(gift.get("quality", gift.get("giftQuality", "normal")))
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		return "evolution"
 	var level_gain: int = gift_level_gain(gift)
@@ -283,6 +562,13 @@ static func gift_quality(gift: Dictionary) -> String:
 	return "normal"
 
 static func gift_quality_label(gift: Dictionary) -> String:
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		var pp_quality := normalize_gift_quality(gift.get("quality", gift.get("giftQuality", "normal")))
+		if pp_quality == "jackpot":
+			return "大当たり"
+		if pp_quality == "hit":
+			return "当たり"
+		return ""
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		return "進化！"
 	if EquipmentSystem.is_instant(gift):
@@ -298,13 +584,15 @@ static func gift_quality_color(gift: Dictionary) -> Color:
 	var quality: String = gift_quality(gift)
 	if quality == "evolution":
 		return Color("#ff68b3")
-	if quality == "big_hit":
+	if quality == "big_hit" or quality == "jackpot":
 		return Color("#ff5fb8")
 	if quality == "hit":
 		return Color("#ffb84d")
 	return Color("#ff9bcf")
 
 static func gift_category_tag(gift: Dictionary) -> String:
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		return "PP"
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		return "進化"
 	if EquipmentSystem.is_weapon(gift):
@@ -316,6 +604,8 @@ static func gift_category_tag(gift: Dictionary) -> String:
 	return "特殊"
 
 static func gift_card_summary(gift: Dictionary) -> String:
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		return "パワーアップショップで使えるPPを獲得する"
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		var base_name: String = String(gift.get("baseDisplayName", gift.get("displayName", "武器")))
 		return "%sが進化" % base_name
@@ -373,6 +663,8 @@ static func gift_card_summary(gift: Dictionary) -> String:
 	return _fallback_card_summary(String(gift.get("description", "")))
 
 static func gift_level_change_text(gift: Dictionary, current_level: int) -> String:
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		return "取得量：＋%d PP" % int(gift.get("amount", 0))
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		return "進化！"
 	if EquipmentSystem.is_instant(gift):
@@ -386,6 +678,8 @@ static func gift_level_change_text(gift: Dictionary, current_level: int) -> Stri
 	return "Lv%d → Lv%d" % [current_level, next_level]
 
 static func gift_level_status_text(gift: Dictionary, current_level: int) -> String:
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		return "パワーアップショップで使えるPP"
 	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
 		return "進化専用"
 	if EquipmentSystem.is_instant(gift):
@@ -408,6 +702,92 @@ static func _fallback_card_summary(description: String) -> String:
 	if summary.length() > 13:
 		return summary.substr(0, 12) + "…"
 	return summary
+
+static func _valid_equipment_candidates(context: Dictionary) -> Array:
+	var candidates: Array = []
+	var seen: Dictionary = {}
+	var frame: Dictionary = context.get("streamFrame", {}) as Dictionary
+	var available_ids: Array = context.get("availableIds", []) as Array
+	var owned_weapon := _owned_initial_weapon_candidate(context)
+	if not owned_weapon.is_empty():
+		var owned_id := String(owned_weapon.get("id", ""))
+		if owned_id != "" and not seen.has(owned_id):
+			seen[owned_id] = true
+			candidates.append(owned_weapon.duplicate(true))
+	for item in context.get("gifts", []) as Array:
+		if not (item is Dictionary):
+			continue
+		var gift: Dictionary = item as Dictionary
+		var gift_id := String(gift.get("id", ""))
+		if gift_id == "" or seen.has(gift_id):
+			continue
+		if not _data_allowed_for_frame(frame, gift, "giftPoolTags"):
+			continue
+		if not available_ids.has(gift_id):
+			continue
+		if not (EquipmentSystem.is_weapon(gift) or EquipmentSystem.is_accessory(gift)):
+			continue
+		var target = context.get("target")
+		if target is Node and not EquipmentSystem.can_offer(target, gift, float(context.get("giftTime", 0.0))):
+			continue
+		seen[gift_id] = true
+		candidates.append(gift.duplicate(true))
+	return candidates
+
+static func _pick_equipment_candidates(context: Dictionary, candidates: Array, count: int) -> Array:
+	var result: Array = []
+	var remaining: Array = candidates.duplicate(true)
+	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
+	var gains: Array[int] = build_level_gain_slots(int(context.get("giftHype", 0)), rng, count, context.get("permanent_upgrade_snapshot", null))
+	var forced_initial: Dictionary = {}
+	var forced_initial_slot := -1
+	var current_character: Dictionary = context.get("currentCharacter", {}) as Dictionary
+	if count > 0 and current_character.has("initialWeaponGiftChance"):
+		var initial_id := String(context.get("initialWeaponId", current_character.get("initialWeapon", "")))
+		for candidate_index in range(remaining.size() - 1, -1, -1):
+			var candidate: Dictionary = remaining[candidate_index] as Dictionary
+			if String(candidate.get("id", "")) != initial_id:
+				continue
+			forced_initial = candidate.duplicate(true)
+			remaining.remove_at(candidate_index)
+			break
+		var initial_chance := clampf(float(current_character.get("initialWeaponGiftChance", 0.0)), 0.0, 1.0)
+		if not forced_initial.is_empty() and rng.randf() < initial_chance:
+			forced_initial_slot = rng.randi_range(0, count - 1)
+	for index in range(count):
+		var desired := int(gains[index]) if index < gains.size() else 1
+		var picked: Dictionary = {}
+		if index == forced_initial_slot:
+			picked = forced_initial.duplicate(true)
+		elif not remaining.is_empty():
+			var viable: Array = []
+			for candidate_value in remaining:
+				var candidate: Dictionary = candidate_value as Dictionary
+				if _gift_remaining_level(context, candidate) >= desired:
+					viable.append(candidate)
+			if viable.is_empty():
+				viable = remaining.duplicate(true)
+			var picked_index := rng.randi_range(0, viable.size() - 1)
+			var picked_source: Dictionary = viable[picked_index] as Dictionary
+			picked = picked_source.duplicate(true)
+			for remaining_index in range(remaining.size() - 1, -1, -1):
+				if String((remaining[remaining_index] as Dictionary).get("id", "")) == String(picked.get("id", "")):
+					remaining.remove_at(remaining_index)
+					break
+		if picked.is_empty():
+			continue
+		result.append(_finalize_equipment_candidate(context, picked, desired))
+	return result
+
+static func _finalize_equipment_candidate(context: Dictionary, candidate: Dictionary, desired_level_gain: int) -> Dictionary:
+	var picked := candidate.duplicate(true)
+	var remaining_level := maxi(1, _gift_remaining_level(context, picked))
+	picked["levelGain"] = mini(maxi(1, desired_level_gain), remaining_level)
+	picked["giftQuality"] = gift_quality(picked)
+	if bool(picked.get("ownedUpgradeOnly", false)):
+		var current_level := EquipmentSystem.level(context.get("playerWeapons", []) as Array, String(picked.get("id", "")))
+		picked["description"] = _weapon_level_description(picked, mini(int(picked.get("maxLevel", 1)), current_level + int(picked["levelGain"])))
+	return picked
 
 static func pick_gift_by_level_gain(context: Dictionary, level_gain: int, used: Array) -> Dictionary:
 	var target_gain: int = clampi(level_gain, 1, 3)
@@ -530,14 +910,37 @@ static func choose_gift_for_target(target: Node, gift: Dictionary) -> Dictionary
 static func choose_offer_index_for_target(target: Node, index: int) -> Dictionary:
 	var offered_gifts: Array = target.get("offered_gifts") as Array
 	if index < 0 or index >= offered_gifts.size():
-		return {"selected": false, "giftName": "", "rollGenreEvent": false}
+		return {"selected": false, "giftName": "", "rollGenreEvent": false, "mentalHealAmount": 0}
 	var gift: Dictionary = offered_gifts[index] as Dictionary
+	if String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp":
+		var tracker = target.get("power_up_run_tracker")
+		var grant: Dictionary = {}
+		if tracker != null and tracker.has_method("grant_direct_pp"):
+			grant = tracker.grant_direct_pp(int(gift.get("amount", 0)), String(gift.get("source", "candidate_fallback")), String(gift.get("rewardId", "")))
+		if not bool(grant.get("granted", false)):
+			return {"selected": false, "giftName": String(gift.get("displayName", "パワーアップポイント")), "directPp": 0, "rollGenreEvent": false}
+		if bool(grant.get("granted", false)) and target.has_method("_show_direct_pp_toast"):
+			target.call("_show_direct_pp_toast", int(grant.get("amount", 0)), String(grant.get("source", "")))
+		target.set("state", "playing")
+		PauseReasonSystemScript.remove(target, "GiftSelection")
+		return {
+			"selected": bool(grant.get("granted", false)),
+			"giftName": String(gift.get("displayName", "パワーアップポイント")),
+			"directPp": int(grant.get("amount", 0)),
+			"directPpSource": String(grant.get("source", gift.get("source", ""))),
+			"mentalHealAmount": 0,
+			"rollGenreEvent": false,
+			"heartPendingActivated": false,
+			"heartPendingDuplicate": false,
+			"weaponEvolution": {}
+		}
 	var result: Dictionary = choose_gift_for_target(target, gift)
 	target.set("state", "playing")
 	PauseReasonSystemScript.remove(target, "GiftSelection")
 	return {
 		"selected": true,
 		"giftName": String(gift["displayName"]),
+		"mentalHealAmount": int(result.get("mentalHealAmount", 0)),
 		"rollGenreEvent": bool(result.get("rollGenreEvent", false)),
 		"heartPendingActivated": bool(result.get("heartPendingActivated", false)),
 		"heartPendingDuplicate": bool(result.get("heartPendingDuplicate", false)),
@@ -564,6 +967,9 @@ static func choose_offer_index_with_feedback_for_target(
 		GenreEventSystem.set_next_known_event_for_target(target, genre_events, rng)
 	var chats: Array[String] = []
 	chats.append(String(result["giftName"]) + " を取得")
+	if int(result.get("directPp", 0)) > 0:
+		chats.append("PP GET! +%d PP" % int(result.get("directPp", 0)))
+		return {"selected": true, "chats": chats, "directPp": int(result.get("directPp", 0)), "mentalHealAmount": 0}
 	if bool(result.get("heartPendingActivated", false)):
 		chats.append("♡を受け取った！ 次の指示コメが全部ちょっと甘くなる")
 	if bool(result.get("heartPendingDuplicate", false)):
@@ -576,11 +982,13 @@ static func choose_offer_index_with_feedback_for_target(
 		])
 	return {
 		"selected": true,
-		"chats": chats
+		"chats": chats,
+		"mentalHealAmount": int(result.get("mentalHealAmount", 0))
 	}
 
 static func update_choice_input_for_target(target: Node, latch: Dictionary) -> Dictionary:
-	var action: Dictionary = ChoiceCardSystem.selection_action(latch, int(target.get("selected_card")), 3)
+	var offered: Array = target.get("offered_gifts") as Array
+	var action: Dictionary = ChoiceCardSystem.selection_action(latch, int(target.get("selected_card")), maxi(1, offered.size()))
 	if ChoiceCardSystem.is_move(action):
 		target.set("selected_card", int(action["index"]))
 		return {"refresh": true, "chooseIndex": -1}
@@ -715,6 +1123,7 @@ static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 	result["rollGenreEvent"] = false
 	result["heartPendingActivated"] = false
 	result["heartPendingDuplicate"] = false
+	result["mentalHealAmount"] = 0
 	if effect == "hammer_damage":
 		result["hammerDamage"] = float(result.get("hammerDamage", 0.0)) * 1.15
 	elif effect == "hammer_size":
@@ -727,7 +1136,9 @@ static func apply_effect(effect: String, context: Dictionary) -> Dictionary:
 		result["playerMaxHp"] = int(result.get("playerMaxHp", 100)) + DamageSystem.LEGACY_HP_UNIT
 		result["playerHp"] = mini(int(result["playerMaxHp"]), int(result.get("playerHp", 100)) + DamageSystem.LEGACY_HP_UNIT)
 	elif effect == "heal":
+		var before_hp := int(result.get("playerHp", 100))
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + DamageSystem.LEGACY_HP_UNIT * 2)
+		result["mentalHealAmount"] = maxi(0, int(result["playerHp"]) - before_hp)
 	elif effect == "gift_hype_boost":
 		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + 25, 0, 100)
 		result["maxGiftHype"] = maxi(int(result.get("maxGiftHype", 0)), int(result["giftHype"]))

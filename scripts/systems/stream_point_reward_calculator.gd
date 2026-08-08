@@ -48,6 +48,7 @@ static func calculate(input: Dictionary, first_stage_clears: Dictionary = {}, fi
 			result.reward_keys.append("first_stage:" + stage_id)
 	var first_boss_pp := int(all_rules.get("normal", {}).get("firstBossDefeat", 75))
 	var seen_reward_keys: Dictionary = {}
+	var seen_first_defeat_ids: Dictionary = {}
 	for item in input.get("defeatedBosses", []) as Array:
 		if not (item is Dictionary):
 			continue
@@ -61,11 +62,14 @@ static func calculate(input: Dictionary, first_stage_clears: Dictionary = {}, fi
 		result.reward_keys.append(reward_key)
 		var pp_reward_id := String(boss.get("ppRewardId", boss.get("bossId", "")))
 		var base_pp := int(boss.get("basePpReward", 0))
+		var pp_rate := maxf(0.0, float(boss.get("ppRate", 1.0)))
 		if base_pp > 0:
-			result.boss_defeat_pp += base_pp
-			result.boss_reward_entries.append({"rewardKey": reward_key, "ppRewardId": pp_reward_id, "basePpReward": base_pp})
-		if bool(boss.get("isFirstDefeatRewardTarget", false)) and pp_reward_id != "last_offline" and not bool(first_boss_defeats.get(pp_reward_id, false)):
-			result.first_boss_defeat_pp += first_boss_pp
+			var adjusted_base_pp := roundi(float(base_pp) * pp_rate)
+			result.boss_defeat_pp += adjusted_base_pp
+			result.boss_reward_entries.append({"rewardKey": reward_key, "ppRewardId": pp_reward_id, "basePpReward": adjusted_base_pp})
+		if bool(boss.get("isFirstDefeatRewardTarget", false)) and pp_reward_id != "last_offline" and not bool(first_boss_defeats.get(pp_reward_id, false)) and not seen_first_defeat_ids.has(pp_reward_id):
+			result.first_boss_defeat_pp += roundi(float(first_boss_pp) * pp_rate)
+			seen_first_defeat_ids[pp_reward_id] = true
 			if not result.newly_defeated_boss_ids.has(pp_reward_id):
 				result.newly_defeated_boss_ids.append(pp_reward_id)
 			if not result.reward_keys.has("first:" + pp_reward_id):
@@ -76,5 +80,9 @@ static func calculate(input: Dictionary, first_stage_clears: Dictionary = {}, fi
 		result.first_boss_defeat_pp = maxi(result.first_boss_defeat_pp, result.newly_defeated_boss_ids.size() * first_boss_pp)
 	result.repeatable_subtotal = roundi(float(repeatable + result.boss_defeat_pp) * result.difficulty_multiplier)
 	result.one_time_subtotal = result.first_stage_clear_pp + result.first_boss_defeat_pp + result.first_relay_clear_pp
-	result.total_pp = result.repeatable_subtotal + result.one_time_subtotal
+	result.field_gift_pp = maxi(0, int(input.get("fieldGiftPp", 0)))
+	result.fallback_gift_pp = maxi(0, int(input.get("fallbackGiftPp", 0)))
+	result.full_build_conversion_pp = maxi(0, int(input.get("fullBuildConversionPp", 0)))
+	result.direct_pp_subtotal = result.field_gift_pp + result.fallback_gift_pp + result.full_build_conversion_pp
+	result.total_pp = result.repeatable_subtotal + result.one_time_subtotal + result.direct_pp_subtotal
 	return result

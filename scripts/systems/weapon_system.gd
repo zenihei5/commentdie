@@ -117,7 +117,7 @@ static func _alive_hit_fx(hit_fx: Array) -> Array:
 
 static func _hit_fx_priority(fx: Dictionary) -> int:
 	var kind := String(fx.get("kind", ""))
-	if kind in ["moderator_shield_active", "moderator_shield_end_wave", "tsuri_rod_cast", "fansa_baton_hit", "fansa_baton_cross_followup", "moderator_shield_bullet_clear", "moderator_fortress_active", "moderator_fortress_hit", "moderator_fortress_shockwave", "moderator_fortress_bullet_clear", "fansa_climax_hit", "fansa_climax_echo", "fansa_climax_x", "fansa_climax_fan_wave", "buzz_thumbnail_rod_cast", "buzz_thumbnail_rod_gather", "buzz_thumbnail_rod_explosion", "buzz_thumbnail_rod_target_mark", "buzz_thumbnail_rod_throw", "buzz_thumbnail_rod_bear_flash", "buzz_thumbnail_rod_catch_mark", "buzz_thumbnail_rod_hit"]:
+	if kind in ["moderator_shield_active", "moderator_shield_deploy", "moderator_shield_end", "moderator_shield_end_wave", "tsuri_rod_cast", "fansa_baton_hit", "fansa_baton_cross_followup", "moderator_shield_bullet_clear", "moderator_fortress_active", "moderator_fortress_deploy", "moderator_fortress_end", "moderator_shield_hit", "moderator_fortress_hit", "moderator_fortress_shockwave", "moderator_fortress_bullet_clear", "fansa_climax_hit", "fansa_climax_echo", "fansa_climax_x", "fansa_climax_fan_wave", "buzz_thumbnail_rod_cast", "buzz_thumbnail_rod_gather", "buzz_thumbnail_rod_explosion", "buzz_thumbnail_rod_target_mark", "buzz_thumbnail_rod_throw", "buzz_thumbnail_rod_bear_flash", "buzz_thumbnail_rod_catch_mark", "buzz_thumbnail_rod_hit"]:
 		return 5
 	if kind in ["emote_mine", "listener_summon", "kusa_wave", "ng_word_laser", "boss_defeat", "maro_comment_pulse"]:
 		return 3
@@ -176,6 +176,8 @@ static func _short_range_range_for_weapon(weapon_id: String, weapon: Dictionary,
 			return _apply_short_range(context, range_value, 0.55, 0.75, SHORT_RANGE_MIN_LASER_RANGE)
 		"listener_summon":
 			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_SEARCH_RANGE)
+		"fansa_baton", "fansa_climax":
+			return _apply_short_range(context, range_value, 0.75, 0.85, 0.0)
 		"emote_mine":
 			return range_value
 	if attack_type(weapon) == "orbit":
@@ -303,6 +305,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"elapsed": context["elapsed"],
 		"playerPos": context["playerPos"],
 		"expOrbs": context["expOrbs"],
+		"dropItems": context.get("dropItems", []),
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
 		"enemyBullets": context["enemyBullets"],
@@ -328,12 +331,17 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"playerPos": context["playerPos"],
 		"facingDir": context["facingDir"],
 		"playerVel": context.get("playerVel", Vector2.ZERO),
+		"lastMoveDirection": context.get("lastMoveDirection", context.get("lastDir", Vector2.RIGHT)),
+		"manualAimDirection": context.get("manualAimDirection", Vector2.ZERO),
+		"moveInput": context.get("moveInput", Vector2.ZERO),
 		"rng": context["rng"],
 		"attackRightOnly": context["attackRightOnly"],
 		"attackRightOnlyRate": context["attackRightOnlyRate"],
+		"weaponMute": context.get("weaponMute", false),
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
 		"enemyBullets": context["enemyBullets"],
+		"dropItems": context.get("dropItems", []),
 		"activeFx": context.get("hitFxState", []),
 		"damageRate": context["equipmentDamageRate"],
 		"rangeRate": context["equipmentRangeRate"],
@@ -401,6 +409,9 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"lastDir": target.get("last_hammer_dir"),
 		"facingDir": Vector2(float(target.get("player_facing_x")), 0.0),
 		"playerVel": target.get("player_vel"),
+		"lastMoveDirection": target.get("last_hammer_dir"),
+		"manualAimDirection": Vector2.ZERO,
+		"moveInput": target.get("player_vel"),
 		"supportAttack": float(target.get("support_attack_timer")) > 0.0,
 		"weaponMute": ModifierSystem.has_effect_for_target(target, "weapon_mute"),
 		"weaponMuteRate": ModifierSystem.effect_rate_for_target(target, "weapon_mute"),
@@ -415,6 +426,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"elapsed": target.get("elapsed"),
 		"playerPos": target.get("player_pos"),
 		"expOrbs": target.get("exp_orbs"),
+		"dropItems": target.get("drop_items"),
 		"enemies": target.get("enemies"),
 		"destructibles": target.get("destructibles"),
 		"playerBullets": target.get("player_bullets"),
@@ -1475,6 +1487,211 @@ static func _stage2_interval(weapon: Dictionary, context: Dictionary, fallback: 
 static func _stage2_retry_delay(weapon: Dictionary) -> float:
 	return maxf(0.01, float(weapon.get("retargetRetry", 0.15)))
 
+const ROD_COLLECTION_ACTIVE_STATES := ["attracted_to_lure", "attached_to_lure", "returning_with_lure"]
+
+static func rod_collection_config_for_level(weapon: Dictionary, level: int = 1) -> Dictionary:
+	var source: Dictionary = weapon.get("itemCollection", {}) as Dictionary
+	var resolved: Dictionary = source.duplicate(true)
+	var levels: Array = source.get("levels", []) as Array
+	if not levels.is_empty():
+		var row_value: Variant = levels[clampi(maxi(1, level) - 1, 0, levels.size() - 1)]
+		if row_value is Dictionary:
+			for key in (row_value as Dictionary).keys():
+				resolved[String(key)] = (row_value as Dictionary)[key]
+	resolved.erase("levels")
+	return resolved
+
+static func _rod_item_claim_active(item: Dictionary) -> bool:
+	return ROD_COLLECTION_ACTIVE_STATES.has(String(item.get("rodCollectionState", "free")))
+
+static func _rod_item_claimable(item: Dictionary, whitelist: Array, collection_kind: String) -> bool:
+	if item.is_empty() or float(item.get("life", 1.0)) <= 0.0:
+		return false
+	var state := String(item.get("rodCollectionState", "free"))
+	if state != "free" and state != "":
+		return false
+	if String(item.get("rodClaimToken", "")) != "":
+		return false
+	if bool(item.get("collected", false)) or bool(item.get("followingPlayer", false)) or bool(item.get("homingToPlayer", false)):
+		return false
+	var item_type := _rod_collectible_type(collection_kind, item)
+	return item_type != "" and whitelist.has(item_type)
+
+static func _rod_collectible_type(collection_kind: String, item: Dictionary) -> String:
+	if collection_kind == "experience":
+		return "experience"
+	if collection_kind != "drop_items":
+		return ""
+	match String(item.get("id", "")):
+		"viewer_boost":
+			return "score"
+		"heal_drink":
+			return "heal"
+		"heart_drop":
+			return "heart"
+		_:
+			return ""
+
+static func _rod_next_claim_token(weapon_id: String, timers: Dictionary) -> String:
+	var states := _stage2_states(timers)
+	var state: Dictionary = states.get(weapon_id, {}) as Dictionary
+	var serial := int(state.get("collectionSerial", 0)) + 1
+	state["collectionSerial"] = serial
+	states[weapon_id] = state
+	return "%s:collect:%d" % [weapon_id, serial]
+
+static func _rod_collection_radius(config: Dictionary, context: Dictionary) -> float:
+	var radius := maxf(0.0, float(config.get("attractRadius", 0.0)))
+	return _apply_short_range(context, radius, 0.75, 0.85, 0.0)
+
+static func rod_collection_effective_return_speed(weapon: Dictionary, context: Dictionary) -> float:
+	var config := rod_collection_config_for_level(weapon, int(weapon.get("level", 1)))
+	var base_speed := float(weapon.get("reelSpeed", config.get("attractSpeed", 0.0)))
+	var reel_multiplier := float(weapon.get("reelSpeedMultiplier", 1.0))
+	if bool(weapon.get("isEvolved", false)):
+		var base_id := String(weapon.get("baseWeaponId", ""))
+		var base_weapon := find_weapon(context.get("weaponData", []) as Array, base_id, {})
+		if not base_weapon.is_empty():
+			var base_level_five := _stage2_level_data(base_weapon, int(base_weapon.get("maxLevel", 5)))
+			base_speed = float(base_level_five.get("reelSpeed", base_speed))
+			reel_multiplier = float(base_level_five.get("reelSpeedMultiplier", 1.0))
+	return maxf(0.0, base_speed * reel_multiplier * float(config.get("returnSpeedRate", 1.0)))
+
+static func _rod_claim_collectibles_at_landing(fx: Dictionary, exp_orbs: Array, drop_items: Array) -> void:
+	# The cast FX is created at the player's position.  Searching before the lure
+	# lands consumes the one-shot search around the player instead of the landing
+	# point, so keep the search pending until the gathering phase starts.
+	if fx.get("phase", "casting") != "gathering":
+		return
+	if bool(fx.get("itemSearchDone", false)):
+		return
+	fx["itemSearchDone"] = true
+	var config: Dictionary = fx.get("itemCollectionConfig", {}) as Dictionary
+	if not bool(config.get("enabled", false)):
+		return
+	var whitelist: Array = config.get("collectibleWhitelist", []) as Array
+	var radius := float(fx.get("itemAttractRadius", config.get("attractRadius", 0.0)))
+	var lure_pos := Vector2(fx.get("pos", Vector2.ZERO))
+	var token := String(fx.get("collectionClaimToken", ""))
+	if token == "":
+		return
+	var claims: Array = fx.get("claimedCollectibles", []) as Array
+	var attach_index := 0
+	for source in [{"kind": "experience", "items": exp_orbs}, {"kind": "drop_items", "items": drop_items}]:
+		var collection_kind := String(source["kind"])
+		var items: Array = source["items"] as Array
+		for item_value in items:
+			var item: Dictionary = item_value as Dictionary
+			if not _rod_item_claimable(item, whitelist, collection_kind):
+				continue
+			if Vector2(item.get("pos", lure_pos)).distance_to(lure_pos) > radius:
+				continue
+			item["rodCollectionState"] = "attracted_to_lure"
+			item["rodClaimToken"] = token
+			item["rodAttachIndex"] = attach_index
+			var scatter_angle := TAU * float(attach_index) * 0.61803398875
+			var scatter_radius := 9.0 + float(attach_index % 4) * 4.0
+			claims.append({"item": item, "collectionKind": collection_kind, "attachIndex": attach_index, "scatterOffset": Vector2.RIGHT.rotated(scatter_angle) * scatter_radius})
+			attach_index += 1
+	fx["claimedCollectibles"] = claims
+	fx["itemClaimedCount"] = claims.size()
+
+static func _rod_update_collection_visuals(fx: Dictionary, lure_pos: Vector2) -> void:
+	var config: Dictionary = fx.get("itemCollectionConfig", {}) as Dictionary
+	var claims: Array = fx.get("claimedCollectibles", []) as Array
+	var line_cap := maxi(0, int(config.get("maxVisualLines", 6)))
+	var lines: Array = []
+	var particles: Array = []
+	var line_color := Color(String(config.get("lineColor", "#8df9e8")))
+	var particle_color := Color(String(config.get("particleColor", "#b7fff3")))
+	for index in range(claims.size()):
+		var claim: Dictionary = claims[index] as Dictionary
+		var item: Dictionary = claim.get("item", {}) as Dictionary
+		if item.is_empty() or String(item.get("rodClaimToken", "")) != String(fx.get("collectionClaimToken", "")):
+			continue
+		var item_pos := Vector2(item.get("pos", lure_pos))
+		if index < line_cap:
+			lines.append({"from": item_pos, "to": lure_pos, "color": line_color, "width": float(config.get("lineWidth", 1.6)), "alpha": float(config.get("lineAlpha", 0.62)), "drawLayer": "back", "role": "collection"})
+		if particles.size() < line_cap * 2 and (String(item.get("rodCollectionState", "")) == "attached_to_lure" or String(item.get("rodCollectionState", "")) == "returning_with_lure"):
+			particles.append({"pos": item_pos, "radius": 3.0, "color": particle_color, "alpha": float(config.get("particleAlpha", 0.78)), "drawLayer": "front", "role": "collection"})
+	fx["collectionLines"] = lines
+	fx["collectionParticles"] = particles
+
+static func _rod_transfer_claimed_collectibles_to_normal_pickup(fx: Dictionary, player_pos: Vector2) -> void:
+	var token := String(fx.get("collectionClaimToken", ""))
+	var claims: Array = fx.get("claimedCollectibles", []) as Array
+	var attach_distance := maxf(1.0, float((fx.get("itemCollectionConfig", {}) as Dictionary).get("attachDistance", 16.0)))
+	for claim_value in claims:
+		var claim: Dictionary = claim_value as Dictionary
+		var item: Dictionary = claim.get("item", {}) as Dictionary
+		if item.is_empty() or String(item.get("rodClaimToken", "")) != token:
+			continue
+		var offset := Vector2(claim.get("scatterOffset", Vector2.ZERO))
+		item["pos"] = player_pos + offset.limit_length(attach_distance)
+		item["rodCollectionState"] = "homing_to_player"
+		item.erase("rodClaimToken")
+		item.erase("rodAttachIndex")
+	fx["claimedCollectibles"] = []
+	fx["collectionLines"] = []
+	fx["collectionParticles"] = []
+	fx["collectionReturned"] = true
+
+static func _rod_release_claimed_collectibles(fx: Dictionary) -> void:
+	var token := String(fx.get("collectionClaimToken", ""))
+	for claim_value in (fx.get("claimedCollectibles", []) as Array):
+		var claim: Dictionary = claim_value as Dictionary
+		var item: Dictionary = claim.get("item", {}) as Dictionary
+		if item.is_empty() or String(item.get("rodClaimToken", "")) != token:
+			continue
+		item["rodCollectionState"] = "free"
+		item.erase("rodClaimToken")
+		item.erase("rodAttachIndex")
+	fx["claimedCollectibles"] = []
+	fx["collectionLines"] = []
+	fx["collectionParticles"] = []
+
+static func _rod_update_claimed_collectibles(fx: Dictionary, delta: float, player_pos: Vector2) -> void:
+	var claims: Array = fx.get("claimedCollectibles", []) as Array
+	if claims.is_empty():
+		return
+	var phase := String(fx.get("phase", ""))
+	var config: Dictionary = fx.get("itemCollectionConfig", {}) as Dictionary
+	var lure_pos := Vector2(fx.get("pos", Vector2.ZERO))
+	var attach_distance := maxf(1.0, float(config.get("attachDistance", 16.0)))
+	fx["itemAttractElapsed"] = float(fx.get("itemAttractElapsed", 0.0)) + maxf(0.0, delta)
+	if phase == "reeling":
+		for claim_value in claims:
+			var claim: Dictionary = claim_value as Dictionary
+			var item: Dictionary = claim.get("item", {}) as Dictionary
+			# Items that already reached the lure stay rigidly attached during the
+			# reel. Only items that are still approaching need catch-up movement.
+			if not item.is_empty() and String(item.get("rodCollectionState", "free")) == "attracted_to_lure":
+				item["rodCollectionState"] = "returning_with_lure"
+		if lure_pos.distance_to(player_pos) <= attach_distance:
+			_rod_transfer_claimed_collectibles_to_normal_pickup(fx, player_pos)
+			return
+	var speed := maxf(0.0, float(config.get("attractSpeed", 0.0)))
+	var catchup_rate := maxf(1.0, float(config.get("returnCatchupRate", 1.0)))
+	var return_speed := maxf(0.0, maxf(float(fx.get("itemReturnSpeed", speed)), float(fx.get("reelSpeed", 0.0)) * catchup_rate))
+	for claim_value in claims:
+		var claim: Dictionary = claim_value as Dictionary
+		var item: Dictionary = claim.get("item", {}) as Dictionary
+		if item.is_empty() or String(item.get("rodClaimToken", "")) != String(fx.get("collectionClaimToken", "")):
+			continue
+		var state := String(item.get("rodCollectionState", "free"))
+		var scatter := Vector2(claim.get("scatterOffset", Vector2.ZERO))
+		if state == "attracted_to_lure":
+			var item_pos := Vector2(item.get("pos", lure_pos))
+			item_pos = item_pos.move_toward(lure_pos, speed * maxf(0.0, delta))
+			item["pos"] = item_pos
+			if item_pos.distance_to(lure_pos) <= attach_distance:
+				item["rodCollectionState"] = "attached_to_lure"
+		elif state == "attached_to_lure":
+			item["pos"] = lure_pos + scatter
+		elif state == "returning_with_lure":
+			item["pos"] = Vector2(item.get("pos", lure_pos)).move_toward(lure_pos + scatter, return_speed * maxf(0.0, delta))
+	_rod_update_collection_visuals(fx, lure_pos)
+
 static func _stage2_level_data(weapon: Dictionary, level: int) -> Dictionary:
 	var resolved: Dictionary = weapon.duplicate(true)
 	var stats: Array = weapon.get("levelStats", []) as Array
@@ -1485,6 +1702,82 @@ static func _stage2_level_data(weapon: Dictionary, level: int) -> Dictionary:
 			resolved[String(key)] = level_data[key]
 	resolved["level"] = level
 	return resolved
+
+static func fansa_attack_shape(weapon: Dictionary, level: int = 1, context: Dictionary = {}) -> Dictionary:
+	var weapon_id := String(weapon.get("id", ""))
+	var safe_level := maxi(1, level)
+	var radius := float(weapon.get("fanRadius", weapon.get("normalRange", 110.0)))
+	var arc_degrees := float(weapon.get("fanArcDegrees", weapon.get("normalArcAngle", 130.0)))
+	var origin_offset := float(weapon.get("attackOriginOffset", 25.0))
+	var duration := float(weapon.get("hitboxDuration", 0.18))
+	if weapon_id == "fansa_baton":
+		var shape_levels: Array = weapon.get("fanShapeLevels", []) as Array
+		if not shape_levels.is_empty():
+			var shape_value: Variant = shape_levels[clampi(safe_level - 1, 0, shape_levels.size() - 1)]
+			if shape_value is Dictionary:
+				var shape := shape_value as Dictionary
+				radius = float(shape.get("radius", radius))
+				arc_degrees = float(shape.get("arcDegrees", arc_degrees))
+				origin_offset = float(shape.get("originOffset", origin_offset))
+				duration = float(shape.get("hitboxDuration", duration))
+	var coverage := _stage2_coverage_rate(context)
+	var final_radius := _short_range_range_for_weapon(weapon_id, weapon, maxf(0.0, radius) * coverage, context)
+	return {
+		"radius": maxf(0.0, final_radius),
+		"arcDegrees": clampf(arc_degrees, 0.0, 360.0),
+		"originOffset": maxf(0.0, origin_offset),
+		"hitboxDuration": maxf(0.01, duration),
+		"useHurtboxOverlap": bool(weapon.get("useHurtboxOverlap", true)),
+		"autoLunge": bool(weapon.get("autoLunge", false)),
+		"coverageRate": coverage
+	}
+
+static func fan_sector_circle_overlap(origin: Vector2, direction: Vector2, radius: float, arc_degrees: float, target_center: Vector2, target_radius: float = 0.0) -> bool:
+	var safe_radius := maxf(0.0, radius)
+	var safe_target_radius := maxf(0.0, target_radius)
+	var offset := target_center - origin
+	var center_distance := offset.length()
+	if center_distance <= safe_target_radius:
+		return true
+	if center_distance > safe_radius + safe_target_radius:
+		return false
+	if safe_radius <= 0.0:
+		return false
+	var safe_direction := direction.normalized()
+	if safe_direction.length() < 0.1:
+		safe_direction = Vector2.RIGHT
+	var half_arc := deg_to_rad(clampf(arc_degrees, 0.0, 360.0) * 0.5)
+	if half_arc >= PI - 0.0001:
+		return true
+	var angular_margin := asin(clampf(safe_target_radius / maxf(0.0001, center_distance), 0.0, 1.0))
+	return safe_direction.dot(offset / center_distance) >= cos(minf(PI, half_arc + angular_margin))
+
+static func _fansa_attack_origin(player_pos: Vector2, direction: Vector2, origin_offset: float) -> Vector2:
+	var safe_direction := direction.normalized()
+	if safe_direction.length() < 0.1:
+		safe_direction = Vector2.RIGHT
+	return player_pos + safe_direction * maxf(0.0, origin_offset)
+
+static func _fansa_fallback_direction(context: Dictionary) -> Vector2:
+	if bool(context.get("attackRightOnly", false)):
+		return Vector2.RIGHT
+	var candidates: Array = [
+		context.get("moveInput", Vector2.ZERO),
+		context.get("playerVel", Vector2.ZERO),
+		context.get("lastMoveDirection", context.get("lastDir", Vector2.ZERO)),
+		context.get("facingDir", Vector2.ZERO)
+	]
+	for value in candidates:
+		var candidate := Vector2(value)
+		if candidate.length() > 0.1:
+			return candidate.normalized()
+	return Vector2.RIGHT
+
+static func _fansa_target_direction(enemy: Dictionary, player_pos: Vector2, fallback: Vector2) -> Vector2:
+	var direction := (Vector2(enemy.get("pos", player_pos)) - player_pos).normalized()
+	if direction.length() < 0.1:
+		return fallback
+	return direction
 
 static func _stage2_behavior(weapon: Dictionary) -> String:
 	return String(weapon.get("stage2Behavior", weapon.get("attackType", "")))
@@ -1507,7 +1800,7 @@ static func _update_stage2_weapon(weapon: Dictionary, entry: Dictionary, context
 	var level := clampi(int(entry.get("level", 1)), 1, max_level)
 	var level_weapon := _stage2_weapon_with_inherited_visuals(_stage2_level_data(weapon, level), context)
 	var behavior := _stage2_behavior(level_weapon)
-	if behavior == "moderator_shield":
+	if behavior in ["moderator_shield", "front_shield"]:
 		return _update_moderator_shield_weapon(level_weapon, context, timers)
 	if behavior == "fansa_baton":
 		return _update_fansa_baton_weapon(level_weapon, entry, context, timers)
@@ -1569,10 +1862,16 @@ static func cleanup_runtime_for_weapon(target: Node, base_id: String = "", evolv
 		if not ids.has(fx_id):
 			remaining.append(fx)
 			continue
+		if String(fx.get("kind", "")) == "tsuri_rod_cast" or String(fx.get("kind", "")) == "buzz_thumbnail_rod_cast":
+			_rod_release_claimed_collectibles(fx)
 		_restore_stage2_transient_states(fx)
 		fx["completionReason"] = reason
 		target.set("lastWeaponRuntimeCleanupReason", reason)
 	target.set("hit_fx", remaining)
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		enemy.erase("shieldContactSuppressTimer")
+		enemy.erase("shieldBlocked")
 	var timers_value: Variant = target.get("equipment_weapon_timers")
 	if timers_value is Dictionary:
 		var timers: Dictionary = timers_value as Dictionary
@@ -1622,19 +1921,164 @@ static func _stage2_point_segment_distance(point: Vector2, from_pos: Vector2, to
 	return point.distance_to(from_pos + segment * t)
 
 static func _stage2_shield_bullet_clearable(bullet: Dictionary) -> bool:
-	if not bool(bullet.get("clearableByPlayerWeapon", false)):
-		return false
-	var source := String(bullet.get("source", "")).to_lower()
-	var source_kind := String(bullet.get("sourceKind", "")).to_lower()
-	var visual_kind := String(bullet.get("visualKind", "")).to_lower()
+	# Explicit projectile metadata is authoritative.  The old source-name
+	# filter incorrectly made every boss/collab projectile unblockable and also
+	# rejected ordinary spread shots.
+	if bullet.has("shieldBlockable"):
+		return bool(bullet.get("shieldBlockable", false))
+	if bullet.has("unblockableByShield"):
+		return not bool(bullet.get("unblockableByShield", false))
+	if bullet.has("clearableByPlayerWeapon"):
+		return bool(bullet.get("clearableByPlayerWeapon", false))
 	var attack_type := String(bullet.get("attackType", "")).to_lower()
-	if source.contains("laser") or source_kind.contains("boss") or source_kind.contains("relay") or source_kind.contains("collab"):
+	if attack_type in ["laser", "beam", "field", "aoe", "floor", "warning_line", "contact", "stage_gimmick"]:
 		return false
-	if visual_kind.contains("laser") or visual_kind.contains("warning") or visual_kind.contains("boss"):
+	return false
+
+static func shield_fan_center(player_pos: Vector2, forward: Vector2, offset: float) -> Vector2:
+	var direction := forward.normalized()
+	if direction.length() < 0.1:
+		direction = Vector2.RIGHT
+	return player_pos + direction * offset
+
+static func shield_fan_contains_point(center: Vector2, forward: Vector2, radius: float, arc_degrees: float, point: Vector2, target_radius: float = 0.0) -> bool:
+	var offset := point - center
+	var reach := maxf(0.0, radius) + maxf(0.0, target_radius)
+	if offset.length_squared() > reach * reach:
 		return false
-	if attack_type in ["laser", "beam", "floor", "warning_line", "spreadprojectile"]:
-		return false
-	return true
+	if offset.length_squared() <= 0.0001:
+		return true
+	var direction := forward.normalized()
+	if direction.length() < 0.1:
+		direction = Vector2.RIGHT
+	var half_arc := deg_to_rad(clampf(arc_degrees, 0.0, 360.0) * 0.5)
+	if half_arc >= PI - 0.0001:
+		return true
+	return direction.dot(offset.normalized()) >= cos(half_arc)
+
+static func _shield_direction_from_context(context: Dictionary, current: Vector2 = Vector2.ZERO) -> Vector2:
+	if bool(context.get("attackRightOnly", false)):
+		return Vector2.RIGHT
+	var candidates: Array = [context.get("manualAimDirection", Vector2.ZERO), context.get("moveInput", Vector2.ZERO), context.get("playerVel", Vector2.ZERO), current, context.get("facingDir", Vector2.ZERO), context.get("lastMoveDirection", Vector2.ZERO)]
+	for candidate_value in candidates:
+		var candidate := Vector2(candidate_value)
+		if candidate.length() > 0.1:
+			return candidate.normalized()
+	return Vector2.RIGHT
+
+static func shield_rotation_step(current: Vector2, desired: Vector2, delta: float, speed_degrees: float) -> Vector2:
+	var from_dir := current.normalized()
+	if from_dir.length() < 0.1:
+		from_dir = desired.normalized()
+	if from_dir.length() < 0.1:
+		from_dir = Vector2.RIGHT
+	var to_dir := desired.normalized()
+	if to_dir.length() < 0.1:
+		to_dir = Vector2.RIGHT
+	var max_turn := deg_to_rad(maxf(0.0, speed_degrees)) * maxf(0.0, delta)
+	var difference := wrapf(to_dir.angle() - from_dir.angle(), -PI, PI)
+	if absf(difference) <= max_turn:
+		return to_dir
+	return Vector2.RIGHT.rotated(from_dir.angle() + signf(difference) * max_turn).normalized()
+
+static func _shield_active_for_weapon(active_fx: Array, weapon_id: String) -> bool:
+	for fx_item in active_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("weaponId", fx.get("owner", ""))) == weapon_id and float(fx.get("life", 0.0)) > 0.0 and String(fx.get("kind", "")) in ["moderator_shield_active", "moderator_fortress_active"]:
+			return true
+	return false
+
+static func shield_visual_debug_state(active_fx: Array, weapon_id: String) -> Dictionary:
+	var state := {
+		"weapon": weapon_id,
+		"deployEffectPlayed": false,
+		"shockwaveEffectPlayed": false,
+		"idleEffectActive": false,
+		"hitEffectCount": 0,
+		"blockEffectCount": 0,
+		"endEffectPlayed": false,
+		"legacyTrailEffect": false
+	}
+	for fx_item in active_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("weaponId", fx.get("owner", ""))) != weapon_id:
+			continue
+		state["deployEffectPlayed"] = bool(state["deployEffectPlayed"]) or bool(fx.get("deployEffectPlayed", false))
+		state["shockwaveEffectPlayed"] = bool(state["shockwaveEffectPlayed"]) or bool(fx.get("shockwaveEffectPlayed", false)) or String(fx.get("kind", "")) == "moderator_fortress_shockwave"
+		state["idleEffectActive"] = bool(state["idleEffectActive"]) or bool(fx.get("idleEffectActive", false))
+		state["hitEffectCount"] = maxi(int(state["hitEffectCount"]), int(fx.get("hitEffectCount", 0)))
+		state["blockEffectCount"] = maxi(int(state["blockEffectCount"]), int(fx.get("blockEffectCount", 0)))
+		state["endEffectPlayed"] = bool(state["endEffectPlayed"]) or bool(fx.get("endEffectPlayed", false))
+		state["legacyTrailEffect"] = bool(state["legacyTrailEffect"]) or bool(fx.get("legacyTrailEffect", false))
+	return state
+
+static func _shield_size_rate(context: Dictionary, weapon: Dictionary) -> float:
+	var range_rate := clampf(float(context.get("rangeRate", 1.0)), 0.1, 1.6)
+	var short_rate := float(context.get("shortRangeRate", 1.0)) if bool(context.get("shortRange", false)) else 1.0
+	return clampf(float(weapon.get("sizeRate", 1.0)) * range_rate * short_rate, 0.1, 1.6)
+
+static func _shield_pose(fx: Dictionary, delta: float, player_pos: Vector2, owner_context: Dictionary = {}) -> Dictionary:
+	var context := owner_context.duplicate(true)
+	context["playerPos"] = player_pos
+	var held_direction := Vector2(fx.get("targetDir", fx.get("dir", Vector2.RIGHT)))
+	var desired := _shield_direction_from_context(context, held_direction)
+	var direction := shield_rotation_step(Vector2(fx.get("dir", desired)), desired, delta, float(fx.get("rotationSpeedDegrees", 1080.0)))
+	var center := shield_fan_center(player_pos, direction, float(fx.get("offset", 0.0)))
+	fx["targetDir"] = desired
+	fx["dir"] = direction
+	fx["playerPos"] = player_pos
+	fx["pos"] = center
+	fx["center"] = center
+	return {"dir": direction, "center": center}
+
+static func _shield_owner_context_for_target(target: Node) -> Dictionary:
+	return {
+		"playerPos": Vector2(target.get("player_pos")),
+		"playerVel": Vector2(target.get("player_vel")),
+		"lastMoveDirection": Vector2(target.get("last_hammer_dir")),
+		"facingDir": Vector2(float(target.get("player_facing_x")), 0.0),
+		"attackRightOnly": ModifierSystem.has_effect_for_target(target, "attack_right_only")
+	}
+
+static func prepare_shield_defense_for_target(target: Node) -> void:
+	var hit_fx_value: Variant = target.get("hit_fx")
+	var hit_fx: Array = hit_fx_value as Array if hit_fx_value is Array else []
+	var enemies_value: Variant = target.get("enemies")
+	var enemies: Array = enemies_value as Array if enemies_value is Array else []
+	var bullets_value: Variant = target.get("enemy_bullets")
+	var enemy_bullets: Array = bullets_value as Array if bullets_value is Array else []
+	var owner_context := _shield_owner_context_for_target(target)
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) not in ["moderator_shield_active", "moderator_fortress_active"] or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pose := _shield_pose(fx, 0.0, Vector2(owner_context["playerPos"]), owner_context)
+		var direction: Vector2 = pose["dir"]
+		var center: Vector2 = pose["center"]
+		for enemy_item in enemies:
+			var enemy: Dictionary = enemy_item as Dictionary
+			if not _stage2_alive_enemy(enemy):
+				continue
+			if shield_fan_contains_point(center, direction, float(fx.get("radius", 80.0)), float(fx.get("arcDegrees", 100.0)), Vector2(enemy.get("pos", Vector2.ZERO)), float(enemy.get("radius", 20.0))):
+				enemy["shieldContactSuppressTimer"] = maxf(float(enemy.get("shieldContactSuppressTimer", 0.0)), float(fx.get("contactSuppressSeconds", 0.10)))
+		_shield_block_projectiles(fx, enemy_bullets, center, direction, hit_fx)
+	target.set("hit_fx", hit_fx)
+	target.set("enemy_bullets", enemy_bullets)
+
+static func enemy_contact_blocked_by_shield(target: Node, enemy: Dictionary) -> bool:
+	var hit_fx_value: Variant = target.get("hit_fx")
+	var hit_fx: Array = hit_fx_value as Array if hit_fx_value is Array else []
+	var owner_context := _shield_owner_context_for_target(target)
+	var player_pos: Vector2 = owner_context["playerPos"]
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) not in ["moderator_shield_active", "moderator_fortress_active"] or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pose := _shield_pose(fx, 0.0, player_pos, owner_context)
+		if shield_fan_contains_point(Vector2(pose["center"]), Vector2(pose["dir"]), float(fx.get("radius", 80.0)), float(fx.get("arcDegrees", 100.0)), Vector2(enemy.get("pos", Vector2.ZERO)), float(enemy.get("radius", 20.0))):
+			enemy["shieldContactSuppressTimer"] = maxf(float(enemy.get("shieldContactSuppressTimer", 0.0)), float(fx.get("contactSuppressSeconds", 0.10)))
+			return true
+	return false
 
 static func _shield_direction_and_score(weapon: Dictionary, context: Dictionary) -> Dictionary:
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
@@ -1706,258 +2150,297 @@ static func _update_moderator_shield_weapon(weapon: Dictionary, context: Diction
 	var weapon_id := String(weapon.get("id", "moderator_shield"))
 	var delta := float(context.get("delta", 0.0))
 	var timer := float(timers.get(weapon_id, 0.0)) - delta
+	if _shield_active_for_weapon(context.get("activeFx", []) as Array, weapon_id):
+		timers[weapon_id] = maxf(0.0, timer)
+		return result
 	if timer > 0.0:
 		timers[weapon_id] = timer
 		return result
-	if bool(context.get("normalWeaponsDisabled", false)):
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
 		timers[weapon_id] = 0.0
 		return result
-	var target := _shield_direction_and_score(weapon, context)
-	if not bool(target.get("found", false)):
-		timers[weapon_id] = _stage2_retry_delay(weapon)
-		return result
-	var direction := Vector2(target.get("dir", Vector2.RIGHT)).normalized()
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
-	var coverage := _stage2_coverage_rate(context)
-	var duration := maxf(0.05, float(weapon.get("travelDuration", 0.65)))
-	var body_damage := _stage2_base_damage(weapon) * float(weapon.get("damageCoefficient", 0.90)) * float(weapon.get("damageMultiplier", 1.0)) * float(context.get("damageRate", 1.0))
-	var body_width := float(weapon.get("width", 130.0)) * float(weapon.get("widthMultiplier", 1.0)) * coverage
+	var direction := _shield_direction_from_context(context)
+	var size_rate := _shield_size_rate(context, weapon)
+	var duration := maxf(0.05, float(weapon.get("activeDuration", 4.00)))
+	var body_damage := _stage2_base_damage(weapon) * float(weapon.get("damageRate", 1.0)) * float(weapon.get("damageMultiplier", 1.0)) * float(context.get("damageRate", 1.0))
+	var hit_next_times: Dictionary = {}
 	var fx := {
 		"kind": "moderator_shield_active", "owner": weapon_id, "weaponId": weapon_id,
-		"origin": player_pos, "pos": player_pos + direction * float(weapon.get("spawnOffset", 48.0)),
-		"dir": direction, "age": 0.0, "life": duration + 0.05, "maxLife": duration + 0.05,
-		"spawnOffset": float(weapon.get("spawnOffset", 48.0)),
-		"travelDistance": float(weapon.get("travelDistance", 220.0)) * float(weapon.get("travelDistanceMultiplier", 1.0)), "travelDuration": duration,
-		"width": body_width, "thickness": float(weapon.get("thickness", 48.0)),
-		"damage": body_damage,
-		"normalKnockbackDistance": float(weapon.get("normalKnockbackDistance", 70.0)) * float(weapon.get("normalKnockbackMultiplier", 1.0)),
-		"largeKnockbackRate": float(weapon.get("largeKnockbackRate", 0.5)),
-		"maxBulletClears": int(weapon.get("maxBulletClears", 3)), "bulletClears": 0,
-		"hitEnemyIds": {}, "hitBoxIds": {}, "glow": 0.0,
+		"activationSePath": String(weapon.get("activationSePath", "")), "activationSeVolumeDb": float(weapon.get("activationSeVolumeDb", 0.0)),
+		"playerPos": player_pos, "pos": shield_fan_center(player_pos, direction, float(weapon.get("offset", 52.0)) * size_rate),
+		"dir": direction, "targetDir": direction, "age": 0.0, "life": duration, "maxLife": duration,
+		"offset": float(weapon.get("offset", 52.0)) * size_rate, "radius": float(weapon.get("radius", 80.0)) * size_rate,
+		"arcDegrees": float(weapon.get("arcDegrees", 100.0)), "sizeRate": size_rate,
+		"damage": body_damage, "knockback": float(weapon.get("normalKnockbackDistance", 70.0)) * float(weapon.get("knockbackRate", 1.0)) * float(weapon.get("knockbackMultiplier", 1.0)),
+		"enemyRehitInterval": float(weapon.get("enemyRehitInterval", 0.45)), "rotationSpeedDegrees": float(weapon.get("rotationSpeedDegrees", 1080.0)),
+		"contactSuppressSeconds": float(weapon.get("contactSuppressSeconds", 0.10)), "blockEnemyProjectiles": bool(weapon.get("blockEnemyProjectiles", true)),
+		"hitNextTimes": hit_next_times, "blockedProjectiles": 0,
+		"nextHitEffectAt": -INF, "nextBlockEffectAt": -INF,
+		"hitSoundCooldown": float(weapon.get("hitSoundCooldown", 0.06)), "lastHitSoundAt": -INF,
+		"blockSoundCooldown": float(weapon.get("blockSoundCooldown", 0.08)), "lastBlockSoundAt": -INF,
 		"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true),
-		"level": int(weapon.get("level", 1)), "allowCompletionWave": bool(weapon.get("completionWave", false)),
-		"completionReason": "", "waveSpawned": false,
-		"waveWidth": body_width * float(weapon.get("waveWidthMultiplier", 1.15)),
-		"waveDepth": float(weapon.get("waveDepth", 26.0)),
-		"waveDamage": body_damage * float(weapon.get("waveDamageRatio", 0.50)),
-		"waveKnockback": float(weapon.get("normalKnockbackDistance", 70.0)) * float(weapon.get("normalKnockbackMultiplier", 1.0)) * float(weapon.get("waveKnockbackRatio", 0.35))
+		"level": int(weapon.get("level", 1)), "completionReason": "",
+		"deployEffectPlayed": true, "idleEffectActive": true, "hitEffectCount": 0, "blockEffectCount": 0,
+		"endEffectPlayed": false, "legacyTrailEffect": false
 	}
 	(result["hitFx"] as Array).append(fx)
-	timers[weapon_id] = _stage2_interval(weapon, context, 3.0)
+	var deploy_duration := _stage2_visual_duration(weapon, "deployEffect", 0.16)
+	(result["hitFx"] as Array).append({
+		"kind": "moderator_shield_deploy", "owner": weapon_id, "weaponId": weapon_id,
+		"pos": fx["pos"], "dir": direction, "life": deploy_duration, "maxLife": deploy_duration,
+		"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true), "legacyTrailEffect": false
+	})
+	timers[weapon_id] = player_attack_interval(float(weapon.get("activationInterval", 5.5)), float(context.get("intervalRate", 1.0)))
 	return result
 
 static func _update_moderator_fortress_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
 	var result := _stage2_empty_result()
 	var weapon_id := String(weapon.get("id", "moderator_fortress"))
 	var timer := float(timers.get(weapon_id, 0.0)) - float(context.get("delta", 0.0))
+	if _shield_active_for_weapon(context.get("activeFx", []) as Array, weapon_id):
+		timers[weapon_id] = maxf(0.0, timer)
+		return result
 	if timer > 0.0:
 		timers[weapon_id] = timer
 		return result
-	if bool(context.get("normalWeaponsDisabled", false)):
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
 		timers[weapon_id] = 0.0
 		return result
-	var target := _shield_direction_and_score(weapon, context)
-	if not bool(target.get("found", false)):
-		timers[weapon_id] = _stage2_retry_delay(weapon)
-		return result
-	var direction := Vector2(target.get("dir", Vector2.RIGHT)).normalized()
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
-	var coverage := _stage2_coverage_rate(context)
-	var duration := maxf(0.05, float(weapon.get("travelDuration", 0.65)))
-	var body_damage := _stage2_base_damage(weapon) * float(weapon.get("damageCoefficient", 1.05)) * float(context.get("damageRate", 1.0))
-	var body_width := float(weapon.get("width", 170.0)) * coverage
+	var direction := _shield_direction_from_context(context)
+	var size_rate := _shield_size_rate(context, weapon)
+	var duration := maxf(0.05, float(weapon.get("activeDuration", 7.00)))
+	var body_damage := _stage2_base_damage(weapon) * float(weapon.get("damageRate", 1.70)) * float(context.get("damageRate", 1.0))
+	var hit_next_times: Dictionary = {}
 	var fx := {
 		"kind": "moderator_fortress_active", "owner": weapon_id, "weaponId": weapon_id,
-		"origin": player_pos, "pos": player_pos + direction * float(weapon.get("spawnOffset", 52.0)),
-		"dir": direction, "age": 0.0, "life": duration + 0.05, "maxLife": duration + 0.05,
-		"spawnOffset": float(weapon.get("spawnOffset", 52.0)), "travelDistance": float(weapon.get("travelDistance", 260.0)),
-		"travelDuration": duration, "width": body_width, "thickness": float(weapon.get("thickness", 54.0)),
-		"baseDamage": _stage2_base_damage(weapon), "damageRate": float(context.get("damageRate", 1.0)), "damage": body_damage, "normalKnockbackDistance": float(weapon.get("normalKnockbackDistance", 70.0)),
-		"largeKnockbackRate": float(weapon.get("largeKnockbackRate", 0.60)), "maxBulletClears": int(weapon.get("maxBulletClears", 8)),
-		"bulletClears": 0, "hitEnemyIds": {}, "hitBoxIds": {}, "visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true),
-		"shockRadius": float(weapon.get("shockRadius", 120.0)) * coverage, "shockBaseMultiplier": float(weapon.get("shockBaseMultiplier", 1.30)),
-		"shockChargePerClear": float(weapon.get("shockChargePerClear", 0.18)), "shockMaxMultiplier": float(weapon.get("shockMaxMultiplier", 2.74)),
-		"shockKnockbackRatio": float(weapon.get("shockKnockbackRatio", 0.35)), "shockBulletClears": int(weapon.get("shockBulletClears", 4)),
-		"completionReason": "", "waveSpawned": false
+		"activationSePath": String(weapon.get("activationSePath", "")), "activationSeVolumeDb": float(weapon.get("activationSeVolumeDb", 0.0)),
+		"playerPos": player_pos, "pos": shield_fan_center(player_pos, direction, float(weapon.get("offset", 50.0)) * size_rate),
+		"dir": direction, "targetDir": direction, "age": 0.0, "life": duration, "maxLife": duration,
+		"offset": float(weapon.get("offset", 50.0)) * size_rate, "radius": float(weapon.get("radius", 100.0)) * size_rate,
+		"arcDegrees": float(weapon.get("arcDegrees", 220.0)), "sizeRate": size_rate,
+		"damage": body_damage, "knockback": float(weapon.get("normalKnockbackDistance", 70.0)) * float(weapon.get("knockbackRate", 1.35)),
+		"enemyRehitInterval": float(weapon.get("enemyRehitInterval", 0.35)), "rotationSpeedDegrees": float(weapon.get("rotationSpeedDegrees", 1080.0)),
+		"contactSuppressSeconds": float(weapon.get("contactSuppressSeconds", 0.10)), "blockEnemyProjectiles": bool(weapon.get("blockEnemyProjectiles", true)),
+		"hitNextTimes": hit_next_times, "blockedProjectiles": 0,
+		"nextHitEffectAt": -INF, "nextBlockEffectAt": -INF,
+		"hitSoundCooldown": float(weapon.get("hitSoundCooldown", 0.06)), "lastHitSoundAt": -INF,
+		"blockSoundCooldown": float(weapon.get("blockSoundCooldown", 0.08)), "lastBlockSoundAt": -INF,
+		"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true), "level": 1, "completionReason": "",
+		"deployEffectPlayed": true, "shockwaveEffectPlayed": true, "idleEffectActive": true,
+		"hitEffectCount": 0, "blockEffectCount": 0, "endEffectPlayed": false, "legacyTrailEffect": false
 	}
 	(result["hitFx"] as Array).append(fx)
-	timers[weapon_id] = _stage2_interval(weapon, context, 2.7)
+	var deploy_duration := _stage2_visual_duration(weapon, "deployEffect", 0.18)
+	(result["hitFx"] as Array).append({
+		"kind": "moderator_fortress_deploy", "owner": weapon_id, "weaponId": weapon_id,
+		"pos": fx["pos"], "dir": direction, "life": deploy_duration, "maxLife": deploy_duration,
+		"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true), "legacyTrailEffect": false
+	})
+	var shock_config: Dictionary = weapon.get("deploymentShockwave", {}) as Dictionary
+	if bool(shock_config.get("enabled", true)):
+		var shockwave_duration := _stage2_visual_duration(weapon, "shockwave", 0.28)
+		(result["hitFx"] as Array).append({
+			"kind": "moderator_fortress_shockwave", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": shield_fan_center(player_pos, direction, float(weapon.get("offset", 50.0)) * size_rate), "dir": direction,
+			"playerPos": player_pos, "radius": float(weapon.get("radius", 100.0)) * size_rate, "arcDegrees": float(weapon.get("arcDegrees", 220.0)),
+			"damage": _stage2_base_damage(weapon) * float(shock_config.get("damageRate", 1.0)) * float(context.get("damageRate", 1.0)),
+			"knockback": float(weapon.get("normalKnockbackDistance", 70.0)) * float(weapon.get("knockbackRate", 1.35)) * float(shock_config.get("knockbackRate", 1.25)),
+			"hitNextTimes": hit_next_times, "hitEnemyIds": {}, "shockwaveUsed": true, "life": shockwave_duration, "maxLife": shockwave_duration,
+			"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true)
+		})
+	timers[weapon_id] = player_attack_interval(float(weapon.get("activationInterval", 7.5)), float(context.get("intervalRate", 1.0)))
 	return result
 
-static func update_moderator_fortress_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
-	var age := float(fx.get("age", 0.0)) + delta
-	var duration := maxf(0.05, float(fx.get("travelDuration", 0.65)))
-	var progress := clampf(age / duration, 0.0, 1.0)
-	var origin := Vector2(fx.get("origin", Vector2.ZERO))
+static func _shield_block_projectiles(fx: Dictionary, enemy_bullets: Array, center: Vector2, direction: Vector2, hit_effects: Array) -> void:
+	if not bool(fx.get("blockEnemyProjectiles", true)):
+		return
+	var blocked := int(fx.get("blockedProjectiles", 0))
+	var visuals: Dictionary = fx.get("visuals", {}) as Dictionary
+	var block_effect_config := _stage2_visual_config(fx, "projectileBlockEffect")
+	var effect_min_interval := maxf(0.0, float(block_effect_config.get("minIntervalSeconds", 0.03)))
+	for bullet_item in enemy_bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if float(bullet.get("life", 0.0)) <= 0.0 or bool(bullet.get("shieldBlocked", false)) or not _stage2_shield_bullet_clearable(bullet):
+			continue
+		var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if not shield_fan_contains_point(center, direction, float(fx.get("radius", 0.0)), float(fx.get("arcDegrees", 0.0)), bullet_pos, float(bullet.get("hitRadius", 0.0))):
+			continue
+		bullet["life"] = 0.0
+		bullet["shieldBlocked"] = true
+		blocked += 1
+		var block_clock := float(fx.get("shieldClock", 0.0))
+		var last_sound := float(fx.get("lastBlockSoundAt", -INF))
+		if block_clock - last_sound >= float(fx.get("blockSoundCooldown", 0.08)):
+			fx["lastBlockSoundAt"] = block_clock
+			fx["blockSoundTriggeredCount"] = int(fx.get("blockSoundTriggeredCount", 0)) + 1
+		if block_clock < float(fx.get("nextBlockEffectAt", -INF)):
+			continue
+		fx["nextBlockEffectAt"] = block_clock + effect_min_interval
+		fx["blockEffectCount"] = int(fx.get("blockEffectCount", 0)) + 1
+		var clear_duration := _stage2_visual_duration(fx, "projectileBlockEffect", 0.19)
+		if String(fx.get("weaponId", "")) == "moderator_fortress":
+			clear_duration = maxf(clear_duration, _stage2_visual_duration(fx, "bulletBreak", 0.18))
+			hit_effects.append({"kind": "moderator_fortress_bullet_clear", "owner": String(fx.get("owner", "moderator_fortress")), "weaponId": "moderator_fortress", "pos": bullet_pos, "shieldPos": center, "life": clear_duration, "maxLife": clear_duration, "visuals": visuals.duplicate(true)})
+		else:
+			hit_effects.append({"kind": "moderator_shield_bullet_clear", "owner": String(fx.get("owner", "moderator_shield")), "weaponId": "moderator_shield", "pos": bullet_pos, "life": clear_duration, "maxLife": clear_duration, "visuals": visuals.duplicate(true)})
+	fx["blockedProjectiles"] = blocked
+
+static func _update_front_shield_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary, owner_context: Dictionary = {}) -> void:
+	var player_pos := Vector2(owner_context.get("playerPos", fx.get("playerPos", Vector2.ZERO)))
+	var pose := _shield_pose(fx, delta, player_pos, owner_context)
+	var direction: Vector2 = pose["dir"]
+	var center: Vector2 = pose["center"]
+	var age := float(fx.get("age", 0.0)) + maxf(0.0, delta)
+	var duration := maxf(0.05, float(fx.get("maxLife", fx.get("activeDuration", 4.0))))
+	fx["age"] = age
+	fx["progress"] = clampf(age / duration, 0.0, 1.0)
+	var now := float(fx.get("shieldClock", 0.0)) + maxf(0.0, delta)
+	fx["shieldClock"] = now
+	var hit_next_times: Dictionary = fx.get("hitNextTimes", {}) as Dictionary
+	var rehit := maxf(0.01, float(fx.get("enemyRehitInterval", 0.45)))
+	var barrier_requests: Array = feedback.get("barrierHitRequests", []) as Array
+	var is_fortress := String(fx.get("weaponId", "")) == "moderator_fortress"
+	var hit_effect_config := _stage2_visual_config(fx, "enemyHitEffect")
+	var hit_effect_min_interval := maxf(0.0, float(hit_effect_config.get("minIntervalSeconds", 0.05)))
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy):
+			continue
+		var token := _stage2_entity_token(enemy)
+		if now < float(hit_next_times.get(token, -INF)):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		if not shield_fan_contains_point(center, direction, float(fx.get("radius", 80.0)), float(fx.get("arcDegrees", 100.0)), enemy_pos, float(enemy.get("radius", 20.0))):
+			continue
+		var push_dir := (enemy_pos - player_pos).normalized()
+		if push_dir.length() < 0.1:
+			push_dir = direction
+		var knockback := float(fx.get("knockback", 0.0)) if bool(enemy.get("canBeKnockedBack", true)) and not _is_boss_enemy(enemy) else 0.0
+		var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), push_dir, knockback, killed_enemies, hit_effects, barrier_requests, String(fx.get("weaponId", "moderator_shield")))
+		hit_next_times[token] = now + rehit
+		enemy["shieldContactSuppressTimer"] = maxf(float(enemy.get("shieldContactSuppressTimer", 0.0)), float(fx.get("contactSuppressSeconds", 0.10)))
+		if hit_result != HIT_NONE:
+			var last_hit_sound := float(fx.get("lastHitSoundAt", -INF))
+			if now - last_hit_sound >= float(fx.get("hitSoundCooldown", 0.06)):
+				fx["lastHitSoundAt"] = now
+				fx["hitSoundTriggeredCount"] = int(fx.get("hitSoundTriggeredCount", 0)) + 1
+			if now >= float(fx.get("nextHitEffectAt", -INF)):
+				fx["nextHitEffectAt"] = now + hit_effect_min_interval
+				fx["hitEffectCount"] = int(fx.get("hitEffectCount", 0)) + 1
+				var hit_kind := "moderator_fortress_hit" if is_fortress else "moderator_shield_hit"
+				var hit_duration := _stage2_visual_duration(fx, "enemyHitEffect", _stage2_visual_duration(fx, "hit", 0.19))
+				hit_effects.append({"kind": hit_kind, "owner": String(fx.get("owner", fx.get("weaponId", "moderator_shield"))), "weaponId": String(fx.get("weaponId", "moderator_shield")), "pos": enemy_pos, "dir": push_dir, "life": hit_duration, "maxLife": hit_duration, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
+			if hit_result == HIT_DAMAGED:
+				_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": String(fx.get("weaponId", "moderator_shield"))})
+	for box_item in destructibles:
+		var box: Dictionary = box_item as Dictionary
+		if not _stage2_alive_box(box):
+			continue
+		var box_token := _stage2_box_token(box)
+		if now < float(hit_next_times.get(box_token, -INF)):
+			continue
+		var box_pos := Vector2(box.get("pos", Vector2.ZERO))
+		if not shield_fan_contains_point(center, direction, float(fx.get("radius", 80.0)), float(fx.get("arcDegrees", 100.0)), box_pos, float(box.get("radius", 24.0))):
+			continue
+		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+		hit_next_times[box_token] = now + rehit
+	fx["hitNextTimes"] = hit_next_times
+	_shield_block_projectiles(fx, enemy_bullets, center, direction, hit_effects)
+	if age >= duration:
+		fx["completionReason"] = "duration_complete"
+		fx["idleEffectActive"] = false
+		if not bool(fx.get("endEffectPlayed", false)):
+			fx["endEffectPlayed"] = true
+			var end_duration := _stage2_visual_duration(fx, "endEffect", 0.16 if not is_fortress else 0.18)
+			hit_effects.append({
+				"kind": "moderator_fortress_end" if is_fortress else "moderator_shield_end",
+				"owner": String(fx.get("owner", fx.get("weaponId", "moderator_shield"))),
+				"weaponId": String(fx.get("weaponId", "moderator_shield")),
+				"pos": center, "dir": direction, "life": end_duration, "maxLife": end_duration,
+				"arcDegrees": float(fx.get("arcDegrees", 100.0)), "radius": float(fx.get("radius", 80.0)),
+				"level": int(fx.get("level", 1)), "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true),
+				"endEffectPlayed": true, "idleEffectActive": false, "legacyTrailEffect": false
+			})
+		fx["life"] = 0.0
+
+static func update_moderator_fortress_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary, owner_context: Dictionary = {}) -> void:
+	_update_front_shield_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, hit_effects, feedback, owner_context)
+
+static func update_moderator_fortress_shockwave_fx(fx: Dictionary, enemies: Array, _enemy_bullets: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary) -> void:
+	if bool(fx.get("shockwaveResolved", false)):
+		return
+	fx["shockwaveResolved"] = true
+	var center := Vector2(fx.get("pos", Vector2.ZERO))
 	var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
 	if direction.length() < 0.1:
 		direction = Vector2.RIGHT
-	var position := origin + direction * (float(fx.get("spawnOffset", 52.0)) + float(fx.get("travelDistance", 260.0)) * progress)
-	fx["age"] = age
-	fx["pos"] = position
-	fx["progress"] = progress
-	var side := Vector2(-direction.y, direction.x)
-	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
-	var half_width := float(fx.get("width", 170.0)) * 0.5
-	var half_thickness := float(fx.get("thickness", 54.0)) * 0.5
+	var hit_next_times: Dictionary = fx.get("hitNextTimes", {}) as Dictionary
 	var barrier_requests: Array = feedback.get("barrierHitRequests", []) as Array
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
 		if not _stage2_alive_enemy(enemy):
 			continue
-		var token := _stage2_entity_token(enemy)
-		if bool(hit_ids.get(token, false)):
-			continue
-		var offset := Vector2(enemy.get("pos", Vector2.ZERO)) - position
-		var radius := float(enemy.get("radius", 20.0))
-		if absf(offset.dot(direction)) > half_thickness + radius or absf(offset.dot(side)) > half_width + radius:
-			continue
-		var knockback := 0.0
-		if not _is_boss_enemy(enemy) and bool(enemy.get("canBeKnockedBack", true)):
-			knockback = float(fx.get("normalKnockbackDistance", 70.0))
-			if EnemySystem.is_large_enemy(enemy):
-				knockback *= float(fx.get("largeKnockbackRate", 0.60))
-		var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), direction, knockback, killed_enemies, hit_effects, barrier_requests, "moderator_fortress")
-		if hit_result != HIT_NONE:
-			hit_ids[token] = true
-			var hit_duration := _stage2_visual_duration(fx, "hit", 0.19)
-			hit_effects.append({"kind": "moderator_fortress_hit", "owner": String(fx.get("owner", "moderator_fortress")), "weaponId": String(fx.get("weaponId", "moderator_fortress")), "pos": Vector2(enemy.get("pos", position)), "dir": direction, "life": hit_duration, "maxLife": hit_duration, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
-			if hit_result == HIT_DAMAGED:
-				_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "moderator_fortress"})
-	fx["hitEnemyIds"] = hit_ids
-	var bullet_clears := int(fx.get("bulletClears", 0))
-	var max_clears := int(fx.get("maxBulletClears", 8))
-	if bullet_clears < max_clears:
-		for bullet_item in enemy_bullets:
-			if bullet_clears >= max_clears:
-				break
-			var bullet: Dictionary = bullet_item as Dictionary
-			if float(bullet.get("life", 0.0)) <= 0.0 or not _stage2_shield_bullet_clearable(bullet):
-				continue
-			var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
-			var bullet_radius := float(bullet.get("hitRadius", 10.0))
-			if absf((bullet_pos - position).dot(direction)) > half_thickness + bullet_radius or absf((bullet_pos - position).dot(side)) > half_width + bullet_radius:
-				continue
-			bullet["life"] = 0.0
-			bullet_clears += 1
-			var bullet_break_duration := _stage2_visual_duration(fx, "bulletBreak", 0.18)
-			var absorb_duration := _stage2_visual_duration(fx, "absorb", 0.18)
-			var bullet_fx_duration := maxf(bullet_break_duration, absorb_duration)
-			hit_effects.append({"kind": "moderator_fortress_bullet_clear", "owner": String(fx.get("owner", "moderator_fortress")), "weaponId": String(fx.get("weaponId", "moderator_fortress")), "pos": bullet_pos, "shieldPos": position, "life": bullet_fx_duration, "maxLife": bullet_fx_duration, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
-	fx["bulletClears"] = bullet_clears
-	if age >= duration:
-		fx["completionReason"] = "travel_complete"
-		if not bool(fx.get("waveSpawned", false)):
-			fx["waveSpawned"] = true
-			var charge := minf(float(fx.get("shockMaxMultiplier", 2.74)), float(fx.get("shockBaseMultiplier", 1.30)) + float(fx.get("bulletClears", 0)) * float(fx.get("shockChargePerClear", 0.18)))
-			var shockwave_duration := _stage2_visual_duration(fx, "shockwave", 0.28)
-			var charged_shockwave_duration := _stage2_visual_duration(fx, "shockwaveCharged", shockwave_duration)
-			hit_effects.append({"kind": "moderator_fortress_shockwave", "owner": String(fx.get("owner", "moderator_fortress")), "weaponId": "moderator_fortress", "pos": position, "dir": direction, "radius": float(fx.get("shockRadius", 120.0)), "damage": float(fx.get("baseDamage", 10.0)) * charge * float(fx.get("damageRate", 1.0)), "damageMultiplier": charge, "knockback": float(fx.get("normalKnockbackDistance", 70.0)) * float(fx.get("shockKnockbackRatio", 0.35)), "maxBulletClears": int(fx.get("shockBulletClears", 4)), "bulletClears": 0, "absorbed": int(fx.get("bulletClears", 0)), "hitEnemyIds": {}, "life": maxf(shockwave_duration, charged_shockwave_duration), "maxLife": maxf(shockwave_duration, charged_shockwave_duration), "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
-		fx["life"] = 0.0
-
-static func update_moderator_fortress_shockwave_fx(fx: Dictionary, enemies: Array, enemy_bullets: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary) -> void:
-	var center := Vector2(fx.get("pos", Vector2.ZERO))
-	var radius := float(fx.get("radius", 120.0))
-	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
-	var barrier_requests: Array = feedback.get("barrierHitRequests", []) as Array
-	for enemy_item in enemies:
-		var enemy: Dictionary = enemy_item as Dictionary
-		if not _stage2_alive_enemy(enemy):
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		if not shield_fan_contains_point(center, direction, float(fx.get("radius", 100.0)), float(fx.get("arcDegrees", 220.0)), enemy_pos, float(enemy.get("radius", 20.0))):
 			continue
 		var token := _stage2_entity_token(enemy)
-		if bool(hit_ids.get(token, false)) or Vector2(enemy.get("pos", Vector2.ZERO)).distance_to(center) > radius + float(enemy.get("radius", 20.0)):
+		if float(hit_next_times.get(token, -INF)) > 0.0:
 			continue
-		var offset := Vector2(enemy.get("pos", Vector2.ZERO)) - center
-		var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), offset.normalized(), float(fx.get("knockback", 0.0)) if not _is_boss_enemy(enemy) else 0.0, killed_enemies, hit_effects, barrier_requests, "moderator_fortress")
+		hit_next_times[token] = maxf(float(hit_next_times.get(token, -INF)), 0.35)
+		var push_dir := (enemy_pos - Vector2(fx.get("playerPos", center))).normalized()
+		if push_dir.length() < 0.1:
+			push_dir = direction
+		var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), push_dir, float(fx.get("knockback", 0.0)) if bool(enemy.get("canBeKnockedBack", true)) and not _is_boss_enemy(enemy) else 0.0, killed_enemies, hit_effects, barrier_requests, "moderator_fortress")
 		if hit_result != HIT_NONE:
-			hit_ids[token] = true
+			hit_effects.append({"kind": "moderator_fortress_hit", "owner": "moderator_fortress", "weaponId": "moderator_fortress", "pos": enemy_pos, "dir": push_dir, "life": 0.19, "maxLife": 0.19, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
 			if hit_result == HIT_DAMAGED:
 				_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "moderator_fortress"})
-	fx["hitEnemyIds"] = hit_ids
-	var cleared := int(fx.get("bulletClears", 0))
-	for bullet_item in enemy_bullets:
-		if cleared >= int(fx.get("maxBulletClears", 4)):
-			break
-		var bullet: Dictionary = bullet_item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0 or not _stage2_shield_bullet_clearable(bullet):
-			continue
-		if Vector2(bullet.get("pos", Vector2.ZERO)).distance_to(center) > radius:
-			continue
-		bullet["life"] = 0.0
-		cleared += 1
-		var bullet_break_duration := _stage2_visual_duration(fx, "bulletBreak", 0.18)
-		var absorb_duration := _stage2_visual_duration(fx, "absorb", 0.18)
-		var bullet_fx_duration := maxf(bullet_break_duration, absorb_duration)
-		hit_effects.append({"kind": "moderator_fortress_bullet_clear", "owner": String(fx.get("owner", "moderator_fortress")), "weaponId": String(fx.get("weaponId", "moderator_fortress")), "pos": Vector2(bullet.get("pos", center)), "shieldPos": center, "life": bullet_fx_duration, "maxLife": bullet_fx_duration, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
-	fx["bulletClears"] = cleared
+	fx["hitNextTimes"] = hit_next_times
 
-static func _baton_direction_for_step(step: int, weapon: Dictionary, context: Dictionary) -> Dictionary:
+static func _baton_direction_for_step(_step: int, weapon: Dictionary, context: Dictionary) -> Dictionary:
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
 	var enemies: Array = context.get("enemies", []) as Array
-	var coverage := _stage2_coverage_rate(context)
-	var radius := float(weapon.get("finisherRange", 170.0)) * float(weapon.get("finisherRangeMultiplier", 1.0)) if step == 2 else float(weapon.get("normalRange", 110.0)) * float(weapon.get("normalRangeMultiplier", 1.0))
-	var arc := float(weapon.get("finisherArcAngle", 70.0)) * float(weapon.get("finisherWidthMultiplier", 1.0)) if step == 2 else float(weapon.get("normalArcAngle", 50.0)) * float(weapon.get("normalWidthMultiplier", 1.0))
-	var fallback := Vector2(context.get("facingDir", Vector2.RIGHT)).normalized()
-	if fallback.length() < 0.1:
-		fallback = Vector2.RIGHT
-	var nearest: Dictionary = {}
-	var nearest_distance := INF
-	var directional_nearest: Dictionary = {}
-	var directional_distance := INF
+	var shape := fansa_attack_shape(weapon, int(weapon.get("level", 1)), context)
+	var radius := float(shape.get("radius", 110.0))
+	var arc := float(shape.get("arcDegrees", 130.0))
+	var origin_offset := float(shape.get("originOffset", 25.0))
+	var fallback := _fansa_fallback_direction(context)
+	var boss_target: Dictionary = {}
+	var boss_surface_distance := INF
+	var normal_target: Dictionary = {}
+	var normal_surface_distance := INF
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
 		if not _stage2_alive_enemy(enemy):
 			continue
-		var offset := Vector2(enemy.get("pos", Vector2.ZERO)) - player_pos
-		if offset.length() > radius or offset.length() <= 0.01:
+		var enemy_direction := _fansa_target_direction(enemy, player_pos, fallback)
+		var attack_origin := _fansa_attack_origin(player_pos, enemy_direction, origin_offset)
+		var hurt_radius := EnemySystem.weapon_hurt_radius(enemy)
+		var surface_distance := maxf(0.0, attack_origin.distance_to(Vector2(enemy.get("pos", player_pos))) - hurt_radius)
+		if surface_distance > radius + 0.001:
 			continue
-		if offset.length() < nearest_distance:
-			nearest_distance = offset.length()
-			nearest = enemy
-		if step != 2 and offset.normalized().dot(fallback) >= 0.0 and offset.length() < directional_distance:
-			directional_distance = offset.length()
-			directional_nearest = enemy
-	if nearest.is_empty():
-		var nearest_box := _stage2_nearest_box(context.get("destructibles", []) as Array, player_pos, radius)
-		if nearest_box.is_empty():
-			return {"found": false}
+		if _is_boss_enemy(enemy):
+			if surface_distance < boss_surface_distance:
+				boss_surface_distance = surface_distance
+				boss_target = enemy
+		elif surface_distance < normal_surface_distance:
+			normal_surface_distance = surface_distance
+			normal_target = enemy
+	if not boss_target.is_empty():
+		var boss_direction := _fansa_target_direction(boss_target, player_pos, fallback)
+		return {"found": true, "dir": boss_direction, "radius": radius, "arc": arc, "originOffset": origin_offset, "useHurtboxOverlap": bool(shape.get("useHurtboxOverlap", true)), "targetType": "boss", "targetSurfaceInRange": true, "targetSurfaceDistance": boss_surface_distance}
+	if not normal_target.is_empty():
+		var normal_direction := _fansa_target_direction(normal_target, player_pos, fallback)
+		return {"found": true, "dir": normal_direction, "radius": radius, "arc": arc, "originOffset": origin_offset, "useHurtboxOverlap": bool(shape.get("useHurtboxOverlap", true)), "targetType": "enemy", "targetSurfaceInRange": true, "targetSurfaceDistance": normal_surface_distance}
+	var nearest_box := _stage2_nearest_box(context.get("destructibles", []) as Array, player_pos, radius)
+	if not nearest_box.is_empty():
 		var box_direction := (Vector2(nearest_box.get("pos", player_pos)) - player_pos).normalized()
 		if box_direction.length() < 0.1:
 			box_direction = fallback
-		return {"found": true, "dir": box_direction, "radius": radius, "arc": arc * coverage}
-	if step != 2:
-		var selected_normal: Dictionary = directional_nearest if not directional_nearest.is_empty() else nearest
-		return {"found": true, "dir": (Vector2(selected_normal.get("pos", player_pos)) - player_pos).normalized(), "radius": radius, "arc": arc * coverage}
-	var base_dir := (Vector2(nearest.get("pos", player_pos)) - player_pos).normalized()
-	var best_dir := base_dir
-	var best_count := -1
-	var best_nearest := INF
-	for enemy_item in enemies:
-		var candidate: Dictionary = enemy_item as Dictionary
-		if not _stage2_alive_enemy(candidate):
-			continue
-		var candidate_offset := Vector2(candidate.get("pos", Vector2.ZERO)) - player_pos
-		if candidate_offset.length() > radius or candidate_offset.length() <= 0.01:
-			continue
-		var candidate_dir := candidate_offset.normalized()
-		var count := 0
-		var local_nearest := INF
-		for other_item in enemies:
-			var other: Dictionary = other_item as Dictionary
-			if not _stage2_alive_enemy(other):
-				continue
-			var other_offset := Vector2(other.get("pos", Vector2.ZERO)) - player_pos
-			if other_offset.length() <= radius and other_offset.length() > 0.01 and rad_to_deg(absf(candidate_dir.angle_to(other_offset.normalized()))) <= arc * 0.5 * coverage:
-				count += 1
-				local_nearest = minf(local_nearest, other_offset.length())
-		var correction := rad_to_deg(absf(base_dir.angle_to(candidate_dir)))
-		if correction > float(weapon.get("maxDirectionCorrectionDegrees", 180.0)):
-			continue
-		if count > best_count or (count == best_count and local_nearest < best_nearest):
-			best_count = count
-			best_nearest = local_nearest
-			best_dir = candidate_dir
-	return {"found": true, "dir": best_dir, "radius": radius, "arc": arc * coverage}
+		return {"found": true, "dir": box_direction, "radius": radius, "arc": arc, "originOffset": origin_offset, "useHurtboxOverlap": bool(shape.get("useHurtboxOverlap", true)), "targetType": "destructible", "targetSurfaceInRange": true}
+	return {"found": true, "dir": fallback, "radius": radius, "arc": arc, "originOffset": origin_offset, "useHurtboxOverlap": bool(shape.get("useHurtboxOverlap", true)), "targetType": "fallback", "targetSurfaceInRange": false}
 
 static func _update_fansa_baton_weapon(weapon: Dictionary, entry: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
 	var result := _stage2_empty_result()
@@ -1988,12 +2471,17 @@ static func _update_fansa_baton_weapon(weapon: Dictionary, entry: Dictionary, co
 	var killed: Array = result["killed"] as Array
 	var hit_effects: Array = result["hitFx"] as Array
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
-	var attack_direction := Vector2(selection.get("dir", Vector2.RIGHT))
+	var attack_direction := Vector2(selection.get("dir", Vector2.RIGHT)).normalized()
 	var attack_range := float(selection.get("radius", 110.0))
 	var attack_arc := float(selection.get("arc", 50.0))
-	var enemy_hit_count := _apply_arc_damage(context.get("enemies", []) as Array, player_pos, attack_direction, attack_range, attack_arc, damage, knockback, killed, hit_effects, barrier_requests, weapon_id)
-	var box_hit_count := _apply_arc_damage_to_boxes(context.get("destructibles", []) as Array, player_pos, attack_direction, attack_range, attack_arc, result["destroyedBoxes"] as Array, hit_effects)
+	var attack_origin := _fansa_attack_origin(player_pos, attack_direction, float(selection.get("originOffset", 25.0)))
+	var enemy_hit_ids: Dictionary = {}
+	var hit_box_ids: Dictionary = {}
+	var enemy_hit_count := _apply_arc_damage(context.get("enemies", []) as Array, attack_origin, attack_direction, attack_range, attack_arc, damage, knockback, killed, hit_effects, barrier_requests, weapon_id, {"hitEnemyIds": enemy_hit_ids, "useHurtboxOverlap": bool(selection.get("useHurtboxOverlap", true))})
+	var box_hit_count := _apply_arc_damage_to_boxes(context.get("destructibles", []) as Array, attack_origin, attack_direction, attack_range, attack_arc, result["destroyedBoxes"] as Array, hit_effects, hit_box_ids, true)
 	var hit_count := enemy_hit_count + box_hit_count
+	var attack_serial := int(state.get("attackSerial", 0)) + 1
+	state["attackSerial"] = attack_serial
 	state["comboStep"] = (step + 1) % 3
 	states[weapon_id] = state
 	timers[weapon_id] = _stage2_interval(weapon, context, 0.55)
@@ -2001,12 +2489,16 @@ static func _update_fansa_baton_weapon(weapon: Dictionary, entry: Dictionary, co
 		_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": weapon_id})
 	var hit_role := "swingRight" if step == 0 else ("swingLeft" if step == 1 else "finisher")
 	var hit_life := _stage2_visual_duration(weapon, hit_role, 0.24 if step != 2 else 0.34)
-	hit_effects.append({"kind": "fansa_baton_hit", "owner": weapon_id, "pos": Vector2(context.get("playerPos", Vector2.ZERO)), "dir": Vector2(selection.get("dir", Vector2.RIGHT)), "comboStep": step, "level": int(weapon.get("level", 1)), "range": float(selection.get("radius", 110.0)), "arcAngle": float(selection.get("arc", 50.0)), "recoveryMultiplier": float(weapon.get("recoveryMultiplier", 1.0)), "count": hit_count, "life": hit_life, "maxLife": hit_life, "visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true)})
+	var shape := fansa_attack_shape(weapon, int(weapon.get("level", 1)), context)
+	var hitbox_duration := float(shape.get("hitboxDuration", 0.18))
+	var combo_se_entries: Array = weapon.get("comboAttackSe", []) as Array
+	var combo_se: Dictionary = combo_se_entries[step] as Dictionary if step < combo_se_entries.size() and combo_se_entries[step] is Dictionary else {}
+	hit_effects.append({"kind": "fansa_baton_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "dir": attack_direction, "comboStep": step, "level": int(weapon.get("level", 1)), "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "useHurtboxOverlap": bool(selection.get("useHurtboxOverlap", true)), "targetType": String(selection.get("targetType", "fallback")), "targetSurfaceInRange": bool(selection.get("targetSurfaceInRange", false)), "targetSurfaceDistance": float(selection.get("targetSurfaceDistance", INF)), "attackAreaActive": true, "hitboxDuration": hitbox_duration, "hitboxRemaining": hitbox_duration, "damage": damage, "knockback": knockback, "hitEnemyIds": enemy_hit_ids, "hitBoxIds": hit_box_ids, "recoveryMultiplier": float(weapon.get("recoveryMultiplier", 1.0)), "count": hit_count, "damageApplied": hit_count > 0, "life": hit_life, "maxLife": hit_life, "activationSePath": String(combo_se.get("path", "")), "activationSeVolumeDb": float(combo_se.get("volumeDb", 0.0)), "visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true)})
 	if step == 2 and bool(weapon.get("crossFollowup", false)):
 		var normal_damage := _stage2_base_damage(weapon) * float(weapon.get("normalDamageCoefficient", 0.55)) * float(weapon.get("normalDamageMultiplier", 1.0)) * float(context.get("damageRate", 1.0))
 		var cross_range := float(selection.get("radius", 170.0)) * float(weapon.get("crossRangeRatio", 0.85))
 		var cross_life := _stage2_visual_duration(weapon, "xSlash", 0.30)
-		hit_effects.append({"kind": "fansa_baton_cross_followup", "owner": weapon_id, "pos": Vector2(context.get("playerPos", Vector2.ZERO)), "dir": Vector2(selection.get("dir", Vector2.RIGHT)), "level": int(weapon.get("level", 1)), "range": cross_range, "arcAngle": float(weapon.get("crossArcAngle", 70.0)) * _stage2_coverage_rate(context), "damage": normal_damage, "knockback": 0.0, "delay": float(weapon.get("crossDelay", 0.15)), "life": cross_life, "maxLife": cross_life, "hitEnemyIds": {}, "visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true)})
+		hit_effects.append({"kind": "fansa_baton_cross_followup", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:x" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "dir": attack_direction, "level": int(weapon.get("level", 1)), "range": cross_range, "arcAngle": float(weapon.get("crossArcAngle", 70.0)) * _stage2_coverage_rate(context), "originOffset": float(selection.get("originOffset", 25.0)), "damage": normal_damage, "knockback": 0.0, "delay": float(weapon.get("crossDelay", 0.15)), "life": cross_life, "maxLife": cross_life, "hitEnemyIds": {}, "hitBoxIds": {}, "visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true)})
 	return result
 
 static func _update_fansa_climax_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
@@ -2031,6 +2523,7 @@ static func _update_fansa_climax_weapon(weapon: Dictionary, context: Dictionary,
 	var direction := Vector2(selection.get("dir", Vector2.RIGHT)).normalized()
 	var attack_range := float(selection.get("radius", 125.0))
 	var attack_arc := float(selection.get("arc", 55.0))
+	var attack_origin := _fansa_attack_origin(player_pos, direction, float(selection.get("originOffset", 25.0)))
 	var base_damage := _stage2_base_damage(weapon) * float(context.get("damageRate", 1.0))
 	var coefficient := float(weapon.get("finisherDamageCoefficient", 1.40)) if step == 2 else float(weapon.get("normalDamageCoefficient", 0.65))
 	var damage := base_damage * coefficient
@@ -2043,22 +2536,23 @@ static func _update_fansa_climax_weapon(weapon: Dictionary, context: Dictionary,
 	state["attackSerial"] = attack_serial
 	var main_spark_role := "finisher" if step == 2 else ("swingRight" if step == 0 else "swingLeft")
 	var main_spark_ids: Dictionary = {}
-	var main_visual_context := {"attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "sparkRole": main_spark_role, "visuals": visuals, "sparkHitIds": main_spark_ids}
-	var hits := _apply_arc_damage(context.get("enemies", []) as Array, player_pos, direction, attack_range, attack_arc, damage, knockback, killed, hit_effects, barriers, weapon_id, main_visual_context)
+	var main_hit_ids: Dictionary = {}
+	var main_visual_context := {"attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "sparkRole": main_spark_role, "visuals": visuals, "sparkHitIds": main_spark_ids, "hitEnemyIds": main_hit_ids}
+	var hits := _apply_arc_damage(context.get("enemies", []) as Array, attack_origin, direction, attack_range, attack_arc, damage, knockback, killed, hit_effects, barriers, weapon_id, main_visual_context)
 	if hits > 0:
 		_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": weapon_id})
 	state["comboStep"] = (step + 1) % 3
 	states[weapon_id] = state
 	timers[weapon_id] = _stage2_interval(weapon, context, 0.47)
 	var main_life := _stage2_visual_duration(weapon, main_spark_role, 0.24 if step < 2 else 0.34)
-	hit_effects.append({"kind": "fansa_climax_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "comboStep": step, "range": attack_range, "arcAngle": attack_arc, "count": hits, "life": main_life, "maxLife": main_life, "visuals": visuals.duplicate(true)})
+	hit_effects.append({"kind": "fansa_climax_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "origin": attack_origin, "dir": direction, "comboStep": step, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "count": hits, "hitEnemyIds": main_hit_ids, "life": main_life, "maxLife": main_life, "visuals": visuals.duplicate(true)})
 	if step < 2:
 		var echo_life := _stage2_visual_duration(weapon, "echo", 0.22)
-		hit_effects.append({"kind": "fansa_climax_echo", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:echo" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "origin": player_pos, "range": attack_range, "arcAngle": attack_arc, "damage": base_damage * float(weapon.get("echoDamageCoefficient", 0.30)), "delay": float(weapon.get("echoDelay", 0.12)), "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": echo_life, "maxLife": echo_life, "visuals": visuals.duplicate(true)})
+		hit_effects.append({"kind": "fansa_climax_echo", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:echo" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "origin": attack_origin, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("echoDamageCoefficient", 0.30)), "delay": float(weapon.get("echoDelay", 0.12)), "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": echo_life, "maxLife": echo_life, "visuals": visuals.duplicate(true)})
 	else:
 		var x_life := _stage2_visual_duration(weapon, "xSlash", 0.30)
 		var wave_life := _stage2_visual_duration(weapon, "wave", 0.28)
-		hit_effects.append({"kind": "fansa_climax_x", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:x" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "range": attack_range * 0.85, "arcAngle": attack_arc, "damage": base_damage * float(weapon.get("xDamageCoefficient", 0.80)), "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": x_life, "maxLife": x_life, "visuals": visuals.duplicate(true)})
+		hit_effects.append({"kind": "fansa_climax_x", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:x" % [weapon_id, attack_serial], "pos": player_pos, "origin": attack_origin, "dir": direction, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("xDamageCoefficient", 0.80)), "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": x_life, "maxLife": x_life, "visuals": visuals.duplicate(true)})
 		hit_effects.append({"kind": "fansa_climax_fan_wave", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:wave" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "radius": float(weapon.get("fanWaveRadius", 105.0)) * _stage2_coverage_rate(context), "damage": base_damage * float(weapon.get("fanWaveDamageCoefficient", 0.35)), "knockback": 3.0, "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": wave_life, "maxLife": wave_life, "visuals": visuals.duplicate(true)})
 	return result
 
@@ -2246,8 +2740,8 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 	if timer > 0.0:
 		timers[weapon_id] = timer
 		return result
-	if bool(context.get("normalWeaponsDisabled", false)) or _buzz_active_cast(context, weapon):
-		timers[weapon_id] = 0.0 if bool(context.get("normalWeaponsDisabled", false)) else _stage2_retry_delay(weapon)
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)) or _buzz_active_cast(context, weapon):
+		timers[weapon_id] = 0.0 if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)) else _stage2_retry_delay(weapon)
 		return result
 	var selection := _buzz_select_target(weapon, context)
 	if not bool(selection.get("found", false)):
@@ -2258,13 +2752,18 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 	var target_pos := Vector2(target.get("pos", player_pos))
 	var visuals := weapon.get("visuals", {}) as Dictionary
 	var coverage := _stage2_coverage_rate(context)
+	var level := int(weapon.get("level", 1))
+	var item_config := rod_collection_config_for_level(weapon, level)
+	item_config["attractRadius"] = _rod_collection_radius(item_config, context)
 	var base_damage := _stage2_base_damage(weapon) * float(context.get("damageRate", 1.0))
 	var fx := {
 		"kind": "buzz_thumbnail_rod_cast", "owner": weapon_id, "weaponId": weapon_id, "phase": "casting",
 		"pos": player_pos, "previousPos": player_pos, "dir": (target_pos - player_pos).normalized(),
 		"targetReference": target, "targetToken": _stage2_entity_token(target), "lastTargetPos": target_pos,
 		"bossTarget": String(selection.get("targetType", "enemy")) == "boss", "reelDestination": player_pos, "displayPlayerPos": player_pos,
-		"phaseTimer": 0.0, "age": 0.0, "life": 10.0, "maxLife": 10.0, "level": 1,
+		"phaseTimer": 0.0, "age": 0.0, "life": 10.0, "maxLife": 10.0, "level": level,
+		"collectionClaimToken": _rod_next_claim_token(weapon_id, timers), "itemCollectionConfig": item_config,
+		"itemAttractRadius": float(item_config.get("attractRadius", 0.0)), "itemReturnSpeed": rod_collection_effective_return_speed(weapon, context), "itemSearchDone": false, "claimedCollectibles": [], "collectionLines": [], "collectionParticles": [],
 		"lureSpeed": float(weapon.get("lureSpeed", 950.0)), "reelSpeed": float(weapon.get("reelSpeed", 1500.0)),
 		"reelDelay": float(weapon.get("reelDelay", 0.55)), "gatherDuration": float(weapon.get("gatherDuration", 0.80)),
 		"gatherRadius": float(weapon.get("gatherRadius", 125.0)) * coverage, "gatherMaxTargets": int(weapon.get("gatherMaxTargets", 10)),
@@ -2347,11 +2846,19 @@ static func update_buzz_thumbnail_rod_fx(fx: Dictionary, delta: float, enemies: 
 		return
 	if phase != "reeling":
 		return
-	var destination := Vector2(fx.get("reelDestination", player_pos))
+	# Follow the player's current position instead of the snapshot taken when
+	# reeling started. Otherwise moving during the reel can make the lure finish
+	# at an old position and release every claimed collectible there.
+	fx["reelDestination"] = player_pos
+	var destination := player_pos
 	var to_destination := destination - position
 	var reel_step := float(fx.get("reelSpeed", 1500.0)) * delta
 	fx["pos"] = destination if to_destination.length() <= reel_step else position + to_destination.normalized() * reel_step
 	if Vector2(fx.get("pos", position)).distance_to(destination) <= 0.01:
+		# Buzz ends by setting life to zero, so complete the collectible hand-off
+		# here instead of relying on the generic post-update pass to run before
+		# zero-life cleanup releases the claims.
+		_rod_transfer_claimed_collectibles_to_normal_pickup(fx, player_pos)
 		fx["life"] = 0.0
 
 static func update_fansa_climax_echo_fx(fx: Dictionary, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary) -> void:
@@ -2361,9 +2868,11 @@ static func update_fansa_climax_echo_fx(fx: Dictionary, enemies: Array, killed_e
 	var origin := Vector2(fx.get("origin", fx.get("pos", Vector2.ZERO)))
 	var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
 	var spark_ids: Dictionary = fx.get("sparkHitIds", {}) as Dictionary
-	var visual_context := {"attackInstanceId": String(fx.get("attackInstanceId", "fansa_climax:echo")), "sparkRole": "echo", "visuals": fx.get("visuals", {}) as Dictionary, "sparkHitIds": spark_ids}
+	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
+	var visual_context := {"attackInstanceId": String(fx.get("attackInstanceId", "fansa_climax:echo")), "sparkRole": "echo", "visuals": fx.get("visuals", {}) as Dictionary, "sparkHitIds": spark_ids, "hitEnemyIds": hit_ids}
 	var hits := _apply_arc_damage(enemies, origin, direction, float(fx.get("range", 125.0)), float(fx.get("arcAngle", 55.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "fansa_climax", visual_context)
 	fx["sparkHitIds"] = spark_ids
+	fx["hitEnemyIds"] = hit_ids
 	if hits > 0:
 		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "fansa_climax"})
 
@@ -2372,9 +2881,12 @@ static func update_fansa_climax_x_fx(fx: Dictionary, enemies: Array, killed_enem
 		return
 	fx["applied"] = true
 	var spark_ids: Dictionary = fx.get("sparkHitIds", {}) as Dictionary
-	var visual_context := {"attackInstanceId": String(fx.get("attackInstanceId", "fansa_climax:x")), "sparkRole": "xSlash", "visuals": fx.get("visuals", {}) as Dictionary, "sparkHitIds": spark_ids}
-	var hits := _apply_arc_damage(enemies, Vector2(fx.get("pos", Vector2.ZERO)), Vector2(fx.get("dir", Vector2.RIGHT)), float(fx.get("range", 160.0)), float(fx.get("arcAngle", 80.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "fansa_climax", visual_context)
+	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
+	var visual_context := {"attackInstanceId": String(fx.get("attackInstanceId", "fansa_climax:x")), "sparkRole": "xSlash", "visuals": fx.get("visuals", {}) as Dictionary, "sparkHitIds": spark_ids, "hitEnemyIds": hit_ids}
+	var origin := Vector2(fx.get("origin", fx.get("pos", Vector2.ZERO)))
+	var hits := _apply_arc_damage(enemies, origin, Vector2(fx.get("dir", Vector2.RIGHT)), float(fx.get("range", 180.0)), float(fx.get("arcAngle", 180.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "fansa_climax", visual_context)
 	fx["sparkHitIds"] = spark_ids
+	fx["hitEnemyIds"] = hit_ids
 	if hits > 0:
 		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "fansa_climax"})
 
@@ -2391,7 +2903,7 @@ static func update_fansa_climax_fan_wave_fx(fx: Dictionary, enemies: Array, kill
 		if not _stage2_alive_enemy(enemy):
 			continue
 		var token := _stage2_entity_token(enemy)
-		if bool(hit_ids.get(token, false)) or Vector2(enemy.get("pos", Vector2.ZERO)).distance_to(center) > radius + float(enemy.get("radius", 20.0)):
+		if bool(hit_ids.get(token, false)) or Vector2(enemy.get("pos", Vector2.ZERO)).distance_to(center) > radius + EnemySystem.weapon_hurt_radius(enemy):
 			continue
 		var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), (Vector2(enemy.get("pos", center)) - center).normalized(), float(fx.get("knockback", 0.0)), killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "fansa_climax")
 		if hit_result != HIT_NONE:
@@ -2450,6 +2962,18 @@ static func _rod_select_target(weapon: Dictionary, context: Dictionary) -> Dicti
 			best_large_distance = distance
 	if not best_large.is_empty():
 		return {"found": true, "target": best_large, "targetType": "enemy"}
+	var nearest_enemy: Dictionary = {}
+	var nearest_enemy_distance := INF
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy):
+			continue
+		var distance := player_pos.distance_to(Vector2(enemy.get("pos", Vector2.ZERO)))
+		if distance <= max_range and distance < nearest_enemy_distance:
+			nearest_enemy = enemy
+			nearest_enemy_distance = distance
+	if not nearest_enemy.is_empty():
+		return {"found": true, "target": nearest_enemy, "targetType": "enemy"}
 	var nearest_box := _stage2_nearest_box(context.get("destructibles", []) as Array, player_pos, max_range)
 	return {"found": not nearest_box.is_empty(), "target": nearest_box, "targetType": "destructible"}
 
@@ -2523,8 +3047,8 @@ static func _update_tsuri_rod_weapon(weapon: Dictionary, context: Dictionary, ti
 	if timer > 0.0:
 		timers[weapon_id] = timer
 		return result
-	if bool(context.get("normalWeaponsDisabled", false)) or _rod_active_cast(context, weapon):
-		timers[weapon_id] = 0.0 if bool(context.get("normalWeaponsDisabled", false)) else _stage2_retry_delay(weapon)
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)) or _rod_active_cast(context, weapon):
+		timers[weapon_id] = 0.0 if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)) else _stage2_retry_delay(weapon)
 		return result
 	var selection := _rod_select_target(weapon, context)
 	if not bool(selection.get("found", false)):
@@ -2536,12 +3060,20 @@ static func _update_tsuri_rod_weapon(weapon: Dictionary, context: Dictionary, ti
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
 	var target_pos := Vector2(target.get("pos", player_pos))
 	var coverage := _stage2_coverage_rate(context)
+	var item_config := rod_collection_config_for_level(weapon, int(weapon.get("level", 1)))
+	item_config["attractRadius"] = _rod_collection_radius(item_config, context)
+	var cast_se: Dictionary = weapon.get("castSe", {}) as Dictionary
+	var reel_se: Dictionary = weapon.get("reelSe", {}) as Dictionary
 	var fx := {
 		"kind": "tsuri_rod_cast", "owner": weapon_id, "weaponId": weapon_id, "phase": "casting",
+		"activationSePath": String(cast_se.get("path", "")), "activationSeVolumeDb": float(cast_se.get("volumeDb", 0.0)),
+		"reelSePath": String(reel_se.get("path", "")), "reelSeVolumeDb": float(reel_se.get("volumeDb", 0.0)),
 		"pos": player_pos, "previousPos": player_pos, "dir": (target_pos - player_pos).normalized(),
 		"targetReference": {} if target_is_box else target, "targetToken": "" if target_is_box else _stage2_entity_token(target),
 		"targetBoxUid": int(target.get("uid", -1)) if target_is_box else -1, "lastTargetPos": target_pos,
 		"reelDestination": player_pos, "displayPlayerPos": player_pos, "phaseTimer": 0.0, "age": 0.0, "life": 8.0, "maxLife": 8.0,
+		"collectionClaimToken": _rod_next_claim_token(weapon_id, timers), "itemCollectionConfig": item_config,
+		"itemAttractRadius": float(item_config.get("attractRadius", 0.0)), "itemReturnSpeed": rod_collection_effective_return_speed(weapon, context), "itemSearchDone": false, "claimedCollectibles": [], "collectionLines": [], "collectionParticles": [],
 		"level": int(weapon.get("level", 1)), "lureSpeed": float(weapon.get("lureSpeed", 900.0)) * float(weapon.get("lureSpeedMultiplier", 1.0)), "reelSpeed": float(weapon.get("reelSpeed", 1250.0)) * float(weapon.get("reelSpeedMultiplier", 1.0)),
 		"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true),
 		"reelDelay": float(weapon.get("reelDelay", 0.70)), "gatherDuration": float(weapon.get("gatherDuration", 0.22)),
@@ -3068,45 +3600,69 @@ static func _append_fansa_climax_spark_fx(hit_effects: Array, enemy: Dictionary,
 	})
 
 static func _apply_arc_damage(enemies: Array, origin: Vector2, dir: Vector2, radius: float, arc_angle: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = [], hit_source: String = "", visual_context: Dictionary = {}) -> int:
-	var dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
-	var radius_sq := radius * radius
+	var safe_direction := dir.normalized()
+	if safe_direction.length() < 0.1:
+		safe_direction = Vector2.RIGHT
+	var hit_ids: Dictionary = visual_context.get("hitEnemyIds", {}) as Dictionary
+	var use_hurtbox_overlap := bool(visual_context.get("useHurtboxOverlap", hit_source in ["fansa_baton", "fansa_climax"]))
 	var hits: int = 0
 	for enemy_item in enemies:
-		var enemy: Dictionary = enemy_item
-		if float(enemy["hp"]) <= 0.0:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy):
 			continue
-		var enemy_pos: Vector2 = Vector2(enemy["pos"])
-		var to_enemy: Vector2 = enemy_pos - origin
-		var dist_sq := to_enemy.length_squared()
-		if dist_sq <= 0.01 or dist_sq > radius_sq:
+		var token := _stage2_entity_token(enemy)
+		if bool(hit_ids.get(token, false)):
 			continue
-		var to_enemy_dir := to_enemy / sqrt(dist_sq)
-		if dir.dot(to_enemy_dir) >= dot_threshold:
-			# Keep the existing arc-damage hit path unchanged; visual_context only adds
-			# a non-authoritative spark after the same result is returned.
-			var hit_result := _apply_enemy_hit(enemy, damage, to_enemy_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests)
-			if hit_result != HIT_NONE and not visual_context.is_empty():
-				_append_fansa_climax_spark_fx(hit_effects, enemy, visual_context.get("visuals", {}) as Dictionary, String(visual_context.get("attackInstanceId", "fansa_climax")), String(visual_context.get("sparkRole", "spark")), visual_context.get("sparkHitIds", {}) as Dictionary)
+		var enemy_pos := Vector2(enemy.get("pos", origin))
+		if use_hurtbox_overlap:
+			if not fan_sector_circle_overlap(origin, safe_direction, radius, arc_angle, enemy_pos, EnemySystem.weapon_hurt_radius(enemy)):
+				continue
+		else:
+			var to_enemy := enemy_pos - origin
+			var distance_squared := to_enemy.length_squared()
+			if distance_squared <= 0.01 or distance_squared > radius * radius:
+				continue
+			if safe_direction.dot(to_enemy / sqrt(distance_squared)) < cos(deg_to_rad(arc_angle * 0.5)):
+				continue
+		var push_dir := (enemy_pos - origin).normalized()
+		if push_dir.length() < 0.1:
+			push_dir = safe_direction
+		var hit_result := _apply_enemy_hit(enemy, damage, push_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests, hit_source)
+		if hit_result != HIT_NONE:
+			hit_ids[token] = true
+			if not visual_context.is_empty():
+				_append_fansa_climax_spark_fx(hit_effects, enemy, visual_context.get("visuals", {}) as Dictionary, String(visual_context.get("attackInstanceId", hit_source)), String(visual_context.get("sparkRole", "spark")), visual_context.get("sparkHitIds", {}) as Dictionary)
 			if hit_result == HIT_DAMAGED:
 				hits += 1
 	return hits
 
-static func _apply_arc_damage_to_boxes(destructibles: Array, origin: Vector2, dir: Vector2, radius: float, arc_angle: float, destroyed_boxes: Array, hit_effects: Array) -> int:
-	var dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
+static func _apply_arc_damage_to_boxes(destructibles: Array, origin: Vector2, dir: Vector2, radius: float, arc_angle: float, destroyed_boxes: Array, hit_effects: Array, hit_box_ids: Dictionary = {}, use_sector_overlap: bool = false) -> int:
+	var safe_direction := dir.normalized()
+	if safe_direction.length() < 0.1:
+		safe_direction = Vector2.RIGHT
 	var hits: int = 0
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
-		if float(box.get("hp", 0.0)) <= 0.0:
+		if not _stage2_alive_box(box):
 			continue
-		var box_pos: Vector2 = Vector2(box["pos"])
-		var to_box: Vector2 = box_pos - origin
-		var box_hit_radius: float = radius + float(box.get("radius", 24.0)) * 0.55 + 10.0
-		var dist_sq := to_box.length_squared()
-		if dist_sq <= 0.01 or dist_sq > box_hit_radius * box_hit_radius:
+		var box_token := _stage2_box_token(box)
+		if bool(hit_box_ids.get(box_token, false)):
 			continue
-		if dir.dot(to_box / sqrt(dist_sq)) >= dot_threshold:
-			DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
-			hits += 1
+		var box_pos := Vector2(box.get("pos", origin))
+		if use_sector_overlap:
+			if not fan_sector_circle_overlap(origin, safe_direction, radius, arc_angle, box_pos, float(box.get("radius", 24.0))):
+				continue
+		else:
+			var to_box := box_pos - origin
+			var box_hit_radius := radius + float(box.get("radius", 24.0)) * 0.55 + 10.0
+			var box_distance_squared := to_box.length_squared()
+			if box_distance_squared <= 0.01 or box_distance_squared > box_hit_radius * box_hit_radius:
+				continue
+			if safe_direction.dot(to_box / sqrt(box_distance_squared)) < cos(deg_to_rad(arc_angle * 0.5)):
+				continue
+		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+		hit_box_ids[box_token] = true
+		hits += 1
 	return hits
 
 static func _tick_kusa_wave_hit_cooldowns(fx: Dictionary, delta: float) -> Dictionary:
@@ -3450,90 +4006,8 @@ static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies:
 		})
 	fx["hitTimer"] = float(fx.get("hitCooldown", 0.70))
 
-static func update_moderator_shield_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
-	var age := float(fx.get("age", 0.0)) + delta
-	var duration := maxf(0.05, float(fx.get("travelDuration", 0.65)))
-	var progress := clampf(age / duration, 0.0, 1.0)
-	var origin := Vector2(fx.get("origin", Vector2.ZERO))
-	var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
-	if direction.length() < 0.1:
-		direction = Vector2.RIGHT
-	var position := origin + direction * (float(fx.get("spawnOffset", 48.0)) + float(fx.get("travelDistance", 220.0)) * progress)
-	fx["age"] = age
-	fx["pos"] = position
-	fx["progress"] = progress
-	var side := Vector2(-direction.y, direction.x)
-	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
-	var half_width := float(fx.get("width", 130.0)) * 0.5
-	var half_thickness := float(fx.get("thickness", 48.0)) * 0.5
-	var barrier_requests: Array = feedback.get("barrierHitRequests", []) as Array
-	for enemy_item in enemies:
-		var enemy: Dictionary = enemy_item as Dictionary
-		if not _stage2_alive_enemy(enemy):
-			continue
-		var token := _stage2_entity_token(enemy)
-		if bool(hit_ids.get(token, false)):
-			continue
-		var offset := Vector2(enemy.get("pos", Vector2.ZERO)) - position
-		var radius := float(enemy.get("radius", 20.0))
-		if absf(offset.dot(direction)) > half_thickness + radius or absf(offset.dot(side)) > half_width + radius:
-			continue
-		var knockback := 0.0
-		if not _is_boss_enemy(enemy) and bool(enemy.get("canBeKnockedBack", true)):
-			knockback = float(fx.get("normalKnockbackDistance", 70.0))
-			if EnemySystem.is_large_enemy(enemy):
-				knockback *= float(fx.get("largeKnockbackRate", 0.5))
-		var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), direction, knockback, killed_enemies, hit_effects, barrier_requests, "moderator_shield")
-		if hit_result != HIT_NONE:
-			hit_ids[token] = true
-			if hit_result == HIT_DAMAGED:
-				_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "moderator_shield"})
-	fx["hitEnemyIds"] = hit_ids
-	var hit_box_ids: Dictionary = fx.get("hitBoxIds", {}) as Dictionary
-	for box_item in destructibles:
-		var box: Dictionary = box_item as Dictionary
-		if not _stage2_alive_box(box):
-			continue
-		var box_token := _stage2_box_token(box)
-		if bool(hit_box_ids.get(box_token, false)):
-			continue
-		var box_offset := Vector2(box.get("pos", Vector2.ZERO)) - position
-		var box_radius := float(box.get("radius", 24.0))
-		if absf(box_offset.dot(direction)) > half_thickness + box_radius or absf(box_offset.dot(side)) > half_width + box_radius:
-			continue
-		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
-		hit_box_ids[box_token] = true
-	fx["hitBoxIds"] = hit_box_ids
-	var bullet_clears := int(fx.get("bulletClears", 0))
-	var max_clears := int(fx.get("maxBulletClears", 3))
-	if bullet_clears < max_clears:
-		for bullet_item in enemy_bullets:
-			if bullet_clears >= max_clears:
-				break
-			var bullet: Dictionary = bullet_item as Dictionary
-			if float(bullet.get("life", 0.0)) <= 0.0 or not _stage2_shield_bullet_clearable(bullet):
-				continue
-			var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
-			var bullet_radius := float(bullet.get("hitRadius", 10.0))
-			if absf((bullet_pos - position).dot(direction)) > half_thickness + bullet_radius or absf((bullet_pos - position).dot(side)) > half_width + bullet_radius:
-				continue
-			bullet["life"] = 0.0
-			bullet_clears += 1
-			var bullet_clear_duration := _stage2_visual_duration(fx, "bulletClear", 0.24)
-			hit_effects.append({"kind": "moderator_shield_bullet_clear", "pos": bullet_pos, "life": bullet_clear_duration, "maxLife": bullet_clear_duration, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
-	fx["bulletClears"] = bullet_clears
-	if age >= duration:
-		fx["completionReason"] = "travel_complete"
-		if bool(fx.get("allowCompletionWave", false)) and not bool(fx.get("waveSpawned", false)):
-			fx["waveSpawned"] = true
-			var end_wave_duration := _stage2_visual_duration(fx, "endShockwave", 0.24)
-			hit_effects.append({
-				"kind": "moderator_shield_end_wave", "owner": String(fx.get("owner", "moderator_shield")), "weaponId": "moderator_shield",
-				"pos": position, "dir": direction, "width": float(fx.get("waveWidth", 150.0)), "depth": float(fx.get("waveDepth", 26.0)), "level": int(fx.get("level", 5)),
-				"damage": float(fx.get("waveDamage", 0.0)), "knockback": float(fx.get("waveKnockback", 0.0)),
-				"hitEnemyIds": {}, "hitBoxIds": {}, "life": end_wave_duration, "maxLife": end_wave_duration, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
-			})
-		fx["life"] = 0.0
+static func update_moderator_shield_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary, owner_context: Dictionary = {}) -> void:
+	_update_front_shield_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, hit_effects, feedback, owner_context)
 
 static func update_moderator_shield_end_wave_fx(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
 	var position := Vector2(fx.get("pos", Vector2.ZERO))
@@ -3583,11 +4057,36 @@ static func update_fansa_baton_cross_followup_fx(fx: Dictionary, enemies: Array,
 		return
 	fx["applied"] = true
 	var barrier_requests: Array = feedback.get("barrierHitRequests", []) as Array
-	var hits := _apply_arc_damage(enemies, Vector2(fx.get("pos", Vector2.ZERO)), Vector2(fx.get("dir", Vector2.RIGHT)), float(fx.get("range", 140.0)), float(fx.get("arcAngle", 70.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, barrier_requests, "fansa_baton")
-	_apply_arc_damage_to_boxes(destructibles, Vector2(fx.get("pos", Vector2.ZERO)), Vector2(fx.get("dir", Vector2.RIGHT)), float(fx.get("range", 140.0)), float(fx.get("arcAngle", 70.0)), destroyed_boxes, hit_effects)
+	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
+	var hit_box_ids: Dictionary = fx.get("hitBoxIds", {}) as Dictionary
+	var origin := Vector2(fx.get("attackOrigin", fx.get("pos", Vector2.ZERO)))
+	var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
+	var visual_context := {"hitEnemyIds": hit_ids, "useHurtboxOverlap": true}
+	var hits := _apply_arc_damage(enemies, origin, direction, float(fx.get("range", 140.0)), float(fx.get("arcAngle", 70.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, barrier_requests, "fansa_baton", visual_context)
+	_apply_arc_damage_to_boxes(destructibles, origin, direction, float(fx.get("range", 140.0)), float(fx.get("arcAngle", 70.0)), destroyed_boxes, hit_effects, hit_box_ids, true)
+	fx["hitEnemyIds"] = hit_ids
+	fx["hitBoxIds"] = hit_box_ids
 	if hits > 0:
 		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "fansa_baton"})
 	fx["life"] = 0.0
+
+static func update_fansa_baton_hit_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
+	var remaining_window := float(fx.get("hitboxRemaining", 0.0))
+	if remaining_window <= 0.0:
+		return
+	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
+	var hit_box_ids: Dictionary = fx.get("hitBoxIds", {}) as Dictionary
+	var origin := Vector2(fx.get("attackOrigin", fx.get("pos", Vector2.ZERO)))
+	var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
+	var visual_context := {"hitEnemyIds": hit_ids, "useHurtboxOverlap": bool(fx.get("useHurtboxOverlap", true))}
+	var hits := _apply_arc_damage(enemies, origin, direction, float(fx.get("range", 110.0)), float(fx.get("arcAngle", 130.0)), float(fx.get("damage", 0.0)), float(fx.get("knockback", 0.0)), killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, String(fx.get("weaponId", "fansa_baton")), visual_context)
+	var box_hits := _apply_arc_damage_to_boxes(destructibles, origin, direction, float(fx.get("range", 110.0)), float(fx.get("arcAngle", 130.0)), destroyed_boxes, hit_effects, hit_box_ids, true)
+	fx["hitEnemyIds"] = hit_ids
+	fx["hitBoxIds"] = hit_box_ids
+	fx["count"] = int(fx.get("count", 0)) + hits + box_hits
+	fx["hitboxRemaining"] = maxf(0.0, remaining_window - maxf(0.0, delta))
+	if hits > 0:
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": String(fx.get("weaponId", "fansa_baton"))})
 
 static func _rod_limited_turn(current: Vector2, desired: Vector2, max_turn: float) -> Vector2:
 	var current_dir := current.normalized()
@@ -3598,6 +4097,13 @@ static func _rod_limited_turn(current: Vector2, desired: Vector2, max_turn: floa
 		return current_dir
 	var angle := current_dir.angle_to(desired_dir)
 	return current_dir.rotated(clampf(angle, -max_turn, max_turn)).normalized()
+
+static func _append_weapon_se_request(feedback: Dictionary, action: String, path: String, volume_db: float = 0.0) -> void:
+	if path == "":
+		return
+	var weapon_se_requests: Array = feedback.get("weaponSeRequests", []) as Array
+	weapon_se_requests.append({"action": action, "path": path, "volumeDb": volume_db})
+	feedback["weaponSeRequests"] = weapon_se_requests
 
 static func _rod_finish(fx: Dictionary, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary, player_pos: Vector2) -> void:
 	var target := _rod_find_live_target(fx, enemies)
@@ -3614,6 +4120,7 @@ static func _rod_finish(fx: Dictionary, enemies: Array, killed_enemies: Array, h
 			var allowed := minf(float(fx.get("hookPullDistance", 45.0)), maxf(0.0, distance - float(fx.get("minPlayerDistance", 110.0))))
 			if allowed > 0.0:
 				_rod_apply_pull(target, player_pos, allowed)
+	_append_weapon_se_request(feedback, "stop", String(fx.get("reelSePath", "")))
 	fx["life"] = 0.0
 
 static func update_tsuri_rod_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary, player_pos: Vector2) -> void:
@@ -3651,13 +4158,17 @@ static func update_tsuri_rod_fx(fx: Dictionary, delta: float, enemies: Array, de
 			fx["phase"] = "reeling"
 			fx["reelDestination"] = player_pos
 			fx["previousPos"] = position
-		return
+			_append_weapon_se_request(feedback, "play", String(fx.get("reelSePath", "")), float(fx.get("reelSeVolumeDb", 0.0)))
+			return
 	if (phase == "waiting" or phase == "reeling") and target.is_empty() and not (fx.get("targetReference", {}) as Dictionary).is_empty():
 		fx["targetDied"] = true
 	if phase != "reeling":
 		return
 	var previous_pos := position
-	var destination := Vector2(fx.get("reelDestination", player_pos))
+	# Keep the reel endpoint on the moving player so the shared collectible
+	# transfer always reaches its hand-off condition.
+	fx["reelDestination"] = player_pos
+	var destination := player_pos
 	var to_destination := destination - position
 	var reel_step := float(fx.get("reelSpeed", 1250.0)) * delta
 	var next_pos := destination if to_destination.length() <= reel_step else position + to_destination.normalized() * reel_step
@@ -3717,7 +4228,7 @@ static func update_tsuri_rod_fx(fx: Dictionary, delta: float, enemies: Array, de
 	if next_pos.distance_to(destination) <= 0.01:
 		_rod_finish(fx, enemies, killed_enemies, hit_effects, feedback, destination)
 
-static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], destructibles: Array = [], enemy_bullets: Array = [], killed_enemies: Array = [], destroyed_boxes: Array = [], feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = [], player_pos: Vector2 = Vector2.ZERO) -> Array:
+static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], destructibles: Array = [], enemy_bullets: Array = [], killed_enemies: Array = [], destroyed_boxes: Array = [], feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = [], player_pos: Vector2 = Vector2.ZERO, owner_context: Dictionary = {}) -> Array:
 	var appended_fx: Array = []
 	for fx_item in hit_fx:
 		var fx: Dictionary = fx_item
@@ -3726,7 +4237,12 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 			fx["delay"] = maxf(0.0, delay - delta)
 			continue
 		var kind: String = String(fx.get("kind", ""))
-		if fx.has("vel") and kind != "kusa_wave":
+		if kind == "mental_heal" and bool(fx.get("followPlayer", true)):
+			fx["pos"] = player_pos + Vector2(0.0, -18.0)
+		# HARD comment avalanche rows are advanced by HardModeSystem so their
+		# world-clock, collision and lifetime stay in one owner.  Do not move
+		# them here as well (normal hit effects keep the legacy path).
+		if fx.has("vel") and kind != "kusa_wave" and kind != "hard_comment_avalanche_row":
 			var move: Vector2 = Vector2(fx["vel"]) * delta
 			fx["pos"] = Vector2(fx["pos"]) + move
 			if fx.has("hit"):
@@ -3742,13 +4258,13 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 		elif kind == "listener_summon":
 			update_listener_summon_damage(fx, delta, enemies, killed_enemies, appended_fx, feedback)
 		elif kind == "moderator_shield_active":
-			update_moderator_shield_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
+			update_moderator_shield_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback, owner_context)
 		elif kind == "moderator_fortress_active":
-			update_moderator_fortress_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
+			update_moderator_fortress_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback, owner_context)
 		elif kind == "moderator_fortress_shockwave":
 			update_moderator_fortress_shockwave_fx(fx, enemies, enemy_bullets, killed_enemies, appended_fx, feedback)
-		elif kind == "moderator_shield_end_wave":
-			update_moderator_shield_end_wave_fx(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
+		elif kind == "fansa_baton_hit":
+			update_fansa_baton_hit_fx(fx, delta, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "fansa_baton_cross_followup":
 			update_fansa_baton_cross_followup_fx(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "fansa_climax_echo":
@@ -3761,7 +4277,12 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 			update_tsuri_rod_fx(fx, delta, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback, player_pos)
 		elif kind == "buzz_thumbnail_rod_cast":
 			update_buzz_thumbnail_rod_fx(fx, delta, enemies, killed_enemies, appended_fx, feedback, player_pos)
+		if kind == "tsuri_rod_cast" or kind == "buzz_thumbnail_rod_cast":
+			_rod_claim_collectibles_at_landing(fx, owner_context.get("expOrbs", []) as Array, owner_context.get("dropItems", []) as Array)
+			_rod_update_claimed_collectibles(fx, delta, player_pos)
 		fx["life"] = float(fx["life"]) - delta
+		if float(fx.get("life", 0.0)) <= 0.0 and (kind == "tsuri_rod_cast" or kind == "buzz_thumbnail_rod_cast"):
+			_rod_release_claimed_collectibles(fx)
 	var remaining: Array = _alive_hit_fx(hit_fx)
 	for fx_item in appended_fx:
 		remaining.append(fx_item)
@@ -3769,12 +4290,15 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 
 static func advance_hit_fx_visuals_for_target(target: Node, delta: float) -> void:
 	var hit_fx: Array = target.get("hit_fx") as Array
+	var player_pos := Vector2(target.get("player_pos"))
 	for fx_item in hit_fx:
 		var fx: Dictionary = fx_item as Dictionary
 		var delay := float(fx.get("delay", 0.0))
 		if delay > 0.0:
 			fx["delay"] = maxf(0.0, delay - delta)
 			continue
+		if String(fx.get("kind", "")) == "mental_heal" and bool(fx.get("followPlayer", true)):
+			fx["pos"] = player_pos + Vector2(0.0, -18.0)
 		if fx.has("vel"):
 			var move := Vector2(fx["vel"]) * delta
 			fx["pos"] = Vector2(fx.get("pos", Vector2.ZERO)) + move
@@ -3797,7 +4321,16 @@ static func update_hit_fx_for_target(target: Node, delta: float, arena: Rect2, r
 	if effect_walls_value is Array:
 		effect_walls = effect_walls_value as Array
 	var walls: Array = EnemySystem.movement_wall_rects(effect_walls, stream_frame_id)
-	target.set("hit_fx", update_hit_fx(target.get("hit_fx") as Array, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, feedback, arena, walls, Vector2(target.get("player_pos"))))
+	var owner_context := {
+		"playerPos": Vector2(target.get("player_pos")),
+		"playerVel": Vector2(target.get("player_vel")),
+		"lastMoveDirection": Vector2(target.get("last_hammer_dir")),
+		"facingDir": Vector2(float(target.get("player_facing_x")), 0.0),
+		"expOrbs": target.get("exp_orbs"),
+		"dropItems": target.get("drop_items"),
+		"attackRightOnly": ModifierSystem.has_effect_for_target(target, "attack_right_only")
+	}
+	target.set("hit_fx", update_hit_fx(target.get("hit_fx") as Array, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, feedback, arena, walls, Vector2(target.get("player_pos")), owner_context))
 	target.set("enemy_bullets", _alive_enemy_bullets(enemy_bullets))
 	_dispatch_barrier_hit_requests(target, feedback.get("barrierHitRequests", []) as Array)
 	for item in killed_enemies:

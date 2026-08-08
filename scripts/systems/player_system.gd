@@ -184,6 +184,7 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	speed_rate_value *= maxf(0.1, float(context.get("songLiveHeatMoveSpeedMultiplier", 1.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("collabMoveSpeedMultiplier", 1.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("relayBossMoveSpeedMultiplier", 1.0)))
+	speed_rate_value *= maxf(0.1, float(context.get("hardCommentMoveRate", 1.0)))
 	player_vel = player_vel.lerp(input * player_speed * speed_rate_value, minf(1.0, delta * friction_value))
 	player_vel = banana_floor_drift(player_vel, banana_power, elapsed, Vector2(context["playerPos"]), delta)
 
@@ -209,7 +210,8 @@ static func update_motion(context: Dictionary) -> Dictionary:
 		dash_started = true
 
 	var previous_pos: Vector2 = Vector2(context["playerPos"])
-	var player_pos: Vector2 = previous_pos + player_vel * delta
+	var external_knockback_velocity := Vector2(context.get("hardCommentKnockbackVelocity", Vector2.ZERO))
+	var player_pos: Vector2 = previous_pos + (player_vel + external_knockback_velocity) * delta
 	var arena: Rect2 = context["arena"] as Rect2
 	player_pos.x = clampf(player_pos.x, arena.position.x + 28.0, arena.end.x - 28.0)
 	player_pos.y = clampf(player_pos.y, arena.position.y + 28.0, arena.end.y - 28.0)
@@ -303,6 +305,15 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	var field_slow_rate := boss_field_slow_rate(Vector2(target.get("player_pos")), target.get("boss_slow_fields") as Array)
 	if target.has_method("_drawing_spilled_paint_slow_rate"):
 		field_slow_rate = maxf(field_slow_rate, float(target.call("_drawing_spilled_paint_slow_rate")))
+	var hard_comment_move_rate := 1.0
+	var hard_comment_knockback_velocity := Vector2.ZERO
+	var hard_runtime_value: Variant = target.get("difficulty_runtime")
+	if hard_runtime_value is Dictionary:
+		var avalanche: Dictionary = hard_runtime_value.get("commentAvalanche", {}) as Dictionary
+		if bool(avalanche.get("active", false)) and float(avalanche.get("slowRemaining", 0.0)) > 0.0:
+			hard_comment_move_rate = clampf(float(avalanche.get("slowRate", 1.0)), 0.1, 1.0)
+		if bool(avalanche.get("active", false)) and float(avalanche.get("knockbackRemaining", 0.0)) > 0.0:
+			hard_comment_knockback_velocity = Vector2(avalanche.get("knockbackVelocity", Vector2.ZERO))
 	var result: Dictionary = update_motion({
 		"delta": delta,
 		"elapsed": target.get("elapsed"),
@@ -323,6 +334,8 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"songLiveHeatMoveSpeedMultiplier": song_move_rate,
 		"collabMoveSpeedMultiplier": collab_move_rate,
 		"relayBossMoveSpeedMultiplier": relay_boss_move_rate,
+		"hardCommentMoveRate": hard_comment_move_rate,
+		"hardCommentKnockbackVelocity": hard_comment_knockback_velocity,
 		"songDashCooldownRecoveryMultiplier": song_dash_recovery_rate,
 		"playerFacingX": target.get("player_facing_x"),
 		"dashCd": target.get("dash_cd"),

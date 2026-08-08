@@ -164,9 +164,10 @@ static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_t
 	}
 
 static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictionary:
+	var is_pp := String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp"
 	var quality_label: String = GiftSystem.gift_quality_label(gift).replace("\n", " ")
 	var category: String = GiftSystem.gift_category_tag(gift)
-	var display_name: String = EquipmentSystem.display_name_for_card(gift, gift_level)
+	var display_name: String = String(gift.get("displayName", "パワーアップポイント")) if is_pp else EquipmentSystem.display_name_for_card(gift, gift_level)
 	var stamp_line: String = "%s\n" % quality_label if quality_label != "" else ""
 	var level_text: String = GiftSystem.gift_level_change_text(gift, gift_level)
 	var summary: String = GiftSystem.gift_card_summary(gift)
@@ -183,17 +184,22 @@ static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictiona
 		],
 		"fill": Color(1.0, 1.0, 1.0, 0.98),
 		"border": GiftSystem.gift_quality_color(gift),
-		"styleKey": "gift_quality"
+		"styleKey": "gift_quality" if not is_pp else "gift_pp"
 	}
 
 static func refresh_buttons(buttons: Array, cards: Array, selected_index: int) -> void:
 	for i in range(buttons.size()):
 		var button: Button = buttons[i]
+		var has_card := i < cards.size()
+		button.visible = has_card
+		button.disabled = not has_card
+		button.icon = null
+		if not has_card:
+			button.text = ""
+			continue
 		GameFontSystemScript.apply_regular_font(button)
 		button.add_theme_font_size_override("font_size", 19)
-		var card: Dictionary = hidden_card()
-		if i < cards.size():
-			card = cards[i] as Dictionary
+		var card: Dictionary = cards[i] as Dictionary
 		button.text = String(card["text"])
 		UiStyleSystem.apply_choice_button(button, card["fill"] as Color, card["border"] as Color, i == selected_index, String(card.get("styleKey", "")))
 

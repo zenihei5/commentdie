@@ -18,10 +18,16 @@ func _run_test() -> void:
 			_check(int(level_data.get("level", 0)) == level, "%s level snapshot %d" % [weapon_id, level], failures)
 
 	var shield := WeaponSystem.find_weapon(weapons, "moderator_shield", {})
+	var shield_level_1 := WeaponSystem._stage2_level_data(shield, 1)
+	_check(is_equal_approx(float(shield_level_1.get("activeDuration", 0.0)), 4.00), "shield Lv1 duration", failures)
 	var shield_level_3 := WeaponSystem._stage2_level_data(shield, 3)
-	_check(int(shield_level_3.get("maxBulletClears", 0)) == 5, "shield Lv3 bullet cap", failures)
+	_check(is_equal_approx(float(shield_level_3.get("activeDuration", 0.0)), 4.50), "shield Lv3 duration", failures)
+	_check(is_equal_approx(float(shield_level_3.get("arcDegrees", 0.0)), 100.0), "shield Lv3 arc", failures)
 	var shield_level_5 := WeaponSystem._stage2_level_data(shield, 5)
-	_check(bool(shield_level_5.get("completionWave", false)), "shield Lv5 completion wave flag", failures)
+	_check(is_equal_approx(float(shield_level_5.get("activeDuration", 0.0)), 5.00), "shield Lv5 duration", failures)
+	_check(is_equal_approx(float(shield_level_5.get("activationInterval", 0.0)), 5.50), "shield Lv5 interval", failures)
+	_check(is_equal_approx(float(shield_level_5.get("arcDegrees", 0.0)), 125.0), "shield Lv5 arc", failures)
+	_check(not shield_level_5.has("completionWave") and not shield_level_5.has("maxBulletClears"), "shield Lv5 retained removed projectile fields", failures)
 
 	var baton := WeaponSystem.find_weapon(weapons, "fansa_baton", {})
 	var baton_level_4 := WeaponSystem._stage2_level_data(baton, 4)

@@ -4,6 +4,12 @@ const BossCutinSystemScript := preload("res://scripts/systems/boss_cutin_system.
 
 func _ready() -> void:
 	var failures: Array[String] = []
+	var forced_source_runtime := BossCutinSystemScript.start({"displayName": "FORCED", "durationSeconds": 1.5}, "spawn_normal_boss", "playing", "hard_auto_forced")
+	_check(String(forced_source_runtime.get("spawnSource", "")) == "hard_auto_forced", "forced boss source carried into cut-in runtime", failures)
+	var cancelled_forced_runtime := BossCutinSystemScript.cancel(forced_source_runtime)
+	_check(String(cancelled_forced_runtime.get("spawnSource", "")) == "", "cancelled forced source is cleared", failures)
+	var manual_runtime := BossCutinSystemScript.start({"displayName": "MANUAL", "durationSeconds": 1.5}, "spawn_normal_boss", "playing")
+	_check(String(manual_runtime.get("spawnSource", "")) == "", "manual boss cut-in has no forced source", failures)
 	var normal := BossCutinSystemScript.start({"displayName": "TEST", "durationSeconds": 1.5}, "spawn_normal_boss", "playing")
 	var step: Dictionary = BossCutinSystemScript.update(normal, 0.64)
 	_check(not bool(step.get("playRevealSe", false)), "normal reveal fired too early", failures)

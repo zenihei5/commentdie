@@ -4,6 +4,7 @@ class_name EnemySystem
 const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
 const RelayStageProfileSystemScript := preload("res://scripts/systems/relay_stage_profile_system.gd")
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 const KNOCKBACK_SPEED_SCALE := 13.0
 const KNOCKBACK_DECAY_RATE := 13.0
 const KNOCKBACK_STOP_SPEED := 8.0
@@ -363,6 +364,12 @@ static func is_boss_enemy(enemy: Dictionary) -> bool:
 		"bugged_final_boss", "bugged_final_boss_stun", "last_offline", "pitch_police_chief", "red_pen_review_chief", "red_pen_retake_dragon", "collab_crusher"
 	]
 
+static func weapon_hurt_radius(enemy: Dictionary) -> float:
+	var explicit_value: Variant = enemy.get("hurtboxRadius", enemy.get("weaponHurtRadius", null))
+	if explicit_value != null:
+		return maxf(0.0, float(explicit_value))
+	return maxf(0.0, float(enemy.get("radius", 20.0)))
+
 static func is_large_enemy(enemy: Dictionary) -> bool:
 	return is_boss_enemy(enemy) or float(enemy.get("radius", 20.0)) >= 38.0
 
@@ -449,6 +456,39 @@ static func contact_damage_for_kind(kind: String, is_boss: bool = false) -> int:
 	return DamageSystem.DEFAULT_CONTACT_DAMAGE
 
 static func enemy_data(kind: String) -> Dictionary:
+	var data := _enemy_data_raw(kind)
+	if not data.is_empty():
+		data["combatType"] = HardModeSystemScript.normalize_combat_type(data.get("combatType", _fallback_combat_type(kind, data)))
+		data["minimumAttackInterval"] = maxf(0.1, float(data.get("minimumAttackInterval", 0.1)))
+	return data
+
+static func _fallback_combat_type(kind: String, data: Dictionary) -> String:
+	if kind in ["troll", "unread_maro", "enemy_dot_invader", "enemy_noise_ghost_comment", "layer_lost", "undo_ghost"]:
+		return "swarm"
+	if kind in ["fast", "enemy_backseat_controller", "enemy_lag_comment", "enemy_wrong_way_kart", "clipper", "collab_messenger_pigeon"]:
+		return "fast"
+	if kind in ["shooter", "enemy_armchair_strategist", "enemy_strategy_wiki_ojisan", "enemy_bullet_drone", "request_spammer", "red_pen_teacher"]:
+		return "ranged"
+	if kind in ["bucket_fill_slime", "enemy_exclusive_listener", "boss_super_long_comment"]:
+		return "tank"
+	if kind in ["collab_comparison_troll", "collab_discord_troll", "collab_volume_police", "collab_exclusive_listener", "drawing_fix_note"]:
+		return "support"
+	if kind in ["enemy_jammer_cone", "enemy_fake_gift_box", "collab_mute_core"]:
+		return "special"
+	var behavior := String(data.get("behavior", ""))
+	if behavior == "chase_fast":
+		return "fast"
+	if behavior in ["shooter", "keep_distance_shooter", "slow_spread_shooter", "drone_keep_distance", "drawing_red_pen_teacher"]:
+		return "ranged"
+	if behavior in ["tank", "drawing_bucket_slime"]:
+		return "tank"
+	if behavior in ["collab_messenger_pigeon", "collab_discord_troll", "collab_volume_police", "collab_division_noise"]:
+		return "support"
+	if behavior in ["ghost_chase", "linear_pass", "stationary_obstacle"]:
+		return "swarm"
+	return "standard"
+
+static func _enemy_data_raw(kind: String) -> Dictionary:
 	if kind == "pitch_police":
 		return {"displayName": "音程警察", "description": "音程チェックで近づいてくる歌枠の基本敵", "hp": 14.0, "speed": 110.0, "radius": 23.0, "score": 58, "exp": 2, "behavior": "chase", "contactDamage": 12}
 	if kind == "request_spammer":
@@ -676,6 +716,37 @@ static func spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNum
 			return pos
 	return Vector2.INF
 
+static func resolve_pattern_spawn_position_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator, desired_pos: Vector2, radius: float) -> Vector2:
+	# Patterned HARD waves provide an explicit position and therefore bypass the
+	# normal off-screen spawn search.  Keep the requested formation, but move a
+	# point that overlaps map/temporary walls to the nearest usable side instead
+	# of leaving the enemy trapped behind an outer wall.
+	var inset := radius + 2.0
+	var usable_rect := arena.grow(-inset)
+	if usable_rect.size.x <= 1.0 or usable_rect.size.y <= 1.0:
+		usable_rect = arena
+	var walls := spawn_walls_for_target(target)
+	var clamped_desired := Vector2(
+		clampf(desired_pos.x, usable_rect.position.x, usable_rect.end.x),
+		clampf(desired_pos.y, usable_rect.position.y, usable_rect.end.y)
+	)
+	if not spawn_position_blocked_by_walls(clamped_desired, radius, walls):
+		return clamped_desired
+	var start_angle := rng.randf_range(0.0, TAU)
+	for ring in range(1, 10):
+		var distance := float(ring) * 48.0
+		var sample_count := 8 + ring * 2
+		for sample in range(sample_count):
+			var angle := start_angle + TAU * float(sample) / float(sample_count)
+			var candidate := clamped_desired + Vector2(cos(angle), sin(angle)) * distance
+			candidate.x = clampf(candidate.x, usable_rect.position.x, usable_rect.end.x)
+			candidate.y = clampf(candidate.y, usable_rect.position.y, usable_rect.end.y)
+			if not spawn_position_blocked_by_walls(candidate, radius, walls):
+				return candidate
+	# If the formation point is completely enclosed, use the established safe
+	# spawn search rather than creating an unreachable enemy.
+	return spawn_position_for_target(target, arena, rng, radius)
+
 static func speech_lines(kind: String) -> Array[String]:
 	if kind == "pitch_police":
 		return ["音程！", "そこ違う", "ピッチ見て", "赤チェック"]
@@ -771,12 +842,16 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"max_hp": data["hp"],
 		"speed": data["speed"],
 		"radius": data["radius"],
+		"hurtboxRadius": maxf(0.0, float(data.get("hurtboxRadius", data.get("weaponHurtRadius", data.get("radius", 20.0))))),
+		"combatType": HardModeSystemScript.normalize_combat_type(data.get("combatType", "standard")),
+		"minimumAttackInterval": maxf(0.1, float(data.get("minimumAttackInterval", 0.1))),
 		"isBoss": is_boss_kind,
 		"bossId": String(data.get("bossId", kind if is_boss_kind else "")),
 		"spawnToken": "%s:%d:%d" % [kind, uid, _spawn_token_serial],
 		"score": data["score"],
 		"exp": data["exp"],
 		"expValue": data["exp"],
+		"baseExp": data["exp"],
 		"behavior": data["behavior"],
 		"shoot": shoot,
 		"speechText": speech_text,
@@ -796,6 +871,8 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 		"defeatOwner": "",
 		"removeReason": ""
 	}
+	enemy["occupancyManaged"] = not is_boss_kind and not bool(data.get("fixedHazard", false))
+	enemy["spawnPriority"] = HardModeSystemScript.spawn_priority_for_source("normal_wave")
 	if bool(data.get("noRewards", false)):
 		enemy["noRewards"] = true
 	if bool(data.get("relayBossSummon", false)):
@@ -973,6 +1050,21 @@ static func active_normal_wave_count(enemies: Array) -> int:
 		count += 1
 	return count
 
+static func active_enemy_occupancy(enemies: Array) -> int:
+	var count := 0
+	for item in enemies:
+		if not item is Dictionary:
+			continue
+		var enemy: Dictionary = item as Dictionary
+		if not bool(enemy.get("occupancyManaged", not bool(enemy.get("isBoss", false)))):
+			continue
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		if bool(enemy.get("fixedHazard", false)) or bool(enemy.get("relayBossNoiseSummon", false)) and not bool(enemy.get("hardFinalBossSummonRewardable", false)):
+			continue
+		count += 1
+	return count
+
 static func _kind_belongs_to_danger_class(kind: String, danger_class: String) -> bool:
 	if danger_class == "spread":
 		return kind == "enemy_strategy_wiki_ojisan" or kind == "enemy_bullet_drone"
@@ -1101,6 +1193,10 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 		spawn_pos = spawn_position_for_target(target, arena, rng, spawn_radius)
 		if spawn_pos == Vector2.INF:
 			return -1
+	elif spawn_source == "hard_wave":
+		spawn_pos = resolve_pattern_spawn_position_for_target(target, arena, rng, spawn_pos, spawn_radius)
+		if spawn_pos == Vector2.INF:
+			return -1
 	var shoot_seed: float = rng.randf_range(0.6, 1.4) if pos == Vector2.INF else 1.0
 	if kind == "shooter":
 		shoot_seed = rng.randf_range(1.4, SHOOTER_FIRE_INTERVAL_MAX)
@@ -1144,6 +1240,13 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 		enemy["max_hp"] = float(enemy.get("max_hp", enemy.get("hp", 1.0))) * hp_rate
 		enemy["speed"] = float(enemy.get("speed", 0.0)) * float(profile.get("speed", 1.0))
 		enemy["relayUpperWeight"] = float(profile.get("upperWeight", 1.0))
+	if HardModeSystemScript.is_hard_target(target) and not bool(enemy.get("isBoss", false)):
+		var hard_role := "finalBossSummon" if bool(enemy.get("relayBossSummon", false)) else "normal"
+		var hard_runtime := HardModeSystemScript.runtime_for_target(target)
+		HardModeSystemScript.apply_enemy_runtime_stats(enemy, hard_runtime, hard_role)
+		enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, float(enemy.get("shoot", 1.0)), hard_runtime)
+		if enemy.has("puddleTimer"):
+			enemy["puddleTimer"] = HardModeSystemScript.attack_interval_for_enemy(enemy, float(enemy.get("puddleTimer", DRAWING_BUCKET_PUDDLE_INTERVAL)), hard_runtime)
 	if linked_comment_id != "":
 		enemy["linkedTrollCommentId"] = linked_comment_id
 		enemy["linkedSpeechText"] = linked_speech_text.strip_edges()
@@ -1160,6 +1263,9 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 		enemy["spawnSource"] = "genre_event"
 	else:
 		enemy["spawnSource"] = "system"
+	enemy["spawnPriority"] = HardModeSystemScript.spawn_priority_for_source(String(enemy.get("spawnSource", "system")))
+	if bool(enemy.get("isBoss", false)):
+		enemy["occupancyManaged"] = false
 	enemies.append(enemy)
 	target.set("enemies", enemies)
 	target.set("next_enemy_uid", next_uid + 1)
@@ -1172,15 +1278,16 @@ static func apply_runtime_variant(enemy: Dictionary, runtime_variant: String) ->
 	enemy["max_hp"] = maxf(1.0, float(roundi(float(enemy.get("max_hp", 1.0)) * 0.75)))
 	enemy["hp"] = enemy["max_hp"]
 	enemy["contactDamage"] = 10
+	enemy["baseExp"] = 1
 	enemy["exp"] = 1
 	enemy["expValue"] = 1
 	enemy["scoreMultiplier"] = 1.0
 	return enemy
 
-static func kill_events(enemy: Dictionary, split_enemy: bool, rng: RandomNumberGenerator) -> Dictionary:
+static func kill_events(enemy: Dictionary, split_enemy: bool, rng: RandomNumberGenerator, split_probability: float = 0.35) -> Dictionary:
 	var pos: Vector2 = Vector2(enemy["pos"])
 	var splits: Array = []
-	if split_enemy and rng.randf() < 0.35 and String(enemy["kind"]) != "troll":
+	if split_enemy and rng.randf() < clampf(split_probability, 0.0, 1.0) and String(enemy["kind"]) != "troll":
 		splits.append(pos + Vector2(18, 0))
 		splits.append(pos + Vector2(-18, 0))
 	return {
@@ -1233,6 +1340,7 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 			target.call("_on_relay_boss_noise_summon_defeated", enemy)
 		if target.has_method("_on_enemy_defeated_for_collab_pass"):
 			target.call("_on_enemy_defeated_for_collab_pass", enemy)
+		ExpSystem.drop_from_enemy_for_target(target, enemy)
 		return {"enemyDefeated": true, "noRewards": true}
 	var active_genre_event := String(target.get("active_genre_event"))
 	var comment_event_ids: Array[String] = []
@@ -1254,30 +1362,36 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		if tracker_variant != null and tracker_variant.has_method("register_boss_defeat"):
 			var defeat_owner := String(enemy.get("defeatOwner", ""))
 			var pp_reward_id := String(enemy.get("ppRewardId", enemy.get("bossId", enemy.get("kind", ""))))
+			var hard_boss_role := String(enemy.get("hardBossRole", ""))
+			var reward_key := "boss:%s:%s" % [String(tracker_variant.run_id), pp_reward_id]
+			if hard_boss_role != "":
+				reward_key += ":" + hard_boss_role
 			var defeat_data := {
 				"bossId": String(enemy.get("bossId", enemy.get("kind", ""))),
 				"ppRewardId": pp_reward_id,
 				"basePpReward": int(enemy.get("basePpReward", 0)),
 				"isPpRewardTarget": bool(enemy.get("isPpRewardTarget", false)),
 				"isFirstDefeatRewardTarget": bool(enemy.get("isFirstDefeatRewardTarget", false)),
+				"hardBossRole": hard_boss_role,
+				"ppRate": float(enemy.get("hardPpRate", 1.0)),
 				"defeatReason": "player_side_damage" if defeat_owner == "player" else defeat_owner,
-				"rewardKey": "boss:%s:%s" % [String(tracker_variant.run_id), pp_reward_id]
+				"rewardKey": reward_key
 			}
 			tracker_variant.register_boss_defeat(defeat_data)
-		return BossSystemScript.apply_defeat_for_target(target, enemy)
+		var boss_result := BossSystemScript.apply_defeat_for_target(target, enemy)
+		if target.has_method("_on_regular_boss_defeated"):
+			target.call("_on_regular_boss_defeated", enemy)
+		return boss_result
 	target.set("score", int(target.get("score")) + ScoreSystem.enemy_score_for_target(target, enemy))
 	ExpSystem.drop_from_enemy_for_target(target, enemy)
-	if String(enemy.get("spawnSource", "")) == "normal_wave":
-		var drop_stats: Dictionary = target.get("balance_debug_stats") as Dictionary
-		drop_stats["expDropped"] = int(drop_stats.get("expDropped", 0)) + maxi(1, int(enemy.get("expValue", enemy.get("exp", 1))))
-		target.set("balance_debug_stats", drop_stats)
 	grant_linked_troll_defeat_reward_for_target(target, enemy)
 	var marshmallow_drop_requests: Array = []
 	var marshmallow_drop_request: Dictionary = gameplay_marshmallow_drop_request_for_target(target, enemy, rng)
 	if not marshmallow_drop_request.is_empty():
 		marshmallow_drop_requests.append(marshmallow_drop_request)
 	var split_enemy: bool = ModifierSystem.has_effect_for_target(target, "split_enemy")
-	var events: Dictionary = kill_events(enemy, split_enemy, rng)
+	var hard_split_rate := HardModeSystemScript.active_comment_param(HardModeSystemScript.runtime_for_target(target), "splitProbabilityRate", 1.0)
+	var events: Dictionary = kill_events(enemy, split_enemy, rng, minf(1.0, 0.35 * hard_split_rate))
 	var splits: Array = events["splits"] as Array
 	for item in splits:
 		spawn_enemy_for_target(target, "troll", arena, rng, Vector2(item))
@@ -1676,8 +1790,8 @@ static func grant_linked_troll_defeat_reward_for_target(target: Node, enemy: Dic
 	if String(enemy.get("linkedTrollCommentId", "")) == "" or bool(enemy.get("linkedTrollRewardGranted", false)):
 		return reward
 	enemy["linkedTrollRewardGranted"] = true
-	var bonus_exp := maxi(LINKED_TROLL_MINIMUM_BONUS_EXP, roundi(float(enemy.get("expValue", enemy.get("exp", 1))) * LINKED_TROLL_BONUS_EXP_MULTIPLIER))
-	ExpSystem.drop_value_for_target(target, Vector2(enemy.get("pos", Vector2.ZERO)), bonus_exp, "linked_troll_bonus")
+	var base_exp := float(enemy.get("baseExp", enemy.get("expValue", enemy.get("exp", 1))))
+	var bonus_exp := maxi(LINKED_TROLL_MINIMUM_BONUS_EXP, ExpSystem.drop_bonus_value_for_target(target, Vector2(enemy.get("pos", Vector2.ZERO)), base_exp, LINKED_TROLL_BONUS_EXP_MULTIPLIER, "linked_troll_bonus"))
 	reward["bonusExp"] = bonus_exp
 	var run_gain := int(target.get("linked_troll_gift_expectation_gain"))
 	var remaining_gift_gain := maxi(0, LINKED_TROLL_MAX_GIFT_EXPECTATION_GAIN_PER_RUN - run_gain)
@@ -1745,6 +1859,8 @@ static func update_enemy_world(context: Dictionary) -> Dictionary:
 	return result
 
 static func update_world_for_target(target: Node, delta: float, rng: RandomNumberGenerator, arena: Rect2) -> Dictionary:
+	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
+	var hard_comment_speed := HardModeSystemScript.active_comment_param(hard_runtime, "enemyMoveSpeedRate", HardModeSystemScript.active_comment_param(hard_runtime, "enemySpeedRate", 1.0))
 	var result: Dictionary = update_enemy_world({
 		"delta": delta,
 		"rng": rng,
@@ -1752,7 +1868,7 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 		"bullets": target.get("enemy_bullets"),
 		"playerPos": target.get("player_pos"),
 		"arena": arena,
-		"enemySpeedRate": ModifierSystem.effect_rate_for_target(target, "enemy_speed"),
+		"enemySpeedRate": ModifierSystem.effect_rate_for_target(target, "enemy_speed") * maxf(0.1, hard_comment_speed),
 		"godReservation": ModifierSystem.has_effect_for_target(target, "god_reservation"),
 		"godReservationRate": ModifierSystem.effect_rate_for_target(target, "god_reservation"),
 		"songEnemyMoveMultiplier": float(target.call("_song_enemy_move_speed_multiplier")) if target.has_method("_song_enemy_move_speed_multiplier") else 1.0,
@@ -1762,9 +1878,30 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 		"collisionFrameId": DrawDataSystem.collision_frame_id_for_target(target),
 		"target": target
 	})
+	_apply_hard_projectile_rates_for_target(target, result["bullets"] as Array)
 	target.set("enemy_bullets", result["bullets"])
 	apply_pending_defeats_for_target(target, result, arena, rng)
 	return result
+
+static func _apply_hard_projectile_rates_for_target(target: Node, bullets: Array) -> void:
+	if not HardModeSystemScript.is_hard_target(target):
+		return
+	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
+	var enemies: Array = target.get("enemies") as Array
+	var by_uid: Dictionary = {}
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		by_uid[int(enemy.get("uid", -1))] = enemy
+	for item in bullets:
+		var bullet: Dictionary = item as Dictionary
+		if bool(bullet.get("difficultyRuntimeApplied", false)):
+			continue
+		var source: Dictionary = by_uid.get(int(bullet.get("sourceUid", -1)), {}) as Dictionary
+		if source.is_empty() or bool(source.get("isBoss", false)) or bool(source.get("relayBoss", false)):
+			continue
+		bullet["vel"] = Vector2(bullet.get("vel", Vector2.ZERO)) * HardModeSystemScript.projectile_speed_rate_for_enemy(source, hard_runtime)
+		bullet["damage"] = HardModeSystemScript.scaled_damage(float(bullet.get("damage", 0)), float(source.get("projectileDamageRate", 1.0)))
+		bullet["difficultyRuntimeApplied"] = true
 
 static func apply_pending_defeats_for_target(target: Node, result: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var enemies: Array = target.get("enemies") as Array
@@ -1788,6 +1925,9 @@ static func apply_pending_defeats_for_target(target: Node, result: Dictionary, a
 		enemy["defeatResolved"] = true
 		var kill_result: Dictionary = apply_kill_for_target(target, enemy, arena, rng)
 		merge_kill_feedback(result, kill_result)
+		var hard_runtime := HardModeSystemScript.runtime_for_target(target)
+		if not hard_runtime.is_empty():
+			hard_runtime["totalEnemiesDefeated"] = int(hard_runtime.get("totalEnemiesDefeated", 0)) + 1
 	var current_enemies: Array = target.get("enemies") as Array
 	var kept_enemies: Array = []
 	for enemy_item in current_enemies:
@@ -1863,6 +2003,9 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 	var collision_frame_id: String = String(context.get("collisionFrameId", stream_frame_id))
 	var max_enemy_bullets := DRAWING_MAX_NORMAL_ENEMY_PROJECTILES if stream_frame_id == "drawing" else MAX_ENEMY_BULLETS
 	var target: Variant = context.get("target", null)
+	var hard_runtime: Dictionary = {}
+	if target != null:
+		hard_runtime = HardModeSystemScript.runtime_for_target(target)
 	var walls: Array = movement_wall_rects(effect_walls, collision_frame_id)
 	var collab_partner_pos := player_pos
 	var collab_partner_available := false
@@ -1879,6 +2022,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		var enemy: Dictionary = enemy_item
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
 		var previous_enemy_pos: Vector2 = enemy_pos
+		enemy["shieldContactSuppressTimer"] = maxf(0.0, float(enemy.get("shieldContactSuppressTimer", 0.0)) - delta)
 		enemy["hitFlashTimer"] = maxf(0.0, float(enemy.get("hitFlashTimer", 0.0)) - delta)
 		enemy["spawnGraceTimer"] = maxf(0.0, float(enemy.get("spawnGraceTimer", 0.0)) - delta)
 		enemy["syncStarCarrierRevealTimer"] = maxf(0.0, float(enemy.get("syncStarCarrierRevealTimer", 0.0)) - delta)
@@ -1925,9 +2069,9 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				dir = Vector2.ZERO
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 650.0:
-				enemy["shoot"] = rng.randf_range(SHOOTER_FIRE_INTERVAL_MIN, SHOOTER_FIRE_INTERVAL_MAX)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(SHOOTER_FIRE_INTERVAL_MIN, SHOOTER_FIRE_INTERVAL_MAX), hard_runtime)
 				if bullets.size() < max_enemy_bullets:
-					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "clearableByPlayerWeapon": true, "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos, "vel": to_player_dir * 260.0, "life": SHOOTER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "clearableByPlayerWeapon": true, "shieldBlockable": true, "erasableByPinkPaint": true})
 		elif behavior == "zigzag_chase":
 			var base_dir := to_player_dir
 			if base_dir.length() < 0.1:
@@ -1939,7 +2083,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			var dash_timer := maxf(0.0, float(enemy.get("dashTimer", 0.0)) - delta)
 			if float(enemy["shoot"]) <= 0.0 and dist < 540.0:
-				enemy["shoot"] = rng.randf_range(3.7, 4.8)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(3.7, 4.8), hard_runtime)
 				dash_timer = 0.34
 			if dash_timer > 0.0:
 				dir = base_dir * 2.25
@@ -1954,12 +2098,12 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				dir = Vector2.ZERO
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 720.0:
-				enemy["shoot"] = rng.randf_range(ARMCHAIR_FIRE_INTERVAL_MIN, ARMCHAIR_FIRE_INTERVAL_MAX)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(ARMCHAIR_FIRE_INTERVAL_MIN, ARMCHAIR_FIRE_INTERVAL_MAX), hard_runtime)
 				if bullets.size() < max_enemy_bullets:
 					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.RIGHT
-					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "armchair_comment", "clearableByPlayerWeapon": true, "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos + bullet_dir * 18.0, "vel": bullet_dir * 245.0, "life": ARMCHAIR_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 18.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "armchair_comment", "clearableByPlayerWeapon": true, "shieldBlockable": true, "erasableByPinkPaint": true})
 		elif behavior == "drawing_red_pen_teacher":
 			var red_pen_preferred_distance := 315.0
 			var red_pen_base := to_player_dir
@@ -1995,9 +2139,10 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 							"sourceKind": "red_pen_teacher",
 							"sourceUid": uid,
 							"visualKind": "red_pen_mark",
+							"shieldBlockable": true,
 							"erasableByPinkPaint": true
 						})
-					enemy["shoot"] = rng.randf_range(DRAWING_RED_PEN_FIRE_INTERVAL_MIN, DRAWING_RED_PEN_FIRE_INTERVAL_MAX)
+					enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(DRAWING_RED_PEN_FIRE_INTERVAL_MIN, DRAWING_RED_PEN_FIRE_INTERVAL_MAX), hard_runtime)
 			else:
 				enemy["shoot"] = float(enemy["shoot"]) - delta
 				if float(enemy["shoot"]) <= 0.0 and dist < 760.0:
@@ -2010,7 +2155,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 						enemy["shotWarningTimer"] = DRAWING_RED_PEN_PRE_SHOT_WARNING_TIME
 						enemy["shotWarningDuration"] = DRAWING_RED_PEN_PRE_SHOT_WARNING_TIME
 					else:
-						enemy["shoot"] = 0.45
+						enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, 0.45, hard_runtime)
 		elif behavior == "stg_side_move":
 			var side_dir := float(enemy.get("sideMoveDir", 1.0))
 			if enemy_pos.x < arena.position.x + 90.0:
@@ -2025,12 +2170,12 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				dir = dir.normalized()
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 720.0:
-				enemy["shoot"] = rng.randf_range(DOT_INVADER_FIRE_INTERVAL_MIN, DOT_INVADER_FIRE_INTERVAL_MAX)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(DOT_INVADER_FIRE_INTERVAL_MIN, DOT_INVADER_FIRE_INTERVAL_MAX), hard_runtime)
 				if bullets.size() < max_enemy_bullets:
 					var bullet_dir := to_player_dir
 					if bullet_dir.length() < 0.1:
 						bullet_dir = Vector2.DOWN
-					bullets.append({"pos": enemy_pos + bullet_dir * 16.0, "vel": bullet_dir * 230.0, "life": DOT_INVADER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "dot_invader_bullet", "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos + bullet_dir * 16.0, "vel": bullet_dir * 230.0, "life": DOT_INVADER_BULLET_LIFE, "damage": DamageSystem.ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "projectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "dot_invader_bullet", "shieldBlockable": true, "erasableByPinkPaint": true})
 		elif behavior == "chase_with_short_warp":
 			var lag_base_dir := to_player_dir
 			if lag_base_dir.length() < 0.1:
@@ -2051,7 +2196,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 					var warp_distance := rng.randf_range(LAG_WARP_DISTANCE_MIN, LAG_WARP_DISTANCE_MAX)
 					enemy_pos = clamp_enemy_pos_to_arena(enemy_pos + warp_dir * warp_distance, arena)
 					enemy["hitFlashTimer"] = maxf(float(enemy.get("hitFlashTimer", 0.0)), 0.08)
-					enemy["shoot"] = rng.randf_range(LAG_WARP_COOLDOWN_MIN, LAG_WARP_COOLDOWN_MAX)
+					enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(LAG_WARP_COOLDOWN_MIN, LAG_WARP_COOLDOWN_MAX), hard_runtime)
 			else:
 				enemy["shoot"] = float(enemy["shoot"]) - delta
 				if float(enemy["shoot"]) <= 0.0 and dist < 620.0:
@@ -2071,7 +2216,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				dir = Vector2(-wiki_base.y, wiki_base.x) * sin(wiki_phase) * 0.34
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 740.0:
-				enemy["shoot"] = rng.randf_range(WIKI_FIRE_INTERVAL_MIN, WIKI_FIRE_INTERVAL_MAX)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(WIKI_FIRE_INTERVAL_MIN, WIKI_FIRE_INTERVAL_MAX), hard_runtime)
 				var wiki_bullet_dir := to_player_dir
 				if wiki_bullet_dir.length() < 0.1:
 					wiki_bullet_dir = Vector2.RIGHT
@@ -2079,7 +2224,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 					if bullets.size() >= max_enemy_bullets:
 						break
 					var spread_dir := wiki_bullet_dir.rotated(angle)
-					bullets.append({"pos": enemy_pos + spread_dir * 22.0, "vel": spread_dir * 210.0, "life": WIKI_BULLET_LIFE, "damage": DamageSystem.SPREAD_ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "spreadProjectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "wiki_comment", "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos + spread_dir * 22.0, "vel": spread_dir * 210.0, "life": WIKI_BULLET_LIFE, "damage": DamageSystem.SPREAD_ENEMY_BULLET_DAMAGE, "hitRadius": 15.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "spreadProjectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "wiki_comment", "shieldBlockable": true, "erasableByPinkPaint": true})
 		elif behavior == "ambush_chase":
 			var ambush_base_dir := to_player_dir
 			if ambush_base_dir.length() < 0.1:
@@ -2131,12 +2276,12 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				dir = drone_side.normalized() * 0.58
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) <= 0.0 and dist < 760.0:
-				enemy["shoot"] = rng.randf_range(DRONE_FIRE_INTERVAL_MIN, DRONE_FIRE_INTERVAL_MAX)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(DRONE_FIRE_INTERVAL_MIN, DRONE_FIRE_INTERVAL_MAX), hard_runtime)
 				for angle in [-0.24, 0.0, 0.24]:
 					if bullets.size() >= max_enemy_bullets:
 						break
 					var drone_bullet_dir := drone_base.rotated(angle)
-					bullets.append({"pos": enemy_pos + drone_bullet_dir * 20.0, "vel": drone_bullet_dir * 250.0, "life": DRONE_BULLET_LIFE, "damage": DamageSystem.SPREAD_ENEMY_BULLET_DAMAGE, "hitRadius": 14.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "spreadProjectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "drone_bullet", "erasableByPinkPaint": true})
+					bullets.append({"pos": enemy_pos + drone_bullet_dir * 20.0, "vel": drone_bullet_dir * 250.0, "life": DRONE_BULLET_LIFE, "damage": DamageSystem.SPREAD_ENEMY_BULLET_DAMAGE, "hitRadius": 14.0, "source": "enemy bullet", "sourceKind": String(enemy["kind"]), "sourceUid": int(enemy.get("uid", -1)), "attackType": "spreadProjectile", "runtimeVariant": String(enemy.get("runtimeVariant", "")), "visualKind": "drone_bullet", "shieldBlockable": true, "erasableByPinkPaint": true})
 		elif behavior == "collab_division_noise":
 			var division_anchor := player_pos
 			if collab_partner_available:
@@ -2188,7 +2333,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				if float(enemy["shoot"]) <= 0.0:
 					enemy["messengerDashTarget"] = messenger_target
 					enemy["messengerWarningTimer"] = COLLAB_MESSENGER_DASH_WARNING_DURATION
-					enemy["shoot"] = COLLAB_MESSENGER_DASH_INTERVAL
+					enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, COLLAB_MESSENGER_DASH_INTERVAL, hard_runtime)
 		elif behavior == "collab_discord_troll":
 			dir = to_player_dir
 			var pulse_warning := float(enemy.get("collabPulseWarningTimer", 0.0))
@@ -2202,7 +2347,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				enemy["shoot"] = float(enemy.get("shoot", 0.0)) - delta
 				if float(enemy["shoot"]) <= 0.0:
 					enemy["collabPulseWarningTimer"] = COLLAB_DISCORD_PULSE_WARNING_DURATION
-					enemy["shoot"] = COLLAB_DISCORD_PULSE_INTERVAL
+					enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, COLLAB_DISCORD_PULSE_INTERVAL, hard_runtime)
 		elif behavior == "collab_volume_police":
 			var volume_base := to_player_dir
 			if volume_base.length() < 0.1:
@@ -2225,7 +2370,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 				enemy["shoot"] = float(enemy.get("shoot", 0.0)) - delta
 				if float(enemy["shoot"]) <= 0.0:
 					enemy["collabFieldWarningTimer"] = COLLAB_VOLUME_FIELD_WARNING_DURATION
-					enemy["shoot"] = COLLAB_VOLUME_FIELD_INTERVAL
+					enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, COLLAB_VOLUME_FIELD_INTERVAL, hard_runtime)
 		elif behavior == "collab_exclusive_listener":
 			if collab_partner_available:
 				var partner_delta := collab_partner_pos - enemy_pos
@@ -2265,7 +2410,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 					var spawned := bool(target.call("_spawn_drawing_enemy_spilled_paint", enemy_pos, DRAWING_BUCKET_PUDDLE_RADIUS, DRAWING_BUCKET_PUDDLE_LIFETIME, DRAWING_BUCKET_PUDDLE_SLOW_RATE))
 					if spawned:
 						puddle_times.append(DRAWING_BUCKET_PUDDLE_LIFETIME)
-				puddle_timer = DRAWING_BUCKET_PUDDLE_INTERVAL
+				puddle_timer = HardModeSystemScript.attack_interval_for_enemy(enemy, DRAWING_BUCKET_PUDDLE_INTERVAL, hard_runtime)
 			enemy["puddleTimer"] = puddle_timer
 			enemy["puddleTimes"] = puddle_times
 		elif behavior == "ghost_chase":
@@ -2280,7 +2425,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		elif behavior == "charger":
 			enemy["shoot"] = float(enemy["shoot"]) - delta
 			if float(enemy["shoot"]) < -0.35:
-				enemy["shoot"] = rng.randf_range(1.2, 2.0)
+				enemy["shoot"] = HardModeSystemScript.attack_interval_for_enemy(enemy, rng.randf_range(1.2, 2.0), hard_runtime)
 			elif float(enemy["shoot"]) <= 0.0:
 				dir = to_player_dir * 3.2
 			else:
@@ -2291,7 +2436,10 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		var is_last_offline_body := (bool(enemy.get("relayBoss", false)) or String(enemy.get("bossId", "")) == "last_offline" or String(enemy.get("kind", "")) == "last_offline") and not bool(enemy.get("relayBossSummon", false))
 		var contact_radius: float = float(enemy["radius"]) + 22.0
 		var summon_spawn_grace := bool(enemy.get("relayBossNoiseSummon", false)) and float(enemy.get("spawnGraceTimer", 0.0)) > 0.0
-		if not is_last_offline_body and not summon_spawn_grace and enemy_pos.distance_squared_to(player_pos) < contact_radius * contact_radius:
+		var shield_contact_blocked := float(enemy.get("shieldContactSuppressTimer", 0.0)) > 0.0
+		if target != null and target.has_method("_enemy_contact_blocked_by_shield"):
+			shield_contact_blocked = bool(target.call("_enemy_contact_blocked_by_shield", enemy)) or shield_contact_blocked
+		if not is_last_offline_body and not summon_spawn_grace and not shield_contact_blocked and enemy_pos.distance_squared_to(player_pos) < contact_radius * contact_radius:
 			var contact_source: String = String(enemy["kind"]) + " contact"
 			var contact_damage: int = int(enemy.get("contactDamage", contact_damage_for_kind(String(enemy["kind"]), bool(enemy.get("isBoss", false)))))
 			damage_events.append({"source": contact_source, "damage": contact_damage, "enemyId": String(enemy.get("kind", "")), "runtimeVariant": String(enemy.get("runtimeVariant", "")), "attackType": "contact"})
@@ -2311,6 +2459,8 @@ static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 	var bullet_hit_rate: float = 0.8 if bool(context["bulletHell"]) else 1.0
 	for bullet_item in bullets:
 		var bullet: Dictionary = bullet_item
+		if float(bullet.get("life", 0.0)) <= 0.0:
+			continue
 		bullet["pos"] = Vector2(bullet["pos"]) + Vector2(bullet["vel"]) * delta
 		bullet["life"] = float(bullet["life"]) - delta
 		var hit_radius: float = float(bullet.get("hitRadius", 22.0)) * bullet_hit_rate

@@ -89,7 +89,9 @@ static func spawn_amount_multiplier_for_target(target: Node) -> float:
 	var challenge_status := String(target.get("collab_challenge_status"))
 	if segment_id == "collab" and (challenge_status == "starting" or challenge_status == "active"):
 		amount = float(stage.get("challengeSpawnAmountMultiplier", 1.15))
-	if segment_id == "drawing" and (target.has_method("_drawing_showcase_time_active") and bool(target.call("_drawing_showcase_time_active")) or bool(target.get("drawing_finish_sequence_active"))):
+	var drawing_showcase_active: bool = target.has_method("_drawing_showcase_time_active") and target.call("_drawing_showcase_time_active") == true
+	var drawing_finish_sequence_active: bool = target.get("drawing_finish_sequence_active") == true
+	if segment_id == "drawing" and (drawing_showcase_active or drawing_finish_sequence_active):
 		amount = float(stage.get("heavyGimmickSpawnAmountMultiplier", 1.10))
 	return maxf(0.25, amount)
 

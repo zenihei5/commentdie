@@ -58,7 +58,7 @@ static func clear_temp_objects_for_target(target: Node) -> void:
 		var bullet: Dictionary = bullet_item
 		if String(bullet.get("source", "")) != "genre_stg_shot":
 			kept_bullets.append(bullet)
-	target.set("player_bullets", kept_bullets)
+		target.set("player_bullets", kept_bullets)
 	var enemies_value: Variant = target.get("enemies")
 	if enemies_value is Array:
 		var kept_enemies: Array = []
@@ -67,6 +67,12 @@ static func clear_temp_objects_for_target(target: Node) -> void:
 			if not bool(enemy.get("genreEventEnemy", false)):
 				kept_enemies.append(enemy)
 		target.set("enemies", kept_enemies)
+
+static func clear_comment_genre_mix_for_target(target: Node) -> void:
+	var queue_value: Variant = target.get("comment_genre_mix_queue")
+	if queue_value is Array:
+		(queue_value as Array).clear()
+	target.set("comment_genre_mix_transition_timer", 0.0)
 
 static func placement_walls_for_target(target: Node) -> Array:
 	var stream_frame_id := DrawDataSystem.collision_frame_id_for_target(target)
@@ -342,6 +348,8 @@ static func start_world_event_for_target(target: Node, event_id: String, arena: 
 static func event_from_comment(comment_id: String, events: Array, rng: RandomNumberGenerator, excluded_event_id: String = "") -> String:
 	if comment_id == "genre_change":
 		return roll_event(events, rng, excluded_event_id)
+	if comment_id == "game_genre_mix":
+		return roll_event(events, rng, excluded_event_id)
 	if comment_id == "force_bullet_hell":
 		return "bullet_hell"
 	if comment_id == "force_race":
@@ -349,6 +357,33 @@ static func event_from_comment(comment_id: String, events: Array, rng: RandomNum
 	if comment_id == "force_horror":
 		return "horror"
 	return ""
+
+static func start_comment_genre_mix_for_target(target: Node, events: Array, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
+	if String(target.get("active_genre_event")) != "":
+		return {"toasts": [], "chats": []}
+	var first_event := roll_event(events, rng)
+	var second_event := roll_event(events, rng, first_event)
+	if first_event == "" or second_event == "" or first_event == second_event:
+		return {"toasts": [], "chats": []}
+	var queue: Array = target.get("comment_genre_mix_queue") as Array
+	queue.clear()
+	queue.append(second_event)
+	target.set("comment_genre_mix_transition_timer", 0.0)
+	return start_world_event_for_target(target, first_event, arena, rng, comment_genre_mix_duration_for_target(target), "comment_game_genre_mix")
+
+static func comment_genre_mix_duration_for_target(target: Node) -> float:
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	var runtime: Dictionary = runtime_value as Dictionary if runtime_value is Dictionary else {}
+	var active_view: Dictionary = runtime.get("activeCommentView", {}) as Dictionary
+	var params: Dictionary = active_view.get("params", {}) as Dictionary
+	return GENRE_EVENT_DURATION * clampf(float(params.get("eventDurationRate", 1.0)), 0.50, 1.0)
+
+static func comment_genre_mix_transition_for_target(target: Node) -> float:
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	var runtime: Dictionary = runtime_value as Dictionary if runtime_value is Dictionary else {}
+	var active_view: Dictionary = runtime.get("activeCommentView", {}) as Dictionary
+	var params: Dictionary = active_view.get("params", {}) as Dictionary
+	return clampf(float(params.get("transitionSeconds", 1.5)), 1.0, 2.0)
 
 static func next_event_time(elapsed: float, rng: RandomNumberGenerator) -> float:
 	return elapsed + rng.randf_range(NEXT_GENRE_EVENT_MIN_DELAY, NEXT_GENRE_EVENT_MAX_DELAY)
@@ -387,6 +422,23 @@ static func update_world_for_target(target: Node, delta: float, events: Array, a
 	var chats: Array = feedback["chats"] as Array
 	var comment_event_ids: Array[String] = []
 	if String(target.get("active_genre_event")) == "":
+		var mix_queue: Array = target.get("comment_genre_mix_queue") as Array
+		if not mix_queue.is_empty():
+			var transition_timer := maxf(0.0, float(target.get("comment_genre_mix_transition_timer")) - delta)
+			target.set("comment_genre_mix_transition_timer", transition_timer)
+			if transition_timer > 0.0:
+				return feedback
+			var next_event := String(mix_queue.pop_front())
+			if next_event != "":
+				var start_mix_feedback := start_world_event_for_target(target, next_event, arena, rng, comment_genre_mix_duration_for_target(target), "comment_game_genre_mix")
+				for toast in (start_mix_feedback.get("toasts", []) as Array):
+					toasts.append(String(toast))
+				for chat in (start_mix_feedback.get("chats", []) as Array):
+					chats.append(String(chat))
+				for event_id_item in (start_mix_feedback.get("commentEventIds", []) as Array):
+					comment_event_ids.append(String(event_id_item))
+				feedback["commentEventIds"] = comment_event_ids
+				return feedback
 		if bool(target.get("boss_active")) or bool(target.get("boss_requested")):
 			return feedback
 		var idle_result: Dictionary = update_idle_event_for_target(target, events, rng)
@@ -418,6 +470,9 @@ static func update_world_for_target(target: Node, delta: float, events: Array, a
 		var finish_event_id := finish_comment_event_id(finished_event)
 		if finish_event_id != "":
 			comment_event_ids.append(finish_event_id)
+		var mix_queue: Array = target.get("comment_genre_mix_queue") as Array
+		if not mix_queue.is_empty():
+			target.set("comment_genre_mix_transition_timer", comment_genre_mix_transition_for_target(target))
 	feedback["commentEventIds"] = comment_event_ids
 	return feedback
 
@@ -431,6 +486,8 @@ static func start_comment_event_if_enabled_for_target(target: Node, frame: Dicti
 		return {"toasts": [], "chats": []}
 	if bool(target.get("boss_active")):
 		return {"toasts": [], "chats": []}
+	if comment_id == "game_genre_mix":
+		return start_comment_genre_mix_for_target(target, events, arena, rng)
 	var active_event := String(target.get("active_genre_event"))
 	var event_id: String = event_from_comment(comment_id, events, rng, active_event)
 	if active_event != "" and event_id == active_event:

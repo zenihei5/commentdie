@@ -14,6 +14,10 @@ var first_relay_clear_pp := 0
 var difficulty_multiplier := 1.0
 var repeatable_subtotal := 0
 var one_time_subtotal := 0
+var field_gift_pp := 0
+var fallback_gift_pp := 0
+var full_build_conversion_pp := 0
+var direct_pp_subtotal := 0
 var total_pp := 0
 var newly_cleared_stage_ids: Array[String] = []
 var newly_defeated_boss_ids: Array[String] = []
@@ -36,6 +40,10 @@ func to_dictionary() -> Dictionary:
 		"difficultyMultiplier": difficulty_multiplier,
 		"repeatableSubtotal": repeatable_subtotal,
 		"oneTimeSubtotal": one_time_subtotal,
+		"fieldGiftPp": field_gift_pp,
+		"fallbackGiftPp": fallback_gift_pp,
+		"fullBuildConversionPp": full_build_conversion_pp,
+		"directPpSubtotal": direct_pp_subtotal,
 		"totalPp": total_pp,
 		"newlyClearedStageIds": newly_cleared_stage_ids.duplicate(),
 		"newlyDefeatedBossIds": newly_defeated_boss_ids.duplicate(),
@@ -53,6 +61,10 @@ func breakdown_lines() -> Array[String]:
 		["配信枠初回クリア", first_stage_clear_pp], ["ボス初回討伐", first_boss_defeat_pp],
 		["初回リレー完走", first_relay_clear_pp]
 	]
+	if field_gift_pp != 0:
+		lines.append("フィールドギフト  %d PP" % field_gift_pp)
+	if fallback_gift_pp + full_build_conversion_pp != 0:
+		lines.append("ギフト変換  %d PP" % (fallback_gift_pp + full_build_conversion_pp))
 	for entry in entries:
 		if int(entry[1]) != 0:
 			lines.append("%s  %d PP" % [String(entry[0]), int(entry[1])])

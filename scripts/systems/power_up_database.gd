@@ -85,6 +85,29 @@ func reward_rule(group: String, key: String, fallback: Variant = 0) -> Variant:
 	var group_data: Dictionary = reward_rules.get(group, {}) as Dictionary
 	return group_data.get(key, fallback)
 
+func direct_gift_pp_rules() -> Dictionary:
+	var defaults := {
+		"enabled": true,
+		"amountByQuality": {"normal": 5, "hit": 10, "jackpot": 15},
+		"difficultyRate": {"normal": 1.0, "hard": 1.0, "expert": 1.0},
+		"fieldOptionChance": {"normal": 0.10, "hard": 0.10, "expert": 0.10},
+		"maxPpOptions": 1
+	}
+	var configured: Dictionary = reward_rules.get("directGiftPp", {}) as Dictionary
+	var result: Dictionary = defaults.duplicate(true)
+	for key in ["enabled", "maxPpOptions"]:
+		if configured.has(key):
+			result[key] = configured[key]
+	for key in ["amountByQuality", "difficultyRate", "fieldOptionChance"]:
+		var values: Dictionary = configured.get(key, {}) as Dictionary
+		if values.is_empty():
+			continue
+		var merged: Dictionary = result[key] as Dictionary
+		for value_key in values.keys():
+			merged[String(value_key)] = values[value_key]
+		result[key] = merged
+	return result
+
 func difficulty_multiplier(difficulty_id: String) -> float:
 	var difficulty: Dictionary = reward_rules.get("difficulty", {}) as Dictionary
 	return maxf(0.0, float(difficulty.get(difficulty_id, 1.0)))

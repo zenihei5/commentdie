@@ -7,6 +7,7 @@ const MAX_EXP_ORBS := 220
 const EXP_ORB_MERGE_RADIUS := 56.0
 const EXP_PICKUP_RADIUS := 24.0
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 static func current_need(level: int) -> int:
 	var idx := maxi(0, level - 1)
@@ -17,16 +18,66 @@ static func current_need(level: int) -> int:
 		need = int(floor(float(need) * EXTRA_LEVEL_GROWTH_RATE))
 	return need
 
-static func drop_from_enemy_for_target(target: Node, enemy: Dictionary) -> void:
-	var value: int = maxi(1, int(enemy.get("expValue", enemy.get("exp", 1))))
-	drop_value_for_target(target, Vector2(enemy["pos"]), value)
+static func reward_config_for_enemy(enemy: Dictionary) -> Dictionary:
+	var raw: Variant = enemy.get("rewardConfig", {})
+	var source: Dictionary = raw as Dictionary if raw is Dictionary else {}
+	var no_rewards := bool(enemy.get("noRewards", false))
+	var config := {
+		"scoreEnabled": bool(source.get("scoreEnabled", not bool(enemy.get("scoreDisabled", false)) and not no_rewards)),
+		"scoreRate": maxf(0.0, float(source.get("scoreRate", enemy.get("scoreMultiplier", 1.0)))),
+		"expEnabled": bool(source.get("expEnabled", not no_rewards)),
+		"expRate": maxf(0.0, float(source.get("expRate", enemy.get("expRewardRate", 1.0)))),
+		"starDropEnabled": bool(source.get("starDropEnabled", enemy.get("starDropEnabled", false))),
+		"healDropEnabled": bool(source.get("healDropEnabled", enemy.get("healDropEnabled", enemy.has("healDropRate")))),
+		"healDropRate": clampf(float(source.get("healDropRate", enemy.get("healDropRate", 0.0))), 0.0, 1.0)
+	}
+	# Legacy noRewards is still an all-reward kill switch unless an explicit
+	# rewardConfig was supplied by the final-boss summon path.
+	if no_rewards and source.is_empty():
+		config["scoreEnabled"] = false
+		config["expEnabled"] = false
+	return config
 
-static func drop_value_for_target(target: Node, pos: Vector2, value: int, variant: String = "") -> void:
+static func base_exp_for_enemy(enemy: Dictionary) -> float:
+	if enemy.has("baseExp"):
+		return maxf(0.0, float(enemy.get("baseExp", 0.0)))
+	var difficulty_base: Variant = enemy.get("difficultyBase", {})
+	if difficulty_base is Dictionary and (difficulty_base as Dictionary).has("exp"):
+		return maxf(0.0, float((difficulty_base as Dictionary).get("exp", 0.0)))
+	return maxf(0.0, float(enemy.get("expValue", enemy.get("exp", 0.0))))
+
+static func drop_from_enemy_for_target(target: Node, enemy: Dictionary) -> Dictionary:
+	var reward := reward_config_for_enemy(enemy)
+	if not bool(reward.get("expEnabled", true)):
+		return {"generatedExp": 0, "expEnabled": false, "orbCreated": false, "discarded": 0}
+	var runtime: Variant = target.get("difficulty_runtime")
+	var difficulty_rate := 1.0
+	if runtime is Dictionary:
+		difficulty_rate = HardModeSystemScript.effective_exp_rate(runtime as Dictionary)
+	var raw_value := base_exp_for_enemy(enemy) * difficulty_rate * float(reward.get("expRate", 1.0))
+	var value := maxi(1, roundi(raw_value))
+	var result := drop_value_for_target(target, Vector2(enemy.get("pos", Vector2.ZERO)), value)
+	result["generatedExp"] = value
+	result["expEnabled"] = true
+	_record_generated_exp(target, value)
+	return result
+
+static func drop_bonus_value_for_target(target: Node, pos: Vector2, base_value: float, reward_rate: float, variant: String = "") -> int:
+	var runtime: Variant = target.get("difficulty_runtime")
+	var difficulty_rate := 1.0
+	if runtime is Dictionary:
+		difficulty_rate = HardModeSystemScript.effective_exp_rate(runtime as Dictionary)
+	var value := maxi(1, roundi(maxf(0.0, base_value) * difficulty_rate * maxf(0.0, reward_rate)))
+	drop_value_for_target(target, pos, value, variant)
+	_record_generated_exp(target, value)
+	return value
+
+static func drop_value_for_target(target: Node, pos: Vector2, value: int, variant: String = "") -> Dictionary:
 	var orbs: Array = target.get("exp_orbs") as Array
 	value = maxi(1, value)
 	if orbs.size() >= MAX_EXP_ORBS:
 		_merge_exp_drop(orbs, pos, value)
-		return
+		return {"orbCreated": false, "merged": true, "discarded": 0}
 	var orb := {
 		"pos": pos,
 		"value": value,
@@ -36,6 +87,42 @@ static func drop_value_for_target(target: Node, pos: Vector2, value: int, varian
 	if variant != "":
 		orb["variant"] = variant
 	orbs.append(orb)
+	return {"orbCreated": true, "merged": false, "discarded": 0}
+
+static func _record_generated_exp(target: Node, value: int) -> void:
+	var stats: Dictionary = target.get("balance_debug_stats") as Dictionary
+	stats["expGenerated"] = int(stats.get("expGenerated", 0)) + value
+	stats["expDropped"] = int(stats.get("expDropped", 0)) + value
+	target.set("balance_debug_stats", stats)
+	var runtime: Variant = target.get("difficulty_runtime")
+	if runtime is Dictionary:
+		var exp_stats: Dictionary = (runtime as Dictionary).get("expStats", {}) as Dictionary
+		exp_stats["generated"] = int(exp_stats.get("generated", 0)) + value
+		runtime["expStats"] = exp_stats
+	var run_stats: Variant = target.get("hard_run_exp_stats")
+	if run_stats is Dictionary:
+		(run_stats as Dictionary)["generated"] = int((run_stats as Dictionary).get("generated", 0)) + value
+
+static func discard_orbs_for_target(target: Node) -> int:
+	var orbs: Array = target.get("exp_orbs") as Array
+	var discarded := _sum_orb_values(orbs)
+	if discarded <= 0:
+		return 0
+	var stats: Dictionary = target.get("balance_debug_stats") as Dictionary
+	stats["expDiscarded"] = int(stats.get("expDiscarded", 0)) + discarded
+	stats["expUncollected"] = 0
+	target.set("balance_debug_stats", stats)
+	var runtime: Variant = target.get("difficulty_runtime")
+	if runtime is Dictionary:
+		var exp_stats: Dictionary = (runtime as Dictionary).get("expStats", {}) as Dictionary
+		exp_stats["discarded"] = int(exp_stats.get("discarded", 0)) + discarded
+		exp_stats["uncollected"] = 0
+		runtime["expStats"] = exp_stats
+	var run_stats: Variant = target.get("hard_run_exp_stats")
+	if run_stats is Dictionary:
+		(run_stats as Dictionary)["discarded"] = int((run_stats as Dictionary).get("discarded", 0)) + discarded
+		(run_stats as Dictionary)["uncollected"] = 0
+	return discarded
 
 static func _merge_exp_drop(orbs: Array, pos: Vector2, value: int) -> void:
 	var best_index := -1
@@ -45,6 +132,9 @@ static func _merge_exp_drop(orbs: Array, pos: Vector2, value: int) -> void:
 	var merge_radius_sq := EXP_ORB_MERGE_RADIUS * EXP_ORB_MERGE_RADIUS
 	for i in range(orbs.size()):
 		var orb: Dictionary = orbs[i]
+		var rod_state := String(orb.get("rodCollectionState", "free"))
+		if rod_state in ["attracted_to_lure", "attached_to_lure", "returning_with_lure", "homing_to_player"]:
+			continue
 		var orb_life := float(orb.get("life", 0.0))
 		if orb_life < oldest_life:
 			oldest_life = orb_life
@@ -54,7 +144,9 @@ static func _merge_exp_drop(orbs: Array, pos: Vector2, value: int) -> void:
 			best_distance = distance_sq
 			best_index = i
 	if best_index < 0:
-		best_index = oldest_index
+		# If every orb is temporarily claimed, preserve EXP mass by merging into
+		# the oldest claimed orb rather than dropping the newly generated value.
+		best_index = oldest_index if oldest_life < INF else 0
 	var target_orb: Dictionary = orbs[best_index]
 	var merged_value := int(target_orb.get("value", 1)) + value
 	target_orb["value"] = merged_value
@@ -82,12 +174,22 @@ static func update_orbs(context: Dictionary) -> Dictionary:
 	var collected_exp: int = 0
 	var collected_count: int = 0
 	var attracted_count: int = 0
+	var expired_exp: int = 0
 	var kept_orbs: Array = []
 	for orb_item in orbs:
 		var orb: Dictionary = orb_item
+		var rod_state := String(orb.get("rodCollectionState", "free"))
+		if rod_state in ["attracted_to_lure", "attached_to_lure", "returning_with_lure"]:
+			kept_orbs.append(orb)
+			continue
+		if rod_state == "homing_to_player":
+			orb["rodCollectionState"] = "free"
+			orb.erase("rodClaimToken")
+			orb.erase("rodAttachIndex")
 		var pos: Vector2 = Vector2(orb["pos"])
 		var life := float(orb["life"]) - delta
 		if life <= 0.0:
+			expired_exp += int(orb.get("value", 0))
 			continue
 		orb["life"] = life
 		if pos.distance_squared_to(player_pos) <= magnet_range_sq:
@@ -103,8 +205,17 @@ static func update_orbs(context: Dictionary) -> Dictionary:
 		"orbs": kept_orbs,
 		"collectedExp": collected_exp,
 		"collectedCount": collected_count,
-		"attractedCount": attracted_count
+		"attractedCount": attracted_count,
+		"expiredExp": expired_exp,
+		"uncollectedExp": _sum_orb_values(kept_orbs)
 	}
+
+static func _sum_orb_values(orbs: Array) -> int:
+	var total := 0
+	for item in orbs:
+		if item is Dictionary:
+			total += maxi(0, int((item as Dictionary).get("value", 0)))
+	return total
 
 static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
 	var pickup_range_multiplier := 1.0
@@ -118,6 +229,20 @@ static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
 		"delta": delta
 	})
 	target.set("exp_orbs", result["orbs"] as Array)
+	var balance_stats: Dictionary = target.get("balance_debug_stats") as Dictionary
+	balance_stats["expExpired"] = int(balance_stats.get("expExpired", 0)) + int(result.get("expiredExp", 0))
+	balance_stats["expUncollected"] = int(result.get("uncollectedExp", 0))
+	target.set("balance_debug_stats", balance_stats)
+	var runtime: Variant = target.get("difficulty_runtime")
+	if runtime is Dictionary:
+		var exp_stats: Dictionary = (runtime as Dictionary).get("expStats", {}) as Dictionary
+		exp_stats["expired"] = int(exp_stats.get("expired", 0)) + int(result.get("expiredExp", 0))
+		exp_stats["uncollected"] = int(result.get("uncollectedExp", 0))
+		runtime["expStats"] = exp_stats
+	var run_stats: Variant = target.get("hard_run_exp_stats")
+	if run_stats is Dictionary:
+		(run_stats as Dictionary)["expired"] = int((run_stats as Dictionary).get("expired", 0)) + int(result.get("expiredExp", 0))
+		(run_stats as Dictionary)["uncollected"] = int(result.get("uncollectedExp", 0))
 	if int(result.get("attractedCount", 0)) > 0:
 		_append_comment_radar_fx_for_target(target)
 	var collected_count: int = int(result["collectedCount"])
@@ -131,10 +256,17 @@ static func update_orbs_for_target(target: Node, delta: float) -> Dictionary:
 		var level_ups: int = add_exp_to_target(target, int(result["collectedExp"]))
 		result["levelUps"] = level_ups
 		result["levelUp"] = level_ups > 0
-		var balance_stats: Dictionary = target.get("balance_debug_stats") as Dictionary
 		balance_stats["expCollected"] = int(balance_stats.get("expCollected", 0)) + int(result["collectedExp"])
 		balance_stats["levelUps"] = int(balance_stats.get("levelUps", 0)) + level_ups
 		target.set("balance_debug_stats", balance_stats)
+		if runtime is Dictionary:
+			var exp_stats_after: Dictionary = (runtime as Dictionary).get("expStats", {}) as Dictionary
+			exp_stats_after["collected"] = int(exp_stats_after.get("collected", 0)) + int(result["collectedExp"])
+			exp_stats_after["uncollected"] = int(result.get("uncollectedExp", 0))
+			(runtime as Dictionary)["expStats"] = exp_stats_after
+		if run_stats is Dictionary:
+			(run_stats as Dictionary)["collected"] = int((run_stats as Dictionary).get("collected", 0)) + int(result["collectedExp"])
+			(run_stats as Dictionary)["uncollected"] = int(result.get("uncollectedExp", 0))
 	return result
 
 static func should_vacuum(enabled: bool, timer: float, delta: float) -> Dictionary:

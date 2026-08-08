@@ -23,20 +23,26 @@ func _run_test() -> void:
 		_check(bool(base.get("evolutionEnabled", false)), "%s evolution disabled" % base_id, failures)
 		var evolution: Dictionary = base.get("evolution", {}) as Dictionary
 		_check(String(evolution.get("evolvedWeaponId", "")) == evolved_id, "%s evolution target mismatch" % base_id, failures)
-		_check(int(evolution.get("requiredWeaponLevel", 0)) == 5 and int(evolution.get("requiredExpLevel", -1)) == 0, "%s evolution requirements" % base_id, failures)
+		var expected_exp_level := 5 if String(base_id) == "moderator_shield" else 0
+		_check(int(evolution.get("requiredWeaponLevel", 0)) == 5 and int(evolution.get("requiredExpLevel", -1)) == expected_exp_level, "%s evolution requirements" % base_id, failures)
 		_check(bool(evolved.get("isEvolved", false)) and int(evolved.get("maxLevel", 0)) == 1, "%s evolved flags" % evolved_id, failures)
 		_check(not bool(evolved.get("offerEnabled", true)) and not bool(evolved.get("giftEnabled", true)) and not bool(evolved.get("canAppearAsUpgrade", true)), "%s normal candidate flags" % evolved_id, failures)
 		_check(String(evolved.get("visualSourceWeaponId", "")) == base_id, "%s visual source" % evolved_id, failures)
 
 	for base_id in expected.keys():
 		var target := _target_for(weapons, String(base_id), String((expected[base_id] as Dictionary)["character"]), 5)
+		target.set("exp_level", 5 if String(base_id) == "moderator_shield" else 1)
 		var state := WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons)
 		_check(bool(state.get("canEvolve", false)), "%s Lv5 did not evolve" % base_id, failures)
 		target.set("player_weapons", [{"id": String(base_id), "level": 4}])
 		_check(not bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false)), "%s Lv4 evolved" % base_id, failures)
 		target.set("player_weapons", [{"id": String(base_id), "level": 5}])
 		target.set("exp_level", 1)
-		_check(bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false)), "%s incorrectly required exp level 5" % base_id, failures)
+		var low_exp_can_evolve := bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false))
+		_check(low_exp_can_evolve == (String(base_id) != "moderator_shield"), "%s EXP evolution requirement mismatch" % base_id, failures)
+		if String(base_id) == "moderator_shield":
+			target.set("exp_level", 5)
+			_check(bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false)), "%s Lv5 EXP did not evolve" % base_id, failures)
 		target.set("current_character_id", "wrong_character")
 		_check(not bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false)), "%s evolved for wrong character" % base_id, failures)
 
@@ -61,6 +67,10 @@ func _run_test() -> void:
 		{"id": "moderator_fortress", "level": 1, "isEvolved": true, "baseWeaponId": "moderator_shield"}
 	])
 	_check(normalized.size() == 1 and String((normalized[0] as Dictionary).get("id", "")) == "moderator_fortress", "relay duplicate normalization failed", failures)
+	var non_string_level_normalized := RelayRunDataScript.normalize_weapon_entries([
+		{"id": "moderator_fortress", "level": {"value": 1}, "baseWeaponId": "moderator_shield"}
+	])
+	_check(non_string_level_normalized.size() == 1 and String((non_string_level_normalized[0] as Dictionary).get("id", "")) == "moderator_fortress", "relay normalization rejected a non-string level variant", failures)
 	var cleanup_enemy := {"kind": "small", "uid": 99, "spawnToken": "small:99", "hp": 10.0, "movementPaused": true, "throwing": true}
 	apply_target.set("enemies", [cleanup_enemy])
 	apply_target.set("hit_fx", [{"kind": "buzz_thumbnail_rod_cast", "weaponId": "buzz_thumbnail_rod", "life": 1.0, "suspendedTargetStates": {"small:99": {"enemy": cleanup_enemy, "previous": {}}}}])
@@ -71,14 +81,14 @@ func _run_test() -> void:
 	var fortress := WeaponSystem.find_weapon(context_weapons, "moderator_fortress", {})
 	var fortress_context := _context(fortress, "moderator_fortress", [{"kind": "small", "uid": 1, "spawnToken": "small:1", "pos": Vector2(80, 0), "hp": 100.0, "max_hp": 100.0, "radius": 20.0, "canBeKnockedBack": true}], {})
 	var fortress_result := WeaponSystem.update_equipment_weapons(fortress_context)
-	_check((fortress_result["hitFx"] as Array).size() == 1 and String(((fortress_result["hitFx"] as Array)[0] as Dictionary).get("kind", "")) == "moderator_fortress_active", "fortress did not activate", failures)
+	_check((fortress_result["hitFx"] as Array).size() == 3 and String(((fortress_result["hitFx"] as Array)[0] as Dictionary).get("kind", "")) == "moderator_fortress_active" and String(((fortress_result["hitFx"] as Array)[1] as Dictionary).get("kind", "")) == "moderator_fortress_deploy" and String(((fortress_result["hitFx"] as Array)[2] as Dictionary).get("kind", "")) == "moderator_fortress_shockwave", "fortress did not activate with construction and deployment shockwave effects", failures)
 	var fortress_fx: Array = fortress_result["hitFx"] as Array
 	fortress_fx = WeaponSystem.update_hit_fx(fortress_fx, 0.70, fortress_context["enemies"] as Array, [], [], [], [], {}, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
 	var fortress_has_wave := false
 	for fortress_item in fortress_fx:
 		if String((fortress_item as Dictionary).get("kind", "")) == "moderator_fortress_shockwave":
 			fortress_has_wave = true
-	_check(fortress_has_wave, "fortress did not create natural shockwave", failures)
+	_check(not fortress_has_wave, "fortress created a deprecated natural shockwave", failures)
 
 	var climax := WeaponSystem.find_weapon(context_weapons, "fansa_climax", {})
 	var climax_timers: Dictionary = {}

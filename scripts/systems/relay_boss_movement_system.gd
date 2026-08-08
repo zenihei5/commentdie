@@ -1,6 +1,8 @@
 class_name RelayBossMovementSystem
 extends RefCounted
 
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
+
 const STATE_HOVER := "IDLE_HOVER"
 const STATE_CRUISING := "CRUISING"
 const STATE_REPOSITION_WARNING := "REPOSITION_WARNING"
@@ -276,6 +278,8 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, freeze_g
 		var phase := clampi(int(target.get("relay_boss_phase")), 0, 4)
 		var speeds: Array = movement_config.get("repositionSpeeds", [220.0, 240.0, 260.0, 280.0, 320.0]) as Array
 		var speed := float(speeds[mini(phase, speeds.size() - 1)]) if not speeds.is_empty() else 220.0
+		if HardModeSystemScript.is_hard_target(target):
+			speed *= float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("moveSpeedRate", 1.08))
 		if _movement_up_instruction_active(target):
 			speed *= 1.35
 		boss["pos"] = position.move_toward(destination, speed * delta)
@@ -348,6 +352,8 @@ static func _advance_cruising(target: Node, runtime: Dictionary, boss: Dictionar
 	var speeds: Array = movement_config.get("cruiseSpeeds", [90.0, 110.0, 125.0, 140.0, 155.0]) as Array
 	var phase := clampi(int(target.get("relay_boss_phase")), 0, maxi(0, speeds.size() - 1))
 	var speed := float(speeds[phase]) if not speeds.is_empty() else 90.0
+	if HardModeSystemScript.is_hard_target(target):
+		speed *= float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("moveSpeedRate", 1.08))
 	if _movement_up_instruction_active(target):
 		speed *= 1.35
 	boss["pos"] = position.move_toward(cruise_target, speed * delta)

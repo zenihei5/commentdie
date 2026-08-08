@@ -2,6 +2,7 @@ class_name RelayBossAttackSystem
 extends RefCounted
 
 const EnemySystemScript := preload("res://scripts/systems/enemy_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 const STATE_IDLE := "idle"
 const STATE_TELEGRAPH := "telegraph"
@@ -229,6 +230,8 @@ static func _pick_and_begin(target: Node, runtime: Dictionary, arena: Rect2, rng
 	var attacks: Dictionary = boss_config.get("attacks", {}) as Dictionary
 	var phase := int(target.get("relay_boss_phase"))
 	var phase_names: Array[String] = ["zatsudan", "gameplay", "singing", "drawing", "collab_final"]
+	if HardModeSystemScript.is_hard_target(target) and String(HardModeSystemScript.runtime_for_target(target).get("playMode", "")) == HardModeSystemScript.RELAY_FINAL_BOSS:
+		phase_names = ["zatsudan", "gameplay", "collab_final"]
 	var phase_name := phase_names[clampi(phase, 0, phase_names.size() - 1)]
 	var previous := String(runtime.get("last_attack_id", ""))
 	var previous_large := bool(runtime.get("last_attack_was_large", false))
@@ -305,6 +308,10 @@ static func _begin_attack(target: Node, runtime: Dictionary, attack_id: String, 
 	var boss_config: Dictionary = target.get("relay_mode_config").get("boss", {}) as Dictionary
 	var attacks: Dictionary = boss_config.get("attacks", {}) as Dictionary
 	var payload := _normalized_payload(attack_id, attacks.get(attack_id, {}) as Dictionary)
+	if HardModeSystemScript.is_hard_target(target) and String(HardModeSystemScript.runtime_for_target(target).get("playMode", "")) == HardModeSystemScript.RELAY_FINAL_BOSS:
+		var interval_rate := float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("actionIntervalRate", 0.85))
+		payload["recovery"] = float(payload.get("recovery", 0.6)) * interval_rate
+		payload["reuseCooldown"] = float(payload.get("reuseCooldown", 8.0)) * interval_rate
 	var serial := int(runtime.get("serial", 0)) + 1
 	var active := _empty_attack()
 	active["id"] = attack_id
@@ -449,7 +456,10 @@ static func _process_hazards(target: Node, runtime: Dictionary, active: Dictiona
 		if hazard.has("vel") and float(hazard.get("delay", 0.0)) <= 0.0:
 			hazard["pos"] = Vector2(hazard.get("pos", Vector2.ZERO)) + Vector2(hazard.get("vel", Vector2.ZERO)) * delta
 		if float(hazard.get("delay", 0.0)) <= 0.0 and int(hazard.get("damage", 0)) > 0 and float(hazard.get("hitTimer", 0.0)) <= 0.0 and _hazard_hits_player(hazard, player_pos):
-			feedback["damageEvents"].append({"source": String(hazard.get("source", "relay_boss_attack")), "damage": int(hazard.get("damage", 0)), "attackId": String(active.get("id", "")), "attackType": String(hazard.get("kind", "hazard"))})
+			var hazard_damage := int(hazard.get("damage", 0))
+			if HardModeSystemScript.is_hard_target(target):
+				hazard_damage = roundi(float(hazard_damage) * float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("attackRate", 1.10)))
+			feedback["damageEvents"].append({"source": String(hazard.get("source", "relay_boss_attack")), "damage": hazard_damage, "attackId": String(active.get("id", "")), "attackType": String(hazard.get("kind", "hazard"))})
 			hazard["hitTimer"] = maxf(0.1, float(hazard.get("damageInterval", 999.0)))
 		if float(hazard.get("time", 0.0)) > 0.0:
 			kept.append(hazard)
@@ -502,8 +512,12 @@ static func _attack_marker_origin(target: Node, attack_id: String, arena: Rect2)
 	return RelayBossMovementSystem.marker_world_position(target, _attack_marker_name(attack_id), arena)
 
 static func _append_bullet(target: Node, pos: Vector2, vel: Vector2, life: float, damage: int, source: String, attack_id: String) -> void:
+	if HardModeSystemScript.is_hard_target(target):
+		var rates := HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target))
+		vel *= float(rates.get("attackRate", 1.10))
+		damage = roundi(float(damage) * float(rates.get("attackRate", 1.10)))
 	var bullets: Array = target.get("enemy_bullets")
-	bullets.append({"pos": pos, "vel": vel, "life": life, "damage": damage, "source": source, "sourceKind": attack_id, "attackType": "projectile", "relayBossProjectile": true})
+	bullets.append({"pos": pos, "vel": vel, "life": life, "damage": damage, "source": source, "sourceKind": attack_id, "attackType": "projectile", "relayBossProjectile": true, "shieldBlockable": true})
 	target.set("enemy_bullets", bullets)
 
 static func emit_travel_attack_for_target(target: Node, attack_id: String, arena: Rect2, travel_context: Dictionary = {}) -> void:
@@ -616,6 +630,8 @@ static func _prepare_noise_summon_wave(target: Node, runtime: Dictionary, payloa
 	var phase := clampi(int(target.get("relay_boss_phase")), 0, 4)
 	var phase_settings := _noise_phase_settings(payload, phase)
 	var requested := int(phase_settings.get("spawnCount", payload.get("count", 2)))
+	if HardModeSystemScript.is_hard_target(target):
+		requested = HardModeSystemScript.apply_spawn_count_rate(requested, float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("summonCountRate", 1.40)), rng)
 	if requested_override >= 0:
 		requested = requested_override
 	requested = maxi(0, requested)
@@ -719,6 +735,25 @@ static func _spawn_noise_wave(target: Node, runtime: Dictionary, pending: Dictio
 		var uid := int(target.get("next_enemy_uid"))
 		var summon := EnemySystemScript.build_enemy(String(payload.get("enemyKind", "noise_ghost_comment")), Vector2(positions[i]), uid, 999.0)
 		_configure_noise_summon(summon, payload, source, int(pending.get("waveId", 0)), float(payload.get("enemyLifetimeSeconds", payload.get("lifetime", 14.0))))
+		if HardModeSystemScript.is_hard_target(target):
+			var rewardable_hard_summon := String(runtime.get("playMode", "")) == HardModeSystemScript.RELAY_FINAL_BOSS
+			if rewardable_hard_summon:
+				# Final-boss summons are defeatable reward carriers in HARD. The
+				# travel/演出 summons below remain the existing no-reward hazards.
+				summon["noRewards"] = false
+				summon["hardFinalBossSummonRewardable"] = true
+				summon["scoreDisabled"] = true
+				var reward_config := HardModeSystemScript.normalized_summon_rewards(runtime)
+				summon["rewardConfig"] = reward_config
+				summon["scoreEnabled"] = bool(reward_config.get("scoreEnabled", false))
+				summon["expEnabled"] = bool(reward_config.get("expEnabled", false))
+				summon["starDropEnabled"] = bool(reward_config.get("starDropEnabled", true))
+				summon["healDropEnabled"] = bool(reward_config.get("healDropEnabled", true))
+				summon["healDropRate"] = float(reward_config.get("healDropRate", 0.10))
+				summon["occupancyManaged"] = true
+				summon["spawnSource"] = "boss_summon"
+				summon["spawnPriority"] = HardModeSystemScript.spawn_priority_for_source("boss_summon")
+			HardModeSystemScript.apply_enemy_runtime_stats(summon, HardModeSystemScript.runtime_for_target(target), "finalBossSummon")
 		if i == carrier_index:
 			summon["syncStarCarrier"] = true
 			summon["syncStarCarrierWaveId"] = int(pending.get("waveId", 0))

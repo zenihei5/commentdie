@@ -35,6 +35,7 @@ static func empty_runtime() -> Dictionary:
 		"revealSePlayed": false,
 		"completionDispatched": false,
 		"version": 1,
+		"spawnSource": "",
 		"phase": PHASE_PREPARING,
 		"firedEvents": {},
 		"selectedComments": [],
@@ -120,7 +121,7 @@ static func normalize_data(raw: Dictionary, fallback: Dictionary = {}) -> Dictio
 		"preRevealAccents": (raw.get("preRevealAccents", []) as Array).duplicate(true)
 	}
 
-static func start(data: Dictionary, completion_action: String, previous_state: String) -> Dictionary:
+static func start(data: Dictionary, completion_action: String, previous_state: String, spawn_source: String = "") -> Dictionary:
 	var normalized := normalize_data(data)
 	var runtime := empty_runtime()
 	runtime["active"] = true
@@ -129,6 +130,7 @@ static func start(data: Dictionary, completion_action: String, previous_state: S
 	runtime["completionAction"] = completion_action
 	runtime["previousState"] = previous_state
 	runtime["version"] = int(normalized.get("version", 1))
+	runtime["spawnSource"] = spawn_source
 	return runtime
 
 static func update(runtime: Dictionary, delta: float) -> Dictionary:
@@ -191,6 +193,7 @@ static func cancel(runtime: Dictionary) -> Dictionary:
 	var next := runtime.duplicate(true)
 	next["active"] = false
 	next["completionDispatched"] = true
+	next["spawnSource"] = ""
 	next["bgmDuckRestored"] = true
 	return next
 

@@ -77,8 +77,8 @@ static func normalize_weapon_entries(weapons: Array) -> Array:
 	return normalized
 
 static func _is_evolved_entry(entry: Dictionary) -> bool:
-	var level_text := String(entry.get("level", ""))
-	return bool(entry.get("isEvolved", false)) or level_text == "evolved" or String(entry.get("baseWeaponId", "")) != ""
+	var level_text: String = str(entry.get("level", ""))
+	return bool(entry.get("isEvolved", false)) or level_text == "evolved" or level_text == "進化" or String(entry.get("baseWeaponId", "")) != ""
 
 static func _normalize_current_weapon(target: Node, entries: Array) -> void:
 	var current_id := String(target.get("current_weapon_id"))

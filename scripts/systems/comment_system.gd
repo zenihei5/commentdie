@@ -2,6 +2,7 @@
 class_name CommentSystem
 
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 const DO_EVERYTHING_ID := "do_everything"
 const DO_EVERYTHING_OFFER_CHANCE := 0.05
@@ -13,16 +14,13 @@ const DO_EVERYTHING_BUCKETS := [
 const SONG_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.6
 const DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
 const COLLAB_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
+static var _empty_offer_warning_logged := false
 
 static func build_offer(context: Dictionary) -> Array:
 	var result: Array = []
 	var comments: Array = context["comments"] as Array
 	var comment_time: float = float(context["commentTime"])
 	var pick_time: float = _debug_rare_comment_time(context, comment_time)
-	if _should_offer_do_everything(comments, context, pick_time):
-		var special_offer: Array = _build_do_everything_offer(comments, context, pick_time)
-		if not special_offer.is_empty():
-			return special_offer
 	if _debug_rare_comment_boost(context):
 		result.append(_pick_for_slot(comments, context, pick_time, 2, 4, result))
 		result.append(_pick_for_slot(comments, context, pick_time, 3, 4, result))
@@ -32,14 +30,29 @@ static func build_offer(context: Dictionary) -> Array:
 	result.append(_pick_for_slot(comments, context, pick_time, 2, 3, result))
 	var max_risk: int = 4 if pick_time >= 60.0 else (3 if pick_time >= 30.0 else 2)
 	result.append(_pick_for_slot(comments, context, pick_time, 1, max_risk, result))
+	# do_everything is always the optional fourth card.  The first three cards
+	# are the ordinary offer and remain selectable independently.
+	if result.size() == 3 and _should_offer_do_everything(comments, context, pick_time):
+		var special: Dictionary = _find_comment_by_id(comments, DO_EVERYTHING_ID)
+		if not special.is_empty():
+			result.append(special.duplicate(true))
 	return result
 
 static func build_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
+	var frame: Dictionary = target.get("current_stream_frame") as Dictionary
+	var difficulty_value: Variant = target.get("run_difficulty_id")
+	var difficulty_id := String(difficulty_value if difficulty_value != null else "normal").strip_edges().to_lower()
+	var frame_comments := comments_allowed_for_frame(frame, comments, difficulty_id)
+	var hard_offer := HardModeSystemScript.build_offer_for_target(target, frame_comments, rng)
+	if not hard_offer.is_empty():
+		if _offer_has_do_everything(hard_offer):
+			target.set("do_everything_offer_count", int(target.get("do_everything_offer_count")) + 1)
+		return hard_offer
 	var do_everything_count := int(target.get("do_everything_offer_count"))
 	if bool(target.get("relay_mode")):
 		do_everything_count = 999
 	var offer: Array = build_offer({
-		"comments": comments,
+		"comments": frame_comments,
 		"commentTime": target.get("elapsed"),
 		"streamFrame": target.get("current_stream_frame"),
 		"lastCommentId": target.get("last_comment_id"),
@@ -62,9 +75,13 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 	return offer
 
 static func build_forced_do_everything_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
-	var comment_time: float = maxf(float(target.get("elapsed")), _do_everything_min_time(comments))
+	var frame: Dictionary = target.get("current_stream_frame") as Dictionary
+	var difficulty_value: Variant = target.get("run_difficulty_id")
+	var difficulty_id := String(difficulty_value if difficulty_value != null else "normal").strip_edges().to_lower()
+	var frame_comments := comments_allowed_for_frame(frame, comments, difficulty_id)
+	var comment_time: float = maxf(float(target.get("elapsed")), _do_everything_min_time(frame_comments))
 	var context: Dictionary = {
-		"comments": comments,
+		"comments": frame_comments,
 		"commentTime": comment_time,
 		"streamFrame": target.get("current_stream_frame"),
 		"lastCommentId": target.get("last_comment_id"),
@@ -78,12 +95,32 @@ static func build_forced_do_everything_offer_for_target(target: Node, comments: 
 		"activeGenreEvent": target.get("active_genre_event"),
 		"rng": rng
 	}
-	var offer: Array = _build_do_everything_offer(comments, context, comment_time)
+	var offer: Array = _build_do_everything_offer(frame_comments, context, comment_time)
 	if offer.size() == 4:
 		return offer
-	return _build_do_everything_fallback_offer(comments)
+	return _build_do_everything_fallback_offer(frame_comments)
 
 static func start_choice_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float) -> Dictionary:
+	# The card renderer is intentionally fixed at three slots.  Validate and
+	# repair before changing the game state or adding a pause reason so an empty
+	# candidate pool cannot expose stale/blank cards.
+	var offer: Array = build_offer_for_target(target, comments, rng)
+	if not _valid_three_card_offer(offer):
+		offer = _repair_offer_for_target(target, comments, rng)
+	if not _valid_three_card_offer(offer):
+		if not _empty_offer_warning_logged:
+			_empty_offer_warning_logged = true
+			push_warning("CommentSystem: no safe three-card offer; retrying without opening the choice UI")
+		target.set("offered_comments", [])
+		var ng_cards: Variant = target.get("ng_cards")
+		if ng_cards is Array:
+			(ng_cards as Array).clear()
+		var heart_cards: Variant = target.get("heart_cards")
+		if heart_cards is Array:
+			(heart_cards as Array).clear()
+		target.set("comment_timer", 0.25)
+		target.set("comment_warning_step", 0)
+		return {"chat": "指示コメを準備中……", "opened": false, "retry": true}
 	target.set("state", "comment_choice")
 	PauseReasonSystemScript.add(target, "InstructionComment")
 	target.set("previous_state", "playing")
@@ -91,7 +128,6 @@ static func start_choice_for_target(target: Node, comments: Array, rng: RandomNu
 	target.set("selected_card", 0)
 	target.set("special_choice_return_card", 0)
 	target.set("comment_warning_step", 0)
-	var offer: Array = build_offer_for_target(target, comments, rng)
 	if bool(target.get("relay_mode")):
 		offer = offer.slice(0, 3)
 		var relay_config: Dictionary = target.get("relay_mode_config") as Dictionary
@@ -104,13 +140,66 @@ static func start_choice_for_target(target: Node, comments: Array, rng: RandomNu
 	if pending_heart:
 		target.set("heart_pending", false)
 		target.set("heart_used_count", int(target.get("heart_used_count")) + 1)
-		return {"chat": "♡発動！ 指示コメが全部ちょっと甘くなった"}
-	return {"chat": "指示コメが来た！"}
+		return {"chat": "♡発動！ 指示コメが全部ちょっと甘くなった", "opened": true}
+	return {"chat": "指示コメが来た！", "opened": true}
 
 static func start_choice_ui_for_target(target: Node, comments: Array, rng: RandomNumberGenerator, base_choice_time: float, choice_box: Control) -> Dictionary:
 	var result: Dictionary = start_choice_for_target(target, comments, rng, base_choice_time)
-	choice_box.visible = true
+	choice_box.visible = bool(result.get("opened", false))
 	return result
+
+static func _valid_three_card_offer(offer: Array) -> bool:
+	if offer.size() != 3 and offer.size() != 4:
+		return false
+	var used_ids: Dictionary = {}
+	for i in range(offer.size()):
+		var item: Variant = offer[i]
+		if not item is Dictionary:
+			return false
+		var comment_id := String((item as Dictionary).get("id", "")).strip_edges()
+		if comment_id.is_empty() or (used_ids.has(comment_id) and not HardModeSystemScript.is_safe_offer_duplicate(item as Dictionary)):
+			return false
+		used_ids[comment_id] = true
+		if i == 3 and comment_id != DO_EVERYTHING_ID:
+			return false
+	return true
+
+static func _repair_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
+	var frame: Dictionary = target.get("current_stream_frame") as Dictionary
+	var difficulty_value: Variant = target.get("run_difficulty_id")
+	var difficulty_id := String(difficulty_value if difficulty_value != null else "normal").strip_edges().to_lower()
+	var frame_comments := comments_allowed_for_frame(frame, comments, difficulty_id)
+	if difficulty_id == "hard":
+		var hard_default := HardModeSystemScript.build_safe_default_offer_for_target(target, frame_comments, rng)
+		if _valid_three_card_offer(hard_default):
+			return hard_default
+		# Do not fall through to the NORMAL repair path: it could duplicate a
+		# HARD-only boss/complex card that HardModeSystem deliberately caps at one.
+		return []
+	var safe_candidates: Array = []
+	var seen_ids: Dictionary = {}
+	var elapsed := float(target.get("elapsed"))
+	for item in frame_comments:
+		if not item is Dictionary:
+			continue
+		var candidate: Dictionary = item as Dictionary
+		var id := String(candidate.get("id", ""))
+		if id.is_empty() or seen_ids.has(id) or bool(candidate.get("isSpecialChoice", false)) or bool(candidate.get("excludedFromNormalChoices", false)):
+			continue
+		if String(candidate.get("effectType", "")) == "summon_boss" or id == "summon_boss":
+			continue
+		if bool(candidate.get("hardOnly", false)) or elapsed < float(candidate.get("minTime", 0.0)):
+			continue
+		seen_ids[id] = true
+		safe_candidates.append(candidate)
+	if safe_candidates.size() < 3:
+		return []
+	var repaired: Array = []
+	while repaired.size() < 3 and not safe_candidates.is_empty():
+		var index := rng.randi_range(0, safe_candidates.size() - 1)
+		repaired.append((safe_candidates[index] as Dictionary).duplicate(true))
+		safe_candidates.remove_at(index)
+	return repaired
 
 static func finish_choice_for_target(target: Node, interval: float) -> String:
 	target.set("comment_timer", interval)
@@ -139,7 +228,10 @@ static func choose_comment_for_target(target: Node, index: int, rng: RandomNumbe
 		for i in range(mini(3, offered_comments.size())):
 			sub_comments.append(offered_comments[i])
 			sub_heart_cards.append(i < heart_cards.size() and bool(heart_cards[i]))
+	HardModeSystemScript.clear_active_comment_for_target(target)
 	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng, sub_comments, sub_heart_cards)
+	HardModeSystemScript.activate_comment_for_target(target, view, rng)
+	HardModeSystemScript.mark_comment_selected_for_target(target, String(comment.get("id", "")))
 	var modifier_feedback: Dictionary = result.get("feedback", {"chats": [], "toasts": []}) as Dictionary
 	return {
 		"selected": true,
@@ -200,10 +292,12 @@ static func _bool_cards(value: bool, count: int) -> Array[bool]:
 		cards.append(value)
 	return cards
 
-static func build_forced_offer(comments: Array, id: String, has_heart: bool) -> Dictionary:
+static func build_forced_offer(comments: Array, id: String, has_heart: bool, frame: Dictionary = {}, difficulty_id: String = "") -> Dictionary:
 	for item in comments:
 		var comment: Dictionary = item as Dictionary
 		if String(comment["id"]) == id:
+			if not _comment_allowed_for_difficulty(comment, difficulty_id) or (not frame.is_empty() and not _data_allowed_for_frame(frame, comment, "commentPoolTags")):
+				return {}
 			return {
 				"comments": [comment],
 				"heartCard": has_heart
@@ -230,6 +324,8 @@ static func comment_view(comment: Dictionary, has_heart: bool) -> Dictionary:
 		view["multiplier"] = 4.0 if has_heart else 5.0
 		view["giftHypeOnSelect"] = 50 if has_heart else 70
 		view["giftHypeOnClear"] = 20 if has_heart else 30
+	if has_heart and String(view.get("difficultyId", "")) == "hard":
+		view["scoreRate"] = HardModeSystemScript.score_rate_for_risk(int(view.get("riskLevel", 1)))
 	return view
 
 static func highest_multiplier_card(offered_comments: Array, heart_cards: Array, include_special: bool = false) -> int:
@@ -288,10 +384,12 @@ static func update_choice_input_for_target(target: Node, delta: float, latch: Di
 	elif ChoiceCardSystem.is_select(action):
 		choose_index = int(action["index"])
 	elif bool(timer_result["timedOut"]):
-		chats.append("指示コメに押し切られた！")
+		chats.append("時間切れ：カーソル位置の指示コメを選択")
 		var selected_index: int = clampi(int(target.get("selected_card")), 0, offer_count - 1)
-		var selected_comment: Dictionary = offered_comments[selected_index] as Dictionary
-		choose_index = selected_index if _is_do_everything_comment(selected_comment) else highest_multiplier_card(offered_comments, heart_cards)
+		# Timeout follows the visible cursor.  It is the same effect path as a
+		# normal selection; no automatic multiplier substitution or penalty is
+		# applied when the player did not press a button in time.
+		choose_index = selected_index
 	return {
 		"chats": chats,
 		"refresh": refresh,
@@ -343,7 +441,7 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 			continue
 		if String(comment["id"]) == last_comment_id:
 			continue
-		if used.has(comment):
+		if _offer_contains_id(used, String(comment.get("id", ""))):
 			continue
 		if recent_categories.size() >= 2:
 			var category: String = String(comment.get("category", "default"))
@@ -356,10 +454,10 @@ static func _pick_for_slot(comments: Array, context: Dictionary, comment_time: f
 	if pool.is_empty():
 		for item in comments:
 			var fallback: Dictionary = item as Dictionary
-			if not _is_special_only_comment(fallback) and _data_allowed_for_frame(frame, fallback, "commentPoolTags") and _comment_allowed_for_context(fallback, context, comment_time) and comment_time >= float(fallback["minTime"]) and not used.has(fallback):
+			if not _is_special_only_comment(fallback) and _data_allowed_for_frame(frame, fallback, "commentPoolTags") and _comment_allowed_for_context(fallback, context, comment_time) and comment_time >= float(fallback["minTime"]) and not _offer_contains_id(used, String(fallback.get("id", ""))):
 				pool.append(fallback)
 	if pool.is_empty():
-		return comments[0] as Dictionary
+		return {}
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	return pool[rng.randi_range(0, pool.size() - 1)] as Dictionary
 
@@ -439,7 +537,7 @@ static func _build_do_everything_fallback_offer(comments: Array) -> Array:
 		var picked: Dictionary = {}
 		for id in bucket_ids:
 			var comment: Dictionary = _find_comment_by_id(comments, String(id))
-			if not comment.is_empty() and not result.has(comment):
+			if not comment.is_empty() and not _offer_contains_id(result, String(comment.get("id", ""))):
 				picked = comment
 				break
 		if picked.is_empty():
@@ -467,7 +565,7 @@ static func _pick_from_id_pool(ids: Array, comments: Array, context: Dictionary,
 		var id: String = String(comment.get("id", ""))
 		if not ids.has(id):
 			continue
-		if used.has(comment) or id == last_comment_id:
+		if _offer_contains_id(used, id) or id == last_comment_id:
 			continue
 		if _is_special_only_comment(comment):
 			continue
@@ -492,6 +590,14 @@ static func _find_comment_by_id(comments: Array, id: String) -> Dictionary:
 		if String(comment.get("id", "")) == id:
 			return comment
 	return {}
+
+static func _offer_contains_id(offer: Array, id: String) -> bool:
+	if id.is_empty():
+		return false
+	for item in offer:
+		if item is Dictionary and String((item as Dictionary).get("id", "")) == id:
+			return true
+	return false
 
 static func _offer_has_do_everything(offer: Array) -> bool:
 	for item in offer:
@@ -543,6 +649,16 @@ static func _is_matching_active_genre_comment(comment: Dictionary, context: Dict
 	return false
 
 static func _data_allowed_for_frame(frame: Dictionary, data: Dictionary, tag_key: String) -> bool:
+	var explicit_stage_ids: Variant = data.get("stageIds", null)
+	if explicit_stage_ids is Array and not (explicit_stage_ids as Array).is_empty():
+		var current_stage := _normalize_stage_id(frame.get("id", ""))
+		var stage_match := false
+		for raw_stage in explicit_stage_ids as Array:
+			if _normalize_stage_id(raw_stage) == current_stage:
+				stage_match = true
+				break
+		if not stage_match:
+			return false
 	var item_tags: Array = []
 	if data.has("tags") and data["tags"] is Array:
 		item_tags = data["tags"] as Array
@@ -555,4 +671,44 @@ static func _data_allowed_for_frame(frame: Dictionary, data: Dictionary, tag_key
 		if frame_tags.has(tag):
 			return true
 	return false
+
+static func _normalize_stage_id(value: Variant) -> String:
+	var id := String(value).strip_edges().to_lower()
+	if id == "talk":
+		return "zatsudan"
+	if id == "game":
+		return "gameplay"
+	if id == "song":
+		return "singing"
+	return id
+
+## Absolute frame-pool filter shared by NORMAL, HARD and debug/forced offers.
+## Callers must pass this filtered array into every later risk/fallback path;
+## no shortage fallback is allowed to widen the frame's tag boundary.
+static func comments_allowed_for_frame(frame: Dictionary, comments: Array, difficulty_id: String = "") -> Array:
+	var effective_frame := frame
+	if effective_frame.is_empty():
+		# A missing frame must not widen the pool to every comment.  Preserve the
+		# legacy default-tag behavior while keeping stage-specific comments out.
+		effective_frame = {"id": "", "commentPoolTags": ["default"]}
+	var result: Array = []
+	for item in comments:
+		if not item is Dictionary:
+			continue
+		var comment := item as Dictionary
+		if _comment_allowed_for_difficulty(comment, difficulty_id) and _data_allowed_for_frame(effective_frame, comment, "commentPoolTags"):
+			result.append(comment)
+	return result
+
+static func _comment_allowed_for_difficulty(comment: Dictionary, difficulty_id: String) -> bool:
+	var difficulty := difficulty_id.strip_edges().to_lower()
+	if difficulty == "" or difficulty == "normal":
+		if bool(comment.get("hardOnly", false)):
+			return false
+	if difficulty == "expert" and bool(comment.get("expertDisabled", false)):
+		return false
+	var availability: Variant = comment.get("availability", null)
+	if availability is Dictionary and availability.has(difficulty):
+		return bool((availability as Dictionary).get(difficulty, true))
+	return true
 

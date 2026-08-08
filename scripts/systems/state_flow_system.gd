@@ -197,6 +197,12 @@ static func front_state_action_for_target(target: Node, delta: float, title_acti
 			if (
 				ranking_action == "ranking_tab_left"
 				or ranking_action == "ranking_tab_right"
+				or ranking_action == "ranking_difficulty_left"
+				or ranking_action == "ranking_difficulty_right"
+				or ranking_action == "ranking_stage_left"
+				or ranking_action == "ranking_stage_right"
+				or ranking_action == "ranking_page_left"
+				or ranking_action == "ranking_page_right"
 				or ranking_action == "ranking_up"
 				or ranking_action == "ranking_down"
 			):

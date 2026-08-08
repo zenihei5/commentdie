@@ -5,6 +5,7 @@ const StreamPointRewardCalculatorScript := preload("res://scripts/systems/stream
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
 const StreamPointRewardResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
 
 static func max_buzz_value(stats: Dictionary) -> int:
 	var maximum: int = maxi(int(stats.get("burnComboMax", 0)), int(stats.get("maxBurnCombo", 0)))
@@ -142,7 +143,10 @@ static func result_end_type_for_stats(stats: Dictionary, quick_test_mode: bool) 
 
 static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 	return {
+		"dataVersion": 2,
 		"runId": String(stats.get("runId", "")),
+		"playerId": String(stats.get("playerId", "")),
+		"playerName": String(stats.get("playerName", "")),
 		"endType": String(stats.get("endType", "")),
 		"score": int(stats.get("score", 0)),
 		"viewerCount": int(stats.get("viewerCount", stats.get("score", 0))),
@@ -156,10 +160,14 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"maxVoltage": float(stats.get("maxVoltage", stats.get("maxMultiplier", 1.0))),
 		"maxBurnCombo": max_buzz_value(stats),
 		"modeId": String(stats.get("modeId", "")),
+		"playMode": "single",
+		"difficulty": String(stats.get("difficultyId", "normal")),
 		"difficultyId": String(stats.get("difficultyId", "normal")),
 		"stageId": String(stats.get("stageId", stats.get("streamFrameId", ""))),
 		"modeName": String(stats.get("modeName", "")),
 		"characterId": String(stats.get("characterId", "")),
+		"partnerId": String(stats.get("partnerId", "")),
+		"partnerName": String(stats.get("partnerName", stats.get("collabPartnerName", ""))),
 		"characterName": String(stats.get("characterName", "配信者")),
 		"streamFrameId": String(stats.get("streamFrameId", "")),
 		"streamFrameName": String(stats.get("streamFrameName", "配信枠")),
@@ -173,6 +181,16 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"bossName": String(stats.get("bossName", "")),
 		"bossResult": String(stats.get("bossResult", "")),
 		"bossRewardViewer": int(stats.get("bossRewardViewer", 0)),
+		"boss": {
+			"firstBossSpawned": bool(stats.get("firstBossSpawned", false)),
+			"firstBossDefeated": bool(stats.get("firstBossDefeated", false)),
+			"reignitionBossSpawned": bool(stats.get("reignitionBossSpawned", false)),
+			"reignitionBossDefeated": bool(stats.get("reignitionBossDefeated", false)),
+			"defeatedCount": clampi(int(stats.get("bossCount", 0)), 0, 2)
+		},
+		"selectedHighDifficultyCommentCount": int(stats.get("dangerCommentsChosen", 0)),
+		"gameOver": String(stats.get("endType", "")) == "mental_breakdown",
+		"createdAt": String(stats.get("playedAt", Time.get_datetime_string_from_system())),
 		"deathText": "" if String(stats.get("endType", "")) == "completed" else String(stats.get("deathText", stats.get("currentDeathText", ""))),
 		"date": Time.get_date_string_from_system(),
 		"playedAt": String(stats.get("playedAt", Time.get_datetime_string_from_system()))
@@ -189,29 +207,47 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 	var max_burn_combo: int = max_buzz_value(stats)
 	var relay_completed: bool = _is_relay_completed(stats)
 	var ended_reason: String = "death"
-	var culprit_comment: Variant = String(stats.get("currentComment", "なし"))
+	var culprit_comment: String = String(stats.get("currentComment", "なし"))
 	var death_text: String = String(stats.get("currentDeathText", stats.get("reason", "")))
 	if relay_completed:
 		ended_reason = "completed"
-		culprit_comment = null
+		culprit_comment = "なし"
 		death_text = ""
 	return {
+		"dataVersion": 2,
 		"id": String(stats.get("runId", stats.get("playedAt", ""))),
 		"runId": String(stats.get("runId", "")),
+		"playerId": String(stats.get("playerId", "")),
+		"playerName": String(stats.get("playerName", "")),
 		"endType": String(stats.get("endType", "")),
 		"modeId": "relay",
+		"playMode": "relay",
+		"difficulty": String(stats.get("difficultyId", "normal")),
 		"difficultyId": String(stats.get("difficultyId", "normal")),
-		"isRankingEligible": true,
+		"stageId": "relay",
+		"isRankingEligible": bool(stats.get("isRankingEligible", true)),
 		"characterId": String(stats.get("characterId", "")),
 		"characterName": String(stats.get("characterName", "配信者")),
 		"characterDisplayName": _character_nickname_for_stats(stats),
 		"characterIconId": String(stats.get("characterId", "")) + "_icon",
+		"partnerId": String(stats.get("partnerId", "")),
+		"partnerName": String(stats.get("partnerName", stats.get("collabPartnerName", ""))),
+		"score": int(stats.get("score", stats.get("relayTotalScore", 0))),
+		"cleared": relay_completed,
+		"gameOver": String(stats.get("endType", "")) == "mental_breakdown",
 		"clearedFrameCount": cleared_count,
 		"completedFrameIds": completed_frame_ids,
 		"completedFrameNames": completed_frame_names,
 		"currentFrameId": String(stats.get("streamFrameId", "")),
 		"currentFrameName": String(stats.get("streamFrameName", "配信枠")),
 		"isRelayCompleted": relay_completed,
+		"relay": {
+			"reachedSectionIndex": clampi(cleared_count, 0, 5),
+			"reachedStageId": String(stats.get("streamFrameId", "")),
+			"reachedFinalBoss": bool(stats.get("relayFinalBossReached", false)),
+			"finalBossPhase": clampi(int(stats.get("relayBossPhase", 0)), 0, 3),
+			"finalBossDefeated": bool(stats.get("relayBossScoreAwarded", false))
+		},
 		"maxViewerCount": max_viewer_count,
 		"totalViewerCount": total_viewer_count,
 		"maxVoltage": max_voltage,
@@ -258,6 +294,7 @@ static func build_run_stats(
 		"giftsTaken": int(core.get("giftsTaken", 0)),
 		"maxGiftHype": int(core.get("maxGiftHype", 0)),
 		"dangerCommentsChosen": int(core.get("dangerCommentsChosen", 0)),
+		"difficultyId": String(core.get("difficultyId", "normal")),
 		"heartUsedCount": int(core.get("heartUsedCount", 0)),
 		"relayMode": bool(core.get("relayMode", false)),
 		"relayClearedFrameCount": int(core.get("relayClearedFrameCount", 0)),
@@ -267,11 +304,20 @@ static func build_run_stats(
 		"relayMaxScore": int(core.get("relayMaxScore", 0)),
 		"relayMaxMultiplier": float(core.get("relayMaxMultiplier", core.get("maxMultiplier", 1.0))),
 		"relayMaxBurnCombo": BuzzSystemScript.clamp_percent(int(core.get("relayMaxBurnCombo", core.get("maxBurnCombo", core.get("burnComboMax", 0))))),
+		"relayBossScoreAwarded": bool(core.get("relayBossScoreAwarded", false)),
+		"relayFinalBossReached": bool(core.get("relayFinalBossReached", false)),
+		"relayBossPhase": clampi(int(core.get("relayBossPhase", 0)), 0, 3),
+		"partnerId": String(core.get("partnerId", "")),
 		"currentComment": String(core.get("currentComment", "なし")),
 		"currentDeathText": String(core.get("currentDeathText", "発動中の指示コメなし")),
 		"lastDeathSource": String(core.get("lastDeathSource", "接触")),
 		"bossSummoned": bool(core.get("bossSummoned", false)),
 		"bossDefeated": bool(core.get("bossDefeated", false)),
+		"firstBossSpawned": bool(core.get("firstBossSpawned", false)),
+		"firstBossDefeated": bool(core.get("firstBossDefeated", false)),
+		"reignitionBossSpawned": bool(core.get("reignitionBossSpawned", false)),
+		"reignitionBossDefeated": bool(core.get("reignitionBossDefeated", false)),
+		"bossCount": clampi(int(core.get("bossCount", 0)), 0, 2),
 		"bossName": String(core.get("bossName", "")),
 		"bossResult": String(core.get("bossResult", "")),
 		"bossRewardViewer": int(core.get("bossRewardViewer", 0)),
@@ -317,6 +363,20 @@ static func build_run_stats(
 	}
 
 static func build_run_stats_from_target(reason: String, target: Node) -> Dictionary:
+	var hard_runtime_variant: Variant = target.get("difficulty_runtime")
+	var hard_state: Dictionary = {}
+	var is_hard_run := false
+	if hard_runtime_variant is Dictionary:
+		var runtime_data := hard_runtime_variant as Dictionary
+		hard_state = runtime_data.get("bossState", {}) as Dictionary
+		is_hard_run = String(runtime_data.get("difficulty", "normal")) == "hard"
+	var first_boss_defeated := bool(hard_state.get("firstBossDefeated", false))
+	var reignition_boss_defeated := bool(hard_state.get("secondBossDefeated", false))
+	var first_boss_spawned := bool(hard_state.get("firstBossSpawned", first_boss_defeated))
+	var reignition_boss_spawned := bool(hard_state.get("secondBossSpawned", reignition_boss_defeated))
+	var hard_boss_count := (1 if first_boss_defeated else 0) + (1 if reignition_boss_defeated else 0)
+	var relay_boss_phase := clampi(int(target.get("relay_boss_phase")), 0, 3)
+	var relay_boss_reached := bool(target.get("relay_boss_active")) or relay_boss_phase > 0 or bool(target.get("relay_boss_score_awarded")) or String(target.get("relay_flow_state")) == "PlayingBoss"
 	return build_run_stats(reason, {
 		"endType": String(target.get("pending_game_over_end_type")),
 		"elapsed": float(target.get("elapsed")),
@@ -331,6 +391,9 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"dangerCommentsChosen": int(target.get("danger_comments_chosen")),
 		"heartUsedCount": int(target.get("heart_used_count")),
 		"relayMode": bool(target.get("relay_mode")),
+		"relayBossScoreAwarded": bool(target.get("relay_boss_score_awarded")),
+		"relayFinalBossReached": relay_boss_reached,
+		"relayBossPhase": relay_boss_phase if relay_boss_reached else 0,
 		"relayClearedFrameCount": int(target.get("relay_cleared_frame_count")),
 		"relayCompletedFrameIds": (target.get("relay_completed_frame_ids") as Array).duplicate(),
 		"relayCompletedFrameNames": _frame_names_for_ids(target.get("relay_completed_frame_ids") as Array, target.get("stream_frames") as Array),
@@ -343,6 +406,13 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"lastDeathSource": String(target.get("last_death_source")),
 		"bossSummoned": bool(target.get("boss_summoned")),
 		"bossDefeated": bool(target.get("boss_defeated")),
+		"firstBossDefeated": first_boss_defeated,
+		"reignitionBossDefeated": reignition_boss_defeated,
+		"firstBossSpawned": first_boss_spawned,
+		"reignitionBossSpawned": reignition_boss_spawned,
+		"bossCount": hard_boss_count if is_hard_run else (1 if bool(target.get("boss_defeated")) else 0),
+		"difficultyId": String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else "normal",
+		"partnerId": String(target.get("collab_partner_id")),
 		"bossName": String(target.get("boss_last_name")),
 		"bossResult": String(target.get("boss_last_result")),
 		"bossRewardViewer": int(target.get("boss_reward_viewers")),
@@ -405,8 +475,11 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	result["modeName"] = "配信リレー" if relay_mode else ("テスト配信" if quick_test_mode else "通常配信")
 	result["difficultyId"] = String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else "normal"
 	result["stageId"] = "relay" if relay_mode else String(result.get("streamFrameId", ""))
-	result["isRankingEligible"] = (not quick_test_mode) and (not relay_mode or bool(target.get("relay_boss_score_awarded")))
-	result["isRelayRankingEligible"] = false
+	var hard_relay := relay_mode and String(result.get("difficultyId", "normal")) == "hard"
+	var relay_eligible := relay_mode and (hard_relay or bool(target.get("relay_boss_score_awarded")))
+	result["isRankingEligible"] = (not quick_test_mode) and (not relay_mode or relay_eligible)
+	result["isRelayRankingEligible"] = bool(result["isRankingEligible"]) and relay_mode
+	result["gameOver"] = String(result.get("endType", "")) == "mental_breakdown"
 	result["cleared"] = _is_cleared(result, quick_test_mode)
 	result["endType"] = result_end_type_for_stats(result, quick_test_mode)
 	result["playedAt"] = Time.get_datetime_string_from_system()
@@ -414,6 +487,14 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	if String(result["runId"]).strip_edges() == "":
 		result["runId"] = "%s_%d" % [String(result["playedAt"]).replace(":", "").replace("-", "").replace("T", "_"), int(result.get("score", 0))]
 	result = complete_run_stats(result)
+	# This is the single result-commit point for difficulty progression.  The
+	# system is run before the legacy normal-frame projection and carries a
+	# per-run guard so reward retries or result redraws cannot double-record it.
+	var difficulty_progress_result: Dictionary = DifficultyProgressSystemScript.record_result_for_target(target, result, quick_test_mode)
+	result["difficultyProgress"] = difficulty_progress_result
+	var difficulty_unlocks: Array = difficulty_progress_result.get("newlyUnlocked", []) as Array
+	if not difficulty_unlocks.is_empty():
+		result["difficultyUnlockMessage"] = "New difficulty unlocked: %s" % ", ".join(difficulty_unlocks)
 	var reward_commit := _commit_power_up_reward(result, target)
 	var committed_reward = reward_commit.get("reward", null)
 	var reward_data: Dictionary = committed_reward.to_dictionary() if committed_reward != null and committed_reward.has_method("to_dictionary") else {}
@@ -436,13 +517,13 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	var unlock_result: Dictionary = {"message": ""}
 	if not relay_mode:
 		unlock_result = StreamFrameSystem.clear_frame_for_target(target, result)
-	result["unlockMessage"] = String(unlock_result.get("message", ""))
+	var legacy_unlock_message := String(unlock_result.get("message", ""))
+	result["unlockMessage"] = legacy_unlock_message if legacy_unlock_message != "" else String(result.get("difficultyUnlockMessage", ""))
 	var result_data: Dictionary = build_result_data(result)
-	if relay_mode:
-		result["rankingText"] = RankingSystem.save_and_format_ranking(build_ranking_entry(result), bool(result["isRankingEligible"]))
-	else:
-		result["rankingText"] = RankingSystem.save_and_format_ranking(build_ranking_entry(result), bool(result["isRankingEligible"]))
+	var ranking_entry := build_relay_ranking_entry(result) if relay_mode else build_ranking_entry(result)
+	result["rankingText"] = RankingSystem.save_entry_and_format(ranking_entry, bool(result["isRankingEligible"]))
 	result_data["rankingText"] = String(result.get("rankingText", ""))
+	result_data["rankingRegistered"] = bool(result["isRankingEligible"]) and not String(result.get("rankingText", "")).contains("保存できません")
 	result["resultData"] = result_data
 	target.set("last_result_data", result_data)
 	result["resultText"] = build_result_text(result)
@@ -468,6 +549,8 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		(result.get("relayCompletedFrameIds", []) as Array)
 	)
 	input["difficultyId"] = String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else String(input.get("difficultyId", "normal"))
+	if input["difficultyId"] == "hard":
+		input["difficultyMultiplier"] = 1.20 if bool(result.get("cleared", false)) else 0.60
 	var profile: Dictionary = manager.profile as Dictionary
 	var reward = StreamPointRewardCalculatorScript.calculate(
 		input,
@@ -557,6 +640,14 @@ static func point_reward_display_rows(stream_reward: Dictionary, relay_mode: boo
 			"amount": amount,
 			"isOneTimeBonus": bool(entry["isOneTimeBonus"])
 		})
+	var field_gift_pp := int(stream_reward.get("fieldGiftPp", 0))
+	if field_gift_pp > 0:
+		subtotal += field_gift_pp
+		rows.append({"id": "field_gift_pp", "displayName": "フィールドギフト", "amount": field_gift_pp, "isOneTimeBonus": false})
+	var gift_conversion_pp := int(stream_reward.get("fallbackGiftPp", 0)) + int(stream_reward.get("fullBuildConversionPp", 0))
+	if gift_conversion_pp > 0:
+		subtotal += gift_conversion_pp
+		rows.append({"id": "gift_conversion_pp", "displayName": "ギフト変換", "amount": gift_conversion_pp, "isOneTimeBonus": false})
 	var total := int(stream_reward.get("totalPp", subtotal))
 	var adjustment := total - subtotal
 	if adjustment != 0:
@@ -601,10 +692,13 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"modeId": String(result.get("modeId", "")),
 		"modeName": String(result.get("modeName", "")),
 		"difficultyId": String(result.get("difficultyId", "normal")),
+		"difficulty": String(result.get("difficultyId", "normal")),
 		"relayMode": bool(result.get("relayMode", false)),
+		"stageId": String(result.get("stageId", result.get("streamFrameId", ""))),
 		"isRankingEligible": bool(result.get("isRankingEligible", false)),
 		"rankingRegistered": bool(result.get("isRankingEligible", false)),
 		"characterId": String(result.get("characterId", "")),
+		"partnerId": String(result.get("partnerId", "")),
 		"seniorUnitUnlocked": bool(result.get("seniorUnitUnlocked", false)),
 		"characterName": String(result.get("characterName", "配信者")),
 		"streamFrameId": String(result.get("streamFrameId", "")),
@@ -656,6 +750,9 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"bossName": String(result.get("bossName", "")),
 		"bossResult": String(result.get("bossResult", "")),
 		"bossRewardViewer": int(result.get("bossRewardViewer", 0)),
+		"boss": {"firstBossSpawned": bool(result.get("firstBossSpawned", false)), "firstBossDefeated": bool(result.get("firstBossDefeated", false)), "reignitionBossSpawned": bool(result.get("reignitionBossSpawned", false)), "reignitionBossDefeated": bool(result.get("reignitionBossDefeated", false)), "defeatedCount": clampi(int(result.get("bossCount", 0)), 0, 2)},
+		"selectedHighDifficultyCommentCount": int(result.get("dangerCommentsChosen", 0)),
+		"relay": {"reachedSectionIndex": clampi(int(result.get("relayClearedFrameCount", 0)), 0, 5), "reachedStageId": String(result.get("streamFrameId", "")), "reachedFinalBoss": bool(result.get("relayFinalBossReached", false)), "finalBossPhase": clampi(int(result.get("relayBossPhase", 0)), 0, 3), "finalBossDefeated": bool(result.get("relayBossScoreAwarded", false))},
 		"marshmallowReadCount": int(result.get("marshmallowReadCount", 0)),
 		"goodMaroCount": int(result.get("goodMaroCount", 0)),
 		"godMaroCount": int(result.get("godMaroCount", 0)),
@@ -790,11 +887,16 @@ static func _is_cleared(stats: Dictionary, quick_test_mode: bool) -> bool:
 
 
 static func _is_relay_completed(stats: Dictionary) -> bool:
+	return bool(stats.get("relayBossScoreAwarded", false))
+	# Reaching the final-boss arena is not a relay clear. The target flag is
+	# set only after the final boss defeat awards the relay score.
+	if bool(stats.get("relayBossScoreAwarded", false)):
+		return true
 	if String(stats.get("reason", "")).contains("完走"):
 		return true
 	if bool(stats.get("isRelayCompleted", false)):
 		return true
-	return int(stats.get("relayClearedFrameCount", 0)) >= 5 and String(stats.get("streamFrameId", "")) == "collab"
+	return false
 
 
 static func _frame_names_for_ids(ids: Array, frames: Array) -> Array[String]:

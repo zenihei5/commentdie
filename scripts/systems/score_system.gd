@@ -2,6 +2,7 @@ extends RefCounted
 class_name ScoreSystem
 
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 static func genre_score_rate(streaming_skill_level: int) -> float:
 	return 1.0 + 0.1 * float(streaming_skill_level)
@@ -13,6 +14,8 @@ static func exp_collect_bonus(like_score_level: int, collected_count: int) -> in
 	return like_score_level * 6 * collected_count
 
 static func enemy_score(enemy: Dictionary, context: Dictionary) -> int:
+	if bool(enemy.get("scoreDisabled", false)):
+		return 0
 	var multiplier: float = float(context.get("multiplier", 1.0))
 	var burn_combo: int = int(context.get("burnCombo", 0))
 	var gift_bonus: float = 1.0
@@ -29,7 +32,8 @@ static func enemy_score(enemy: Dictionary, context: Dictionary) -> int:
 	var combo_bonus: float = BuzzSystemScript.score_multiplier(burn_combo)
 	var passive_rate: float = float(context.get("passiveScoreRate", 1.0))
 	var enemy_score_multiplier: float = float(enemy.get("scoreMultiplier", 1.0))
-	return int(float(enemy["score"]) * enemy_score_multiplier * multiplier * combo_bonus * gift_bonus * passive_rate)
+	var difficulty_rate := float(context.get("difficultyRate", 1.0))
+	return int(float(enemy["score"]) * enemy_score_multiplier * multiplier * combo_bonus * gift_bonus * passive_rate * difficulty_rate)
 
 static func enemy_score_for_target(target: Node, enemy: Dictionary) -> int:
 	var challenge_bonus := 0.0
@@ -44,5 +48,6 @@ static func enemy_score_for_target(target: Node, enemy: Dictionary) -> int:
 		"zeroTauntResist": target.get("zero_taunt_resist"),
 		"genreActive": String(target.get("active_genre_event")) != "",
 		"streamingSkillLevel": target.get("streaming_skill_level"),
-		"passiveScoreRate": target.get("passive_score_rate")
+		"passiveScoreRate": target.get("passive_score_rate"),
+		"difficultyRate": HardModeSystemScript.temporary_score_rate(HardModeSystemScript.runtime_for_target(target), float(target.get("active_comment_score_rate"))) if not bool(enemy.get("isBoss", false)) and not bool(enemy.get("relayBoss", false)) else 1.0
 	})

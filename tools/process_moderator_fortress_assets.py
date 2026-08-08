@@ -4,9 +4,10 @@ import hashlib
 import json
 import shutil
 import tempfile
+from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 from process_new_character_assets import (
     alpha_stats,
@@ -32,6 +33,11 @@ ASSETS = {
     "trail": "moderator_fortress_trail.png",
     "bulletBreak": "moderator_fortress_bullet_break.png",
     "shockwaveCharged": "moderator_fortress_shockwave_charged.png",
+}
+
+PANEL_ASSETS = {
+    "panelCenter": "moderator_fortress_panel_center.png",
+    "panelSide": "moderator_fortress_panel_side.png",
 }
 
 
@@ -61,6 +67,70 @@ def green_residual_pixels(image: Image.Image) -> int:
         if a > 8 and g >= 90 and g - max(r, b) >= 24 and g >= int(r * 1.18) and g >= int(b * 1.14):
             count += 1
     return count
+
+
+def is_neutral_dark_background(r: int, g: int, b: int) -> bool:
+    """Match the supplied gray/black backdrop, not the blue shield interior."""
+    spread = max(r, g, b) - min(r, g, b)
+    return spread <= 42 and max(r, g, b) <= 225
+
+
+def remove_connected_dark_background(image: Image.Image) -> Image.Image:
+    """Remove only neutral pixels connected to the border of the panel asset."""
+    rgba = image.convert("RGBA")
+    rgb = rgba.convert("RGB")
+    pixels = rgb.load()
+    width, height = rgb.size
+    visited = bytearray(width * height)
+    background = Image.new("L", rgb.size, 0)
+    background_pixels = background.load()
+    queue: deque[tuple[int, int]] = deque()
+
+    for x in range(width):
+        queue.append((x, 0))
+        queue.append((x, height - 1))
+    for y in range(height):
+        queue.append((0, y))
+        queue.append((width - 1, y))
+
+    while queue:
+        x, y = queue.pop()
+        index = y * width + x
+        if visited[index]:
+            continue
+        visited[index] = 1
+        r, g, b = pixels[x, y]
+        if not is_neutral_dark_background(r, g, b):
+            continue
+        background_pixels[x, y] = 255
+        if x > 0:
+            queue.append((x - 1, y))
+        if x + 1 < width:
+            queue.append((x + 1, y))
+        if y > 0:
+            queue.append((x, y - 1))
+        if y + 1 < height:
+            queue.append((x, y + 1))
+
+    near_background = background.filter(ImageFilter.MaxFilter(5))
+    rgba_pixels = rgba.load()
+    near_pixels = near_background.load()
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = rgba_pixels[x, y]
+            if background_pixels[x, y] > 0:
+                rgba_pixels[x, y] = (0, 0, 0, 0)
+                continue
+            if near_pixels[x, y] > 0 and is_neutral_dark_background(r, g, b):
+                rgba_pixels[x, y] = (r, g, b, 0)
+
+    rgba.putalpha(rgba.getchannel("A").filter(ImageFilter.GaussianBlur(0.35)))
+    rgba_pixels = rgba.load()
+    for y in range(height):
+        for x in range(width):
+            if rgba_pixels[x, y][3] < 4:
+                rgba_pixels[x, y] = (0, 0, 0, 0)
+    return rgba
 
 
 def checkerboard(size: tuple[int, int], cell: int = 12) -> Image.Image:
@@ -129,10 +199,42 @@ def main() -> None:
             }
         )
 
+    panel_source_dir = Path.home() / "Desktop" / "ぜんぶコメントのせいだ設定"
+    for asset_id, source_name in PANEL_ASSETS.items():
+        source_path = panel_source_dir / source_name
+        if not source_path.exists():
+            raise FileNotFoundError(source_path)
+        backup_path = BACKUP_DIR / source_name
+        if not backup_path.exists():
+            shutil.copy2(source_path, backup_path)
+
+        original = Image.open(source_path).convert("RGBA")
+        cleaned = remove_connected_dark_background(original)
+        trimmed, bounds = trim_transparent(cleaned, padding=16)
+        output_path = OUTPUT_DIR / source_name
+        trimmed.save(output_path, optimize=True)
+        processed.append((asset_id, trimmed))
+        manifest_assets.append(
+            {
+                "id": asset_id,
+                "sourceFile": source_name,
+                "sourceBackup": backup_path.relative_to(ROOT).as_posix(),
+                "output": output_path.relative_to(ROOT).as_posix(),
+                "sourceSha256": sha256(source_path),
+                "backupSha256": sha256(backup_path),
+                "originalSize": list(original.size),
+                "contentBoundsInSource": list(bounds),
+                "outputSize": list(trimmed.size),
+                "borderOpaquePixels": border_opaque_pixels(trimmed),
+                "greenResidualPixels": green_residual_pixels(trimmed),
+                **alpha_stats(trimmed),
+            }
+        )
+
     manifest = {
         "schemaVersion": 1,
         "processing": {
-            "method": "border-connected green chroma key with local edge despill",
+            "method": "border-connected green chroma key with local edge despill; panel assets use border-connected neutral dark-background removal",
             "tightCropPadding": 16,
             "resized": False,
         },

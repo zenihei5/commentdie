@@ -3,6 +3,7 @@ extends RefCounted
 
 const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 static func aliases() -> Dictionary:
 	return {
@@ -11,9 +12,9 @@ static func aliases() -> Dictionary:
 		"enemy_spawn_up": "more_spawns",
 		"comment_barrage": "comment_storm",
 		"temp_walls": "random_walls",
-		"camera_zoom": "zoom_in",
-		"kamiyoyaku": "god_reservation"
-	}
+	"camera_zoom": "zoom_in",
+	"kamiyoyaku": "god_reservation"
+}
 
 static func has_effect(active_effects: Array[String], id: String) -> bool:
 	if active_effects.has(id):
@@ -184,6 +185,11 @@ static func apply_choice_numbers_to_target(target: Node, view: Dictionary) -> Di
 
 static func start_comment_for_target(target: Node, comment: Dictionary, view: Dictionary, has_heart: bool, rng: RandomNumberGenerator, sub_comments: Array = [], sub_heart_cards: Array = []) -> Dictionary:
 	var activation: Dictionary = build_activation(comment, has_heart, rng, sub_comments, sub_heart_cards)
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	if runtime_value is Dictionary:
+		var runtime: Dictionary = runtime_value as Dictionary
+		runtime["activeComment"] = view.duplicate(true)
+		runtime["activeCommentView"] = view.duplicate(true)
 	target.set("active_effects", activation["effects"] as Array[String])
 	target.set("active_effect_rates", activation["rates"] as Dictionary)
 	if String(comment["id"]) == "do_everything":
@@ -208,6 +214,7 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 		var instruction: Dictionary = relay_config.get("instruction", {}) as Dictionary
 		effect_duration = float(instruction.get("effectTime", 15.0))
 	target.set("effect_timer", effect_duration)
+	target.set("active_comment_score_rate", float(view.get("scoreRate", 1.0)))
 	if int(target.get("reentry_barrier_level")) > 0:
 		var barrier_time: float = 0.8 + 0.3 * float(target.get("reentry_barrier_level"))
 		target.set("invincible", maxf(float(target.get("invincible")), barrier_time))
@@ -299,6 +306,11 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 	if has_effect(active, "random_walls"):
 		var player_pos: Vector2 = Vector2(target.get("player_pos"))
 		var wall_count: int = rng.randi_range(7, 9)
+		var runtime_value: Variant = target.get("difficulty_runtime")
+		if runtime_value is Dictionary:
+			var runtime: Dictionary = runtime_value as Dictionary
+			var wall_add: int = int(round(HardModeSystemScript.active_comment_param(runtime, "wallCountAdd", 0.0))) if HardModeSystemScript.is_hard_runtime(runtime) else 0
+			wall_count += wall_add
 		var min_player_distance: float = 150.0
 		for i in range(wall_count):
 			var wall_size: Vector2 = Vector2.ZERO
@@ -316,7 +328,14 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 					break
 			walls.append(Rect2(wall_pos, wall_size))
 	if has_effect(active, "damage_pits"):
-		for i in range(7):
+		var pit_count := 7
+		var pit_cap := 999
+		var pit_runtime_value: Variant = target.get("difficulty_runtime")
+		if pit_runtime_value is Dictionary and HardModeSystemScript.is_hard_runtime(pit_runtime_value as Dictionary):
+			var pit_runtime: Dictionary = pit_runtime_value as Dictionary
+			pit_count += int(round(HardModeSystemScript.active_comment_param(pit_runtime, "pitCountAdd", 0.0)))
+			pit_cap = maxi(1, int(round(HardModeSystemScript.active_comment_param(pit_runtime, "activeCap", 999.0)))) if HardModeSystemScript.active_comment_param(pit_runtime, "activeCap", 999.0) < 999.0 else 999
+		for i in range(mini(pit_count, pit_cap)):
 			var p := Vector2(rng.randf_range(arena.position.x + 80, arena.end.x - 80), rng.randf_range(arena.position.y + 80, arena.end.y - 80))
 			pits.append({"pos": p, "radius": rng.randf_range(24, 42)})
 
@@ -379,13 +398,17 @@ static func clear_state(context: Dictionary) -> Dictionary:
 		"activeCommentHurt": false
 	}
 
-static func clear_state_for_target(target: Node) -> Dictionary:
+static func clear_state_for_target(target: Node, suppress_clear_bonus: bool = false) -> Dictionary:
 	var clear_state_result: Dictionary = clear_state({
 		"giftHype": target.get("gift_hype"),
 		"maxGiftHype": target.get("max_gift_hype"),
-		"pendingClearHype": target.get("pending_clear_hype"),
+		"pendingClearHype": 0 if suppress_clear_bonus else target.get("pending_clear_hype"),
 		"activeCommentHurt": target.get("active_comment_hurt")
 	})
+	if suppress_clear_bonus:
+		clear_state_result["clearBonus"] = false
+		clear_state_result["pendingClearHype"] = 0
+		clear_state_result["activeCommentHurt"] = false
 	if bool(target.get("relay_mode")):
 		clear_state_result["clearBonus"] = false
 		clear_state_result["pendingClearHype"] = 0
@@ -402,8 +425,21 @@ static func clear_state_for_target(target: Node) -> Dictionary:
 	target.set("last_comment_id", String(clear_state_result["lastCommentId"]))
 	if target.get("active_sub_comment_ids") != null:
 		(target.get("active_sub_comment_ids") as Array).clear()
-	(target.get("recent_comment_categories") as Array).clear()
+	if target.get("recent_comment_categories") != null:
+		(target.get("recent_comment_categories") as Array).clear()
 	target.set("multiplier", float(clear_state_result["multiplier"]))
 	target.set("pending_clear_hype", int(clear_state_result["pendingClearHype"]))
 	target.set("active_comment_hurt", bool(clear_state_result["activeCommentHurt"]))
+	target.set("active_comment_score_rate", 1.0)
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	if runtime_value is Dictionary:
+		var runtime: Dictionary = runtime_value as Dictionary
+		var active_dangers: Dictionary = runtime.get("dangerCategories", {}) as Dictionary
+		for category in active_dangers.keys():
+			if String((active_dangers[category] as Dictionary).get("owner", "")) == "hard_comment":
+				active_dangers.erase(category)
+		runtime["dangerCategories"] = active_dangers
+		runtime["activeComment"] = {}
+		runtime["activeCommentView"] = {}
+		runtime["pendingCommentWave"] = {}
 	return clear_state_result

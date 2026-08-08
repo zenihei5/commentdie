@@ -22,18 +22,29 @@ func _run_test() -> void:
 	}])
 	var shield_data: Dictionary = shield[0] as Dictionary
 	var shield_roles := _roles(shield_data)
-	_check(shield_roles.has("trail") and shield_roles.has("body"), "shield body/trail layers missing", failures)
-	_check(String(_layer_by_role(shield_data, "trail").get("drawLayer", "")) == "back", "shield trail layer is not back", failures)
+	_check(shield_roles.has("body"), "shield body layer missing", failures)
+	_check(not shield_roles.has("trail") and not shield_visuals.has("trail") and not bool(shield_data.get("legacyTrailEffect", true)), "shield retained its legacy projectile trail", failures)
 	_check(is_equal_approx(float(_layer_by_role(shield_data, "body").get("rotation", 0.0)), 0.0), "shield right-facing rotation changed", failures)
 	var shield_image_parts := DrawDataSystem.hit_fx_procedural_parts(shield_data, {"body": true}, {})
-	_check(shield_image_parts.is_empty(), "shield procedural frame was not suppressed after body image load", failures)
+	_check(shield_image_parts.size() == 4, "shield idle field detail disappeared after body image load", failures)
 	var shield_fallback_parts := DrawDataSystem.hit_fx_procedural_parts(shield_data, {}, {})
-	_check(shield_fallback_parts.size() == 3, "shield procedural fallback disappeared when body image is missing", failures)
+	_check(shield_fallback_parts.size() == 6, "shield procedural fallback disappeared when body image is missing", failures)
+	var shield_deploy := DrawDataSystem.hit_fx_draw_data([{"kind": "moderator_shield_deploy", "pos": Vector2.ZERO, "dir": Vector2.RIGHT, "life": 0.16, "maxLife": 0.16, "visuals": shield_visuals}])
+	_check(DrawDataSystem.hit_fx_procedural_parts(shield_deploy[0] as Dictionary).size() == 4, "shield construction effect missing", failures)
+	var shield_end := DrawDataSystem.hit_fx_draw_data([{"kind": "moderator_shield_end", "pos": Vector2.ZERO, "dir": Vector2.RIGHT, "life": 0.08, "maxLife": 0.16, "arcDegrees": 100.0, "radius": 80.0, "visuals": shield_visuals}])
+	_check(float(_layer_by_role(shield_end[0] as Dictionary, "body").get("alpha", 1.0)) < 1.0, "shield end image did not fade", failures)
 	var shield_down := DrawDataSystem.hit_fx_draw_data([{
 		"kind": "moderator_shield_active", "pos": Vector2.ZERO, "dir": Vector2.DOWN,
 		"progress": 0.5, "life": 0.5, "maxLife": 0.7, "width": 130.0, "thickness": 48.0, "visuals": shield_visuals
 	}])
 	_check(is_equal_approx(float((_layer_by_role(shield_down[0] as Dictionary, "body")).get("rotation", 0.0)), PI * 0.5), "shield direction rotation missing", failures)
+	var shield_left := DrawDataSystem.hit_fx_draw_data([{
+		"kind": "moderator_shield_active", "pos": Vector2.ZERO, "dir": Vector2.LEFT,
+		"progress": 0.5, "life": 0.5, "maxLife": 0.7, "width": 130.0, "thickness": 48.0, "visuals": shield_visuals
+	}])
+	var shield_left_body := _layer_by_role(shield_left[0] as Dictionary, "body")
+	_check(bool(shield_left_body.get("flipX", false)), "shield left-facing image was not mirrored", failures)
+	_check(is_equal_approx(float(shield_left_body.get("rotation", PI)), 0.0), "shield left-facing image remained upside down", failures)
 	var wave_level_1 := DrawDataSystem.hit_fx_draw_data([{"kind": "moderator_shield_end_wave", "pos": Vector2.ZERO, "dir": Vector2.RIGHT, "level": 1, "life": 0.20, "maxLife": 0.24, "width": 150.0, "depth": 26.0, "visuals": shield_visuals}])
 	_check(not _roles(wave_level_1[0] as Dictionary).has("endShockwave"), "Lv1 shield showed end shockwave", failures)
 	var wave_level_5 := DrawDataSystem.hit_fx_draw_data([{"kind": "moderator_shield_end_wave", "pos": Vector2.ZERO, "dir": Vector2.RIGHT, "level": 5, "life": 0.20, "maxLife": 0.24, "width": 150.0, "depth": 26.0, "visuals": shield_visuals}])
@@ -72,11 +83,13 @@ func _run_test() -> void:
 	var line: Dictionary = (rod_data.get("imageLines", []) as Array)[0] as Dictionary
 	_check((line.get("to", Vector2.ZERO) as Vector2) == lure_pos, "rod line does not end at lure", failures)
 	_check((line.get("from", Vector2.ZERO) as Vector2) != player_pos, "rod line ignores rotated tip", failures)
+	_check((rod_data.get("lineStart", Vector2.ZERO) as Vector2) == (line.get("from", Vector2.ZERO) as Vector2), "rod fallback line does not start at the rod tip", failures)
+	_check((rod_data.get("lineEnd", Vector2.ZERO) as Vector2) == lure_pos, "rod fallback line does not end at the lure", failures)
 	_check(((_layer_by_role(rod_data, "lure")).get("pos", Vector2.ZERO) as Vector2) == lure_pos, "rod lure is not at runtime position", failures)
 	var rod_line_parts := DrawDataSystem.hit_fx_procedural_parts(rod_data, {}, {"line": true})
 	for part_item in rod_line_parts:
 		var part: Dictionary = part_item as Dictionary
-		_check(not ["line", "reel"].has(String(part.get("prefix", ""))), "rod procedural line/reel was not suppressed", failures)
+		_check(not ["line", "speed", "reel"].has(String(part.get("prefix", ""))), "rod retained an extra procedural line", failures)
 	var rod_lure_parts := DrawDataSystem.hit_fx_procedural_parts(rod_data, {"lure": true}, {})
 	for part_item in rod_lure_parts:
 		var part: Dictionary = part_item as Dictionary

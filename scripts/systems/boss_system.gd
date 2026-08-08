@@ -1,6 +1,9 @@
 class_name BossSystem
 extends RefCounted
 
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
+const GiftSystemScript := preload("res://scripts/systems/gift_system.gd")
+
 const BOSS_SUPER_LONG_COMMENT := "boss_super_long_comment"
 const BOSS_KUSO_MARO_KING := "boss_kuso_maro_king"
 const BOSS_BUGGED_FINAL_BOSS := "bugged_final_boss"
@@ -187,6 +190,9 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		elif bool(boss.get("cutinIntroLocked", false)):
 			return feedback
 		elif not bool(boss.get("defeatPending", false)):
+			if HardModeSystemScript.is_hard_target(target):
+				var hard_ratio := float(boss.get("hp", 1.0)) / maxf(1.0, float(boss.get("max_hp", 1.0)))
+				boss["hardPhase"] = 2 if hard_ratio <= float(boss.get("hardPhase2HpRate", 0.50)) else 1
 			var life: float = float(boss.get("bossLifetimeElapsed", 0.0)) + delta
 			boss["bossLifetimeElapsed"] = life
 			if life >= float(boss.get("bossLifetime", 45.0)):
@@ -271,6 +277,7 @@ static func spawn_prepared_for_target(target: Node, prepared: Dictionary) -> Dic
 		"max_hp": max_hp,
 		"speed": boss_speed(data),
 		"radius": float(data.get("radius", 78.0)),
+		"hurtboxRadius": maxf(0.0, float(data.get("hurtboxRadius", data.get("weaponHurtRadius", data.get("radius", 78.0))))),
 		"contactDamage": int(data.get("contactDamage", DamageSystem.BOSS_CONTACT_DAMAGE)),
 		"score": int(data.get("viewerValue", 3000)),
 		"exp": int(data.get("expValue", 20)),
@@ -299,12 +306,33 @@ static func spawn_prepared_for_target(target: Node, prepared: Dictionary) -> Dic
 		"cutinIntroPoseId": String(prepared.get("introPoseId", "generic")),
 		"cutinIntroPoseProgress": 0.0
 	}
+	boss["spawnSource"] = "boss"
+	boss["spawnPriority"] = HardModeSystemScript.spawn_priority_for_source("boss")
+	boss["occupancyManaged"] = false
 	if boss_id == BOSS_BUGGED_FINAL_BOSS:
 		initialize_bugged_final_boss_state(boss, spawn_rng)
 	if boss_id == BOSS_PITCH_POLICE_CHIEF:
 		initialize_pitch_police_chief_state(boss, spawn_rng)
 	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
 		initialize_red_pen_review_chief_state(boss, spawn_rng)
+	if HardModeSystemScript.is_hard_target(target):
+		var runtime := HardModeSystemScript.runtime_for_target(target)
+		var hard_role := HardModeSystemScript.boss_role_for_target(target)
+		HardModeSystemScript.apply_boss_runtime_stats(boss, runtime, hard_role)
+		var boss_rates := HardModeSystemScript.boss_rates(runtime, hard_role)
+		boss["bossViewerReward"] = int(round(float(boss.get("bossViewerReward", boss.get("score", 0))) * float(boss_rates.get("scoreRate", 1.0))))
+		boss["hardPpRate"] = float(boss_rates.get("scoreRate", 1.0))
+		var hard_actions: Dictionary = {}
+		var runtime_config: Variant = runtime.get("difficultyConfig", {})
+		if runtime_config is Dictionary:
+			var boss_config: Variant = (runtime_config as Dictionary).get("boss", {})
+			if boss_config is Dictionary:
+				var configured_actions: Variant = (boss_config as Dictionary).get("hardActions", {})
+				if configured_actions is Dictionary:
+					hard_actions = configured_actions as Dictionary
+		boss["hardPhase2ActionId"] = String(hard_actions.get(String(target.get("current_stream_frame_id")), ""))
+		boss["bossLifetime"] = INF
+		boss["hardPhase"] = 1
 	var enemies: Array = target.get("enemies") as Array
 	enemies.append(boss)
 	target.set("enemies", enemies)
@@ -319,6 +347,8 @@ static func spawn_prepared_for_target(target: Node, prepared: Dictionary) -> Dic
 	target.set("boss_summoned", true)
 	target.set("boss_last_name", boss_name)
 	target.set("boss_last_result", "active")
+	if HardModeSystemScript.is_hard_target(target) and HardModeSystemScript.boss_role_for_target(target) == "reignition":
+		target.set("boss_defeated", false)
 	if boss_id == BOSS_COLLAB_CRUSHER and target.has_method("_on_collab_crusher_boss_started"):
 		target.call("_on_collab_crusher_boss_started", boss, arena)
 	var spawn_feedback: Dictionary = {
@@ -407,7 +437,10 @@ static func apply_defeat_for_target(target: Node, boss: Dictionary) -> Dictionar
 	var gift_hype: int = clampi(int(target.get("gift_hype")) + hype_reward, 0, 100)
 	target.set("gift_hype", gift_hype)
 	target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), gift_hype))
-	target.set("pending_gift_choices", int(target.get("pending_gift_choices")) + 1)
+	if target.has_method("_enqueue_gift_request"):
+		target.call("_enqueue_gift_request", "boss_defeat", "normal", true, false, true)
+	else:
+		GiftSystemScript.enqueue_gift_request(target, "boss_defeat", "normal", true, false, true)
 	target.set("gift_choice_delay_timer", maxf(float(target.get("gift_choice_delay_timer")), BOSS_DEFEAT_GIFT_DELAY))
 	target.set("boss_active", false)
 	target.set("boss_requested", false)
@@ -539,6 +572,13 @@ static func boss_data_for_target(target: Node, boss_id: String) -> Dictionary:
 
 static func boss_id_for_target(target: Node) -> String:
 	var stream_frame_id: String = String(target.get("current_stream_frame_id"))
+	if HardModeSystemScript.is_hard_target(target):
+		var configured_id := HardModeSystemScript.boss_id_for_stage(
+			HardModeSystemScript.runtime_for_target(target),
+			stream_frame_id
+		)
+		if configured_id != "":
+			return configured_id
 	if stream_frame_id == "zatsudan":
 		return BOSS_KUSO_MARO_KING
 	if stream_frame_id == "gameplay":
@@ -835,6 +875,7 @@ static func update_pitch_police_chief_for_target(
 	boss["ignoreMovementWalls"] = true
 	boss["pos"] = EnemySystem.clamp_enemy_pos_to_arena_for_enemy(boss, Vector2(boss.get("pos", Vector2.ZERO)), arena)
 	var base_speed: float = float(boss.get("baseSpeed", boss.get("speed", 52.0)))
+	var action_delta := HardModeSystemScript.boss_action_delta_for_target(target, boss, delta)
 	var state := String(boss.get("pitchChiefState", PITCH_CHIEF_STATE_NORMAL))
 	if state == PITCH_CHIEF_STATE_STUN:
 		boss["speed"] = 0.0
@@ -868,8 +909,8 @@ static func update_pitch_police_chief_for_target(
 			finish_pitch_chorus_judge_for_target(target, boss, false, chats, toasts, comment_event_ids)
 		return
 	boss["speed"] = base_speed
-	update_pitch_chief_normal_attacks_for_target(target, boss, delta, arena, rng, chats, comment_event_ids)
-	var normal_left := maxf(0.0, float(boss.get("pitchChiefStateTimer", 0.0)) - delta)
+	update_pitch_chief_normal_attacks_for_target(target, boss, action_delta, arena, rng, chats, comment_event_ids)
+	var normal_left := maxf(0.0, float(boss.get("pitchChiefStateTimer", 0.0)) - action_delta)
 	boss["pitchChiefStateTimer"] = normal_left
 	if normal_left <= 0.0:
 		enter_pitch_chorus_judge_telegraph(target, boss, rng, chats, toasts, comment_event_ids)
@@ -923,15 +964,16 @@ static func spawn_pitch_chief_red_check_bullets_for_target(target: Node, boss: D
 			"life": 4.2,
 			"hitRadius": 18.0,
 			"source": "boss_bullet",
-			"damage": PITCH_CHIEF_BULLET_DAMAGE,
-			"visualKind": "pitch_police_note"
+			"damage": HardModeSystemScript.regular_boss_damage_for_target(target, PITCH_CHIEF_BULLET_DAMAGE),
+			"visualKind": "pitch_police_note",
+			"shieldBlockable": true
 		})
 	target.set("enemy_bullets", bullets)
 
 static func spawn_pitch_chief_pitch_waves_for_target(target: Node, arena: Rect2, count: int, chats: Array[String], comment_event_ids: Array[String]) -> void:
 	for _i in range(maxi(1, count)):
 		if target.has_method("_spawn_song_pitch_wave"):
-			target.call("_spawn_song_pitch_wave", arena)
+			target.call("_spawn_song_pitch_wave", arena, true)
 	if not comment_event_ids.has("song_boss_pitch_wave"):
 		comment_event_ids.append("song_boss_pitch_wave")
 	chats.append("! 音程ズレ波！")
@@ -945,7 +987,7 @@ static func spawn_pitch_chief_megaphone_wave_for_target(target: Node, boss: Dict
 		dir = Vector2.RIGHT
 	else:
 		dir = dir.normalized()
-	target.call("_spawn_song_boss_megaphone_wave", origin, dir, PITCH_CHIEF_MEGAPHONE_RANGE, PITCH_CHIEF_MEGAPHONE_ANGLE, 0.7, 0.5, PITCH_CHIEF_MEGAPHONE_DAMAGE, 0.7)
+	target.call("_spawn_song_boss_megaphone_wave", origin, dir, PITCH_CHIEF_MEGAPHONE_RANGE, PITCH_CHIEF_MEGAPHONE_ANGLE, 0.7, 0.5, HardModeSystemScript.regular_boss_damage_for_target(target, PITCH_CHIEF_MEGAPHONE_DAMAGE), 0.7)
 	if not comment_event_ids.has("song_boss_megaphone_wave"):
 		comment_event_ids.append("song_boss_megaphone_wave")
 	chats.append("! メガホン注意！")
@@ -1052,17 +1094,18 @@ static func update_red_pen_review_chief_for_target(
 	boss["pos"] = EnemySystem.clamp_enemy_pos_to_arena_for_enemy(boss, Vector2(boss.get("pos", Vector2.ZERO)), arena)
 	var base_speed: float = float(boss.get("baseSpeed", boss.get("speed", 54.0)))
 	boss["speed"] = base_speed
+	var action_delta := HardModeSystemScript.boss_action_delta_for_target(target, boss, delta)
 	boss["redPenBulletCastFx"] = maxf(0.0, float(boss.get("redPenBulletCastFx", 0.0)) - delta)
 	boss["redPenLineCastFx"] = maxf(0.0, float(boss.get("redPenLineCastFx", 0.0)) - delta)
 	boss["redPenSummonCastFx"] = maxf(0.0, float(boss.get("redPenSummonCastFx", 0.0)) - delta)
 	var phase := red_pen_review_phase(boss)
-	var bullet_timer := float(boss.get("redPenBulletTimer", 1.2)) - delta
+	var bullet_timer := float(boss.get("redPenBulletTimer", 1.2)) - action_delta
 	if bullet_timer <= 0.0:
 		spawn_red_pen_bullets_for_target(target, boss, rng, 5 if phase >= 3 else (4 if phase >= 2 else 3))
 		boss["redPenBulletCastFx"] = RED_PEN_BULLET_CAST_FX_DURATION
 		bullet_timer = rng.randf_range(1.05, 1.45) if phase >= 3 else rng.randf_range(1.35, 1.95)
 	boss["redPenBulletTimer"] = bullet_timer
-	var line_timer := float(boss.get("redPenLineTimer", 4.0)) - delta
+	var line_timer := float(boss.get("redPenLineTimer", 4.0)) - action_delta
 	if line_timer <= 0.0:
 		spawn_red_pen_review_lines_for_target(target, boss, arena, rng, 2 if phase >= 3 else 1)
 		boss["redPenLineCastFx"] = RED_PEN_LINE_CAST_FX_DURATION
@@ -1071,7 +1114,7 @@ static func update_red_pen_review_chief_for_target(
 			comment_event_ids.append("drawing_boss_review_line")
 		chats.append("! 添削ライン注意")
 	boss["redPenLineTimer"] = line_timer
-	var summon_timer := float(boss.get("redPenSummonTimer", 7.0)) - delta
+	var summon_timer := float(boss.get("redPenSummonTimer", 7.0)) - action_delta
 	if summon_timer <= 0.0:
 		spawn_red_pen_fix_notes_for_target(target, boss, arena, rng, 2 if phase >= 2 else 1)
 		boss["redPenSummonCastFx"] = RED_PEN_SUMMON_CAST_FX_DURATION
@@ -1105,9 +1148,10 @@ static func spawn_red_pen_bullets_for_target(target: Node, boss: Dictionary, rng
 			"life": 4.0,
 			"hitRadius": 18.0,
 			"source": "boss_bullet",
-			"damage": RED_PEN_BULLET_DAMAGE,
+			"damage": HardModeSystemScript.regular_boss_damage_for_target(target, RED_PEN_BULLET_DAMAGE),
 			"visualKind": "red_pen_mark",
 			"bossProjectile": true,
+			"shieldBlockable": true,
 			"phase": rng.randf_range(0.0, TAU),
 			"erasableByPinkPaint": true
 		})
@@ -1134,7 +1178,7 @@ static func spawn_red_pen_review_lines_for_target(target: Node, boss: Dictionary
 			"maxTimer": 0.76,
 			"flashLife": 0.16,
 			"width": RED_PEN_REVIEW_LINE_WIDTH,
-			"damage": RED_PEN_REVIEW_LINE_DAMAGE,
+			"damage": HardModeSystemScript.regular_boss_damage_for_target(target, RED_PEN_REVIEW_LINE_DAMAGE),
 			"visualKind": "red_pen_review",
 			"phase": rng.randf_range(0.0, TAU),
 			"hit": false
@@ -1145,14 +1189,15 @@ static func spawn_red_pen_fix_notes_for_target(target: Node, boss: Dictionary, a
 	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
 	var radius := float(boss.get("radius", 100.0))
 	var hit_fx: Array = target.get("hit_fx") as Array
-	for i in range(maxi(1, count)):
+	var summon_count := HardModeSystemScript.regular_boss_summon_count_for_target(target, count)
+	for i in range(summon_count):
 		var angle := rng.randf_range(0.0, TAU)
 		var distance := rng.randf_range(radius + 54.0, radius + 150.0)
 		var pos := boss_pos + Vector2(cos(angle), sin(angle)) * distance
 		pos.x = clampf(pos.x, arena.position.x + 48.0, arena.end.x - 48.0)
 		pos.y = clampf(pos.y, arena.position.y + 48.0, arena.end.y - 48.0)
 		hit_fx.append({"kind": "pink_paint_cancel", "pos": pos, "life": 0.26, "maxLife": 0.26})
-		EnemySystem.spawn_enemy_for_target(target, "drawing_fix_note", arena, rng, pos)
+		EnemySystem.spawn_enemy_for_target(target, "drawing_fix_note", arena, rng, pos, "", "", "", "boss_summon")
 	hit_fx.append({
 		"kind": "pickup_text",
 		"pos": boss_pos + Vector2(-54.0, -radius * 0.92),
@@ -1219,6 +1264,7 @@ static func update_bugged_final_boss_for_target(
 	boss["ignoreMovementWalls"] = true
 	boss["pos"] = EnemySystem.clamp_enemy_pos_to_arena_for_enemy(boss, Vector2(boss.get("pos", Vector2.ZERO)), arena)
 	var base_speed: float = float(boss.get("baseSpeed", boss.get("speed", 52.0)))
+	var action_delta := HardModeSystemScript.boss_action_delta_for_target(target, boss, delta)
 	var state: String = String(boss.get("buggedState", BUGGED_STATE_NORMAL))
 	if state == BUGGED_STATE_STUN:
 		boss["speed"] = 0.0
@@ -1243,7 +1289,7 @@ static func update_bugged_final_boss_for_target(
 		return
 	if state == BUGGED_STATE_GENRE:
 		boss["speed"] = base_speed * 0.72
-		update_bugged_genre_attacks_for_target(target, boss, delta, arena, rng, chats)
+		update_bugged_genre_attacks_for_target(target, boss, action_delta, arena, rng, chats)
 		var active_genre := String(target.get("active_genre_event"))
 		var state_timer := maxf(0.0, float(boss.get("buggedStateTimer", BUGGED_GENRE_DURATION)) - delta)
 		boss["buggedStateTimer"] = state_timer
@@ -1253,8 +1299,8 @@ static func update_bugged_final_boss_for_target(
 	boss["speed"] = base_speed
 	if update_bugged_lag_warp_for_target(target, boss, delta, arena):
 		return
-	update_bugged_normal_attacks_for_target(target, boss, delta, arena, rng)
-	var normal_left := maxf(0.0, float(boss.get("buggedStateTimer", 0.0)) - delta)
+	update_bugged_normal_attacks_for_target(target, boss, action_delta, arena, rng)
+	var normal_left := maxf(0.0, float(boss.get("buggedStateTimer", 0.0)) - action_delta)
 	boss["buggedStateTimer"] = normal_left
 	if normal_left <= 0.0:
 		enter_bugged_genre_telegraph(boss, rng, chats, toasts)
@@ -1365,8 +1411,9 @@ static func spawn_bugged_spoiler_bullets_for_target(target: Node, boss: Dictiona
 			"life": 3.4,
 			"hitRadius": 17.0,
 			"source": "boss_bullet",
-			"damage": 22,
-			"visualKind": "wiki_comment"
+			"damage": HardModeSystemScript.regular_boss_damage_for_target(target, 22),
+			"visualKind": "wiki_comment",
+			"shieldBlockable": true
 		})
 	target.set("enemy_bullets", bullets)
 
@@ -1390,8 +1437,9 @@ static func spawn_bugged_boss_pattern_bullets_for_target(target: Node, boss: Dic
 			"life": 3.0,
 			"hitRadius": 15.0,
 			"source": "boss_bullet",
-			"damage": 18,
-			"visualKind": "drone_bullet"
+			"damage": HardModeSystemScript.regular_boss_damage_for_target(target, 18),
+			"visualKind": "drone_bullet",
+			"shieldBlockable": true
 		})
 	target.set("enemy_bullets", bullets)
 
@@ -1442,7 +1490,7 @@ static func spawn_bugged_guide_lines_for_target(target: Node, boss: Dictionary, 
 			"maxTimer": telegraph,
 			"flashLife": 0.16,
 			"width": width,
-			"damage": DamageSystem.BOSS_ATTACK_DAMAGE,
+			"damage": HardModeSystemScript.regular_boss_damage_for_target(target, DamageSystem.BOSS_ATTACK_DAMAGE),
 			"hit": false
 		})
 	target.set("boss_guide_lines", lines)
@@ -1536,7 +1584,7 @@ static func spawn_kuso_maro_barrage_for_target(target: Node, boss: Dictionary, d
 	if speed <= 10.0:
 		speed *= 78.0
 	var lifetime: float = float(attack.get("bulletLifetime", 4.0))
-	var damage: int = int(attack.get("damage", DamageSystem.BOSS_ATTACK_DAMAGE))
+	var damage: int = HardModeSystemScript.regular_boss_damage_for_target(target, int(attack.get("damage", DamageSystem.BOSS_ATTACK_DAMAGE)))
 	var boss_pos: Vector2 = Vector2(boss.get("pos", Vector2.ZERO))
 	var radius: float = float(boss.get("radius", 78.0))
 	var bullets: Array = target.get("enemy_bullets") as Array
@@ -1551,45 +1599,35 @@ static func spawn_kuso_maro_barrage_for_target(target: Node, boss: Dictionary, d
 			"hitRadius": 19.0,
 			"source": "boss_bullet",
 			"damage": damage,
-			"visualKind": "kuso_maro"
+			"visualKind": "kuso_maro",
+			"shieldBlockable": true
 		})
 	target.set("enemy_bullets", bullets)
 
 static func spawn_unread_maro_adds_for_target(target: Node, boss: Dictionary, data: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var attack: Dictionary = attack_data(data, ATTACK_SUMMON_UNREAD_MARO)
 	var summon_count: int = int(heart_variant_value(boss, data, "unreadMaroSummonCount", int(attack.get("summonCount", 2))))
+	summon_count = HardModeSystemScript.regular_boss_summon_count_for_target(target, summon_count)
 	var boss_pos: Vector2 = Vector2(boss.get("pos", Vector2.ZERO))
 	var base_radius: float = float(boss.get("radius", 78.0))
-	for i in range(maxi(1, summon_count)):
+	for i in range(summon_count):
 		var angle: float = rng.randf_range(0.0, TAU) + TAU * float(i) / float(maxi(1, summon_count))
 		var distance: float = rng.randf_range(base_radius + 34.0, base_radius + 110.0)
 		var pos: Vector2 = boss_pos + Vector2(cos(angle), sin(angle)) * distance
 		pos.x = clampf(pos.x, arena.position.x + 32.0, arena.end.x - 32.0)
 		pos.y = clampf(pos.y, arena.position.y + 32.0, arena.end.y - 32.0)
-		spawn_unread_maro_for_target(target, pos, rng)
+		spawn_unread_maro_for_target(target, pos, arena, rng)
 
-static func spawn_unread_maro_for_target(target: Node, pos: Vector2, rng: RandomNumberGenerator) -> void:
-	var enemies: Array = target.get("enemies") as Array
-	var next_uid: int = int(target.get("next_enemy_uid"))
+static func spawn_unread_maro_for_target(target: Node, pos: Vector2, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var speech_text: String = "読んで" if rng.randf() < 0.5 else "未読です"
-	enemies.append({
-		"uid": next_uid,
-		"kind": "unread_maro",
-		"pos": pos,
-		"hp": 8.0,
-		"max_hp": 8.0,
-		"speed": 130.0,
-		"radius": 19.0,
-		"contactDamage": DamageSystem.DEFAULT_CONTACT_DAMAGE,
-		"score": 20,
-		"exp": 1,
-		"expValue": 1,
-		"behavior": "chase",
-		"shoot": 1.0,
-		"speechText": speech_text
-	})
-	target.set("enemies", enemies)
-	target.set("next_enemy_uid", next_uid + 1)
+	var uid := EnemySystem.spawn_enemy_for_target(target, "unread_maro", arena, rng, pos, "", "", "", "boss_summon")
+	if uid < 0:
+		return
+	for item in target.get("enemies") as Array:
+		var enemy: Dictionary = item as Dictionary
+		if int(enemy.get("uid", -1)) == uid:
+			enemy["speechText"] = speech_text
+			return
 
 static func spawn_sticky_maro_floor_for_target(target: Node, boss: Dictionary, data: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var attack: Dictionary = attack_data(data, ATTACK_STICKY_MARO_FLOOR)

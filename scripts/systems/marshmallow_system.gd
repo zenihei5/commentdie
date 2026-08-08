@@ -333,7 +333,8 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 		"levelUps": 0,
 		"goodPickupSe": false,
 		"godPickupSe": false,
-		"kusoPickupSe": false
+		"kusoPickupSe": false,
+		"mentalHealAmount": 0
 	}
 	var messages: Array = result["messages"] as Array
 	var maro_chat_lines: Array = result["maroChatLines"] as Array
@@ -350,6 +351,7 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 			maro_chat_lines.append(ChatSystem.random_marshmallow_line(String(feedback["maroChatKind"]), rng))
 		toasts.append(String(feedback["toast"]))
 		messages.append(String(feedback["chat"]))
+		result["mentalHealAmount"] = int(result.get("mentalHealAmount", 0)) + int(feedback.get("mentalHealAmount", 0))
 		var rarity: String = String(data.get("rarity", "normal"))
 		if String(data.get("type", "")) == "good" and (rarity == "normal" or rarity == "good"):
 			result["goodPickupSe"] = true
@@ -439,6 +441,7 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 	result["blocked"] = false
 	result["spawnTrolls"] = 0
 	result["effectValue"] = 0
+	result["mentalHealAmount"] = 0
 	var counts: Dictionary = pickup_counts(data)
 	result["answered"] = int(result.get("answered", 0)) + int(counts["answeredAdd"])
 	result["lastType"] = String(data["displayName"])
@@ -465,6 +468,7 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 			heal_amount = PowerUpEffectProviderScript.scaled_heal_amount(heal_amount, snapshot, "marshmallow_heal")
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + heal_amount)
 		result["effectValue"] = int(result["playerHp"]) - before_hp
+		result["mentalHealAmount"] = int(result["effectValue"])
 	elif effect == "gift_hype":
 		var before_hype: int = int(result.get("giftHype", 0))
 		result["giftHype"] = clampi(int(result.get("giftHype", 0)) + good_amount(int(params["amount"]), float(result.get("passiveGoodRate", 1.0)), int(result.get("sweetToothLevel", 0))), 0, 100)
@@ -490,6 +494,7 @@ static func apply_pickup(data: Dictionary, context: Dictionary) -> Dictionary:
 		result["playerHp"] = mini(int(result.get("playerMaxHp", 100)), int(result.get("playerHp", 100)) + invincible_heal_amount)
 		result["invincible"] = maxf(float(result.get("invincible", 0.0)), float(params["invincible"]))
 		result["effectValue"] = int(result["playerHp"]) - before_invincible_hp
+		result["mentalHealAmount"] = int(result["effectValue"])
 	elif effect == "add_heart_pending":
 		var before_heart_hype: int = int(result.get("giftHype", 0))
 		result["heartPending"] = true
@@ -589,7 +594,8 @@ static func pickup_feedback(data: Dictionary, result: Dictionary) -> Dictionary:
 			"chat": "ブロック機能たすかる",
 			"maroChatKind": "",
 			"spawnTrolls": 0,
-			"expAdd": 0
+			"expAdd": 0,
+			"mentalHealAmount": 0
 		}
 	return {
 		"blocked": false,
@@ -597,7 +603,8 @@ static func pickup_feedback(data: Dictionary, result: Dictionary) -> Dictionary:
 		"chat": String(data["messageText"]),
 		"maroChatKind": String(result.get("chatKind", "good")),
 		"spawnTrolls": int(result.get("spawnTrolls", 0)),
-		"expAdd": int(result.get("expAdd", 0))
+		"expAdd": int(result.get("expAdd", 0)),
+		"mentalHealAmount": int(result.get("mentalHealAmount", 0))
 	}
 
 static func pickup_toast_text(data: Dictionary, result: Dictionary) -> String:

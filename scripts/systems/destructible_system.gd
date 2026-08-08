@@ -1,6 +1,7 @@
 class_name DestructibleSystem
 extends RefCounted
 
+const GiftSystemScript := preload("res://scripts/systems/gift_system.gd")
 const BOX_MAX_COUNT := 3
 const HORROR_BOX_MAX_COUNT := 6
 const BOX_FIRST_TIME := 15.0
@@ -18,7 +19,7 @@ static func reset_for_target(target: Node) -> void:
 	target.set("next_care_package_time", BOX_FIRST_TIME)
 
 static func update_world_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator, effect_walls: Array) -> Dictionary:
-	var feedback: Dictionary = {"chats": [], "toasts": [], "dropPickupSe": false}
+	var feedback: Dictionary = {"chats": [], "toasts": [], "dropPickupSe": false, "mentalHealAmount": 0}
 	_update_box_spawn_for_target(target, arena, rng, effect_walls)
 	var drop_feedback: Dictionary = _update_drops_for_target(target, delta)
 	for chat in (drop_feedback["chats"] as Array):
@@ -27,6 +28,7 @@ static func update_world_for_target(target: Node, delta: float, arena: Rect2, rn
 		(feedback["toasts"] as Array).append(String(toast))
 	if bool(drop_feedback.get("dropPickupSe", false)):
 		feedback["dropPickupSe"] = true
+	feedback["mentalHealAmount"] = int(drop_feedback.get("mentalHealAmount", 0))
 	return feedback
 
 static func _update_box_spawn_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator, effect_walls: Array) -> void:
@@ -247,6 +249,7 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	var chats: Array = []
 	var toasts: Array = []
 	var drop_pickup_se := false
+	var mental_heal_amount := 0
 	var hit_fx: Array = target.get("hit_fx") as Array
 	var player_pos: Vector2 = Vector2(target.get("player_pos"))
 	var attract_base := DROP_ATTRACT_RANGE
@@ -264,6 +267,17 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	var pickup_range_sq := pickup_base * pickup_base
 	for item in (target.get("drop_items") as Array):
 		var drop: Dictionary = item as Dictionary
+		var rod_state := String(drop.get("rodCollectionState", "free"))
+		if rod_state in ["attracted_to_lure", "attached_to_lure", "returning_with_lure"]:
+			# The rod owns movement and lifetime while the item is attached.  Keep
+			# the dictionary in the normal array so the existing pickup route can
+			# resume after the rod releases it.
+			updated.append(drop)
+			continue
+		if rod_state == "homing_to_player":
+			drop["rodCollectionState"] = "free"
+			drop.erase("rodClaimToken")
+			drop.erase("rodAttachIndex")
 		drop["life"] = float(drop.get("life", DROP_LIFE)) - delta
 		drop["age"] = float(drop.get("age", 0.0)) + delta
 		var pos: Vector2 = Vector2(drop["pos"])
@@ -277,9 +291,11 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 			drop["pos"] = pos
 			distance_sq = pos.distance_squared_to(player_pos)
 		if distance_sq <= pickup_range_sq:
-			var feedback: Dictionary = apply_drop_for_target(target, String(drop["id"]))
+			var hp_before_pickup := int(target.get("player_hp"))
+			var feedback: Dictionary = apply_drop_for_target(target, drop)
 			chats.append(String(feedback["chat"]))
 			toasts.append(String(feedback["toast"]))
+			mental_heal_amount += maxi(0, int(target.get("player_hp")) - hp_before_pickup)
 			drop_pickup_se = true
 			hit_fx.append({
 				"kind": "pickup_text",
@@ -296,7 +312,7 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 	target.set("drop_items", updated)
 	if attracted_any:
 		_append_comment_radar_fx_for_target(target, attract_range)
-	return {"chats": chats, "toasts": toasts, "dropPickupSe": drop_pickup_se}
+	return {"chats": chats, "toasts": toasts, "dropPickupSe": drop_pickup_se, "mentalHealAmount": mental_heal_amount}
 
 static func _append_comment_radar_fx_for_target(target: Node, radius: float) -> void:
 	if int(target.get("comment_radar_level")) <= 0:
@@ -313,9 +329,14 @@ static func _append_comment_radar_fx_for_target(target: Node, radius: float) -> 
 	})
 	target.set("comment_radar_fx_timer", GiftSystem.COMMENT_RADAR_FX_COOLDOWN)
 
-static func apply_drop_for_target(target: Node, id: String) -> Dictionary:
+static func apply_drop_for_target(target: Node, drop_or_id: Variant) -> Dictionary:
+	var drop: Dictionary = drop_or_id.duplicate(true) if drop_or_id is Dictionary else {}
+	var id := String(drop.get("id", drop_or_id if drop_or_id is String else ""))
 	if id == "song_live_gift" or id == "song_special_live_gift":
-		target.set("pending_gift_choices", int(target.get("pending_gift_choices")) + 1)
+		var source := String(drop.get("source", "field_gift"))
+		var quality := String(drop.get("giftQuality", "hit" if id == "song_special_live_gift" else "normal"))
+		var reward_id := String(drop.get("rewardId", ""))
+		GiftSystemScript.enqueue_gift_request(target, source, quality, bool(drop.get("ppEligible", true)), bool(drop.get("fieldRandomEligible", true)), true, reward_id, false)
 		if id == "song_special_live_gift":
 			return {"chat": "+ スペシャルライブギフト箱を受け取った！", "toast": "スペシャルライブギフト！", "popup": "SP GIFT!", "color": Color("#ff7fd2")}
 		return {"chat": "+ ライブギフト箱を受け取った！", "toast": "ライブギフト！", "popup": "GIFT!", "color": Color("#86eaff")}

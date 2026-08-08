@@ -33,10 +33,12 @@ func _run_test() -> void:
 		var line: Dictionary = image_lines[0] as Dictionary
 		_check((line.get("to", Vector2.ZERO) as Vector2) == lure_pos, "buzz line does not end at lure", failures)
 		_check((line.get("from", Vector2.ZERO) as Vector2) != player_pos, "buzz line does not use rotated rod tip", failures)
+		_check((cast.get("lineStart", Vector2.ZERO) as Vector2) == (line.get("from", Vector2.ZERO) as Vector2), "buzz fallback line does not start at the rod tip", failures)
+		_check((cast.get("lineEnd", Vector2.ZERO) as Vector2) == lure_pos, "buzz fallback line does not end at the lure", failures)
 	var line_parts := DrawDataSystem.hit_fx_procedural_parts(cast, {}, {"line": true})
 	for part_item in line_parts:
 		var part: Dictionary = part_item as Dictionary
-		_check(not ["line", "reel"].has(String(part.get("prefix", ""))), "buzz cast retained a second fishing line", failures)
+		_check(not ["line", "speed", "reel"].has(String(part.get("prefix", ""))), "buzz cast retained a second fishing line", failures)
 	_check((_layer_by_role(cast, "body").get("fallbackConfig", {}) as Dictionary).has("path"), "buzz body fallback is not data-driven", failures)
 	var missing_visuals: Dictionary = visuals.duplicate(true)
 	(missing_visuals["lure"] as Dictionary)["path"] = "res://missing/buzz_thumbnail_lure.png"

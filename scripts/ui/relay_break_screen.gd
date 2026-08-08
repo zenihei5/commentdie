@@ -23,6 +23,12 @@ const HEAL_ICON_TEXTURE_PATH := BREAK_ASSET_ROOT + "icon_heal.png"
 const GIFT_ICON_TEXTURE_PATH := BREAK_ASSET_ROOT + "icon_gift.png"
 const BOSS_ACCENT_TEXTURE_PATH := BREAK_ASSET_ROOT + "boss_accent.png"
 const CHARACTER_TEXTURES := {
+	"aosumi_kyasumi": BREAK_ASSET_ROOT + "character_kyasumi.png",
+	"kyasumi": BREAK_ASSET_ROOT + "character_kyasumi.png",
+	"akarine_rizumu": BREAK_ASSET_ROOT + "character_rizumu.png",
+	"rizumu": BREAK_ASSET_ROOT + "character_rizumu.png",
+	"shizuki_miimu": BREAK_ASSET_ROOT + "character_miimu.png",
+	"miimu": BREAK_ASSET_ROOT + "character_miimu.png",
 	"supana": BREAK_ASSET_ROOT + "character_supana.png",
 	"superchat_chan": BREAK_ASSET_ROOT + "character_supana.png",
 	"maron": BREAK_ASSET_ROOT + "character_maron.png",

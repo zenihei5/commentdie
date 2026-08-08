@@ -50,6 +50,7 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_F9, "relay_boss_toggle_debug")
 	_add_if_pressed(actions, latch, KEY_F11, "relay_boss_force_attack")
 	_add_if_pressed(actions, latch, KEY_F12, "relay_boss_next_phase")
+	_add_if_pressed(actions, latch, KEY_F8, "hard_balance_toggle")
 	return actions
 
 static func direct_action(latch: Dictionary) -> String:
@@ -81,10 +82,18 @@ static func ranking_action(latch: Dictionary) -> String:
 		return "back_to_title"
 	if _pressed(latch, KEY_R):
 		return "reset_ranking"
-	if _pressed(latch, KEY_LEFT) or _pressed(latch, KEY_A):
-		return "ranking_tab_left"
-	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_D):
-		return "ranking_tab_right"
+	if _pressed(latch, KEY_Q):
+		return "ranking_difficulty_left"
+	if _pressed(latch, KEY_E):
+		return "ranking_difficulty_right"
+	if _pressed(latch, KEY_LEFT):
+		return "ranking_stage_left"
+	if _pressed(latch, KEY_RIGHT):
+		return "ranking_stage_right"
+	if _pressed(latch, KEY_A):
+		return "ranking_page_left"
+	if _pressed(latch, KEY_D):
+		return "ranking_page_right"
 	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
 		return "ranking_up"
 	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
@@ -301,7 +310,8 @@ static func force_gift_choice_for_target(target: Node, gifts: Array, rarity: Str
 	var elapsed: float = float(target.get("elapsed"))
 	var quick_test: bool = bool(target.get("quick_test_mode"))
 	var gift_time: float = elapsed * (3.0 if quick_test else 1.0)
-	var context: Dictionary = GiftSystem.build_offer_context_for_target(target, gifts, gift_time, rng)
+	var request := GiftSystem.build_gift_request_for_target(target, "debug", "normal", false, false, false, "", true)
+	var context: Dictionary = GiftSystem.build_offer_context_for_target(target, gifts, gift_time, rng, request)
 	target.set("offered_gifts", GiftSystem.build_forced_offer(context, rarity))
 	var level_gain: int = GiftSystem.level_gain_for_quality_key(rarity)
 	return {"chat": "Lv+%dギフトを強制抽選" % level_gain}
@@ -312,7 +322,15 @@ static func force_gift_choice_ui_for_target(target: Node, gifts: Array, rarity: 
 	return result
 
 static func force_comment_offer_for_target(target: Node, comments: Array, id: String, has_heart: bool) -> Dictionary:
-	var offer: Dictionary = CommentSystem.build_forced_offer(comments, id, has_heart)
+	var difficulty_value: Variant = target.get("run_difficulty_id")
+	var difficulty_id := String(difficulty_value if difficulty_value != null else "normal")
+	var offer: Dictionary = CommentSystem.build_forced_offer(
+		comments,
+		id,
+		has_heart,
+		target.get("current_stream_frame") as Dictionary,
+		difficulty_id
+	)
 	if not CommentSystem.apply_forced_offer_to_target(target, offer):
 		return {"applied": false, "chooseIndex": -1}
 	return {"applied": true, "chooseIndex": 0}
