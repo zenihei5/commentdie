@@ -2247,7 +2247,7 @@ static func _update_moderator_fortress_weapon(weapon: Dictionary, context: Dicti
 			"playerPos": player_pos, "radius": float(weapon.get("radius", 100.0)) * size_rate, "arcDegrees": float(weapon.get("arcDegrees", 220.0)),
 			"damage": _stage2_base_damage(weapon) * float(shock_config.get("damageRate", 1.0)) * float(context.get("damageRate", 1.0)),
 			"knockback": float(weapon.get("normalKnockbackDistance", 70.0)) * float(weapon.get("knockbackRate", 1.35)) * float(shock_config.get("knockbackRate", 1.25)),
-			"hitNextTimes": hit_next_times, "hitEnemyIds": {}, "shockwaveUsed": true, "life": shockwave_duration, "maxLife": shockwave_duration,
+			"hitNextTimes": {}, "hitEnemyIds": {}, "shockwaveUsed": true, "life": shockwave_duration, "maxLife": shockwave_duration,
 			"visuals": (weapon.get("visuals", {}) as Dictionary).duplicate(true)
 		})
 	timers[weapon_id] = player_attack_interval(float(weapon.get("activationInterval", 7.5)), float(context.get("intervalRate", 1.0)))
@@ -2537,22 +2537,24 @@ static func _update_fansa_climax_weapon(weapon: Dictionary, context: Dictionary,
 	var main_spark_role := "finisher" if step == 2 else ("swingRight" if step == 0 else "swingLeft")
 	var main_spark_ids: Dictionary = {}
 	var main_hit_ids: Dictionary = {}
+	var main_box_hit_ids: Dictionary = {}
 	var main_visual_context := {"attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "sparkRole": main_spark_role, "visuals": visuals, "sparkHitIds": main_spark_ids, "hitEnemyIds": main_hit_ids}
 	var hits := _apply_arc_damage(context.get("enemies", []) as Array, attack_origin, direction, attack_range, attack_arc, damage, knockback, killed, hit_effects, barriers, weapon_id, main_visual_context)
+	var box_hits := _apply_arc_damage_to_boxes(context.get("destructibles", []) as Array, attack_origin, direction, attack_range, attack_arc, result["destroyedBoxes"] as Array, hit_effects, main_box_hit_ids, true)
 	if hits > 0:
 		_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": weapon_id})
 	state["comboStep"] = (step + 1) % 3
 	states[weapon_id] = state
 	timers[weapon_id] = _stage2_interval(weapon, context, 0.47)
 	var main_life := _stage2_visual_duration(weapon, main_spark_role, 0.24 if step < 2 else 0.34)
-	hit_effects.append({"kind": "fansa_climax_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "origin": attack_origin, "dir": direction, "comboStep": step, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "count": hits, "hitEnemyIds": main_hit_ids, "life": main_life, "maxLife": main_life, "visuals": visuals.duplicate(true)})
+	hit_effects.append({"kind": "fansa_climax_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "origin": attack_origin, "dir": direction, "comboStep": step, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "count": hits + box_hits, "hitEnemyIds": main_hit_ids, "hitBoxIds": main_box_hit_ids, "life": main_life, "maxLife": main_life, "visuals": visuals.duplicate(true)})
 	if step < 2:
 		var echo_life := _stage2_visual_duration(weapon, "echo", 0.22)
-		hit_effects.append({"kind": "fansa_climax_echo", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:echo" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "origin": attack_origin, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("echoDamageCoefficient", 0.30)), "delay": float(weapon.get("echoDelay", 0.12)), "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": echo_life, "maxLife": echo_life, "visuals": visuals.duplicate(true)})
+		hit_effects.append({"kind": "fansa_climax_echo", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:echo" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "origin": attack_origin, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("echoDamageCoefficient", 0.30)), "delay": float(weapon.get("echoDelay", 0.12)), "hitEnemyIds": {}, "hitBoxIds": {}, "sparkHitIds": {}, "applied": false, "life": echo_life, "maxLife": echo_life, "visuals": visuals.duplicate(true)})
 	else:
 		var x_life := _stage2_visual_duration(weapon, "xSlash", 0.30)
 		var wave_life := _stage2_visual_duration(weapon, "wave", 0.28)
-		hit_effects.append({"kind": "fansa_climax_x", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:x" % [weapon_id, attack_serial], "pos": player_pos, "origin": attack_origin, "dir": direction, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("xDamageCoefficient", 0.80)), "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": x_life, "maxLife": x_life, "visuals": visuals.duplicate(true)})
+		hit_effects.append({"kind": "fansa_climax_x", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:x" % [weapon_id, attack_serial], "pos": player_pos, "origin": attack_origin, "dir": direction, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("xDamageCoefficient", 0.80)), "hitEnemyIds": {}, "hitBoxIds": {}, "sparkHitIds": {}, "applied": false, "life": x_life, "maxLife": x_life, "visuals": visuals.duplicate(true)})
 		hit_effects.append({"kind": "fansa_climax_fan_wave", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:wave" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "radius": float(weapon.get("fanWaveRadius", 105.0)) * _stage2_coverage_rate(context), "damage": base_damage * float(weapon.get("fanWaveDamageCoefficient", 0.35)), "knockback": 3.0, "hitEnemyIds": {}, "sparkHitIds": {}, "applied": false, "life": wave_life, "maxLife": wave_life, "visuals": visuals.duplicate(true)})
 	return result
 
@@ -2613,8 +2615,11 @@ static func _buzz_previous_state(enemy: Dictionary) -> Dictionary:
 static func _buzz_begin_throw(fx: Dictionary, enemies: Array) -> void:
 	var target := _rod_find_live_target(fx, enemies)
 	if bool(fx.get("bossTarget", false)) or (not target.is_empty() and _is_boss_enemy(target)):
-		fx["phase"] = "waiting"
-		fx["phaseTimer"] = float(fx.get("reelDelay", 0.55))
+		# Keep bosses out of the capture list, but route them through the existing
+		# finish step so bossReelDamage and the centered explosion can resolve.
+		fx["caughtTokens"] = []
+		fx["phase"] = "throwing"
+		fx["phaseTimer"] = 0.0
 		return
 	var lure_pos := Vector2(fx.get("pos", Vector2.ZERO))
 	var candidates: Array = []
@@ -2748,6 +2753,8 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 		timers[weapon_id] = _stage2_retry_delay(weapon)
 		return result
 	var target: Dictionary = selection.get("target", {}) as Dictionary
+	var target_type := String(selection.get("targetType", "enemy"))
+	var target_is_box := target_type == "destructible"
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
 	var target_pos := Vector2(target.get("pos", player_pos))
 	var visuals := weapon.get("visuals", {}) as Dictionary
@@ -2759,7 +2766,8 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 	var fx := {
 		"kind": "buzz_thumbnail_rod_cast", "owner": weapon_id, "weaponId": weapon_id, "phase": "casting",
 		"pos": player_pos, "previousPos": player_pos, "dir": (target_pos - player_pos).normalized(),
-		"targetReference": target, "targetToken": _stage2_entity_token(target), "lastTargetPos": target_pos,
+		"targetReference": {} if target_is_box else target, "targetToken": "" if target_is_box else _stage2_entity_token(target),
+		"targetBoxUid": int(target.get("uid", -1)) if target_is_box else -1, "lastTargetPos": target_pos,
 		"bossTarget": String(selection.get("targetType", "enemy")) == "boss", "reelDestination": player_pos, "displayPlayerPos": player_pos,
 		"phaseTimer": 0.0, "age": 0.0, "life": 10.0, "maxLife": 10.0, "level": level,
 		"collectionClaimToken": _rod_next_claim_token(weapon_id, timers), "itemCollectionConfig": item_config,
@@ -2782,7 +2790,7 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 	timers[weapon_id] = _stage2_interval(weapon, context, 3.0)
 	return result
 
-static func update_buzz_thumbnail_rod_fx(fx: Dictionary, delta: float, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary, player_pos: Vector2) -> void:
+static func update_buzz_thumbnail_rod_fx(fx: Dictionary, delta: float, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary, player_pos: Vector2, destructibles: Array = [], destroyed_boxes: Array = []) -> void:
 	var phase := String(fx.get("phase", "casting"))
 	var position := Vector2(fx.get("pos", Vector2.ZERO))
 	fx["displayPlayerPos"] = player_pos
@@ -2804,6 +2812,15 @@ static func update_buzz_thumbnail_rod_fx(fx: Dictionary, delta: float, enemies: 
 				if initial_result == HIT_DAMAGED:
 					_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "buzz_thumbnail_rod"})
 					_append_buzz_visual_fx(hit_effects, "buzz_thumbnail_rod_hit", "hit", destination, Vector2(fx.get("dir", Vector2.RIGHT)), visuals, 0.18)
+			else:
+				var target_box_uid := int(fx.get("targetBoxUid", -1))
+				if target_box_uid >= 0:
+					for box_item in destructibles:
+						var box: Dictionary = box_item as Dictionary
+						if not _stage2_alive_box(box) or int(box.get("uid", -1)) != target_box_uid:
+							continue
+						DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+						break
 			_append_buzz_visual_fx(hit_effects, "buzz_thumbnail_rod_bear_flash", "bearFlash", destination, Vector2(fx.get("dir", Vector2.RIGHT)), visuals, 0.20)
 			var gathered := 0
 			for gather_item in enemies:
@@ -2861,7 +2878,7 @@ static func update_buzz_thumbnail_rod_fx(fx: Dictionary, delta: float, enemies: 
 		_rod_transfer_claimed_collectibles_to_normal_pickup(fx, player_pos)
 		fx["life"] = 0.0
 
-static func update_fansa_climax_echo_fx(fx: Dictionary, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary) -> void:
+static func update_fansa_climax_echo_fx(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
 	if bool(fx.get("applied", false)):
 		return
 	fx["applied"] = true
@@ -2869,28 +2886,34 @@ static func update_fansa_climax_echo_fx(fx: Dictionary, enemies: Array, killed_e
 	var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
 	var spark_ids: Dictionary = fx.get("sparkHitIds", {}) as Dictionary
 	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
+	var hit_box_ids: Dictionary = fx.get("hitBoxIds", {}) as Dictionary
 	var visual_context := {"attackInstanceId": String(fx.get("attackInstanceId", "fansa_climax:echo")), "sparkRole": "echo", "visuals": fx.get("visuals", {}) as Dictionary, "sparkHitIds": spark_ids, "hitEnemyIds": hit_ids}
 	var hits := _apply_arc_damage(enemies, origin, direction, float(fx.get("range", 125.0)), float(fx.get("arcAngle", 55.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "fansa_climax", visual_context)
+	_apply_arc_damage_to_boxes(destructibles, origin, direction, float(fx.get("range", 125.0)), float(fx.get("arcAngle", 55.0)), destroyed_boxes, hit_effects, hit_box_ids, true)
 	fx["sparkHitIds"] = spark_ids
 	fx["hitEnemyIds"] = hit_ids
+	fx["hitBoxIds"] = hit_box_ids
 	if hits > 0:
 		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "fansa_climax"})
 
-static func update_fansa_climax_x_fx(fx: Dictionary, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary) -> void:
+static func update_fansa_climax_x_fx(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
 	if bool(fx.get("applied", false)):
 		return
 	fx["applied"] = true
 	var spark_ids: Dictionary = fx.get("sparkHitIds", {}) as Dictionary
 	var hit_ids: Dictionary = fx.get("hitEnemyIds", {}) as Dictionary
+	var hit_box_ids: Dictionary = fx.get("hitBoxIds", {}) as Dictionary
 	var visual_context := {"attackInstanceId": String(fx.get("attackInstanceId", "fansa_climax:x")), "sparkRole": "xSlash", "visuals": fx.get("visuals", {}) as Dictionary, "sparkHitIds": spark_ids, "hitEnemyIds": hit_ids}
 	var origin := Vector2(fx.get("origin", fx.get("pos", Vector2.ZERO)))
 	var hits := _apply_arc_damage(enemies, origin, Vector2(fx.get("dir", Vector2.RIGHT)), float(fx.get("range", 180.0)), float(fx.get("arcAngle", 180.0)), float(fx.get("damage", 0.0)), 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "fansa_climax", visual_context)
+	_apply_arc_damage_to_boxes(destructibles, origin, Vector2(fx.get("dir", Vector2.RIGHT)), float(fx.get("range", 180.0)), float(fx.get("arcAngle", 180.0)), destroyed_boxes, hit_effects, hit_box_ids, true)
 	fx["sparkHitIds"] = spark_ids
 	fx["hitEnemyIds"] = hit_ids
+	fx["hitBoxIds"] = hit_box_ids
 	if hits > 0:
 		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "fansa_climax"})
 
-static func update_fansa_climax_fan_wave_fx(fx: Dictionary, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary) -> void:
+static func update_fansa_climax_fan_wave_fx(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> void:
 	if bool(fx.get("applied", false)):
 		return
 	fx["applied"] = true
@@ -2913,6 +2936,7 @@ static func update_fansa_climax_fan_wave_fx(fx: Dictionary, enemies: Array, kill
 				_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": "fansa_climax"})
 	fx["hitEnemyIds"] = hit_ids
 	fx["sparkHitIds"] = spark_ids
+	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects)
 
 static func _rod_active_cast(context: Dictionary, weapon: Dictionary) -> bool:
 	var active_count := 0
@@ -4268,15 +4292,15 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 		elif kind == "fansa_baton_cross_followup":
 			update_fansa_baton_cross_followup_fx(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "fansa_climax_echo":
-			update_fansa_climax_echo_fx(fx, enemies, killed_enemies, appended_fx, feedback)
+			update_fansa_climax_echo_fx(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "fansa_climax_x":
-			update_fansa_climax_x_fx(fx, enemies, killed_enemies, appended_fx, feedback)
+			update_fansa_climax_x_fx(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "fansa_climax_fan_wave":
-			update_fansa_climax_fan_wave_fx(fx, enemies, killed_enemies, appended_fx, feedback)
+			update_fansa_climax_fan_wave_fx(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "tsuri_rod_cast":
 			update_tsuri_rod_fx(fx, delta, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback, player_pos)
 		elif kind == "buzz_thumbnail_rod_cast":
-			update_buzz_thumbnail_rod_fx(fx, delta, enemies, killed_enemies, appended_fx, feedback, player_pos)
+			update_buzz_thumbnail_rod_fx(fx, delta, enemies, killed_enemies, appended_fx, feedback, player_pos, destructibles, destroyed_boxes)
 		if kind == "tsuri_rod_cast" or kind == "buzz_thumbnail_rod_cast":
 			_rod_claim_collectibles_at_landing(fx, owner_context.get("expOrbs", []) as Array, owner_context.get("dropItems", []) as Array)
 			_rod_update_claimed_collectibles(fx, delta, player_pos)

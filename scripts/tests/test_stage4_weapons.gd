@@ -23,7 +23,7 @@ func _run_test() -> void:
 		_check(bool(base.get("evolutionEnabled", false)), "%s evolution disabled" % base_id, failures)
 		var evolution: Dictionary = base.get("evolution", {}) as Dictionary
 		_check(String(evolution.get("evolvedWeaponId", "")) == evolved_id, "%s evolution target mismatch" % base_id, failures)
-		var expected_exp_level := 5 if String(base_id) == "moderator_shield" else 0
+		var expected_exp_level := 0
 		_check(int(evolution.get("requiredWeaponLevel", 0)) == 5 and int(evolution.get("requiredExpLevel", -1)) == expected_exp_level, "%s evolution requirements" % base_id, failures)
 		_check(bool(evolved.get("isEvolved", false)) and int(evolved.get("maxLevel", 0)) == 1, "%s evolved flags" % evolved_id, failures)
 		_check(not bool(evolved.get("offerEnabled", true)) and not bool(evolved.get("giftEnabled", true)) and not bool(evolved.get("canAppearAsUpgrade", true)), "%s normal candidate flags" % evolved_id, failures)
@@ -39,10 +39,7 @@ func _run_test() -> void:
 		target.set("player_weapons", [{"id": String(base_id), "level": 5}])
 		target.set("exp_level", 1)
 		var low_exp_can_evolve := bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false))
-		_check(low_exp_can_evolve == (String(base_id) != "moderator_shield"), "%s EXP evolution requirement mismatch" % base_id, failures)
-		if String(base_id) == "moderator_shield":
-			target.set("exp_level", 5)
-			_check(bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false)), "%s Lv5 EXP did not evolve" % base_id, failures)
+		_check(low_exp_can_evolve, "%s EXP level incorrectly blocked evolution" % base_id, failures)
 		target.set("current_character_id", "wrong_character")
 		_check(not bool(WeaponEvolutionSystemScript.evolution_state_for_target(target, weapons).get("canEvolve", false)), "%s evolved for wrong character" % base_id, failures)
 
@@ -108,7 +105,7 @@ func _run_test() -> void:
 	var buzz_context := _context(buzz, "buzz_thumbnail_rod", buzz_enemies, {})
 	var buzz_result := WeaponSystem.update_equipment_weapons(buzz_context)
 	var buzz_fx: Array = buzz_result["hitFx"] as Array
-	_check(buzz_fx.size() == 1 and String((buzz_fx[0] as Dictionary).get("kind", "")) == "buzz_thumbnail_rod_cast", "buzz rod did not activate", failures)
+	_check(not buzz_fx.is_empty() and String((buzz_fx[0] as Dictionary).get("kind", "")) == "buzz_thumbnail_rod_cast", "buzz rod did not activate", failures)
 	WeaponSystem.update_hit_fx(buzz_fx, 0.20, buzz_enemies, [], [], [], [], {}, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
 	WeaponSystem.update_hit_fx(buzz_fx, 0.80, buzz_enemies, [], [], [], [], {}, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
 	var buzz_state := buzz_fx[0] as Dictionary

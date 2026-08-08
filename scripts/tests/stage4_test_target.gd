@@ -1,13 +1,32 @@
 extends Node
 
 var weapons: Array = []
+var gifts: Array = []
 var player_weapons: Array = []
+var player_accessories: Array = []
 var current_character: Dictionary = {}
 var current_character_id: String = ""
 var current_weapon: Dictionary = {}
 var current_weapon_id: String = ""
+var current_stream_frame: Dictionary = {"giftPoolTags": ["default"]}
 var exp_level: int = 1
+var exp_value: int = 0
+var gift_hype: int = 0
+var max_gift_hype: int = 0
+var run_difficulty_id := "normal"
+var permanent_upgrade_snapshot = null
+var gifts_taken: int = 0
+var elapsed: float = 0.0
+var quick_test_mode := false
+var gift_reroll_remaining: int = 0
+var gift_choice_return_state := ""
+var offered_gifts: Array = []
+var gift_reroll_original_offer: Array = []
+var gift_debug_last: Dictionary = {}
+var active_gift_request: Dictionary = {}
+var gift_request_serial: int = 0
 var equipment_weapon_timers: Dictionary = {}
+var boomerang_hits: Dictionary = {}
 var hit_fx: Array = []
 var enemies: Array = []
 var lastWeaponRuntimeCleanupReason: String = ""

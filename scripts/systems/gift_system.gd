@@ -61,9 +61,9 @@ static func arrival_text(gift_hype: int) -> String:
 static func build_offer(context: Dictionary) -> Array:
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	var request: Dictionary = context.get("giftRequest", {}) as Dictionary
-	var evolution_gift: Dictionary = (context.get("evolutionGift", {}) as Dictionary).duplicate(true)
+	var evolution_gifts: Array = _evolution_gifts_from_context(context)
 	var candidates: Array = _valid_equipment_candidates(context)
-	var valid_count := candidates.size() + (1 if not evolution_gift.is_empty() else 0)
+	var valid_count := candidates.size() + evolution_gifts.size()
 	context["validGiftCandidateCount"] = valid_count
 	var debug_target = context.get("target")
 	if debug_target is Node:
@@ -77,8 +77,7 @@ static func build_offer(context: Dictionary) -> Array:
 		return exhausted_offer
 
 	var result: Array = []
-	if not evolution_gift.is_empty():
-		result.append(evolution_gift)
+	result.append_array(_select_evolution_gifts(context, evolution_gifts, 3))
 	var normal_slots := maxi(0, 3 - result.size())
 	var random_pp := false
 	if bool(request.get("fieldRandomEligible", false)) and _pp_allowed_for_request(request) and valid_count >= 3:
@@ -98,6 +97,39 @@ static func build_offer(context: Dictionary) -> Array:
 		var instant_pool := _instant_fallback_pool(context, result)
 		var instant_options := _draw_unique_options(instant_pool, rng, 3 - result.size())
 		result.append_array(instant_options)
+	return result
+
+static func _evolution_gifts_from_context(context: Dictionary) -> Array:
+	var result: Array = []
+	var seen: Dictionary = {}
+	var value: Variant = context.get("evolutionGifts", null)
+	if value is Array:
+		for item in value as Array:
+			if not item is Dictionary:
+				continue
+			var gift: Dictionary = item as Dictionary
+			var key := String(gift.get("baseWeaponId", ""))
+			if key == "":
+				key = String(gift.get("id", ""))
+			if key == "" or bool(seen.get(key, false)):
+				continue
+			seen[key] = true
+			result.append(gift.duplicate(true))
+	if result.is_empty():
+		var legacy_value: Variant = context.get("evolutionGift", {})
+		if legacy_value is Dictionary and not (legacy_value as Dictionary).is_empty():
+			result.append((legacy_value as Dictionary).duplicate(true))
+	return result
+
+static func _select_evolution_gifts(context: Dictionary, gifts: Array, limit: int) -> Array:
+	var result: Array = []
+	if gifts.is_empty() or limit <= 0:
+		return result
+	var count := mini(limit, gifts.size())
+	var offset := posmod(int(context.get("giftsTaken", 0)), gifts.size())
+	for index in range(count):
+		var gift: Dictionary = gifts[(offset + index) % gifts.size()] as Dictionary
+		result.append(gift.duplicate(true))
 	return result
 
 static func _pp_allowed_for_request(request: Dictionary) -> bool:
@@ -254,6 +286,7 @@ static func reroll_offer_for_target(target: Node, gifts: Array, rng: RandomNumbe
 		if exhausted_offer.is_empty():
 			return {"success": false, "reason": "no_candidate", "offer": current.duplicate(true)}
 		return {"success": true, "reason": "rerolled", "offer": exhausted_offer, "changed": 1}
+	context["evolutionGifts"] = []
 	context["evolutionGift"] = {}
 	var result: Array = current.duplicate(true)
 	var fixed_signatures: Array[String] = []
@@ -437,7 +470,9 @@ static func build_offer_context_for_target(target: Node, gifts: Array, gift_time
 		"playerWeapons": target.get("player_weapons"),
 		"playerAccessories": target.get("player_accessories"),
 		"permanent_upgrade_snapshot": target.get("permanent_upgrade_snapshot"),
+		"evolutionGifts": WeaponEvolutionSystemScript.evolution_gifts_for_target(target, target.get("weapons") as Array),
 		"evolutionGift": WeaponEvolutionSystemScript.evolution_gift_for_target(target, target.get("weapons") as Array),
+		"giftsTaken": target.get("gifts_taken"),
 		"giftRequest": resolved_request,
 		"difficultyId": String(target.get("run_difficulty_id")),
 		"directPpConfig": pp_config,

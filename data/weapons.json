@@ -17,11 +17,16 @@
     "screenShakeDuration": 0.08,
     "magnetRange": 95.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/ban_hammer.png",
+    "evolutionEnabled": true,
     "evolution": {
       "evolvedWeaponId": "ban_judgement",
       "requiredCharacterId": "ban_chan",
       "requiredWeaponLevel": 5,
-      "requiredExpLevel": 5
+      "requiredExpLevel": 0,
+      "matchingCharacterBypassesAdditionalRequirements": true,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "stream_power", "requiredLevel": "max"}
+      ]
     }
   },
   {
@@ -40,11 +45,16 @@
     "knockback": 0.4,
     "magnetRange": 105.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/superchat_shot.png",
+    "evolutionEnabled": true,
     "evolution": {
       "evolvedWeaponId": "starlight_superchat",
       "requiredCharacterId": "superchat_chan",
       "requiredWeaponLevel": 5,
-      "requiredExpLevel": 5
+      "requiredExpLevel": 0,
+      "matchingCharacterBypassesAdditionalRequirements": true,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "bullet_support", "requiredLevel": "max"}
+      ]
     }
   },
   {
@@ -64,11 +74,16 @@
     "knockback": 0.3,
     "magnetRange": 125.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_boomerang.png",
+    "evolutionEnabled": true,
     "evolution": {
       "evolvedWeaponId": "maro_comment_ring",
       "requiredCharacterId": "maro_chan",
       "requiredWeaponLevel": 5,
-      "requiredExpLevel": 5
+      "requiredExpLevel": 0,
+      "matchingCharacterBypassesAdditionalRequirements": true,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "sweet_tooth", "requiredLevel": "max"}
+      ]
     }
   },
   {
@@ -165,7 +180,16 @@
     "range": 1.35,
     "knockback": 0.1,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mic_barrier.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mic_barrier.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "mini_humidifier", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "spotlight",
@@ -181,7 +205,16 @@
     "duration": 3.2,
     "knockback": 0.0,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/spotlight.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/spotlight.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "weapon", "id": "mic_barrier", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "kusa_wave",
@@ -200,7 +233,16 @@
     "screenShakePower": 0.1,
     "screenShakeDuration": 0.10,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/kusa_wave.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/kusa_wave.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "bullet_support", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "comment_pin",
@@ -223,7 +265,16 @@
     "slowDuration": 2.0,
     "knockback": 0.3,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_pin.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/comment_pin.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "weapon", "id": "ng_word_laser", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "emote_mine",
@@ -249,7 +300,16 @@
     "screenShakePower": 0.4,
     "screenShakeDuration": 0.15,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/weapon_fx_v1/emote_mine.png"
+    "iconPath": "res://assets/generated/weapon_fx_v1/emote_mine.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "wide_angle", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "ng_word_laser",
@@ -271,7 +331,16 @@
     "width": 0.6,
     "knockback": 0.0,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ng_word_laser.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/ng_word_laser.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "high_speed_connection", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "listener_summon",
@@ -295,7 +364,16 @@
     "maxActiveCount": 3,
     "knockback": 0.3,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon.png"
+    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon.png",
+    "evolutionEnabled": false,
+    "evolution": {
+      "evolvedWeaponId": "",
+      "requiredWeaponLevel": 5,
+      "requiredExpLevel": 0,
+      "additionalRequirements": [
+        {"type": "accessory", "id": "notification_bell", "requiredLevel": 5}
+      ]
+    }
   },
   {
     "id": "moderator_shield",
@@ -310,7 +388,7 @@
     "canAppearAsUpgrade": true,
     "ownedUpgradeOnly": true,
     "ownerCharacterId": "aosumi_kyasumi",
-    "evolution": {"evolvedWeaponId": "moderator_fortress", "requiredCharacterId": "aosumi_kyasumi", "requiredWeaponLevel": 5, "requiredExpLevel": 5},
+    "evolution": {"evolvedWeaponId": "moderator_fortress", "requiredCharacterId": "aosumi_kyasumi", "requiredWeaponLevel": 5, "requiredExpLevel": 0, "matchingCharacterBypassesAdditionalRequirements": true, "additionalRequirements": [{"type": "accessory", "id": "mental_care", "requiredLevel": "max"}]},
     "weight": 10,
     "attackType": "moderator_shield",
     "weaponType": "special",
@@ -369,7 +447,7 @@
     "canAppearAsUpgrade": true,
     "ownedUpgradeOnly": true,
     "ownerCharacterId": "akarine_rizumu",
-    "evolution": {"evolvedWeaponId": "fansa_climax", "requiredCharacterId": "akarine_rizumu", "requiredWeaponLevel": 5, "requiredExpLevel": 0},
+    "evolution": {"evolvedWeaponId": "fansa_climax", "requiredCharacterId": "akarine_rizumu", "requiredWeaponLevel": 5, "requiredExpLevel": 0, "matchingCharacterBypassesAdditionalRequirements": true, "additionalRequirements": [{"type": "accessory", "id": "light_sneakers", "requiredLevel": "max"}]},
     "weight": 10,
     "attackType": "fansa_baton",
     "weaponType": "special",
@@ -430,7 +508,7 @@
     "canAppearAsUpgrade": true,
     "ownedUpgradeOnly": true,
     "ownerCharacterId": "shizuki_miimu",
-    "evolution": {"evolvedWeaponId": "buzz_thumbnail_rod", "requiredCharacterId": "shizuki_miimu", "requiredWeaponLevel": 5, "requiredExpLevel": 0},
+    "evolution": {"evolvedWeaponId": "buzz_thumbnail_rod", "requiredCharacterId": "shizuki_miimu", "requiredWeaponLevel": 5, "requiredExpLevel": 0, "matchingCharacterBypassesAdditionalRequirements": true, "additionalRequirements": [{"type": "accessory", "id": "comment_radar", "requiredLevel": "max"}]},
     "weight": 10,
     "attackType": "tsuri_thumbnail_rod",
     "weaponType": "special",
