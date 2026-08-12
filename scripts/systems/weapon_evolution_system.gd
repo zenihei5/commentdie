@@ -20,6 +20,44 @@ static func evolution_gift_for_target(target: Node, weapon_data: Array) -> Dicti
 	return gifts[0] as Dictionary if not gifts.is_empty() else {}
 
 
+static func debug_evolution_gifts_for_target(target: Node, weapon_data: Array) -> Array:
+	var result: Array = []
+	var player_weapons_value: Variant = target.get("player_weapons")
+	var player_weapons: Array = player_weapons_value as Array if player_weapons_value is Array else []
+	var seen_evolved_ids: Dictionary = {}
+	for weapon_value in weapon_data:
+		if not weapon_value is Dictionary:
+			continue
+		var base_weapon: Dictionary = weapon_value as Dictionary
+		if not EquipmentSystem.is_weapon(base_weapon) or not bool(base_weapon.get("evolutionEnabled", false)):
+			continue
+		var evolution_value: Variant = base_weapon.get("evolution", {})
+		if not evolution_value is Dictionary:
+			continue
+		var evolved_id := String((evolution_value as Dictionary).get("evolvedWeaponId", ""))
+		var base_id := String(base_weapon.get("id", ""))
+		if base_id == "" or evolved_id == "" or evolved_id == base_id or bool(seen_evolved_ids.get(evolved_id, false)):
+			continue
+		seen_evolved_ids[evolved_id] = true
+		var evolved_weapon := WeaponSystem.find_weapon(weapon_data, evolved_id, {})
+		if evolved_weapon.is_empty() or not EquipmentSystem.find_entry(player_weapons, evolved_id).is_empty():
+			continue
+		var base_slot_index := _debug_base_slot_index(player_weapons, base_id)
+		if base_slot_index < 0 and player_weapons.size() >= EquipmentSystem.MAX_WEAPONS:
+			continue
+		var gift := _evolution_gift_from_state({
+			"baseWeapon": base_weapon,
+			"evolvedWeapon": evolved_weapon,
+			"baseWeaponId": base_id,
+			"evolvedWeaponId": evolved_id
+		})
+		gift["id"] = "debug_evolution_%s" % base_id
+		gift["description"] = "条件を無視して直接取得"
+		gift["debugForceEvolution"] = true
+		result.append(gift)
+	return result
+
+
 static func evolution_states_for_target(target: Node, weapon_data: Array) -> Array:
 	var result: Array = []
 	var weapons_value: Variant = target.get("player_weapons")
@@ -286,10 +324,36 @@ static func _target_character_id(target: Node) -> String:
 
 
 static func is_evolution_gift(gift: Dictionary) -> bool:
-	return bool(gift.get("isEvolutionGift", false)) or bool(gift.get("isEvolution", false)) or bool(gift.get("evolution", false)) or String(gift.get("effectType", "")) == "weapon_evolution" or String(gift.get("equipmentType", "")) == "evolution"
+	if _truthy_marker(gift.get("isEvolutionGift", false)) or _truthy_marker(gift.get("isEvolution", false)):
+		return true
+	if String(gift.get("effectType", "")) == "weapon_evolution" or String(gift.get("equipmentType", "")) == "evolution":
+		return true
+	# Weapon registry entries also carry an "evolution" dictionary. That is
+	# evolution configuration for the base weapon, not an evolution gift.
+	var evolution_value: Variant = gift.get("evolution", null)
+	if String(gift.get("equipmentType", "")) == "weapon" and evolution_value is Dictionary:
+		return false
+	return _truthy_marker(evolution_value)
+
+
+static func _truthy_marker(value: Variant) -> bool:
+	if value is bool:
+		return value
+	if value is Dictionary:
+		return not (value as Dictionary).is_empty()
+	if value is Array:
+		return not (value as Array).is_empty()
+	if value is int or value is float:
+		return float(value) != 0.0
+	if value is String:
+		var text := String(value).strip_edges().to_lower()
+		return text in ["1", "true", "yes", "evolution"]
+	return value != null
 
 
 static func apply_evolution_gift_for_target(target: Node, gift: Dictionary) -> Dictionary:
+	if bool(gift.get("debugForceEvolution", false)):
+		return _apply_debug_evolution_gift_for_target(target, gift)
 	var base_id := String(gift.get("baseWeaponId", ""))
 	var evolved_id := String(gift.get("evolvedWeaponId", ""))
 	var weapon_data_value: Variant = target.get("weapons")
@@ -337,6 +401,7 @@ static func apply_evolution_gift_for_target(target: Node, gift: Dictionary) -> D
 		var boomerang_hits: Dictionary = target.get("boomerang_hits") as Dictionary
 		boomerang_hits.clear()
 		target.set("boomerang_hits", boomerang_hits)
+	CodexManager.discover_weapon(evolved_id)
 
 	return _empty_apply_result({
 		"weaponEvolution": {
@@ -346,6 +411,85 @@ static func apply_evolution_gift_for_target(target: Node, gift: Dictionary) -> D
 			"evolvedDisplayName": String(gift.get("evolvedDisplayName", evolved_weapon.get("displayName", evolved_id)))
 		}
 	})
+
+
+static func _apply_debug_evolution_gift_for_target(target: Node, gift: Dictionary) -> Dictionary:
+	var base_id := String(gift.get("baseWeaponId", ""))
+	var evolved_id := String(gift.get("evolvedWeaponId", ""))
+	var weapon_data_value: Variant = target.get("weapons")
+	var weapon_data: Array = weapon_data_value as Array if weapon_data_value is Array else []
+	if base_id == "" or evolved_id == "":
+		return _empty_apply_result({})
+	var base_weapon := WeaponSystem.find_weapon(weapon_data, base_id, {})
+	var evolved_weapon := WeaponSystem.find_weapon(weapon_data, evolved_id, {})
+	var evolution_value: Variant = base_weapon.get("evolution", {})
+	if base_weapon.is_empty() or evolved_weapon.is_empty() or not evolution_value is Dictionary:
+		return _empty_apply_result({})
+	if String((evolution_value as Dictionary).get("evolvedWeaponId", "")) != evolved_id:
+		return _empty_apply_result({})
+
+	var player_weapons: Array = target.get("player_weapons") as Array
+	if not EquipmentSystem.find_entry(player_weapons, evolved_id).is_empty():
+		return _empty_apply_result({})
+	var target_index := _debug_base_slot_index(player_weapons, base_id)
+	if target_index < 0 and player_weapons.size() >= EquipmentSystem.MAX_WEAPONS:
+		return _empty_apply_result({})
+	var previous_level := 0
+	if target_index >= 0:
+		previous_level = EquipmentSystem.entry_level(player_weapons[target_index] as Dictionary, 0)
+	WeaponSystem.cleanup_runtime_for_weapon(target, base_id, evolved_id, "debug_evolution")
+	var evolved_entry := {
+		"id": evolved_id,
+		"level": 1,
+		"isEvolved": true,
+		"baseWeaponId": base_id,
+		"evolvedAtLevel": previous_level
+	}
+	if target_index >= 0:
+		player_weapons[target_index] = evolved_entry
+	else:
+		player_weapons.append(evolved_entry)
+	target.set("player_weapons", player_weapons)
+
+	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
+	if target_index >= 0 and (String(target.get("current_weapon_id")) == base_id or String(current_weapon.get("id", "")) == base_id):
+		target.set("current_weapon_id", evolved_id)
+		target.set("current_weapon", evolved_weapon)
+
+	var timers: Dictionary = target.get("equipment_weapon_timers") as Dictionary
+	timers.erase(base_id)
+	timers.erase(evolved_id)
+	timers.erase("__starlight_superchat_shot_count")
+	timers.erase("__maro_comment_pulse_index")
+	timers.erase("__maro_comment_pulse_until")
+	timers.erase("__maro_comment_flash_until")
+	target.set("equipment_weapon_timers", timers)
+	if WeaponSystem.attack_type(base_weapon) == "orbit" or WeaponSystem.attack_type(evolved_weapon) == "orbit":
+		var boomerang_hits: Dictionary = target.get("boomerang_hits") as Dictionary
+		boomerang_hits.clear()
+		target.set("boomerang_hits", boomerang_hits)
+	CodexManager.discover_weapon(evolved_id)
+
+	return _empty_apply_result({
+		"weaponEvolution": {
+			"baseWeaponId": base_id,
+			"evolvedWeaponId": evolved_id,
+			"baseDisplayName": String(gift.get("baseDisplayName", base_weapon.get("displayName", base_id))),
+			"evolvedDisplayName": String(gift.get("evolvedDisplayName", evolved_weapon.get("displayName", evolved_id))),
+			"debugForced": true
+		}
+	})
+
+
+static func _debug_base_slot_index(player_weapons: Array, base_id: String) -> int:
+	for index in range(player_weapons.size()):
+		var entry_value: Variant = player_weapons[index]
+		if not entry_value is Dictionary:
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		if String(entry.get("id", "")) == base_id and not EquipmentSystem.is_evolved_entry(entry):
+			return index
+	return -1
 
 
 static func _state_for_pair(target: Node, weapon_data: Array, base_id: String, evolved_id: String) -> Dictionary:

@@ -4,7 +4,8 @@ extends RefCounted
 const SAVE_PATH := "user://power_up_shop.json"
 const BACKUP_PATH := "user://power_up_shop.json.bak"
 const TEMP_PATH := "user://power_up_shop.json.tmp"
-const SCHEMA_VERSION := 2
+const SCHEMA_VERSION := 3
+const LEGACY_NORMAL_RELAY_MIGRATION_SCHEMA_CUTOFF := 2
 const MAX_REWARDED_RUN_IDS := 100
 const MAX_REWARDED_REWARD_KEYS := 200
 const DEFAULT_CHARACTER_ID := "ban_chan"
@@ -77,6 +78,7 @@ func default_data(database) -> Dictionary:
 		"unlockedCharacterIds": ALWAYS_UNLOCKED_CHARACTER_IDS.duplicate(),
 		"seniorUnitUnlockShown": false,
 		"normalRelayCleared": false,
+		"discoveredEvolutionRecipes": [],
 		"rewardedRunIds": [],
 		"rewardedRewardKeys": []
 	}
@@ -101,9 +103,9 @@ func normalize(data: Dictionary, database) -> Dictionary:
 	var unlocked_ids := _normalize_character_ids(source.get("unlockedCharacterIds", source.get("unlocked_character_ids", [])))
 	var normal_relay_cleared := bool(source.get("normalRelayCleared", source.get("normal_relay_cleared", false)))
 	var source_schema := int(source.get("schemaVersion", 0))
-	if source_schema < SCHEMA_VERSION and bool(result.get("firstRelayClear", false)):
+	if source_schema < LEGACY_NORMAL_RELAY_MIGRATION_SCHEMA_CUTOFF and bool(result.get("firstRelayClear", false)):
 		normal_relay_cleared = true
-	if source_schema < SCHEMA_VERSION and _legacy_rankings_normal_relay_clear():
+	if source_schema < LEGACY_NORMAL_RELAY_MIGRATION_SCHEMA_CUTOFF and _legacy_rankings_normal_relay_clear():
 		normal_relay_cleared = true
 	if SENIOR_UNIT_CHARACTER_IDS.all(func(id: String) -> bool: return unlocked_ids.has(id)):
 		normal_relay_cleared = true
@@ -118,6 +120,7 @@ func normalize(data: Dictionary, database) -> Dictionary:
 	result["selectedCharacterId"] = selected_id if unlocked_ids.has(selected_id) else DEFAULT_CHARACTER_ID
 	result["rewardedRunIds"] = _normalize_string_list(source.get("rewardedRunIds", []), MAX_REWARDED_RUN_IDS)
 	result["rewardedRewardKeys"] = _normalize_string_list(source.get("rewardedRewardKeys", []), MAX_REWARDED_REWARD_KEYS)
+	result["discoveredEvolutionRecipes"] = _normalize_unbounded_string_list(source.get("discoveredEvolutionRecipes", source.get("discovered_evolution_recipes", [])))
 	return result
 
 func _migrate_legacy(database) -> Dictionary:
@@ -236,6 +239,19 @@ func _normalize_string_list(value: Variant, limit: int) -> Array[String]:
 				result.append(text)
 	while result.size() > limit:
 		result.pop_front()
+	return result
+
+func _normalize_unbounded_string_list(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if not (value is Array):
+		return result
+	for item in value as Array:
+		if item == null:
+			continue
+		var text: String = item.strip_edges() if item is String else str(item)
+		text = text.strip_edges()
+		if text != "" and not result.has(text):
+			result.append(text)
 	return result
 
 func _remove_file(file_path: String) -> void:

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/tests/test_stage2_regular_evolutions.gd" id="1_stage2"]
+
+[node name="Stage2RegularEvolutionsTest" type="Node"]
+script = ExtResource("1_stage2")

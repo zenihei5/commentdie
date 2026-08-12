@@ -6,7 +6,7 @@ extends RefCounted
 
 const PROGRESS_PATH: String = "user://stream_frame_progress.json"
 const RANKINGS_PATH: String = "user://rankings.json"
-const SAVE_VERSION: int = 2
+const SAVE_VERSION: int = 5
 
 const DIFFICULTY_NORMAL: String = "normal"
 const DIFFICULTY_HARD: String = "hard"
@@ -25,9 +25,11 @@ const DEFAULT_STAGE_ID: String = STAGE_ZATSUDAN
 
 const STAGE_ALIASES: Dictionary = {
 	"talk": STAGE_ZATSUDAN,
+	"chat": STAGE_ZATSUDAN,
 	"zatsudan": STAGE_ZATSUDAN,
 	"game": STAGE_GAMEPLAY,
 	"gameplay": STAGE_GAMEPLAY,
+	"song": STAGE_SINGING,
 	"singing": STAGE_SINGING,
 	"drawing": STAGE_DRAWING,
 	"collab": STAGE_COLLAB,
@@ -108,7 +110,7 @@ static func create_default_save_data(frames: Array = []) -> Dictionary:
 			legacy[stage_id] = _legacy_entry(_safe_bool(frame.get("initialUnlocked", stage_id == DEFAULT_STAGE_ID)))
 	var normal := create_default_difficulty_progress()
 	normal["unlocked"] = true
-	return {"saveVersion": SAVE_VERSION, "difficulties": {DIFFICULTY_NORMAL: normal, DIFFICULTY_HARD: create_default_difficulty_progress(), DIFFICULTY_EXPERT: create_default_difficulty_progress()}, "stageSelectUi": {"selectedDifficulty": DIFFICULTY_NORMAL, "lastSelectedStageByDifficulty": {DIFFICULTY_NORMAL: DEFAULT_STAGE_ID, DIFFICULTY_HARD: DEFAULT_STAGE_ID, DIFFICULTY_EXPERT: DEFAULT_STAGE_ID}}, "streamFrameProgress": legacy, "relayModeUnlocked": false}
+	return {"saveVersion": SAVE_VERSION, "difficulties": {DIFFICULTY_NORMAL: normal, DIFFICULTY_HARD: create_default_difficulty_progress(), DIFFICULTY_EXPERT: create_default_difficulty_progress()}, "stageSelectUi": {"selectedDifficulty": DIFFICULTY_NORMAL, "lastSelectedStageByDifficulty": {DIFFICULTY_NORMAL: DEFAULT_STAGE_ID, DIFFICULTY_HARD: DEFAULT_STAGE_ID, DIFFICULTY_EXPERT: DEFAULT_STAGE_ID}}, "streamFrameProgress": legacy, "relayModeUnlocked": false, "codex": CodexManager.get_save_data()}
 
 static func default_progress(frames: Array = []) -> Dictionary:
 	return create_default_save_data(frames)
@@ -116,16 +118,32 @@ static func default_progress(frames: Array = []) -> Dictionary:
 static func load_progress(frames: Array) -> Dictionary:
 	var progress := create_default_save_data(frames)
 	var parsed: Variant = null
+	var legacy_codex_import := false
 	if FileAccess.file_exists(PROGRESS_PATH):
 		var file := FileAccess.open(PROGRESS_PATH, FileAccess.READ)
 		if file != null:
 			parsed = JSON.parse_string(file.get_as_text())
 	if parsed is Dictionary:
 		var source: Dictionary = parsed as Dictionary
+		if source.has("codex") and source.get("codex") is Dictionary:
+			CodexManager.load_save_data(source.get("codex"))
+		else:
+			# Keep the rest of an old/corrupt save intact and only reset codex
+			# state.  The game performs the one-time shop unlock sync afterwards.
+			CodexManager.initialize_empty()
+			legacy_codex_import = true
 		if source.has("difficulties"):
 			progress = _normalize_save(progress, source)
 		else:
 			progress = migrate_save_data(source, frames)
+	else:
+		CodexManager.initialize_empty()
+	# Legacy v0.1/v0.2 difficulty history is authoritative for only the
+	# per-stage clear flags.  The codex layer performs this idempotently and
+	# deliberately does not invent old play/clear counters or scores.
+	CodexManager.sync_legacy_character_records(progress)
+	progress["codex"] = CodexManager.get_save_data()
+	CodexManager.set_legacy_import_pending(legacy_codex_import)
 	var unlocks := evaluate_all_unlocks(progress)
 	for unlock_id in unlocks:
 		queue_unlock_presentation(String(unlock_id))
@@ -143,6 +161,7 @@ static func load_progress_for_target(target: Node) -> void:
 static func save_progress(progress: Dictionary) -> bool:
 	var payload := progress.duplicate(true)
 	payload["saveVersion"] = SAVE_VERSION
+	payload["codex"] = CodexManager.get_save_data()
 	var temp_path := PROGRESS_PATH + ".tmp"
 	var file := FileAccess.open(temp_path, FileAccess.WRITE)
 	if file == null:
@@ -294,6 +313,7 @@ static func _normalize_save(defaults: Dictionary, source: Dictionary) -> Diction
 	result["streamFrameProgress"] = _normalize_legacy_projection(source.get("streamFrameProgress", {}), result)
 	var normal := _dict(difficulties.get(DIFFICULTY_NORMAL, {}))
 	result["relayModeUnlocked"] = bool(_dict(normal.get("relay", {})).get("unlocked", false))
+	result["codex"] = CodexManager.get_save_data()
 	return result
 
 static func evaluate_all_unlocks(progress: Dictionary) -> Array:

@@ -88,6 +88,49 @@ const LINKED_TROLL_MINIMUM_BONUS_EXP := 1
 const LINKED_TROLL_GIFT_EXPECTATION_GAIN := 1
 const LINKED_TROLL_MAX_GIFT_EXPECTATION_GAIN_PER_RUN := 10
 
+# These phase starts are shared by the runtime pickers and the codex read-only
+# presentation model.  Keep the picker order/probabilities unchanged when
+# extending this table.
+const DEFAULT_WAVE_PHASE_STARTS: Array[float] = [0.0, 30.0, 60.0, 90.0, 120.0, 150.0]
+const GAMEPLAY_WAVE_PHASE_STARTS: Array[float] = [0.0, 30.0, 75.0, 120.0]
+const SONG_WAVE_PHASE_STARTS: Array[float] = [0.0, 30.0, 70.0, 120.0]
+const DRAWING_WAVE_PHASE_STARTS: Array[float] = [0.0, 70.0]
+const COLLAB_WAVE_PHASE_STARTS: Array[float] = [0.0, 36.0, 81.0, 126.0]
+const BULLET_DRONE_STAGE_START_SECONDS := 75.0
+
+static func wave_phase_start_seconds(stage_id: String, phase_index: int) -> float:
+	var starts: Array[float] = DEFAULT_WAVE_PHASE_STARTS
+	match stage_id.strip_edges().to_lower():
+		"game", "gameplay": starts = GAMEPLAY_WAVE_PHASE_STARTS
+		"song", "singing": starts = SONG_WAVE_PHASE_STARTS
+		"drawing": starts = DRAWING_WAVE_PHASE_STARTS
+		"collab": starts = COLLAB_WAVE_PHASE_STARTS
+	if phase_index < 0 or phase_index >= starts.size():
+		return -1.0
+	return starts[phase_index]
+
+static func codex_normal_spawn_conditions(enemy_id: String) -> Dictionary:
+	var id := enemy_id.strip_edges()
+	var conditions: Dictionary = {}
+	match id:
+		"troll": conditions = {"stages": ["zatsudan", "gameplay", "singing"], "startSeconds": {"zatsudan": wave_phase_start_seconds("zatsudan", 0), "gameplay": wave_phase_start_seconds("gameplay", 0), "singing": wave_phase_start_seconds("singing", 0)}}
+		"fast": conditions = {"stages": ["zatsudan", "gameplay", "singing"], "startSeconds": {"zatsudan": wave_phase_start_seconds("zatsudan", 1), "gameplay": wave_phase_start_seconds("gameplay", 2), "singing": wave_phase_start_seconds("singing", 2)}}
+		"shooter": conditions = {"stages": ["zatsudan", "gameplay", "singing"], "startSeconds": {"zatsudan": wave_phase_start_seconds("zatsudan", 2), "gameplay": wave_phase_start_seconds("gameplay", 3), "singing": wave_phase_start_seconds("singing", 3)}}
+		"long_comment_guy": conditions = {"stages": ["zatsudan", "gameplay"], "startSeconds": {"zatsudan": wave_phase_start_seconds("zatsudan", 3), "gameplay": wave_phase_start_seconds("gameplay", 3)}}
+		"clipper": conditions = {"stages": ["zatsudan"], "startSeconds": {"zatsudan": wave_phase_start_seconds("zatsudan", 4)}}
+		"enemy_spoiler_comment": conditions = {"stages": ["gameplay"], "startSeconds": {"gameplay": wave_phase_start_seconds("gameplay", 0)}}
+		"enemy_backseat_controller": conditions = {"stages": ["gameplay"], "startSeconds": {"gameplay": wave_phase_start_seconds("gameplay", 1)}}
+		"enemy_armchair_strategist", "enemy_lag_comment", "enemy_fake_first_timer": conditions = {"stages": ["gameplay"], "startSeconds": {"gameplay": wave_phase_start_seconds("gameplay", 2)}}
+		"enemy_strategy_wiki_ojisan": conditions = {"stages": ["gameplay"], "startSeconds": {"gameplay": wave_phase_start_seconds("gameplay", 3)}}
+		"pitch_police", "request_spammer", "song_noise_comment": conditions = {"stages": ["singing"], "startSeconds": {"singing": wave_phase_start_seconds("singing", 0)}}
+		"fast_call_fan", "song_lyric_spoiler_comment": conditions = {"stages": ["singing"], "startSeconds": {"singing": wave_phase_start_seconds("singing", 1)}}
+		"drawing_fix_note", "layer_lost", "bucket_fill_slime", "red_pen_teacher": conditions = {"stages": ["drawing"], "startSeconds": {"drawing": wave_phase_start_seconds("drawing", 0)}}
+		"collab_comparison_troll", "collab_messenger_pigeon": conditions = {"stages": ["collab"], "startSeconds": {"collab": wave_phase_start_seconds("collab", 0)}}
+		"collab_discord_troll": conditions = {"stages": ["collab"], "startSeconds": {"collab": wave_phase_start_seconds("collab", 1)}}
+		"collab_volume_police": conditions = {"stages": ["collab"], "startSeconds": {"collab": wave_phase_start_seconds("collab", 2)}}
+		"collab_exclusive_listener": conditions = {"stages": ["collab"], "startSeconds": {"collab": wave_phase_start_seconds("collab", 3)}}
+	return conditions
+
 static var movement_wall_cache: Dictionary = {}
 
 static func spawn_interval(context: Dictionary) -> float:
@@ -169,7 +212,7 @@ static func _relay_upper_enemy_kind(stream_frame_id: String, active_genre_event:
 static func pick_gameplay_normal_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
-	if t >= 120.0:
+	if t >= GAMEPLAY_WAVE_PHASE_STARTS[3]:
 		if roll < 0.18:
 			return "enemy_spoiler_comment"
 		if roll < 0.35:
@@ -187,7 +230,7 @@ static func pick_gameplay_normal_enemy(elapsed: float, quick_test_mode: bool, rn
 		if roll < 0.96:
 			return "fast"
 		return "long_comment_guy"
-	if t >= 75.0:
+	if t >= GAMEPLAY_WAVE_PHASE_STARTS[2]:
 		if roll < 0.25:
 			return "enemy_spoiler_comment"
 		if roll < 0.45:
@@ -201,7 +244,7 @@ static func pick_gameplay_normal_enemy(elapsed: float, quick_test_mode: bool, rn
 		if roll < 0.90:
 			return "fast"
 		return "troll"
-	if t >= 30.0:
+	if t >= GAMEPLAY_WAVE_PHASE_STARTS[1]:
 		if roll < 0.42:
 			return "enemy_spoiler_comment"
 		if roll < 0.62:
@@ -215,7 +258,7 @@ static func pick_gameplay_normal_enemy(elapsed: float, quick_test_mode: bool, rn
 
 static func pick_bullet_hell_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
-	if t >= 75.0 and rng.randf() < 0.22:
+	if t >= BULLET_DRONE_STAGE_START_SECONDS and rng.randf() < 0.22:
 		return "enemy_bullet_drone"
 	return "enemy_dot_invader"
 
@@ -225,7 +268,7 @@ static func pick_race_event_enemy(_elapsed: float, _quick_test_mode: bool, rng: 
 static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
-	if t >= 120.0:
+	if t >= SONG_WAVE_PHASE_STARTS[3]:
 		if roll < 0.24:
 			return "pitch_police"
 		if roll < 0.45:
@@ -239,7 +282,7 @@ static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNu
 		if roll < 0.93:
 			return "shooter"
 		return "fast"
-	if t >= 70.0:
+	if t >= SONG_WAVE_PHASE_STARTS[2]:
 		if roll < 0.32:
 			return "pitch_police"
 		if roll < 0.52:
@@ -251,7 +294,7 @@ static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNu
 		if roll < 0.90:
 			return "song_lyric_spoiler_comment"
 		return "fast"
-	if t >= 30.0:
+	if t >= SONG_WAVE_PHASE_STARTS[1]:
 		if roll < 0.42:
 			return "pitch_police"
 		if roll < 0.58:
@@ -274,7 +317,7 @@ static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNu
 static func pick_drawing_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
-	if t >= 70.0:
+	if t >= DRAWING_WAVE_PHASE_STARTS[1]:
 		if roll < 0.30:
 			return "drawing_fix_note"
 		if roll < 0.55:
@@ -293,7 +336,7 @@ static func pick_drawing_enemy(elapsed: float, quick_test_mode: bool, rng: Rando
 static func pick_collab_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
-	if t >= 126.0:
+	if t >= COLLAB_WAVE_PHASE_STARTS[3]:
 		if roll < 0.25:
 			return "collab_comparison_troll"
 		if roll < 0.45:
@@ -303,7 +346,7 @@ static func pick_collab_enemy(elapsed: float, quick_test_mode: bool, rng: Random
 		if roll < 0.85:
 			return "collab_volume_police"
 		return "collab_exclusive_listener"
-	if t >= 81.0:
+	if t >= COLLAB_WAVE_PHASE_STARTS[2]:
 		if roll < 0.30:
 			return "collab_comparison_troll"
 		if roll < 0.55:
@@ -311,7 +354,7 @@ static func pick_collab_enemy(elapsed: float, quick_test_mode: bool, rng: Random
 		if roll < 0.80:
 			return "collab_discord_troll"
 		return "collab_volume_police"
-	if t >= 36.0:
+	if t >= COLLAB_WAVE_PHASE_STARTS[1]:
 		if roll < 0.40:
 			return "collab_comparison_troll"
 		if roll < 0.70:
@@ -322,7 +365,7 @@ static func pick_collab_enemy(elapsed: float, quick_test_mode: bool, rng: Random
 static func pick_default_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
 	var roll: float = rng.randf()
-	if t >= 150.0:
+	if t >= DEFAULT_WAVE_PHASE_STARTS[5]:
 		if roll < 0.20:
 			return "clipper"
 		if roll < 0.40:
@@ -332,7 +375,7 @@ static func pick_default_wave_enemy(elapsed: float, quick_test_mode: bool, rng: 
 		if roll < 0.82:
 			return "fast"
 		return "troll"
-	if t >= 120.0:
+	if t >= DEFAULT_WAVE_PHASE_STARTS[4]:
 		if roll < 0.25:
 			return "clipper"
 		if roll < 0.45:
@@ -340,17 +383,17 @@ static func pick_default_wave_enemy(elapsed: float, quick_test_mode: bool, rng: 
 		if roll < 0.68:
 			return "shooter"
 		return "fast" if roll < 0.84 else "troll"
-	if t >= 90.0:
+	if t >= DEFAULT_WAVE_PHASE_STARTS[3]:
 		if roll < 0.35:
 			return "long_comment_guy"
 		if roll < 0.62:
 			return "shooter"
 		return "fast" if roll < 0.82 else "troll"
-	if t >= 60.0:
+	if t >= DEFAULT_WAVE_PHASE_STARTS[2]:
 		if roll < 0.38:
 			return "shooter"
 		return "fast" if roll < 0.68 else "troll"
-	if t >= 30.0:
+	if t >= DEFAULT_WAVE_PHASE_STARTS[1]:
 		return "fast" if roll < 0.45 else "troll"
 	return "troll"
 
@@ -363,6 +406,24 @@ static func is_boss_enemy(enemy: Dictionary) -> bool:
 	return bool(enemy.get("isBoss", false)) or boss_id != "" or kind.begins_with("boss_") or kind in [
 		"bugged_final_boss", "bugged_final_boss_stun", "last_offline", "pitch_police_chief", "red_pen_review_chief", "red_pen_retake_dragon", "collab_crusher"
 	]
+
+static func canonical_codex_enemy_id(enemy: Dictionary) -> String:
+	return CodexManager.canonical_enemy_id(enemy)
+
+static func discover_spawned_enemies_for_target(target: Node) -> void:
+	var enemies_value: Variant = target.get("enemies")
+	if not enemies_value is Array:
+		return
+	for item in enemies_value as Array:
+		if not item is Dictionary:
+			continue
+		var enemy: Dictionary = item as Dictionary
+		if bool(enemy.get("_codex_spawn_processed", false)):
+			continue
+		enemy["_codex_spawn_processed"] = true
+		var codex_id := canonical_codex_enemy_id(enemy)
+		if codex_id != "":
+			CodexManager.discover_enemy(codex_id)
 
 static func weapon_hurt_radius(enemy: Dictionary) -> float:
 	var explicit_value: Variant = enemy.get("hurtboxRadius", enemy.get("weaponHurtRadius", null))
@@ -1269,6 +1330,7 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 	enemies.append(enemy)
 	target.set("enemies", enemies)
 	target.set("next_enemy_uid", next_uid + 1)
+	discover_spawned_enemies_for_target(target)
 	return next_uid
 
 static func apply_runtime_variant(enemy: Dictionary, runtime_variant: String) -> Dictionary:
@@ -1321,6 +1383,13 @@ static func gameplay_marshmallow_drop_request_for_target(target: Node, enemy: Di
 
 static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("kills", int(target.get("kills")) + 1)
+	if not bool(enemy.get("_codex_defeat_recorded", false)):
+		enemy["_codex_defeat_recorded"] = true
+		var codex_id := canonical_codex_enemy_id(enemy)
+		var difficulty_value: Variant = target.get("run_difficulty_id")
+		var difficulty_id := String(difficulty_value if difficulty_value != null else "normal")
+		if codex_id != "":
+			CodexManager.record_enemy_defeat(codex_id, difficulty_id)
 	if bool(enemy.get("noRewards", false)) and not bool(enemy.get("relayBoss", false)):
 		return {"enemyDefeated": true, "noRewards": true}
 	if target.has_method("get") and String(enemy.get("spawnSource", "")) == "normal_wave":
@@ -1859,6 +1928,9 @@ static func update_enemy_world(context: Dictionary) -> Dictionary:
 	return result
 
 static func update_world_for_target(target: Node, delta: float, rng: RandomNumberGenerator, arena: Rect2) -> Dictionary:
+	# Special systems may append directly to target.enemies.  Keep codex
+	# discovery at this shared world boundary instead of scattering calls.
+	discover_spawned_enemies_for_target(target)
 	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
 	var hard_comment_speed := HardModeSystemScript.active_comment_param(hard_runtime, "enemyMoveSpeedRate", HardModeSystemScript.active_comment_param(hard_runtime, "enemySpeedRate", 1.0))
 	var result: Dictionary = update_enemy_world({

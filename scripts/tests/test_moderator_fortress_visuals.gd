@@ -18,7 +18,12 @@ func _run_test() -> void:
 	_check(panels.has("center") and panels.has("upper") and panels.has("lower"), "fortress center/side panel visual data missing", failures)
 	_check(not panels.has("main") and not panels.has("left") and not panels.has("right"), "fortress retained legacy panel slots", failures)
 	_check(String((panels.get("center", {}) as Dictionary).get("visualRole", "")) == "panelCenter", "fortress center texture role missing", failures)
-	_check(String((panels.get("upper", {}) as Dictionary).get("visualRole", "")) == "panelSide" and String((panels.get("lower", {}) as Dictionary).get("visualRole", "")) == "panelSide", "fortress side texture is not reused", failures)
+	var upper_panel := panels.get("upper", {}) as Dictionary
+	var lower_panel := panels.get("lower", {}) as Dictionary
+	_check(String(upper_panel.get("visualRole", "")) == "panelSide" and String(lower_panel.get("visualRole", "")) == "panelSide", "fortress side texture is not reused", failures)
+	_check(is_equal_approx(float(upper_panel.get("localForwardOffset", 0.0)), -14.0) and is_equal_approx(float(lower_panel.get("localForwardOffset", 0.0)), -14.0), "fortress side forward offsets are not equal in data", failures)
+	_check(is_zero_approx(float(upper_panel.get("localSideOffset", 1.0))) and is_zero_approx(float(lower_panel.get("localSideOffset", 1.0))), "fortress side offsets retained direction-relative separation", failures)
+	_check(String(upper_panel.get("rotationMode", "")) == "screen" and String(lower_panel.get("rotationMode", "")) == "screen" and is_equal_approx(float(upper_panel.get("screenRotationDegrees", 0.0)), 90.0) and is_equal_approx(float(lower_panel.get("screenRotationDegrees", 0.0)), 90.0), "fortress side screen rotation data missing", failures)
 	_check(float((visuals.get("panelCenter", {}) as Dictionary).get("size", [0, 0])[0]) > float((visuals.get("panelSide", {}) as Dictionary).get("size", [0, 0])[0]), "fortress center is not wider than side", failures)
 
 	var active := _draw([{"kind": "moderator_fortress_active", "pos": Vector2(100, 100), "dir": Vector2.RIGHT, "progress": 0.4, "life": 0.4, "maxLife": 7.0, "arcDegrees": 220.0, "radius": 100.0, "visuals": visuals}])
@@ -28,9 +33,9 @@ func _run_test() -> void:
 	var center_pos := _layer_by_role(active, "center").get("pos", Vector2.ZERO) as Vector2
 	var upper_pos := _layer_by_role(active, "upper").get("pos", Vector2.ZERO) as Vector2
 	var lower_pos := _layer_by_role(active, "lower").get("pos", Vector2.ZERO) as Vector2
-	_check(center_pos == Vector2(100, 100) and upper_pos == Vector2(84, 72) and lower_pos == Vector2(116, 128), "fortress local panel offsets were not applied", failures)
+	_check(center_pos == Vector2(100, 100) and upper_pos == Vector2(86, 6) and lower_pos == Vector2(86, 194), "fortress screen-fixed panel offsets were not applied", failures)
 	_check(int(_layer_by_role(active, "upper").get("zIndex", 0)) < int(_layer_by_role(active, "center").get("zIndex", 0)) and int(_layer_by_role(active, "center").get("zIndex", 0)) < int(_layer_by_role(active, "lower").get("zIndex", 0)), "fortress panel z-order changed", failures)
-	_check(is_equal_approx(float(_layer_by_role(active, "upper").get("rotation", 0.0)), deg_to_rad(-22.0)) and is_equal_approx(float(_layer_by_role(active, "lower").get("rotation", 0.0)), deg_to_rad(22.0)), "fortress side panel rotation was not applied independently", failures)
+	_check(_is_screen_horizontal_rotation(float(_layer_by_role(active, "upper").get("rotation", 0.0))) and is_equal_approx(float(_layer_by_role(active, "upper").get("rotation", 0.0)), float(_layer_by_role(active, "lower").get("rotation", 0.0))), "fortress side panels are not parallel screen-horizontal shields", failures)
 	_check(not bool(_layer_by_role(active, "upper").get("flipX", false)) and bool(_layer_by_role(active, "lower").get("flipX", false)), "fortress side reflection is not an explicit horizontal transform", failures)
 	_check(not _roles(active).has("bodyCharged"), "fortress retained charged-body selection", failures)
 	var loaded_active_parts := DrawDataSystem.hit_fx_procedural_parts(active, {"center": true, "upper": true, "lower": true}, {})
@@ -48,15 +53,27 @@ func _run_test() -> void:
 	var end_fx := _draw([{"kind": "moderator_fortress_end", "pos": Vector2(100, 100), "dir": Vector2.RIGHT, "life": 0.09, "maxLife": 0.18, "arcDegrees": 220.0, "radius": 100.0, "visuals": visuals}])
 	_check(_roles(end_fx).has("center") and float(_layer_by_role(end_fx, "center").get("alpha", 1.0)) < 1.0 and float(_layer_by_role(end_fx, "upper").get("alpha", 1.0)) < float(_layer_by_role(end_fx, "center").get("alpha", 1.0)), "fortress side-first end fade missing", failures)
 
-	var rotated := _draw([{"kind": "moderator_fortress_active", "pos": Vector2(100, 100), "dir": Vector2.DOWN, "progress": 0.4, "life": 0.4, "maxLife": 7.0, "arcDegrees": 220.0, "radius": 100.0, "visuals": visuals}])
-	_check(is_equal_approx(float(_layer_by_role(rotated, "center").get("rotation", 0.0)), PI * 0.5), "fortress panel direction rotation changed", failures)
-	var directions: Array[Vector2] = [Vector2.LEFT, Vector2.UP, Vector2.DOWN]
+	var directions: Array[Vector2] = [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]
+	var side_rotation := float(_layer_by_role(active, "upper").get("rotation", 0.0))
 	for direction in directions:
 		var directional := _draw([{"kind": "moderator_fortress_active", "pos": Vector2(100, 100), "dir": direction, "progress": 0.4, "life": 0.4, "maxLife": 7.0, "arcDegrees": 220.0, "radius": 100.0, "visuals": visuals}])
-		var local_side := Vector2(-direction.y, direction.x)
-		var expected_upper := Vector2(100, 100) + direction * -16.0 + local_side * -28.0
-		var expected_lower := Vector2(100, 100) + direction * 16.0 + local_side * 28.0
-		_check((_layer_by_role(directional, "upper").get("pos", Vector2.ZERO) as Vector2).is_equal_approx(expected_upper) and (_layer_by_role(directional, "lower").get("pos", Vector2.ZERO) as Vector2).is_equal_approx(expected_lower), "fortress local offsets did not follow direction", failures)
+		var directional_center := _layer_by_role(directional, "center")
+		var directional_upper := _layer_by_role(directional, "upper")
+		var directional_lower := _layer_by_role(directional, "lower")
+		var expected_center := Vector2(100, 100)
+		var expected_upper := expected_center + direction * -14.0 + Vector2(0, -94)
+		var expected_lower := expected_center + direction * -14.0 + Vector2(0, 94)
+		_check((directional_center.get("pos", Vector2.ZERO) as Vector2).is_equal_approx(expected_center) and (directional_upper.get("pos", Vector2.ZERO) as Vector2).is_equal_approx(expected_upper) and (directional_lower.get("pos", Vector2.ZERO) as Vector2).is_equal_approx(expected_lower), "fortress panel screen offsets changed by facing direction", failures)
+		_check((directional_upper.get("pos", Vector2.ZERO) as Vector2).y < (directional_center.get("pos", Vector2.ZERO) as Vector2).y and (directional_center.get("pos", Vector2.ZERO) as Vector2).y < (directional_lower.get("pos", Vector2.ZERO) as Vector2).y, "fortress panels are not ordered upper/center/lower on screen", failures)
+		_check(is_equal_approx(float(directional_upper.get("rotation", 0.0)), side_rotation) and is_equal_approx(float(directional_lower.get("rotation", 0.0)), side_rotation), "fortress side rotation changed with facing direction", failures)
+		_check(is_equal_approx(float(directional_center.get("rotation", 0.0)), direction.angle()), "fortress center rotation stopped following facing direction", failures)
+		var upper_forward := (((directional_upper.get("pos", Vector2.ZERO) as Vector2) - Vector2(0, -94)) - (directional_center.get("pos", Vector2.ZERO) as Vector2)).dot(direction)
+		var lower_forward := (((directional_lower.get("pos", Vector2.ZERO) as Vector2) - Vector2(0, 94)) - (directional_center.get("pos", Vector2.ZERO) as Vector2)).dot(direction)
+		_check(is_equal_approx(upper_forward, -14.0) and is_equal_approx(lower_forward, -14.0), "fortress side forward offsets are not equal", failures)
+		_check((directional_upper.get("pos", Vector2.ZERO) as Vector2).distance_to(directional_lower.get("pos", Vector2.ZERO) as Vector2) >= 150.0, "fortress side panels are too close together", failures)
+		var upper_span := _outline_span(directional, "upper")
+		var lower_span := _outline_span(directional, "lower")
+		_check(upper_span.x > upper_span.y and lower_span.x > lower_span.y, "fortress procedural side fallback is not horizontal", failures)
 
 	var hit := _draw([{"kind": "moderator_fortress_hit", "pos": Vector2(200, 120), "dir": Vector2.LEFT, "life": 0.19, "maxLife": 0.19, "visuals": visuals}])
 	_check(_roles(hit).has("hit"), "fortress hit image missing", failures)
@@ -101,6 +118,27 @@ func _has_fallback_role(parts: Array, role: String) -> bool:
 		if String((item as Dictionary).get("fallbackRole", "")) == role:
 			return true
 	return false
+
+func _is_screen_horizontal_rotation(rotation: float) -> bool:
+	return is_equal_approx(absf(sin(rotation)), 1.0) and is_zero_approx(cos(rotation))
+
+func _outline_span(data: Dictionary, role: String) -> Vector2:
+	var roles: Array = data.get("idleOutlineRoles", []) as Array
+	var index := roles.find(role)
+	if index < 0:
+		return Vector2.ZERO
+	var points: PackedVector2Array = data.get("idleEdge%dPoints" % (index + 1), PackedVector2Array()) as PackedVector2Array
+	if points.is_empty():
+		return Vector2.ZERO
+	var minimum := points[0]
+	var maximum := points[0]
+	for point_value in points:
+		var point: Vector2 = point_value
+		minimum.x = minf(minimum.x, point.x)
+		minimum.y = minf(minimum.y, point.y)
+		maximum.x = maxf(maximum.x, point.x)
+		maximum.y = maxf(maximum.y, point.y)
+	return maximum - minimum
 
 func _layer_by_role(data: Dictionary, role: String) -> Dictionary:
 	for item in data.get("imageLayers", []) as Array:

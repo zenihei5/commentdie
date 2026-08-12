@@ -176,6 +176,19 @@ static func selection_index_for_page(frames: Array, page: int, local_index: int 
 	var end: int = mini(start + SELECT_PAGE_SIZE, frames.size())
 	return clampi(start + local_index, start, end - 1)
 
+static func horizontal_difficulty_edge_target_index(current_index: int, current_count: int, target_count: int, direction: int) -> int:
+	if current_count <= 0 or target_count <= 0 or direction == 0:
+		return -1
+	var safe_current: int = clampi(current_index, 0, current_count - 1)
+	var local_index: int = safe_current % SELECT_PAGE_SIZE
+	var column: int = local_index % SELECT_COLUMNS
+	var row_start: int = int(local_index / SELECT_COLUMNS) * SELECT_COLUMNS
+	if direction > 0 and column == SELECT_COLUMNS - 1:
+		return mini(row_start, target_count - 1)
+	if direction < 0 and column == 0:
+		return mini(row_start + SELECT_COLUMNS - 1, target_count - 1)
+	return -1
+
 static func locked_message(frame: Dictionary, frames: Array) -> String:
 	var disabled_reason: String = _disabled_reason(frame)
 	if disabled_reason != "":

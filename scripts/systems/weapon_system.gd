@@ -19,7 +19,7 @@ const MARO_PULSE_INDEX_KEY := "__maro_comment_pulse_index"
 const MARO_PULSE_UNTIL_KEY := "__maro_comment_pulse_until"
 const MARO_FLASH_UNTIL_KEY := "__maro_comment_flash_until"
 const STAGE2_WEAPON_STATE_KEY := "__stage2WeaponStates"
-const STAGE2_WEAPON_IDS := ["moderator_shield", "fansa_baton", "tsuri_thumbnail_rod", "moderator_fortress", "fansa_climax", "buzz_thumbnail_rod"]
+const STAGE2_WEAPON_IDS := ["moderator_shield", "fansa_baton", "tsuri_thumbnail_rod", "moderator_fortress", "fansa_climax", "buzz_thumbnail_rod", "full_voice_dome", "center_stage", "great_grassland", "comment_lockdown", "emote_festival", "all_block_laser", "listener_assembly"]
 const KUSA_WAVE_DAMAGE_BY_LEVEL := [5.0, 7.0, 8.0, 10.0, 12.0]
 const KUSA_WAVE_INTERVAL_BY_LEVEL := [1.40, 1.35, 1.30, 1.25, 1.20]
 const KUSA_WAVE_SIZE_BY_LEVEL := [1.0, 1.0, 1.25, 1.25, 1.45]
@@ -39,6 +39,100 @@ static func find_weapon(weapons: Array, id: String, fallback: Dictionary) -> Dic
 		if String(weapon.get("id", "")) == id:
 			return weapon
 	return fallback
+
+
+static func _weapon_parent_id(weapon_id: String, entry: Dictionary, weapon_data: Array) -> String:
+	var parent_id := String(entry.get("baseWeaponId", ""))
+	if parent_id != "":
+		return parent_id
+	var weapon := find_weapon(weapon_data, weapon_id, {})
+	return String(weapon.get("baseWeaponId", ""))
+
+
+static func _weapon_lineage_contains(
+	weapon_id: String,
+	entry: Dictionary,
+	required_base_id: String,
+	player_weapons: Array,
+	weapon_data: Array,
+	visited: Dictionary = {}
+) -> bool:
+	if weapon_id == required_base_id:
+		return true
+	if weapon_id == "" or bool(visited.get(weapon_id, false)):
+		return false
+	visited[weapon_id] = true
+	var parent_id := _weapon_parent_id(weapon_id, entry, weapon_data)
+	if parent_id == "":
+		return false
+	var parent_entry := EquipmentSystem.find_entry(player_weapons, parent_id)
+	return _weapon_lineage_contains(parent_id, parent_entry, required_base_id, player_weapons, weapon_data, visited)
+
+
+static func resolve_equipped_weapon_for_base(
+	base_weapon_id: String,
+	current_weapon: Dictionary,
+	player_weapons: Array,
+	weapon_data: Array
+) -> Dictionary:
+	if base_weapon_id == "":
+		return {"found": false}
+	var current_id := String(current_weapon.get("id", ""))
+	if current_id != "" and _weapon_lineage_contains(
+		current_id,
+		EquipmentSystem.find_entry(player_weapons, current_id),
+		base_weapon_id,
+		player_weapons,
+		weapon_data,
+		{}
+	):
+		var main_entry := EquipmentSystem.find_entry(player_weapons, current_id)
+		var main_weapon := find_weapon(weapon_data, current_id, current_weapon)
+		return {
+			"found": true,
+			"weapon": main_weapon,
+			"entry": main_entry if not main_entry.is_empty() else {"id": current_id, "level": 1},
+			"entryLevel": EquipmentSystem.entry_level(main_entry, 1) if not main_entry.is_empty() else 1,
+			"weaponId": current_id,
+			"baseWeaponId": base_weapon_id,
+			"slotIndex": player_weapons.find(main_entry) if not main_entry.is_empty() else -1,
+			"isMain": true
+		}
+	for slot_index in range(player_weapons.size()):
+		var entry_value: Variant = player_weapons[slot_index]
+		if not entry_value is Dictionary:
+			continue
+		var entry: Dictionary = entry_value as Dictionary
+		var weapon_id := String(entry.get("id", ""))
+		if weapon_id == "" or not _weapon_lineage_contains(weapon_id, entry, base_weapon_id, player_weapons, weapon_data, {}):
+			continue
+		var weapon := find_weapon(weapon_data, weapon_id, {})
+		if weapon.is_empty():
+			continue
+		return {
+			"found": true,
+			"weapon": weapon,
+			"entry": entry,
+			"entryLevel": EquipmentSystem.entry_level(entry, 1),
+			"weaponId": weapon_id,
+			"baseWeaponId": base_weapon_id,
+			"slotIndex": slot_index,
+			"isMain": false
+		}
+	return {"found": false}
+
+
+static func _initial_evolved_runtime_kind(weapon: Dictionary) -> String:
+	if not bool(weapon.get("isEvolved", false)) or String(weapon.get("baseWeaponId", "")) == "":
+		return ""
+	var type := attack_type(weapon)
+	if type == "melee_shockwave":
+		return "melee_shockwave"
+	if type == "projectile" and weapon.has("premiumEvery") and weapon.has("premiumExplosionDamage"):
+		return "starlight_projectile"
+	if type == "orbit" and weapon.has("pulseInterval") and weapon.has("pulseDamage"):
+		return "maro_orbit"
+	return ""
 
 static func attack_type(weapon: Dictionary) -> String:
 	var explicit_type: String = String(weapon.get("attackType", ""))
@@ -73,6 +167,89 @@ static func range_base(weapon: Dictionary) -> float:
 	if attack_type(weapon) == "orbit":
 		return scaled_range(float(weapon.get("orbitRadius", weapon.get("range", 1.8))), 43.0)
 	return scaled_range(float(weapon.get("range", 2.0)))
+
+## Standard, modifier-free values shared by the runtime and the codex.
+## `initial_owner` selects the six character starting-weapon rules; all other
+## normal weapons use the equipment-weapon path from update_equipment_weapons.
+static func codex_standard_stats_for_level(weapon: Dictionary, level: int = 1, initial_owner: bool = false) -> Dictionary:
+	if weapon.is_empty():
+		return {}
+	var weapon_id := String(weapon.get("id", ""))
+	var max_level := maxi(1, int(weapon.get("maxLevel", 1)))
+	var safe_level := clampi(level, 1, max_level)
+	var resolved := stage2_level_data(weapon, safe_level) if _is_stage2_weapon_id(weapon_id) else weapon.duplicate(true)
+	resolved["level"] = safe_level
+	var base_damage := float(resolved.get("damage", resolved.get("baseDamage", 4.0)))
+	var base_interval := attack_interval(resolved, 1.0)
+	var base_range := range_base(resolved)
+	var result: Dictionary = resolved.duplicate(true)
+	if weapon_id == "kusa_wave":
+		result["damage"] = _kusa_wave_damage_for_level(safe_level)
+		result["attackInterval"] = _kusa_wave_interval_for_level(safe_level)
+		result["range"] = _kusa_wave_distance_for_level(safe_level)
+		result["sizeMultiplier"] = _kusa_wave_size_for_level(safe_level)
+		result["bounceCount"] = _kusa_wave_bounces_for_level(safe_level)
+	else:
+		if initial_owner:
+			var owner_damage := base_damage * (1.0 + 0.10 * float(safe_level - 1))
+			if weapon_id in ["superchat_shot", "comment_boomerang"]:
+				owner_damage += 1.5 * float(safe_level - 1)
+			result["damage"] = owner_damage
+			result["range"] = base_range * (1.0 + 0.08 * float(safe_level - 1))
+			var owner_rate := pow(0.94, float(safe_level - 1))
+			var owner_min := float(resolved.get("minAttackInterval", resolved.get("minCooldown", 0.28)))
+			result["attackInterval"] = maxf(owner_min, player_attack_interval(base_interval, owner_rate))
+		else:
+			result["damage"] = base_damage + 1.5 * float(safe_level - 1)
+			result["range"] = base_range
+			result["attackInterval"] = player_attack_interval(base_interval, 1.0)
+		if weapon_id in ["comment_pin", "emote_mine", "ng_word_laser", "listener_summon"]:
+			var count_key := "projectileCount" if weapon_id == "comment_pin" else ("mineCount" if weapon_id == "emote_mine" else ("laserCount" if weapon_id == "ng_word_laser" else "summonCount"))
+			result[count_key] = _weapon_spawn_count(resolved, count_key, safe_level, 0)
+		if weapon_id == "comment_pin":
+			result["slowDuration"] = _level_duration(float(resolved.get("slowDuration", 2.0)), safe_level)
+		if weapon_id == "emote_mine":
+			result["duration"] = _level_duration(float(resolved.get("duration", 8.0)), safe_level)
+			result["explosionRadius"] = scaled_range(float(resolved.get("explosionRadius", 1.5))) * (1.12 if safe_level >= 3 else 1.0)
+		if weapon_id == "ng_word_laser":
+			result["width"] = scaled_range(float(resolved.get("width", 0.6))) * (1.12 if safe_level >= 5 else 1.0)
+		if weapon_id == "listener_summon":
+			result["duration"] = _level_duration(float(resolved.get("duration", 6.0)), safe_level)
+			result["searchRange"] = scaled_range(float(resolved.get("searchRange", resolved.get("range", 7.0)))) * (1.10 if safe_level >= 3 else 1.0)
+	if weapon_id in STAGE2_WEAPON_IDS and not bool(resolved.get("isEvolved", false)):
+		var behavior := _stage2_behavior(resolved)
+		if behavior in ["moderator_shield", "front_shield"]:
+			result["damage"] = _stage2_base_damage(resolved) * float(resolved.get("damageMultiplier", 1.0))
+			result["attackInterval"] = float(resolved.get("activationInterval", base_interval))
+			result["radius"] = float(resolved.get("radius", 80.0)) * float(resolved.get("sizeRate", 1.0))
+		elif behavior == "fansa_baton":
+			var shape := fansa_attack_shape(resolved, safe_level, {})
+			result["range"] = float(shape.get("radius", resolved.get("normalRange", 110.0)))
+			result["arcAngle"] = float(shape.get("arcDegrees", resolved.get("normalArcAngle", 130.0)))
+			result["attackInterval"] = float(resolved.get("hitInterval", resolved.get("attackInterval", 0.55)))
+			result["normalDamage"] = _stage2_base_damage(resolved) * float(resolved.get("normalDamageCoefficient", 0.55)) * float(resolved.get("normalDamageMultiplier", 1.0))
+			result["finisherDamage"] = _stage2_base_damage(resolved) * float(resolved.get("finisherDamageCoefficient", 1.25)) * float(resolved.get("finisherDamageMultiplier", 1.0))
+		elif behavior == "tsuri_thumbnail_rod":
+			result["initialDamage"] = _stage2_base_damage(resolved) * float(resolved.get("initialDamageCoefficient", 0.30)) * float(resolved.get("initialDamageMultiplier", 1.0))
+			result["reelDamage"] = _stage2_base_damage(resolved) * float(resolved.get("reelDamageCoefficient", 1.10)) * float(resolved.get("reelDamageMultiplier", 1.0))
+			result["attackInterval"] = float(resolved.get("activationInterval", base_interval))
+			result["range"] = float(resolved.get("maxCastRange", resolved.get("range", 0.0))) * float(resolved.get("castRangeMultiplier", 1.0))
+	elif weapon_id in STAGE2_WEAPON_IDS:
+		var behavior := _stage2_behavior(resolved)
+		if behavior == "moderator_fortress":
+			result["damage"] = _stage2_base_damage(resolved) * float(resolved.get("damageRate", 1.0))
+			result["attackInterval"] = float(resolved.get("activationInterval", base_interval))
+			result["radius"] = float(resolved.get("radius", 100.0))
+		elif behavior == "fansa_climax":
+			result["normalDamage"] = _stage2_base_damage(resolved) * float(resolved.get("normalDamageCoefficient", 0.65))
+			result["finisherDamage"] = _stage2_base_damage(resolved) * float(resolved.get("finisherDamageCoefficient", 1.40))
+			result["echoDamage"] = _stage2_base_damage(resolved) * float(resolved.get("echoDamageCoefficient", 0.30))
+			result["attackInterval"] = float(resolved.get("attackInterval", base_interval))
+		elif behavior == "buzz_thumbnail_rod":
+			result["initialDamage"] = _stage2_base_damage(resolved) * float(resolved.get("initialDamageCoefficient", 0.40))
+			result["caughtDamage"] = _stage2_base_damage(resolved) * float(resolved.get("caughtDamageCoefficient", 1.35))
+			result["attackInterval"] = float(resolved.get("activationInterval", base_interval))
+	return result
 
 static func attack_area_rate(context: Dictionary) -> float:
 	return clampf(float(context.get("attackAreaRate", 1.0)), 1.0, 1.60)
@@ -117,7 +294,7 @@ static func _alive_hit_fx(hit_fx: Array) -> Array:
 
 static func _hit_fx_priority(fx: Dictionary) -> int:
 	var kind := String(fx.get("kind", ""))
-	if kind in ["moderator_shield_active", "moderator_shield_deploy", "moderator_shield_end", "moderator_shield_end_wave", "tsuri_rod_cast", "fansa_baton_hit", "fansa_baton_cross_followup", "moderator_shield_bullet_clear", "moderator_fortress_active", "moderator_fortress_deploy", "moderator_fortress_end", "moderator_shield_hit", "moderator_fortress_hit", "moderator_fortress_shockwave", "moderator_fortress_bullet_clear", "fansa_climax_hit", "fansa_climax_echo", "fansa_climax_x", "fansa_climax_fan_wave", "buzz_thumbnail_rod_cast", "buzz_thumbnail_rod_gather", "buzz_thumbnail_rod_explosion", "buzz_thumbnail_rod_target_mark", "buzz_thumbnail_rod_throw", "buzz_thumbnail_rod_bear_flash", "buzz_thumbnail_rod_catch_mark", "buzz_thumbnail_rod_hit"]:
+	if kind in ["moderator_shield_active", "moderator_shield_deploy", "moderator_shield_end", "moderator_shield_end_wave", "tsuri_rod_cast", "fansa_baton_hit", "fansa_baton_cross_followup", "moderator_shield_bullet_clear", "moderator_fortress_active", "moderator_fortress_deploy", "moderator_fortress_end", "moderator_shield_hit", "moderator_fortress_hit", "moderator_fortress_shockwave", "moderator_fortress_bullet_clear", "fansa_climax_hit", "fansa_climax_echo", "fansa_climax_x", "fansa_climax_fan_wave", "buzz_thumbnail_rod_cast", "buzz_thumbnail_rod_gather", "buzz_thumbnail_rod_explosion", "buzz_thumbnail_rod_target_mark", "buzz_thumbnail_rod_throw", "buzz_thumbnail_rod_bear_flash", "buzz_thumbnail_rod_catch_mark", "buzz_thumbnail_rod_hit", "full_voice_dome_wave", "full_voice_dome_pulse", "center_stage_area", "center_stage_finish", "great_grassland_wave", "comment_lockdown_projectile", "comment_lockdown_followup", "comment_lockdown_hit", "comment_lockdown_followup_hit", "emote_festival_mine", "emote_festival_burst", "all_block_laser", "listener_assembly", "stage2_bullet_clear"]:
 		return 5
 	if kind in ["emote_mine", "listener_summon", "kusa_wave", "ng_word_laser", "boss_defeat", "maro_comment_pulse"]:
 		return 3
@@ -170,15 +347,15 @@ static func _short_range_range_for_weapon(weapon_id: String, weapon: Dictionary,
 			return _apply_short_range(context, range_value, 0.75, 0.85, SHORT_RANGE_MIN_AREA_RADIUS)
 		"comment_boomerang", "maro_comment_ring":
 			return _apply_short_range(context, range_value, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
-		"spotlight", "kusa_wave", "comment_pin":
+		"spotlight", "kusa_wave", "comment_pin", "center_stage", "great_grassland", "comment_lockdown":
 			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
-		"ng_word_laser":
+		"ng_word_laser", "all_block_laser":
 			return _apply_short_range(context, range_value, 0.55, 0.75, SHORT_RANGE_MIN_LASER_RANGE)
-		"listener_summon":
+		"listener_summon", "listener_assembly":
 			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_SEARCH_RANGE)
 		"fansa_baton", "fansa_climax":
 			return _apply_short_range(context, range_value, 0.75, 0.85, 0.0)
-		"emote_mine":
+		"emote_mine", "emote_festival":
 			return range_value
 	if attack_type(weapon) == "orbit":
 		return _apply_short_range(context, range_value, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
@@ -198,19 +375,21 @@ static func _boomerang_orbit_se_due(weapon: Dictionary, weapon_timers: Dictionar
 	var safe_speed: float = absf(speed)
 	if safe_speed <= 0.001:
 		return false
-	var sound_weapon_id: String = String(weapon.get("id", "")) if is_main_orbit else "comment_boomerang"
+	var sound_weapon_id: String = String(weapon.get("id", "")) if is_main_orbit else String(weapon.get("id", "comment_boomerang"))
 	if sound_weapon_id == "":
 		sound_weapon_id = "comment_boomerang"
+	var index_key := BOOMERANG_ORBIT_INDEX_KEY if sound_weapon_id == "comment_boomerang" else "%s:%s" % [BOOMERANG_ORBIT_INDEX_KEY, sound_weapon_id]
+	var weapon_id_key := BOOMERANG_ORBIT_WEAPON_ID_KEY if sound_weapon_id == "comment_boomerang" else "%s:%s" % [BOOMERANG_ORBIT_WEAPON_ID_KEY, sound_weapon_id]
 	var orbit_index: int = int(floor(elapsed * safe_speed / TAU))
-	var last_weapon_id: String = String(weapon_timers.get(BOOMERANG_ORBIT_WEAPON_ID_KEY, ""))
-	if not weapon_timers.has(BOOMERANG_ORBIT_INDEX_KEY) or last_weapon_id != sound_weapon_id:
-		weapon_timers[BOOMERANG_ORBIT_WEAPON_ID_KEY] = sound_weapon_id
-		weapon_timers[BOOMERANG_ORBIT_INDEX_KEY] = orbit_index
+	var last_weapon_id: String = String(weapon_timers.get(weapon_id_key, ""))
+	if not weapon_timers.has(index_key) or last_weapon_id != sound_weapon_id:
+		weapon_timers[weapon_id_key] = sound_weapon_id
+		weapon_timers[index_key] = orbit_index
 		return false
-	var last_orbit_index: int = int(weapon_timers.get(BOOMERANG_ORBIT_INDEX_KEY, orbit_index))
+	var last_orbit_index: int = int(weapon_timers.get(index_key, orbit_index))
 	if orbit_index <= last_orbit_index:
 		return false
-	weapon_timers[BOOMERANG_ORBIT_INDEX_KEY] = orbit_index
+	weapon_timers[index_key] = orbit_index
 	return true
 
 static func update_weapons(context: Dictionary) -> Dictionary:
@@ -234,6 +413,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 	var projectile_result: Dictionary = update_projectiles({
 		"delta": context["delta"],
 		"weapon": context["weapon"],
+		"weaponData": context.get("weaponData", []),
 		"weaponTimers": context["equipmentWeaponTimers"],
 		"weaponType": context["weaponType"],
 		"superchatLevel": context["superchatLevel"],
@@ -326,6 +506,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"delta": context["delta"],
 		"weaponData": context["weaponData"],
 		"playerWeapons": context["playerWeapons"],
+		"mainWeapon": main_weapon,
 		"mainWeaponId": String(main_weapon.get("id", "")),
 		"timers": context["equipmentWeaponTimers"],
 		"playerPos": context["playerPos"],
@@ -334,6 +515,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"lastMoveDirection": context.get("lastMoveDirection", context.get("lastDir", Vector2.RIGHT)),
 		"manualAimDirection": context.get("manualAimDirection", Vector2.ZERO),
 		"moveInput": context.get("moveInput", Vector2.ZERO),
+		"elapsed": context.get("elapsed", 0.0),
 		"rng": context["rng"],
 		"attackRightOnly": context["attackRightOnly"],
 		"attackRightOnlyRate": context["attackRightOnlyRate"],
@@ -341,6 +523,9 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
 		"enemyBullets": context["enemyBullets"],
+		"playerBullets": result["playerBullets"],
+		"boomerangHits": result["boomerangHits"],
+		"expOrbs": context.get("expOrbs", []),
 		"dropItems": context.get("dropItems", []),
 		"activeFx": context.get("hitFxState", []),
 		"damageRate": context["equipmentDamageRate"],
@@ -354,6 +539,12 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"normalWeaponsDisabled": normal_weapons_disabled
 	})
 	result["equipmentWeaponTimers"] = equipment_result["timers"]
+	if equipment_result.has("playerBullets"):
+		result["playerBullets"] = equipment_result["playerBullets"]
+	if equipment_result.has("boomerangHits"):
+		result["boomerangHits"] = equipment_result["boomerangHits"]
+	result["superchatShotFired"] = bool(result.get("superchatShotFired", false)) or bool(equipment_result.get("superchatShotFired", false))
+	result["boomerangOrbitSe"] = bool(result.get("boomerangOrbitSe", false)) or bool(equipment_result.get("boomerangOrbitSe", false))
 	_merge_weapon_result(result, equipment_result)
 	return result
 
@@ -577,15 +768,29 @@ static func weapon_comment_kind_for_id(weapon_id: String) -> String:
 			return "comment_boomerang"
 		"mic_barrier":
 			return "mic"
+		"full_voice_dome":
+			return "mic"
+		"center_stage":
+			return "spotlight"
 		"comment_pin":
 			return "comment_pin"
 		"kusa_wave":
 			return "kusa_wave"
+		"great_grassland":
+			return "kusa_wave"
+		"comment_lockdown":
+			return "comment_pin"
 		"ng_word_laser":
+			return "ng_word_laser"
+		"all_block_laser":
 			return "ng_word_laser"
 		"listener_summon":
 			return "listener_summon"
+		"listener_assembly":
+			return "listener_summon"
 		"emote_mine":
+			return "emote_mine"
+		"emote_festival":
 			return "emote_mine"
 	return ""
 
@@ -636,7 +841,11 @@ static func _apply_enemy_hit(enemy: Dictionary, damage: float, push_dir: Vector2
 	var scaled_knockback: float = _scaled_hit_knockback(enemy, knockback, defeated)
 	if scaled_knockback > 0.0 and dir.length() > 0.1:
 		EnemySystem.add_knockback_for_enemy(enemy, dir, scaled_knockback)
-	hit_effects.append(_damage_number_fx(enemy_pos, applied_damage))
+	var damage_fx := _damage_number_fx(enemy_pos, applied_damage)
+	if hit_source != "":
+		damage_fx["owner"] = hit_source
+		damage_fx["weaponId"] = hit_source
+	hit_effects.append(damage_fx)
 	_append_killed_once(enemy, killed_enemies)
 	return HIT_DAMAGED
 
@@ -744,7 +953,7 @@ static func _maro_bullet_clear_fx(pos: Vector2, center: Vector2) -> Dictionary:
 		"maxLife": 0.28
 	}
 
-static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2, radius: float, hit_effects: Array, clear_fx_kind: String = "") -> int:
+static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2, radius: float, hit_effects: Array, clear_fx_kind: String = "", owner_id: String = "") -> int:
 	var cleared: int = 0
 	for item in enemy_bullets:
 		var bullet: Dictionary = item as Dictionary
@@ -756,9 +965,16 @@ static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2
 		if bullet_pos.distance_squared_to(center) <= hit_range * hit_range:
 			bullet["life"] = -1.0
 			if clear_fx_kind == "maro_comment":
-				hit_effects.append(_maro_bullet_clear_fx(bullet_pos, center))
+				var maro_clear_fx := _maro_bullet_clear_fx(bullet_pos, center)
+				_tag_hit_effects_for_weapon([maro_clear_fx], 0, owner_id)
+				hit_effects.append(maro_clear_fx)
 			else:
-				hit_effects.append(_bullet_pop_fx(bullet_pos))
+				var bullet_fx := _bullet_pop_fx(bullet_pos)
+				if owner_id != "":
+					bullet_fx["kind"] = "stage2_bullet_clear"
+					bullet_fx["owner"] = owner_id
+					bullet_fx["weaponId"] = owner_id
+				hit_effects.append(bullet_fx)
 			cleared += 1
 	return cleared
 
@@ -993,6 +1209,7 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 	var arc_dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
 	var closest_hit: Vector2 = player_pos + dir * effective_range
 	if is_judgement:
+		var judgement_fx_start := hit_effects.size()
 		var judgement_result: Dictionary = _apply_ban_judgement_attack(
 			weapon,
 			enemies,
@@ -1011,6 +1228,7 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 			hit_effects,
 			barrier_hit_requests
 		)
+		_tag_hit_effects_for_weapon(hit_effects, judgement_fx_start, String(weapon.get("id", "")) if bool(weapon.get("isEvolved", false)) else "")
 		hits = int(judgement_result.get("hits", 0))
 		closest_hit = judgement_result.get("closestHit", closest_hit) as Vector2
 		var swing_hits: int = int(judgement_result.get("swingHits", 0))
@@ -1061,6 +1279,24 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 	result["attackTimer"] = attack_timer_value
 	result["muteTimer"] = mute_timer_value
 	return result
+
+static func _runtime_weapon_for_bullet(bullet: Dictionary, context: Dictionary) -> Dictionary:
+	var weapon_id := String(bullet.get("weaponId", ""))
+	var weapon_data: Array = context.get("weaponData", []) as Array
+	if weapon_id != "":
+		var registered := find_weapon(weapon_data, weapon_id, {})
+		if not registered.is_empty():
+			return registered
+	return context.get("weapon", {}) as Dictionary
+
+
+static func _weapon_knockback_for_context(weapon: Dictionary, context: Dictionary) -> float:
+	var current_weapon: Dictionary = context.get("weapon", {}) as Dictionary
+	var weapon_id := String(weapon.get("id", ""))
+	if weapon_id == "" or weapon_id == String(current_weapon.get("id", "")):
+		return float(context.get("knockback", 0.0))
+	return scaled_knockback(float(weapon.get("knockback", 0.0)))
+
 
 static func update_projectiles(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
@@ -1125,6 +1361,11 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 		bullet["pos"] = Vector2(bullet["pos"]) + Vector2(bullet["vel"]) * delta
 		bullet["life"] = float(bullet["life"]) - delta
 		var bullet_pos: Vector2 = Vector2(bullet["pos"])
+		var bullet_weapon: Dictionary = _runtime_weapon_for_bullet(bullet, context)
+		var bullet_weapon_id := String(bullet.get("weaponId", ""))
+		var bullet_visual_kind := String(bullet.get("visualKind", ""))
+		if bullet_weapon_id == "" and (bullet_visual_kind == "starlight_superchat" or bullet_visual_kind == "high_superchat" or _is_starlight_superchat(bullet_weapon)):
+			bullet_weapon_id = String(bullet_weapon.get("id", ""))
 		var bullet_hit_ids: Array = bullet.get("hitIds", []) as Array
 		if float(bullet["life"]) > 0.0:
 			for enemy_bullet_item in enemy_bullets:
@@ -1136,7 +1377,9 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 				if bullet_pos.distance_squared_to(enemy_bullet_pos) <= bullet_clash_radius * bullet_clash_radius:
 					enemy_bullet["life"] = -1.0
 					bullet["life"] = -1.0
+					var clash_fx_start := hit_effects.size()
 					hit_effects.append(_bullet_pop_fx(enemy_bullet_pos))
+					_tag_hit_effects_for_weapon(hit_effects, clash_fx_start, bullet_weapon_id if _is_starlight_superchat(bullet_weapon) else "")
 					break
 		for enemy_item in enemies:
 			var enemy: Dictionary = enemy_item
@@ -1164,19 +1407,24 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 				bullet_hit_ids.append(enemy_id)
 				bullet["hitIds"] = bullet_hit_ids
 				var visual_kind: String = String(bullet.get("visualKind", ""))
-				var is_starlight_bullet: bool = visual_kind == "starlight_superchat" or visual_kind == "high_superchat"
+				var is_starlight_bullet: bool = visual_kind == "starlight_superchat" or visual_kind == "high_superchat" or _is_starlight_superchat(bullet_weapon)
+				if bullet_weapon_id == "" and is_starlight_bullet:
+					bullet_weapon_id = String(bullet_weapon.get("id", ""))
 				var is_premium_bullet: bool = bool(bullet.get("premium", false))
-				var hit_result := _apply_enemy_hit(enemy, damage, push_dir, float(context.get("knockback", 0.0)) * 0.42, killed_enemies, hit_effects, barrier_hit_requests, String(bullet.get("source", "")))
+				var hit_source := String(bullet.get("source", ""))
+				if hit_source == "":
+					hit_source = bullet_weapon_id
+				var hit_result := _apply_enemy_hit(enemy, damage, push_dir, _weapon_knockback_for_context(bullet_weapon, context) * 0.42, killed_enemies, hit_effects, barrier_hit_requests, hit_source)
 				if hit_result == HIT_DAMAGED:
 					if is_starlight_bullet:
-						hit_effects.append(_starlight_hit_fx(hit_pos, is_premium_bullet))
+						hit_effects.append(_starlight_hit_fx(hit_pos, is_premium_bullet, bullet_weapon_id))
 						if _starlight_enemy_defeated(enemy):
-							hit_effects.append(_starlight_defeat_fx(enemy, is_premium_bullet))
-					var weapon_for_hit: Dictionary = context["weapon"] as Dictionary
+							hit_effects.append(_starlight_defeat_fx(enemy, is_premium_bullet, bullet_weapon_id))
+					var weapon_for_hit: Dictionary = bullet_weapon
 					if is_premium_bullet:
-						var explosion_hits: int = _apply_starlight_explosion(weapon_for_hit, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests)
+						var explosion_hits: int = _apply_starlight_explosion(weapon_for_hit, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests, bullet_weapon_id)
 						_request_weapon_hit_reaction(result, weapon_for_hit, 1 + explosion_hits, 1 + explosion_hits)
-					_request_weapon_hit_reaction(result, context["weapon"] as Dictionary, 1)
+					_request_weapon_hit_reaction(result, weapon_for_hit, 1)
 				var pierce_left: int = int(bullet.get("pierceLeft", 0))
 				if pierce_left > 0:
 					bullet["pierceLeft"] = pierce_left - 1
@@ -1199,10 +1447,10 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 					bullet_hit_ids.append(box_id)
 					bullet["hitIds"] = bullet_hit_ids
 					if bool(bullet.get("premium", false)):
-						hit_effects.append(_starlight_hit_fx(hit_pos, true))
-						_apply_starlight_explosion(context["weapon"] as Dictionary, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests)
+						hit_effects.append(_starlight_hit_fx(hit_pos, true, bullet_weapon_id))
+						_apply_starlight_explosion(bullet_weapon, context, hit_pos, enemies, destructibles, killed_enemies, destroyed_boxes, hit_effects, barrier_hit_requests, bullet_weapon_id)
 					elif String(bullet.get("visualKind", "")) == "starlight_superchat":
-						hit_effects.append(_starlight_hit_fx(hit_pos))
+						hit_effects.append(_starlight_hit_fx(hit_pos, false, bullet_weapon_id))
 					var pierce_left: int = int(bullet.get("pierceLeft", 0))
 					if pierce_left > 0:
 						bullet["pierceLeft"] = pierce_left - 1
@@ -1239,18 +1487,20 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	if bool(context.get("normalWeaponsDisabled", false)):
 		return result
 	var boomerang_level: int = int(context["boomerangLevel"])
-	var is_main_orbit: bool = weapon_type == "orbit"
-	var is_maro_ring: bool = is_main_orbit and _is_maro_comment_ring(weapon)
+	var is_main_orbit: bool = bool(context.get("isMainOrbit", weapon_type == "orbit"))
+	var is_maro_ring: bool = _is_maro_comment_ring(weapon)
+	var weapon_id := String(weapon.get("id", "comment_boomerang"))
+	var evolved_owner_id := weapon_id if bool(weapon.get("isEvolved", false)) else ""
 	var count: int = orbit_count(weapon, boomerang_level)
 	if count > 0 and not is_maro_ring:
 		count += int(context.get("bulletSupportLevel", 0))
 	if count <= 0:
 		return result
 	var player_pos: Vector2 = Vector2(context["playerPos"])
-	var radius: float = float(context["range"]) if is_main_orbit else 78.0
+	var radius: float = float(context["range"]) if is_main_orbit or is_maro_ring else 78.0
 	radius = _apply_short_range(context, radius, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
 	if is_maro_ring:
-		_update_maro_comment_pulse(weapon, context, radius, weapon_timers, context["enemies"] as Array, killed_enemies, hit_effects, result)
+		_update_maro_comment_pulse(weapon, context, radius, weapon_timers, context["enemies"] as Array, killed_enemies, hit_effects, result, evolved_owner_id)
 		var pulse_until: float = float(weapon_timers.get(MARO_PULSE_UNTIL_KEY, 0.0))
 		var pulse_duration: float = maxf(0.05, float(weapon.get("pulseDuration", 0.25)))
 		if float(context["elapsed"]) < pulse_until:
@@ -1258,12 +1508,12 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 			var pulse_strength: float = sin(pulse_progress * PI)
 			radius = lerpf(radius, _maro_pulse_radius(weapon, radius), pulse_strength)
 			_nudge_exp_orbs_for_maro_pulse(context.get("expOrbs", []) as Array, player_pos, _maro_pulse_exp_pull_radius(weapon), float(context["delta"]))
-	var hit_radius: float = float(weapon.get("hitRadius", 34.0)) if is_main_orbit else 28.0
+	var hit_radius: float = float(weapon.get("hitRadius", 34.0)) if is_main_orbit or is_maro_ring else 28.0
 	hit_radius *= attack_area_rate(context)
 	var speed: float = orbit_speed(weapon)
-	var damage: float = float(context["damage"]) if is_main_orbit else 5.0
+	var damage: float = float(context["damage"]) if is_main_orbit or is_maro_ring else 5.0
 	damage += float(boomerang_level) * 1.5
-	var hit_interval: float = float(weapon.get("hitInterval", 0.6)) if is_main_orbit else 0.6
+	var hit_interval: float = float(weapon.get("hitInterval", 0.6)) if is_main_orbit or is_maro_ring else 0.6
 	var elapsed: float = float(context["elapsed"])
 	result["boomerangOrbitSe"] = _boomerang_orbit_se_due(weapon, weapon_timers, elapsed, speed, is_main_orbit)
 	var enemies: Array = context["enemies"] as Array
@@ -1273,35 +1523,42 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	for i in range(count):
 		var angle: float = elapsed * speed + TAU * float(i) / float(count)
 		var pos: Vector2 = player_pos + Vector2(cos(angle), sin(angle)) * radius
-		var cleared_bullets: int = _clear_enemy_bullets_in_circle(enemy_bullets, pos, hit_radius + 10.0, hit_effects, "maro_comment" if is_maro_ring else "")
+		var cleared_bullets: int = _clear_enemy_bullets_in_circle(enemy_bullets, pos, hit_radius + 10.0, hit_effects, "maro_comment" if is_maro_ring else "", evolved_owner_id)
 		if is_maro_ring and cleared_bullets > 0:
 			weapon_timers[MARO_FLASH_UNTIL_KEY] = elapsed + 0.18
 		for enemy_item in enemies:
 			var enemy: Dictionary = enemy_item
 			if float(enemy["hp"]) <= 0.0:
 				continue
-			var enemy_id: String = "%s_%d" % [String(enemy["kind"]), int(enemy.get("uid", 0))]
-			var hit_key: String = "%d:%s" % [i, enemy_id]
+			var enemy_id: String = "%s_%d" % [String(enemy["kind"]), int(enemy.get("uid", 0))] if evolved_owner_id == "" else _stage2_entity_token(enemy)
+			var hit_key: String = "%d:%s" % [i, enemy_id] if evolved_owner_id == "" else "%s|%d|%s" % [weapon_id, i, enemy_id]
 			if float(hit_memory.get(hit_key, 0.0)) > elapsed:
 				continue
 			var enemy_pos: Vector2 = Vector2(enemy["pos"])
 			var enemy_hit_radius: float = float(enemy["radius"]) + hit_radius
 			if pos.distance_squared_to(enemy_pos) < enemy_hit_radius * enemy_hit_radius:
 				var push_dir: Vector2 = (enemy_pos - player_pos).normalized()
-				var hit_result := _apply_enemy_hit(enemy, damage, push_dir, float(context["knockback"]) * 0.45, killed_enemies, hit_effects, barrier_hit_requests)
+				var knockback_value: float = float(context["knockback"]) if is_main_orbit else scaled_knockback(float(weapon.get("knockback", 0.0)))
+				var hit_result := _apply_enemy_hit(enemy, damage, push_dir, knockback_value * 0.45, killed_enemies, hit_effects, barrier_hit_requests, evolved_owner_id)
 				if hit_result == HIT_DAMAGED:
 					_request_weapon_hit_reaction(result, weapon, 1)
 				hit_memory[hit_key] = elapsed + hit_interval
 				if is_maro_ring:
-					hit_effects.append(_maro_comment_hit_fx(enemy_pos))
+					var maro_hit_fx := _maro_comment_hit_fx(enemy_pos)
+					if evolved_owner_id != "":
+						maro_hit_fx["owner"] = evolved_owner_id
+						maro_hit_fx["weaponId"] = evolved_owner_id
+					hit_effects.append(maro_hit_fx)
 				else:
-					hit_effects.append({"pos": pos, "dir": push_dir, "life": 0.14, "range": 36.0, "hit": enemy_pos, "count": 1})
+					var orbit_hit_fx := {"pos": pos, "dir": push_dir, "life": 0.14, "range": 36.0, "hit": enemy_pos, "count": 1}
+					_tag_hit_effects_for_weapon([orbit_hit_fx], 0, evolved_owner_id)
+					hit_effects.append(orbit_hit_fx)
 		for box_item in destructibles:
 			var box: Dictionary = box_item as Dictionary
 			if float(box.get("hp", 0.0)) <= 0.0:
 				continue
 			var box_id: String = "box_%d" % int(box.get("uid", 0))
-			var box_hit_key: String = "%d:%s" % [i, box_id]
+			var box_hit_key: String = "%d:%s" % [i, box_id] if evolved_owner_id == "" else "%s|%d|box:%d" % [weapon_id, i, int(box.get("uid", 0))]
 			if float(hit_memory.get(box_hit_key, 0.0)) > elapsed:
 				continue
 			var box_pos: Vector2 = Vector2(box["pos"])
@@ -1312,8 +1569,164 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	result["boomerangHits"] = hit_memory
 	return result
 
+
+static func _update_side_ban_judgement_weapon(
+	weapon: Dictionary,
+	context: Dictionary,
+	entry: Dictionary,
+	timers: Dictionary,
+	hit_effects: Array,
+	killed_enemies: Array,
+	destroyed_boxes: Array,
+	barrier_hit_requests: Array
+) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "ban_judgement"))
+	var delta := float(context.get("delta", 0.0))
+	var timer := float(timers.get(weapon_id, 0.0)) - delta
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var interval := player_attack_interval(attack_interval(weapon, 1.0), float(context.get("intervalRate", 1.0)))
+	timers[weapon_id] = maxf(0.18, interval)
+	var player_pos: Vector2 = Vector2(context["playerPos"])
+	var attack_dir := _direction_with_attack_right_only(Vector2(context["facingDir"]).normalized(), context)
+	var area_rate := attack_area_rate(context)
+	var base_range := maxf(1.0, range_base(weapon))
+	var range_value := _short_range_range_for_weapon(weapon_id, weapon, base_range * float(context.get("rangeRate", 1.0)), context)
+	var effective_range := range_value * area_rate
+	var inherited_range_rate := effective_range / base_range
+	var fx_start := hit_effects.size()
+	var judgement_result := _apply_ban_judgement_attack(
+		weapon,
+		context["enemies"] as Array,
+		context["destructibles"] as Array,
+		context["enemyBullets"] as Array,
+		player_pos,
+		attack_dir,
+		effective_range,
+		float(weapon.get("arcAngle", 145.0)),
+		float(weapon.get("damage", 36.0)) * float(context.get("damageRate", 1.0)),
+		scaled_knockback(float(weapon.get("knockback", 4.4))),
+		inherited_range_rate * _short_range_projectile_rate(context),
+		inherited_range_rate * _short_range_area_rate(context) * area_rate,
+		killed_enemies,
+		destroyed_boxes,
+		hit_effects,
+		barrier_hit_requests
+	)
+	_tag_hit_effects_for_weapon(hit_effects, fx_start, weapon_id)
+	var swing_hits := int(judgement_result.get("swingHits", 0))
+	var swing_enemy_hits := int(judgement_result.get("swingEnemyHits", swing_hits))
+	if swing_hits > 0:
+		_request_weapon_hit_reaction(result, weapon, swing_hits, swing_enemy_hits)
+		(result["chat"] as Array).append("BANジャッジメント命中！")
+	return result
+
+
+static func _update_side_starlight_weapon(
+	weapon: Dictionary,
+	context: Dictionary,
+	timers: Dictionary,
+	bullets: Array
+) -> Dictionary:
+	var result: Dictionary = {"superchatShotFired": false}
+	var weapon_id := String(weapon.get("id", "starlight_superchat"))
+	var delta := float(context.get("delta", 0.0))
+	var timer := float(timers.get(weapon_id, 0.0)) - delta
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var interval := player_attack_interval(attack_interval(weapon, 0.5), float(context.get("intervalRate", 1.0)))
+	timers[weapon_id] = maxf(0.18, interval)
+	var player_pos: Vector2 = Vector2(context["playerPos"])
+	var target: Variant = nearest_enemy(context["enemies"] as Array, player_pos)
+	if target == null:
+		return result
+	var target_pos: Vector2 = Vector2((target as Dictionary).get("pos", player_pos))
+	var range_value := _short_range_range_for_weapon(weapon_id, weapon, range_base(weapon) * float(context.get("rangeRate", 1.0)), context)
+	if player_pos.distance_squared_to(target_pos) > range_value * range_value:
+		return result
+	var dir := (target_pos - player_pos).normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	var weapon_timers: Dictionary = timers
+	weapon_timers[STARLIGHT_SHOT_COUNTER_KEY] = int(weapon_timers.get(STARLIGHT_SHOT_COUNTER_KEY, 0)) + 1
+	var base_damage := float(weapon.get("damage", 10.0)) * float(context.get("damageRate", 1.0))
+	var speed := scaled_projectile_speed(float(weapon.get("projectileSpeed", 9.5)))
+	var projectile_count := maxi(1, int(weapon.get("projectileCount", 3))) + int(context.get("bulletSupportLevel", 0))
+	var spread_rad := deg_to_rad(float(weapon.get("projectileSpreadDegrees", 12.0)))
+	var area_rate := attack_area_rate(context)
+	for shot_index in range(projectile_count):
+		var shot_dir := _spread_direction(dir, shot_index, projectile_count, spread_rad)
+		var bullet := _starlight_bullet_data(weapon, player_pos, shot_dir, speed, range_value / maxf(1.0, speed), base_damage, shot_index, projectile_count, weapon_timers)
+		bullet["hitRadius"] = float(bullet.get("hitRadius", 7.0)) * area_rate
+		bullet["visualScale"] = area_rate
+		bullets.append(bullet)
+	result["superchatShotFired"] = true
+	return result
+
+
+static func _update_side_maro_comment_ring(
+	weapon: Dictionary,
+	context: Dictionary,
+	timers: Dictionary,
+	boomerang_hits: Dictionary
+) -> Dictionary:
+	var side_context: Dictionary = context.duplicate()
+	side_context["weapon"] = weapon
+	side_context["weaponType"] = "orbit"
+	side_context["isMainOrbit"] = false
+	side_context["boomerangLevel"] = 0
+	side_context["weaponTimers"] = timers
+	side_context["boomerangHits"] = boomerang_hits
+	side_context["range"] = range_base(weapon) * float(context.get("rangeRate", 1.0))
+	side_context["damage"] = float(weapon.get("damage", 15.0)) * float(context.get("damageRate", 1.0))
+	side_context["knockback"] = scaled_knockback(float(weapon.get("knockback", 0.3)))
+	return update_boomerang(side_context)
+
+
+static func _update_initial_evolved_side_weapon(
+	weapon: Dictionary,
+	entry: Dictionary,
+	context: Dictionary,
+	player_weapons: Array,
+	weapon_data: Array,
+	timers: Dictionary,
+	hit_effects: Array,
+	killed_enemies: Array,
+	destroyed_boxes: Array,
+	barrier_hit_requests: Array,
+	player_bullets: Array,
+	boomerang_hits: Dictionary
+) -> Dictionary:
+	var result := _stage2_empty_result()
+	var base_id := String(weapon.get("baseWeaponId", ""))
+	var resolved := resolve_equipped_weapon_for_base(base_id, context.get("mainWeapon", {}) as Dictionary, player_weapons, weapon_data)
+	if not bool(resolved.get("found", false)) or bool(resolved.get("isMain", false)):
+		return result
+	if String(resolved.get("weaponId", "")) != String(entry.get("id", "")):
+		return result
+	match _initial_evolved_runtime_kind(weapon):
+		"melee_shockwave":
+			return _update_side_ban_judgement_weapon(weapon, context, entry, timers, hit_effects, killed_enemies, destroyed_boxes, barrier_hit_requests)
+		"starlight_projectile":
+			var projectile_result := _update_side_starlight_weapon(weapon, context, timers, player_bullets)
+			for key in projectile_result.keys():
+				result[key] = projectile_result[key]
+			return result
+		"maro_orbit":
+			return _update_side_maro_comment_ring(weapon, context, timers, boomerang_hits)
+	return result
+
 static func update_equipment_weapons(context: Dictionary) -> Dictionary:
-	var result: Dictionary = {"timers": context["timers"], "hitFx": [], "killed": [], "destroyedBoxes": [], "chat": [], "barrierHitRequests": []}
+	var result: Dictionary = {"timers": context["timers"], "playerBullets": context.get("playerBullets", []), "boomerangHits": context.get("boomerangHits", {}), "superchatShotFired": false, "boomerangOrbitSe": false, "hitFx": [], "killed": [], "destroyedBoxes": [], "chat": [], "barrierHitRequests": []}
 	var timers: Dictionary = result["timers"] as Dictionary
 	var hit_effects: Array = result["hitFx"] as Array
 	var killed_enemies: Array = result["killed"] as Array
@@ -1323,6 +1736,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 	var delta: float = float(context["delta"])
 	var weapon_data: Array = context["weaponData"] as Array
 	var player_weapons: Array = context["playerWeapons"] as Array
+	var main_weapon: Dictionary = context.get("mainWeapon", {}) as Dictionary
 	var main_weapon_id: String = String(context.get("mainWeaponId", ""))
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var facing_dir: Vector2 = Vector2(context["facingDir"]).normalized()
@@ -1331,6 +1745,8 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 	var enemies: Array = context["enemies"] as Array
 	var destructibles: Array = context["destructibles"] as Array
 	var enemy_bullets: Array = context["enemyBullets"] as Array
+	var player_bullets: Array = context.get("playerBullets", []) as Array
+	var boomerang_hits: Dictionary = context.get("boomerangHits", {}) as Dictionary
 	var active_fx: Array = context.get("activeFx", []) as Array
 	var support_level: int = int(context.get("bulletSupportLevel", 0))
 	var normal_weapons_disabled := bool(context.get("normalWeaponsDisabled", false))
@@ -1347,6 +1763,27 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			var stage2_result := _update_stage2_weapon(weapon, entry, context, timers, hit_effects, killed_enemies, barrier_hit_requests)
 			_merge_weapon_result(result, stage2_result)
 			continue
+		if _initial_evolved_runtime_kind(weapon) != "":
+			var initial_result := _update_initial_evolved_side_weapon(
+				weapon,
+				entry,
+				context,
+				player_weapons,
+				weapon_data,
+				timers,
+				hit_effects,
+				killed_enemies,
+				destroyed_boxes,
+				barrier_hit_requests,
+				player_bullets,
+				boomerang_hits
+			)
+			result["playerBullets"] = player_bullets
+			result["boomerangHits"] = initial_result.get("boomerangHits", result.get("boomerangHits", boomerang_hits))
+			result["superchatShotFired"] = bool(result.get("superchatShotFired", false)) or bool(initial_result.get("superchatShotFired", false))
+			result["boomerangOrbitSe"] = bool(result.get("boomerangOrbitSe", false)) or bool(initial_result.get("boomerangOrbitSe", false))
+			_merge_weapon_result(result, initial_result)
+			continue
 		var timer: float = float(timers.get(weapon_id, 0.0)) - delta
 		if timer > 0.0:
 			timers[weapon_id] = timer
@@ -1356,14 +1793,11 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			continue
 		var attack_dir: Vector2 = _direction_with_attack_right_only(facing_dir, context)
 		var level_value: int = int(entry.get("level", 1))
-		var damage: float = (float(weapon.get("damage", 4.0)) + float(level_value - 1) * 1.5) * float(context["damageRate"])
-		var range_value: float = range_base(weapon) * float(context["rangeRate"])
-		var base_interval: float = attack_interval(weapon, 1.0)
+		var standard_stats := codex_standard_stats_for_level(weapon, level_value, false)
+		var damage: float = float(standard_stats.get("damage", float(weapon.get("damage", 4.0)))) * float(context["damageRate"])
+		var range_value: float = float(standard_stats.get("range", range_base(weapon))) * float(context["rangeRate"])
+		var base_interval: float = float(standard_stats.get("attackInterval", attack_interval(weapon, 1.0)))
 		var interval: float = player_attack_interval(base_interval, float(context["intervalRate"]))
-		if weapon_id == "kusa_wave":
-			damage = _kusa_wave_damage_for_level(level_value) * float(context["damageRate"])
-			range_value = _kusa_wave_distance_for_level(level_value) * float(context["rangeRate"])
-			interval = player_attack_interval(_kusa_wave_interval_for_level(level_value), float(context["intervalRate"]))
 		range_value = _short_range_range_for_weapon(weapon_id, weapon, range_value, context)
 		var spawn_support_level: int = support_level if String(weapon.get("attribute", "")) == "bullet" else 0
 		timers[weapon_id] = maxf(0.18, interval)
@@ -1703,6 +2137,9 @@ static func _stage2_level_data(weapon: Dictionary, level: int) -> Dictionary:
 	resolved["level"] = level
 	return resolved
 
+static func stage2_level_data(weapon: Dictionary, level: int = 1) -> Dictionary:
+	return _stage2_level_data(weapon, level)
+
 static func fansa_attack_shape(weapon: Dictionary, level: int = 1, context: Dictionary = {}) -> Dictionary:
 	var weapon_id := String(weapon.get("id", ""))
 	var safe_level := maxi(1, level)
@@ -1794,25 +2231,754 @@ static func _stage2_weapon_with_inherited_visuals(weapon: Dictionary, context: D
 		resolved["visuals"] = (source.get("visuals", {}) as Dictionary).duplicate(true)
 	return resolved
 
+static func _stage2_result_with_visuals(result: Dictionary, weapon: Dictionary) -> Dictionary:
+	var visuals: Dictionary = weapon.get("visuals", {}) as Dictionary
+	if visuals.is_empty():
+		return result
+	for fx_item in (result.get("hitFx", []) as Array):
+		var fx: Dictionary = fx_item as Dictionary
+		if not fx.has("visuals"):
+			fx["visuals"] = visuals.duplicate(true)
+	return result
+
 static func _update_stage2_weapon(weapon: Dictionary, entry: Dictionary, context: Dictionary, timers: Dictionary, hit_effects: Array, killed_enemies: Array, barrier_hit_requests: Array) -> Dictionary:
 	var weapon_id := String(weapon.get("id", ""))
 	var max_level := maxi(1, int(weapon.get("maxLevel", 1)))
 	var level := clampi(int(entry.get("level", 1)), 1, max_level)
-	var level_weapon := _stage2_weapon_with_inherited_visuals(_stage2_level_data(weapon, level), context)
+	var level_weapon := _stage2_weapon_with_inherited_visuals(stage2_level_data(weapon, level), context)
 	var behavior := _stage2_behavior(level_weapon)
+	var result: Dictionary = _stage2_empty_result()
 	if behavior in ["moderator_shield", "front_shield"]:
-		return _update_moderator_shield_weapon(level_weapon, context, timers)
-	if behavior == "fansa_baton":
-		return _update_fansa_baton_weapon(level_weapon, entry, context, timers)
-	if behavior == "tsuri_thumbnail_rod":
-		return _update_tsuri_rod_weapon(level_weapon, context, timers)
-	if behavior == "moderator_fortress":
-		return _update_moderator_fortress_weapon(level_weapon, context, timers)
-	if behavior == "fansa_climax":
-		return _update_fansa_climax_weapon(level_weapon, context, timers)
-	if behavior == "buzz_thumbnail_rod":
-		return _update_buzz_thumbnail_rod_weapon(level_weapon, context, timers)
-	return _stage2_empty_result()
+		result = _update_moderator_shield_weapon(level_weapon, context, timers)
+	elif behavior == "fansa_baton":
+		result = _update_fansa_baton_weapon(level_weapon, entry, context, timers)
+	elif behavior == "tsuri_thumbnail_rod":
+		result = _update_tsuri_rod_weapon(level_weapon, context, timers)
+	elif behavior == "moderator_fortress":
+		result = _update_moderator_fortress_weapon(level_weapon, context, timers)
+	elif behavior == "fansa_climax":
+		result = _update_fansa_climax_weapon(level_weapon, context, timers)
+	elif behavior == "buzz_thumbnail_rod":
+		result = _update_buzz_thumbnail_rod_weapon(level_weapon, context, timers)
+	elif behavior == "full_voice_dome":
+		result = _update_full_voice_dome_weapon(level_weapon, context, timers)
+	elif behavior == "center_stage":
+		result = _update_center_stage_weapon(level_weapon, context, timers)
+	elif behavior == "great_grassland":
+		result = _update_great_grassland_weapon(level_weapon, context, timers)
+	elif behavior == "comment_lockdown":
+		result = _update_comment_lockdown_weapon(level_weapon, context, timers)
+	elif behavior == "emote_festival":
+		result = _update_emote_festival_weapon(level_weapon, context, timers)
+	elif behavior == "all_block_laser":
+		result = _update_all_block_laser_weapon(level_weapon, context, timers)
+	elif behavior == "listener_assembly":
+		result = _update_listener_assembly_weapon(level_weapon, context, timers)
+	return _stage2_result_with_visuals(result, level_weapon)
+
+static func _stage2_source_weapon(weapon: Dictionary, context: Dictionary) -> Dictionary:
+	var source_id := String(weapon.get("visualSourceWeaponId", ""))
+	if source_id == "":
+		return {}
+	return find_weapon(context.get("weaponData", []) as Array, source_id, {})
+
+static func _stage2_clear_bullet_fx(pos: Vector2, owner_id: String) -> Dictionary:
+	return {
+		"kind": "stage2_bullet_clear",
+		"owner": owner_id,
+		"weaponId": owner_id,
+		"pos": pos,
+		"life": 0.18,
+		"maxLife": 0.18
+	}
+
+static func _stage2_clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2, radius: float, hit_effects: Array, owner_id: String) -> int:
+	var cleared := 0
+	for bullet_item in enemy_bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if float(bullet.get("life", 0.0)) <= 0.0 or not _stage2_shield_bullet_clearable(bullet):
+			continue
+		var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		var hit_range := radius + float(bullet.get("hitRadius", 16.0))
+		if bullet_pos.distance_squared_to(center) > hit_range * hit_range:
+			continue
+		bullet["life"] = -1.0
+		hit_effects.append(_stage2_clear_bullet_fx(bullet_pos, owner_id))
+		cleared += 1
+	return cleared
+
+static func _update_full_voice_dome_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "full_voice_dome"))
+	var delta := float(context.get("delta", 0.0))
+	var attack_timer := float(timers.get(weapon_id, 0.0)) - delta
+	var states := _stage2_states(timers)
+	var state: Dictionary = states.get(weapon_id, {}) as Dictionary
+	var pulse_timer := float(state.get("pulseTimer", 0.0)) - delta
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		state["pulseTimer"] = 0.0
+		states[weapon_id] = state
+		return result
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var coverage := _stage2_coverage_rate(context)
+	var enemies: Array = context.get("enemies", []) as Array
+	var destructibles: Array = context.get("destructibles", []) as Array
+	var enemy_bullets: Array = context.get("enemyBullets", []) as Array
+	var killed: Array = result["killed"] as Array
+	var destroyed: Array = result["destroyedBoxes"] as Array
+	var hit_effects: Array = result["hitFx"] as Array
+	var barriers: Array = result["barrierHitRequests"] as Array
+	var damage_rate := float(context.get("damageRate", 1.0))
+	if attack_timer <= 0.0:
+		var radius := float(weapon.get("radius", 0.0)) * coverage
+		var damage := float(weapon.get("damage", weapon.get("baseDamage", 0.0))) * damage_rate
+		var enemy_hits := _apply_circle_damage(enemies, player_pos, radius, damage, float(weapon.get("knockback", 0.0)), killed, hit_effects, barriers, weapon_id)
+		_apply_circle_damage_to_boxes(destructibles, player_pos, radius, destroyed, hit_effects, weapon_id)
+		_stage2_clear_enemy_bullets_in_circle(enemy_bullets, player_pos, radius, hit_effects, weapon_id)
+		if enemy_hits > 0:
+			_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(weapon_id)})
+		hit_effects.append({
+			"kind": "full_voice_dome_wave", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": player_pos, "radius": radius, "hitCount": enemy_hits,
+			"life": 0.42, "maxLife": 0.42
+		})
+		attack_timer = _stage2_interval(weapon, context, 0.0)
+	if pulse_timer <= 0.0:
+		var pulse_radius := float(weapon.get("pulseRadius", 0.0)) * coverage
+		var pulse_damage := float(weapon.get("pulseDamage", 0.0)) * damage_rate
+		var pulse_knockback := float(weapon.get("pulseKnockback", 0.0))
+		var pulse_hits := _apply_circle_damage(enemies, player_pos, pulse_radius, pulse_damage, pulse_knockback, killed, hit_effects, barriers, weapon_id)
+		_apply_circle_damage_to_boxes(destructibles, player_pos, pulse_radius, destroyed, hit_effects, weapon_id)
+		_stage2_clear_enemy_bullets_in_circle(enemy_bullets, player_pos, pulse_radius, hit_effects, weapon_id)
+		if pulse_hits > 0:
+			_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(weapon_id)})
+		hit_effects.append({
+			"kind": "full_voice_dome_pulse", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": player_pos, "radius": pulse_radius, "hitCount": pulse_hits,
+			"life": 0.48, "maxLife": 0.48
+		})
+		pulse_timer = player_attack_interval(float(weapon.get("pulseInterval", 0.0)), float(context.get("intervalRate", 1.0)))
+	timers[weapon_id] = attack_timer
+	state["pulseTimer"] = pulse_timer
+	states[weapon_id] = state
+	return result
+
+static func _center_stage_target_center(weapon: Dictionary, context: Dictionary) -> Vector2:
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var fallback := _direction_with_attack_right_only(Vector2(context.get("facingDir", Vector2.RIGHT)), context)
+	if fallback.length() < 0.1:
+		fallback = Vector2.RIGHT
+	var placement_range := scaled_range(float(weapon.get("placementRange", 0.0))) * float(context.get("rangeRate", 1.0))
+	placement_range = _apply_short_range(context, placement_range, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
+	var radius := float(weapon.get("radius", 0.0)) * _stage2_coverage_rate(context)
+	var best: Dictionary = {}
+	var best_count := -1
+	var best_distance := INF
+	var best_token := ""
+	for candidate_value in context.get("enemies", []) as Array:
+		var candidate: Dictionary = candidate_value as Dictionary
+		if not _stage2_alive_enemy(candidate):
+			continue
+		var candidate_pos := Vector2(candidate.get("pos", player_pos))
+		var player_distance := player_pos.distance_to(candidate_pos)
+		if player_distance > placement_range + float(candidate.get("radius", 20.0)):
+			continue
+		var count := 0
+		for member_value in context.get("enemies", []) as Array:
+			var member: Dictionary = member_value as Dictionary
+			if not _stage2_alive_enemy(member):
+				continue
+			if candidate_pos.distance_to(Vector2(member.get("pos", candidate_pos))) <= radius + float(member.get("radius", 20.0)):
+				count += 1
+		var token := _stage2_entity_token(candidate)
+		var better := count > best_count
+		if count == best_count and player_distance < best_distance - 0.001:
+			better = true
+		if count == best_count and is_equal_approx(player_distance, best_distance) and (best_token == "" or token < best_token):
+			better = true
+		if better:
+			best = candidate
+			best_count = count
+			best_distance = player_distance
+			best_token = token
+	if not best.is_empty():
+		return Vector2(best.get("pos", player_pos))
+	return player_pos + fallback * placement_range
+
+static func _center_stage_apply_area(fx: Dictionary, damage_key: String, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> int:
+	var center := Vector2(fx.get("pos", Vector2.ZERO))
+	var radius := float(fx.get("radius", 0.0))
+	var damage := float(fx.get(damage_key, 0.0))
+	var weapon_id := String(fx.get("weaponId", "center_stage"))
+	var hits := _apply_circle_damage(enemies, center, radius, damage, 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, weapon_id)
+	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects, weapon_id)
+	_stage2_clear_enemy_bullets_in_circle(enemy_bullets, center, radius, hit_effects, weapon_id)
+	if hits > 0:
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(weapon_id)})
+	return hits
+
+static func _update_center_stage_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "center_stage"))
+	var delta := float(context.get("delta", 0.0))
+	var timer := float(timers.get(weapon_id, 0.0)) - delta
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var radius := float(weapon.get("radius", 0.0)) * _stage2_coverage_rate(context)
+	var duration := float(weapon.get("duration", 0.0))
+	var hit_interval := float(weapon.get("hitInterval", 0.0))
+	var tick_damage := float(weapon.get("tickDamage", weapon.get("damage", 0.0))) * float(context.get("damageRate", 1.0))
+	var finish_damage := float(weapon.get("finishDamage", 0.0)) * float(context.get("damageRate", 1.0))
+	var fx := {
+		"kind": "center_stage_area", "owner": weapon_id, "weaponId": weapon_id,
+		"pos": _center_stage_target_center(weapon, context), "radius": radius,
+		"duration": duration, "age": 0.0, "tickCount": 1, "maxTicks": int(weapon.get("maxTicks", 0)),
+		"nextTickAt": hit_interval, "hitInterval": hit_interval,
+		"tickDamage": tick_damage, "finishDamage": finish_damage,
+		"finishFlashDuration": float(weapon.get("finishFlashDuration", 0.0)),
+		"finishApplied": false, "life": duration, "maxLife": duration
+	}
+	var hit_effects: Array = result["hitFx"] as Array
+	var initial_hits := _center_stage_apply_area(fx, "tickDamage", context.get("enemies", []) as Array, context.get("destructibles", []) as Array, context.get("enemyBullets", []) as Array, result["killed"] as Array, result["destroyedBoxes"] as Array, hit_effects, result)
+	hit_effects.append({"kind": "center_stage_tick", "owner": weapon_id, "weaponId": weapon_id, "pos": fx["pos"], "radius": radius, "tick": 1, "hitCount": initial_hits, "life": 0.22, "maxLife": 0.22})
+	hit_effects.append(fx)
+	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	return result
+
+static func update_center_stage_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
+	if bool(fx.get("finishApplied", false)):
+		return
+	var age := float(fx.get("age", 0.0)) + maxf(0.0, delta)
+	fx["age"] = age
+	var tick_count := int(fx.get("tickCount", 1))
+	var max_ticks := maxi(1, int(fx.get("maxTicks", 0)))
+	var next_tick := float(fx.get("nextTickAt", INF))
+	var hit_interval := maxf(0.01, float(fx.get("hitInterval", 0.0)))
+	while tick_count < max_ticks and age + 0.0001 >= next_tick:
+		tick_count += 1
+		var hits := _center_stage_apply_area(fx, "tickDamage", enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, hit_effects, feedback)
+		hit_effects.append({
+			"kind": "center_stage_tick", "owner": String(fx.get("owner", "center_stage")), "weaponId": String(fx.get("weaponId", "center_stage")),
+			"pos": fx.get("pos", Vector2.ZERO), "radius": float(fx.get("radius", 0.0)), "tick": tick_count,
+			"hitCount": hits, "life": 0.22, "maxLife": 0.22, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
+		})
+		next_tick += hit_interval
+	fx["tickCount"] = tick_count
+	fx["nextTickAt"] = next_tick
+	var duration := float(fx.get("duration", fx.get("maxLife", 0.0)))
+	if age + 0.0001 < duration:
+		return
+	var finish_hits := _center_stage_apply_area(fx, "finishDamage", enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, hit_effects, feedback)
+	var owner_id := String(fx.get("owner", "center_stage"))
+	hit_effects.append({
+		"kind": "center_stage_finish", "owner": owner_id, "weaponId": String(fx.get("weaponId", owner_id)),
+		"pos": fx.get("pos", Vector2.ZERO), "radius": float(fx.get("radius", 0.0)), "hitCount": finish_hits,
+		"life": 0.30, "maxLife": 0.30, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
+	})
+	var finish_flash_duration := float(fx.get("finishFlashDuration", 0.0))
+	if finish_flash_duration > 0.0:
+		feedback["screenFlashDuration"] = maxf(float(feedback.get("screenFlashDuration", 0.0)), finish_flash_duration)
+		feedback["screenFlashColor"] = Color(1.0, 1.0, 1.0, 0.24)
+	fx["finishApplied"] = true
+	fx["life"] = 0.0
+
+static func _update_great_grassland_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "great_grassland"))
+	var timer := float(timers.get(weapon_id, 0.0)) - float(context.get("delta", 0.0))
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var base_dir := _kusa_wave_fire_direction(Vector2(context.get("playerVel", Vector2.ZERO)), Vector2(context.get("facingDir", Vector2.RIGHT)), context)
+	var count := maxi(1, int(weapon.get("projectileCount", 1)))
+	var side_angle := deg_to_rad(float(weapon.get("sideAngleDegrees", 0.0)))
+	var max_distance := float(weapon.get("range", 0.0)) * float(context.get("rangeRate", 1.0))
+	max_distance = _short_range_range_for_weapon(weapon_id, weapon, max_distance, context)
+	var size_scale := float(weapon.get("sizeMultiplier", 1.0))
+	var damage := float(weapon.get("damage", weapon.get("baseDamage", 0.0))) * float(context.get("damageRate", 1.0))
+	var speed := KUSA_WAVE_SPEED
+	var hit_effects: Array = result["hitFx"] as Array
+	for index in range(count):
+		var direction := _spread_direction(base_dir, index, count, side_angle)
+		var start_pos := player_pos + direction * (28.0 + 8.0 * size_scale) + Vector2(0.0, -4.0)
+		var max_life := maxf(KUSA_WAVE_MIN_LIFE, max_distance / maxf(1.0, speed) + 0.35)
+		hit_effects.append({
+			"kind": "great_grassland_wave", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": start_pos, "dir": direction, "vel": direction * speed,
+			"life": max_life, "maxLife": max_life, "range": max_distance, "maxDistance": max_distance,
+			"distanceTraveled": 0.0, "bouncesLeft": int(weapon.get("bounceCount", 0)),
+			"sizeScale": size_scale, "count": 1, "damage": damage,
+			"knockback": float(weapon.get("knockback", 0.0)) * 0.45,
+			"sameEnemyRehit": float(weapon.get("sameEnemyRehit", 0.0)),
+			"attackAreaRate": attack_area_rate(context), "hitRadius": 18.0 * size_scale * attack_area_rate(context),
+			"hitCooldowns": {}
+		})
+	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	return result
+
+static func _update_comment_lockdown_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "comment_lockdown"))
+	var timer := float(timers.get(weapon_id, 0.0)) - float(context.get("delta", 0.0))
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var facing := _direction_with_attack_right_only(Vector2(context.get("facingDir", Vector2.RIGHT)), context)
+	if facing.length() < 0.1:
+		facing = Vector2.RIGHT
+	var range_value := float(weapon.get("range", 0.0)) * float(context.get("rangeRate", 1.0))
+	range_value = _short_range_range_for_weapon(weapon_id, weapon, range_value, context)
+	var speed := scaled_projectile_speed(float(weapon.get("projectileSpeed", 0.0)))
+	var count := maxi(1, int(weapon.get("projectileCount", 1)))
+	var used_ids: Array = []
+	var hit_effects: Array = result["hitFx"] as Array
+	for index in range(count):
+		var target: Variant = _nearest_enemy_excluding(context.get("enemies", []) as Array, player_pos, range_value, used_ids)
+		var direction := _spread_direction(facing, index, count, deg_to_rad(13.0))
+		if target != null:
+			var target_enemy: Dictionary = target as Dictionary
+			used_ids.append(_entity_uid("enemy", target_enemy))
+			direction = (Vector2(target_enemy.get("pos", player_pos)) - player_pos).normalized()
+			if direction.length() < 0.1:
+				direction = _spread_direction(facing, index, count, deg_to_rad(13.0))
+		var life := range_value / maxf(1.0, speed)
+		hit_effects.append({
+			"kind": "comment_lockdown_projectile", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": player_pos + direction * 24.0, "dir": direction, "vel": direction * speed,
+			"life": life, "maxLife": life, "damage": float(weapon.get("damage", weapon.get("baseDamage", 0.0))) * float(context.get("damageRate", 1.0)),
+			"hitRadius": float(weapon.get("hitRadius", 12.0)) * attack_area_rate(context),
+			"range": range_value, "followupDamage": float(weapon.get("followupDamage", 0.0)) * float(context.get("damageRate", 1.0)),
+				"followupDelay": float(weapon.get("followupDelay", 0.0)), "weapon": weapon.duplicate(true)
+		})
+	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	return result
+
+static func _comment_lockdown_apply_control(enemy: Dictionary, weapon: Dictionary) -> void:
+	var is_boss := _is_boss_enemy(enemy)
+	var is_large := not is_boss and EnemySystem.is_large_enemy(enemy)
+	var stun_duration := 0.0
+	var movement_rate := float(weapon.get("normalMovementRate", 1.0))
+	if is_boss:
+		movement_rate = float(weapon.get("bossMovementRate", 1.0))
+	elif is_large:
+		stun_duration = float(weapon.get("largeStunDuration", 0.0))
+		movement_rate = float(weapon.get("largeMovementRate", 1.0))
+	else:
+		stun_duration = float(weapon.get("stunDuration", 0.0))
+		movement_rate = float(weapon.get("normalMovementRate", 1.0))
+	if stun_duration > 0.0:
+		enemy["stunTimer"] = maxf(float(enemy.get("stunTimer", 0.0)), stun_duration)
+	enemy["slowTimer"] = maxf(float(enemy.get("slowTimer", 0.0)), float(weapon.get("slowDuration", 0.0)))
+	# EnemySystem stores the reduction, not the remaining movement rate.
+	enemy["slowRate"] = maxf(float(enemy.get("slowRate", 0.0)), clampf(1.0 - movement_rate, 0.0, 0.85))
+
+static func _comment_lockdown_target_reference(enemy: Dictionary) -> Dictionary:
+	return {
+		"spawnToken": String(enemy.get("spawnToken", "")),
+		"kind": String(enemy.get("kind", "")),
+		"uid": int(enemy.get("uid", -1))
+	}
+
+static func _resolve_stage2_enemy(enemies: Array, fx: Dictionary) -> Dictionary:
+	var expected_token := String(fx.get("targetToken", ""))
+	var expected_spawn := String(fx.get("targetSpawnToken", ""))
+	var expected_kind := String(fx.get("targetKind", ""))
+	var expected_uid := int(fx.get("targetUid", -1))
+	var expected_reference: Dictionary = fx.get("targetReference", {}) as Dictionary
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy):
+			continue
+		if expected_token != "" and _stage2_entity_token(enemy) != expected_token:
+			continue
+		if expected_spawn != "" and String(enemy.get("spawnToken", "")) != expected_spawn:
+			continue
+		if expected_kind != "" and String(enemy.get("kind", "")) != expected_kind:
+			continue
+		if expected_uid >= 0 and int(enemy.get("uid", -1)) != expected_uid:
+			continue
+		if not expected_reference.is_empty():
+			if String(expected_reference.get("spawnToken", "")) != String(enemy.get("spawnToken", "")):
+				continue
+			if String(expected_reference.get("kind", "")) != String(enemy.get("kind", "")):
+				continue
+			if int(expected_reference.get("uid", -1)) != int(enemy.get("uid", -1)):
+				continue
+		return enemy
+	return {}
+
+static func update_comment_lockdown_projectile(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
+	var pos := Vector2(fx.get("pos", Vector2.ZERO))
+	var damage := float(fx.get("damage", 0.0))
+	var hit_radius := float(fx.get("hitRadius", 12.0))
+	var source := String(fx.get("weaponId", "comment_lockdown"))
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", pos))
+		var combined_radius := hit_radius + float(enemy.get("radius", 20.0))
+		if pos.distance_squared_to(enemy_pos) > combined_radius * combined_radius:
+			continue
+		var direction := Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
+		var hit_result := _apply_enemy_hit(enemy, damage, direction, 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, source)
+		if hit_result == HIT_DAMAGED:
+			var weapon: Dictionary = fx.get("weapon", {}) as Dictionary
+			_comment_lockdown_apply_control(enemy, weapon)
+			var bind_life := maxf(0.05, float(enemy.get("stunTimer", 0.0)) + float(enemy.get("slowTimer", 0.0)))
+			var followup := {
+				"kind": "comment_lockdown_followup", "owner": source, "weaponId": source,
+				"targetToken": _stage2_entity_token(enemy), "targetSpawnToken": String(enemy.get("spawnToken", "")),
+				"targetKind": String(enemy.get("kind", "")), "targetUid": int(enemy.get("uid", -1)),
+				"targetReference": _comment_lockdown_target_reference(enemy),
+				"pos": enemy_pos,
+				"damage": float(fx.get("followupDamage", 0.0)), "delay": float(fx.get("followupDelay", 0.0)),
+				"maxDelay": float(fx.get("followupDelay", 0.0)), "life": 0.28, "maxLife": 0.28,
+				"applied": false, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
+			}
+			hit_effects.append(followup)
+			hit_effects.append({
+			"kind": "comment_lockdown_bind", "owner": source, "weaponId": source,
+			"targetToken": _stage2_entity_token(enemy), "targetSpawnToken": String(enemy.get("spawnToken", "")),
+			"targetKind": String(enemy.get("kind", "")), "targetUid": int(enemy.get("uid", -1)),
+			"targetReference": _comment_lockdown_target_reference(enemy), "pos": enemy_pos,
+			"stunActive": true, "slowActive": false, "life": bind_life, "maxLife": bind_life,
+			"visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
+		})
+			hit_effects.append({"kind": "comment_lockdown_hit", "owner": source, "weaponId": source, "pos": enemy_pos, "dir": direction, "life": 0.22, "maxLife": 0.22})
+			_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(source)})
+		fx["life"] = 0.0
+		return
+	for box_item in destructibles:
+		var box: Dictionary = box_item as Dictionary
+		if not _stage2_alive_box(box):
+			continue
+		var combined_radius := hit_radius + float(box.get("radius", 24.0))
+		if pos.distance_squared_to(Vector2(box.get("pos", pos))) <= combined_radius * combined_radius:
+			var fx_start := hit_effects.size()
+			DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+			_tag_hit_effects_for_weapon(hit_effects, fx_start, source)
+			fx["life"] = 0.0
+			return
+
+static func update_comment_lockdown_bind_fx(fx: Dictionary, enemies: Array) -> void:
+	var enemy := _resolve_stage2_enemy(enemies, fx)
+	if enemy.is_empty():
+		fx["life"] = 0.0
+		return
+	var stun_timer := float(enemy.get("stunTimer", 0.0))
+	var slow_timer := float(enemy.get("slowTimer", 0.0))
+	if stun_timer <= 0.0 and slow_timer <= 0.0:
+		fx["life"] = 0.0
+		return
+	fx["pos"] = enemy.get("pos", fx.get("pos", Vector2.ZERO))
+	fx["stunActive"] = stun_timer > 0.0
+	fx["slowActive"] = slow_timer > 0.0 and stun_timer <= 0.0
+
+static func update_comment_lockdown_followup_fx(fx: Dictionary, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
+	if bool(fx.get("applied", false)):
+		return
+	fx["applied"] = true
+	var enemy := _resolve_stage2_enemy(enemies, fx)
+	if enemy.is_empty():
+		fx["life"] = 0.0
+		return
+	var hit_result := _apply_enemy_hit(enemy, float(fx.get("damage", 0.0)), Vector2.RIGHT, 0.0, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, String(fx.get("weaponId", "comment_lockdown")))
+	if hit_result == HIT_DAMAGED:
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(String(fx.get("weaponId", "comment_lockdown")))})
+		hit_effects.append({"kind": "comment_lockdown_followup_hit", "owner": String(fx.get("owner", "comment_lockdown")), "weaponId": String(fx.get("weaponId", "comment_lockdown")), "pos": enemy.get("pos", Vector2.ZERO), "life": 0.22, "maxLife": 0.22, "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
+	fx["life"] = 0.0
+
+static func _update_emote_festival_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "emote_festival"))
+	var timer := float(timers.get(weapon_id, 0.0)) - float(context.get("delta", 0.0))
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var source_weapon := _stage2_source_weapon(weapon, context)
+	var active_fx: Array = context.get("activeFx", []) as Array
+	var hit_effects: Array = result["hitFx"] as Array
+	var max_active := maxi(1, int(weapon.get("maxActiveCount", 1)))
+	var active_count := _active_fx_count(active_fx, hit_effects, "emote_festival_mine", weapon_id)
+	var mine_count := maxi(1, int(weapon.get("mineCount", 1)))
+	var duration := float(weapon.get("duration", 0.0))
+	var radius := float(weapon.get("explosionRadius", 0.0)) * _stage2_coverage_rate(context)
+	var chain_radius := float(weapon.get("chainRadius", 0.0)) * _stage2_coverage_rate(context)
+	var damage := float(weapon.get("damage", weapon.get("baseDamage", 0.0))) * float(context.get("damageRate", 1.0))
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var knockback := float(weapon.get("knockback", source_weapon.get("knockback", 0.0)))
+	var screen_shake := float(weapon.get("screenShakePower", source_weapon.get("screenShakePower", 0.0)))
+	var screen_duration := float(weapon.get("screenShakeDuration", source_weapon.get("screenShakeDuration", 0.0)))
+	var hit_stop := float(weapon.get("hitStop", source_weapon.get("hitStop", 0.0)))
+	var states := _stage2_states(timers)
+	var state: Dictionary = states.get(weapon_id, {}) as Dictionary
+	var mine_serial := int(state.get("mineSerial", 0))
+	for index in range(mine_count):
+		if active_count >= max_active:
+			break
+		var angle := TAU * float(index) / float(maxi(1, mine_count))
+		var mine_pos := player_pos + Vector2.RIGHT.rotated(angle) * (18.0 if mine_count > 1 else 0.0)
+		mine_serial += 1
+		hit_effects.append({
+			"kind": "emote_festival_mine", "owner": weapon_id, "weaponId": weapon_id,
+			"mineSerial": "%s:%d" % [weapon_id, mine_serial],
+			"pos": mine_pos, "life": duration, "maxLife": duration, "damage": damage,
+			"radius": radius, "triggerRadius": maxf(0.0, float(weapon.get("triggerRadius", source_weapon.get("triggerRadius", 28.0)))),
+			"chainRadius": chain_radius, "chainDamageCoefficient": float(weapon.get("chainDamageCoefficient", 1.0)),
+			"chainDelay": float(weapon.get("chainDelay", 0.0)), "chainQueued": false,
+			"chainTriggered": false, "exploded": false, "knockback": knockback,
+			"screenShakePower": screen_shake, "screenShakeDuration": screen_duration,
+			"hitStop": hit_stop
+		})
+		active_count += 1
+	state["mineSerial"] = mine_serial
+	states[weapon_id] = state
+	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	return result
+
+static func _stage2_mine_pool(all_fx: Array) -> Array:
+	var pool: Array = []
+	for item in all_fx:
+		if item is Dictionary:
+			pool.append(item)
+	return pool
+
+static func _queue_emote_festival_chain(fx: Dictionary, all_fx: Array, output_fx: Array) -> void:
+	var center := Vector2(fx.get("pos", Vector2.ZERO))
+	var owner_id := String(fx.get("owner", "emote_festival"))
+	var radius := float(fx.get("chainRadius", 0.0))
+	var coefficient := float(fx.get("chainDamageCoefficient", 1.0))
+	var visuals: Dictionary = fx.get("visuals", {}) as Dictionary
+	var candidates: Array = []
+	for candidate_value in all_fx:
+		var candidate: Dictionary = candidate_value as Dictionary
+		if String(candidate.get("kind", "")) != "emote_festival_mine" or String(candidate.get("owner", "")) != owner_id:
+			continue
+		if bool(candidate.get("exploded", false)) or bool(candidate.get("chainQueued", false)) or float(candidate.get("life", 0.0)) <= 0.0:
+			continue
+		if Vector2(candidate.get("pos", center)).distance_to(center) > radius:
+			continue
+		candidates.append(candidate)
+	candidates.sort_custom(func(a: Dictionary, b: Dictionary):
+			var a_distance := Vector2(a.get("pos", center)).distance_to(center)
+			var b_distance := Vector2(b.get("pos", center)).distance_to(center)
+			if not is_equal_approx(a_distance, b_distance):
+				return a_distance < b_distance
+			return String(a.get("mineSerial", "")) < String(b.get("mineSerial", ""))
+	)
+	for candidate in candidates:
+		var candidate_pos := Vector2(candidate.get("pos", center))
+		var chain_vector := candidate_pos - center
+		var chain_life := maxf(0.05, float((visuals.get("chain", {}) as Dictionary).get("durationSeconds", 0.28)))
+		output_fx.append({
+			"kind": "emote_festival_chain", "owner": owner_id, "weaponId": owner_id,
+			"from": center, "to": candidate_pos, "pos": center.lerp(candidate_pos, 0.5),
+			"dir": chain_vector.normalized() if chain_vector.length() > 0.01 else Vector2.RIGHT,
+			"distance": chain_vector.length(), "life": chain_life, "maxLife": chain_life,
+			"visuals": visuals.duplicate(true)
+		})
+		candidate["chainQueued"] = true
+		candidate["chainTriggered"] = true
+		candidate["damage"] = float(candidate.get("damage", 0.0)) * coefficient
+		candidate["delay"] = maxf(0.001, float(fx.get("chainDelay", 0.01)))
+		candidate["chainSource"] = String(fx.get("mineSerial", ""))
+
+static func update_emote_festival_mine_damage(fx: Dictionary, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, all_fx: Array, feedback: Dictionary = {}) -> void:
+	if bool(fx.get("exploded", false)):
+		return
+	var pos := Vector2(fx.get("pos", Vector2.ZERO))
+	var should_explode := bool(fx.get("chainTriggered", false))
+	if not should_explode:
+		var trigger_radius := float(fx.get("triggerRadius", 28.0))
+		for enemy_item in enemies:
+			var enemy: Dictionary = enemy_item as Dictionary
+			if not _stage2_alive_enemy(enemy):
+				continue
+			var combined := trigger_radius + float(enemy.get("radius", 20.0))
+			if pos.distance_squared_to(Vector2(enemy.get("pos", pos))) <= combined * combined:
+				should_explode = true
+				break
+	if not should_explode:
+		return
+	fx["exploded"] = true
+	fx["chainTriggered"] = false
+	var radius := float(fx.get("radius", 0.0))
+	var source := String(fx.get("weaponId", "emote_festival"))
+	var hits := _apply_circle_damage(enemies, pos, radius, float(fx.get("damage", 0.0)), float(fx.get("knockback", 0.0)), killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, source)
+	_apply_circle_damage_to_boxes(destructibles, pos, radius, destroyed_boxes, hit_effects, source)
+	_clear_enemy_bullets_in_circle(enemy_bullets, pos, radius, hit_effects, "", source)
+	_merge_reaction_result(feedback, {
+		"enemyDamaged": hits > 0, "screenShakePower": float(fx.get("screenShakePower", 0.0)),
+		"screenShakeDuration": float(fx.get("screenShakeDuration", 0.15)), "hitStop": float(fx.get("hitStop", 0.0)),
+		"weaponCommentKind": weapon_comment_kind_for_id(source), "emoteMineExploded": true
+	})
+	hit_effects.append({"kind": "emote_festival_burst", "owner": source, "weaponId": source, "pos": pos, "life": 0.28, "maxLife": 0.28, "radius": radius, "chain": bool(fx.get("chainQueued", false)), "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
+	_queue_emote_festival_chain(fx, all_fx, hit_effects)
+	fx["life"] = 0.0
+
+static func _all_block_laser_direction(weapon: Dictionary, context: Dictionary, length: float, width: float, fallback: Vector2) -> Vector2:
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var best_direction := fallback.normalized()
+	if best_direction.length() < 0.1:
+		best_direction = Vector2.RIGHT
+	var best_score := -1
+	var best_distance := INF
+	var best_token := ""
+	var enemies: Array = context.get("enemies", []) as Array
+	for candidate_value in enemies:
+		var candidate: Dictionary = candidate_value as Dictionary
+		if not _stage2_alive_enemy(candidate):
+			continue
+		var candidate_pos := Vector2(candidate.get("pos", player_pos))
+		var offset := candidate_pos - player_pos
+		if offset.length() <= 0.01 or offset.length() > length + float(candidate.get("radius", 20.0)):
+			continue
+		var direction := offset.normalized()
+		var score := 0
+		for member_value in enemies:
+			var member: Dictionary = member_value as Dictionary
+			if not _stage2_alive_enemy(member):
+				continue
+			if _laser_hit(Vector2(member.get("pos", player_pos)), float(member.get("radius", 20.0)), player_pos, direction, length, width * 0.5):
+				score += 1
+		var distance := offset.length()
+		var token := _stage2_entity_token(candidate)
+		var better := score > best_score
+		if score == best_score and distance < best_distance - 0.001:
+			better = true
+		if score == best_score and is_equal_approx(distance, best_distance) and (best_token == "" or token < best_token):
+			better = true
+		if better:
+			best_score = score
+			best_distance = distance
+			best_token = token
+			best_direction = direction
+	return best_direction
+
+static func _update_all_block_laser_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "all_block_laser"))
+	var timer := float(timers.get(weapon_id, 0.0)) - float(context.get("delta", 0.0))
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var fallback := _direction_with_attack_right_only(Vector2(context.get("facingDir", Vector2.RIGHT)), context)
+	if fallback.length() < 0.1:
+		fallback = Vector2.RIGHT
+	var length := float(weapon.get("range", 0.0)) * float(context.get("rangeRate", 1.0))
+	length = _short_range_range_for_weapon(weapon_id, weapon, length, context)
+	var width := float(weapon.get("width", 0.0)) * attack_area_rate(context)
+	var center_direction := _all_block_laser_direction(weapon, context, length, width, fallback)
+	var count := maxi(1, int(weapon.get("laserCount", 1)))
+	var side_angle := deg_to_rad(float(weapon.get("sideAngleDegrees", 0.0)))
+	var damage := float(weapon.get("damage", weapon.get("baseDamage", 0.0))) * float(context.get("damageRate", 1.0))
+	var barriers: Array = result["barrierHitRequests"] as Array
+	var hit_effects: Array = result["hitFx"] as Array
+	for index in range(count):
+		var offset_index := index - int(count / 2)
+		var direction := center_direction.rotated(float(offset_index) * side_angle).normalized()
+		var start := player_pos
+		var hits := _apply_laser_damage(context.get("enemies", []) as Array, context.get("destructibles", []) as Array, context.get("enemyBullets", []) as Array, start, direction, length, width, damage, float(weapon.get("knockback", 0.0)), result["killed"] as Array, result["destroyedBoxes"] as Array, hit_effects, barriers, bool(weapon.get("clearableOnly", true)), weapon_id)
+		hit_effects.append({
+			"kind": "all_block_laser", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": start, "dir": direction, "life": float(weapon.get("duration", 0.0)),
+			"maxLife": float(weapon.get("duration", 0.0)), "range": length, "width": width,
+			"hit": start + direction * length, "count": hits
+		})
+		if hits > 0:
+			_merge_reaction_result(result, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(weapon_id)})
+	if count > 0:
+		var weapon_visuals: Dictionary = weapon.get("visuals", {}) as Dictionary
+		var flash_config: Dictionary = weapon_visuals.get("flash", {}) as Dictionary
+		var flash_life := maxf(0.05, float(flash_config.get("durationSeconds", 0.18)))
+		hit_effects.append({
+			"kind": "all_block_laser_flash", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": player_pos, "life": flash_life, "maxLife": flash_life,
+			"visuals": weapon_visuals.duplicate(true)
+		})
+	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	return result
+
+static func _update_listener_assembly_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
+	var result := _stage2_empty_result()
+	var weapon_id := String(weapon.get("id", "listener_assembly"))
+	var timer := float(timers.get(weapon_id, 0.0)) - float(context.get("delta", 0.0))
+	if timer > 0.0:
+		timers[weapon_id] = timer
+		return result
+	if bool(context.get("normalWeaponsDisabled", false)) or bool(context.get("weaponMute", false)):
+		timers[weapon_id] = 0.0
+		return result
+	var active_count := _active_fx_count(context.get("activeFx", []) as Array, result["hitFx"] as Array, "listener_assembly", weapon_id)
+	var max_active := maxi(1, int(weapon.get("maxActiveCount", 1)))
+	var count := maxi(1, int(weapon.get("summonCount", 1)))
+	var duration := float(weapon.get("duration", 0.0))
+	var damage := float(weapon.get("damage", weapon.get("baseDamage", 0.0))) * float(context.get("damageRate", 1.0))
+	var speed := float(weapon.get("moveSpeed", 0.0))
+	var search_range := float(weapon.get("searchRange", 0.0)) * float(context.get("rangeRate", 1.0))
+	search_range = _short_range_range_for_weapon(weapon_id, weapon, search_range, context)
+	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
+	var facing := Vector2(context.get("facingDir", Vector2.RIGHT)).normalized()
+	if facing.length() < 0.1:
+		facing = Vector2.RIGHT
+	var states: Dictionary = timers.get(STAGE2_WEAPON_STATE_KEY, {}) as Dictionary
+	var state: Dictionary = states.get(weapon_id, {}) as Dictionary
+	var next_serial := int(state.get("listenerUnitSerial", 0))
+	var target_distribution := _listener_assembly_distribution(weapon)
+	var hit_effects: Array = result["hitFx"] as Array
+	for index in range(count):
+		if active_count >= max_active:
+			break
+		next_serial += 1
+		var direction := _spread_direction(facing, index, count, deg_to_rad(28.0))
+		var spawn_pos := player_pos + direction * 32.0
+		var visuals: Dictionary = weapon.get("visuals", {}) as Dictionary
+		var spawn_config: Dictionary = visuals.get("spawn", {}) as Dictionary
+		var spawn_life := maxf(0.05, float(spawn_config.get("durationSeconds", 0.28)))
+		var approach_phase := fposmod(deg_to_rad(float(target_distribution["approachPhaseStepDegrees"])) * float(next_serial - 1), TAU)
+		var motion_phase := fposmod(float(target_distribution["motionPhaseStepRadians"]) * float(next_serial - 1), TAU)
+		hit_effects.append({
+			"kind": "listener_assembly_spawn", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": spawn_pos, "dir": direction, "life": spawn_life, "maxLife": spawn_life,
+			"visuals": visuals.duplicate(true)
+		})
+		hit_effects.append({
+			"kind": "listener_assembly", "owner": weapon_id, "weaponId": weapon_id,
+			"pos": spawn_pos, "dir": direction,
+			"life": duration, "maxLife": duration, "damage": damage,
+			"moveSpeed": speed, "searchRange": search_range, "hitRadius": 18.0 * attack_area_rate(context),
+			"hitCooldown": float(weapon.get("hitCooldown", 0.0)), "hitTimer": 0.0, "knockback": float(weapon.get("knockback", 0.0)),
+			"unitSerial": next_serial, "approachPhase": approach_phase, "motionPhase": motion_phase,
+			"targetDistribution": target_distribution.duplicate(true)
+		})
+		active_count += 1
+	state["listenerUnitSerial"] = next_serial
+	states[weapon_id] = state
+	timers[STAGE2_WEAPON_STATE_KEY] = states
+	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	return result
 
 static func _stage2_alive_enemy(enemy: Dictionary) -> bool:
 	return float(enemy.get("hp", 0.0)) > 0.0 and not bool(enemy.get("defeatResolved", false))
@@ -1851,6 +3017,18 @@ static func cleanup_runtime_for_weapon(target: Node, base_id: String = "", evolv
 	if ids.is_empty():
 		for stage_id in STAGE2_WEAPON_IDS:
 			ids.append(String(stage_id))
+		var weapon_data_value: Variant = target.get("weapons")
+		if weapon_data_value is Array:
+			for weapon_item in weapon_data_value as Array:
+				var weapon: Dictionary = weapon_item as Dictionary
+				var weapon_id := String(weapon.get("id", ""))
+				if weapon_id != "" and (bool(weapon.get("isEvolved", false)) or String(weapon.get("baseWeaponId", "")) != "") and not ids.has(weapon_id):
+					ids.append(weapon_id)
+		var current_weapon_value: Variant = target.get("current_weapon")
+		if current_weapon_value is Dictionary:
+			var current_id := String((current_weapon_value as Dictionary).get("id", ""))
+			if current_id != "" and not ids.has(current_id):
+				ids.append(current_id)
 	var enemies_value: Variant = target.get("enemies")
 	var enemies: Array = enemies_value as Array if enemies_value is Array else []
 	var hit_fx_value: Variant = target.get("hit_fx")
@@ -1868,6 +3046,25 @@ static func cleanup_runtime_for_weapon(target: Node, base_id: String = "", evolv
 		fx["completionReason"] = reason
 		target.set("lastWeaponRuntimeCleanupReason", reason)
 	target.set("hit_fx", remaining)
+	var bullets_value: Variant = target.get("player_bullets")
+	if bullets_value is Array:
+		var remaining_bullets: Array = []
+		for bullet_item in bullets_value as Array:
+			var bullet: Dictionary = bullet_item as Dictionary
+			var bullet_id := String(bullet.get("weaponId", bullet.get("owner", "")))
+			if bullet_id == "" or not ids.has(bullet_id):
+				remaining_bullets.append(bullet)
+		target.set("player_bullets", remaining_bullets)
+	var boomerang_hits_value: Variant = target.get("boomerang_hits")
+	if boomerang_hits_value is Dictionary:
+		var boomerang_hits: Dictionary = boomerang_hits_value as Dictionary
+		for key_value in boomerang_hits.keys().duplicate():
+			var key_text := String(key_value)
+			for weapon_id in ids:
+				if key_text.begins_with(String(weapon_id) + "|"):
+					boomerang_hits.erase(key_value)
+					break
+		target.set("boomerang_hits", boomerang_hits)
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
 		enemy.erase("shieldContactSuppressTimer")
@@ -1877,6 +3074,20 @@ static func cleanup_runtime_for_weapon(target: Node, base_id: String = "", evolv
 		var timers: Dictionary = timers_value as Dictionary
 		for weapon_id in ids:
 			timers.erase(weapon_id)
+		if ids.has("starlight_superchat"):
+			timers.erase(STARLIGHT_SHOT_COUNTER_KEY)
+		if ids.has("maro_comment_ring"):
+			timers.erase(MARO_PULSE_INDEX_KEY)
+			timers.erase(MARO_PULSE_UNTIL_KEY)
+			timers.erase(MARO_FLASH_UNTIL_KEY)
+		for timer_key_value in timers.keys().duplicate():
+			var timer_key := String(timer_key_value)
+			if ids.has("maro_comment_ring") and timer_key.contains(MARO_PULSE_INDEX_KEY + ":"):
+				timers.erase(timer_key_value)
+			if ids.has("maro_comment_ring") and timer_key.contains(BOOMERANG_ORBIT_INDEX_KEY + ":maro_comment_ring"):
+				timers.erase(timer_key_value)
+			if ids.has("maro_comment_ring") and timer_key.contains(BOOMERANG_ORBIT_WEAPON_ID_KEY + ":maro_comment_ring"):
+				timers.erase(timer_key_value)
 		var states_value: Variant = timers.get(STAGE2_WEAPON_STATE_KEY)
 		if states_value is Dictionary:
 			var states: Dictionary = states_value as Dictionary
@@ -3214,23 +4425,27 @@ static func _is_starlight_superchat(weapon: Dictionary) -> bool:
 static func _is_maro_comment_ring(weapon: Dictionary) -> bool:
 	return String(weapon.get("id", "")) == "maro_comment_ring"
 
-static func _starlight_hit_fx(pos: Vector2, premium: bool = false) -> Dictionary:
-	return {
+static func _starlight_hit_fx(pos: Vector2, premium: bool = false, owner_id: String = "") -> Dictionary:
+	var fx := {
 		"kind": "starlight_hit",
 		"pos": pos,
 		"life": 0.24 if not premium else 0.30,
 		"maxLife": 0.24 if not premium else 0.30,
 		"premium": premium
 	}
+	_tag_hit_effects_for_weapon([fx], 0, owner_id)
+	return fx
 
-static func _starlight_burst_fx(pos: Vector2, radius: float) -> Dictionary:
-	return {
+static func _starlight_burst_fx(pos: Vector2, radius: float, owner_id: String = "") -> Dictionary:
+	var fx := {
 		"kind": "starlight_burst",
 		"pos": pos,
 		"life": 0.38,
 		"maxLife": 0.38,
 		"radius": radius
 	}
+	_tag_hit_effects_for_weapon([fx], 0, owner_id)
+	return fx
 
 static func _starlight_enemy_defeated(enemy: Dictionary) -> bool:
 	return float(enemy.get("hp", 0.0)) <= 0.0 or bool(enemy.get("defeatPending", false))
@@ -3244,10 +4459,10 @@ static func _starlight_defeat_tier(enemy: Dictionary) -> int:
 		return 1
 	return 0
 
-static func _starlight_defeat_fx(enemy: Dictionary, premium: bool = false) -> Dictionary:
+static func _starlight_defeat_fx(enemy: Dictionary, premium: bool = false, owner_id: String = "") -> Dictionary:
 	var tier: int = _starlight_defeat_tier(enemy)
 	var max_life: float = 0.46 + 0.10 * float(tier) + (0.08 if premium else 0.0)
-	return {
+	var fx := {
 		"kind": "starlight_defeat",
 		"pos": Vector2(enemy.get("pos", Vector2.ZERO)),
 		"life": max_life,
@@ -3256,6 +4471,8 @@ static func _starlight_defeat_fx(enemy: Dictionary, premium: bool = false) -> Di
 		"tier": tier,
 		"premium": premium
 	}
+	_tag_hit_effects_for_weapon([fx], 0, owner_id)
+	return fx
 
 static func _maro_comment_hit_fx(pos: Vector2) -> Dictionary:
 	return {
@@ -3288,17 +4505,18 @@ static func _apply_starlight_explosion(
 	killed_enemies: Array,
 	destroyed_boxes: Array,
 	hit_effects: Array,
-	barrier_hit_requests: Array = []
+	barrier_hit_requests: Array = [],
+	owner_id: String = ""
 ) -> int:
 	var radius: float = _premium_superchat_explosion_radius(weapon, context)
 	var damage: float = float(weapon.get("premiumExplosionDamage", 7.0))
-	var knockback: float = float(context.get("knockback", 0.0)) * 0.28
-	var hits: int = _apply_starlight_circle_damage(enemies, center, radius, damage, knockback, killed_enemies, hit_effects, barrier_hit_requests)
-	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects)
-	hit_effects.append(_starlight_burst_fx(center, radius))
+	var knockback: float = _weapon_knockback_for_context(weapon, context) * 0.28
+	var hits: int = _apply_starlight_circle_damage(enemies, center, radius, damage, knockback, killed_enemies, hit_effects, barrier_hit_requests, owner_id)
+	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects, owner_id)
+	hit_effects.append(_starlight_burst_fx(center, radius, owner_id))
 	return hits
 
-static func _apply_starlight_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
+static func _apply_starlight_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = [], hit_source: String = "") -> int:
 	var hits: int = 0
 	var radius_sq := radius * radius
 	for enemy_item in enemies:
@@ -3310,10 +4528,10 @@ static func _apply_starlight_circle_damage(enemies: Array, center: Vector2, radi
 		var offset_sq := offset.length_squared()
 		if offset_sq <= radius_sq:
 			var hit_dir := offset / sqrt(offset_sq) if offset_sq > 0.01 else Vector2.RIGHT
-			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
+			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests, hit_source) == HIT_DAMAGED:
 				hits += 1
 				if _starlight_enemy_defeated(enemy):
-					hit_effects.append(_starlight_defeat_fx(enemy, true))
+					hit_effects.append(_starlight_defeat_fx(enemy, true, hit_source))
 	return hits
 
 static func _maro_pulse_target_radius(weapon: Dictionary) -> float:
@@ -3348,7 +4566,8 @@ static func _update_maro_comment_pulse(
 	enemies: Array,
 	killed_enemies: Array,
 	hit_effects: Array,
-	result: Dictionary
+	result: Dictionary,
+	owner_id: String = ""
 ) -> void:
 	var elapsed: float = float(context["elapsed"])
 	var pulse_interval: float = maxf(0.10, float(weapon.get("pulseInterval", 2.0)))
@@ -3366,10 +4585,14 @@ static func _update_maro_comment_pulse(
 	var player_pos: Vector2 = Vector2(context["playerPos"])
 	var pulse_radius: float = _maro_pulse_radius(weapon, base_radius)
 	var pulse_damage: float = float(weapon.get("pulseDamage", 8.0))
-	var hit_count: int = _apply_circle_damage(enemies, player_pos, pulse_radius, pulse_damage, float(context["knockback"]) * 0.20, killed_enemies, hit_effects, result["barrierHitRequests"] as Array)
+	var hit_count: int = _apply_circle_damage(enemies, player_pos, pulse_radius, pulse_damage, float(context["knockback"]) * 0.20, killed_enemies, hit_effects, result["barrierHitRequests"] as Array, owner_id)
 	var pulled_exp: int = _nudge_exp_orbs_for_maro_pulse(context.get("expOrbs", []) as Array, player_pos, _maro_pulse_exp_pull_radius(weapon), float(context["delta"]))
 	_request_weapon_hit_reaction(result, weapon, hit_count, hit_count)
-	hit_effects.append(_maro_comment_pulse_fx(player_pos, pulse_radius, pulled_exp))
+	var pulse_fx := _maro_comment_pulse_fx(player_pos, pulse_radius, pulled_exp)
+	if owner_id != "":
+		pulse_fx["owner"] = owner_id
+		pulse_fx["weaponId"] = owner_id
+	hit_effects.append(pulse_fx)
 
 static func _starlight_bullet_data(weapon: Dictionary, pos: Vector2, dir: Vector2, speed: float, life: float, base_damage: float, shot_index: int, projectile_count: int, weapon_timers: Dictionary) -> Dictionary:
 	var is_center_shot: bool = shot_index == int(float(projectile_count - 1) * 0.5)
@@ -3391,6 +4614,10 @@ static func _starlight_bullet_data(weapon: Dictionary, pos: Vector2, dir: Vector
 		"starlightSeed": float((shot_count * 19 + shot_index * 31) % 97) / 97.0,
 		"hitIds": []
 	}
+	var owner_id := String(weapon.get("id", ""))
+	if owner_id != "":
+		bullet["owner"] = owner_id
+		bullet["weaponId"] = owner_id
 	if is_premium:
 		bullet["premium"] = true
 		bullet["pierceLeft"] = maxi(0, int(weapon.get("premiumPierce", 1)))
@@ -3414,6 +4641,126 @@ static func _nearest_enemy_excluding(enemies: Array, origin: Vector2, max_range:
 			best_distance = distance
 			best = enemy
 	return best
+
+static func _listener_assembly_distribution(fx: Dictionary) -> Dictionary:
+	var defaults := {
+		"approachOffset": 24.0,
+		"approachPhaseStepDegrees": 137.5,
+		"motionPhaseStepRadians": 2.35
+	}
+	var value: Variant = fx.get("targetDistribution", {})
+	if value is Dictionary:
+		var resolved: Dictionary = defaults.duplicate(true)
+		for key in defaults.keys():
+			if (value as Dictionary).has(key):
+				resolved[key] = (value as Dictionary)[key]
+		return resolved
+	return defaults
+
+static func _listener_assembly_target_candidates(fx: Dictionary, enemies: Array) -> Array:
+	var candidates: Array = []
+	var origin := Vector2(fx.get("pos", Vector2.ZERO))
+	var search_range := maxf(0.0, float(fx.get("searchRange", 520.0)))
+	var search_range_sq := search_range * search_range
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		var distance_sq := origin.distance_squared_to(enemy_pos)
+		if distance_sq > search_range_sq:
+			continue
+		candidates.append({
+			"enemy": enemy,
+			"token": _stage2_entity_token(enemy),
+			"distanceSq": distance_sq
+		})
+	return candidates
+
+static func _prepare_listener_assembly_target_assignments(hit_fx: Array, enemies: Array) -> void:
+	var records: Array = []
+	var order_index := 0
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "listener_assembly" or float(fx.get("life", 0.0)) <= 0.0 or float(fx.get("delay", 0.0)) > 0.0:
+			order_index += 1
+			continue
+		var candidates := _listener_assembly_target_candidates(fx, enemies)
+		records.append({
+			"fx": fx,
+			"candidates": candidates,
+			"serial": int(fx.get("unitSerial", order_index + 1)),
+			"order": order_index,
+			"currentToken": String(fx.get("targetToken", ""))
+		})
+		order_index += 1
+	records.sort_custom(func(a: Dictionary, b: Dictionary):
+			var a_count := (a.get("candidates", []) as Array).size()
+			var b_count := (b.get("candidates", []) as Array).size()
+			if a_count != b_count:
+				return a_count < b_count
+			var a_serial := int(a.get("serial", 0))
+			var b_serial := int(b.get("serial", 0))
+			if a_serial != b_serial:
+				return a_serial < b_serial
+			return int(a.get("order", 0)) < int(b.get("order", 0))
+	)
+
+	var reservation_counts: Dictionary = {}
+	for record_value in records:
+		var record: Dictionary = record_value as Dictionary
+		var fx: Dictionary = record.get("fx", {}) as Dictionary
+		var candidates: Array = record.get("candidates", []) as Array
+		if candidates.is_empty():
+			fx.erase("targetToken")
+			continue
+		var origin := Vector2(fx.get("pos", Vector2.ZERO))
+		var current_token := String(record.get("currentToken", ""))
+		candidates.sort_custom(func(a: Dictionary, b: Dictionary):
+			var a_token := String(a.get("token", ""))
+			var b_token := String(b.get("token", ""))
+			var a_reservations := int(reservation_counts.get(a_token, 0))
+			var b_reservations := int(reservation_counts.get(b_token, 0))
+			if a_reservations != b_reservations:
+				return a_reservations < b_reservations
+			var a_distance := float(a.get("distanceSq", origin.distance_squared_to(Vector2.ZERO)))
+			var b_distance := float(b.get("distanceSq", origin.distance_squared_to(Vector2.ZERO)))
+			if not is_equal_approx(a_distance, b_distance):
+				return a_distance < b_distance
+			var a_current := a_token == current_token
+			var b_current := b_token == current_token
+			if a_current != b_current:
+				return a_current
+			return a_token < b_token
+		)
+		var selected: Dictionary = candidates[0] as Dictionary
+		var selected_token := String(selected.get("token", ""))
+		fx["targetToken"] = selected_token
+		reservation_counts[selected_token] = int(reservation_counts.get(selected_token, 0)) + 1
+
+static func _listener_assembly_target_for_fx(fx: Dictionary, enemies: Array) -> Dictionary:
+	var target_token := String(fx.get("targetToken", ""))
+	if target_token == "":
+		return {}
+	var origin := Vector2(fx.get("pos", Vector2.ZERO))
+	var search_range := maxf(0.0, float(fx.get("searchRange", 520.0)))
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not _stage2_alive_enemy(enemy) or _stage2_entity_token(enemy) != target_token:
+			continue
+		if origin.distance_to(Vector2(enemy.get("pos", Vector2.ZERO))) > search_range:
+			return {}
+		return enemy
+	return {}
+
+static func _listener_assembly_approach_point(fx: Dictionary, enemy: Dictionary) -> Vector2:
+	var distribution := _listener_assembly_distribution(fx)
+	var requested_offset := maxf(0.0, float(distribution["approachOffset"]))
+	var enemy_radius := maxf(0.0, float(enemy.get("radius", 20.0)))
+	var hit_radius := maxf(0.0, float(fx.get("hitRadius", 18.0)))
+	var safe_offset := minf(requested_offset, maxf(0.0, enemy_radius + hit_radius - 0.001))
+	var phase := float(fx.get("approachPhase", 0.0))
+	return Vector2(enemy.get("pos", Vector2.ZERO)) + Vector2.RIGHT.rotated(phase) * safe_offset
 
 static func _active_fx_count(active_fx: Array, pending_fx: Array, kind: String, owner: String) -> int:
 	var count: int = 0
@@ -3475,7 +4822,7 @@ static func _spawn_emote_mines(weapon: Dictionary, level_value: int, support_lev
 			"maxLife": duration,
 			"damage": damage,
 			"radius": radius,
-			"triggerRadius": 28.0,
+			"triggerRadius": maxf(0.0, float(weapon.get("triggerRadius", 28.0))),
 			"knockback": scaled_knockback(float(weapon.get("knockback", 0.2))),
 			"screenShakePower": float(weapon.get("screenShakePower", 0.0)),
 			"screenShakeDuration": float(weapon.get("screenShakeDuration", 0.15)),
@@ -3491,7 +4838,7 @@ static func _laser_hit(enemy_pos: Vector2, enemy_radius: float, start: Vector2, 
 	var hit_width: float = half_width + enemy_radius
 	return (to_enemy - dir * along).length_squared() <= hit_width * hit_width
 
-static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bullets: Array, start: Vector2, dir: Vector2, length: float, width: float, damage: float, knockback: float, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
+static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bullets: Array, start: Vector2, dir: Vector2, length: float, width: float, damage: float, knockback: float, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, barrier_hit_requests: Array = [], clearable_only: bool = false, hit_source: String = "") -> int:
 	var hits: int = 0
 	var half_width: float = width * 0.5
 	for enemy_item in enemies:
@@ -3501,22 +4848,31 @@ static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bull
 		var enemy_pos: Vector2 = Vector2(enemy["pos"])
 		if not _laser_hit(enemy_pos, float(enemy.get("radius", 20.0)), start, dir, length, half_width):
 			continue
-		if _apply_enemy_hit(enemy, damage, dir, knockback * 0.55, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
+		if _apply_enemy_hit(enemy, damage, dir, knockback * 0.55, killed_enemies, hit_effects, barrier_hit_requests, hit_source) == HIT_DAMAGED:
 			hits += 1
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
 			continue
 		if _laser_hit(Vector2(box["pos"]), float(box.get("radius", 24.0)), start, dir, length, half_width):
+			var fx_start := hit_effects.size()
 			DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+			_tag_hit_effects_for_weapon(hit_effects, fx_start, hit_source)
 			hits += 1
 	for bullet_item in enemy_bullets:
 		var bullet: Dictionary = bullet_item as Dictionary
 		if float(bullet.get("life", 0.0)) <= 0.0:
 			continue
+		if clearable_only and not _stage2_shield_bullet_clearable(bullet):
+			continue
 		if _laser_hit(Vector2(bullet["pos"]), float(bullet.get("hitRadius", 16.0)), start, dir, length, half_width):
 			bullet["life"] = -1.0
-			hit_effects.append(_bullet_pop_fx(Vector2(bullet["pos"])))
+			var bullet_fx := _bullet_pop_fx(Vector2(bullet["pos"]))
+			if clearable_only:
+				bullet_fx["kind"] = "stage2_bullet_clear"
+				bullet_fx["owner"] = hit_source
+				bullet_fx["weaponId"] = hit_source
+			hit_effects.append(bullet_fx)
 			hits += 1
 	return hits
 
@@ -3573,7 +4929,7 @@ static func _spawn_listener_summons(weapon: Dictionary, level_value: int, suppor
 		})
 		active_count += 1
 
-static func _apply_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = []) -> int:
+static func _apply_circle_damage(enemies: Array, center: Vector2, radius: float, damage: float, knockback: float, killed_enemies: Array, hit_effects: Array, barrier_hit_requests: Array = [], hit_source: String = "") -> int:
 	var hits: int = 0
 	var radius_sq := radius * radius
 	for enemy_item in enemies:
@@ -3585,18 +4941,28 @@ static func _apply_circle_damage(enemies: Array, center: Vector2, radius: float,
 		var offset_sq := offset.length_squared()
 		if offset_sq <= radius_sq:
 			var hit_dir := offset / sqrt(offset_sq) if offset_sq > 0.01 else Vector2.RIGHT
-			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
+			if _apply_enemy_hit(enemy, damage, hit_dir, knockback, killed_enemies, hit_effects, barrier_hit_requests, hit_source) == HIT_DAMAGED:
 				hits += 1
 	return hits
 
-static func _apply_circle_damage_to_boxes(destructibles: Array, center: Vector2, radius: float, destroyed_boxes: Array, hit_effects: Array) -> void:
+static func _tag_hit_effects_for_weapon(hit_effects: Array, start_index: int, owner_id: String) -> void:
+	if owner_id == "":
+		return
+	for index in range(start_index, hit_effects.size()):
+		var fx: Dictionary = hit_effects[index] as Dictionary
+		fx["owner"] = owner_id
+		fx["weaponId"] = owner_id
+
+static func _apply_circle_damage_to_boxes(destructibles: Array, center: Vector2, radius: float, destroyed_boxes: Array, hit_effects: Array, owner_id: String = "") -> void:
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
 		if float(box.get("hp", 0.0)) <= 0.0:
 			continue
 		var box_radius: float = radius + float(box.get("radius", 24.0))
 		if center.distance_squared_to(Vector2(box["pos"])) <= box_radius * box_radius:
+			var fx_start := hit_effects.size()
 			DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
+			_tag_hit_effects_for_weapon(hit_effects, fx_start, owner_id)
 
 static func _append_fansa_climax_spark_fx(hit_effects: Array, enemy: Dictionary, visuals: Dictionary, attack_instance_id: String, spark_role: String, spark_hit_ids: Dictionary) -> void:
 	var spark := visuals.get("spark", {}) as Dictionary
@@ -3764,8 +5130,8 @@ static func _kusa_wave_reflect_velocity(velocity: Vector2, normal: Vector2) -> V
 		return -velocity
 	return velocity - n * (2.0 * velocity.dot(n))
 
-static func _kusa_wave_bounce_fx(pos: Vector2, dir: Vector2, size_scale: float, area_rate: float = 1.0, depleted: bool = false) -> Dictionary:
-	return {
+static func _kusa_wave_bounce_fx(pos: Vector2, dir: Vector2, size_scale: float, area_rate: float = 1.0, depleted: bool = false, owner_id: String = "", weapon_id: String = "", visuals: Dictionary = {}) -> Dictionary:
+	var fx := {
 		"kind": "kusa_wave_bounce",
 		"pos": pos,
 		"dir": dir.normalized() if dir.length() > 0.1 else Vector2.RIGHT,
@@ -3775,16 +5141,25 @@ static func _kusa_wave_bounce_fx(pos: Vector2, dir: Vector2, size_scale: float, 
 		"attackAreaRate": area_rate,
 		"depleted": depleted
 	}
+	if owner_id != "":
+		fx["owner"] = owner_id
+		fx["weaponId"] = weapon_id if weapon_id != "" else owner_id
+	if not visuals.is_empty():
+		fx["visuals"] = visuals.duplicate(true)
+	return fx
 
 static func _kusa_wave_reflect_or_finish(fx: Dictionary, normal: Vector2, collision_pos: Vector2, hit_effects: Array, depleted: bool = false) -> bool:
 	var bounces_left: int = int(fx.get("bouncesLeft", 0))
 	var size_scale: float = float(fx.get("sizeScale", 1.0))
 	var area_rate: float = attack_area_rate(fx)
 	var velocity: Vector2 = Vector2(fx.get("vel", Vector2.RIGHT * KUSA_WAVE_SPEED))
+	var owner_id := String(fx.get("owner", ""))
+	var weapon_id := String(fx.get("weaponId", owner_id))
+	var visuals: Dictionary = fx.get("visuals", {}) as Dictionary
 	if bounces_left <= 0 or depleted:
 		fx["pos"] = collision_pos
 		fx["life"] = 0.0
-		hit_effects.append(_kusa_wave_bounce_fx(collision_pos, Vector2(fx.get("dir", Vector2.RIGHT)), size_scale, area_rate, true))
+		hit_effects.append(_kusa_wave_bounce_fx(collision_pos, Vector2(fx.get("dir", Vector2.RIGHT)), size_scale, area_rate, true, owner_id, weapon_id, visuals))
 		return false
 	var reflected: Vector2 = _kusa_wave_reflect_velocity(velocity, normal)
 	if reflected.length() < 0.1:
@@ -3794,7 +5169,7 @@ static func _kusa_wave_reflect_or_finish(fx: Dictionary, normal: Vector2, collis
 	fx["vel"] = reflected_dir * maxf(KUSA_WAVE_SPEED * 0.55, velocity.length())
 	fx["dir"] = reflected_dir
 	fx["pos"] = collision_pos + reflected_dir * (4.0 + 2.0 * size_scale)
-	hit_effects.append(_kusa_wave_bounce_fx(collision_pos, reflected_dir, size_scale, area_rate, false))
+	hit_effects.append(_kusa_wave_bounce_fx(collision_pos, reflected_dir, size_scale, area_rate, false, owner_id, weapon_id, visuals))
 	return true
 
 static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, _enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = []) -> void:
@@ -3827,6 +5202,9 @@ static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array
 	var cooldowns: Dictionary = _tick_kusa_wave_hit_cooldowns(fx, delta)
 	var damage: float = float(fx.get("damage", 0.0))
 	var knockback: float = float(fx.get("knockback", 0.0))
+	var hit_cooldown: float = maxf(0.0, float(fx.get("sameEnemyRehit", KUSA_WAVE_HIT_COOLDOWN)))
+	var hit_source := String(fx.get("weaponId", ""))
+	var feedback_weapon_kind := weapon_comment_kind_for_id(hit_source) if hit_source != "" else "kusa_wave"
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
 		if float(enemy.get("hp", 0.0)) <= 0.0:
@@ -3838,15 +5216,15 @@ static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array
 		var enemy_hit_radius: float = float(enemy.get("radius", 20.0)) + hit_radius
 		if pos.distance_squared_to(enemy_pos) > enemy_hit_radius * enemy_hit_radius:
 			continue
-		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects, barrier_hit_requests) == HIT_DAMAGED:
-			cooldowns[target_id] = KUSA_WAVE_HIT_COOLDOWN
+		if _apply_enemy_hit(enemy, damage, dir, knockback, killed_enemies, hit_effects, barrier_hit_requests, hit_source) == HIT_DAMAGED:
+			cooldowns[target_id] = hit_cooldown
 			fx["hitCooldowns"] = cooldowns
 			_merge_reaction_result(feedback, {
 				"enemyDamaged": true,
 				"screenShakePower": float(fx.get("screenShakePower", 0.0)),
 				"screenShakeDuration": float(fx.get("screenShakeDuration", 0.10)),
 				"hitStop": float(fx.get("hitStop", 0.0)),
-				"weaponCommentKind": "kusa_wave"
+				"weaponCommentKind": feedback_weapon_kind
 			})
 	for box_item in destructibles:
 		var box: Dictionary = box_item as Dictionary
@@ -3859,8 +5237,10 @@ static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array
 		var box_hit_radius: float = float(box.get("radius", 24.0)) + hit_radius
 		if pos.distance_squared_to(box_pos) > box_hit_radius * box_hit_radius:
 			continue
+		var fx_start := hit_effects.size()
 		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
-		cooldowns[target_id] = KUSA_WAVE_HIT_COOLDOWN
+		_tag_hit_effects_for_weapon(hit_effects, fx_start, hit_source)
+		cooldowns[target_id] = hit_cooldown
 		fx["hitCooldowns"] = cooldowns
 	fx["hitCooldowns"] = cooldowns
 
@@ -3877,6 +5257,8 @@ static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array
 	var heavy_stun_duration: float = float(fx.get("heavyStunDuration", BAN_JUDGEMENT_HEAVY_STUN_DURATION))
 	var hit_ids: Array = fx.get("hitIds", []) as Array
 	var barrier_hit_requests: Array = feedback.get("barrierHitRequests", []) as Array
+	var fx_start := hit_effects.size()
+	var hit_source := String(fx.get("weaponId", ""))
 	var hit_count: int = 0
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
@@ -3913,6 +5295,7 @@ static func update_ban_judgement_shockwave_damage(fx: Dictionary, enemies: Array
 		DestructibleSystemScript.damage_box(box, 1.0, destroyed_boxes, hit_effects)
 		hit_ids.append(target_id)
 	fx["hitIds"] = hit_ids
+	_tag_hit_effects_for_weapon(hit_effects, fx_start, hit_source)
 
 static func update_comment_pin_damage(fx: Dictionary, enemies: Array, destructibles: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
 	var pos: Vector2 = Vector2(fx["pos"])
@@ -4019,14 +5402,66 @@ static func update_listener_summon_damage(fx: Dictionary, delta: float, enemies:
 	if hit_timer > 0.0:
 		return
 	var damage: float = float(fx.get("damage", 0.0))
-	var hit_result := _apply_enemy_hit(target_enemy, damage, dir, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, "listener_summon")
+	var source := String(fx.get("weaponId", "listener_summon"))
+	var hit_result := _apply_enemy_hit(target_enemy, damage, dir, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, source)
 	if hit_result == HIT_DAMAGED:
-		_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true, "weaponCommentKind": "listener_summon"})
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true, "weaponCommentKind": source})
 		hit_effects.append({
 			"kind": "listener_burst",
+			"owner": source,
+			"weaponId": source,
 			"pos": enemy_pos,
 			"life": 0.22,
-			"maxLife": 0.22
+			"maxLife": 0.22,
+			"visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
+		})
+	fx["hitTimer"] = float(fx.get("hitCooldown", 0.70))
+
+static func update_listener_assembly_damage(fx: Dictionary, delta: float, enemies: Array, killed_enemies: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
+	var pos: Vector2 = Vector2(fx.get("pos", Vector2.ZERO))
+	var hit_timer: float = maxf(0.0, float(fx.get("hitTimer", 0.0)) - delta)
+	fx["hitTimer"] = hit_timer
+	var target := _listener_assembly_target_for_fx(fx, enemies)
+	var dir: Vector2 = Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
+	if dir.length() < 0.1:
+		dir = Vector2.RIGHT
+	if not target.is_empty():
+		var approach_point := _listener_assembly_approach_point(fx, target)
+		dir = (approach_point - pos).normalized()
+		if dir.length() < 0.1:
+			dir = (Vector2(target.get("pos", pos)) - pos).normalized()
+		if dir.length() < 0.1:
+			dir = Vector2(fx.get("dir", Vector2.RIGHT)).normalized()
+		if dir.length() < 0.1:
+			dir = Vector2.RIGHT
+	pos += dir * float(fx.get("moveSpeed", 180.0)) * delta
+	fx["pos"] = pos
+	fx["dir"] = dir
+	if target.is_empty():
+		return
+	var target_enemy: Dictionary = target
+	if not _stage2_alive_enemy(target_enemy):
+		return
+	var enemy_pos := Vector2(target_enemy.get("pos", pos))
+	var hit_radius := float(target_enemy.get("radius", 20.0)) + float(fx.get("hitRadius", 18.0))
+	if pos.distance_squared_to(enemy_pos) > hit_radius * hit_radius or hit_timer > 0.0:
+		return
+	var damage := float(fx.get("damage", 0.0))
+	var source := String(fx.get("weaponId", "listener_assembly"))
+	var hit_direction := (enemy_pos - pos).normalized()
+	if hit_direction.length() < 0.1:
+		hit_direction = dir
+	var hit_result := _apply_enemy_hit(target_enemy, damage, hit_direction, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, source)
+	if hit_result == HIT_DAMAGED:
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true, "weaponCommentKind": source})
+		hit_effects.append({
+			"kind": "listener_burst",
+			"owner": source,
+			"weaponId": source,
+			"pos": enemy_pos,
+			"life": 0.22,
+			"maxLife": 0.22,
+			"visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)
 		})
 	fx["hitTimer"] = float(fx.get("hitCooldown", 0.70))
 
@@ -4254,6 +5689,7 @@ static func update_tsuri_rod_fx(fx: Dictionary, delta: float, enemies: Array, de
 
 static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], destructibles: Array = [], enemy_bullets: Array = [], killed_enemies: Array = [], destroyed_boxes: Array = [], feedback: Dictionary = {}, arena: Rect2 = Rect2(), walls: Array = [], player_pos: Vector2 = Vector2.ZERO, owner_context: Dictionary = {}) -> Array:
 	var appended_fx: Array = []
+	_prepare_listener_assembly_target_assignments(hit_fx, enemies)
 	for fx_item in hit_fx:
 		var fx: Dictionary = fx_item
 		var delay: float = float(fx.get("delay", 0.0))
@@ -4266,21 +5702,37 @@ static func update_hit_fx(hit_fx: Array, delta: float, enemies: Array = [], dest
 		# HARD comment avalanche rows are advanced by HardModeSystem so their
 		# world-clock, collision and lifetime stay in one owner.  Do not move
 		# them here as well (normal hit effects keep the legacy path).
-		if fx.has("vel") and kind != "kusa_wave" and kind != "hard_comment_avalanche_row":
+		if fx.has("vel") and kind != "kusa_wave" and kind != "great_grassland_wave" and kind != "hard_comment_avalanche_row":
 			var move: Vector2 = Vector2(fx["vel"]) * delta
 			fx["pos"] = Vector2(fx["pos"]) + move
 			if fx.has("hit"):
 				fx["hit"] = Vector2(fx["hit"]) + move
 		if kind == "kusa_wave":
 			update_kusa_wave_damage(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback, arena, walls)
+		elif kind == "great_grassland_wave":
+			update_kusa_wave_damage(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback, arena, walls)
+		elif kind == "center_stage_area":
+			update_center_stage_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
+		elif kind == "comment_lockdown_projectile":
+			update_comment_lockdown_projectile(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
+		elif kind == "comment_lockdown_bind":
+			update_comment_lockdown_bind_fx(fx, enemies)
+		elif kind == "comment_lockdown_followup":
+			update_comment_lockdown_followup_fx(fx, enemies, killed_enemies, appended_fx, feedback)
 		elif kind == "ban_judgement_shockwave":
 			update_ban_judgement_shockwave_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "comment_pin":
 			update_comment_pin_damage(fx, enemies, destructibles, killed_enemies, destroyed_boxes, appended_fx, feedback)
 		elif kind == "emote_mine":
 			update_emote_mine_damage(fx, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback)
+		elif kind == "emote_festival_mine":
+			var mine_pool := hit_fx.duplicate()
+			mine_pool.append_array(appended_fx)
+			update_emote_festival_mine_damage(fx, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, mine_pool, feedback)
 		elif kind == "listener_summon":
 			update_listener_summon_damage(fx, delta, enemies, killed_enemies, appended_fx, feedback)
+		elif kind == "listener_assembly":
+			update_listener_assembly_damage(fx, delta, enemies, killed_enemies, appended_fx, feedback)
 		elif kind == "moderator_shield_active":
 			update_moderator_shield_fx(fx, delta, enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, appended_fx, feedback, owner_context)
 		elif kind == "moderator_fortress_active":
@@ -4328,6 +5780,8 @@ static func advance_hit_fx_visuals_for_target(target: Node, delta: float) -> voi
 			fx["pos"] = Vector2(fx.get("pos", Vector2.ZERO)) + move
 			if fx.has("hit"):
 				fx["hit"] = Vector2(fx["hit"]) + move
+		if String(fx.get("kind", "")) == "comment_lockdown_bind":
+			update_comment_lockdown_bind_fx(fx, target.get("enemies") as Array)
 		fx["life"] = float(fx.get("life", 0.0)) - delta
 	target.set("hit_fx", _alive_hit_fx(hit_fx))
 

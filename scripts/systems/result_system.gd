@@ -6,6 +6,7 @@ const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tra
 const StreamPointRewardResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
+const CodexPresentationSystemScript := preload("res://scripts/systems/codex_presentation_system.gd")
 
 static func max_buzz_value(stats: Dictionary) -> int:
 	var maximum: int = maxi(int(stats.get("burnComboMax", 0)), int(stats.get("maxBurnCombo", 0)))
@@ -487,6 +488,8 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	if String(result["runId"]).strip_edges() == "":
 		result["runId"] = "%s_%d" % [String(result["playedAt"]).replace(":", "").replace("-", "").replace("T", "_"), int(result.get("score", 0))]
 	result = complete_run_stats(result)
+	if not quick_test_mode:
+		CodexManager.record_character_result(result)
 	# This is the single result-commit point for difficulty progression.  The
 	# system is run before the legacy normal-frame projection and carries a
 	# per-run guard so reward retries or result redraws cannot double-record it.
@@ -519,6 +522,17 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 		unlock_result = StreamFrameSystem.clear_frame_for_target(target, result)
 	var legacy_unlock_message := String(unlock_result.get("message", ""))
 	result["unlockMessage"] = legacy_unlock_message if legacy_unlock_message != "" else String(result.get("difficultyUnlockMessage", ""))
+	if bool(reward_commit.get("seniorUnitUnlocked", false)):
+		for character_id in ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"]:
+			CodexManager.discover_character(character_id)
+	var session_discoveries: Dictionary = CodexManager.finish_run(String(result.get("runId", "")))
+	result["sessionDiscoveries"] = session_discoveries.duplicate(true)
+	if not quick_test_mode:
+		var final_progress: Variant = target.get("difficulty_progress")
+		if final_progress is Dictionary:
+			# record_result_for_target saves before PP rewards are committed.  This
+			# final write captures both the reward unlock and any codex discoveries.
+			DifficultyProgressSystemScript.save_progress(final_progress as Dictionary)
 	var result_data: Dictionary = build_result_data(result)
 	var ranking_entry := build_relay_ranking_entry(result) if relay_mode else build_ranking_entry(result)
 	result["rankingText"] = RankingSystem.save_entry_and_format(ranking_entry, bool(result["isRankingEligible"]))
@@ -763,6 +777,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"bulletHellEventCount": int(result.get("bulletHellEventCount", 0)),
 		"horrorEventCount": int(result.get("horrorEventCount", 0)),
 		"genreEventClearCount": int(result.get("genreEventClearCount", 0)),
+		"sessionDiscoveries": result.get("sessionDiscoveries", {}).duplicate(true),
 		"playedAt": String(result.get("playedAt", ""))
 	}
 
@@ -874,9 +889,75 @@ static func build_result_text(stats: Dictionary) -> String:
 	if ranking_text != "":
 		lines.append("")
 		lines.append(ranking_text)
+	var discovery_lines := _session_discovery_lines(stats.get("sessionDiscoveries", {}))
+	if not discovery_lines.is_empty():
+		lines.append("")
+		lines.append_array(discovery_lines)
 	lines.append("")
 	lines.append("Enter / Space：もう一回    R：ランキング    Esc：タイトルへ")
 	return "\n".join(lines)
+
+static func _legacy_session_discovery_lines(snapshot_value: Variant) -> Array[String]:
+	var snapshot: Dictionary = snapshot_value as Dictionary if snapshot_value is Dictionary else {}
+	var masters: Dictionary = {}
+	for category in [CodexManager.CATEGORY_CHARACTER, CodexManager.CATEGORY_WEAPON, CodexManager.CATEGORY_ACCESSORY, CodexManager.CATEGORY_ENEMY, CodexManager.CATEGORY_COMMENT]:
+		var by_id: Dictionary = {}
+		for master_value in CodexManager.get_master_entries(category):
+			if master_value is Dictionary:
+				by_id[String((master_value as Dictionary).get("id", ""))] = master_value
+		masters[category] = by_id
+	var groups := CodexPresentationSystemScript.session_discovery_groups(snapshot, masters)
+	var lines: Array[String] = ["NEW DISCOVERIES"]
+	var total := 0
+	for group_value in groups:
+		if not group_value is Dictionary:
+			continue
+		var group := group_value as Dictionary
+		var names: Array = group.get("names", []) as Array
+		if names.is_empty():
+			continue
+		var shown: Array[String] = []
+		for name_value in names:
+			if total >= 12 or shown.size() >= 4:
+				break
+			shown.append(String(name_value))
+			total += 1
+		if shown.is_empty():
+			break
+		var omitted := names.size() - shown.size()
+		var suffix := " ほか%d件" % omitted if omitted > 0 else ""
+		lines.append("%s: %s%s" % [String(group.get("label", "")), ", ".join(shown), suffix])
+		if total >= 12:
+			break
+	return [] if lines.size() == 1 else lines
+
+static func _session_discovery_lines(snapshot_value: Variant) -> Array[String]:
+	var snapshot: Dictionary = snapshot_value as Dictionary if snapshot_value is Dictionary else {}
+	var summary := CodexManager.summarize_session_discoveries(snapshot)
+	var total := int(summary.get("total", 0))
+	if total <= 0:
+		return []
+	var lines: Array[String] = ["図鑑更新 %d件" % total, "NEW DISCOVERIES"]
+	var shown_total := 0
+	for category in CodexManager.CATEGORIES:
+		var group: Dictionary = (summary.get("categories", {}) as Dictionary).get(category, {}) as Dictionary
+		var count := int(group.get("count", 0))
+		if count <= 0:
+			continue
+		var names: Array = group.get("names", []) as Array
+		var shown: Array[String] = []
+		for name_value in names:
+			if shown_total >= 12 or shown.size() >= 4:
+				break
+			shown.append(String(name_value))
+			shown_total += 1
+		var omitted := count - shown.size()
+		var suffix := " ほか%d件" % omitted if omitted > 0 else ""
+		var label := String(CodexPresentationSystemScript.CODEX_CATEGORY_LABELS.get(category, category))
+		lines.append("%s: %s%s" % [label, ", ".join(shown), suffix])
+		if shown_total >= 12:
+			break
+	return lines
 
 static func _is_cleared(stats: Dictionary, quick_test_mode: bool) -> bool:
 	if bool(stats.get("relayMode", false)) and _is_relay_completed(stats):

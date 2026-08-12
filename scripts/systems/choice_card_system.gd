@@ -3,6 +3,7 @@ extends RefCounted
 
 const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+const EvolutionRecipeGuideSystemScript := preload("res://scripts/systems/evolution_recipe_guide_system.gd")
 
 static func hidden_card() -> Dictionary:
 	return {"text": "", "fill": Color(1.0, 1.0, 1.0, 0.88), "border": Color("#c6dfff")}
@@ -163,7 +164,7 @@ static func comment_card(index: int, view: Dictionary, has_heart: bool, choice_t
 		"styleKey": "comment_image"
 	}
 
-static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictionary:
+static func gift_card(index: int, gift: Dictionary, gift_level: int, guide_context: Dictionary = {}) -> Dictionary:
 	var is_pp := String(gift.get("type", gift.get("category", ""))) == "pp" or String(gift.get("category", "")) == "pp"
 	var quality_label: String = GiftSystem.gift_quality_label(gift).replace("\n", " ")
 	var category: String = GiftSystem.gift_category_tag(gift)
@@ -172,6 +173,9 @@ static func gift_card(index: int, gift: Dictionary, gift_level: int) -> Dictiona
 	var level_text: String = GiftSystem.gift_level_change_text(gift, gift_level)
 	var summary: String = GiftSystem.gift_card_summary(gift)
 	var status: String = GiftSystem.gift_level_status_text(gift, gift_level)
+	var recipe_line := EvolutionRecipeGuideSystemScript.card_line_for_gift(gift, guide_context)
+	if recipe_line != "":
+		status = recipe_line
 	return {
 		"text": "[%d]\n%s[%s]\n%s\n%s\n%s\n%s" % [
 			index + 1,
@@ -212,11 +216,11 @@ static func comment_cards(comments: Array, _ng_cards: Array, heart_cards: Array,
 		cards.append(comment_card(i, view, has_heart, choice_timer, elapsed))
 	return cards
 
-static func gift_cards(gifts: Array, gift_levels: Dictionary) -> Array:
+static func gift_cards(gifts: Array, gift_levels: Dictionary, guide_context: Dictionary = {}) -> Array:
 	var cards: Array = []
 	for i in range(gifts.size()):
 		var gift: Dictionary = gifts[i] as Dictionary
-		cards.append(gift_card(i, gift, int(gift_levels.get(String(gift["id"]), 0))))
+		cards.append(gift_card(i, gift, int(gift_levels.get(String(gift["id"]), 0)), guide_context))
 	return cards
 
 static func gift_cards_for_target(target: Node, gifts: Array) -> Array:
@@ -224,7 +228,7 @@ static func gift_cards_for_target(target: Node, gifts: Array) -> Array:
 	for gift_item in gifts:
 		var gift: Dictionary = gift_item as Dictionary
 		levels[String(gift["id"])] = GiftSystem.gift_level_for_target(target, String(gift["id"]))
-	return gift_cards(gifts, levels)
+	return gift_cards(gifts, levels, EvolutionRecipeGuideSystemScript.context_for_target(target))
 
 static func cards_for_target(
 	target: Node,

@@ -1214,7 +1214,7 @@ static func _categories_allowed(selected: Array, candidate: Dictionary) -> bool:
 	return true
 
 static func _reignition_comment() -> Dictionary:
-	return {"id": "hard_reignition_boss", "displayName": "REIGNITION", "description": "A second boss challenge", "category": "boss", "categories": ["boss"], "riskLevel": 4, "multiplier": 3.0, "scoreRate": 1.45, "duration": 15.0, "minTime": 0.0, "effectType": "hard_reignition_boss", "hardOnly": true, "maxUsesPerRun": 1, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "deathText": "REIGNITION"}
+	return {"id": "hard_reignition_boss", "displayName": "再炎上", "description": "倒したボスが強化されて再登場する", "category": "boss", "categories": ["boss"], "riskLevel": 4, "multiplier": 3.0, "scoreRate": 1.45, "duration": 15.0, "minTime": 0.0, "effectType": "hard_reignition_boss", "hardOnly": true, "maxUsesPerRun": 1, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "deathText": "REIGNITION"}
 
 static func mark_comment_selected_for_target(target: Node, comment_id: String) -> void:
 	var runtime := runtime_for_target(target)

@@ -196,6 +196,10 @@ func _ready() -> void:
 	HardMode.mark_boss_spawned(fake, "firstHardBoss", 105.0)
 	HardMode.mark_boss_defeated(fake, "firstHardBoss")
 	_check(HardMode.can_offer_reignition(fake.difficulty_runtime, 45.0, 0), "reignition at 45 remaining", failures)
+	var reignition_comment := HardMode._reignition_comment()
+	_check(String(reignition_comment.get("displayName", "")) == "再炎上", "reignition uses the formal Japanese display name", failures)
+	_check(String(reignition_comment.get("description", "")) == "倒したボスが強化されて再登場する", "reignition uses the formal Japanese description", failures)
+	_check(ResourceLoader.exists("res://assets/generated/instruction_comment_icons_v1/hard_reignition_boss_icon.png"), "reignition icon resource exists", failures)
 
 	var comment := {"id": "enemy_speed_up", "multiplier": 2.0, "riskLevel": 2, "difficultyOverrides": {"hard": {"riskLevel": 4, "params": {"rate": 1.25}}}}
 	var resolved := HardMode.resolve_comment(comment, hard_runtime)

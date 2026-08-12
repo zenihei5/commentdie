@@ -228,6 +228,9 @@ static func start_run_for_target(target: Node, character: Dictionary, weapon: Di
 	apply_marshmallow_state(target, marshmallow_state())
 	target.set("player_weapons", EquipmentSystem.initial_weapons(String(weapon.get("id", "ban_hammer"))))
 	target.set("player_accessories", EquipmentSystem.empty_accessories())
+	var initial_weapon_id := String(weapon.get("id", ""))
+	if initial_weapon_id != "":
+		CodexManager.discover_weapon(initial_weapon_id)
 	target.set("last_death_source", "接触")
 	target.set("last_hammer_dir", Vector2.RIGHT)
 	target.set("player_facing_x", 1.0)

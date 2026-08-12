@@ -3,6 +3,7 @@ extends Node
 const TestTargetScript := preload("res://scripts/tests/stage4_test_target.gd")
 const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
 const GiftSystemScript := preload("res://scripts/systems/gift_system.gd")
+const DebugSystemScript := preload("res://scripts/systems/debug_system.gd")
 
 var weapons: Array = []
 var gifts: Array = []
@@ -19,13 +20,15 @@ func _run_tests() -> void:
 	_check(not weapons.is_empty(), "weapon data parsed", failures)
 	_check(not gifts.is_empty(), "gift data parsed", failures)
 	_test_initial_six()
-	_test_provisional_evolutions_are_inactive()
+	_test_regular_evolutions_are_active()
 	_test_accessory_requirement()
 	_test_weapon_requirement_and_lineage()
 	_test_evolution_keeps_materials_and_enables_next_candidate()
 	_test_multiple_evolution_gifts()
 	_test_reroll_keeps_all_evolution_cards()
 	_test_apply_result_is_level_one_and_not_a_normal_candidate()
+	_test_evolution_gift_marker_types()
+	_test_debug_evolution_gift_command()
 	if failures.is_empty():
 		print("WEAPON_EVOLUTION_EXPANSION_TESTS: PASS")
 		get_tree().quit(0)
@@ -81,25 +84,55 @@ func _test_initial_six() -> void:
 		_check(String(gift.get("evolvedWeaponId", "")) == evolved_id, "%s regression gift exists" % base_id, failures)
 
 
-func _test_provisional_evolutions_are_inactive() -> void:
-	var provisional: Array = [
-		{"base": "mic_barrier", "accessory": "mini_humidifier"},
-		{"base": "spotlight", "weapon": "mic_barrier"},
-		{"base": "kusa_wave", "accessory": "bullet_support"},
-		{"base": "comment_pin", "weapon": "ng_word_laser"},
-		{"base": "emote_mine", "accessory": "wide_angle"},
-		{"base": "ng_word_laser", "accessory": "high_speed_connection"},
-		{"base": "listener_summon", "accessory": "notification_bell"}
+func _test_regular_evolutions_are_active() -> void:
+	var cases: Array = [
+		{"base": "mic_barrier", "evolved": "full_voice_dome", "material": {"type": "accessory", "id": "mini_humidifier", "requiredLevel": 5}},
+		{"base": "spotlight", "evolved": "center_stage", "material": {"type": "weapon", "id": "mic_barrier", "requiredLevel": 5}},
+		{"base": "kusa_wave", "evolved": "great_grassland", "material": {"type": "accessory", "id": "bullet_support", "requiredLevel": 5}},
+		{"base": "comment_pin", "evolved": "comment_lockdown", "material": {"type": "weapon", "id": "ng_word_laser", "requiredLevel": 5}},
+		{"base": "emote_mine", "evolved": "emote_festival", "material": {"type": "accessory", "id": "wide_angle", "requiredLevel": 5}},
+		{"base": "ng_word_laser", "evolved": "all_block_laser", "material": {"type": "accessory", "id": "high_speed_connection", "requiredLevel": 5}},
+		{"base": "listener_summon", "evolved": "listener_assembly", "material": {"type": "accessory", "id": "notification_bell", "requiredLevel": 5}}
 	]
-	for item_value in provisional:
-		var item: Dictionary = item_value as Dictionary
+	for case_value in cases:
+		var item: Dictionary = case_value as Dictionary
 		var base_id := String(item["base"])
+		var evolved_id := String(item["evolved"])
+		var material: Dictionary = item["material"] as Dictionary
 		var base_weapon := _find_data(weapons, base_id)
 		var evolution: Dictionary = base_weapon.get("evolution", {}) as Dictionary
-		_check(not bool(base_weapon.get("evolutionEnabled", true)), "%s provisional evolution is inactive" % base_id, failures)
-		_check(String(evolution.get("evolvedWeaponId", "missing")) == "", "%s provisional target is empty" % base_id, failures)
-		var target := _make_target([{"id": base_id, "level": 5}], "any_character", [])
-		_check(WeaponEvolutionSystemScript.evolution_states_for_target(target, weapons).is_empty(), "%s provisional evolution never appears" % base_id, failures)
+		_check(bool(base_weapon.get("evolutionEnabled", false)), "%s regular evolution is active" % base_id, failures)
+		_check(String(evolution.get("evolvedWeaponId", "")) == evolved_id, "%s regular target is stable" % base_id, failures)
+		_check(int(evolution.get("requiredWeaponLevel", 0)) == 5, "%s regular base requires Lv5" % base_id, failures)
+		_check(int(evolution.get("requiredExpLevel", -1)) == 0, "%s regular evolution has no EXP gate" % base_id, failures)
+		var requirement_list: Array = evolution.get("additionalRequirements", []) as Array
+		_check(requirement_list.size() == 1 and String((requirement_list[0] as Dictionary).get("id", "")) == String(material.get("id", "")) and int((requirement_list[0] as Dictionary).get("requiredLevel", 0)) == 5, "%s regular material is numeric Lv5" % base_id, failures)
+		var level_four := _make_target([{"id": base_id, "level": 4}], "other_character", [], weapons)
+		_check(not _can_evolve(level_four), "%s base Lv4 fails" % base_id, failures)
+		var no_material := _make_target([{"id": base_id, "level": 5}], "other_character", [], weapons)
+		_check(not _can_evolve(no_material), "%s Lv5 without material fails" % base_id, failures)
+		var material_entry: Array = [{"id": material.get("id", ""), "level": 4}] if String(material.get("type", "")) == "weapon" else []
+		var accessories: Array = [{"id": material.get("id", ""), "level": 4}] if String(material.get("type", "")) == "accessory" else []
+		var below_required := _make_target([{"id": base_id, "level": 5}] + material_entry, "other_character", accessories, weapons)
+		_check(not _can_evolve(below_required), "%s material below Lv5 fails" % base_id, failures)
+		if String(material.get("type", "")) == "accessory":
+			below_required.player_accessories = [{"id": material.get("id", ""), "level": 5}]
+		else:
+			below_required.player_weapons[1] = {"id": material.get("id", ""), "level": 5}
+		_check(_can_evolve(below_required), "%s Lv5 plus material succeeds" % base_id, failures)
+		var evolved_weapon := _find_data(weapons, evolved_id)
+		_check(int(evolved_weapon.get("maxLevel", 0)) == 1 and bool(evolved_weapon.get("isEvolved", false)) and not bool(evolved_weapon.get("offerEnabled", true)) and not bool(evolved_weapon.get("giftEnabled", true)) and not bool(evolved_weapon.get("canAppearAsUpgrade", true)), "%s evolved definition is restricted" % evolved_id, failures)
+
+	var spotlight_lineage := _make_target([
+		{"id": "spotlight", "level": 5},
+		{"id": "full_voice_dome", "level": 1, "isEvolved": true, "baseWeaponId": "mic_barrier"}
+	], "other_character", [], weapons)
+	_check(_can_evolve(spotlight_lineage), "spotlight accepts full_voice_dome lineage", failures)
+	var lockdown_lineage := _make_target([
+		{"id": "comment_pin", "level": 5},
+		{"id": "all_block_laser", "level": 1, "isEvolved": true, "baseWeaponId": "ng_word_laser"}
+	], "other_character", [], weapons)
+	_check(_can_evolve(lockdown_lineage), "comment_pin accepts all_block_laser lineage", failures)
 
 
 func _test_accessory_requirement() -> void:
@@ -238,6 +271,87 @@ func _test_apply_result_is_level_one_and_not_a_normal_candidate() -> void:
 	_check(not (result.get("weaponEvolution", {}) as Dictionary).is_empty(), "apply result reports selected pair", failures)
 
 
+func _test_evolution_gift_marker_types() -> void:
+	_check(WeaponEvolutionSystemScript.is_evolution_gift({"evolution": {"evolvedWeaponId": "fixture_evolved"}}), "dictionary evolution marker is classified safely", failures)
+	_check(not WeaponEvolutionSystemScript.is_evolution_gift({"evolution": {}}), "empty evolution dictionary is not classified as a gift", failures)
+	_check(WeaponEvolutionSystemScript.is_evolution_gift({"isEvolutionGift": true}), "boolean evolution marker remains supported", failures)
+	var fansa_baton := _find_data(weapons, "fansa_baton")
+	_check(not WeaponEvolutionSystemScript.is_evolution_gift(fansa_baton), "base weapon evolution configuration is not a gift", failures)
+	_check(GiftSystemScript.gift_level_gain(fansa_baton) == 1, "base weapon keeps its normal gift level gain", failures)
+	var fansa_target := _make_target([{"id": "fansa_baton", "level": 5}], "akarine_rizumu", [])
+	var fansa_gift := WeaponEvolutionSystemScript.evolution_gift_for_target(fansa_target, weapons)
+	_check(String(fansa_gift.get("evolvedWeaponId", "")) == "fansa_climax", "fansa baton evolution gift targets fansa climax", failures)
+	_check(String(fansa_gift.get("displayName", "")) == String(_find_data(weapons, "fansa_climax").get("displayName", "")), "fansa evolution card uses evolved display name", failures)
+
+
+func _test_debug_evolution_gift_command() -> void:
+	_check(DebugSystemScript.EVOLUTION_GIFT_KEY == KEY_G and DebugSystemScript.EVOLUTION_GIFT_MODIFIER_KEY == KEY_SHIFT, "debug evolution command is bound to Shift+G", failures)
+	_check(DebugSystemScript.should_start_evolution_gift("gift_evolution"), "debug evolution action is recognized", failures)
+	var expected_ids: Array[String] = [
+		"ban_judgement",
+		"starlight_superchat",
+		"maro_comment_ring",
+		"full_voice_dome",
+		"center_stage",
+		"great_grassland",
+		"comment_lockdown",
+		"emote_festival",
+		"all_block_laser",
+		"listener_assembly",
+		"moderator_fortress",
+		"fansa_climax",
+		"buzz_thumbnail_rod"
+	]
+	var target := _make_target([{"id": "ban_hammer", "level": 1}], "other_character", [])
+	_check(WeaponEvolutionSystemScript.evolution_gift_for_target(target, weapons).is_empty(), "normal evolution still rejects a low-level base weapon", failures)
+	var catalog: Array = WeaponEvolutionSystemScript.debug_evolution_gifts_for_target(target, weapons)
+	var actual_ids: Array[String] = []
+	for gift_value in catalog:
+		var gift: Dictionary = gift_value as Dictionary
+		actual_ids.append(String(gift.get("evolvedWeaponId", "")))
+		_check(bool(gift.get("debugForceEvolution", false)), "every debug evolution candidate carries the debug marker", failures)
+	_check(actual_ids == expected_ids, "debug evolution catalog contains all 13 weapons in data order", failures)
+
+	var first_page: Dictionary = DebugSystemScript.force_evolution_choice_for_target(target, weapons, 0)
+	var first_offer: Array = first_page.get("offer", []) as Array
+	_check(bool(first_page.get("applied", false)) and first_offer.size() == 3, "debug evolution opens a three-card gift page", failures)
+	_check(String((first_offer[0] as Dictionary).get("evolvedWeaponId", "")) == expected_ids[0] and String((first_offer[2] as Dictionary).get("evolvedWeaponId", "")) == expected_ids[2], "first debug evolution page follows catalog order", failures)
+	_check(target.state == "gift_choice" and target.pause_reasons.has("GiftSelection"), "debug evolution page uses the paused gift-choice state", failures)
+	var second_page: Dictionary = DebugSystemScript.force_evolution_choice_for_target(target, weapons, int(first_page.get("nextPageStart", 0)))
+	var second_offer: Array = second_page.get("offer", []) as Array
+	_check(second_offer.size() == 3 and String((second_offer[0] as Dictionary).get("evolvedWeaponId", "")) == expected_ids[3], "debug evolution page control advances to the next three weapons", failures)
+	var final_page: Dictionary = DebugSystemScript.force_evolution_choice_for_target(target, weapons, 12)
+	var final_offer: Array = final_page.get("offer", []) as Array
+	_check(final_offer.size() == 1 and String((final_offer[0] as Dictionary).get("evolvedWeaponId", "")) == expected_ids[12], "final debug evolution page exposes the thirteenth weapon", failures)
+	_check(int(final_page.get("nextPageStart", -1)) == 0, "debug evolution page control wraps to the first page", failures)
+
+	var replace_target := _make_target([{"id": "ban_hammer", "level": 1}], "other_character", [])
+	var ban_gift := _find_debug_evolution_gift(WeaponEvolutionSystemScript.debug_evolution_gifts_for_target(replace_target, weapons), "ban_judgement")
+	var replace_result: Dictionary = WeaponEvolutionSystemScript.apply_evolution_gift_for_target(replace_target, ban_gift)
+	var ban_entry := EquipmentSystem.find_entry(replace_target.player_weapons, "ban_judgement")
+	_check(replace_target.player_weapons.size() == 1 and not ban_entry.is_empty(), "debug evolution replaces an owned base weapon in the same slot", failures)
+	_check(EquipmentSystem.entry_level(ban_entry, 0) == 1 and EquipmentSystem.is_evolved_entry(ban_entry), "debug evolution grants an evolved Lv1 entry", failures)
+	_check(replace_target.current_weapon_id == "ban_judgement" and bool((replace_result.get("weaponEvolution", {}) as Dictionary).get("debugForced", false)), "debug replacement updates the active main weapon and reports its source", failures)
+
+	var append_target := _make_target([{"id": "ban_hammer", "level": 1}], "other_character", [])
+	var center_gift := _find_debug_evolution_gift(WeaponEvolutionSystemScript.debug_evolution_gifts_for_target(append_target, weapons), "center_stage")
+	WeaponEvolutionSystemScript.apply_evolution_gift_for_target(append_target, center_gift)
+	var center_entry := EquipmentSystem.find_entry(append_target.player_weapons, "center_stage")
+	_check(append_target.player_weapons.size() == 2 and not center_entry.is_empty(), "debug evolution adds an evolved weapon to an empty slot when its base is absent", failures)
+	_check(String(center_entry.get("baseWeaponId", "")) == "spotlight" and EquipmentSystem.entry_level(center_entry, 0) == 1, "debug-added evolution retains its base lineage and Lv1", failures)
+
+	var full_target := _make_target([
+		{"id": "ban_hammer", "level": 1},
+		{"id": "superchat_shot", "level": 1},
+		{"id": "comment_boomerang", "level": 1},
+		{"id": "kusa_wave", "level": 1},
+		{"id": "comment_pin", "level": 1}
+	], "other_character", [])
+	var full_catalog: Array = WeaponEvolutionSystemScript.debug_evolution_gifts_for_target(full_target, weapons)
+	_check(_find_debug_evolution_gift(full_catalog, "center_stage").is_empty(), "a full weapon inventory does not offer an evolution whose base slot is absent", failures)
+	_check(not _find_debug_evolution_gift(full_catalog, "ban_judgement").is_empty(), "a full weapon inventory still offers safe same-slot evolution replacements", failures)
+
+
 func _make_target(entries: Array, character_id: String, accessories: Array, registry: Array = []) -> Node:
 	var target := TestTargetScript.new()
 	target.weapons = weapons if registry.is_empty() else registry
@@ -334,6 +448,14 @@ func _find_data(data: Array, id: String) -> Dictionary:
 		var entry: Dictionary = item as Dictionary
 		if String(entry.get("id", "")) == id:
 			return entry
+	return {}
+
+
+func _find_debug_evolution_gift(data: Array, evolved_id: String) -> Dictionary:
+	for item in data:
+		var gift: Dictionary = item as Dictionary
+		if String(gift.get("evolvedWeaponId", "")) == evolved_id:
+			return gift
 	return {}
 
 

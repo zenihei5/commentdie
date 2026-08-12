@@ -16,6 +16,7 @@ const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd"
 const CharacterSystemScript := preload("res://scripts/systems/character_system.gd")
 const CollabComboSystemScript := preload("res://scripts/systems/collab_combo_system.gd")
 const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
+const CodexPresentationSystemScript := preload("res://scripts/systems/codex_presentation_system.gd")
 const RankingSystemScript := preload("res://scripts/systems/ranking_system.gd")
 const UiStyleSystemScript := preload("res://scripts/systems/ui_style_system.gd")
 const HudTextSystemScript := preload("res://scripts/systems/hud_text_system.gd")
@@ -54,37 +55,36 @@ const RelayBossDefenseSystemScript := preload("res://scripts/systems/relay_boss_
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 const PowerUpShopManagerScript := preload("res://scripts/systems/power_up_shop_manager.gd")
+const EvolutionRecipeGuideSystemScript := preload("res://scripts/systems/evolution_recipe_guide_system.gd")
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
 const PermanentUpgradeSnapshotScript := preload("res://scripts/systems/permanent_upgrade_snapshot.gd")
 const PowerUpShopScreenScene := preload("res://scripts/ui/power_up_shop_screen.tscn")
+const CodexScreenScene := preload("res://scenes/ui/codex_screen.tscn")
 const TITLE_BACK_IMAGE := "res://assets/title/title_back.png"
 const TITLE_LOGO_IMAGE := "res://assets/title/title_logo_alpha.png"
 const TITLE_BANCHAN_IMAGE := "res://assets/title/title_banchan_alpha.png"
 const TITLE_SUPANA_IMAGE := "res://assets/title/title_supana_alpha.png"
 const TITLE_MARON_IMAGE := "res://assets/title/title_maron_alpha.png"
+const TITLE_CODEX_BUTTON_IMAGE := "res://assets/title/menu_buttons_v2/title_menu_codex.png"
+const TITLE_CODEX_BUTTON_SOURCE_RECT := Rect2(0, 330, 1536, 370)
 const TITLE_MENU_BUTTON_IMAGES := [
 	"res://assets/title/menu_buttons_v2/title_menu_new_game.png",
 	"res://assets/title/menu_buttons_v2/title_menu_power_up_shop.png",
+	TITLE_CODEX_BUTTON_IMAGE,
 	"res://assets/title/menu_buttons_v2/title_menu_ranking.png",
 	"res://assets/title/menu_buttons_v2/title_menu_options.png",
 	"res://assets/title/menu_buttons_v2/title_menu_quit.png",
 ]
-const TITLE_MENU_BUTTON_SOURCE_SIZES := [
-	Vector2(2694, 584),
-	Vector2(2694, 584),
-	Vector2(2694, 584),
-	Vector2(2694, 584),
-	Vector2(2694, 584),
-]
-const TITLE_MENU_BUTTON_CONTENT_RECTS := [
+const TITLE_MENU_BUTTON_SOURCE_RECTS := [
 	Rect2(119, 26, 2473, 550),
 	Rect2(90, 41, 2515, 508),
+	TITLE_CODEX_BUTTON_SOURCE_RECT,
 	Rect2(97, 33, 2500, 540),
 	Rect2(97, 24, 2509, 550),
 	Rect2(117, 32, 2472, 549),
 ]
-const TITLE_MENU_COUNT := 5
-const TITLE_QUIT_INDEX := 4
+const TITLE_MENU_COUNT := 6
+const TITLE_QUIT_INDEX := 5
 const CHARACTER_SELECT_HEADER_ICON := "res://assets/generated/character_select_icons_v1/character_select.png"
 const STREAM_FRAME_SELECT_HEADER_ICON := "res://assets/generated/stream_frame_select_icons_v1/stream_frame_select.png"
 const HARD_CLIMAX_BANNER_IMAGE := "res://assets/generated/instruction_comment_icons_v1/hard_climax_banner.png"
@@ -773,10 +773,10 @@ const TITLE_SUPANA_RECT := Rect2(Vector2(-210, 160), Vector2(580, 845))
 const TITLE_MARON_RECT := Rect2(Vector2(1155, 185), Vector2(460, 822))
 const TITLE_BANCHAN_RECT := Rect2(Vector2(125, 285), Vector2(510, 711))
 const TITLE_LOGO_RECT := Rect2(Vector2(390, 4), Vector2(820, 442))
-const TITLE_MENU_BUTTON_WIDTH := 400.0
+const TITLE_MENU_BUTTON_SIZE := Vector2(306.0, 66.0)
 const TITLE_MENU_CENTER_X := 800.0
-const TITLE_MENU_START_Y := 441.0
-const TITLE_MENU_GAP := 4.0
+const TITLE_MENU_START_Y := 444.0
+const TITLE_MENU_GAP := 10.0
 const TITLE_MENU_FOCUS_ENTER_DURATION := 0.14
 const TITLE_MENU_PRESS_DURATION := 0.14
 const TITLE_MENU_PRESS_DOWN_DURATION := 0.06
@@ -840,6 +840,8 @@ var pending_power_up_reward
 var shop_upgrades_enabled := true
 var power_up_shop_screen
 var power_up_shop_origin := "title"
+var codex_screen
+var codex_return_state := "title"
 var current_stream_frame: Dictionary = {}
 var current_character: Dictionary = {}
 var current_weapon: Dictionary = {}
@@ -1661,6 +1663,10 @@ func _ready() -> void:
 	power_up_shop_manager = PowerUpShopManagerScript.new()
 	current_character_id = String(power_up_shop_manager.selected_character_id())
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
+	if CodexManager.is_legacy_import_pending():
+		CodexManager.sync_legacy_unlocked_characters(power_up_shop_manager.unlocked_character_ids())
+		CodexManager.clear_legacy_import_pending()
+		DifficultyProgressSystemScript.save_progress(difficulty_progress)
 	CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
 	current_character_id = CharacterSystemScript.validated_character_id(characters, current_character_id)
 	CharacterSystemScript.apply_selected_character_for_target(self, characters, weapons, current_character_id, character_sprite_cache)
@@ -1703,7 +1709,7 @@ func _process(delta: float) -> void:
 		_sync_result_bgm()
 		queue_redraw()
 		return
-	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro" and state != "collab_partner_select" and state != "relay_break" and state != "boss_cutin" and state != "power_up_shop":
+	if state != "pause" and state != "result" and state != "stream_start_intro" and state != "game_over_intro" and state != "collab_partner_select" and state != "relay_break" and state != "boss_cutin" and state != "power_up_shop" and state != "codex":
 		ChatSystemScript.update_timer_for_target(self, delta, rng, chat_box)
 	if state == "comment_choice":
 		comment_choice_enter_time += delta
@@ -2334,7 +2340,7 @@ func _is_pause_options_state() -> bool:
 	return state == "options" and options_return_state == "pause"
 
 func _title_bgm_should_play() -> bool:
-	return state in ["title", "power_up_shop", "ranking", "options", "character_select", "stream_frame_select", "collab_partner_select", "stream_start_intro", "tutorial"] and not _is_pause_options_state()
+	return state in ["title", "power_up_shop", "codex", "ranking", "options", "character_select", "stream_frame_select", "collab_partner_select", "stream_start_intro", "tutorial"] and not _is_pause_options_state()
 
 func _sync_title_bgm() -> void:
 	if title_bgm_player == null or title_bgm_player.stream == null:
@@ -3093,6 +3099,8 @@ func _cursor_sound_snapshot() -> Array:
 		ranking_tab_index,
 		ranking_selected_index,
 		ranking_focus_area,
+		ranking_difficulty_id,
+		ranking_stage_index,
 		ranking_reset_confirm_index,
 		pause_menu_index,
 		pause_focus_area,
@@ -3105,7 +3113,7 @@ func _cursor_sound_snapshot() -> Array:
 	]
 
 func _cursor_sound_snapshot_changed(before: Array) -> bool:
-	if before.size() < 19 or String(before[0]) != state:
+	if before.size() < 21 or String(before[0]) != state:
 		return false
 	return (
 		int(before[1]) != title_menu_index
@@ -3117,20 +3125,26 @@ func _cursor_sound_snapshot_changed(before: Array) -> bool:
 		or int(before[7]) != ranking_tab_index
 		or int(before[8]) != ranking_selected_index
 		or String(before[9]) != ranking_focus_area
-		or int(before[10]) != ranking_reset_confirm_index
-		or int(before[11]) != pause_menu_index
-		or String(before[12]) != pause_focus_area
-		or int(before[13]) != pause_equipment_row
-		or int(before[14]) != pause_weapon_slot_index
-		or int(before[15]) != pause_accessory_slot_index
-		or int(before[16]) != selected_card
-		or String(before[17]) != result_hover_button
-		or String(before[18]) != gift_choice_focus_area
+		or String(before[10]) != ranking_difficulty_id
+		or int(before[11]) != ranking_stage_index
+		or int(before[12]) != ranking_reset_confirm_index
+		or int(before[13]) != pause_menu_index
+		or String(before[14]) != pause_focus_area
+		or int(before[15]) != pause_equipment_row
+		or int(before[16]) != pause_weapon_slot_index
+		or int(before[17]) != pause_accessory_slot_index
+		or int(before[18]) != selected_card
+		or String(before[19]) != result_hover_button
+		or String(before[20]) != gift_choice_focus_area
 	)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if front_screen_transition_active:
 		get_viewport().set_input_as_handled()
+		return
+	if state == "codex":
+		if codex_screen != null and codex_screen.handle_input(event):
+			get_viewport().set_input_as_handled()
 		return
 	if pre_run_select_press_active and state == pre_run_select_press_screen:
 		get_viewport().set_input_as_handled()
@@ -3204,6 +3218,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if _activate_collab_partner_select_mouse(partner_mouse_button.position):
 					get_viewport().set_input_as_handled()
 	elif state == "ranking" or (state == "result" and result_showing_ranking):
+		var ranking_cursor_before: Array = _cursor_sound_snapshot()
 		if event is InputEventMouseButton:
 			var ranking_mouse_button := event as InputEventMouseButton
 			if ranking_mouse_button.button_index == MOUSE_BUTTON_LEFT and ranking_mouse_button.pressed:
@@ -3239,6 +3254,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				elif ranking_focus_area == RANKING_FOCUS_STAGE:
 					_ranking_stage_right()
 				get_viewport().set_input_as_handled()
+		if _cursor_sound_snapshot_changed(ranking_cursor_before):
+			_play_cursor_move_se()
 	elif state == "result" and not result_showing_ranking:
 		if event is InputEventMouseMotion:
 			_update_result_mouse_selection((event as InputEventMouseMotion).position)
@@ -3251,6 +3268,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			var result_joypad_button := event as InputEventJoypadButton
 			if result_joypad_button.pressed and result_joypad_button.button_index == JOY_BUTTON_A:
 				_select_result_button()
+				get_viewport().set_input_as_handled()
+			elif result_joypad_button.pressed and result_joypad_button.button_index in [JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_UP, JOY_BUTTON_LEFT_SHOULDER]:
+				_move_result_button(-1)
+				get_viewport().set_input_as_handled()
+			elif result_joypad_button.pressed and result_joypad_button.button_index in [JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_RIGHT_SHOULDER]:
+				_move_result_button(1)
 				get_viewport().set_input_as_handled()
 			elif result_joypad_button.pressed and result_joypad_button.button_index == JOY_BUTTON_B:
 				_play_back_transition_se()
@@ -3334,33 +3357,15 @@ func _title_button_hit_rect(index: int) -> Rect2:
 
 func _title_menu_button_rect(index: int) -> Rect2:
 	var clamped_index: int = clampi(index, 0, TITLE_MENU_COUNT - 1)
-	var y := TITLE_MENU_START_Y
-	for previous_index in range(clamped_index):
-		y += _title_menu_button_visual_size(previous_index).y + TITLE_MENU_GAP
-	var size := _title_menu_button_visual_size(clamped_index)
-	return Rect2(Vector2(TITLE_MENU_CENTER_X - size.x * 0.5, y), size)
+	var y := TITLE_MENU_START_Y + float(clamped_index) * (TITLE_MENU_BUTTON_SIZE.y + TITLE_MENU_GAP)
+	return Rect2(Vector2(TITLE_MENU_CENTER_X - TITLE_MENU_BUTTON_SIZE.x * 0.5, y), TITLE_MENU_BUTTON_SIZE)
 
-func _title_menu_button_source_size(index: int) -> Vector2:
+func _title_menu_button_source_rect(index: int) -> Rect2:
 	var clamped_index: int = clampi(index, 0, TITLE_MENU_COUNT - 1)
-	return TITLE_MENU_BUTTON_SOURCE_SIZES[clamped_index]
-
-func _title_menu_button_visual_size(index: int) -> Vector2:
-	var source_size := _title_menu_button_source_size(index)
-	if source_size.x <= 0.0 or source_size.y <= 0.0:
-		return Vector2(TITLE_MENU_BUTTON_WIDTH, 86.0)
-	return Vector2(TITLE_MENU_BUTTON_WIDTH, TITLE_MENU_BUTTON_WIDTH * source_size.y / source_size.x)
+	return TITLE_MENU_BUTTON_SOURCE_RECTS[clamped_index]
 
 func _title_menu_button_visual_rect(index: int) -> Rect2:
-	var clamped_index: int = clampi(index, 0, TITLE_MENU_COUNT - 1)
-	var canvas_rect := _title_menu_button_rect(clamped_index)
-	return _title_menu_button_visual_rect_for_canvas(clamped_index, canvas_rect)
-
-func _title_menu_button_visual_rect_for_canvas(index: int, canvas_rect: Rect2) -> Rect2:
-	var clamped_index: int = clampi(index, 0, TITLE_MENU_COUNT - 1)
-	var source_size := _title_menu_button_source_size(clamped_index)
-	var content_rect: Rect2 = TITLE_MENU_BUTTON_CONTENT_RECTS[clamped_index]
-	var scale := Vector2(canvas_rect.size.x / source_size.x, canvas_rect.size.y / source_size.y)
-	return Rect2(canvas_rect.position + content_rect.position * scale, content_rect.size * scale)
+	return _title_menu_button_rect(index)
 
 func _title_menu_button_draw_rect(index: int) -> Rect2:
 	var base_rect := _title_menu_button_rect(index)
@@ -3371,7 +3376,7 @@ func _title_menu_button_draw_rect(index: int) -> Rect2:
 	return Rect2(base_rect.get_center() - size * 0.5 + Vector2(0.0, offset_y), size)
 
 func _title_menu_button_draw_visual_rect(index: int) -> Rect2:
-	return _title_menu_button_visual_rect_for_canvas(index, _title_menu_button_draw_rect(index))
+	return _title_menu_button_draw_rect(index)
 
 func _title_menu_ease_out(value: float) -> float:
 	var clamped := clampf(value, 0.0, 1.0)
@@ -3455,8 +3460,9 @@ func _title_menu_action_for_index(index: int) -> String:
 	match posmod(index, TITLE_MENU_COUNT):
 		0: return "start_character_select"
 		1: return "open_power_up_shop"
-		2: return "open_title_ranking"
-		3: return "open_title_options"
+		2: return "open_codex"
+		3: return "open_title_ranking"
+		4: return "open_title_options"
 		_: return "quit_game"
 
 func _activate_title_menu_index(index: int) -> void:
@@ -3490,6 +3496,7 @@ func _apply_title_menu_action(action: String) -> void:
 	StateFlowSystemScript.apply_front_action(action, {
 		"start_character_select": Callable(self, "_start_character_select"),
 		"open_power_up_shop": Callable(self, "_open_power_up_shop").bind("title"),
+		"open_codex": Callable(self, "_open_codex"),
 		"open_title_ranking": Callable(self, "_open_title_ranking"),
 		"open_title_options": Callable(self, "_open_title_options"),
 		"quit_game": Callable(self, "_quit_game")
@@ -3606,7 +3613,7 @@ func _difficulty_tab_index_at(pos: Vector2) -> int:
 			return index
 	return -1
 
-func _change_selected_difficulty(direction_or_id: Variant) -> bool:
+func _change_selected_difficulty(direction_or_id: Variant, preferred_stage_index: int = -1, play_cursor_sound: bool = true) -> bool:
 	var ids := _difficulty_tab_ids()
 	if ids.is_empty():
 		return false
@@ -3624,12 +3631,43 @@ func _change_selected_difficulty(direction_or_id: Variant) -> bool:
 		DifficultyProgressSystemScript.set_selected_difficulty_for_target(self, run_difficulty_id)
 		DifficultyProgressSystemScript.consume_difficulty_new_for_target(self, run_difficulty_id)
 	var frames := _stream_frame_selection_items()
-	var last_stage := DifficultyProgressSystemScript.last_selected_stage(difficulty_progress, run_difficulty_id)
-	selected_stream_frame_index = StreamFrameSystemScript.selected_index(frames, last_stage)
+	if preferred_stage_index >= 0:
+		selected_stream_frame_index = preferred_stage_index
+	else:
+		var last_stage := DifficultyProgressSystemScript.last_selected_stage(difficulty_progress, run_difficulty_id)
+		selected_stream_frame_index = StreamFrameSystemScript.selected_index(frames, last_stage)
 	selected_stream_frame_index = clampi(selected_stream_frame_index, 0, maxi(0, frames.size() - 1))
 	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
-	_play_cursor_move_se()
+	if preferred_stage_index >= 0:
+		_remember_stream_frame_cursor()
+	if play_cursor_sound:
+		_play_cursor_move_se()
 	queue_redraw()
+	return true
+
+func _try_move_stream_frame_across_difficulty() -> bool:
+	var direction := 0
+	var keycode: Key = KEY_NONE
+	if _selection_latch_would_press(KEY_LEFT):
+		direction = -1
+		keycode = KEY_LEFT
+	elif _selection_latch_would_press(KEY_RIGHT):
+		direction = 1
+		keycode = KEY_RIGHT
+	else:
+		return false
+	var frames := _stream_frame_selection_items()
+	var target_index := StreamFrameSystemScript.horizontal_difficulty_edge_target_index(
+		selected_stream_frame_index,
+		frames.size(),
+		frames.size(),
+		direction
+	)
+	if target_index < 0:
+		return false
+	_selection_latch_pressed(keycode)
+	# The front-state cursor snapshot plays the sound after the index changes.
+	_change_selected_difficulty(direction, target_index, false)
 	return true
 
 func _remember_stream_frame_cursor() -> void:
@@ -4222,7 +4260,7 @@ func _stream_start_intro_skip_pressed() -> bool:
 func _result_layout() -> Dictionary:
 	var offset := _result_drop_offset()
 	if String(last_result_data.get("endType", "")) == "completed":
-		return {
+		var layout := {
 			"panel": Rect2(Vector2(150, 74) + offset, Vector2(1300, 746)),
 			"summaryPanel": Rect2(Vector2(180, 238) + offset, Vector2(370, 480)),
 			"detailPanel": Rect2(Vector2(570, 238) + offset, Vector2(520, 480)),
@@ -4232,8 +4270,9 @@ func _result_layout() -> Dictionary:
 			"shopButton": Rect2(Vector2(760, 742) + offset, Vector2(250, 56)),
 			"titleButton": Rect2(Vector2(1040, 742) + offset, Vector2(250, 56))
 		}
+		return _add_result_codex_button(layout, offset, true)
 	if String(last_result_data.get("endType", "")) == "mental_breakdown":
-		return {
+		var layout := {
 			"panel": Rect2(Vector2(150, 74) + offset, Vector2(1300, 746)),
 			"summaryPanel": Rect2(Vector2(180, 238) + offset, Vector2(370, 480)),
 			"detailPanel": Rect2(Vector2(570, 238) + offset, Vector2(520, 480)),
@@ -4243,7 +4282,8 @@ func _result_layout() -> Dictionary:
 			"shopButton": Rect2(Vector2(760, 742) + offset, Vector2(250, 56)),
 			"titleButton": Rect2(Vector2(1040, 742) + offset, Vector2(250, 56))
 		}
-	return {
+		return _add_result_codex_button(layout, offset, true)
+	var layout := {
 		"panel": Rect2(Vector2(210, 74) + offset, Vector2(1180, 746)),
 		"summaryPanel": Rect2(Vector2(246, 260) + offset, Vector2(360, 450)),
 		"detailPanel": Rect2(Vector2(626, 260) + offset, Vector2(728, 450)),
@@ -4252,6 +4292,29 @@ func _result_layout() -> Dictionary:
 		"shopButton": Rect2(Vector2(780, 742) + offset, Vector2(250, 56)),
 		"titleButton": Rect2(Vector2(1060, 742) + offset, Vector2(250, 56))
 	}
+	return _add_result_codex_button(layout, offset, false)
+
+func _has_result_codex_updates() -> bool:
+	if last_result_data.is_empty():
+		return false
+	return int(CodexManager.summarize_session_discoveries(last_result_data.get("sessionDiscoveries", {})).get("total", 0)) > 0
+
+func _result_button_rect_key(button_id: String) -> String:
+	return "%sButton" % button_id
+
+func _add_result_codex_button(layout: Dictionary, offset: Vector2, wide: bool) -> Dictionary:
+	if not _has_result_codex_updates():
+		return layout
+	var panel: Rect2 = layout.get("panel", Rect2()) as Rect2
+	var button_width := 220.0 if wide else 210.0
+	var gap := 12.0 if wide else 10.0
+	var total_width := button_width * 5.0 + gap * 4.0
+	var start_x := panel.position.x + (panel.size.x - total_width) * 0.5
+	var y := panel.position.y + panel.size.y - 58.0
+	var ids: Array[String] = ["retry", "ranking", "shop", "codex", "title"]
+	for index in range(ids.size()):
+		layout[_result_button_rect_key(ids[index])] = Rect2(Vector2(start_x + float(index) * (button_width + gap), y), Vector2(button_width, 56.0))
+	return layout
 
 func _result_drop_is_playing() -> bool:
 	return result_drop_timer > 0.0
@@ -4387,6 +4450,10 @@ func _activate_result_button(button_id: String) -> bool:
 		_play_confirm_se()
 		_open_power_up_shop("result")
 		return true
+	if button_id == "codex":
+		_play_confirm_se()
+		_open_codex_from_result()
+		return true
 	if button_id == "title":
 		_play_back_transition_se()
 		_back_to_title()
@@ -4405,18 +4472,17 @@ func _update_result_mouse_selection(pos: Vector2) -> void:
 
 func _result_button_at(pos: Vector2) -> String:
 	var layout: Dictionary = _result_layout()
-	if (layout["retryButton"] as Rect2).has_point(pos):
-		return "retry"
-	if (layout["rankingButton"] as Rect2).has_point(pos):
-		return "ranking"
-	if (layout["shopButton"] as Rect2).has_point(pos):
-		return "shop"
-	if (layout["titleButton"] as Rect2).has_point(pos):
-		return "title"
+	for button_id in _result_button_ids():
+		var key := _result_button_rect_key(button_id)
+		if layout.has(key) and (layout[key] as Rect2).has_point(pos):
+			return button_id
 	return ""
 
 func _result_button_ids() -> Array[String]:
-	return ["retry", "ranking", "shop", "title"]
+	var ids: Array[String] = ["retry", "ranking", "shop", "title"]
+	if _has_result_codex_updates():
+		ids.insert(3, "codex")
+	return ids
 
 func _result_button_index(button_id: String) -> int:
 	var ids := _result_button_ids()
@@ -4501,6 +4567,10 @@ func _update_front_state(delta: float) -> bool:
 		_update_ui()
 		queue_redraw()
 		return true
+	if state == "codex":
+		_update_ui()
+		queue_redraw()
+		return true
 	if state == "relay_break":
 		_update_relay_break(delta)
 		_update_ui()
@@ -4557,13 +4627,13 @@ func _update_front_state(delta: float) -> bool:
 	var action: String = String(result["action"])
 	if state == "title" and title_menu_index != title_menu_index_before_action:
 		_on_title_menu_selection_changed()
-	if state == "title" and action in ["start_character_select", "open_power_up_shop", "open_title_ranking", "open_title_options", "quit_game"]:
+	if state == "title" and action in ["start_character_select", "open_power_up_shop", "open_codex", "open_title_ranking", "open_title_options", "quit_game"]:
 		_request_title_menu_activation(title_menu_index, action)
 		_update_ui()
 		queue_redraw()
 		return true
 	var is_back_transition := action == "back_to_title" or (action == "toggle_ranking" and state == "result" and result_showing_ranking)
-	if action in ["start_character_select", "open_power_up_shop", "open_title_ranking", "open_title_options", "quit_game"]:
+	if action in ["start_character_select", "open_power_up_shop", "open_codex", "open_title_ranking", "open_title_options", "quit_game"]:
 		_play_confirm_se()
 	if state == "options" and options_action == "option_select" and not is_back_transition:
 		_play_confirm_se()
@@ -4572,6 +4642,7 @@ func _update_front_state(delta: float) -> bool:
 	StateFlowSystemScript.apply_front_action(action, {
 		"start_character_select": Callable(self, "_start_character_select"),
 		"open_power_up_shop": Callable(self, "_open_power_up_shop").bind("title"),
+		"open_codex": Callable(self, "_open_codex"),
 		"open_title_ranking": Callable(self, "_open_title_ranking"),
 		"open_title_options": Callable(self, "_open_title_options"),
 		"quit_game": Callable(self, "_quit_game"),
@@ -5431,7 +5502,7 @@ func _should_draw_relay_progress_overlay() -> bool:
 	return state == "stream_start_intro" or state == "collab_partner_select"
 
 func _draws_title_only() -> bool:
-	return state in ["title", "power_up_shop", "ranking", "options", "character_select", "stream_frame_select", "collab_partner_select", "stream_start_intro"]
+	return state in ["title", "power_up_shop", "codex", "ranking", "options", "character_select", "stream_frame_select", "collab_partner_select", "stream_start_intro"]
 
 func _draw_world_layer() -> void:
 	_draw_screen_backdrop()
@@ -5443,7 +5514,8 @@ func _draw_world_layer() -> void:
 	_draw_boss_slow_fields()
 	_draw_boss_guide_lines()
 	var hit_fx_draw_items: Array = DrawDataSystemScript.hit_fx_draw_data(hit_fx, visible_world_rect)
-	_draw_hit_fx(true, hit_fx_draw_items)
+	_draw_hit_fx(true, hit_fx_draw_items, "back")
+	_draw_hit_fx(true, hit_fx_draw_items, "front")
 	_draw_hit_fx(false, hit_fx_draw_items, "back")
 	_draw_click_move_marker()
 	_draw_genre_event_objects(visible_world_rect)
@@ -5478,6 +5550,8 @@ func _draw_world_layer() -> void:
 func _draw_overlay_layer() -> void:
 	if front_screen_transition_active:
 		_draw_front_screen_transition_overlay()
+		return
+	if state == "codex":
 		return
 	var title_only: bool = _draws_title_only()
 	var modal_overlay_active: bool = StateFlowSystemScript.has_modal_overlay(state) and not title_only
@@ -5547,7 +5621,7 @@ func _draw_overlay_layer() -> void:
 		_draw_boss_cutin_overlay()
 
 func _is_front_screen_state(screen_id: String) -> bool:
-	return screen_id in ["title", "power_up_shop", "character_select", "stream_frame_select", "collab_partner_select", "ranking", "options"]
+	return screen_id in ["title", "power_up_shop", "codex", "character_select", "stream_frame_select", "collab_partner_select", "ranking", "options"]
 
 func _front_screen_transition_total_duration() -> float:
 	return FRONT_SCREEN_TRANSITION_REDUCED_DURATION if front_screen_transition_reduced_motion else FRONT_SCREEN_TRANSITION_TOTAL_DURATION
@@ -5708,6 +5782,14 @@ func _build_ui() -> void:
 	power_up_shop_screen.bind_manager(power_up_shop_manager)
 	power_up_shop_screen.closed.connect(_on_power_up_shop_closed)
 	power_up_shop_screen.close_requested.connect(_on_power_up_shop_close_requested)
+	codex_screen = CodexScreenScene.instantiate()
+	(nodes["uiRoot"] as CanvasLayer).add_child(codex_screen)
+	codex_screen.closed.connect(_on_codex_closed)
+	codex_screen.cursor_moved.connect(_on_codex_cursor_moved)
+	codex_screen.confirm_requested.connect(_on_codex_confirm_requested)
+	codex_screen.cancel_requested.connect(_on_codex_cancel_requested)
+	codex_screen.debug_save_requested.connect(_on_codex_debug_save_requested)
+	codex_screen.completion_notice_requested.connect(_on_codex_completion_notice)
 
 func _current_run_length() -> float:
 	if quick_test_mode:
@@ -6400,6 +6482,76 @@ func _open_power_up_shop(origin: String) -> void:
 	_prepare_power_up_shop(origin)
 	queue_redraw()
 
+func _open_codex() -> void:
+	if state != "title" or front_screen_transition_active:
+		return
+	codex_return_state = "title"
+	previous_state = state
+	state = "codex"
+	choice_box.visible = false
+	result_panel.visible = false
+	if codex_screen != null:
+		codex_screen.open_screen("title", difficulty_progress.duplicate(true))
+	_update_ui()
+	queue_redraw()
+
+func _open_codex_from_result() -> void:
+	if state != "result" or result_showing_ranking or front_screen_transition_active:
+		return
+	codex_return_state = "result"
+	var options: Dictionary = {"newOnly": true}
+	var summary := CodexManager.summarize_session_discoveries(last_result_data.get("sessionDiscoveries", {}))
+	for category in CodexManager.CATEGORIES:
+		var group: Dictionary = (summary.get("categories", {}) as Dictionary).get(category, {}) as Dictionary
+		if int(group.get("count", 0)) > 0:
+			options["category"] = category
+			break
+	state = "codex"
+	choice_box.visible = false
+	result_panel.visible = false
+	if codex_screen != null:
+		codex_screen.open_screen("result", difficulty_progress.duplicate(true), options)
+	_update_ui()
+	queue_redraw()
+
+func _on_codex_closed(origin: String) -> void:
+	if state != "codex":
+		return
+	if origin == "result" or codex_return_state == "result":
+		state = "result"
+		codex_return_state = "title"
+		result_panel.visible = true
+		_normalize_result_button_selection()
+		_update_title_screen_visibility()
+		_update_ui()
+		queue_redraw()
+		return
+	codex_return_state = "title"
+	_back_to_title()
+	queue_redraw()
+
+func _on_codex_cursor_moved() -> void:
+	_play_cursor_move_se()
+
+func _on_codex_confirm_requested() -> void:
+	_play_confirm_se()
+
+func _on_codex_cancel_requested() -> void:
+	_play_back_transition_se()
+
+func _on_codex_debug_save_requested() -> void:
+	if not OS.is_debug_build():
+		return
+	if DifficultyProgressSystemScript.save_progress(difficulty_progress):
+		toast_text = "DEBUG: 図鑑データを保存しました"
+	else:
+		toast_text = "DEBUG: 図鑑データの保存に失敗しました"
+	toast_timer = 1.8
+
+func _on_codex_completion_notice(_text: String) -> void:
+	# Reuse the existing confirmation sound and current se_volume setting.
+	_play_confirm_se()
+
 func _prepare_power_up_shop(origin: String) -> void:
 	power_up_shop_origin = origin
 	previous_state = state
@@ -6483,6 +6635,8 @@ func _update_stream_frame_select() -> void:
 		return
 	if _selection_latch_pressed(KEY_O):
 		_toggle_shop_upgrades()
+	if _try_move_stream_frame_across_difficulty():
+		return
 	var difficulty_left := _selection_latch_pressed(KEY_Q)
 	var difficulty_right := _selection_latch_pressed(KEY_E)
 	if difficulty_left or difficulty_right:
@@ -6963,6 +7117,11 @@ func _back_from_front_screen() -> void:
 	_back_to_title()
 
 func _back_to_title() -> void:
+	if state == "codex":
+		if codex_screen != null:
+			codex_screen.hide_screen()
+		_prepare_back_to_title(true)
+		return
 	if state in ["character_select", "stream_frame_select", "ranking", "options"]:
 		if _request_front_screen_transition("title", "back", Callable(self, "_prepare_back_to_title_from_transition")):
 			return
@@ -6972,6 +7131,10 @@ func _prepare_back_to_title_from_transition() -> void:
 	_prepare_back_to_title(false)
 
 func _prepare_back_to_title(play_title_intro: bool) -> void:
+	if CodexManager.has_active_run():
+		if not quick_test_mode and not difficulty_progress.is_empty():
+			DifficultyProgressSystemScript.save_progress(difficulty_progress)
+		CodexManager.abandon_run()
 	HardModeSystemScript.clear_hard_comment_events_for_target(self, "title_transition")
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "title_transition")
 	_clear_toast()
@@ -6999,6 +7162,8 @@ func _prepare_back_to_title(play_title_intro: bool) -> void:
 	_reset_time_announcements()
 	choice_box.visible = false
 	result_panel.visible = false
+	if codex_screen != null:
+		codex_screen.hide_screen()
 	_update_title_screen_visibility()
 
 func _update_player(delta: float, arena: Rect2) -> void:
@@ -7285,7 +7450,18 @@ func _update_weapons(delta: float, arena: Rect2) -> void:
 func _weapon_update_has_fx(result: Dictionary, kind: String) -> bool:
 	for item in (result.get("hitFx", []) as Array):
 		var fx: Dictionary = item as Dictionary
-		if String(fx.get("kind", "")) == kind:
+		var fx_kind := String(fx.get("kind", ""))
+		if fx_kind == kind:
+			return true
+		if kind == "ng_word_laser" and fx_kind == "all_block_laser":
+			return true
+		if kind == "spotlight" and fx_kind in ["center_stage_area", "center_stage_tick", "center_stage_finish"]:
+			return true
+		if kind == "kusa_wave" and fx_kind == "great_grassland_wave":
+			return true
+		if kind == "comment_pin" and fx_kind in ["comment_lockdown_projectile", "comment_lockdown_hit", "comment_lockdown_followup_hit"]:
+			return true
+		if kind == "emote_mine" and fx_kind in ["emote_festival_mine", "emote_festival_burst"]:
 			return true
 	return false
 
@@ -7454,7 +7630,7 @@ func _gift_choice_input_just_pressed(keycode: Key, action_name: String = "") -> 
 	return pressed
 
 func _gift_reroll_focus_available() -> bool:
-	return state == "gift_choice" and gift_choice_return_state != "relay_break" and gift_reroll_remaining > 0 and not gift_reroll_locked
+	return state == "gift_choice" and gift_choice_return_state != "relay_break" and not gift_reroll_locked and (_is_debug_evolution_gift_choice() or gift_reroll_remaining > 0)
 
 func _set_gift_choice_reroll_focus(play_se: bool = false) -> bool:
 	if not _gift_reroll_focus_available():
@@ -7525,9 +7701,11 @@ func _choose_gift(index: int) -> void:
 	var result: Dictionary = GiftSystemScript.choose_offer_index_with_feedback_for_target(self, index, choice_box, genre_events, rng)
 	if not bool(result["selected"]):
 		return
+	var recipe_discovery: Dictionary = _record_evolution_recipe_discovery(result)
 	_play_confirm_se()
 	_suppress_dash_button_after_ui_confirm()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
+	_show_evolution_recipe_discovery_toast(recipe_discovery)
 	if gift_choice_return_state != "relay_break":
 		_append_mental_heal_fx(int(result.get("mentalHealAmount", 0)), "gift_rest")
 	if gift_choice_return_state == "relay_break":
@@ -7538,8 +7716,35 @@ func _choose_gift(index: int) -> void:
 	if pending_gift_choices > 0:
 		_start_gift_choice()
 
+func _record_evolution_recipe_discovery(result: Dictionary) -> Dictionary:
+	var evolution_value: Variant = result.get("weaponEvolution", {})
+	if not (evolution_value is Dictionary):
+		return {}
+	var evolution: Dictionary = evolution_value as Dictionary
+	if bool(evolution.get("debugForced", false)):
+		return {}
+	var evolved_weapon_id := String(evolution.get("evolvedWeaponId", "")).strip_edges()
+	if evolved_weapon_id == "" or power_up_shop_manager == null:
+		return {}
+	if not power_up_shop_manager.has_method("discover_evolution_recipe"):
+		return {}
+	return power_up_shop_manager.discover_evolution_recipe(evolved_weapon_id)
+
+func _show_evolution_recipe_discovery_toast(discovery: Dictionary) -> void:
+	if discovery.is_empty():
+		return
+	if discovery.get("ok", false) == true and discovery.get("newlyDiscovered", false) == true:
+		toast_text = "NEW RECIPE! 進化レシピを記録しました"
+		toast_timer = 2.2
+	elif discovery.get("ok", false) != true:
+		toast_text = "進化レシピの保存に失敗しました"
+		toast_timer = 2.0
+
 func _request_gift_reroll(_from_external_input: bool = false) -> void:
 	if state != "gift_choice" or gift_choice_return_state == "relay_break" or gift_reroll_locked:
+		return
+	if _is_debug_evolution_gift_choice():
+		_start_debug_evolution_gift_choice()
 		return
 	if gift_reroll_remaining > 0 and gift_choice_focus_area != GIFT_CHOICE_FOCUS_REROLL:
 		_set_gift_choice_reroll_focus(_from_external_input)
@@ -7676,7 +7881,7 @@ func _update_title_screen_visibility() -> void:
 	chat_title_label.visible = false
 	chat_box.visible = not hide_chat
 	status_label.visible = false
-	if state == "title" or state == "power_up_shop" or state == "ranking" or state == "options" or state == "character_select" or state == "stream_frame_select" or state == "result":
+	if state == "title" or state == "power_up_shop" or state == "codex" or state == "ranking" or state == "options" or state == "character_select" or state == "stream_frame_select" or state == "result":
 		result_panel.visible = false
 func _finish_run(reason: String) -> void:
 	if state == "result":
@@ -7960,14 +8165,23 @@ func _pause_equipment_description(selected_info: Dictionary, is_weapon: bool, ac
 		var level_text: String = "進化" if bool(selected_info.get("evolved", false)) else "Lv%d" % int(selected_info.get("level", 1))
 		return {
 			"title": "%s %s" % [String(selected_info.get("name", "")), level_text],
-			"body": String(selected_info.get("description", ""))
+			"body": String(selected_info.get("description", "")),
+			"guide": String(selected_info.get("recipeGuide", ""))
 		}
 	return _pause_default_equipment_description()
 
 func _draw_pause_description_box(rect: Rect2, accent: Color, description: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.86), Color(accent.r, accent.g, accent.b, 0.50), 14, 2, false)
 	_draw_ranking_text(String(description.get("title", "")), rect.position + Vector2(16, 34), 19, accent, rect.size.x - 32)
-	_draw_ranking_text(_short_pause_text(String(description.get("body", "")), 42), rect.position + Vector2(16, 62), 15, Color("#2d2530"), rect.size.x - 32)
+	var body_lines := _pause_description_lines(description)
+	if not body_lines.is_empty():
+		_draw_multiline_text_item({
+			"pos": rect.position + Vector2(16, 56),
+			"text": "\n".join(body_lines),
+			"width": int(rect.size.x - 32),
+			"size": 13 if not String(description.get("guide", "")).is_empty() else 15,
+			"color": Color("#2d2530")
+		})
 
 func _draw_pause_equipment_slot_panel(rect: Rect2, is_weapon: bool) -> void:
 	var accent: Color = Color("#ffb433") if is_weapon else Color("#45c8df")
@@ -7988,7 +8202,7 @@ func _draw_pause_equipment_slot_panel(rect: Rect2, is_weapon: bool) -> void:
 			selected_info = info
 		var slot_rect := Rect2(slot_start + Vector2(float(i) * slot_step, 0), slot_size)
 		_draw_pause_equipment_slot(slot_rect, info, i == selected_index, active_row, accent)
-	var desc_rect := Rect2(rect.position + Vector2(18, 132), Vector2(rect.size.x - 36, 90))
+	var desc_rect := Rect2(rect.position + Vector2(18, 132), Vector2(rect.size.x - 36, 112))
 	_draw_pause_description_box(desc_rect, accent, _pause_equipment_description(selected_info, is_weapon, active_row))
 
 func _pause_equipment_slot_info(index: int, is_weapon: bool) -> Dictionary:
@@ -8001,6 +8215,8 @@ func _pause_equipment_slot_info(index: int, is_weapon: bool) -> Dictionary:
 		return {"filled": false}
 	var data: Dictionary = WeaponSystemScript.find_weapon(weapons, item_id, {}) if is_weapon else _find_gift_data(item_id)
 	var name: String = String(data.get("displayName", item_id))
+	var guide_context := EvolutionRecipeGuideSystemScript.context_for_target(self, power_up_shop_manager)
+	var guide_text := EvolutionRecipeGuideSystemScript.detail_for_item(item_id, "weapon" if is_weapon else "accessory", guide_context)
 	return {
 		"filled": true,
 		"id": item_id,
@@ -8008,7 +8224,8 @@ func _pause_equipment_slot_info(index: int, is_weapon: bool) -> Dictionary:
 		"description": String(data.get("description", "")),
 		"iconPath": String(data.get("iconPath", entry.get("iconPath", ""))),
 		"level": EquipmentSystem.entry_level(entry),
-		"evolved": EquipmentSystem.is_evolved_entry(entry) or bool(data.get("isEvolved", false))
+		"evolved": EquipmentSystem.is_evolved_entry(entry) or bool(data.get("isEvolved", false)),
+		"recipeGuide": guide_text
 	}
 
 func _draw_pause_equipment_slot(rect: Rect2, info: Dictionary, selected: bool, active_focus: bool, accent: Color) -> void:
@@ -8268,7 +8485,26 @@ func _short_pause_text(text: String, max_chars: int) -> String:
 		return one_line
 	return one_line.substr(0, max_chars - 1) + "…"
 
+func _pause_description_lines(description: Dictionary) -> Array[String]:
+	var lines: Array[String] = []
+	var body := String(description.get("body", "")).replace("\r", " ").strip_edges()
+	if body != "":
+		lines.append(_short_pause_text(body, 42))
+	var guide := String(description.get("guide", "")).replace("\r", "").strip_edges()
+	if guide != "":
+		for raw_line in guide.split("\n"):
+			var line := String(raw_line).strip_edges()
+			if line != "":
+				lines.append(_short_pause_text(line, 42))
+	while lines.size() > 5:
+		lines.pop_back()
+	return lines
+
 func _restart() -> void:
+	if CodexManager.has_active_run():
+		if not quick_test_mode and not difficulty_progress.is_empty():
+			DifficultyProgressSystemScript.save_progress(difficulty_progress)
+		CodexManager.abandon_run()
 	HardModeSystemScript.clear_hard_comment_events_for_target(self, "retry")
 	_cancel_boss_cutin(false)
 	difficulty_progress_recorded_run_id = ""
@@ -8285,6 +8521,7 @@ func _restart() -> void:
 		power_up_run_tracker.difficulty_id = run_difficulty_id
 		run_id = power_up_run_tracker.run_id
 		permanent_upgrade_snapshot = PermanentUpgradeSnapshotScript.new()
+	CodexManager.begin_run(run_id)
 	pending_power_up_reward = null
 	game_over_intro_timer = 0.0
 	game_over_intro_duration = 0.0
@@ -8327,8 +8564,10 @@ func _restart() -> void:
 		characters,
 		weapons,
 		character_sprite_cache,
-		tutorial_seen
+		 tutorial_seen
 	)
+	if not quick_test_mode:
+		CodexManager.record_character_play(current_character_id, run_id)
 	GiftSystemScript._apply_equipment_stats_to_target(self)
 	if bool(restart_state["saveSettings"]):
 		SettingsSystemScript.save_for_target(self)
@@ -9310,7 +9549,8 @@ func _start_next_relay_segment() -> void:
 
 func _handle_debug_keys() -> void:
 	for action in DebugSystemScript.pressed_actions(debug_key_latch):
-		if (state == "comment_choice" or state == "gift_choice") and action != "unlock_senior_unit":
+		var cycles_debug_evolution := action == "gift_evolution" and state == "gift_choice" and _is_debug_evolution_gift_choice()
+		if (state == "comment_choice" or state == "gift_choice") and action != "unlock_senior_unit" and not cycles_debug_evolution:
 			continue
 		_apply_debug_action(action)
 
@@ -9326,9 +9566,15 @@ func _apply_debug_action(action: String) -> void:
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["DEBUG: シニアユニット解放の保存に失敗しました"]}, chat_box)
 			return
 		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+		for character_id in ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"]:
+			CodexManager.discover_character(character_id)
 		toast_text = "DEBUG: 新キャラ3人を解放しました"
 		toast_timer = 4.0
 		queue_redraw()
+		return
+	if DebugSystemScript.should_start_evolution_gift(action):
+		if state == "playing" or (state == "gift_choice" and _is_debug_evolution_gift_choice()):
+			_start_debug_evolution_gift_choice()
 		return
 	if DebugSystemScript.should_spawn_current_frame_boss(action):
 		_start_current_frame_boss_debug()
@@ -9381,6 +9627,42 @@ func _apply_debug_action(action: String) -> void:
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(marshmallow_result["chat"])]}, chat_box)
 	var result: Dictionary = DebugSystemScript.apply_general_action_for_target(self, action, quick_test_mode, _current_arena(), rng)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
+
+func _start_debug_evolution_gift_choice() -> void:
+	var was_open := _is_debug_evolution_gift_choice()
+	var page_start := 0
+	var previous_focus := gift_choice_focus_area
+	if was_open and not offered_gifts.is_empty():
+		page_start = int((offered_gifts[0] as Dictionary).get("debugNextPageStart", 0))
+	var result := DebugSystemScript.force_evolution_choice_ui_for_target(self, weapons, page_start, choice_box)
+	if not bool(result.get("applied", false)):
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result.get("chat", "DEBUG: 進化武器候補がありません"))]}, chat_box)
+		return
+	gift_choice_enter_time = 0.0
+	if was_open:
+		_play_cursor_move_se()
+	else:
+		_play_level_up_se()
+	gift_reroll_original_offer = offered_gifts.duplicate(true)
+	gift_reroll_locked = false
+	gift_reroll_pending_offer.clear()
+	gift_reroll_timer = 0.0
+	gift_reroll_notice = String(result.get("pageText", ""))
+	gift_choice_focus_area = previous_focus if was_open and previous_focus == GIFT_CHOICE_FOCUS_REROLL else GIFT_CHOICE_FOCUS_CARDS
+	gift_choice_return_card = 0
+	gift_reroll_hovered = false
+	gift_reroll_press_timer = 0.0
+	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result.get("chat", "DEBUG: 進化武器候補を表示"))]}, chat_box)
+	_refresh_choice_cards()
+	queue_redraw()
+
+func _is_debug_evolution_gift_choice() -> bool:
+	if state != "gift_choice" or offered_gifts.is_empty():
+		return false
+	for gift_value in offered_gifts:
+		if not gift_value is Dictionary or not bool((gift_value as Dictionary).get("debugForceEvolution", false)):
+			return false
+	return true
 
 func _start_current_frame_boss_debug() -> bool:
 	if state != "playing" or boss_active or relay_boss_active or StateFlowSystemScript.has_modal_overlay(state):
@@ -12119,6 +12401,24 @@ func _draw_player_bullets(visible_rect: Rect2) -> void:
 func _draw_boomerang() -> void:
 	if _normal_weapons_disabled_by_song_bad_light():
 		return
+	var resolved_boomerang := WeaponSystemScript.resolve_equipped_weapon_for_base("comment_boomerang", current_weapon, player_weapons, weapons)
+	if not bool(resolved_boomerang.get("found", false)):
+		return
+	var draw_weapon: Dictionary = resolved_boomerang.get("weapon", current_weapon) as Dictionary
+	var is_main_boomerang := bool(resolved_boomerang.get("isMain", false))
+	var draw_level := boomerang_level if is_main_boomerang else 0
+	var draw_range := hammer_range
+	if not is_main_boomerang:
+		var side_range := WeaponSystemScript.range_base(draw_weapon) * float(equipment_range_rate)
+		draw_range = WeaponSystemScript._short_range_range_for_weapon(
+			String(draw_weapon.get("id", "comment_boomerang")),
+			draw_weapon,
+			side_range,
+			{
+				"shortRange": ModifierSystemScript.has_effect_for_target(self, "short_range"),
+				"shortRangeRate": ModifierSystemScript.effect_rate_for_target(self, "short_range")
+			}
+		)
 	var boomerang_draw_state: Dictionary = equipment_weapon_timers.duplicate()
 	var attack_area_rate := 1.0
 	if permanent_upgrade_snapshot != null:
@@ -12127,9 +12427,9 @@ func _draw_boomerang() -> void:
 	WeaponDrawSystemScript.draw_boomerangs(
 		self,
 		player_pos,
-		current_weapon,
-		boomerang_level,
-		hammer_range,
+		draw_weapon,
+		draw_level,
+		draw_range,
 		elapsed,
 		comment_boomerang_sprite,
 		Callable(self, "_draw_rotated_texture"),
@@ -12268,7 +12568,7 @@ func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null, image_l
 		fx_draw_items = DrawDataSystemScript.hit_fx_draw_data(hit_fx)
 	for fx in fx_draw_items:
 		var data := fx as Dictionary
-		var is_field_fx := String(data.get("kind", "")) == "emote_mine"
+		var is_field_fx := bool(data.get("fieldLayer", false)) or String(data.get("kind", "")) == "emote_mine"
 		if is_field_fx != field_layer:
 			continue
 		_draw_hit_fx_item(data, image_layer)
@@ -13585,8 +13885,9 @@ func _title_menu_theme_color(index: int) -> Color:
 	match posmod(index, TITLE_MENU_COUNT):
 		0: return Color("#ff6ba7")
 		1: return Color("#eeb52f")
-		2: return Color("#9b5de5")
-		3: return Color("#35b9e8")
+		2: return Color("#35b9e8")
+		3: return Color("#9b5de5")
+		4: return Color("#35b9e8")
 		_: return Color("#ff6f83")
 
 func _draw_title_menu_focus_feedback(index: int) -> void:
@@ -13773,16 +14074,36 @@ func _draw_title_menu_button(index: int, _target_rect: Rect2) -> void:
 	_draw_title_menu_focus_feedback(clamped_index)
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, texture_path)
 	if texture != null:
-		draw_texture_rect(texture, draw_rect, false, texture_modulate)
+		draw_texture_rect_region(texture, draw_rect, _title_menu_button_source_rect(clamped_index), texture_modulate)
 	else:
 		_draw_title_menu_button_fallback(clamped_index, draw_rect)
 	if clamped_index == 1:
 		_draw_title_power_up_shop_status(_title_menu_button_draw_visual_rect(clamped_index))
+	if clamped_index == 2:
+		_draw_title_codex_new_badge(_title_menu_button_draw_visual_rect(clamped_index))
+
+func _codex_title_new_badge_text() -> String:
+	var count := CodexManager.get_total_new_count()
+	if count <= 0:
+		return ""
+	return "NEW" if count == 1 else "●%d" % count
+
+func _draw_title_codex_new_badge(rect: Rect2) -> void:
+	var badge_text := _codex_title_new_badge_text()
+	if badge_text == "":
+		return
+	var badge_rect := _title_codex_new_badge_rect(rect)
+	_draw_ranking_panel(badge_rect, Color("#fff1a8"), Color("#e59a32"), 12, 2, true)
+	_draw_ranking_text(badge_text, badge_rect.position + Vector2(0.0, 19.0), 14, Color("#8c4a12"), badge_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _title_codex_new_badge_rect(rect: Rect2) -> Rect2:
+	return Rect2(rect.position + Vector2(rect.size.x - 116.0, -4.0), Vector2(108.0, 27.0))
 
 func _draw_title_menu_button_fallback(index: int, target_rect: Rect2) -> void:
 	var fills: Array[Color] = [
 		Color("#ffd4e7"),
 		Color("#fff3b4"),
+		Color("#c9f2ff"),
 		Color("#eadcff"),
 		Color("#c9f2ff"),
 		Color("#ffd9e3")
@@ -13790,6 +14111,7 @@ func _draw_title_menu_button_fallback(index: int, target_rect: Rect2) -> void:
 	var borders: Array[Color] = [
 		Color("#ef5e9e"),
 		Color("#ffb84d"),
+		Color("#238edf"),
 		Color("#9158db"),
 		Color("#238edf"),
 		Color("#f05d77")
@@ -13801,7 +14123,7 @@ func _draw_title_menu_button_fallback(index: int, target_rect: Rect2) -> void:
 
 func _draw_title_power_up_shop_status(rect: Rect2) -> void:
 	var unlocked: bool = power_up_shop_manager != null and power_up_shop_manager.is_unlocked()
-	var status_rect := Rect2(rect.position + Vector2(rect.size.x - 128.0, rect.size.y - 27.0), Vector2(118.0, 21.0))
+	var status_rect := _title_power_up_shop_status_rect(rect)
 	var fill := Color(1.0, 1.0, 1.0, 0.86) if unlocked else Color(0.16, 0.10, 0.23, 0.70)
 	var border := Color("#e7a52e") if unlocked else Color(0.95, 0.88, 1.0, 0.55)
 	_draw_ranking_panel(status_rect, fill, border, 10, 2, false)
@@ -13813,6 +14135,9 @@ func _draw_title_power_up_shop_status(rect: Rect2) -> void:
 	draw_rect(Rect2(lock_center + Vector2(-5.0, -1.0), Vector2(10.0, 8.0)), Color("#fff5ff"), true)
 	draw_arc(lock_center + Vector2(0.0, -1.0), 5.0, PI, TAU, 12, Color("#fff5ff"), 2.0, true)
 	_draw_ranking_text("未解禁", status_rect.position + Vector2(23.0, 15.0), 13, Color("#fff5ff"), status_rect.size.x - 23.0, HORIZONTAL_ALIGNMENT_CENTER)
+
+func _title_power_up_shop_status_rect(rect: Rect2) -> Rect2:
+	return Rect2(rect.position + Vector2(rect.size.x - 128.0, rect.size.y - 27.0), Vector2(118.0, 21.0))
 
 func _draw_title_overlay() -> void:
 	if _draw_title_image_overlay():
@@ -14321,18 +14646,16 @@ func _ranking_footer_rect() -> Rect2:
 
 func _ranking_back_button_rect() -> Rect2:
 	var footer := _ranking_footer_rect()
-	return Rect2(footer.end.x - 154.0, footer.position.y + 6.0, 132.0, 32.0)
+	return Rect2(footer.position.x + 32.0, footer.position.y + 6.0, 132.0, 32.0)
 
-func _draw_ranking_footer(page_view: Dictionary) -> void:
+func _draw_ranking_footer(_page_view: Dictionary) -> void:
 	var rect := _ranking_footer_rect()
 	var back_rect := _ranking_back_button_rect()
 	var back_selected := ranking_focus_area == RANKING_FOCUS_BACK
-	var page_text := "%d / %d" % [int(page_view.get("pageIndex", 0)) + 1, int(page_view.get("pageCount", 1))]
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
-	_draw_ranking_text(page_text, rect.position + Vector2(350, 29), 16, Color("#6b4a63"), 90, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("<", rect.position + Vector2(350, 29), 16, Color("#6b4a63"), 28, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(">", rect.position + Vector2(412, 29), 16, Color("#6b4a63"), 28, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("←→：枠/難易度　↑↓：記録　A/D：ページ　Esc：戻る　R：リセット", rect.position + Vector2(0, 29), 16, Color("#6b4a63"), back_rect.position.x - rect.position.x - 18.0, HORIZONTAL_ALIGNMENT_CENTER)
+	var guide_left := back_rect.end.x - rect.position.x + 18.0
+	var guide_width := rect.size.x - guide_left - 18.0
+	_draw_ranking_text("←→：枠/難易度　↑↓：記録　A/D：ページ　Esc：戻る　R：リセット", rect.position + Vector2(guide_left, 29), 16, Color("#6b4a63"), guide_width, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_panel(back_rect, Color("#ff93cd") if back_selected else Color("#eef9ff"), Color("#ff62b5") if back_selected else Color("#9ed9f4"), 14, 3 if back_selected else 2, false)
 	_draw_ranking_text("戻る", back_rect.position + Vector2(0, 23), 16, Color.WHITE if back_selected else Color("#2587b8"), back_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
@@ -14579,6 +14902,7 @@ func _draw_result_overlay() -> void:
 	_draw_result_header(panel, data)
 	_draw_result_summary_panel(layout["summaryPanel"] as Rect2, data)
 	_draw_result_detail_panel(layout["detailPanel"] as Rect2, data)
+	_draw_result_new_discoveries(panel, data)
 	if mental_breakdown:
 		_draw_result_mental_breakdown_character(layout["characterPanel"] as Rect2, data)
 	elif completed:
@@ -15052,6 +15376,79 @@ func _draw_result_detail_panel(rect: Rect2, data: Dictionary) -> void:
 	_draw_result_gift_card(gift_rect, data)
 	_draw_result_ranking_card(ranking_rect, data)
 
+func _draw_result_new_discoveries_legacy(panel: Rect2, data: Dictionary) -> void:
+	var snapshot_value: Variant = data.get("sessionDiscoveries", {})
+	if not snapshot_value is Dictionary:
+		return
+	var snapshot := snapshot_value as Dictionary
+	if not CodexPresentationSystemScript.has_session_entries(snapshot):
+		return
+	# The result layout already reserves the upper header strip.  Keep this
+	# compact banner there so the discovery list remains visible on completed
+	# and game-over results without covering the summary/detail/character panes.
+	var has_character_pane := panel.size.x >= 1250.0
+	var card_width := 500.0 if has_character_pane else minf(800.0, maxf(320.0, panel.size.x - 80.0))
+	var card_x := panel.position.x + 430.0 if has_character_pane else panel.position.x + panel.size.x - card_width - 70.0
+	var card := Rect2(Vector2(card_x, panel.position.y + 114.0), Vector2(card_width, 50.0))
+	_draw_ranking_panel(card, Color("#eefcf7"), Color("#65c99c"), 14, 2, false)
+	_draw_ranking_text("NEW DISCOVERIES", card.position + Vector2(14, 20), 14, Color("#16805a"), 142)
+	var groups := CodexPresentationSystemScript.session_discovery_groups(snapshot, _codex_master_lookup())
+	var compact_lines: Array[String] = []
+	for group_value in groups:
+		var group := group_value as Dictionary
+		var names: Array = group.get("names", []) as Array
+		if names.is_empty():
+			continue
+		var first_name := String(names[0])
+		var suffix := " ほか%d" % (names.size() - 1) if names.size() > 1 else ""
+		compact_lines.append("%s: %s%s" % [String(group.get("label", "")), first_name, suffix])
+	if compact_lines.is_empty():
+		return
+	var first_line := compact_lines.slice(0, mini(3, compact_lines.size()))
+	_draw_ranking_text(" / ".join(first_line), card.position + Vector2(164, 20), 11, Color("#315f4d"), card.size.x - 178)
+	if compact_lines.size() > 3:
+		var second_line := compact_lines.slice(3, compact_lines.size())
+		_draw_ranking_text(" / ".join(second_line), card.position + Vector2(14, 40), 11, Color("#315f4d"), card.size.x - 28)
+
+func _draw_result_new_discoveries(panel: Rect2, data: Dictionary) -> void:
+	var snapshot_value: Variant = data.get("sessionDiscoveries", {})
+	if not snapshot_value is Dictionary:
+		return
+	var summary := CodexManager.summarize_session_discoveries(snapshot_value)
+	var total := int(summary.get("total", 0))
+	if total <= 0:
+		return
+	var has_character_pane := panel.size.x >= 1250.0
+	var card_width := 500.0 if has_character_pane else minf(800.0, maxf(320.0, panel.size.x - 80.0))
+	var card_x := panel.position.x + 430.0 if has_character_pane else panel.position.x + panel.size.x - card_width - 70.0
+	var card := Rect2(Vector2(card_x, panel.position.y + 114.0), Vector2(card_width, 50.0))
+	_draw_ranking_panel(card, Color("#eefcf7"), Color("#65c99c"), 14, 2, false)
+	_draw_ranking_text("図鑑更新 %d件" % total, card.position + Vector2(14, 20), 14, Color("#16805a"), 142)
+	var parts: Array[String] = []
+	for category in CodexManager.CATEGORIES:
+		var group: Dictionary = (summary.get("categories", {}) as Dictionary).get(category, {}) as Dictionary
+		var count := int(group.get("count", 0))
+		if count <= 0:
+			continue
+		var label := String(CodexPresentationSystemScript.CODEX_CATEGORY_LABELS.get(category, category))
+		var part := "%s %d" % [label, count]
+		var names: Array = group.get("names", []) as Array
+		if total <= 4 and not names.is_empty():
+			part += ": " + ", ".join(names)
+		parts.append(part)
+	var detail_text := " / ".join(parts)
+	_draw_ranking_text(_short_pause_text(detail_text, 62), card.position + Vector2(164, 20), 11, Color("#315f4d"), card.size.x - 178.0)
+
+func _codex_master_lookup() -> Dictionary:
+	var result: Dictionary = {}
+	for category in [CodexManager.CATEGORY_CHARACTER, CodexManager.CATEGORY_WEAPON, CodexManager.CATEGORY_ACCESSORY, CodexManager.CATEGORY_ENEMY, CodexManager.CATEGORY_COMMENT]:
+		var by_id: Dictionary = {}
+		for master_value in CodexManager.get_master_entries(category):
+			if master_value is Dictionary:
+				by_id[String((master_value as Dictionary).get("id", ""))] = master_value
+		result[category] = by_id
+	return result
+
 func _completed_result_highlight_rows(data: Dictionary) -> Array:
 	var challenge_boss := "なし"
 	if bool(data.get("bossSummoned", false)):
@@ -15465,6 +15862,15 @@ func _result_clear_character_line(character_id: String) -> String:
 		return "みんなのおかげで完走できたよ〜！"
 	return "最後まで配信できた！"
 
+func _draw_result_buttons_legacy(layout: Dictionary) -> void:
+	_draw_result_shop_button(layout)
+	var mental_breakdown := String(last_result_data.get("endType", "")) == "mental_breakdown"
+	if mental_breakdown:
+		_draw_ranking_panel((layout["retryButton"] as Rect2).grow(8), Color(1.0, 0.18, 0.56, 0.14), Color(1, 1, 1, 0), 22, 0, false)
+	_draw_result_button(layout["retryButton"] as Rect2, "もう一回", Color("#ff3f9b") if mental_breakdown else Color("#ff5aa5"), Color.WHITE, "retry")
+	_draw_result_button(layout["rankingButton"] as Rect2, "ランキング", Color("#f8f2ff"), Color("#7a56c8"), "ranking")
+	_draw_result_button(layout["titleButton"] as Rect2, "タイトルへ", Color("#e8f7ff"), Color("#2587b8"), "title")
+
 func _draw_result_buttons(layout: Dictionary) -> void:
 	_draw_result_shop_button(layout)
 	var mental_breakdown := String(last_result_data.get("endType", "")) == "mental_breakdown"
@@ -15472,6 +15878,8 @@ func _draw_result_buttons(layout: Dictionary) -> void:
 		_draw_ranking_panel((layout["retryButton"] as Rect2).grow(8), Color(1.0, 0.18, 0.56, 0.14), Color(1, 1, 1, 0), 22, 0, false)
 	_draw_result_button(layout["retryButton"] as Rect2, "もう一回", Color("#ff3f9b") if mental_breakdown else Color("#ff5aa5"), Color.WHITE, "retry")
 	_draw_result_button(layout["rankingButton"] as Rect2, "ランキング", Color("#f8f2ff"), Color("#7a56c8"), "ranking")
+	if _has_result_codex_updates() and layout.has("codexButton"):
+		_draw_result_button(layout["codexButton"] as Rect2, "配信図鑑を見る", Color("#e8fff6"), Color("#16805a"), "codex")
 	_draw_result_button(layout["titleButton"] as Rect2, "タイトルへ", Color("#e8f7ff"), Color("#2587b8"), "title")
 
 func _draw_result_shop_button(layout: Dictionary) -> void:
@@ -15745,7 +16153,7 @@ func _draw_character_select_background() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.93, 0.985, 0.62), true)
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 1.0, 1.0, 0.30), true)
 
-func _draw_character_select_header(rect: Rect2, page_count: int) -> void:
+func _draw_character_select_header(rect: Rect2, _page_count: int) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.95), Color("#ead7e9"), 22, 2, true)
 	var header_icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, CHARACTER_SELECT_HEADER_ICON)
 	if header_icon != null:
@@ -15755,10 +16163,6 @@ func _draw_character_select_header(rect: Rect2, page_count: int) -> void:
 		draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
 		_draw_ranking_text("配", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("配信者を選択", rect.position + Vector2(88, 47), 34, Color("#4f3149"), 360)
-	var guide := "←→：選択　Enter：決定　Esc：戻る"
-	if page_count > 1:
-		guide = "←→：選択　A/D：ページ　Enter：決定　Esc：戻る"
-	_draw_ranking_text(guide, rect.position + Vector2(682, 45), 20, Color("#6b4a63"), 710, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_character_select_list_panel(panel: Rect2, page: int) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
@@ -15965,14 +16369,15 @@ func _draw_character_select_locked_detail(panel: Rect2, index: int) -> void:
 	var condition := _character_select_placeholder_unlock_text(index)
 	_draw_character_select_detail_section(Rect2(panel.position + Vector2(34, 438), Vector2(panel.size.x - 68, 132)), "解放条件", "この配信者はまだ開放されていません。\n解放条件：%s" % condition, Color("#8f70c8"), Color("#fff8fc"), 18)
 
-func _draw_character_select_footer(layout: Dictionary, page: int, page_count: int) -> void:
+func _draw_character_select_footer(layout: Dictionary, _page: int, page_count: int) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
 	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#ff93cd") if character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#f8f2ff"), Color.WHITE if character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#6b4a63"), true, character_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK)
-	_draw_ranking_text("%d / %d" % [page + 1, page_count], rect.position + Vector2(0, 34), 19, Color("#6b4a63"), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("方向キー: 枠選択   Q/E・LB/RB: 難易度   A/D: ページ   Enter: 決定   Esc: 戻る", rect.position + Vector2(450, 34), 14, Color("#6b4a63"), 720, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_button(layout["prevButton"] as Rect2, "← 前", Color("#ffffff"), Color("#6b4a63"), page > 0)
-	_draw_character_select_button(layout["nextButton"] as Rect2, "次 →", Color("#ffffff"), Color("#6b4a63"), page + 1 < page_count)
+	var guide := "←→：選択　Enter：決定　Esc：戻る"
+	if page_count > 1:
+		guide = "←→：選択　A/D：ページ　Enter：決定　Esc：戻る"
+	_draw_ranking_text(guide, rect.position + Vector2(450, 34), 14, Color("#6b4a63"), 720, HORIZONTAL_ALIGNMENT_CENTER)
+	# ページ表記と前後ボタンは現行仕様では非表示。ただしレイアウト矩形と入力処理は維持する。
 
 func _draw_character_select_button(rect: Rect2, label: String, fill: Color, text_color: Color, enabled: bool, selected: bool = false) -> void:
 	var actual_fill: Color = fill if enabled else Color("#eee9ef")
@@ -17200,6 +17605,7 @@ func _comment_choice_special_card_rect() -> Rect2:
 	return Rect2(Vector2(326.0, 657.0) + _comment_choice_drop_offset(), Vector2(821.0, 70.0))
 
 func _draw_gift_choice_card_contents() -> void:
+	var recipe_guide_context := EvolutionRecipeGuideSystemScript.context_for_target(self, power_up_shop_manager)
 	for i in range(_gift_choice_count()):
 		var gift: Dictionary = offered_gifts[i] as Dictionary
 		var rect: Rect2 = _gift_choice_card_rect(i)
@@ -17243,7 +17649,11 @@ func _draw_gift_choice_card_contents() -> void:
 		for line in summary_lines.slice(0, 2):
 			_draw_centered_card_text(String(line), center_x, summary_y, rect.size.x - 28.0, 16, sub_color)
 			summary_y += 20.0
-		_draw_centered_card_text(GiftSystemScript.gift_level_status_text(gift, gift_level), center_x, rect.position.y + 259.0, rect.size.x - 28.0, 15, Color("#6b7280"))
+		var status_line := EvolutionRecipeGuideSystemScript.card_line_for_gift(gift, recipe_guide_context)
+		if status_line == "":
+			status_line = GiftSystemScript.gift_level_status_text(gift, gift_level)
+		var status_size := 13 if status_line != GiftSystemScript.gift_level_status_text(gift, gift_level) else 15
+		_draw_centered_card_text(_short_pause_text(status_line, 26), center_x, rect.position.y + 259.0, rect.size.x - 28.0, status_size, Color("#6b7280"))
 	_draw_empty_gift_choice_slots()
 	_draw_gift_reroll_button()
 
@@ -17258,7 +17668,8 @@ func _draw_gift_reroll_button() -> void:
 	if gift_choice_return_state == "relay_break":
 		return
 	var rect := _gift_reroll_button_rect()
-	var enabled := gift_reroll_remaining > 0 and not gift_reroll_locked
+	var debug_evolution_choice := _is_debug_evolution_gift_choice()
+	var enabled := _gift_reroll_focus_available()
 	var press_progress := 1.0 - clampf(gift_reroll_press_timer / 0.17, 0.0, 1.0)
 	var press_scale := 1.0
 	var press_offset_y := 0.0
@@ -17286,12 +17697,13 @@ func _draw_gift_reroll_button() -> void:
 	var icon_rect := Rect2(visual_rect.position + Vector2(2.0, -4.0), Vector2(60.0, 60.0))
 	if icon != null:
 		draw_texture_rect(icon, icon_rect, false, Color.WHITE if enabled else Color(0.67, 0.61, 0.70, 0.78))
-	var label := "再抽選中…" if gift_reroll_locked else "ギフトを再抽選"
+	var label := "次の進化武器" if debug_evolution_choice else ("再抽選中…" if gift_reroll_locked else "ギフトを再抽選")
 	var text_color := Color("#A36C92") if gift_reroll_locked else (Color("#6B3F64") if enabled else Color("#8D718D"))
 	_draw_centered_card_text(label, visual_rect.position.x + 158.0, visual_rect.position.y + 32.0, 190.0, 17, text_color)
 	var count_chip := Rect2(visual_rect.end.x - 78.0, visual_rect.position.y + 13.0, 64.0, 26.0)
 	draw_style_box(CommonLightUiStyle.create_panel_style(Color("#F4D7EC") if enabled else Color("#E6DDE9"), Color("#D59AC0") if enabled else Color("#C6B8CC"), 1, 12, 0.0, 0.0), count_chip)
-	_draw_centered_card_text("残り %d" % gift_reroll_remaining, count_chip.get_center().x, count_chip.position.y + 18.0, count_chip.size.x - 4.0, 14, Color("#8B4D76") if enabled else Color("#8D718D"))
+	var count_text := DebugSystemScript.EVOLUTION_GIFT_KEY_LABEL if debug_evolution_choice else "残り %d" % gift_reroll_remaining
+	_draw_centered_card_text(count_text, count_chip.get_center().x, count_chip.position.y + 18.0, count_chip.size.x - 4.0, 12 if debug_evolution_choice else 14, Color("#8B4D76") if enabled else Color("#8D718D"))
 	if gift_reroll_notice != "":
 		var notice_panel: Rect2 = DrawDataSystemScript.choice_backplate_data("gift_choice")["rect"] as Rect2
 		var drop := _gift_choice_drop_offset()
@@ -17516,109 +17928,7 @@ func _comment_choice_badge_accent(risk: int) -> Color:
 	return Color("#8df7ff")
 
 func _load_instruction_comment_icon(comment_id: String) -> Texture2D:
-	var path: String = ""
-	if comment_id == "banana_floor":
-		path = "res://assets/generated/instruction_comment_icons_v1/banana_floor_icon.png"
-	elif comment_id == "reverse_control":
-		path = "res://assets/generated/instruction_comment_icons_v1/reverse_control_icon.png"
-	elif comment_id == "no_dash":
-		path = "res://assets/generated/instruction_comment_icons_v1/no_dash_icon.png"
-	elif comment_id == "no_brake":
-		path = "res://assets/generated/instruction_comment_icons_v1/no_brake_icon.png"
-	elif comment_id == "no_stop":
-		path = "res://assets/generated/instruction_comment_icons_v1/no_stop_icon.png"
-	elif comment_id == "giant_enemies":
-		path = "res://assets/generated/instruction_comment_icons_v1/giant_enemies_icon.png"
-	elif comment_id == "enemy_speed_up":
-		path = "res://assets/generated/instruction_comment_icons_v1/enemy_speed_up_icon.png"
-	elif comment_id == "enemy_spawn_up":
-		path = "res://assets/generated/instruction_comment_icons_v1/enemy_spawn_up_icon.png"
-	elif comment_id == "split_enemy":
-		path = "res://assets/generated/instruction_comment_icons_v1/split_enemy_icon.png"
-	elif comment_id == "short_range":
-		path = "res://assets/generated/instruction_comment_icons_v1/short_range_icon.png"
-	elif comment_id == "takeback":
-		path = "res://assets/generated/instruction_comment_icons_v1/takeback_icon.png"
-	elif comment_id == "attack_right_only":
-		path = "res://assets/generated/instruction_comment_icons_v1/attack_right_only_icon.png"
-	elif comment_id == "weapon_mute":
-		path = "res://assets/generated/instruction_comment_icons_v1/weapon_mute_icon.png"
-	elif comment_id == "temp_walls":
-		path = "res://assets/generated/instruction_comment_icons_v1/temp_walls_icon.png"
-	elif comment_id == "damage_pits":
-		path = "res://assets/generated/instruction_comment_icons_v1/damage_pits_icon.png"
-	elif comment_id == "hide_hp":
-		path = "res://assets/generated/instruction_comment_icons_v1/hide_hp_icon.png"
-	elif comment_id == "comment_barrage":
-		path = "res://assets/generated/instruction_comment_icons_v1/comment_barrage_icon.png"
-	elif comment_id == "genre_change":
-		path = "res://assets/generated/instruction_comment_icons_v1/genre_change_icon.png"
-	elif comment_id == "force_bullet_hell":
-		path = "res://assets/generated/instruction_comment_icons_v1/force_bullet_hell_icon.png"
-	elif comment_id == "force_race":
-		path = "res://assets/generated/instruction_comment_icons_v1/force_race_icon.png"
-	elif comment_id == "force_horror":
-		path = "res://assets/generated/instruction_comment_icons_v1/force_horror_icon.png"
-	elif comment_id == "kamiyoyaku":
-		path = "res://assets/generated/instruction_comment_icons_v1/kamiyoyaku_icon.png"
-	elif comment_id == "camera_zoom":
-		path = "res://assets/generated/instruction_comment_icons_v1/camera_zoom_icon.png"
-	elif comment_id == "summon_boss":
-		path = "res://assets/generated/instruction_comment_icons_v1/summon_boss_icon.png"
-	elif comment_id == "hard_overclock":
-		path = "res://assets/generated/instruction_comment_icons_v1/hard_overclock_icon.png"
-	elif comment_id == "hard_pressure_wave":
-		path = "res://assets/generated/instruction_comment_icons_v1/hard_pressure_wave_icon.png"
-	elif comment_id == "talk_comment_avalanche":
-		path = "res://assets/generated/instruction_comment_icons_v1/talk_comment_avalanche_icon.png"
-	elif comment_id == "game_genre_mix":
-		path = "res://assets/generated/instruction_comment_icons_v1/game_genre_mix_icon.png"
-	elif comment_id == "song_tempo_up":
-		path = "res://assets/generated/instruction_comment_icons_v1/song_tempo_up_icon.png"
-	elif comment_id == "song_force_chorus":
-		path = "res://assets/generated/instruction_comment_icons_v1/song_force_chorus_icon.png"
-	elif comment_id == "song_mic_howling":
-		path = "res://assets/generated/instruction_comment_icons_v1/song_mic_howling_icon.png"
-	elif comment_id == "song_lighting_mistake":
-		path = "res://assets/generated/instruction_comment_icons_v1/song_lighting_mistake_icon.png"
-	elif comment_id == "song_lyrics_lost":
-		path = "res://assets/generated/instruction_comment_icons_v1/song_lyrics_lost_icon.png"
-	elif comment_id == "drawing_fast_dry":
-		path = "res://assets/generated/instruction_comment_icons_v1/drawing_fast_dry_icon.png"
-	elif comment_id == "drawing_too_much_paint":
-		path = "res://assets/generated/instruction_comment_icons_v1/drawing_too_much_paint_icon.png"
-	elif comment_id == "drawing_palette_shuffle":
-		path = "res://assets/generated/instruction_comment_icons_v1/drawing_palette_shuffle_icon.png"
-	elif comment_id == "drawing_more_corrections":
-		path = "res://assets/generated/instruction_comment_icons_v1/drawing_more_corrections_icon.png"
-	elif comment_id == "drawing_spilled_bucket":
-		path = "res://assets/generated/instruction_comment_icons_v1/drawing_spilled_bucket_icon.png"
-	elif comment_id == "partner_take_over":
-		path = "res://assets/generated/instruction_comment_icons_v1/partner_take_over_icon.png"
-	elif comment_id == "dont_fail_collab":
-		path = "res://assets/generated/instruction_comment_icons_v1/dont_fail_collab_icon.png"
-	elif comment_id == "keep_sync":
-		path = "res://assets/generated/instruction_comment_icons_v1/keep_sync_icon.png"
-	elif comment_id == "out_of_sync":
-		path = "res://assets/generated/instruction_comment_icons_v1/out_of_sync_icon.png"
-	elif comment_id == "fast_collab_pass":
-		path = "res://assets/generated/instruction_comment_icons_v1/fast_collab_pass_icon.png"
-	elif comment_id == "boss_support_dont_lose":
-		path = "res://assets/generated/instruction_comment_icons_v1/boss_support_dont_lose_icon.png"
-	elif comment_id == "boss_support_do_your_best":
-		path = "res://assets/generated/instruction_comment_icons_v1/boss_support_do_your_best_icon.png"
-	elif comment_id == "relay_boss_attack_up":
-		path = "res://assets/generated/instruction_comment_icons_v1/relay_boss_attack_up_icon.png"
-	elif comment_id == "relay_boss_projectiles_up":
-		path = "res://assets/generated/instruction_comment_icons_v1/relay_boss_projectiles_up_icon.png"
-	elif comment_id == "relay_boss_movement_up":
-		path = "res://assets/generated/instruction_comment_icons_v1/relay_boss_movement_up_icon.png"
-	elif comment_id == "relay_boss_no_dash":
-		path = "res://assets/generated/instruction_comment_icons_v1/relay_boss_no_dash_icon.png"
-	elif comment_id == "relay_boss_partner_mute":
-		path = "res://assets/generated/instruction_comment_icons_v1/relay_boss_partner_mute_icon.png"
-	elif comment_id == "relay_boss_small_arena":
-		path = "res://assets/generated/instruction_comment_icons_v1/relay_boss_small_arena_icon.png"
+	var path := CommentSystemScript.instruction_comment_icon_path(comment_id)
 	if path == "":
 		return null
 	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)

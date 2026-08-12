@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://scripts/tests/test_evolved_weapon_slot_independence.gd" type="Script" id="1_slot_independence"]
+
+[node name="EvolvedWeaponSlotIndependenceTest" type="Node"]
+script = ExtResource("1_slot_independence")

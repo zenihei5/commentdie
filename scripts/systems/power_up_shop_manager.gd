@@ -57,6 +57,35 @@ func unlocked_character_ids() -> Array:
 func is_character_unlocked(id: String) -> bool:
 	return unlocked_character_ids().has(id)
 
+func discovered_evolution_recipe_ids() -> Array[String]:
+	var discovered: Array[String] = []
+	var stored: Variant = profile.get("discoveredEvolutionRecipes", [])
+	if not (stored is Array):
+		return discovered
+	for item in stored as Array:
+		var recipe_id: String = item.strip_edges() if item is String else str(item).strip_edges()
+		if recipe_id != "" and not discovered.has(recipe_id):
+			discovered.append(recipe_id)
+	return discovered
+
+func is_evolution_recipe_discovered(evolved_weapon_id: String) -> bool:
+	var normalized_id := evolved_weapon_id.strip_edges()
+	return normalized_id != "" and discovered_evolution_recipe_ids().has(normalized_id)
+
+func discover_evolution_recipe(evolved_weapon_id: String) -> Dictionary:
+	var normalized_id := evolved_weapon_id.strip_edges()
+	if normalized_id == "":
+		return {"ok": false, "newlyDiscovered": false, "saveFailed": false, "state": "invalid_id", "evolvedWeaponId": ""}
+	var discovered := discovered_evolution_recipe_ids()
+	if discovered.has(normalized_id):
+		return {"ok": true, "newlyDiscovered": false, "saveFailed": false, "state": "already_discovered", "evolvedWeaponId": normalized_id}
+	var candidate := profile.duplicate(true)
+	discovered.append(normalized_id)
+	candidate["discoveredEvolutionRecipes"] = discovered
+	if not _commit(candidate):
+		return {"ok": false, "newlyDiscovered": false, "saveFailed": true, "state": "save_failed", "evolvedWeaponId": normalized_id}
+	return {"ok": true, "newlyDiscovered": true, "saveFailed": false, "state": "discovered", "evolvedWeaponId": normalized_id}
+
 func save_selected_character_id(id: String) -> bool:
 	var normalized_id := id.strip_edges()
 	if normalized_id == "" or not is_character_unlocked(normalized_id):

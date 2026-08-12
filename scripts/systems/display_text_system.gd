@@ -47,7 +47,7 @@ static func title_tagline() -> String:
 	return "指示コメが配信を壊しにくる"
 
 static func title_menu_items() -> Array[String]:
-	return ["ニューゲーム", "パワーアップショップ", "ランキング", "オプション", "終了する"]
+	return ["ニューゲーム", "パワーアップショップ", "配信図鑑", "ランキング", "オプション", "終了する"]
 
 static func title_controls_text() -> String:
 	return "↑↓ / W/S：選択    Enter / Space：決定"

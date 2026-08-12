@@ -14,7 +14,36 @@ const DO_EVERYTHING_BUCKETS := [
 const SONG_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.6
 const DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
 const COLLAB_INSTRUCTION_PICK_WEIGHT_MULTIPLIER := 1.45
+const INSTRUCTION_COMMENT_ICON_DIRECTORY := "res://assets/generated/instruction_comment_icons_v1/"
+const INSTRUCTION_COMMENT_ICON_IDS := [
+	"banana_floor", "reverse_control", "no_dash", "no_brake", "no_stop",
+	"giant_enemies", "enemy_speed_up", "enemy_spawn_up", "split_enemy",
+	"short_range", "takeback", "attack_right_only", "weapon_mute", "temp_walls",
+	"damage_pits", "hide_hp", "comment_barrage", "genre_change", "force_bullet_hell",
+	"force_race", "force_horror", "kamiyoyaku", "camera_zoom", "summon_boss",
+	"hard_reignition_boss", "hard_overclock", "hard_pressure_wave",
+	"talk_comment_avalanche", "game_genre_mix", "song_tempo_up", "song_force_chorus",
+	"song_mic_howling", "song_lighting_mistake", "song_lyrics_lost", "drawing_fast_dry",
+	"drawing_too_much_paint", "drawing_palette_shuffle", "drawing_more_corrections",
+	"drawing_spilled_bucket", "partner_take_over", "dont_fail_collab", "keep_sync",
+	"out_of_sync", "fast_collab_pass", "boss_support_dont_lose",
+	"boss_support_do_your_best", "relay_boss_attack_up", "relay_boss_projectiles_up",
+	"relay_boss_movement_up", "relay_boss_no_dash", "relay_boss_partner_mute",
+	"relay_boss_small_arena"
+]
 static var _empty_offer_warning_logged := false
+
+## Shared source for the instruction-comment images used by the live choice UI.
+## The codex reads this same path so a comment never gets a different image in
+## the archive.  Special cards without an image intentionally return an empty
+## path and use their existing card fallback.
+static func instruction_comment_icon_path(comment_id: String) -> String:
+	var normalized_id := comment_id.strip_edges()
+	if normalized_id == "" or normalized_id == DO_EVERYTHING_ID:
+		return ""
+	if not INSTRUCTION_COMMENT_ICON_IDS.has(normalized_id):
+		return ""
+	return "%s%s_icon.png" % [INSTRUCTION_COMMENT_ICON_DIRECTORY, normalized_id]
 
 static func build_offer(context: Dictionary) -> Array:
 	var result: Array = []
@@ -134,6 +163,7 @@ static func start_choice_for_target(target: Node, comments: Array, rng: RandomNu
 		var instruction: Dictionary = relay_config.get("instruction", {}) as Dictionary
 		target.set("choice_timer", float(instruction.get("choiceTime", 10.0)))
 	target.set("offered_comments", offer)
+	discover_offered_comments_for_target(target)
 	target.set("ng_cards", _bool_cards(false, offer.size()))
 	var pending_heart: bool = bool(target.get("heart_pending"))
 	target.set("heart_cards", _bool_cards(pending_heart, offer.size()))
@@ -232,6 +262,7 @@ static func choose_comment_for_target(target: Node, index: int, rng: RandomNumbe
 	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng, sub_comments, sub_heart_cards)
 	HardModeSystemScript.activate_comment_for_target(target, view, rng)
 	HardModeSystemScript.mark_comment_selected_for_target(target, String(comment.get("id", "")))
+	CodexManager.record_comment_selection(String(comment.get("id", "")), has_heart)
 	var modifier_feedback: Dictionary = result.get("feedback", {"chats": [], "toasts": []}) as Dictionary
 	return {
 		"selected": true,
@@ -282,9 +313,22 @@ static func apply_forced_offer_to_target(target: Node, offer: Dictionary) -> boo
 	if offer.is_empty():
 		return false
 	target.set("offered_comments", offer["comments"] as Array)
+	discover_offered_comments_for_target(target)
 	target.set("ng_cards", _bool_cards(false, 1))
 	target.set("heart_cards", _bool_cards(bool(offer["heartCard"]), 1))
 	return true
+
+static func discover_offered_comments_for_target(target: Node) -> void:
+	var offered_value: Variant = target.get("offered_comments")
+	if not offered_value is Array:
+		return
+	var seen: Dictionary = {}
+	for item in offered_value as Array:
+		if item is Dictionary:
+			var comment_id := String((item as Dictionary).get("id", ""))
+			if comment_id != "" and not seen.has(comment_id):
+				seen[comment_id] = true
+				CodexManager.record_comment_appearance(comment_id)
 
 static func _bool_cards(value: bool, count: int) -> Array[bool]:
 	var cards: Array[bool] = []
@@ -327,6 +371,11 @@ static func comment_view(comment: Dictionary, has_heart: bool) -> Dictionary:
 	if has_heart and String(view.get("difficultyId", "")) == "hard":
 		view["scoreRate"] = HardModeSystemScript.score_rate_for_risk(int(view.get("riskLevel", 1)))
 	return view
+
+static func codex_comment_view(comment: Dictionary, has_heart: bool = false) -> Dictionary:
+	# Public read-only alias so the codex and choice-card presentation use the
+	# exact same heartVariant merge and do_everything handling.
+	return comment_view(comment, has_heart)
 
 static func highest_multiplier_card(offered_comments: Array, heart_cards: Array, include_special: bool = false) -> int:
 	var best_index: int = 0

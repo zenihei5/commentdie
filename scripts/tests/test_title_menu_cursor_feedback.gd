@@ -20,6 +20,37 @@ func _run_all_tests() -> void:
 	game.state = "title"
 	game.title_menu_index = 0
 	game.title_menu_focus_timer = 0.14
+	_check(GameScript.TITLE_MENU_BUTTON_SIZE == Vector2(306.0, 66.0), "title buttons use the shared 306x66 base size")
+	var base_rects: Array[Rect2] = []
+	for index in range(GameScript.TITLE_MENU_COUNT):
+		var base_rect: Rect2 = game._title_menu_button_rect(index)
+		base_rects.append(base_rect)
+		_check(base_rect.size == Vector2(306.0, 66.0), "title button %d base size" % index)
+		_check_approx(base_rect.get_center().x, 800.0, "title button %d center x" % index)
+		var image_path := String(GameScript.TITLE_MENU_BUTTON_IMAGES[index])
+		var source_image := Image.load_from_file(ProjectSettings.globalize_path(image_path))
+		_check(source_image != null and not source_image.is_empty(), "title button %d source image loads" % index)
+		var source_rect: Rect2 = GameScript.TITLE_MENU_BUTTON_SOURCE_RECTS[index]
+		var image_size := Vector2(source_image.get_width(), source_image.get_height())
+		_check(source_rect.position.x >= 0.0 and source_rect.position.y >= 0.0 and source_rect.end.x <= image_size.x and source_rect.end.y <= image_size.y, "title button %d source rect is inside texture" % index)
+	for index in range(1, base_rects.size()):
+		var previous_rect: Rect2 = base_rects[index - 1]
+		var current_rect: Rect2 = base_rects[index]
+		_check_approx(current_rect.position.y - previous_rect.end.y, 10.0, "title button %d gap" % index)
+	_check_approx(base_rects[0].position.y, 444.0, "title menu first visible y")
+	_check_approx(base_rects[5].end.y, 890.0, "title menu last visible bottom")
+	_check(game._title_button_index_at(base_rects[2].get_center()) == 2, "codex mouse hit uses the shared base rect")
+	var shop_status_rect := game._title_power_up_shop_status_rect(base_rects[1])
+	_check(base_rects[1].encloses(shop_status_rect), "shop status stays inside the shop base rect")
+	var codex_badge_rect := game._title_codex_new_badge_rect(base_rects[2])
+	_check(not codex_badge_rect.intersects(base_rects[1]) and not codex_badge_rect.intersects(base_rects[3]), "codex NEW badge stays clear of adjacent buttons")
+	game.title_menu_index = 2
+	var selected_draw_rect: Rect2 = game._title_menu_button_draw_rect(2)
+	_check_approx(selected_draw_rect.size.x / base_rects[2].size.x, 1.025, "selected title button keeps the existing 2.5 percent scale")
+	_check_approx(selected_draw_rect.size.y / base_rects[2].size.y, 1.025, "selected title button keeps the existing vertical scale")
+	for index in range(GameScript.TITLE_MENU_COUNT):
+		_check(game._title_button_hit_rect(index) == base_rects[index], "title button %d hit rect ignores feedback scale" % index)
+	game.title_menu_index = 0
 	var settled: Dictionary = game._title_menu_feedback(0)
 	_check_approx(float(settled.get("scale", 0.0)), 1.025, "selected scale settles at 1.025")
 	_check_approx(float(settled.get("offsetY", 0.0)), -2.0, "selected offset settles at -2")
@@ -64,14 +95,24 @@ func _run_all_tests() -> void:
 
 	_check(game._title_menu_action_for_index(0) == "start_character_select", "new game action mapping")
 	_check(game._title_menu_action_for_index(1) == "open_power_up_shop", "shop action mapping")
-	_check(game._title_menu_action_for_index(2) == "open_title_ranking", "ranking action mapping")
-	_check(game._title_menu_action_for_index(3) == "open_title_options", "options action mapping")
-	_check(game._title_menu_action_for_index(4) == "quit_game", "quit action mapping")
+	_check(game._title_menu_action_for_index(2) == "open_codex", "codex action mapping")
+	_check(game._title_menu_action_for_index(3) == "open_title_ranking", "ranking action mapping")
+	_check(game._title_menu_action_for_index(4) == "open_title_options", "options action mapping")
+	_check(game._title_menu_action_for_index(5) == "quit_game", "quit action mapping")
+	_check(GameScript.TITLE_MENU_BUTTON_IMAGES[2] == "res://assets/title/menu_buttons_v2/title_menu_codex.png", "title codex button uses supplied image")
+	_check(FileAccess.file_exists(GameScript.TITLE_MENU_BUTTON_IMAGES[2]), "title codex button image exists")
+	_check(absf(game._title_menu_button_rect(2).size.y - game._title_menu_button_rect(0).size.y) < 0.5, "title codex button matches standard menu height")
+	CodexManager.initialize_empty()
+	_check(game._codex_title_new_badge_text() == "", "codex title badge hides at zero")
+	CodexManager.discover_weapon("ban_hammer")
+	_check(game._codex_title_new_badge_text() != "", "codex title badge appears for NEW")
+	CodexManager.mark_read(CodexManager.CATEGORY_WEAPON, "ban_hammer")
+	_check(game._codex_title_new_badge_text() == "", "codex title badge updates after read")
 
 	game.title_menu_press_active = false
 	game.title_menu_press_timer = 0.0
 	game._request_title_menu_activation(1, "open_power_up_shop")
-	var pending_action := game.title_menu_pending_action
+	var pending_action: String = String(game.title_menu_pending_action)
 	game._request_title_menu_activation(2, "open_title_ranking")
 	_check(game.title_menu_press_active, "activation enters press state")
 	_check(game.title_menu_pending_action == pending_action, "second activation is ignored while pressing")

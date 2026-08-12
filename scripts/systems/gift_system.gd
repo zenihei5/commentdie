@@ -5,6 +5,7 @@ const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolu
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 const PowerUpDatabaseScript := preload("res://scripts/systems/power_up_database.gd")
+const MarshmallowSystemScript := preload("res://scripts/systems/marshmallow_system.gd")
 const DIRECT_PP_ICON_PATH := "res://assets/generated/gift_icons_v1/pp.png"
 
 const MENTAL_CARE_MAX_HP_PER_LEVEL := 10
@@ -48,6 +49,49 @@ static func mini_humidifier_heal_amount(level: int) -> int:
 			return 6
 		_:
 			return 0
+
+static func stream_power_damage_rate(level: int) -> float:
+	return 1.0 + 0.10 * float(maxi(0, level))
+
+static func high_speed_connection_interval_rate(level: int) -> float:
+	return pow(0.92, float(maxi(0, level)))
+
+static func wide_angle_range_rate(level: int) -> float:
+	return 1.0 + 0.10 * float(maxi(0, level))
+
+static func light_sneakers_move_speed_rate(level: int) -> float:
+	return 1.0 + 0.05 * float(maxi(0, level))
+
+static func light_sneakers_dash_cooldown_rate(level: int) -> float:
+	return pow(0.95, float(maxi(0, level)))
+
+static func codex_accessory_stats_for_level(gift: Dictionary, level: int = 1) -> Dictionary:
+	if gift.is_empty() or EquipmentSystem.equipment_type(gift) != "accessory":
+		return {}
+	var gift_id := String(gift.get("id", ""))
+	var safe_level := clampi(level, 1, maxi(1, int(gift.get("maxLevel", 1))))
+	match gift_id:
+		"stream_power":
+			return {"damageMultiplier": stream_power_damage_rate(safe_level)}
+		"bullet_support":
+			return {"projectileCountBonus": safe_level}
+		"high_speed_connection":
+			return {"attackIntervalMultiplier": high_speed_connection_interval_rate(safe_level)}
+		"wide_angle":
+			return {"rangeAreaMultiplier": wide_angle_range_rate(safe_level)}
+		"light_sneakers":
+			return {"moveSpeedMultiplier": light_sneakers_move_speed_rate(safe_level), "dashCooldownMultiplier": light_sneakers_dash_cooldown_rate(safe_level)}
+		"sweet_tooth":
+			return {"goodEffectMultiplier": MarshmallowSystemScript.good_effect_rate(1.0, safe_level), "kusoDurationMultiplier": MarshmallowSystemScript.kuso_duration(1.0, safe_level)}
+		"mental_care":
+			return {"maxHpBonus": mental_care_max_hp_bonus(safe_level)}
+		"notification_bell":
+			return {"expMultiplier": 1.0 + notification_bell_exp_rate(safe_level)}
+		"comment_radar":
+			return {"pickupRangeBonus": comment_radar_range_bonus(safe_level), "pickupSpeedMultiplier": comment_radar_speed_rate(safe_level)}
+		"mini_humidifier":
+			return {"healInterval": mini_humidifier_interval(safe_level), "healAmount": mini_humidifier_heal_amount(safe_level)}
+	return {}
 
 static func arrival_text(gift_hype: int) -> String:
 	if gift_hype >= 90:
@@ -1004,7 +1048,7 @@ static func choose_offer_index_with_feedback_for_target(
 	chats.append(String(result["giftName"]) + " を取得")
 	if int(result.get("directPp", 0)) > 0:
 		chats.append("PP GET! +%d PP" % int(result.get("directPp", 0)))
-		return {"selected": true, "chats": chats, "directPp": int(result.get("directPp", 0)), "mentalHealAmount": 0}
+		return {"selected": true, "chats": chats, "directPp": int(result.get("directPp", 0)), "mentalHealAmount": 0, "weaponEvolution": result.get("weaponEvolution", {})}
 	if bool(result.get("heartPendingActivated", false)):
 		chats.append("♡を受け取った！ 次の指示コメが全部ちょっと甘くなる")
 	if bool(result.get("heartPendingDuplicate", false)):
@@ -1018,7 +1062,8 @@ static func choose_offer_index_with_feedback_for_target(
 	return {
 		"selected": true,
 		"chats": chats,
-		"mentalHealAmount": int(result.get("mentalHealAmount", 0))
+		"mentalHealAmount": int(result.get("mentalHealAmount", 0)),
+		"weaponEvolution": weapon_evolution
 	}
 
 static func update_choice_input_for_target(target: Node, latch: Dictionary) -> Dictionary:
@@ -1053,6 +1098,11 @@ static func apply_equipment_to_target(target: Node, gift: Dictionary) -> Diction
 		target.set("player_weapons", items)
 	else:
 		target.set("player_accessories", items)
+	var equipment_id := String(gift.get("id", ""))
+	if equipment_type == "weapon":
+		CodexManager.discover_weapon(equipment_id)
+	elif equipment_type == "accessory":
+		CodexManager.discover_accessory(equipment_id)
 	_apply_equipment_stats_to_target(target)
 	return {"rollGenreEvent": false, "heartPendingActivated": false, "heartPendingDuplicate": false}
 
@@ -1083,9 +1133,9 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	var comment_radar_level: int = EquipmentSystem.level(accessories, "comment_radar")
 	var previous_humidifier_level: int = int(target.get("mini_humidifier_level"))
 	var mini_humidifier_level: int = EquipmentSystem.level(accessories, "mini_humidifier")
-	var main_damage_rate: float = 1.0 + 0.10 * float(stream_power_level) + 0.10 * float(main_weapon_level - 1)
-	var main_range_rate: float = 1.0 + 0.10 * float(wide_angle_level) + 0.08 * float(main_weapon_level - 1)
-	var main_interval_rate: float = pow(0.92, float(high_speed_level)) * pow(0.94, float(main_weapon_level - 1))
+	var main_damage_rate: float = 1.0 + (stream_power_damage_rate(stream_power_level) - 1.0) + 0.10 * float(main_weapon_level - 1)
+	var main_range_rate: float = 1.0 + (wide_angle_range_rate(wide_angle_level) - 1.0) + 0.08 * float(main_weapon_level - 1)
+	var main_interval_rate: float = high_speed_connection_interval_rate(high_speed_level) * pow(0.94, float(main_weapon_level - 1))
 	var shop_snapshot = target.get("permanent_upgrade_snapshot")
 	if shop_snapshot != null:
 		main_interval_rate *= float(shop_snapshot.attack_interval_multiplier)
@@ -1099,12 +1149,12 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	target.set("mental_care_level", mental_care_level)
 	target.set("player_max_hp", new_max_hp)
 	target.set("player_hp", clampi(previous_hp + maxi(0, max_hp_delta), 0, new_max_hp))
-	var equipment_damage_rate: float = 1.0 + 0.10 * float(stream_power_level)
+	var equipment_damage_rate: float = stream_power_damage_rate(stream_power_level)
 	if shop_snapshot != null:
 		equipment_damage_rate = PowerUpEffectProviderScript.damage(equipment_damage_rate, shop_snapshot)
 	target.set("equipment_damage_rate", equipment_damage_rate)
-	target.set("equipment_range_rate", 1.0 + 0.10 * float(wide_angle_level))
-	target.set("equipment_interval_rate", pow(0.92, float(high_speed_level)))
+	target.set("equipment_range_rate", wide_angle_range_rate(wide_angle_level))
+	target.set("equipment_interval_rate", high_speed_connection_interval_rate(high_speed_level))
 	target.set("equipment_bullet_support_level", bullet_support_level)
 	target.set("notification_bell_level", notification_bell_level)
 	var hammer_damage: float = float(current_weapon.get("damage", 12.0)) * main_damage_rate
@@ -1115,11 +1165,11 @@ static func _apply_equipment_stats_to_target(target: Node) -> void:
 	var min_main_interval: float = float(current_weapon.get("minAttackInterval", current_weapon.get("minCooldown", 0.28)))
 	target.set("hammer_interval", maxf(min_main_interval, WeaponSystem.player_attack_interval(WeaponSystem.attack_interval(current_weapon, 0.85), main_interval_rate)))
 	target.set("knockback_power", WeaponSystem.scaled_knockback(float(current_weapon.get("knockback", 1.0))) * (1.0 + 0.10 * float(main_weapon_level - 1)))
-	var player_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * CharacterSystem.move_speed_multiplier(current_character) * (1.0 + 0.05 * float(sneaker_level))
+	var player_speed: float = WeaponSystem.scaled_move_speed(float(stats.get("moveSpeed", 5.0))) * CharacterSystem.move_speed_multiplier(current_character) * light_sneakers_move_speed_rate(sneaker_level)
 	if shop_snapshot != null:
 		player_speed = PowerUpEffectProviderScript.move_speed(player_speed, shop_snapshot)
 	target.set("player_speed", player_speed)
-	target.set("dash_cooldown", float(stats.get("dashCooldown", current_character.get("dashCooldown", 1.2))) * pow(0.95, float(sneaker_level)))
+	target.set("dash_cooldown", float(stats.get("dashCooldown", current_character.get("dashCooldown", 1.2))) * light_sneakers_dash_cooldown_rate(sneaker_level))
 	var comment_radar_range: float = comment_radar_range_bonus(comment_radar_level)
 	target.set("comment_radar_level", comment_radar_level)
 	target.set("comment_radar_range_bonus", comment_radar_range)

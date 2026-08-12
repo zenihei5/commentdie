@@ -1,0 +1,1259 @@
+[
+  {
+    "id": "troll",
+    "displayName": "通常コメント",
+    "spawnFrames": [
+      "zatsudan",
+      "gameplay",
+      "singing"
+    ],
+    "codexStages": [
+      "zatsudan",
+      "gameplay",
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 0,
+    "codex": {
+      "description": "まっすぐ近づいてくる基本の敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "fast",
+    "displayName": "連投ファン",
+    "spawnFrames": [
+      "zatsudan",
+      "gameplay",
+      "singing"
+    ],
+    "codexStages": [
+      "zatsudan",
+      "gameplay",
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 1,
+    "codex": {
+      "description": "高速で接近する連投コメント。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [
+        "fast"
+      ],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "shooter",
+    "displayName": "指示厨",
+    "spawnFrames": [
+      "zatsudan",
+      "gameplay",
+      "singing"
+    ],
+    "codexStages": [
+      "zatsudan",
+      "gameplay",
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 2,
+    "codex": {
+      "description": "距離を取りながら弾を撃つ敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [
+        "ranged",
+        "projectile"
+      ],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "long_comment_guy",
+    "displayName": "長文コメントおじさん",
+    "spawnFrames": [
+      "zatsudan",
+      "gameplay"
+    ],
+    "codexStages": [
+      "zatsudan",
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 3,
+    "codex": {
+      "description": "大きなコメント弾を投げる敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "clipper",
+    "displayName": "切り抜き職人",
+    "spawnFrames": [
+      "zatsudan"
+    ],
+    "codexStages": [
+      "zatsudan"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 4,
+    "codex": {
+      "description": "横切るように接近する敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "unread_maro",
+    "displayName": "未読マロ",
+    "spawnFrames": [
+      "special"
+    ],
+    "codexStages": [
+      "zatsudan"
+    ],
+    "codexSpawnTypes": [
+      "marshmallow_timeout",
+      "boss_summon"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 5,
+    "codex": {
+      "description": "クソマロキングに召喚される未読マシュマロ。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "ghost_comment",
+    "displayName": "ホラーコメント",
+    "spawnFrames": [
+      "gameplay_horror"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "genre_horror"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 6,
+    "codex": {
+      "description": "ホラーイベントに現れるコメントの怪異。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_spoiler_comment",
+    "displayName": "ネタバレコメント",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 7,
+    "codex": {
+      "description": "ゲーム実況枠に現れるネタバレコメント。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_backseat_controller",
+    "displayName": "指示厨コントローラー",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 8,
+    "codex": {
+      "description": "操作を指示しながら追ってくる敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_armchair_strategist",
+    "displayName": "エアプ軍師",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 9,
+    "codex": {
+      "description": "離れた場所から攻略コメント弾を撃つ敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_lag_comment",
+    "displayName": "ラグコメント",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 10,
+    "codex": {
+      "description": "短いワープを繰り返すコメントの怪異。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_strategy_wiki_ojisan",
+    "displayName": "攻略Wikiおじさん",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 11,
+    "codex": {
+      "description": "攻略情報を弾幕で送り込む強敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_fake_first_timer",
+    "displayName": "初見偽装",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 12,
+    "codex": {
+      "description": "初見のふりをして急接近する敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_wrong_way_kart",
+    "displayName": "逆走カート",
+    "spawnFrames": [
+      "gameplay_race"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "genre_race"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 13,
+    "codex": {
+      "description": "レースイベントを横切る危険なカート。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_jammer_cone",
+    "displayName": "妨害コーン",
+    "spawnFrames": [
+      "gameplay_race"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "genre_race"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 14,
+    "codex": {
+      "description": "レース中に短時間だけ道を塞ぐ障害物。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_dot_invader",
+    "displayName": "ドットインベーダー",
+    "spawnFrames": [
+      "gameplay_bullet_hell"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "genre_bullet"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 15,
+    "codex": {
+      "description": "弾幕シューティングイベントの敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_bullet_drone",
+    "displayName": "弾幕ドローン",
+    "spawnFrames": [
+      "gameplay_bullet_hell"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "genre_bullet_late"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 16,
+    "codex": {
+      "description": "配信開始から一定時間後の弾幕イベントに現れる中型敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [
+        "ranged",
+        "projectile"
+      ],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_fake_gift_box",
+    "displayName": "偽ギフトボックス",
+    "spawnFrames": [
+      "gameplay_horror"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "fake_gift_destroy"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 17,
+    "codex": {
+      "description": "ホラーイベント中に破壊すると現れる偽ギフト。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "enemy_noise_ghost_comment",
+    "displayName": "ノイズゴーストコメント",
+    "spawnFrames": [
+      "gameplay_horror"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "genre_horror"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 18,
+    "codex": {
+      "description": "ホラーイベントに現れるノイズの怪異。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "pitch_police",
+    "displayName": "音程警察",
+    "spawnFrames": [
+      "singing"
+    ],
+    "codexStages": [
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 19,
+    "codex": {
+      "description": "歌枠で音程を取り締まる敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "request_spammer",
+    "displayName": "リクエスト連投",
+    "spawnFrames": [
+      "singing"
+    ],
+    "codexStages": [
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 20,
+    "codex": {
+      "description": "歌枠でリクエスト弾を撃つ敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "fast_call_fan",
+    "displayName": "早口コール勢",
+    "spawnFrames": [
+      "singing"
+    ],
+    "codexStages": [
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 21,
+    "codex": {
+      "description": "歌枠で高速接近するコール勢。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "song_noise_comment",
+    "displayName": "ノイズコメント",
+    "spawnFrames": [
+      "singing"
+    ],
+    "codexStages": [
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 22,
+    "codex": {
+      "description": "歌声にノイズを混ぜる怪異。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "song_lyric_spoiler_comment",
+    "displayName": "歌詞ネタバレコメント",
+    "spawnFrames": [
+      "singing"
+    ],
+    "codexStages": [
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 23,
+    "codex": {
+      "description": "歌詞を先回りして邪魔する怪異。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "drawing_fix_note",
+    "displayName": "修正指示コメント",
+    "spawnFrames": [
+      "drawing"
+    ],
+    "codexStages": [
+      "drawing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 24,
+    "codex": {
+      "description": "お絵かき枠へ修正メモを投げる敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "red_pen_teacher",
+    "displayName": "赤ペン先生",
+    "spawnFrames": [
+      "drawing"
+    ],
+    "codexStages": [
+      "drawing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 25,
+    "codex": {
+      "description": "赤ペン弾を撃つお絵かき枠の敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "layer_lost",
+    "displayName": "レイヤー迷子",
+    "spawnFrames": [
+      "drawing"
+    ],
+    "codexStages": [
+      "drawing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 26,
+    "codex": {
+      "description": "ゆっくり近づくレイヤーの怪異。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "bucket_fill_slime",
+    "displayName": "バケツ塗りスライム",
+    "spawnFrames": [
+      "drawing"
+    ],
+    "codexStages": [
+      "drawing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 27,
+    "codex": {
+      "description": "短時間の塗りつぶしを残す敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "undo_ghost",
+    "displayName": "Undoゴースト",
+    "spawnFrames": [
+      "drawing_special"
+    ],
+    "codexStages": [
+      "drawing"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": false,
+    "order": 28,
+    "codex": {
+      "description": "図鑑対象外の開発用エネミー。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_comparison_troll",
+    "displayName": "比較煽り",
+    "spawnFrames": [
+      "collab"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 29,
+    "codex": {
+      "description": "コラボ枠で比較を持ち出す敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_messenger_pigeon",
+    "displayName": "伝書鳩",
+    "spawnFrames": [
+      "collab"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 30,
+    "codex": {
+      "description": "二人の間を横切るコラボ妨害敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_discord_troll",
+    "displayName": "不協和トロール",
+    "spawnFrames": [
+      "collab"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 31,
+    "codex": {
+      "description": "相方との同期を崩すコラボ敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_volume_police",
+    "displayName": "音量警察",
+    "spawnFrames": [
+      "collab"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 32,
+    "codex": {
+      "description": "攻撃の音量を悪化させるフィールドを作る。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_exclusive_listener",
+    "displayName": "独占リスナー",
+    "spawnFrames": [
+      "collab"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "normal_wave"
+    ],
+    "codexSpecial": false,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 33,
+    "codex": {
+      "description": "相方への通常攻撃を止める敵。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_division_noise",
+    "displayName": "分断ノイズ",
+    "spawnFrames": [
+      "collab_boss_summon"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "boss_summon"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 34,
+    "codex": {
+      "description": "コラボクラッシャー関連のノイズ。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_mute_core",
+    "displayName": "ミュートコア",
+    "spawnFrames": [
+      "collab_boss_object"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "boss_summon"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 35,
+    "codex": {
+      "description": "相方の通常攻撃を止める固定オブジェクト。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "noise_ghost_comment",
+    "displayName": "ラストオフライン召喚ノイズ",
+    "spawnFrames": [
+      "relay_boss_summon"
+    ],
+    "codexStages": [
+      "relay"
+    ],
+    "codexSpawnTypes": [
+      "boss_summon"
+    ],
+    "codexSpecial": true,
+    "isBoss": false,
+    "codexEnabled": true,
+    "order": 36,
+    "codex": {
+      "description": "ラストオフラインが呼び出すノイズ。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "boss_super_long_comment",
+    "displayName": "超長文ボス",
+    "spawnFrames": [
+      "zatsudan"
+    ],
+    "codexStages": [
+      "zatsudan"
+    ],
+    "codexSpawnTypes": [
+      "boss_only"
+    ],
+    "codexSpecial": false,
+    "isBoss": true,
+    "codexEnabled": false,
+    "order": 37,
+    "codex": {
+      "description": "図鑑対象外の旧ボス定義。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "boss_kuso_maro_king",
+    "displayName": "クソマロキング",
+    "spawnFrames": [
+      "zatsudan"
+    ],
+    "codexStages": [
+      "zatsudan"
+    ],
+    "codexSpawnTypes": [
+      "boss_summon",
+      "boss_only"
+    ],
+    "codexSpecial": false,
+    "isBoss": true,
+    "codexEnabled": true,
+    "order": 38,
+    "codex": {
+      "description": "未読マシュマロの王。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "bugged_final_boss",
+    "displayName": "バグったラスボス",
+    "spawnFrames": [
+      "gameplay"
+    ],
+    "codexStages": [
+      "gameplay"
+    ],
+    "codexSpawnTypes": [
+      "boss_only"
+    ],
+    "codexSpecial": false,
+    "isBoss": true,
+    "codexEnabled": true,
+    "order": 39,
+    "codex": {
+      "description": "ゲーム実況枠のジャンル変化ボス。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "pitch_police_chief",
+    "displayName": "音程警察長",
+    "spawnFrames": [
+      "singing"
+    ],
+    "codexStages": [
+      "singing"
+    ],
+    "codexSpawnTypes": [
+      "boss_only"
+    ],
+    "codexSpecial": false,
+    "isBoss": true,
+    "codexEnabled": true,
+    "order": 40,
+    "codex": {
+      "description": "歌枠のボス。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "red_pen_review_chief",
+    "displayName": "赤ペンリテイクドラゴン",
+    "spawnFrames": [
+      "drawing"
+    ],
+    "codexStages": [
+      "drawing"
+    ],
+    "codexSpawnTypes": [
+      "boss_only"
+    ],
+    "codexSpecial": false,
+    "isBoss": true,
+    "codexEnabled": true,
+    "order": 41,
+    "codex": {
+      "description": "修正指示のボス。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "collab_crusher",
+    "displayName": "コラボクラッシャー",
+    "spawnFrames": [
+      "collab"
+    ],
+    "codexStages": [
+      "collab"
+    ],
+    "codexSpawnTypes": [
+      "boss_only"
+    ],
+    "codexSpecial": false,
+    "isBoss": true,
+    "codexEnabled": true,
+    "order": 42,
+    "codex": {
+      "description": "同期を破壊するコラボボス。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  },
+  {
+    "id": "last_offline",
+    "displayName": "ラストオフライン",
+    "spawnFrames": [
+      "relay"
+    ],
+    "codexStages": [
+      "relay"
+    ],
+    "codexSpawnTypes": [
+      "relay_final_boss"
+    ],
+    "codexSpecial": true,
+    "isBoss": true,
+    "relayBoss": true,
+    "codexEnabled": true,
+    "order": 43,
+    "codex": {
+      "description": "配信リレーの最終戦。",
+      "strategy": "",
+      "flavor": "",
+      "behaviorTags": [],
+      "autoTagExcludes": [],
+      "attackTypeOverride": [],
+      "mainAttacks": [],
+      "summonIds": [],
+      "specialEffects": []
+    }
+  }
+]

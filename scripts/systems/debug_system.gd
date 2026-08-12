@@ -2,13 +2,22 @@ class_name DebugSystem
 extends RefCounted
 
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
+const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
+const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
 const CURRENT_FRAME_BOSS_KEY := KEY_F7
 const CURRENT_FRAME_BOSS_KEY_LABEL := "F7"
+const EVOLUTION_GIFT_KEY := KEY_G
+const EVOLUTION_GIFT_MODIFIER_KEY := KEY_SHIFT
+const EVOLUTION_GIFT_KEY_LABEL := "Shift+G"
+const EVOLUTION_GIFT_PAGE_SIZE := 3
 
 static func pressed_actions(latch: Dictionary) -> Array[String]:
 	var actions: Array[String] = []
 	_add_if_pressed(actions, latch, KEY_C, "comment_now")
-	_add_if_pressed(actions, latch, KEY_G, "gift_now")
+	if Input.is_key_pressed(EVOLUTION_GIFT_MODIFIER_KEY):
+		_add_if_pressed(actions, latch, EVOLUTION_GIFT_KEY, "gift_evolution")
+	else:
+		_add_if_pressed(actions, latch, EVOLUTION_GIFT_KEY, "gift_now")
 	_add_if_pressed(actions, latch, KEY_F, "gift_god")
 	_add_if_pressed(actions, latch, KEY_R, "gift_flame")
 	_add_if_pressed(actions, latch, KEY_F1, "hype_0")
@@ -183,6 +192,9 @@ static func forced_gift_rarity(action: String) -> String:
 static func should_start_gift(action: String) -> bool:
 	return action == "gift_now"
 
+static func should_start_evolution_gift(action: String) -> bool:
+	return action == "gift_evolution"
+
 static func should_start_comment(action: String) -> bool:
 	return action == "comment_now"
 
@@ -321,6 +333,59 @@ static func force_gift_choice_ui_for_target(target: Node, gifts: Array, rarity: 
 	choice_box.visible = true
 	return result
 
+static func force_evolution_choice_for_target(target: Node, weapon_data: Array, page_start: int = 0) -> Dictionary:
+	var catalog := WeaponEvolutionSystemScript.debug_evolution_gifts_for_target(target, weapon_data)
+	if catalog.is_empty():
+		return {
+			"applied": false,
+			"offer": [],
+			"pageStart": 0,
+			"nextPageStart": 0,
+			"catalogSize": 0,
+			"chat": "DEBUG %s: 取得可能な進化武器がありません" % EVOLUTION_GIFT_KEY_LABEL
+		}
+	var normalized_start := page_start
+	if normalized_start < 0 or normalized_start >= catalog.size():
+		normalized_start = 0
+	var page_end := mini(normalized_start + EVOLUTION_GIFT_PAGE_SIZE, catalog.size())
+	var next_page_start := 0 if page_end >= catalog.size() else page_end
+	var offer: Array = []
+	for index in range(normalized_start, page_end):
+		var gift: Dictionary = (catalog[index] as Dictionary).duplicate(true)
+		gift["debugPageStart"] = normalized_start
+		gift["debugNextPageStart"] = next_page_start
+		gift["debugCatalogSize"] = catalog.size()
+		offer.append(gift)
+	target.set("state", "gift_choice")
+	target.set("gift_choice_return_state", "playing")
+	target.set("selected_card", 0)
+	target.set("offered_gifts", offer)
+	target.set("active_gift_request", {
+		"source": "debug_evolution",
+		"giftQuality": "evolution",
+		"ppEligible": false,
+		"fieldRandomEligible": false,
+		"fallbackEligible": false,
+		"debug": true
+	})
+	PauseReasonSystemScript.add(target, "GiftSelection")
+	var page_text := "DEBUG進化候補 %d～%d / %d　%sで次へ" % [normalized_start + 1, page_end, catalog.size(), EVOLUTION_GIFT_KEY_LABEL]
+	return {
+		"applied": true,
+		"offer": offer,
+		"pageStart": normalized_start,
+		"nextPageStart": next_page_start,
+		"catalogSize": catalog.size(),
+		"pageText": page_text,
+		"chat": page_text
+	}
+
+static func force_evolution_choice_ui_for_target(target: Node, weapon_data: Array, page_start: int, choice_box: Control) -> Dictionary:
+	var result := force_evolution_choice_for_target(target, weapon_data, page_start)
+	if bool(result.get("applied", false)):
+		choice_box.visible = true
+	return result
+
 static func force_comment_offer_for_target(target: Node, comments: Array, id: String, has_heart: bool) -> Dictionary:
 	var difficulty_value: Variant = target.get("run_difficulty_id")
 	var difficulty_id := String(difficulty_value if difficulty_value != null else "normal")
@@ -346,6 +411,7 @@ static func force_do_everything_choice_ui_for_target(target: Node, comments: Arr
 	target.set("special_choice_return_card", 0)
 	target.set("comment_warning_step", 0)
 	target.set("offered_comments", offer)
+	CommentSystem.discover_offered_comments_for_target(target)
 	target.set("ng_cards", _bool_cards(false, offer.size()))
 	var pending_heart: bool = bool(target.get("heart_pending"))
 	target.set("heart_cards", _bool_cards(pending_heart, offer.size()))

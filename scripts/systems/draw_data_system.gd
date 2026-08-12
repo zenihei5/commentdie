@@ -4286,6 +4286,227 @@ static func listener_burst_fx_data(pos: Vector2, life: float, max_life: float) -
 		"innerColor": Color(1.0, 0.94, 0.28, 0.70 * alpha)
 	}
 
+static func _stage2_visual_scaled_config(config: Dictionary, scale_rate: float) -> Dictionary:
+	var scaled := config.duplicate(true)
+	scaled["scale"] = float(config.get("scale", 1.0)) * scale_rate
+	return scaled
+
+static func _stage2_visual_roles(roles: Array[String]) -> Array:
+	return roles
+
+static func full_voice_dome_fx_data(pos: Vector2, life: float, max_life: float, radius: float, hit_count: int, pulse: bool, visuals: Dictionary) -> Dictionary:
+	var data := mic_wave_fx_data(pos, life, max_life, radius, hit_count)
+	var role := "powerWave" if pulse else "wave"
+	var config := _visual_config(visuals, role)
+	if config.is_empty():
+		return data
+	var base_radius := maxf(1.0, float(config.get("baseRadius", radius)))
+	var progress := clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var scale_in := lerpf(float(config.get("scaleInStart", 0.78)), 1.0, progress)
+	var scaled_config := _stage2_visual_scaled_config(config, maxf(0.1, radius / base_radius) * scale_in)
+	data["imageLayers"] = [_visual_image_layer(role, scaled_config, pos, 0.0, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles([role])
+	data["suppressProceduralWhenImageLoaded"] = true
+	data["formalVisualKind"] = "full_voice_dome_pulse" if pulse else "full_voice_dome_wave"
+	return data
+
+static func center_stage_area_visual_fx_data(pos: Vector2, life: float, max_life: float, radius: float, visuals: Dictionary) -> Dictionary:
+	var data := spotlight_fx_data(pos, life, max_life, radius)
+	var layers: Array = []
+	var radius_rate := radius / maxf(1.0, float(_visual_config(visuals, "areaFloor").get("baseRadius", radius)))
+	for role in ["areaFloor", "areaLight"]:
+		var config := _visual_config(visuals, role)
+		if config.is_empty():
+			continue
+		var scaled_config := _stage2_visual_scaled_config(config, maxf(0.1, radius_rate))
+		layers.append(_visual_image_layer(role, scaled_config, pos, 0.0, _visual_alpha(config, life, max_life)))
+	data["kind"] = "spotlight"
+	data["fieldLayer"] = true
+	data["imageLayers"] = layers
+	data["formalVisualRoles"] = _stage2_visual_roles(["areaFloor", "areaLight"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func center_stage_finish_visual_fx_data(pos: Vector2, life: float, max_life: float, radius: float, visuals: Dictionary) -> Dictionary:
+	var data := pin_burst_fx_data(pos, life, max_life)
+	var config := _visual_config(visuals, "finish")
+	if config.is_empty():
+		return data
+	var base_radius := maxf(1.0, float(config.get("baseRadius", radius)))
+	var progress := clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var scale_in := lerpf(float(config.get("scaleInStart", 0.70)), 1.0, progress)
+	var scaled_config := _stage2_visual_scaled_config(config, maxf(0.1, radius / base_radius) * scale_in)
+	data["imageLayers"] = [_visual_image_layer("finish", scaled_config, pos, 0.0, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["finish"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func great_grassland_wave_visual_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, size_scale: float, area_rate: float, distance_ratio: float, bounces_left: int, visuals: Dictionary) -> Dictionary:
+	var data := kusa_wave_fx_data(pos, dir, life, max_life, size_scale, distance_ratio, bounces_left)
+	var config := _visual_config(visuals, "wave")
+	if config.is_empty():
+		return data
+	var scaled_config := _stage2_visual_scaled_config(config, maxf(0.1, size_scale * area_rate))
+	data["imageLayers"] = [_visual_directional_image_layer("wave", scaled_config, pos, dir, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["wave"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func comment_lockdown_projectile_visual_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, visuals: Dictionary) -> Dictionary:
+	var data := comment_pin_fx_data(pos, dir, life, max_life)
+	data["imagePath"] = ""
+	var config := _visual_config(visuals, "projectile")
+	if config.is_empty():
+		return data
+	data["imageLayers"] = [_visual_directional_image_layer("projectile", config, pos, dir, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["projectile"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func comment_lockdown_bind_visual_fx_data(pos: Vector2, life: float, max_life: float, stun_active: bool, visuals: Dictionary) -> Dictionary:
+	var data := pin_burst_fx_data(pos, life, max_life)
+	var config := _visual_config(visuals, "bind")
+	if config.is_empty():
+		return data
+	var scale_rate := 1.0 if stun_active else float(config.get("weakScale", 0.78))
+	var alpha_rate := 1.0 if stun_active else float(config.get("weakAlpha", 0.62))
+	var scaled_config := _stage2_visual_scaled_config(config, scale_rate)
+	var alpha := _visual_alpha(config, life, max_life) * alpha_rate
+	data["imageLayers"] = [_visual_image_layer("bind", scaled_config, pos, 0.0, alpha)]
+	data["formalVisualRoles"] = _stage2_visual_roles(["bind"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	data["bindStunActive"] = stun_active
+	return data
+
+static func comment_lockdown_ng_hit_visual_fx_data(pos: Vector2, life: float, max_life: float, visuals: Dictionary) -> Dictionary:
+	var data := pin_burst_fx_data(pos, life, max_life)
+	var config := _visual_config(visuals, "ngHit")
+	if config.is_empty():
+		return data
+	var progress := clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var scaled_config := _stage2_visual_scaled_config(config, lerpf(float(config.get("scaleInStart", 0.72)), 1.0, progress))
+	data["imageLayers"] = [_visual_image_layer("ngHit", scaled_config, pos, 0.0, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["ngHit"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func emote_festival_mine_visual_fx_data(pos: Vector2, life: float, max_life: float, radius: float, visuals: Dictionary) -> Dictionary:
+	var data := emote_mine_fx_data(pos, life, max_life, radius)
+	data["imagePath"] = ""
+	data["fieldLayer"] = true
+	var config := _visual_config(visuals, "mine")
+	if config.is_empty():
+		return data
+	var pulse := 1.0 + (sin(life * 8.0) * 0.5 + 0.5) * (float(config.get("pulseScale", 1.04)) - 1.0)
+	var scaled_config := _stage2_visual_scaled_config(config, pulse)
+	data["imageLayers"] = [_visual_image_layer("mine", scaled_config, pos + Vector2(0.0, -2.0), 0.0, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["mine"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func emote_festival_burst_visual_fx_data(pos: Vector2, life: float, max_life: float, radius: float, chain: bool, visuals: Dictionary) -> Dictionary:
+	var data := emote_burst_fx_data(pos, life, max_life, radius)
+	var config := _visual_config(visuals, "explosion")
+	if config.is_empty():
+		return data
+	var base_radius := maxf(1.0, float(config.get("baseRadius", radius)))
+	var progress := clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var chain_rate := 0.88 if chain else 1.0
+	var scaled_config := _stage2_visual_scaled_config(config, maxf(0.1, radius / base_radius) * chain_rate * lerpf(float(config.get("scaleInStart", 0.58)), 1.0, progress))
+	var alpha_rate := 0.78 if chain else 1.0
+	data["imageLayers"] = [_visual_image_layer("explosion", scaled_config, pos, 0.0, _visual_alpha(config, life, max_life) * alpha_rate)]
+	data["formalVisualRoles"] = _stage2_visual_roles(["explosion"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func emote_festival_chain_visual_fx_data(from_pos: Vector2, to_pos: Vector2, life: float, max_life: float, visuals: Dictionary) -> Dictionary:
+	var config := _visual_config(visuals, "chain")
+	var data := {
+		"kind": "emote_festival_chain", "pos": from_pos.lerp(to_pos, 0.5),
+		"from": from_pos, "to": to_pos, "life": life, "maxLife": max_life,
+		"lineStart": from_pos, "lineEnd": to_pos,
+		"lineColor": Color(0.78, 0.34, 1.0, 0.72), "lineWidth": 3.0
+	}
+	if config.is_empty():
+		return data
+	var distance := from_pos.distance_to(to_pos)
+	var chain_size: Array = config.get("size", [240, 40]) as Array
+	var base_length := maxf(1.0, float(chain_size[0]))
+	var scaled_config := _stage2_visual_scaled_config(config, maxf(0.1, distance / base_length))
+	var base_thickness := maxf(1.0, float(config.get("baseThickness", 40.0)))
+	scaled_config["size"] = [maxf(1.0, distance), float(chain_size[1]) * (base_thickness / maxf(1.0, float(chain_size[1])))]
+	scaled_config["scale"] = 1.0
+	data["imageLayers"] = [_visual_directional_image_layer("chain", scaled_config, from_pos.lerp(to_pos, 0.5), to_pos - from_pos, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["chain"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func all_block_laser_visual_fx_data(pos: Vector2, dir: Vector2, hit: Vector2, life: float, max_life: float, range_value: float, width: float, hit_count: int, visuals: Dictionary) -> Dictionary:
+	var data := ng_word_laser_fx_data(pos, dir, life, max_life, range_value, width, hit_count)
+	var config := _visual_config(visuals, "beam")
+	if config.is_empty():
+		return data
+	var direction := dir.normalized()
+	if direction.length() < 0.1:
+		direction = Vector2.RIGHT
+	var actual_hit := hit
+	if actual_hit.distance_to(pos) <= 0.01:
+		actual_hit = pos + direction * range_value
+	var distance := pos.distance_to(actual_hit)
+	var base_size := config.get("size", [875, 72]) as Array
+	var base_width := maxf(1.0, float(config.get("baseWidth", 60.0)))
+	var scaled_config := config.duplicate(true)
+	scaled_config["size"] = [maxf(1.0, distance), float(base_size[1]) * width / base_width]
+	data["imageLayers"] = [_visual_directional_image_layer("beam", scaled_config, pos, direction, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["beam"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func all_block_laser_flash_visual_fx_data(pos: Vector2, life: float, max_life: float, visuals: Dictionary) -> Dictionary:
+	var data := pin_burst_fx_data(pos, life, max_life)
+	var config := _visual_config(visuals, "flash")
+	if config.is_empty():
+		return data
+	var progress := clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var scaled_config := _stage2_visual_scaled_config(config, lerpf(float(config.get("scaleInStart", 0.72)), 1.0, progress))
+	data["imageLayers"] = [_visual_image_layer("flash", scaled_config, pos, 0.0, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["flash"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func listener_assembly_visual_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, area_rate: float, visuals: Dictionary, motion_phase: float = 0.0) -> Dictionary:
+	var data := listener_summon_fx_data(pos, dir, life, max_life, area_rate)
+	data["imagePath"] = ""
+	var bob := sin(life * 10.0 + motion_phase) * 2.0
+	var visual_scale := clampf(area_rate, 1.0, 1.60)
+	var normalized_dir: Vector2 = Vector2(dir).normalized()
+	if normalized_dir.length() < 0.1:
+		normalized_dir = Vector2.RIGHT
+	data["imagePos"] = pos + Vector2(0.0, bob - 4.0)
+	data["trailStart"] = pos + Vector2(0.0, bob) - normalized_dir * 7.0 * visual_scale
+	data["trailEnd"] = pos + Vector2(0.0, bob) + normalized_dir * 23.0 * visual_scale
+	data["motionPhase"] = motion_phase
+	var config := _visual_config(visuals, "unit")
+	if config.is_empty():
+		return data
+	var scaled_config := _stage2_visual_scaled_config(config, clampf(area_rate, 1.0, 1.60))
+	data["imageLayers"] = [_visual_directional_image_layer("unit", scaled_config, pos + Vector2(0.0, bob - 4.0), dir, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["unit"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
+static func listener_assembly_spawn_visual_fx_data(pos: Vector2, dir: Vector2, life: float, max_life: float, visuals: Dictionary) -> Dictionary:
+	var data := listener_burst_fx_data(pos, life, max_life)
+	var config := _visual_config(visuals, "spawn")
+	if config.is_empty():
+		return data
+	var progress := clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
+	var scaled_config := _stage2_visual_scaled_config(config, lerpf(float(config.get("scaleInStart", 0.72)), 1.0, progress))
+	data["imageLayers"] = [_visual_directional_image_layer("spawn", scaled_config, pos, dir, _visual_alpha(config, life, max_life))]
+	data["formalVisualRoles"] = _stage2_visual_roles(["spawn"])
+	data["suppressProceduralWhenImageLoaded"] = true
+	return data
+
 static func enemy_defeat_fx_data(pos: Vector2, life: float, max_life: float, radius: float, is_boss: bool) -> Dictionary:
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var progress: float = clampf(1.0 - life / maxf(0.01, max_life), 0.0, 1.0)
@@ -4438,6 +4659,8 @@ static func _visual_pivot(config: Dictionary) -> Vector2:
 	return Vector2(0.5, 0.5)
 
 static func _visual_rotation(direction: Vector2, config: Dictionary) -> float:
+	if String(config.get("rotationMode", "directional")) == "screen":
+		return deg_to_rad(float(config.get("screenRotationDegrees", 0.0)))
 	var dir := direction.normalized()
 	if dir.length() < 0.1:
 		dir = Vector2.RIGHT
@@ -4640,6 +4863,10 @@ static func moderator_shield_fx_data(pos: Vector2, direction: Vector2, progress:
 			panel_visual["scale"] = float(panel_visual.get("scale", 1.0)) * float(panel.get("scale", 1.0))
 			if panel.has("rotationOffsetDegrees"):
 				panel_visual["rotationOffsetDegrees"] = float(panel_visual.get("rotationOffsetDegrees", 0.0)) + float(panel.get("rotationOffsetDegrees", 0.0))
+			if panel.has("rotationMode"):
+				panel_visual["rotationMode"] = String(panel.get("rotationMode", "directional"))
+			if panel.has("screenRotationDegrees"):
+				panel_visual["screenRotationDegrees"] = float(panel.get("screenRotationDegrees", 0.0))
 			if panel.has("zIndex"):
 				panel_visual["zIndex"] = int(panel.get("zIndex", panel_visual.get("zIndex", 0)))
 			var panel_scale := 1.0
@@ -4665,7 +4892,8 @@ static func moderator_shield_fx_data(pos: Vector2, direction: Vector2, progress:
 			if has_local_panels:
 				var local_forward_offset := float(panel.get("localForwardOffset", 0.0))
 				var local_side_offset := float(panel.get("localSideOffset", 0.0))
-				panel_pos = pos + dir * local_forward_offset + side * local_side_offset
+				var screen_offset := _vector2_from_config(panel.get("screenOffset", Vector2.ZERO), Vector2.ZERO)
+				panel_pos = pos + dir * local_forward_offset + side * local_side_offset + screen_offset
 				panel_visual["flipX"] = bool(panel.get("flipX", false))
 			else:
 				panel_direction = dir.rotated(deg_to_rad(float(panel.get("angleOffsetDegrees", 0.0))))
@@ -4673,10 +4901,14 @@ static func moderator_shield_fx_data(pos: Vector2, direction: Vector2, progress:
 				var panel_forward_offset := float(panel.get("forwardOffset", maxf(12.0, radius * 0.34)))
 				var panel_side_offset := float(panel.get("sideOffset", 0.0))
 				panel_pos = pos + panel_direction * panel_forward_offset + panel_side * panel_side_offset
-			image_layers.append(_visual_image_layer(panel_key, panel_visual, panel_pos, _visual_rotation(panel_direction, panel_visual), panel_alpha))
+			var panel_rotation := _visual_rotation(panel_direction, panel_visual)
+			image_layers.append(_visual_image_layer(panel_key, panel_visual, panel_pos, panel_rotation, panel_alpha))
 			var outline_depth := minf(_visual_size(panel_visual, Vector2(thickness, width)).x, maxf(72.0, radius * 1.25))
 			var outline_width := minf(_visual_size(panel_visual, Vector2(thickness, width)).y, maxf(82.0, radius * 1.10))
-			idle_outlines.append(_shield_panel_outline(panel_pos, panel_direction, outline_depth, outline_width))
+			var outline_direction := panel_direction
+			if String(panel_visual.get("rotationMode", "directional")) == "screen":
+				outline_direction = Vector2.RIGHT.rotated(panel_rotation)
+			idle_outlines.append(_shield_panel_outline(panel_pos, outline_direction, outline_depth, outline_width))
 			idle_outline_roles.append(panel_key if has_local_panels else ("center" if panel_key == "main" else panel_key))
 	elif not include_wave:
 		idle_outlines.append(_shield_panel_outline(pos, dir, thickness * 1.10, width * 1.03, deploy_scale))
@@ -5102,6 +5334,144 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 				"text": String(fx_item.get("text", "コメント欄が加速中！"))
 			})
 			continue
+		var stage2_kind := String(fx_item.get("kind", ""))
+		if stage2_kind in ["full_voice_dome_wave", "full_voice_dome_pulse"]:
+			var dome_data := full_voice_dome_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 0.42)), float(fx_item.get("maxLife", 0.42)),
+				float(fx_item.get("radius", 145.0)), int(fx_item.get("hitCount", 0)),
+				stage2_kind == "full_voice_dome_pulse", fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(dome_data)
+			continue
+		if stage2_kind == "center_stage_area":
+			var stage_data := center_stage_area_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 2.4)), float(fx_item.get("maxLife", 2.4)),
+				float(fx_item.get("radius", 105.0)), fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(stage_data)
+			continue
+		if stage2_kind == "center_stage_finish":
+			var finish_data := center_stage_finish_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 0.30)), float(fx_item.get("maxLife", 0.30)),
+				float(fx_item.get("radius", 105.0)), fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(finish_data)
+			continue
+		if stage2_kind == "center_stage_tick":
+			var stage_tick_data := spotlight_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("life", 0.24)), float(fx_item.get("maxLife", 0.24)), float(fx_item.get("radius", 105.0)))
+			stage_tick_data["kind"] = "spotlight"
+			items.append(stage_tick_data)
+			continue
+		if stage2_kind == "great_grassland_wave":
+			var grass_max_distance := maxf(1.0, float(fx_item.get("maxDistance", fx_item.get("range", 800.0))))
+			var grass_data := great_grassland_wave_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item.get("life", 1.0)), float(fx_item.get("maxLife", 1.0)),
+				float(fx_item.get("sizeScale", 1.0)), float(fx_item.get("attackAreaRate", 1.0)),
+				float(fx_item.get("distanceTraveled", 0.0)) / grass_max_distance,
+				int(fx_item.get("bouncesLeft", 0)), fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(grass_data)
+			continue
+		if stage2_kind == "comment_lockdown_projectile":
+			var lockdown_data := comment_lockdown_projectile_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item.get("life", 0.45)), float(fx_item.get("maxLife", 0.45)),
+				fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(lockdown_data)
+			continue
+		if stage2_kind == "comment_lockdown_bind":
+			var bind_data := comment_lockdown_bind_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 2.5)), float(fx_item.get("maxLife", 2.5)),
+				bool(fx_item.get("stunActive", false)), fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(bind_data)
+			continue
+		if stage2_kind == "comment_lockdown_followup_hit":
+			var followup_hit_data := comment_lockdown_ng_hit_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 0.22)), float(fx_item.get("maxLife", 0.22)),
+				fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(followup_hit_data)
+			continue
+		if stage2_kind == "comment_lockdown_hit":
+			var lockdown_hit_data := pin_burst_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("life", 0.22)), float(fx_item.get("maxLife", 0.22)))
+			lockdown_hit_data["kind"] = "pin_burst"
+			items.append(lockdown_hit_data)
+			continue
+		if stage2_kind == "emote_festival_mine":
+			var festival_mine_data := emote_festival_mine_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 12.0)), float(fx_item.get("maxLife", 12.0)),
+				float(fx_item.get("radius", 160.0)), fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(festival_mine_data)
+			continue
+		if stage2_kind == "emote_festival_burst":
+			var festival_burst_data := emote_festival_burst_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 0.28)), float(fx_item.get("maxLife", 0.28)),
+				float(fx_item.get("radius", 160.0)), bool(fx_item.get("chain", false)),
+				fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(festival_burst_data)
+			continue
+		if stage2_kind == "emote_festival_chain":
+			var chain_from := Vector2(fx_item.get("from", fx_item.get("pos", Vector2.ZERO)))
+			var chain_to := Vector2(fx_item.get("to", fx_item.get("pos", Vector2.ZERO)))
+			var chain_data := emote_festival_chain_visual_fx_data(
+				chain_from, chain_to,
+				float(fx_item.get("life", 0.28)), float(fx_item.get("maxLife", 0.28)),
+				fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(chain_data)
+			continue
+		if stage2_kind == "all_block_laser":
+			var block_laser_data := all_block_laser_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				Vector2(fx_item.get("hit", Vector2.ZERO)),
+				float(fx_item.get("life", 0.25)), float(fx_item.get("maxLife", 0.25)),
+				float(fx_item.get("range", 875.0)), float(fx_item.get("width", 60.0)),
+				int(fx_item.get("count", 0)), fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(block_laser_data)
+			continue
+		if stage2_kind == "all_block_laser_flash":
+			var block_laser_flash_data := all_block_laser_flash_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)),
+				float(fx_item.get("life", 0.18)), float(fx_item.get("maxLife", 0.18)),
+				fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(block_laser_flash_data)
+			continue
+		if stage2_kind == "listener_assembly":
+			var assembly_data := listener_assembly_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item.get("life", 9.0)), float(fx_item.get("maxLife", 9.0)),
+				float(fx_item.get("attackAreaRate", 1.0)), fx_item.get("visuals", {}) as Dictionary,
+				float(fx_item.get("motionPhase", 0.0))
+			)
+			items.append(assembly_data)
+			continue
+		if stage2_kind == "listener_assembly_spawn":
+			var assembly_spawn_data := listener_assembly_spawn_visual_fx_data(
+				Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)),
+				float(fx_item.get("life", 0.28)), float(fx_item.get("maxLife", 0.28)),
+				fx_item.get("visuals", {}) as Dictionary
+			)
+			items.append(assembly_spawn_data)
+			continue
+		if stage2_kind == "stage2_bullet_clear":
+			var stage2_clear_data := moderator_shield_bullet_clear_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("life", 0.18)), float(fx_item.get("maxLife", 0.18)), {})
+			stage2_clear_data["kind"] = "moderator_shield_bullet_clear"
+			items.append(stage2_clear_data)
+			continue
 		if String(fx_item.get("kind", "")) in ["moderator_shield_deploy", "moderator_fortress_deploy"]:
 			items.append(moderator_shield_deploy_fx_data(
 				Vector2(fx_item.get("pos", Vector2.ZERO)), Vector2(fx_item.get("dir", Vector2.RIGHT)),
@@ -5403,19 +5773,29 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 				float(fx_item.get("seed", 0.0))
 			))
 			continue
-		var data: Dictionary = hit_fx_data(Vector2(fx_item["pos"]), Vector2(fx_item["dir"]), Vector2(fx_item["hit"]), float(fx_item["range"]), float(fx_item["life"]), float(fx_item.get("arcAngle", 120.0)))
+		# Legacy/generic effects are not required to carry every directional hit
+		# field.  Keep the visual fallback tolerant so an incomplete FX record
+		# cannot crash the whole world draw pass.
+		var generic_pos := Vector2(fx_item.get("pos", Vector2.ZERO))
+		var generic_dir := Vector2(fx_item.get("dir", Vector2.RIGHT))
+		if generic_dir.length_squared() < 0.0001:
+			generic_dir = Vector2.RIGHT
+		var generic_range := float(fx_item.get("range", 110.0))
+		var generic_hit := Vector2(fx_item.get("hit", generic_pos + generic_dir.normalized() * generic_range))
+		var generic_life := float(fx_item.get("life", 0.24))
+		var data: Dictionary = hit_fx_data(generic_pos, generic_dir, generic_hit, generic_range, generic_life, float(fx_item.get("arcAngle", 120.0)))
 		var is_judgement_hammer: bool = bool(fx_item.get("judgement", false))
-		data["showBurst"] = int(fx_item["count"]) > 0
+		data["showBurst"] = int(fx_item.get("count", 0)) > 0
 		data["showHammer"] = bool(fx_item.get("hammer", false))
 		data["hammerSprite"] = "ban_judgement" if is_judgement_hammer else "ban_hammer"
 		if is_judgement_hammer:
 			var judgement_scale: float = 1.82
-			var fx_pos: Vector2 = Vector2(fx_item["pos"])
-			var fx_dir: Vector2 = Vector2(fx_item["dir"]).normalized()
+			var fx_pos: Vector2 = generic_pos
+			var fx_dir: Vector2 = generic_dir.normalized()
 			if fx_dir.length() < 0.1:
 				fx_dir = Vector2.RIGHT
-			var fx_range: float = float(fx_item["range"])
-			var fx_life: float = float(fx_item["life"])
+			var fx_range: float = generic_range
+			var fx_life: float = generic_life
 			var fx_arc_angle: float = float(fx_item.get("arcAngle", 120.0))
 			var fx_half_arc: float = deg_to_rad(fx_arc_angle * 0.5)
 			var fx_swing_progress: float = clampf(1.0 - fx_life / 0.24, 0.0, 1.0)
@@ -5859,6 +6239,10 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		return [
 			{"kind": "line", "prefix": "trail"}
 		]
+	if String(data.get("kind", "")) == "emote_festival_chain":
+		return [
+			{"kind": "line", "prefix": "line"}
+		]
 	if String(data.get("kind", "")) == "pin_burst" or String(data.get("kind", "")) == "emote_burst" or String(data.get("kind", "")) == "listener_burst":
 		return [
 			{"kind": "circle", "prefix": "outer"},
@@ -5965,6 +6349,10 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 	return parts
 
 static func hit_fx_procedural_parts(data: Dictionary, loaded_visual_roles: Dictionary = {}, valid_image_line_roles: Dictionary = {}) -> Array:
+	if bool(data.get("suppressProceduralWhenImageLoaded", false)):
+		for role_item in (data.get("formalVisualRoles", []) as Array):
+			if bool(loaded_visual_roles.get(String(role_item), false)):
+				return []
 	var result: Array = []
 	for part_item in hit_fx_parts(data):
 		var part: Dictionary = part_item as Dictionary

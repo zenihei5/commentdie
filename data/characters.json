@@ -1,6 +1,13 @@
 [
   {
     "id": "ban_chan",
+    "codexProfile": {
+      "description": "赤羽ばんり：BANハンマーで敵をまとめて薙ぎ払う近距離型。敵弾を消しながら前線を押し上げるのが得意。",
+      "likes": [],
+      "dislikes": [],
+      "streamStyle": ""
+    },
+    "codexType": "近距離",
     "unitId": "rookie_unit",
     "comboModuleId": "ban_finisher",
     "comboExecutionPriority": 60,
@@ -75,6 +82,13 @@
   },
   {
     "id": "superchat_chan",
+    "codexProfile": {
+      "description": "星投すぱな：スパチャ弾で離れた敵を狙う遠距離型。安全な距離から安定して攻撃できる。",
+      "likes": [],
+      "dislikes": [],
+      "streamStyle": ""
+    },
+    "codexType": "遠距離",
     "unitId": "rookie_unit",
     "comboModuleId": "superchat_firepower",
     "comboExecutionPriority": 40,
@@ -149,6 +163,13 @@
   },
   {
     "id": "maro_chan",
+    "codexProfile": {
+      "description": "白綿まろん：コメントブーメランを周囲に展開する支援型。敵弾処理と集団戦を得意とする。",
+      "likes": [],
+      "dislikes": [],
+      "streamStyle": ""
+    },
+    "codexType": "支援",
     "unitId": "rookie_unit",
     "comboModuleId": "maro_area",
     "comboExecutionPriority": 30,
@@ -224,6 +245,13 @@
   },
   {
     "id": "aosumi_kyasumi",
+    "codexProfile": {
+      "description": "青澄きゃすみ：モデレーターシールドで周囲を守る防御型。敵弾や接近敵への対応力が高い。",
+      "likes": [],
+      "dislikes": [],
+      "streamStyle": ""
+    },
+    "codexType": "防御",
     "unitId": "senior_unit",
     "comboModuleId": "kyasumi_defense",
     "comboExecutionPriority": 10,
@@ -285,6 +313,13 @@
   },
   {
     "id": "akarine_rizumu",
+    "codexProfile": {
+      "description": "灯音りずむ：ファンサバトンによる高速連撃を得意とする高機動型。接近と離脱を繰り返して戦う。",
+      "likes": [],
+      "dislikes": [],
+      "streamStyle": ""
+    },
+    "codexType": "高機動",
     "unitId": "senior_unit",
     "comboModuleId": "rizumu_followup",
     "comboExecutionPriority": 50,
@@ -346,6 +381,13 @@
   },
   {
     "id": "shizuki_miimu",
+    "codexProfile": {
+      "description": "紫月みぃむ：釣りサムネロッドで敵やアイテムの流れを操るテクニカル型。",
+      "likes": [],
+      "dislikes": [],
+      "streamStyle": ""
+    },
+    "codexType": "テクニカル",
     "unitId": "senior_unit",
     "comboModuleId": "miimu_gather",
     "comboExecutionPriority": 20,

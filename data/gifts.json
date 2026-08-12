@@ -121,6 +121,7 @@
   },
   {
     "id": "stream_power",
+    "codexStats": ["damageMultiplier"],
     "displayName": "配信パワー",
     "description": "全武器の攻撃力 +10% / Lv",
     "rarity": "common",
@@ -132,6 +133,7 @@
   },
   {
     "id": "bullet_support",
+    "codexStats": ["projectileCountBonus"],
     "displayName": "弾幕支援",
     "description": "弾属性武器の発射数・生成数 +1",
     "rarity": "common",
@@ -143,6 +145,7 @@
   },
   {
     "id": "high_speed_connection",
+    "codexStats": ["attackIntervalMultiplier"],
     "displayName": "高速回線",
     "description": "全武器の攻撃間隔 -8% / Lv",
     "rarity": "common",
@@ -154,6 +157,7 @@
   },
   {
     "id": "wide_angle",
+    "codexStats": ["rangeAreaMultiplier"],
     "displayName": "ワイド画角",
     "description": "範囲・射程・回転半径 +10% / Lv",
     "rarity": "common",
@@ -165,6 +169,7 @@
   },
   {
     "id": "light_sneakers",
+    "codexStats": ["moveSpeedMultiplier", "dashCooldownMultiplier"],
     "displayName": "軽量スニーカー",
     "description": "移動速度 +5%、ダッシュCT -5% / Lv",
     "rarity": "common",
@@ -176,6 +181,7 @@
   },
   {
     "id": "sweet_tooth",
+    "codexStats": ["goodEffectMultiplier", "kusoDurationMultiplier"],
     "displayName": "甘党",
     "description": "マシュマロのメリット効果強化、クソマロ短縮",
     "rarity": "common",
@@ -187,6 +193,7 @@
   },
   {
     "id": "mental_care",
+    "codexStats": ["maxHpBonus"],
     "displayName": "メンタルケア",
     "description": "最大HPが上がる。取得時に少し回復する",
     "rarity": "common",
@@ -198,6 +205,7 @@
   },
   {
     "id": "notification_bell",
+    "codexStats": ["expMultiplier"],
     "displayName": "通知ベル",
     "description": "獲得EXPが増える",
     "rarity": "common",
@@ -209,6 +217,7 @@
   },
   {
     "id": "comment_radar",
+    "codexStats": ["pickupRangeBonus", "pickupSpeedMultiplier"],
     "displayName": "コメントレーダー",
     "description": "アイテムを拾いやすくなる",
     "rarity": "common",
@@ -220,6 +229,7 @@
   },
   {
     "id": "mini_humidifier",
+    "codexStats": ["healInterval", "healAmount"],
     "displayName": "ミニ加湿器",
     "description": "時間経過で少しずつ回復する。被弾すると少しの間止まる",
     "rarity": "common",
