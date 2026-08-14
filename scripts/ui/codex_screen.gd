@@ -6,6 +6,8 @@ extends Control
 const CodexPresentationSystemScript := preload("res://scripts/systems/codex_presentation_system.gd")
 const CommonLightUiStyleScript := preload("res://scripts/ui/common_light_ui_style.gd")
 const FRONT_SCREEN_BACKGROUND_PATH := "res://assets/title/title_back.png"
+const CODEX_HEADER_ICON_PATH := "res://assets/generated/codex_icons_v1/codex_header_icon.png"
+const CODEX_HEADER_ICON_PADDING_RATIO := 0.02
 const NORMAL_LAYOUT_MIN_WIDTH := 1400.0
 const CHARACTER_CONTENT_PADDING_RATIO := 0.04
 
@@ -335,12 +337,32 @@ func _build_ui() -> void:
 	var header_margin := MarginContainer.new()
 	header_margin.add_theme_constant_override("margin_left", 18)
 	header_margin.add_theme_constant_override("margin_right", 18)
-	header_margin.add_theme_constant_override("margin_top", 3)
-	header_margin.add_theme_constant_override("margin_bottom", 3)
+	header_margin.add_theme_constant_override("margin_top", 0)
+	header_margin.add_theme_constant_override("margin_bottom", 0)
 	_header_panel.add_child(header_margin)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 12)
 	header_margin.add_child(header)
+	var header_icon_slot := Control.new()
+	header_icon_slot.name = "CodexHeaderIconSlot"
+	header_icon_slot.custom_minimum_size = Vector2(74, 46)
+	header_icon_slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header_icon_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header_icon_slot.clip_contents = false
+	header_icon_slot.z_index = 2
+	header.add_child(header_icon_slot)
+	var header_icon := TextureRect.new()
+	header_icon.name = "CodexHeaderIcon"
+	header_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	header_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	header_icon.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	header_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	header_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	header_icon.z_index = 2
+	header_icon.texture = _load_codex_header_icon()
+	header_icon.position = Vector2(-2, -3)
+	header_icon.size = Vector2(78, 52)
+	header_icon_slot.add_child(header_icon)
 	var heading := Label.new()
 	heading.text = "配信図鑑"
 	CommonLightUiStyleScript.apply_font(heading, 32, true, CommonLightUiStyleScript.TEXT_PRIMARY)
@@ -669,6 +691,28 @@ func _build_ui() -> void:
 	_completion_banner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_completion_banner)
 	_apply_layout_metrics()
+
+func _load_codex_header_icon() -> Texture2D:
+	var source_texture := load(CODEX_HEADER_ICON_PATH) as Texture2D
+	if source_texture == null:
+		return null
+	var source_image := source_texture.get_image()
+	if source_image == null or source_image.is_empty():
+		return source_texture
+	var used_rect := source_image.get_used_rect()
+	if used_rect.size.x <= 0 or used_rect.size.y <= 0:
+		return source_texture
+	var padding_x := maxi(2, ceili(float(used_rect.size.x) * CODEX_HEADER_ICON_PADDING_RATIO))
+	var padding_y := maxi(2, ceili(float(used_rect.size.y) * CODEX_HEADER_ICON_PADDING_RATIO))
+	var region_start := Vector2i(maxi(0, used_rect.position.x - padding_x), maxi(0, used_rect.position.y - padding_y))
+	var region_end := Vector2i(mini(source_image.get_width(), used_rect.end.x + padding_x), mini(source_image.get_height(), used_rect.end.y + padding_y))
+	var region := Rect2i(region_start, region_end - region_start)
+	if region.size.x <= 0 or region.size.y <= 0:
+		return source_texture
+	var atlas := AtlasTexture.new()
+	atlas.atlas = source_texture
+	atlas.region = Rect2(region)
+	return atlas
 
 func _add_layout_spacer(height: float) -> void:
 	var spacer := Control.new()

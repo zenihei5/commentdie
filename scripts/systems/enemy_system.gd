@@ -158,8 +158,21 @@ static func spawn_interval(context: Dictionary) -> float:
 static func effective_wave_time(elapsed: float, quick_test_mode: bool) -> float:
 	return elapsed * 3.0 if quick_test_mode else elapsed
 
-static func pick_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator, stream_frame_id: String = "", active_genre_event: String = "", upper_enemy_weight: float = 1.0) -> String:
-	var kind := _pick_wave_enemy_base(elapsed, quick_test_mode, rng, stream_frame_id, active_genre_event)
+static func pick_wave_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator, stream_frame_id: String = "", active_genre_event: String = "", upper_enemy_weight: float = 1.0, difficulty_runtime: Dictionary = {}) -> String:
+	var picker_elapsed := elapsed
+	var picker_quick_test_mode := quick_test_mode
+	if HardModeSystemScript.is_expert_runtime(difficulty_runtime) and not quick_test_mode:
+		var config: Dictionary = difficulty_runtime.get("difficultyConfig", {}) as Dictionary
+		var lead_seconds := 0.0
+		var lead_start := maxf(0.0, float(config.get("strongEnemySelectionLeadStartSeconds", 30.0)))
+		if elapsed >= lead_start:
+			lead_seconds = maxf(lead_seconds, float(config.get("strongEnemySelectionLeadSeconds", 15.0)))
+		# A stage profile may move the picker phase independently of the shared
+		# EXPERT lead.  Use the larger lead once so zatsudan does not receive a
+		# hidden double lead at the generic threshold.
+		lead_seconds = maxf(lead_seconds, HardModeSystemScript.stage_profile_enemy_picker_lead(difficulty_runtime, elapsed))
+		picker_elapsed += lead_seconds
+	var kind := _pick_wave_enemy_base(picker_elapsed, picker_quick_test_mode, rng, stream_frame_id, active_genre_event)
 	if upper_enemy_weight < 1.0 and _is_upper_enemy_kind(kind) and rng.randf() >= upper_enemy_weight:
 		return _fallback_wave_enemy(stream_frame_id, active_genre_event)
 	if upper_enemy_weight <= 1.0:
@@ -262,8 +275,18 @@ static func pick_bullet_hell_enemy(elapsed: float, quick_test_mode: bool, rng: R
 		return "enemy_bullet_drone"
 	return "enemy_dot_invader"
 
-static func pick_race_event_enemy(_elapsed: float, _quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
-	return "enemy_wrong_way_kart" if rng.randf() < 0.62 else "enemy_jammer_cone"
+static func pick_race_event_enemy(_elapsed: float, _quick_test_mode: bool, rng: RandomNumberGenerator, difficulty_runtime: Dictionary = {}) -> String:
+	var wrong_way_weight := 0.62
+	var jammer_weight := 0.38
+	var event_config := HardModeSystemScript.stage_profile_event_config(difficulty_runtime, "race")
+	var weights: Dictionary = event_config.get("enemyWeights", {}) as Dictionary
+	if not weights.is_empty():
+		wrong_way_weight = maxf(0.0, float(weights.get("wrongWay", wrong_way_weight)))
+		jammer_weight = maxf(0.0, float(weights.get("jammer", jammer_weight)))
+	var total_weight := wrong_way_weight + jammer_weight
+	if total_weight <= 0.0:
+		return "enemy_wrong_way_kart"
+	return "enemy_wrong_way_kart" if rng.randf() < wrong_way_weight / total_weight else "enemy_jammer_cone"
 
 static func pick_song_enemy(elapsed: float, quick_test_mode: bool, rng: RandomNumberGenerator) -> String:
 	var t: float = effective_wave_time(elapsed, quick_test_mode)
@@ -1301,7 +1324,7 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 		enemy["max_hp"] = float(enemy.get("max_hp", enemy.get("hp", 1.0))) * hp_rate
 		enemy["speed"] = float(enemy.get("speed", 0.0)) * float(profile.get("speed", 1.0))
 		enemy["relayUpperWeight"] = float(profile.get("upperWeight", 1.0))
-	if HardModeSystemScript.is_hard_target(target) and not bool(enemy.get("isBoss", false)):
+	if HardModeSystemScript.is_high_difficulty_target(target) and not bool(enemy.get("isBoss", false)):
 		var hard_role := "finalBossSummon" if bool(enemy.get("relayBossSummon", false)) else "normal"
 		var hard_runtime := HardModeSystemScript.runtime_for_target(target)
 		HardModeSystemScript.apply_enemy_runtime_stats(enemy, hard_runtime, hard_role)
@@ -1956,7 +1979,7 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 	return result
 
 static func _apply_hard_projectile_rates_for_target(target: Node, bullets: Array) -> void:
-	if not HardModeSystemScript.is_hard_target(target):
+	if not HardModeSystemScript.is_high_difficulty_target(target):
 		return
 	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
 	var enemies: Array = target.get("enemies") as Array

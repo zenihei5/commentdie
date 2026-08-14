@@ -71,12 +71,21 @@ func _test_weapon_models(weapons: Array) -> void:
 	_check(is_equal_approx(float(ban_level_five.get("damage", 0.0)), 16.8), "BAN hammer standard Lv5 damage is runtime-derived")
 	_check(is_equal_approx(float(ban_level_five.get("range", 0.0)), 245.025), "BAN hammer standard Lv5 range is runtime-derived")
 	_check(absf(float(ban_level_five.get("attackInterval", 0.0)) - 0.6636) < 0.001, "BAN hammer standard Lv5 interval is runtime-derived")
-	var kusa := WeaponSystemScript.codex_standard_stats_for_level(_find(weapons, "kusa_wave"), 5, false)
-	_check(is_equal_approx(float(kusa.get("damage", 0.0)), 12.0), "kusa Lv5 damage uses runtime table")
-	_check(is_equal_approx(float(kusa.get("attackInterval", 0.0)), 1.20), "kusa Lv5 interval uses runtime table")
-	_check(is_equal_approx(float(kusa.get("range", 0.0)), 750.0), "kusa Lv5 distance uses runtime table")
-	_check(is_equal_approx(float(kusa.get("sizeMultiplier", 0.0)), 1.45), "kusa Lv5 size uses runtime table")
-	_check(int(kusa.get("bounceCount", 0)) == 2, "kusa Lv5 bounces use runtime table")
+	var kusa_expectations: Array = [
+		{"damage": 5.0, "interval": 1.40, "distance": 900.0, "size": 1.00, "bounces": 1},
+		{"damage": 7.0, "interval": 1.35, "distance": 1200.0, "size": 1.10, "bounces": 2},
+		{"damage": 8.0, "interval": 1.30, "distance": 1550.0, "size": 1.25, "bounces": 3},
+		{"damage": 10.0, "interval": 1.25, "distance": 1950.0, "size": 1.40, "bounces": 4},
+		{"damage": 12.0, "interval": 1.20, "distance": 2400.0, "size": 1.55, "bounces": 5}
+	]
+	for index in range(kusa_expectations.size()):
+		var expected: Dictionary = kusa_expectations[index] as Dictionary
+		var kusa := WeaponSystemScript.codex_standard_stats_for_level(_find(weapons, "kusa_wave"), index + 1, false)
+		_check(is_equal_approx(float(kusa.get("damage", 0.0)), float(expected["damage"])), "kusa Lv%d damage uses runtime table" % (index + 1))
+		_check(is_equal_approx(float(kusa.get("attackInterval", 0.0)), float(expected["interval"])), "kusa Lv%d interval uses runtime table" % (index + 1))
+		_check(is_equal_approx(float(kusa.get("range", 0.0)), float(expected["distance"])), "kusa Lv%d distance uses runtime table" % (index + 1))
+		_check(is_equal_approx(float(kusa.get("sizeMultiplier", 0.0)), float(expected["size"])), "kusa Lv%d size uses runtime table" % (index + 1))
+		_check(int(kusa.get("bounceCount", 0)) == int(expected["bounces"]), "kusa Lv%d bounces use runtime table" % (index + 1))
 	var incomplete := Presentation.weapon_performance_model({"id": "unknown", "maxLevel": 3, "codexStats": ["unknownStat", "damage"], "damage": 4.0, "attackInterval": 1.0, "range": 2.0}, false)
 	_check(not incomplete.is_empty(), "unknown weapon stat does not crash resolver")
 

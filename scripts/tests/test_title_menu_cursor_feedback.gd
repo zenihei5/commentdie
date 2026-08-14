@@ -1,6 +1,17 @@
 extends Node
 
 const GameScript := preload("res://scripts/game.gd")
+const HudTextSystemScript := preload("res://scripts/systems/hud_text_system.gd")
+
+class FakeShopManager extends RefCounted:
+	var unlocked := true
+	var points := 0
+
+	func is_unlocked() -> bool:
+		return unlocked
+
+	func current_points() -> int:
+		return points
 
 var failures: Array[String] = []
 
@@ -21,12 +32,16 @@ func _run_all_tests() -> void:
 	game.title_menu_index = 0
 	game.title_menu_focus_timer = 0.14
 	_check(GameScript.TITLE_MENU_BUTTON_SIZE == Vector2(306.0, 66.0), "title buttons use the shared 306x66 base size")
+	_check_approx(GameScript.TITLE_MENU_START_Y, 439.0, "title menu start y")
+	_check_approx(GameScript.TITLE_MENU_GAP, 12.0, "title menu gap")
 	var base_rects: Array[Rect2] = []
+	var expected_y: Array[float] = [439.0, 517.0, 595.0, 673.0, 751.0, 829.0]
 	for index in range(GameScript.TITLE_MENU_COUNT):
 		var base_rect: Rect2 = game._title_menu_button_rect(index)
 		base_rects.append(base_rect)
 		_check(base_rect.size == Vector2(306.0, 66.0), "title button %d base size" % index)
 		_check_approx(base_rect.get_center().x, 800.0, "title button %d center x" % index)
+		_check_approx(base_rect.position.y, expected_y[index], "title button %d y" % index)
 		var image_path := String(GameScript.TITLE_MENU_BUTTON_IMAGES[index])
 		var source_image := Image.load_from_file(ProjectSettings.globalize_path(image_path))
 		_check(source_image != null and not source_image.is_empty(), "title button %d source image loads" % index)
@@ -36,14 +51,24 @@ func _run_all_tests() -> void:
 	for index in range(1, base_rects.size()):
 		var previous_rect: Rect2 = base_rects[index - 1]
 		var current_rect: Rect2 = base_rects[index]
-		_check_approx(current_rect.position.y - previous_rect.end.y, 10.0, "title button %d gap" % index)
-	_check_approx(base_rects[0].position.y, 444.0, "title menu first visible y")
-	_check_approx(base_rects[5].end.y, 890.0, "title menu last visible bottom")
+		_check_approx(current_rect.position.y - previous_rect.end.y, 12.0, "title button %d gap" % index)
+	_check_approx(base_rects[0].position.y, 439.0, "title menu first visible y")
+	_check_approx(base_rects[5].end.y, 895.0, "title menu last visible bottom")
 	_check(game._title_button_index_at(base_rects[2].get_center()) == 2, "codex mouse hit uses the shared base rect")
 	var shop_status_rect := game._title_power_up_shop_status_rect(base_rects[1])
-	_check(base_rects[1].encloses(shop_status_rect), "shop status stays inside the shop base rect")
 	var codex_badge_rect := game._title_codex_new_badge_rect(base_rects[2])
+	_check(shop_status_rect.size == Vector2(96.0, 20.0), "shop badge uses the shared 96x20 minimum")
+	_check(codex_badge_rect.size == Vector2(96.0, 20.0), "codex NEW badge uses the shared 96x20 minimum")
+	_check(shop_status_rect.position - base_rects[1].position == Vector2(base_rects[1].size.x - 12.0 - shop_status_rect.size.x, -12.0), "shop badge uses the base rect anchor")
+	_check(codex_badge_rect.position - base_rects[2].position == Vector2(base_rects[2].size.x - 12.0 - codex_badge_rect.size.x, -12.0), "codex NEW badge uses the base rect anchor")
+	_check_approx(shop_status_rect.position.y + shop_status_rect.size.y - base_rects[1].position.y, 8.0, "shop badge overlaps the owner top edge by 8px")
+	_check_approx(codex_badge_rect.position.y + codex_badge_rect.size.y - base_rects[2].position.y, 8.0, "codex badge overlaps the owner top edge by 8px")
+	_check(not shop_status_rect.intersects(base_rects[0]) and not shop_status_rect.intersects(base_rects[2]), "shop badge stays clear of adjacent buttons")
 	_check(not codex_badge_rect.intersects(base_rects[1]) and not codex_badge_rect.intersects(base_rects[3]), "codex NEW badge stays clear of adjacent buttons")
+	for marker_rect in game._title_menu_side_marker_rects(1):
+		_check(not shop_status_rect.intersects(marker_rect), "shop badge stays clear of title markers")
+	for marker_rect in game._title_menu_side_marker_rects(2):
+		_check(not codex_badge_rect.intersects(marker_rect), "codex NEW badge stays clear of title markers")
 	game.title_menu_index = 2
 	var selected_draw_rect: Rect2 = game._title_menu_button_draw_rect(2)
 	_check_approx(selected_draw_rect.size.x / base_rects[2].size.x, 1.025, "selected title button keeps the existing 2.5 percent scale")
@@ -59,7 +84,7 @@ func _run_all_tests() -> void:
 	game.title_menu_marker_time = 0.2
 	_check_approx(float(game._title_menu_feedback(0).get("markerOffset", 0.0)), 2.0, "marker movement is capped at 2px")
 
-	var selection_rect := Rect2(100.0, 200.0, 264.0, 276.0)
+	var selection_rect := Rect2(Vector2(100.0, 200.0), GameScript.CHARACTER_SELECT_CARD_SIZE)
 	var selection_focus: Dictionary = game._pre_run_selection_focus_feedback(selection_rect, true, 0.25)
 	var selection_visual: Rect2 = selection_focus.get("visualRect", Rect2()) as Rect2
 	_check(selection_visual.size.x > selection_rect.size.x, "pre-run selected card is enlarged")
@@ -92,6 +117,30 @@ func _run_all_tests() -> void:
 	var visual_during_press: Rect2 = game._title_menu_button_draw_visual_rect(0)
 	_check(hit_before != visual_during_press, "press changes visual rect")
 	_check(game._title_button_hit_rect(0) == hit_before, "press does not change hit rect")
+	game.title_menu_index = 2
+	var badge_anchor_before: Rect2 = game._title_codex_new_badge_rect(base_rects[2])
+	var badge_from_selected_draw: Rect2 = game._title_codex_new_badge_rect(game._title_menu_button_draw_visual_rect(2))
+	_check(badge_anchor_before != badge_from_selected_draw, "selected draw rect differs from the base rect")
+	_check(game._title_codex_new_badge_rect(base_rects[2]) == badge_anchor_before, "badge anchor remains tied to the base rect")
+	game.title_menu_index = 0
+
+	var shop := FakeShopManager.new()
+	game.power_up_shop_manager = shop
+	for points in [0, 99, 999, 9999]:
+		shop.points = points
+		_check(game._title_power_up_shop_status_text() == "PP %d" % points, "PP status reads the current value %d" % points)
+		var pp_rect: Rect2 = game._title_power_up_shop_status_rect(base_rects[1])
+		_check(pp_rect.size == Vector2(96.0, 20.0), "PP %d fits in the fixed badge size" % points)
+		_check_approx(pp_rect.end.x, base_rects[1].end.x - 12.0, "PP %d keeps the right anchor" % points)
+	shop.points = 1000000000000
+	var long_pp_rect: Rect2 = game._title_power_up_shop_status_rect(base_rects[1])
+	_check(long_pp_rect.size.x > 96.0 and long_pp_rect.size.y == 20.0, "long PP value expands only the badge width")
+	_check_approx(long_pp_rect.end.x, base_rects[1].end.x - 12.0, "long PP value keeps the right anchor")
+	shop.unlocked = false
+	_check(game._title_power_up_shop_status_text() == "未解禁", "locked shop status text stays UTF-8")
+	_check(game._title_power_up_shop_status_rect(base_rects[1]).size == Vector2(96.0, 20.0), "locked shop keeps the shared badge size")
+	shop.unlocked = true
+	_check(HudTextSystemScript.banner_text({"state": "title", "quickTestMode": true, "relayMode": true}) == "", "title banner is hidden in normal UI")
 
 	_check(game._title_menu_action_for_index(0) == "start_character_select", "new game action mapping")
 	_check(game._title_menu_action_for_index(1) == "open_power_up_shop", "shop action mapping")
@@ -105,9 +154,14 @@ func _run_all_tests() -> void:
 	CodexManager.initialize_empty()
 	_check(game._codex_title_new_badge_text() == "", "codex title badge hides at zero")
 	CodexManager.discover_weapon("ban_hammer")
-	_check(game._codex_title_new_badge_text() != "", "codex title badge appears for NEW")
+	_check(game._codex_title_new_badge_text() == "NEW", "codex title badge is NEW for one unread entry")
+	CodexManager.discover_weapon("superchat_shot")
+	var multiple_badge_text := game._codex_title_new_badge_text()
+	_check(multiple_badge_text == "NEW" and not multiple_badge_text.contains("●") and not multiple_badge_text.contains("2"), "codex title badge stays NEW for multiple unread entries")
 	CodexManager.mark_read(CodexManager.CATEGORY_WEAPON, "ban_hammer")
-	_check(game._codex_title_new_badge_text() == "", "codex title badge updates after read")
+	_check(game._codex_title_new_badge_text() == "NEW", "codex title badge stays while another unread entry remains")
+	CodexManager.mark_read(CodexManager.CATEGORY_WEAPON, "superchat_shot")
+	_check(game._codex_title_new_badge_text() == "", "codex title badge hides after the last unread entry is read")
 
 	game.title_menu_press_active = false
 	game.title_menu_press_timer = 0.0

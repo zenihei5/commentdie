@@ -127,23 +127,32 @@ static func is_selectable(frame: Dictionary) -> bool:
 	return _is_playable(frame)
 
 static func relay_selection_frame(relay_mode_unlocked: bool) -> Dictionary:
+	var status_id := "relay_available" if relay_mode_unlocked else "locked"
+	var status_text := "挑戦可能" if relay_mode_unlocked else "未解禁"
+	var unlock_condition := "通常5枠をすべてクリアすると解禁されます。"
+	var description := "5つの配信枠を各120秒ずつ連続で進み、最後に時間制限なしの最終ボスへ挑みます。区間の合間には休憩が入り、回復やギフトを選択できます。"
 	return {
 		"id": "relay",
 		"displayName": "配信リレー",
+		"plainName": "配信リレー",
+		"detailTitle": "配信リレー",
 		"iconId": "stream_icon_relay",
 		"iconPath": "res://assets/generated/stream_frame_icons_v1/relay/clean.png",
 		"themeColor": "relay",
-		"description": "複数の配信枠を連続で突破していく上級者向けモード。どこまで突破できるか、最大同時視聴者数をどこまで伸ばせるかを競います。",
-		"difficultyText": "上級",
+		"description": description,
+		"difficultyText": "枠難度：★★★★★",
+		"difficultyStars": "★★★★★",
 		"difficulty": 5,
-		"status": "relay_available" if relay_mode_unlocked else "locked",
+		"status": status_id,
+		"statusId": status_id,
+		"statusText": status_text,
 		"isPlayable": relay_mode_unlocked,
-		"features": ["連続配信", "上級者向け", "記録挑戦"],
-		"shortFeatures": ["連続配信", "上級者向け"],
-		"mainGimmicks": ["配信枠連続挑戦", "リレー記録", "高スコア狙い"],
-		"recommendText": "全配信枠解放後のやり込みモードです。",
-		"unlockConditionText": "すべての配信枠を開放すると選択できます。",
-		"disabledReason": "この配信リレーはまだ開放されていません。",
+		"features": ["5区間", "各120秒"],
+		"shortFeatures": ["5区間", "各120秒"],
+		"mainGimmicks": ["5枠連続", "休憩", "最終ボス"],
+		"recommendText": "5つの配信枠を連続で走り切る、総仕上げの特別モードです。" if relay_mode_unlocked else "",
+		"unlockConditionText": unlock_condition if not relay_mode_unlocked else "",
+		"disabledReason": unlock_condition if not relay_mode_unlocked else "",
 		"isUnlocked": relay_mode_unlocked,
 		"isCleared": false,
 		"isRelayMode": true
@@ -189,12 +198,21 @@ static func horizontal_difficulty_edge_target_index(current_index: int, current_
 		return mini(row_start + SELECT_COLUMNS - 1, target_count - 1)
 	return -1
 
+static func difficulty_scroll_offsets(progress: float, direction: int, distance: float) -> Vector2:
+	var eased_progress := smoothstep(0.0, 1.0, clampf(progress, 0.0, 1.0))
+	var direction_sign := 1.0 if direction >= 0 else -1.0
+	var safe_distance := maxf(0.0, distance)
+	return Vector2(
+		-direction_sign * safe_distance * eased_progress,
+		direction_sign * safe_distance * (1.0 - eased_progress)
+	)
+
 static func locked_message(frame: Dictionary, frames: Array) -> String:
 	var disabled_reason: String = _disabled_reason(frame)
 	if disabled_reason != "":
 		return disabled_reason
 	if bool(frame.get("isRelayMode", false)):
-		return String(frame.get("unlockConditionText", "すべての配信枠を開放すると選択できます。"))
+		return String(frame.get("unlockConditionText", "通常5枠をすべてクリアすると解禁されます。"))
 	var condition: Dictionary = _condition_dict(frame)
 	var target_id: String = String(condition.get("targetFrameId", ""))
 	var target_frame: Dictionary = find_frame(frames, target_id)
@@ -295,7 +313,8 @@ static func selection_card_view(frame: Dictionary) -> Dictionary:
 	var cleared: bool = bool(frame.get("isCleared", false))
 	var status_id: String = String(frame.get("statusId", _status_id(frame)))
 	var coming_soon: bool = status_id == "coming_soon"
-	var status: String = String(frame.get("statusText", _status_text(frame)))
+	var is_relay_frame: bool = String(frame.get("id", "")) == "relay" or bool(frame.get("isRelayMode", false))
+	var status: String = _relay_status_text(status_id) if is_relay_frame else String(frame.get("statusText", _status_text(frame)))
 	var display_name: String = String(frame.get("displayName", "配信枠"))
 	var accent: Color = _accent_color(frame)
 	var features: Array[String] = feature_labels(frame)
@@ -305,7 +324,7 @@ static func selection_card_view(frame: Dictionary) -> Dictionary:
 		"id": String(frame.get("id", "")),
 		"displayName": display_name,
 		"plainName": display_name,
-		"description": String(frame.get("description", "")) if status_id != "locked" else _locked_description(frame),
+		"description": String(frame.get("description", "")) if status_id != "locked" or is_relay_frame else _locked_description(frame),
 		"difficultyText": "難易度：%s" % _difficulty_stars(frame),
 		"difficultyStars": _difficulty_stars(frame),
 		"statusId": status_id,
@@ -336,9 +355,19 @@ static func selection_card_view(frame: Dictionary) -> Dictionary:
 	view["disabledReason"] = String(frame.get("disabledReason", view.get("disabledReason", "")))
 	return view
 
+static func _relay_status_text(status_id: String) -> String:
+	match status_id:
+		"difficulty_locked", "relay_locked", "locked":
+			return "未解禁"
+		"relay_cleared", "cleared":
+			return "クリア"
+		"selectable", "relay_available", "unlocked":
+			return "挑戦可能"
+	return "未解禁"
+
 static func _locked_description(frame: Dictionary) -> String:
 	if bool(frame.get("isRelayMode", false)):
-		return String(frame.get("unlockConditionText", "すべての配信枠を開放すると選択できます。"))
+		return String(frame.get("unlockConditionText", "通常5枠をすべてクリアすると解禁されます。"))
 	var condition: Dictionary = _condition_dict(frame)
 	var target_id: String = String(condition.get("targetFrameId", ""))
 	if target_id == "":
@@ -505,7 +534,7 @@ static func _recommend_text(frame: Dictionary) -> String:
 	if frame_id == "collab":
 		return "掛け合いと変化を楽しむ配信枠です。"
 	if frame_id == "relay":
-		return "全配信枠解放後のやり込みモードです。"
+		return "5つの配信枠を連続で走り切る、総仕上げの特別モードです。"
 	return "今日の配信に合わせて選べる配信枠です。"
 
 static func _display_name_for_id(id: String) -> String:

@@ -3,6 +3,7 @@ extends RefCounted
 class_name GenreEventSystem
 
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 const FIRST_GENRE_EVENT_TIME := 25.0
 const GENRE_EVENT_DURATION := 20.0
@@ -73,6 +74,15 @@ static func clear_comment_genre_mix_for_target(target: Node) -> void:
 	if queue_value is Array:
 		(queue_value as Array).clear()
 	target.set("comment_genre_mix_transition_timer", 0.0)
+
+static func _difficulty_runtime_for_target(target: Node) -> Dictionary:
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	return runtime_value as Dictionary if runtime_value is Dictionary else {}
+
+static func _next_event_delay_for_target(target: Node, rng: RandomNumberGenerator) -> float:
+	var runtime := _difficulty_runtime_for_target(target)
+	var interval_rate := HardModeSystemScript.stage_profile_event_interval_rate(runtime)
+	return rng.randf_range(NEXT_GENRE_EVENT_MIN_DELAY, NEXT_GENRE_EVENT_MAX_DELAY) * interval_rate
 
 static func placement_walls_for_target(target: Node) -> Array:
 	var stream_frame_id := DrawDataSystem.collision_frame_id_for_target(target)
@@ -157,7 +167,11 @@ static func setup_bullet_hell_objects_for_target(target: Node, arena: Rect2, rng
 	target.set("genre_stg_shot_timer", 0.05)
 	target.set("genre_stg_spawn_timer", 0.8)
 	target.set("genre_stg_last_dir", Vector2.RIGHT if float(target.get("player_facing_x")) >= 0.0 else Vector2.LEFT)
-	for i in range(BULLET_HELL_START_EXTRA_ENEMIES):
+	var start_extra := 0
+	var runtime := _difficulty_runtime_for_target(target)
+	if HardModeSystemScript.is_expert_runtime(runtime):
+		start_extra = maxi(0, int(HardModeSystemScript.stage_profile_event_value(runtime, "bullet_hell", "startExtraEnemies", 0)))
+	for i in range(BULLET_HELL_START_EXTRA_ENEMIES + start_extra):
 		spawn_bullet_hell_enemy_for_target(target, arena, rng)
 
 static func setup_horror_objects_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
@@ -215,7 +229,9 @@ static func roll_event(events: Array, rng: RandomNumberGenerator, excluded_event
 	return pool[rng.randi_range(0, pool.size() - 1)]
 
 static func set_next_known_event_for_target(target: Node, events: Array, rng: RandomNumberGenerator) -> String:
-	var event_id: String = roll_event(events, rng)
+	var runtime := _difficulty_runtime_for_target(target)
+	var excluded_event_id := String(runtime.get("genreLastEventId", "")) if HardModeSystemScript.is_expert_runtime(runtime) else ""
+	var event_id: String = roll_event(events, rng, excluded_event_id)
 	target.set("next_known_genre_event", event_id)
 	return event_id
 
@@ -309,6 +325,9 @@ static func start_event_for_target(target: Node, event_id: String, duration: flo
 	target.set("genre_result_stg_shot_kill_count", 0)
 	target.set("genre_result_fake_gift_defeat_count", 0)
 	target.set("genre_event_count", int(target.get("genre_event_count")) + 1)
+	var runtime := _difficulty_runtime_for_target(target)
+	if HardModeSystemScript.is_expert_runtime(runtime):
+		runtime["genreLastEventId"] = event_id
 	if bool(target.get("first_play_adapt")):
 		target.set("invincible", maxf(float(target.get("invincible")), 1.5))
 	if event_id == "race":
@@ -401,18 +420,24 @@ static func finish_event_for_target(target: Node, events: Array, rng: RandomNumb
 	target.set("active_genre_event", "")
 	target.set("genre_event_source", "")
 	target.set("genre_event_duration", GENRE_EVENT_DURATION)
-	target.set("next_genre_event_time", next_event_time(float(target.get("elapsed")), rng))
+	target.set("next_genre_event_time", float(target.get("elapsed")) + _next_event_delay_for_target(target, rng))
 	if bool(target.get("strategy_wiki")):
 		set_next_known_event_for_target(target, events, rng)
 
 static func update_idle_event_for_target(target: Node, events: Array, rng: RandomNumberGenerator) -> Dictionary:
+	var runtime := _difficulty_runtime_for_target(target)
+	if HardModeSystemScript.is_expert_runtime(runtime) and not bool(runtime.get("genreScheduleInitialized", false)):
+		runtime["genreScheduleInitialized"] = true
+		if float(target.get("next_genre_event_time")) <= FIRST_GENRE_EVENT_TIME + 0.001:
+			target.set("next_genre_event_time", float(target.get("elapsed")) + FIRST_GENRE_EVENT_TIME * HardModeSystemScript.stage_profile_event_interval_rate(runtime))
+	var excluded_event_id := String(runtime.get("genreLastEventId", "")) if HardModeSystemScript.is_expert_runtime(runtime) else ""
 	if bool(target.get("strategy_wiki")) and String(target.get("next_known_genre_event")) == "":
-		target.set("next_known_genre_event", roll_event(events, rng))
+		target.set("next_known_genre_event", roll_event(events, rng, excluded_event_id))
 	if float(target.get("elapsed")) < float(target.get("next_genre_event_time")):
 		return {"startEvent": ""}
 	var event_id: String = String(target.get("next_known_genre_event"))
 	if event_id == "":
-		event_id = roll_event(events, rng)
+		event_id = roll_event(events, rng, excluded_event_id)
 	target.set("next_known_genre_event", "")
 	return {"startEvent": event_id}
 
@@ -518,6 +543,8 @@ static func update_active_event_for_target(target: Node, delta: float, arena: Re
 		var bullet_timer: float = float(target.get("genre_bullet_timer")) - delta
 		if bullet_timer <= 0.0:
 			bullet_timer = 0.42 + 0.08 * float(target.get("kusoge_resist_level"))
+			var runtime := _difficulty_runtime_for_target(target)
+			bullet_timer *= clampf(float(HardModeSystemScript.stage_profile_event_value(runtime, "bullet_hell", "eventBulletIntervalRate", 1.0)), 0.25, 2.0)
 			spawn_bullet = true
 		target.set("genre_bullet_timer", bullet_timer)
 		update_bullet_hell_objects_for_target(target, delta, arena, rng, chats, comment_event_ids)
@@ -592,7 +619,8 @@ static func update_race_objects_for_target(target: Node, delta: float, arena: Re
 		comment_event_ids.append("gameplay_race_coin_collected")
 	var race_enemy_timer := float(target.get("genre_race_enemy_spawn_timer")) - delta
 	if race_enemy_timer <= 0.0:
-		race_enemy_timer = RACE_ENEMY_SPAWN_INTERVAL
+		var runtime := _difficulty_runtime_for_target(target)
+		race_enemy_timer = RACE_ENEMY_SPAWN_INTERVAL * clampf(float(HardModeSystemScript.stage_profile_event_value(runtime, "race", "enemySpawnIntervalRate", 1.0)), 0.25, 2.0)
 		spawn_race_enemy_for_target(target, arena, rng)
 	target.set("genre_race_enemy_spawn_timer", race_enemy_timer)
 
@@ -608,7 +636,7 @@ static func spawn_race_enemy_for_target(target: Node, arena: Rect2, rng: RandomN
 	var race_kinds: Array[String] = ["enemy_wrong_way_kart", "enemy_jammer_cone"]
 	if genre_event_enemy_count_for_target(target, race_kinds) >= RACE_MAX_EVENT_ENEMIES:
 		return
-	var kind := EnemySystem.pick_race_event_enemy(float(target.get("elapsed")), bool(target.get("quick_test_mode")), rng)
+	var kind := EnemySystem.pick_race_event_enemy(float(target.get("elapsed")), bool(target.get("quick_test_mode")), rng, _difficulty_runtime_for_target(target))
 	if kind == "enemy_jammer_cone":
 		EnemySystem.spawn_enemy_for_target(target, kind, arena, rng)
 		return
@@ -705,6 +733,12 @@ static func horror_positions(target: Node, arena: Rect2, _player_pos: Vector2, c
 
 static func spawn_horror_ghosts_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var count: int = 1 if int(target.get("kusoge_resist_level")) > 0 else 2
+	var noise_count := 1
+	var runtime := _difficulty_runtime_for_target(target)
+	if HardModeSystemScript.is_expert_runtime(runtime):
+		var extra_count := maxi(0, int(HardModeSystemScript.stage_profile_event_value(runtime, "horror", "ghostCountAdd", 0)))
+		var max_ghosts := maxi(count + noise_count, int(HardModeSystemScript.stage_profile_event_value(runtime, "horror", "maxGhosts", count + noise_count)))
+		count = mini(count + extra_count, maxi(0, max_ghosts - noise_count))
 	var positions: Array = horror_positions(target, arena, Vector2(target.get("player_pos")), count, rng)
 	var enemies: Array = target.get("enemies") as Array
 	var next_uid: int = int(target.get("next_enemy_uid"))
@@ -717,7 +751,6 @@ static func spawn_horror_ghosts_for_target(target: Node, arena: Rect2, rng: Rand
 		enemy["genreEventEnemy"] = true
 		enemies.append(enemy)
 		next_uid += 1
-	var noise_count := 1
 	var noise_positions: Array = horror_positions(target, arena, Vector2(target.get("player_pos")), noise_count, rng)
 	for item in noise_positions:
 		var pos: Vector2 = item

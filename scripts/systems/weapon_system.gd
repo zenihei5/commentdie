@@ -22,9 +22,9 @@ const STAGE2_WEAPON_STATE_KEY := "__stage2WeaponStates"
 const STAGE2_WEAPON_IDS := ["moderator_shield", "fansa_baton", "tsuri_thumbnail_rod", "moderator_fortress", "fansa_climax", "buzz_thumbnail_rod", "full_voice_dome", "center_stage", "great_grassland", "comment_lockdown", "emote_festival", "all_block_laser", "listener_assembly"]
 const KUSA_WAVE_DAMAGE_BY_LEVEL := [5.0, 7.0, 8.0, 10.0, 12.0]
 const KUSA_WAVE_INTERVAL_BY_LEVEL := [1.40, 1.35, 1.30, 1.25, 1.20]
-const KUSA_WAVE_SIZE_BY_LEVEL := [1.0, 1.0, 1.25, 1.25, 1.45]
-const KUSA_WAVE_DISTANCE_BY_LEVEL := [450.0, 520.0, 580.0, 650.0, 750.0]
-const KUSA_WAVE_BOUNCES_BY_LEVEL := [1, 1, 1, 2, 2]
+const KUSA_WAVE_SIZE_BY_LEVEL := [1.0, 1.10, 1.25, 1.40, 1.55]
+const KUSA_WAVE_DISTANCE_BY_LEVEL := [900.0, 1200.0, 1550.0, 1950.0, 2400.0]
+const KUSA_WAVE_BOUNCES_BY_LEVEL := [1, 2, 3, 4, 5]
 const KUSA_WAVE_SPEED := 440.0
 const KUSA_WAVE_HIT_COOLDOWN := 0.30
 const KUSA_WAVE_MIN_LIFE := 0.40
@@ -2406,7 +2406,7 @@ static func _center_stage_target_center(weapon: Dictionary, context: Dictionary)
 		return Vector2(best.get("pos", player_pos))
 	return player_pos + fallback * placement_range
 
-static func _center_stage_apply_area(fx: Dictionary, damage_key: String, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary) -> int:
+static func _center_stage_apply_area(fx: Dictionary, damage_key: String, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary, request_enemy_damage_se: bool = true) -> int:
 	var center := Vector2(fx.get("pos", Vector2.ZERO))
 	var radius := float(fx.get("radius", 0.0))
 	var damage := float(fx.get(damage_key, 0.0))
@@ -2415,7 +2415,10 @@ static func _center_stage_apply_area(fx: Dictionary, damage_key: String, enemies
 	_apply_circle_damage_to_boxes(destructibles, center, radius, destroyed_boxes, hit_effects, weapon_id)
 	_stage2_clear_enemy_bullets_in_circle(enemy_bullets, center, radius, hit_effects, weapon_id)
 	if hits > 0:
-		_merge_reaction_result(feedback, {"enemyDamaged": true, "weaponCommentKind": weapon_comment_kind_for_id(weapon_id)})
+		var reaction := {"weaponCommentKind": weapon_comment_kind_for_id(weapon_id)}
+		if request_enemy_damage_se:
+			reaction["enemyDamaged"] = true
+		_merge_reaction_result(feedback, reaction)
 	return hits
 
 static func _update_center_stage_weapon(weapon: Dictionary, context: Dictionary, timers: Dictionary) -> Dictionary:
@@ -2441,6 +2444,7 @@ static func _update_center_stage_weapon(weapon: Dictionary, context: Dictionary,
 		"duration": duration, "age": 0.0, "tickCount": 1, "maxTicks": int(weapon.get("maxTicks", 0)),
 		"nextTickAt": hit_interval, "hitInterval": hit_interval,
 		"tickDamage": tick_damage, "finishDamage": finish_damage,
+		"intermediateTickHitSe": bool(weapon.get("intermediateTickHitSe", true)),
 		"finishFlashDuration": float(weapon.get("finishFlashDuration", 0.0)),
 		"finishApplied": false, "life": duration, "maxLife": duration
 	}
@@ -2462,7 +2466,7 @@ static func update_center_stage_fx(fx: Dictionary, delta: float, enemies: Array,
 	var hit_interval := maxf(0.01, float(fx.get("hitInterval", 0.0)))
 	while tick_count < max_ticks and age + 0.0001 >= next_tick:
 		tick_count += 1
-		var hits := _center_stage_apply_area(fx, "tickDamage", enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, hit_effects, feedback)
+		var hits := _center_stage_apply_area(fx, "tickDamage", enemies, destructibles, enemy_bullets, killed_enemies, destroyed_boxes, hit_effects, feedback, bool(fx.get("intermediateTickHitSe", true)))
 		hit_effects.append({
 			"kind": "center_stage_tick", "owner": String(fx.get("owner", "center_stage")), "weaponId": String(fx.get("weaponId", "center_stage")),
 			"pos": fx.get("pos", Vector2.ZERO), "radius": float(fx.get("radius", 0.0)), "tick": tick_count,
@@ -4364,7 +4368,7 @@ static func _kusa_wave_size_for_level(level_value: int) -> float:
 	return _level_table_float(KUSA_WAVE_SIZE_BY_LEVEL, level_value, 1.0)
 
 static func _kusa_wave_distance_for_level(level_value: int) -> float:
-	return _level_table_float(KUSA_WAVE_DISTANCE_BY_LEVEL, level_value, 450.0)
+	return _level_table_float(KUSA_WAVE_DISTANCE_BY_LEVEL, level_value, 900.0)
 
 static func _kusa_wave_bounces_for_level(level_value: int) -> int:
 	return _level_table_int(KUSA_WAVE_BOUNCES_BY_LEVEL, level_value, 1)
@@ -5185,7 +5189,7 @@ static func update_kusa_wave_damage(fx: Dictionary, delta: float, enemies: Array
 	var next_pos: Vector2 = pos + move
 	var distance_traveled: float = float(fx.get("distanceTraveled", 0.0)) + move.length()
 	fx["distanceTraveled"] = distance_traveled
-	if distance_traveled >= float(fx.get("maxDistance", fx.get("range", 450.0))):
+	if distance_traveled >= float(fx.get("maxDistance", fx.get("range", 900.0))):
 		fx["pos"] = next_pos
 		fx["life"] = 0.0
 		return

@@ -190,7 +190,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		elif bool(boss.get("cutinIntroLocked", false)):
 			return feedback
 		elif not bool(boss.get("defeatPending", false)):
-			if HardModeSystemScript.is_hard_target(target):
+			if HardModeSystemScript.is_high_difficulty_target(target):
 				var hard_ratio := float(boss.get("hp", 1.0)) / maxf(1.0, float(boss.get("max_hp", 1.0)))
 				boss["hardPhase"] = 2 if hard_ratio <= float(boss.get("hardPhase2HpRate", 0.50)) else 1
 			var life: float = float(boss.get("bossLifetimeElapsed", 0.0)) + delta
@@ -315,7 +315,7 @@ static func spawn_prepared_for_target(target: Node, prepared: Dictionary) -> Dic
 		initialize_pitch_police_chief_state(boss, spawn_rng)
 	if boss_id == BOSS_RED_PEN_REVIEW_CHIEF:
 		initialize_red_pen_review_chief_state(boss, spawn_rng)
-	if HardModeSystemScript.is_hard_target(target):
+	if HardModeSystemScript.is_high_difficulty_target(target):
 		var runtime := HardModeSystemScript.runtime_for_target(target)
 		var hard_role := HardModeSystemScript.boss_role_for_target(target)
 		HardModeSystemScript.apply_boss_runtime_stats(boss, runtime, hard_role)
@@ -347,7 +347,7 @@ static func spawn_prepared_for_target(target: Node, prepared: Dictionary) -> Dic
 	target.set("boss_summoned", true)
 	target.set("boss_last_name", boss_name)
 	target.set("boss_last_result", "active")
-	if HardModeSystemScript.is_hard_target(target) and HardModeSystemScript.boss_role_for_target(target) == "reignition":
+	if HardModeSystemScript.is_high_difficulty_target(target) and HardModeSystemScript.boss_role_for_target(target) == "reignition":
 		target.set("boss_defeated", false)
 	if boss_id == BOSS_COLLAB_CRUSHER and target.has_method("_on_collab_crusher_boss_started"):
 		target.call("_on_collab_crusher_boss_started", boss, arena)
@@ -572,7 +572,7 @@ static func boss_data_for_target(target: Node, boss_id: String) -> Dictionary:
 
 static func boss_id_for_target(target: Node) -> String:
 	var stream_frame_id: String = String(target.get("current_stream_frame_id"))
-	if HardModeSystemScript.is_hard_target(target):
+	if HardModeSystemScript.is_high_difficulty_target(target):
 		var configured_id := HardModeSystemScript.boss_id_for_stage(
 			HardModeSystemScript.runtime_for_target(target),
 			stream_frame_id
@@ -960,7 +960,7 @@ static func spawn_pitch_chief_red_check_bullets_for_target(target: Node, boss: D
 		var dir := base_dir.rotated(start + step * float(i) + rng.randf_range(-0.025, 0.025)).normalized()
 		bullets.append({
 			"pos": boss_pos + dir * (float(boss.get("radius", 102.0)) * 0.62 + 12.0),
-			"vel": dir * PITCH_CHIEF_BULLET_SPEED,
+			"vel": dir * HardModeSystemScript.regular_boss_projectile_speed_for_target(target, PITCH_CHIEF_BULLET_SPEED),
 			"life": 4.2,
 			"hitRadius": 18.0,
 			"source": "boss_bullet",
@@ -1144,7 +1144,7 @@ static func spawn_red_pen_bullets_for_target(target: Node, boss: Dictionary, rng
 		var dir := base_dir.rotated(start + step * float(i) + rng.randf_range(-0.035, 0.035)).normalized()
 		bullets.append({
 			"pos": boss_pos + dir * (float(boss.get("radius", 100.0)) * 0.60 + 10.0),
-			"vel": dir * RED_PEN_BULLET_SPEED,
+			"vel": dir * HardModeSystemScript.regular_boss_projectile_speed_for_target(target, RED_PEN_BULLET_SPEED),
 			"life": 4.0,
 			"hitRadius": 18.0,
 			"source": "boss_bullet",
@@ -1407,7 +1407,7 @@ static func spawn_bugged_spoiler_bullets_for_target(target: Node, boss: Dictiona
 		var dir := base_dir.rotated(offset + rng.randf_range(-0.035, 0.035)).normalized()
 		bullets.append({
 			"pos": boss_pos + dir * float(boss.get("radius", 96.0)) * 0.42,
-			"vel": dir * 250.0,
+			"vel": dir * HardModeSystemScript.regular_boss_projectile_speed_for_target(target, 250.0),
 			"life": 3.4,
 			"hitRadius": 17.0,
 			"source": "boss_bullet",
@@ -1433,7 +1433,7 @@ static func spawn_bugged_boss_pattern_bullets_for_target(target: Node, boss: Dic
 		var dir := base_dir.rotated(angle + rng.randf_range(-0.02, 0.02)).normalized()
 		bullets.append({
 			"pos": boss_pos + dir * 52.0,
-			"vel": dir * 235.0,
+			"vel": dir * HardModeSystemScript.regular_boss_projectile_speed_for_target(target, 235.0),
 			"life": 3.0,
 			"hitRadius": 15.0,
 			"source": "boss_bullet",
@@ -1583,6 +1583,7 @@ static func spawn_kuso_maro_barrage_for_target(target: Node, boss: Dictionary, d
 	var speed: float = float(attack.get("bulletSpeed", 230.0))
 	if speed <= 10.0:
 		speed *= 78.0
+	speed = HardModeSystemScript.regular_boss_projectile_speed_for_target(target, speed)
 	var lifetime: float = float(attack.get("bulletLifetime", 4.0))
 	var damage: int = HardModeSystemScript.regular_boss_damage_for_target(target, int(attack.get("damage", DamageSystem.BOSS_ATTACK_DAMAGE)))
 	var boss_pos: Vector2 = Vector2(boss.get("pos", Vector2.ZERO))

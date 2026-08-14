@@ -44,6 +44,8 @@ const COMMENT_FORBIDDEN_IN_REGULAR_HARD_SPECIAL := [
 static func default_config() -> Dictionary:
 	return {
 		"implemented": true,
+		"combatModifiersImplemented": true,
+		"instructionCommentsImplemented": true,
 		"enemy": {
 			"hpRate": 1.20,
 			"attackRate": 1.10,
@@ -103,6 +105,7 @@ static func default_config() -> Dictionary:
 			"moveSpeedRate": 1.05,
 			"actionIntervalRate": 0.85,
 			"summonCountRate": 1.25,
+			"projectileSpeedRate": 1.00,
 			"phase2HpRate": 0.50,
 			"transitionSeconds": 1.50,
 			"firstBossScoreRate": 2.00,
@@ -128,6 +131,7 @@ static func default_config() -> Dictionary:
 			"moveSpeedRate": 1.08,
 			"actionIntervalRate": 0.85,
 			"summonCountRate": 1.40,
+			"projectileSpeedRate": 1.10,
 			"contactDamageEnabled": true,
 			"phaseThresholds": [0.70, 0.30, 0.00],
 			"phaseCount": 3,
@@ -207,11 +211,91 @@ static func config_for(difficulty_id: String, source: Dictionary) -> Dictionary:
 	var difficulty := normalize_difficulty(difficulty_id)
 	var modes: Dictionary = source.get("modes", source) as Dictionary
 	if difficulty == EXPERT:
-		# EXPERT is an explicit empty reservation. Never inherit HARD here.
-		return _deep_merge({"implemented": false}, _dict(modes.get(EXPERT, {})))
+		var hard_config := _deep_merge(default_config(), _dict(modes.get(HARD, {})))
+		return _resolve_expert_config(hard_config, _dict(modes.get(EXPERT, {})))
 	if difficulty == HARD:
 		return _deep_merge(default_config(), _dict(modes.get(HARD, {})))
 	return _deep_merge(normal_config(), _dict(modes.get(NORMAL, {})))
+
+static func _resolve_expert_config(hard_config: Dictionary, expert_source: Dictionary) -> Dictionary:
+	var resolved := _deep_merge(hard_config, expert_source)
+	var enabled := bool(expert_source.get("implemented", false))
+	resolved["implemented"] = enabled
+	resolved["combatModifiersImplemented"] = bool(expert_source.get("combatModifiersImplemented", enabled))
+	resolved["instructionCommentsImplemented"] = bool(expert_source.get("instructionCommentsImplemented", enabled))
+	resolved["baseDifficulty"] = HARD
+	resolved["inheritFrom"] = HARD
+	var relative := _deep_merge(_default_expert_relative_modifiers(), _dict(expert_source.get("relativeModifiers", {})))
+	var enemy_relative := _dict(relative.get("enemy", {}))
+	resolved["enemy"] = _multiply_rate_dict(_dict(hard_config.get("enemy", {})), enemy_relative, ["hpRate", "attackRate", "moveSpeedRate", "attackIntervalRate", "projectileSpeedRate", "activeEnemyLimitRate"])
+	var resolved_enemy_rates: Dictionary = {}
+	var type_relative_map := _dict(relative.get("enemyFinalRates", {}))
+	var hard_enemy_rates := _dict(hard_config.get("enemyFinalRates", {}))
+	for combat_type in CANONICAL_COMBAT_TYPES:
+		var type_id := String(combat_type)
+		var hard_rates := _dict(hard_enemy_rates.get(type_id, hard_enemy_rates.get("standard", {})))
+		var type_relative := _deep_merge(enemy_relative, _dict(type_relative_map.get(type_id, {})))
+		resolved_enemy_rates[type_id] = _multiply_rate_dict(hard_rates, type_relative, ["hpRate", "attackRate", "moveSpeedRate", "attackIntervalRate", "projectileSpeedRate"])
+	resolved["enemyFinalRates"] = resolved_enemy_rates
+	var hard_boss := _dict(hard_config.get("boss", {}))
+	var boss_relative := _dict(relative.get("boss", {}))
+	resolved["boss"] = _multiply_rate_dict(hard_boss, boss_relative, ["hpRate", "attackRate", "moveSpeedRate", "actionIntervalRate", "summonCountRate", "projectileSpeedRate"])
+	var hard_final_boss := _dict(hard_config.get("finalBoss", {}))
+	var final_boss_relative := _dict(relative.get("finalBoss", {}))
+	resolved["finalBoss"] = _multiply_rate_dict(hard_final_boss, final_boss_relative, ["hpRate", "attackRate", "moveSpeedRate", "actionIntervalRate", "summonCountRate", "projectileSpeedRate"])
+	var spawn_relative := _dict(relative.get("spawnPressure", {}))
+	resolved["expertSpawnPressurePhases"] = _array(spawn_relative.get("timePhases", [])).duplicate(true)
+	resolved["expertRelaySectionRates"] = _array(spawn_relative.get("relaySectionRates", [])).duplicate(true)
+	resolved["expertHardWaveSelectionRateMultiplier"] = float(spawn_relative.get("hardWaveSelectionRateMultiplier", 1.0))
+	resolved["expertGroupCountRate"] = float(spawn_relative.get("groupCountRate", 1.0))
+	var lead := _dict(relative.get("strongEnemySelection", {}))
+	resolved["strongEnemySelectionLeadSeconds"] = maxf(0.0, float(lead.get("leadSeconds", 0.0)))
+	resolved["strongEnemySelectionLeadStartSeconds"] = maxf(0.0, float(lead.get("leadStartSeconds", 0.0)))
+	var comment_relative := _dict(relative.get("comment", {}))
+	var composer := _dict(resolved.get("commentComposer", {})).duplicate(true)
+	composer["hardOnlyTargetRate"] = clampf(float(comment_relative.get("hardOnlyTargetRate", composer.get("hardOnlyTargetRate", HARD_ONLY_TARGET_RATE))), 0.0, 1.0)
+	resolved["commentComposer"] = composer
+	var stage_profiles := _deep_merge(_default_expert_stage_profiles(), _dict(relative.get("stageProfiles", {})))
+	resolved["expertStageProfiles"] = stage_profiles
+	var stage_waves: Dictionary = {}
+	for stage_id in STANDARD_STAGE_IDS:
+		stage_waves[stage_id] = _array(_dict(stage_profiles.get(stage_id, {})).get("hardWaves", [])).duplicate(true)
+	resolved["expertStageHardWaves"] = stage_waves
+	# EXPERT inherits HARD's experience multiplier exactly. The explicit data
+	# value is retained for inspection, but relative experience is the only
+	# optional adjustment and defaults to 1.0.
+	resolved["experienceRate"] = float(hard_config.get("experienceRate", 1.20)) * float(relative.get("experienceRate", 1.0))
+	return resolved
+
+static func _default_expert_relative_modifiers() -> Dictionary:
+	return {
+		"experienceRate": 1.0,
+		"enemy": {"hpRate": 1.15, "attackRate": 1.10, "moveSpeedRate": 1.08, "attackIntervalRate": 0.92, "projectileSpeedRate": 1.10, "activeEnemyLimitRate": 1.0},
+		"boss": {"hpRate": 1.20, "attackRate": 1.10, "moveSpeedRate": 1.0, "actionIntervalRate": 0.90, "summonCountRate": 1.20, "projectileSpeedRate": 1.10},
+		"finalBoss": {"hpRate": 1.20, "attackRate": 1.10, "moveSpeedRate": 1.0, "actionIntervalRate": 0.90, "summonCountRate": 1.20, "projectileSpeedRate": 1.10},
+		"spawnPressure": {"timePhases": [{"start": 0.0, "end": 60.0, "rate": 1.05}, {"start": 60.0, "end": 120.0, "rate": 1.12}, {"start": 120.0, "end": 180.0, "rate": 1.20}], "relaySectionRates": [1.0, 1.05, 1.08, 1.12, 1.15], "hardWaveSelectionRateMultiplier": 1.20, "groupCountRate": 1.15},
+		"strongEnemySelection": {"leadSeconds": 15.0, "leadStartSeconds": 30.0},
+		"comment": {"hardOnlyTargetRate": 0.35},
+		"stageProfiles": _default_expert_stage_profiles()
+	}
+
+static func _default_expert_stage_profiles() -> Dictionary:
+	var result: Dictionary = {}
+	for stage_id in STANDARD_STAGE_IDS:
+		result[stage_id] = {
+			"single": {},
+			"relaySection": {},
+			"hardWaves": []
+		}
+	return result
+
+static func _multiply_rate_dict(base: Dictionary, relative: Dictionary, keys: Array) -> Dictionary:
+	var result := base.duplicate(true)
+	for key in keys:
+		var name := String(key)
+		if relative.has(name):
+			result[name] = float(base.get(name, 1.0)) * float(relative.get(name, 1.0))
+	return result
 
 static func normalize_difficulty(value: Variant) -> String:
 	var id := String(value).strip_edges().to_lower()
@@ -225,10 +309,16 @@ static func normalize_stage(value: Variant) -> String:
 		return "gameplay"
 	return id if id in STANDARD_STAGE_IDS else "zatsudan"
 
-static func build_runtime(difficulty_id: String, relay_mode: bool, stage_id: String, source: Dictionary, relay_config: Dictionary, final_boss: bool = false) -> Dictionary:
+static func build_runtime(difficulty_id: String, relay_mode: bool, stage_id: String, source: Dictionary, relay_config: Dictionary, final_boss: bool = false, relay_segment_index: int = -1) -> Dictionary:
 	var difficulty := normalize_difficulty(difficulty_id)
 	var config := config_for(difficulty, source)
+	var hard_config := config_for(HARD, source)
 	var mode := RELAY_FINAL_BOSS if final_boss else (RELAY_SECTION if relay_mode else SINGLE)
+	var normalized_stage := normalize_stage(stage_id)
+	var segment_index := relay_segment_index
+	if mode == RELAY_SECTION and segment_index < 0:
+		segment_index = STANDARD_STAGE_IDS.find(normalized_stage)
+	segment_index = clampi(segment_index, 0, 4) if mode == RELAY_SECTION else -1
 	var duration := 180.0
 	if mode == RELAY_SECTION:
 		duration = float(relay_config.get("segmentDuration", 120.0))
@@ -239,12 +329,14 @@ static func build_runtime(difficulty_id: String, relay_mode: bool, stage_id: Str
 	return {
 		"difficulty": difficulty,
 		"playMode": mode,
-		"stageId": normalize_stage(stage_id),
+		"stageId": normalized_stage,
+		"relaySegmentIndex": segment_index,
 		"durationSeconds": duration,
 		"elapsedSeconds": 0.0,
 		"remainingSeconds": duration,
 		"difficultyConfig": config.duplicate(true),
-		"stageConfig": _dict(_dict(config.get("relayStageModifiers", {})).get(normalize_stage(stage_id), {})).duplicate(true),
+		"difficultyHardConfig": hard_config.duplicate(true),
+		"stageConfig": _dict(_dict(config.get("relayStageModifiers", {})).get(normalized_stage, {})).duplicate(true),
 		"climax": {"active": false, "started": false, "startRemainingSeconds": 0.0},
 		"bossState": {"firstBossSpawned": false, "firstBossDefeated": false, "reignitionOfferShown": false, "secondBossSpawned": false, "secondBossDefeated": false, "activeBossCount": 0, "firstBossSpawnElapsedSeconds": null, "reignitionSpawnElapsedSeconds": null},
 		"pendingSpawn": {},
@@ -256,7 +348,7 @@ static func build_runtime(difficulty_id: String, relay_mode: bool, stage_id: Str
 		"activeComment": {},
 		"scoreContext": {"baseRate": float(_dict(config.get("score", {})).get("baseRate", 1.0)), "climaxRate": 1.0, "temporaryRate": 1.0},
 		"hardOverlay": {"base": 1.0, "overlay": 1.0, "final": 1.0},
-		"spawnBreakdown": {"base": 1.0, "stage": 1.0, "time": 1.0, "boss": 1.0, "event": 1.0, "safety": 1.0, "final": 1.0},
+		"spawnBreakdown": {"base": 1.0, "stage": 1.0, "time": 1.0, "commonExpert": 1.0, "expertTime": 1.0, "section": 1.0, "stageFlavor": 1.0, "boss": 1.0, "event": 1.0, "comment": 1.0, "safety": 1.0, "final": 1.0},
 		"stageEventActive": false,
 		"performanceSafetyRate": float(config.get("performanceSafetyRate", 1.0)),
 		"currentSpawnRate": 1.0,
@@ -274,6 +366,8 @@ static func build_runtime(difficulty_id: String, relay_mode: bool, stage_id: Str
 		"commentCooldowns": {},
 		"commentUseCounts": {},
 		"commentDebugLast": {},
+		"genreLastEventId": "",
+		"genreScheduleInitialized": false,
 		"expStats": {"generated": 0, "collected": 0, "uncollected": 0, "expired": 0, "discarded": 0},
 		"runExpStats": {"generated": 0, "collected": 0, "uncollected": 0, "expired": 0, "discarded": 0}
 	}
@@ -284,6 +378,101 @@ static func is_hard_runtime(runtime: Dictionary) -> bool:
 static func is_hard_target(target: Node) -> bool:
 	var value: Variant = target.get("difficulty_runtime")
 	return value is Dictionary and is_hard_runtime(value as Dictionary)
+
+static func is_high_difficulty_runtime(runtime: Dictionary) -> bool:
+	var difficulty := normalize_difficulty(runtime.get("difficulty", NORMAL))
+	if difficulty not in [HARD, EXPERT]:
+		return false
+	var config := _dict(runtime.get("difficultyConfig", {}))
+	return bool(config.get("implemented", false)) and bool(config.get("combatModifiersImplemented", true))
+
+static func is_expert_runtime(runtime: Dictionary) -> bool:
+	return String(runtime.get("difficulty", NORMAL)) == EXPERT and is_high_difficulty_runtime(runtime)
+
+static func is_high_difficulty_target(target: Node) -> bool:
+	var value: Variant = target.get("difficulty_runtime")
+	return value is Dictionary and is_high_difficulty_runtime(value as Dictionary)
+
+static func is_expert_target(target: Node) -> bool:
+	var value: Variant = target.get("difficulty_runtime")
+	return value is Dictionary and is_expert_runtime(value as Dictionary)
+
+## Returns the resolved EXPERT-only flavor for the current stage and play mode.
+## NORMAL/HARD deliberately return an empty dictionary so callers can use the
+## same API without adding difficulty branches at every subsystem boundary.
+static func expert_stage_profile(runtime: Dictionary) -> Dictionary:
+	if not is_expert_runtime(runtime):
+		return {}
+	var mode := String(runtime.get("playMode", SINGLE))
+	if mode == RELAY_FINAL_BOSS:
+		return {}
+	var config: Dictionary = _dict(runtime.get("difficultyConfig", {}))
+	var profiles: Dictionary = _dict(config.get("expertStageProfiles", {}))
+	var stage_id := normalize_stage(runtime.get("stageId", "zatsudan"))
+	var root: Dictionary = _dict(profiles.get(stage_id, {})).duplicate(true)
+	var mode_id := RELAY_SECTION if mode == RELAY_SECTION else SINGLE
+	return _deep_merge(root, _dict(root.get(mode_id, {})))
+
+static func stage_profile_spawn_interval_rate(runtime: Dictionary) -> float:
+	var profile := expert_stage_profile(runtime)
+	return clampf(float(profile.get("spawnIntervalRate", 1.0)), 0.25, 2.0)
+
+static func stage_profile_spawn_pressure_rate(runtime: Dictionary, elapsed: float) -> float:
+	var profile := expert_stage_profile(runtime)
+	if profile.is_empty():
+		return 1.0
+	var phases: Array = _array(profile.get("spawnPressurePhases", []))
+	return maxf(0.25, _phase_rate(phases, elapsed, float(profile.get("spawnPressureRate", 1.0))))
+
+static func stage_profile_event_interval_rate(runtime: Dictionary) -> float:
+	var profile := expert_stage_profile(runtime)
+	return clampf(float(profile.get("eventIntervalRate", 1.0)), 0.25, 1.0)
+
+static func stage_profile_event_config(runtime: Dictionary, event_id: String) -> Dictionary:
+	var profile := expert_stage_profile(runtime)
+	return _dict(_dict(profile.get("events", {})).get(event_id, {}))
+
+static func stage_profile_event_value(runtime: Dictionary, event_id: String, key: String, fallback: Variant = null) -> Variant:
+	var event_config := stage_profile_event_config(runtime, event_id)
+	return event_config.get(key, fallback)
+
+static func stage_profile_paint_interval_rate(runtime: Dictionary, elapsed: float) -> float:
+	var profile := expert_stage_profile(runtime)
+	var start := float(profile.get("paintEventStartSeconds", INF))
+	if elapsed < start:
+		return 1.0
+	return clampf(float(profile.get("paintEventIntervalRate", 1.0)), 0.25, 1.0)
+
+static func stage_profile_enemy_picker_lead(runtime: Dictionary, elapsed: float) -> float:
+	var profile := expert_stage_profile(runtime)
+	if elapsed < float(profile.get("enemyPickerLeadStartSeconds", INF)):
+		return 0.0
+	return maxf(0.0, float(profile.get("enemyPickerLeadSeconds", 0.0)))
+
+static func stage_profile_hard_wave_selection_rate(runtime: Dictionary) -> float:
+	var profile := expert_stage_profile(runtime)
+	return clampf(float(profile.get("hardWaveSelectionRate", 1.0)), 0.0, 2.0)
+
+static func stage_profile_hard_wave_group_count_rate(runtime: Dictionary) -> float:
+	var profile := expert_stage_profile(runtime)
+	return clampf(float(profile.get("hardWaveGroupCountRate", 1.0)), 0.1, 2.0)
+
+static func stage_profile_hard_wave_maximum_uses(runtime: Dictionary) -> int:
+	var profile := expert_stage_profile(runtime)
+	return int(profile.get("hardWaveMaximumUses", -1))
+
+static func stage_profile_comment_weight(runtime: Dictionary, comment_id: String) -> float:
+	var profile := expert_stage_profile(runtime)
+	var weights: Dictionary = _dict(profile.get("commentWeightMultipliers", {}))
+	return clampf(float(weights.get(comment_id, 1.0)), 0.1, 3.0)
+
+static func stage_profile_comment_high_risk_limit(runtime: Dictionary) -> int:
+	var profile := expert_stage_profile(runtime)
+	return maxi(0, int(profile.get("stageBoostedHighRiskLimit", 1)))
+
+static func stage_profile_comment_is_boosted(runtime: Dictionary, comment_id: String) -> bool:
+	var profile := expert_stage_profile(runtime)
+	return _dict(profile.get("commentWeightMultipliers", {})).has(comment_id) and stage_profile_comment_weight(runtime, comment_id) > 1.0
 
 static func runtime_for_target(target: Node) -> Dictionary:
 	var value: Variant = target.get("difficulty_runtime")
@@ -310,7 +499,7 @@ static func advance_runtime_for_target(target: Node, elapsed: float, remaining: 
 	runtime["elapsedSeconds"] = elapsed
 	runtime["remainingSeconds"] = remaining
 	var result := {"climaxStarted": false, "requestAutoBoss": false}
-	if is_hard_runtime(runtime):
+	if is_high_difficulty_runtime(runtime):
 		var mode := String(runtime.get("playMode", SINGLE))
 		if mode != RELAY_FINAL_BOSS:
 			var threshold := float(_dict(runtime.get("difficultyConfig", {})).get("climax", {}).get("singleStartRemainingSeconds", 30.0))
@@ -368,13 +557,13 @@ static func mark_boss_defeated(target: Node, role: String) -> void:
 	runtime["bossState"] = state
 
 static func can_offer_early_boss(runtime: Dictionary, elapsed: float, active_boss_count: int, blocking: bool) -> bool:
-	if not is_hard_runtime(runtime) or String(runtime.get("playMode")) != SINGLE:
+	if not is_high_difficulty_runtime(runtime) or String(runtime.get("playMode")) != SINGLE:
 		return false
 	var state: Dictionary = runtime.get("bossState", {}) as Dictionary
 	return elapsed >= 45.0 and elapsed < 105.0 and not bool(state.get("firstBossSpawned", false)) and active_boss_count == 0 and not blocking
 
 static func can_offer_reignition(runtime: Dictionary, remaining: float, active_boss_count: int) -> bool:
-	if not is_hard_runtime(runtime) or String(runtime.get("playMode")) != SINGLE:
+	if not is_high_difficulty_runtime(runtime) or String(runtime.get("playMode")) != SINGLE:
 		return false
 	var state: Dictionary = runtime.get("bossState", {}) as Dictionary
 	return bool(state.get("firstBossDefeated", false)) and not bool(state.get("reignitionOfferShown", false)) and not bool(state.get("secondBossSpawned", false)) and remaining >= 45.0 and active_boss_count == 0
@@ -397,7 +586,7 @@ static func boss_rates(runtime: Dictionary, role: String = "firstHardBoss") -> D
 	var hp := float(boss.get("hpRate", 1.0))
 	if role == "reignition":
 		hp *= 0.70
-	return {"hpRate": hp, "attackRate": float(boss.get("attackRate", 1.0)), "moveSpeedRate": float(boss.get("moveSpeedRate", 1.0)), "actionIntervalRate": float(boss.get("actionIntervalRate", 1.0)), "summonCountRate": float(boss.get("summonCountRate", 1.0)), "scoreRate": float(boss.get("reignitionScoreRate", 3.0) if role == "reignition" else boss.get("firstBossScoreRate", 2.0))}
+	return {"hpRate": hp, "attackRate": float(boss.get("attackRate", 1.0)), "moveSpeedRate": float(boss.get("moveSpeedRate", 1.0)), "actionIntervalRate": float(boss.get("actionIntervalRate", 1.0)), "summonCountRate": float(boss.get("summonCountRate", 1.0)), "projectileSpeedRate": float(boss.get("projectileSpeedRate", 1.0)), "scoreRate": float(boss.get("reignitionScoreRate", 3.0) if role == "reignition" else boss.get("firstBossScoreRate", 2.0))}
 
 static func final_boss_rates(runtime: Dictionary) -> Dictionary:
 	return _dict(_dict(runtime.get("difficultyConfig", {})).get("finalBoss", {})).duplicate(true)
@@ -408,7 +597,7 @@ static func scaled_damage(base_damage: float, multiplier: float) -> int:
 	return maxi(1, roundi(base_damage * maxf(0.0, multiplier)))
 
 static func regular_boss_damage_for_target(target: Node, base_damage: int) -> int:
-	if base_damage <= 0 or target == null or not is_hard_target(target):
+	if base_damage <= 0 or target == null or not is_high_difficulty_target(target):
 		return maxi(0, base_damage)
 	var runtime := runtime_for_target(target)
 	if String(runtime.get("playMode", SINGLE)) == RELAY_FINAL_BOSS:
@@ -416,12 +605,22 @@ static func regular_boss_damage_for_target(target: Node, base_damage: int) -> in
 	var rates := boss_rates(runtime, boss_role_for_target(target))
 	return scaled_damage(float(base_damage), float(rates.get("attackRate", 1.0)))
 
+static func regular_boss_projectile_speed_for_target(target: Node, base_speed: float) -> float:
+	var safe_speed := maxf(0.0, base_speed)
+	if target == null or not is_high_difficulty_target(target):
+		return safe_speed
+	var runtime := runtime_for_target(target)
+	if String(runtime.get("playMode", SINGLE)) == RELAY_FINAL_BOSS:
+		return safe_speed
+	var rates := boss_rates(runtime, boss_role_for_target(target))
+	return safe_speed * maxf(0.0, float(rates.get("projectileSpeedRate", 1.0)))
+
 static func regular_boss_summon_count_for_target(target: Node, base_count: int) -> int:
 	var safe_count := maxi(0, base_count)
 	# A one-enemy summon remains one; applying 1.25 must not turn every single
 	# summon into two enemies. The relay final boss has its own stochastic 1.40
 	# path and must not pass through this regular-boss helper.
-	if safe_count <= 1 or target == null or not is_hard_target(target):
+	if safe_count <= 1 or target == null or not is_high_difficulty_target(target):
 		return safe_count
 	var runtime := runtime_for_target(target)
 	if String(runtime.get("playMode", SINGLE)) == RELAY_FINAL_BOSS:
@@ -462,7 +661,7 @@ static func combat_type_for_enemy(enemy: Dictionary, config: Dictionary = {}) ->
 	return enemy_type_for_kind(String(enemy.get("kind", "")), config)
 
 static func apply_enemy_runtime_stats(enemy: Dictionary, runtime: Dictionary, role: String = "normal") -> Dictionary:
-	if enemy.is_empty() or not is_hard_runtime(runtime) or bool(enemy.get("difficultyRuntimeApplied", false)) or role == "boss":
+	if enemy.is_empty() or not is_high_difficulty_runtime(runtime) or bool(enemy.get("difficultyRuntimeApplied", false)) or role == "boss":
 		return enemy
 	var is_summon := bool(enemy.get("relayBossSummon", false)) or role == "finalBossSummon"
 	var config: Dictionary = _dict(runtime.get("difficultyConfig", {}))
@@ -530,13 +729,13 @@ static func normalized_summon_rewards(runtime: Dictionary) -> Dictionary:
 static func attack_interval_for_enemy(enemy: Dictionary, base_interval: float, runtime: Dictionary = {}) -> float:
 	var minimum := maxf(0.1, float(enemy.get("minimumAttackInterval", 0.1)))
 	var rate := float(enemy.get("attackIntervalRate", 1.0))
-	if not runtime.is_empty() and is_hard_runtime(runtime) and String(_dict(runtime.get("activeComment", {})).get("id", "")) == "hard_overclock":
+	if not runtime.is_empty() and is_high_difficulty_runtime(runtime) and String(_dict(runtime.get("activeComment", {})).get("id", "")) == "hard_overclock":
 		rate *= clampf(active_comment_param(runtime, "attackIntervalRate", 1.0), 0.1, 2.0)
 	return maxf(minimum, maxf(0.0, base_interval) * rate)
 
 static func projectile_speed_rate_for_enemy(enemy: Dictionary, runtime: Dictionary = {}) -> float:
 	var rate := float(enemy.get("projectileSpeedRate", 1.0))
-	if not runtime.is_empty() and is_hard_runtime(runtime) and String(_dict(runtime.get("activeComment", {})).get("id", "")) == "hard_overclock":
+	if not runtime.is_empty() and is_high_difficulty_runtime(runtime) and String(_dict(runtime.get("activeComment", {})).get("id", "")) == "hard_overclock":
 		rate *= clampf(active_comment_param(runtime, "projectileSpeedRate", 1.0), 0.25, 3.0)
 	return rate
 
@@ -545,12 +744,12 @@ static func attack_interval_for_values(base_interval: float, attack_interval_rat
 
 static func boss_action_delta_for_target(target: Node, boss: Dictionary, delta: float) -> float:
 	var safe_delta := maxf(0.0, delta)
-	if target == null or not is_hard_target(target):
+	if target == null or not is_high_difficulty_target(target):
 		return safe_delta
 	return safe_delta / maxf(0.1, float(boss.get("bossAttackIntervalRate", 1.0)))
 
 static func apply_boss_runtime_stats(boss: Dictionary, runtime: Dictionary, role: String = "firstHardBoss") -> Dictionary:
-	if boss.is_empty() or not is_hard_runtime(runtime) or bool(boss.get("difficultyRuntimeApplied", false)):
+	if boss.is_empty() or not is_high_difficulty_runtime(runtime) or bool(boss.get("difficultyRuntimeApplied", false)):
 		return boss
 	var rates := boss_rates(runtime, role)
 	boss["difficultyBase"] = {"hp": float(boss.get("max_hp", boss.get("hp", 1.0))), "speed": float(boss.get("speed", 0.0)), "contactDamage": int(boss.get("contactDamage", 0))}
@@ -580,9 +779,7 @@ static func apply_boss_runtime_stats(boss: Dictionary, runtime: Dictionary, role
 
 static func effective_exp_rate(runtime: Dictionary) -> float:
 	var difficulty := normalize_difficulty(runtime.get("difficulty", NORMAL))
-	if difficulty == EXPERT:
-		return maxf(0.0, float(_dict(runtime.get("difficultyConfig", {})).get("experienceRate", 1.30)))
-	if difficulty == HARD and is_hard_runtime(runtime):
+	if difficulty in [HARD, EXPERT] and is_high_difficulty_runtime(runtime):
 		return maxf(0.0, float(_dict(runtime.get("difficultyConfig", {})).get("experienceRate", 1.20)))
 	return 1.0
 
@@ -597,21 +794,27 @@ static func spawn_rate(runtime: Dictionary, elapsed: float, boss_active: bool = 
 	return float(spawn_rate_breakdown(runtime, elapsed, boss_active, collab_challenge_active).get("final", 1.0))
 
 static func spawn_rate_breakdown(runtime: Dictionary, elapsed: float, boss_active: bool = false, collab_challenge_active: bool = false) -> Dictionary:
-	var breakdown := {"base": 1.0, "stage": 1.0, "time": 1.0, "boss": 1.0, "event": 1.0, "comment": 1.0, "safety": 1.0, "final": 1.0}
-	if not is_hard_runtime(runtime):
+	var breakdown := {"base": 1.0, "stage": 1.0, "time": 1.0, "commonExpert": 1.0, "expertTime": 1.0, "section": 1.0, "stageFlavor": 1.0, "boss": 1.0, "event": 1.0, "comment": 1.0, "safety": 1.0, "final": 1.0}
+	if not is_high_difficulty_runtime(runtime):
 		return breakdown
-	if not spawn_enabled(runtime, elapsed):
-		if String(runtime.get("playMode", SINGLE)) != RELAY_FINAL_BOSS:
-			breakdown["time"] = 0.0
-		breakdown["final"] = 0.0
-		return breakdown
+	var mode := String(runtime.get("playMode", SINGLE))
 	var config: Dictionary = _dict(runtime.get("difficultyConfig", {}))
-	breakdown["base"] = 1.0
-	if String(runtime.get("playMode")) == SINGLE:
+	if mode == SINGLE:
 		breakdown["time"] = _phase_rate(config.get("singleSpawnPhases", []) as Array, elapsed, 1.0)
-	elif String(runtime.get("playMode")) == RELAY_SECTION:
+		breakdown["expertTime"] = expert_spawn_time_rate(runtime, elapsed)
+		breakdown["commonExpert"] = breakdown["expertTime"]
+		breakdown["stageFlavor"] = stage_profile_spawn_pressure_rate(runtime, elapsed)
+	elif mode == RELAY_SECTION:
 		breakdown["stage"] = float(_dict(config.get("relayStageSpawnRates", {})).get(normalize_stage(runtime.get("stageId", "zatsudan")), 1.0))
 		breakdown["time"] = _phase_rate(config.get("relayTimePhases", []) as Array, elapsed, 1.0)
+		breakdown["expertTime"] = expert_spawn_time_rate(runtime, elapsed)
+		breakdown["commonExpert"] = breakdown["expertTime"]
+		breakdown["section"] = expert_relay_section_rate(runtime)
+		breakdown["stageFlavor"] = stage_profile_spawn_pressure_rate(runtime, elapsed)
+	if not spawn_enabled(runtime, elapsed):
+		breakdown["final"] = 0.0
+		return breakdown
+	breakdown["base"] = 1.0
 	if boss_active and String(runtime.get("playMode", SINGLE)) == SINGLE:
 		breakdown["boss"] = maxf(0.0, float(config.get("bossBattleSpawnRate", 0.65)))
 	if collab_challenge_active and String(runtime.get("playMode", SINGLE)) == RELAY_SECTION and normalize_stage(runtime.get("stageId", "")) == "collab":
@@ -625,21 +828,34 @@ static func spawn_rate_breakdown(runtime: Dictionary, elapsed: float, boss_activ
 	elif active_comment_id == "song_tempo_up":
 		breakdown["comment"] = maxf(0.25, active_comment_param(runtime, "enemySpawnAmountRate", 1.0))
 	breakdown["safety"] = clampf(float(runtime.get("performanceSafetyRate", config.get("performanceSafetyRate", 1.0))), 0.0, 1.0)
-	breakdown["final"] = float(breakdown["base"]) * float(breakdown["stage"]) * float(breakdown["time"]) * float(breakdown["boss"]) * float(breakdown["event"]) * float(breakdown["comment"]) * float(breakdown["safety"])
+	breakdown["final"] = float(breakdown["base"]) * float(breakdown["stage"]) * float(breakdown["time"]) * float(breakdown["expertTime"]) * float(breakdown["section"]) * float(breakdown["stageFlavor"]) * float(breakdown["boss"]) * float(breakdown["event"]) * float(breakdown["comment"]) * float(breakdown["safety"])
 	return breakdown
+
+static func expert_spawn_time_rate(runtime: Dictionary, elapsed: float) -> float:
+	if not is_expert_runtime(runtime):
+		return 1.0
+	var phases: Array = _array(_dict(runtime.get("difficultyConfig", {})).get("expertSpawnPressurePhases", []))
+	return _phase_rate(phases, elapsed, 1.0)
+
+static func expert_relay_section_rate(runtime: Dictionary) -> float:
+	if not is_expert_runtime(runtime) or String(runtime.get("playMode", SINGLE)) != RELAY_SECTION:
+		return 1.0
+	var rates: Array = _array(_dict(runtime.get("difficultyConfig", {})).get("expertRelaySectionRates", []))
+	var index := clampi(int(runtime.get("relaySegmentIndex", 0)), 0, maxi(0, rates.size() - 1))
+	return float(rates[index]) if not rates.is_empty() else 1.0
 
 static func spawn_enabled(runtime: Dictionary, elapsed: float) -> bool:
 	if runtime.is_empty():
 		return true
 	var mode := String(runtime.get("playMode", SINGLE))
-	if not is_hard_runtime(runtime):
+	if not is_high_difficulty_runtime(runtime):
 		return mode != RELAY_FINAL_BOSS
 	if mode == RELAY_FINAL_BOSS:
 		return false
 	return elapsed < float(runtime.get("durationSeconds", INF))
 
 static func active_enemy_cap(base_cap: int, runtime: Dictionary) -> int:
-	if not is_hard_runtime(runtime):
+	if not is_high_difficulty_runtime(runtime):
 		return base_cap
 	return maxi(0, floori(float(base_cap) * float(_dict(_dict(runtime.get("difficultyConfig", {})).get("enemy", {})).get("activeEnemyLimitRate", 1.30))))
 
@@ -729,16 +945,20 @@ static func resolve_spawn_requests(runtime: Dictionary, active_occupancy: int, c
 	return resolved
 
 static func hard_wave_selection_rate(runtime: Dictionary, elapsed: float, boss_active: bool = false) -> float:
-	if not is_hard_runtime(runtime) or String(runtime.get("playMode", SINGLE)) == RELAY_FINAL_BOSS:
+	if not is_high_difficulty_runtime(runtime) or String(runtime.get("playMode", SINGLE)) == RELAY_FINAL_BOSS:
 		return 0.0
 	var duration := maxf(1.0, float(runtime.get("durationSeconds", 180.0)))
 	var progress := clampf(elapsed / duration, 0.0, 1.0)
 	var selection: Dictionary = _dict(_dict(runtime.get("difficultyConfig", {})).get("hardWaveSelectionRates", {}))
 	var rate := float(selection.get("earlyRate", 0.15)) if progress < float(selection.get("beforeProgress", 0.25)) else (float(selection.get("middleRate", 0.25)) if progress < float(selection.get("middleProgress", 0.60)) else float(selection.get("lateRate", 0.35)))
-	return rate * float(selection.get("bossRate", 0.30)) if boss_active else rate
+	var result := rate * float(selection.get("bossRate", 0.30)) if boss_active else rate
+	if is_expert_runtime(runtime):
+		result *= float(_dict(runtime.get("difficultyConfig", {})).get("expertHardWaveSelectionRateMultiplier", 1.0))
+		result *= stage_profile_hard_wave_selection_rate(runtime)
+	return clampf(result, 0.0, 1.0)
 
 static func hard_wave_candidates(runtime: Dictionary, elapsed: float, player_level: int, active_dangers: Dictionary = {}, boss_active: bool = false) -> Array:
-	if not is_hard_runtime(runtime) or not spawn_enabled(runtime, elapsed):
+	if not is_high_difficulty_runtime(runtime) or not spawn_enabled(runtime, elapsed):
 		return []
 	var config: Dictionary = _dict(runtime.get("difficultyConfig", {}))
 	var mode := String(runtime.get("playMode", SINGLE))
@@ -746,21 +966,37 @@ static func hard_wave_candidates(runtime: Dictionary, elapsed: float, player_lev
 	var used: Dictionary = runtime.get("usedHardWaveCounts", {}) as Dictionary
 	var cooldowns: Dictionary = runtime.get("hardWaveCooldowns", {}) as Dictionary
 	var result: Array = []
-	for raw in _dict_array(config.get("hardWaves", [])):
+	var wave_sources: Array = _dict_array(config.get("hardWaves", [])).duplicate(true)
+	if is_expert_runtime(runtime):
+		var stage_waves: Dictionary = _dict(config.get("expertStageHardWaves", {}))
+		wave_sources.append_array(_array(stage_waves.get(stage, [])))
+	for raw in wave_sources:
 		var wave: Dictionary = raw as Dictionary
-		if normalize_difficulty(wave.get("difficulty", HARD)) != HARD:
+		var expert_only := bool(wave.get("expertOnly", false))
+		if expert_only and not is_expert_runtime(runtime):
+			continue
+		if not expert_only and normalize_difficulty(wave.get("difficulty", HARD)) != HARD:
 			continue
 		if normalize_stage(wave.get("stageId", stage)) != stage:
 			continue
 		var play_modes: Array = wave.get("playModes", []) as Array
 		if not play_modes.is_empty() and not play_modes.has(mode):
 			continue
-		if elapsed < float(wave.get("minElapsedSeconds", 0.0)) or elapsed >= float(wave.get("maxElapsedSeconds", INF)):
+		var minimum_elapsed := float(wave.get("minElapsedSeconds", 0.0))
+		var mode_minimums: Dictionary = _dict(wave.get("minElapsedSecondsByMode", {}))
+		if mode_minimums.has(mode):
+			minimum_elapsed = float(mode_minimums.get(mode, minimum_elapsed))
+		if elapsed < minimum_elapsed or elapsed >= float(wave.get("maxElapsedSeconds", INF)):
 			continue
 		if player_level < int(wave.get("minimumPlayerLevel", 1)) or player_level > int(wave.get("maximumPlayerLevel", 999)):
 			continue
 		var wave_id := String(wave.get("id", ""))
-		if wave_id.is_empty() or int(used.get(wave_id, 0)) >= int(wave.get("maximumUsesPerRun", 999999)):
+		var maximum_uses := int(wave.get("maximumUsesPerRun", 999999))
+		if expert_only:
+			var profile_maximum_uses := stage_profile_hard_wave_maximum_uses(runtime)
+			if profile_maximum_uses >= 0:
+				maximum_uses = mini(maximum_uses, profile_maximum_uses)
+		if wave_id.is_empty() or int(used.get(wave_id, 0)) >= maximum_uses:
 			continue
 		if elapsed < float(cooldowns.get(wave_id, -INF)):
 			continue
@@ -776,7 +1012,9 @@ static func hard_wave_candidates(runtime: Dictionary, elapsed: float, player_lev
 				continue
 		if not DangerEventSystemScript.can_start_categories(active_dangers, wave.get("dangerCategories", []) as Array, wave.get("blockedDangerCategories", []) as Array):
 			continue
-		result.append(wave.duplicate(true))
+		var candidate := wave.duplicate(true)
+		candidate["maximumUsesPerRun"] = maximum_uses
+		result.append(candidate)
 	return result
 
 static func choose_hard_wave(runtime: Dictionary, elapsed: float, player_level: int, active_enemy_count: int, active_dangers: Dictionary, boss_active: bool, rng: RandomNumberGenerator, available_cap: int = -1) -> Dictionary:
@@ -832,7 +1070,7 @@ static func apply_spawn_count_rate(base_count: int, rate: float, rng: RandomNumb
 	return whole + (1 if rng.randf() < exact - float(whole) else 0)
 
 static func temporary_score_rate(runtime: Dictionary, comment_score_rate: float = 1.0) -> float:
-	if not is_hard_runtime(runtime):
+	if not is_high_difficulty_runtime(runtime):
 		return 1.0
 	var config: Dictionary = _dict(runtime.get("difficultyConfig", {}))
 	var score: Dictionary = _dict(config.get("score", {}))
@@ -843,17 +1081,27 @@ static func resolve_comment(comment: Dictionary, runtime: Dictionary) -> Diction
 	if comment.is_empty():
 		return {}
 	var result := comment.duplicate(true)
-	if not is_hard_runtime(runtime):
+	if not is_high_difficulty_runtime(runtime):
 		return result
 	var config: Dictionary = _dict(runtime.get("difficultyConfig", {}))
-	var override: Dictionary = _dict(_dict(config.get("commentOverrides", {})).get(String(comment.get("id", "")), {}))
+	var difficulty := normalize_difficulty(runtime.get("difficulty", NORMAL))
+	var hard_config: Dictionary = _dict(runtime.get("difficultyHardConfig", {}))
+	if hard_config.is_empty():
+		hard_config = config if difficulty == HARD else {}
+	var comment_id := String(comment.get("id", ""))
+	var override: Dictionary = _dict(_dict(hard_config.get("commentOverrides", {})).get(comment_id, {})).duplicate(true)
 	var own_overrides: Dictionary = _dict(comment.get("difficultyOverrides", {}))
 	override = _deep_merge(override, _dict(own_overrides.get(HARD, {})))
+	if difficulty == EXPERT:
+		override = _deep_merge(override, _dict(_dict(config.get("expertCommentOverrides", {})).get(comment_id, {})))
+		override = _deep_merge(override, _dict(own_overrides.get(EXPERT, {})))
 	result = _deep_merge(result, override)
-	result["difficultyId"] = HARD
-	var category_map: Dictionary = _dict(config.get("commentCategories", {}))
-	if not comment.has("categories") and category_map.has(String(comment.get("id", ""))):
-		result["categories"] = _array(category_map.get(String(comment.get("id", ""))))
+	result["difficultyId"] = difficulty
+	var category_map: Dictionary = _dict(hard_config.get("commentCategories", {}))
+	if category_map.is_empty():
+		category_map = _dict(config.get("commentCategories", {}))
+	if not comment.has("categories") and category_map.has(comment_id):
+		result["categories"] = _array(category_map.get(comment_id))
 	var explicit_score := override.has("scoreRate") or override.has("multiplier") or comment.has("scoreRate")
 	var danger := clampi(int(result.get("riskLevel", 1)), 1, 5)
 	if explicit_score:
@@ -868,7 +1116,7 @@ static func score_rate_for_risk(risk: int) -> float:
 
 static func build_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
 	var runtime := runtime_for_target(target)
-	if not is_hard_runtime(runtime):
+	if not is_high_difficulty_runtime(runtime):
 		return []
 	var now := float(target.get("elapsed"))
 	var last_id := String(target.get("last_comment_id"))
@@ -933,11 +1181,11 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 			var candidate: Dictionary = item as Dictionary
 			var risk := int(candidate.get("riskLevel", 1))
 			var candidate_id := String(candidate.get("id", ""))
-			if risk < int(risk_range[0]) or risk > int(risk_range[1]) or used_ids.has(candidate_id) or not _categories_allowed(offer, candidate):
+			if risk < int(risk_range[0]) or risk > int(risk_range[1]) or used_ids.has(candidate_id) or not _offer_candidate_allowed(offer, candidate, runtime):
 				continue
 			if bool(candidate.get("hardOnly", false)) and hard_only_added:
 				continue
-			pool.append(candidate)
+			_append_weighted_comment(pool, candidate, runtime)
 		if want_hard_only and not hard_only_added:
 			var hard_pool: Array = []
 			for item in pool:
@@ -957,11 +1205,11 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		for item in candidates:
 			var candidate: Dictionary = item as Dictionary
 			var candidate_id := String(candidate.get("id", ""))
-			if used_ids.has(candidate_id) or _is_non_repeatable_candidate(candidate) or not _categories_allowed(offer, candidate):
+			if used_ids.has(candidate_id) or _is_non_repeatable_candidate(candidate) or not _offer_candidate_allowed(offer, candidate, runtime):
 				continue
 			if bool(candidate.get("hardOnly", false)) and hard_only_added:
 				continue
-			fallback.append(candidate)
+			_append_weighted_comment(fallback, candidate, runtime)
 		if fallback.is_empty():
 			break
 		var fallback_card: Dictionary = fallback[rng.randi_range(0, fallback.size() - 1)] as Dictionary
@@ -974,7 +1222,11 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		for item in candidates:
 			var candidate: Dictionary = item as Dictionary
 			var candidate_id := String(candidate.get("id", ""))
-			if used_ids.has(candidate_id) or _is_non_repeatable_candidate(candidate):
+			if used_ids.has(candidate_id) or _is_non_repeatable_candidate(candidate) or not _stage_boosted_high_risk_allowed(offer, candidate, runtime):
+				continue
+			# Preserve the pre-v0.2 HARD fallback behavior. EXPERT keeps the
+			# stricter category exclusion even in this final repair pass.
+			if is_expert_runtime(runtime) and not _categories_allowed(offer, candidate):
 				continue
 			unique_pool.append(candidate)
 		if unique_pool.is_empty():
@@ -1016,7 +1268,7 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 
 static func build_safe_default_offer_for_target(target: Node, comments: Array, rng: RandomNumberGenerator) -> Array:
 	var runtime := runtime_for_target(target)
-	if not is_hard_runtime(runtime):
+	if not is_high_difficulty_runtime(runtime):
 		return []
 	var candidates: Array = []
 	var seen_ids: Dictionary = {}
@@ -1036,11 +1288,27 @@ static func build_safe_default_offer_for_target(target: Node, comments: Array, r
 	var offer: Array = []
 	var unique_candidates: Array = candidates.duplicate()
 	while offer.size() < 3 and not unique_candidates.is_empty():
-		var index := rng.randi_range(0, unique_candidates.size() - 1)
-		offer.append((unique_candidates[index] as Dictionary).duplicate(true))
-		unique_candidates.remove_at(index)
+		var safe_pool: Array = []
+		for item in unique_candidates:
+			var candidate: Dictionary = item as Dictionary
+			if _offer_candidate_allowed(offer, candidate, runtime):
+				safe_pool.append(candidate)
+		if safe_pool.is_empty():
+			break
+		var selected: Dictionary = safe_pool[rng.randi_range(0, safe_pool.size() - 1)] as Dictionary
+		offer.append(selected.duplicate(true))
+		for index in range(unique_candidates.size() - 1, -1, -1):
+			if String((unique_candidates[index] as Dictionary).get("id", "")) == String(selected.get("id", "")):
+				unique_candidates.remove_at(index)
+				break
 	while offer.size() < 3:
-		var duplicate_source: Dictionary = candidates[rng.randi_range(0, candidates.size() - 1)] as Dictionary
+		var duplicate_pool: Array = []
+		for item in candidates:
+			if is_safe_offer_duplicate(item as Dictionary):
+				duplicate_pool.append(item as Dictionary)
+		if duplicate_pool.is_empty():
+			break
+		var duplicate_source: Dictionary = duplicate_pool[rng.randi_range(0, duplicate_pool.size() - 1)] as Dictionary
 		offer.append(duplicate_source.duplicate(true))
 	return offer
 
@@ -1053,6 +1321,29 @@ static func _append_offer_card(offer: Array, used_ids: Dictionary, candidate: Di
 	offer.append(candidate.duplicate(true))
 	used_ids[candidate_id] = true
 	return true
+
+static func _append_weighted_comment(pool: Array, candidate: Dictionary, runtime: Dictionary) -> void:
+	var repeats := 1
+	if is_expert_runtime(runtime):
+		repeats = clampi(ceili(stage_profile_comment_weight(runtime, String(candidate.get("id", "")))), 1, 3)
+	for _index in range(repeats):
+		pool.append(candidate)
+
+static func _offer_candidate_allowed(selected: Array, candidate: Dictionary, runtime: Dictionary) -> bool:
+	return _categories_allowed(selected, candidate) and _stage_boosted_high_risk_allowed(selected, candidate, runtime)
+
+static func _stage_boosted_high_risk_allowed(selected: Array, candidate: Dictionary, runtime: Dictionary) -> bool:
+	if not is_expert_runtime(runtime) or not stage_profile_comment_is_boosted(runtime, String(candidate.get("id", ""))) or int(candidate.get("riskLevel", 1)) < 3:
+		return true
+	var limit := stage_profile_comment_high_risk_limit(runtime)
+	if limit <= 0:
+		return false
+	var count := 0
+	for item in selected:
+		var selected_comment: Dictionary = item as Dictionary
+		if int(selected_comment.get("riskLevel", 1)) >= 3 and stage_profile_comment_is_boosted(runtime, String(selected_comment.get("id", ""))):
+			count += 1
+	return count < limit
 
 static func _candidate_category_is_recent(candidate: Dictionary, recent_categories: Array) -> bool:
 	for category in comment_categories(candidate):
@@ -1121,8 +1412,8 @@ static func comment_evaluation(comment: Dictionary, runtime: Dictionary, elapsed
 	var comment_id := String(comment.get("id", ""))
 	if comment_id.is_empty():
 		reasons.append("missing_id")
-	if not is_hard_runtime(runtime):
-		reasons.append("not_hard")
+	if not is_high_difficulty_runtime(runtime):
+		reasons.append("not_high_difficulty")
 	var stage_ids: Variant = comment.get("stageIds", null)
 	if stage_ids is Array and not (stage_ids as Array).is_empty():
 		var stage_match := false
@@ -1134,9 +1425,10 @@ static func comment_evaluation(comment: Dictionary, runtime: Dictionary, elapsed
 		if not stage_match:
 			reasons.append("stage")
 	var availability: Dictionary = _dict(comment.get("availability", {}))
-	if availability.has(HARD) and not bool(availability.get(HARD, true)):
+	var difficulty := normalize_difficulty(runtime.get("difficulty", NORMAL))
+	if availability.has(difficulty) and not bool(availability.get(difficulty, true)):
 		reasons.append("availability")
-	if bool(comment.get("hardOnly", false)) and not is_hard_runtime(runtime):
+	if bool(comment.get("hardOnly", false)) and not is_high_difficulty_runtime(runtime):
 		reasons.append("hard_only")
 	if elapsed < float(comment.get("minTime", 0.0)):
 		reasons.append("min_time")
@@ -1244,7 +1536,7 @@ static func clear_active_comment_for_target(target: Node) -> void:
 
 static func activate_comment_for_target(target: Node, comment: Dictionary, rng: RandomNumberGenerator = null) -> void:
 	var runtime := runtime_for_target(target)
-	if runtime.is_empty() or not is_hard_runtime(runtime) or comment.is_empty():
+	if runtime.is_empty() or not is_high_difficulty_runtime(runtime) or comment.is_empty():
 		return
 	clear_active_comment_for_target(target)
 	runtime["activeComment"] = comment.duplicate(true)

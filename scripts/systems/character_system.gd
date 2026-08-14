@@ -4,7 +4,13 @@ extends RefCounted
 const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_system.gd")
 
 const SELECT_PAGE_SIZE := 6
-const SELECT_COLUMNS := 3
+const SELECT_COLUMNS := 2
+const SELECT_CARD_ORIGIN := Vector2(24.0, 72.0)
+const SELECT_CARD_SIZE := Vector2(408.0, 192.0)
+const SELECT_CARD_GAP := Vector2(16.0, 12.0)
+const SELECT_CARD_CORNER_RADIUS := 20.0
+const SELECT_LIST_PANEL_RECT := Rect2(76.0, 112.0, 880.0, 692.0)
+const SELECT_DETAIL_PANEL_SIZE := Vector2(542.0, 692.0)
 const DEFAULT_CHARACTER_ID := "ban_chan"
 
 static func selection_visible_count(character_count: int) -> int:
@@ -160,6 +166,52 @@ static func selection_index_for_page(characters: Array, page: int, local_index: 
 	var end: int = mini(start + SELECT_PAGE_SIZE, selection_visible_count(characters.size()))
 	return clampi(start + local_index, start, end - 1)
 
+static func selection_card_rect(local_index: int) -> Rect2:
+	var safe_index: int = maxi(0, local_index)
+	var col: int = safe_index % SELECT_COLUMNS
+	var row: int = int(safe_index / SELECT_COLUMNS)
+	return Rect2(
+		SELECT_CARD_ORIGIN + Vector2(
+			float(col) * (SELECT_CARD_SIZE.x + SELECT_CARD_GAP.x),
+			float(row) * (SELECT_CARD_SIZE.y + SELECT_CARD_GAP.y)
+		),
+		SELECT_CARD_SIZE
+	)
+
+static func selection_list_panel_rect() -> Rect2:
+	return SELECT_LIST_PANEL_RECT
+
+static func selection_card_content_rects(card_rect: Rect2) -> Dictionary:
+	return {
+		"portrait": Rect2(card_rect.position + Vector2(14.0, 46.0), Vector2(158.0, 138.0)),
+		"weapon": Rect2(card_rect.position + Vector2(184.0, 50.0), Vector2(210.0, 60.0)),
+		"tags": Rect2(card_rect.position + Vector2(184.0, 124.0), Vector2(210.0, 28.0)),
+		"info": Rect2(card_rect.position + Vector2(184.0, 46.0), Vector2(210.0, 132.0))
+	}
+
+static func selection_detail_content_rects(panel_rect: Rect2) -> Dictionary:
+	return {
+		"image": Rect2(panel_rect.position + Vector2(28.0, 102.0), Vector2(panel_rect.size.x - 56.0, 300.0)),
+		"weapon": Rect2(panel_rect.position + Vector2(28.0, 414.0), Vector2(panel_rect.size.x - 56.0, 50.0)),
+		"tags": Rect2(panel_rect.position + Vector2(28.0, 476.0), Vector2(panel_rect.size.x - 56.0, 28.0)),
+		"trait": Rect2(panel_rect.position + Vector2(28.0, 516.0), Vector2(panel_rect.size.x - 56.0, 64.0)),
+		"intro": Rect2(panel_rect.position + Vector2(28.0, 592.0), Vector2(panel_rect.size.x - 56.0, 76.0))
+	}
+
+static func selection_index_at_local(pos: Vector2, selected_index: int, character_count: int) -> int:
+	if character_count <= 0 or not Rect2(Vector2.ZERO, SELECT_LIST_PANEL_RECT.size).has_point(pos):
+		return -1
+	var page: int = selection_page_for_index(selected_index, character_count)
+	var start: int = page * SELECT_PAGE_SIZE
+	var visible_count: int = selection_visible_count(character_count)
+	for local_index in range(SELECT_PAGE_SIZE):
+		var index: int = start + local_index
+		if index >= visible_count:
+			break
+		if selection_card_rect(local_index).has_point(pos):
+			return index
+	return -1
+
 static func is_unlocked(character: Dictionary) -> bool:
 	return bool(character.get("isUnlocked", true))
 
@@ -188,6 +240,26 @@ static func status_text(character: Dictionary) -> String:
 			return "選択中"
 		_:
 			return "使用可能"
+
+static func selection_status_badge_text(status: String, selectable: bool, selected: bool) -> String:
+	match status:
+		"coming_soon":
+			return "準備中"
+		"locked":
+			return "LOCKED"
+		_:
+			return "★ 選択中" if selectable and selected else ""
+
+static func selection_card_status_text(character: Dictionary, selected: bool = false) -> String:
+	return selection_status_badge_text(status_id(character), is_selectable(character), selected)
+
+static func selection_detail_status_text(character: Dictionary) -> String:
+	var status: String = status_id(character)
+	if status == "locked":
+		return "LOCKED"
+	if status == "coming_soon":
+		return "準備中"
+	return ""
 
 static func theme_colors(character: Dictionary) -> Dictionary:
 	var raw_theme: Variant = character.get("themeColors", {})
@@ -270,6 +342,8 @@ static func selection_card_view(character: Dictionary, weapons: Array) -> Dictio
 		"gameplaySpritePath": String(character.get("sprite", "")),
 		"selectSpriteScale": float(character.get("selectSpriteScale", 1.0)),
 		"selectSpriteOffset": character.get("selectSpriteOffset", {"x": 0, "y": 0}) as Dictionary,
+		"cardSelectSpriteScale": float(character.get("cardSelectSpriteScale", 1.0)),
+		"cardSelectSpriteOffset": character.get("cardSelectSpriteOffset", {"x": 0, "y": 0}) as Dictionary,
 		"isUnlocked": is_unlocked(character),
 		"isSelectable": is_selectable(character),
 		"statusId": status_id(character),

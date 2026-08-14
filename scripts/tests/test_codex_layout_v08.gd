@@ -23,6 +23,20 @@ func _ready() -> void:
 	_check(not screen._detail_scroll.is_ancestor_of(screen._detail_image_frame), "visual area is outside info scroll")
 	_check(screen._detail_focus_ring != null and screen._detail_focus_ring.get_parent() == screen._detail_panel and screen._detail_focus_ring.mouse_filter == Control.MOUSE_FILTER_IGNORE, "detail focus ring overlays the full detail panel")
 	_check(not screen._detail_focus_ring.visible, "detail focus ring is hidden in preview mode")
+	var header_icon := screen._header_panel.find_child("CodexHeaderIcon", true, false) as TextureRect
+	_check(header_icon != null and header_icon.texture != null, "codex header icon is loaded")
+	_check(header_icon != null and header_icon.get_parent() != null and header_icon.mouse_filter == Control.MOUSE_FILTER_IGNORE, "codex header icon is a non-interactive header element")
+	var header_rect := screen._header_panel.get_global_rect()
+	var category_rect := screen._category_row.get_global_rect()
+	var body_rect := screen._body.get_global_rect()
+	var icon_rect := header_icon.get_global_rect() if header_icon != null else Rect2()
+	_check(header_icon != null and header_icon.expand_mode == TextureRect.EXPAND_IGNORE_SIZE and header_icon.anchor_left == 0.0 and header_icon.anchor_top == 0.0, "codex header icon ignores source size and uses top-left anchors")
+	_check(header_icon != null and header_icon.size.x >= 76.0 and header_icon.size.x <= 82.0 and header_icon.size.y >= 50.0 and header_icon.size.y <= 56.0, "codex header icon stays near the intended 78x52 size")
+	_check(header_icon != null and icon_rect.position.x >= header_rect.position.x - 4.0 and icon_rect.position.x <= header_rect.position.x + 120.0, "codex header icon stays near the header left")
+	_check(header_icon != null and icon_rect.position.y >= header_rect.position.y - 4.0 and icon_rect.end.y <= header_rect.end.y + 4.0, "codex header icon has only a small vertical bleed")
+	_check(header_icon != null and icon_rect.end.y < category_rect.position.y and icon_rect.end.y < body_rect.position.y, "codex header icon does not reach tabs or body")
+	var background := screen.get_node_or_null("FullScreenBackground") as TextureRect
+	_check(background != null and background.texture != null and String(background.texture.resource_path) == "res://assets/title/title_back.png", "codex keeps title background source")
 	var ring_style := screen._detail_focus_ring.get_theme_stylebox("panel") as StyleBoxFlat
 	_check(ring_style != null and not ring_style.draw_center and is_zero_approx(ring_style.bg_color.a) and ring_style.shadow_size == 0 and is_zero_approx(ring_style.shadow_color.a), "detail focus ring is outline-only")
 	_check(ring_style != null and ring_style.border_width_left >= 3 and ring_style.border_width_left <= 4 and ring_style.border_width_top >= 3 and ring_style.border_width_top <= 4 and ring_style.border_width_right >= 3 and ring_style.border_width_right <= 4 and ring_style.border_width_bottom >= 3 and ring_style.border_width_bottom <= 4, "detail focus ring uses a 3-4px border")

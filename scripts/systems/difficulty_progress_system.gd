@@ -78,7 +78,7 @@ static func stage_display_name(value: Variant) -> String:
 		STAGE_SINGING: "Singing",
 		STAGE_DRAWING: "Drawing",
 		STAGE_COLLAB: "Collab",
-		STAGE_RELAY: "Relay"
+		STAGE_RELAY: "配信リレー"
 	}
 	return String(names.get(id, id))
 
@@ -559,6 +559,52 @@ static func unlock_all_for_target(target: Node) -> void:
 	_sync_target(target, progress, _array(target.get("stream_frames")))
 	target.set("relay_mode_unlocked", true)
 
+static func force_expert_unlock_for_target(target: Node) -> void:
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	if progress.is_empty():
+		progress = load_progress(_array(target.get("stream_frames")))
+	var difficulties := _dict(progress.get("difficulties", {}))
+	var expert := _dict(difficulties.get(DIFFICULTY_EXPERT, create_default_difficulty_progress()))
+	expert["unlocked"] = true
+	expert["isNew"] = false
+	difficulties[DIFFICULTY_EXPERT] = expert
+	progress["difficulties"] = difficulties
+	evaluate_all_unlocks(progress)
+	save_progress(progress)
+	_sync_target(target, progress, _array(target.get("stream_frames")))
+
+static func force_expert_clear_all_stages_for_target(target: Node) -> void:
+	force_expert_unlock_for_target(target)
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	var difficulties := _dict(progress.get("difficulties", {}))
+	var expert := _dict(difficulties.get(DIFFICULTY_EXPERT, create_default_difficulty_progress()))
+	var stages := _dict(expert.get("stages", {}))
+	for stage_id in STANDARD_STAGE_IDS:
+		var stage := _dict(stages.get(stage_id, create_default_stage_progress()))
+		stage["played"] = true
+		stage["cleared"] = true
+		stages[stage_id] = stage
+	expert["stages"] = stages
+	difficulties[DIFFICULTY_EXPERT] = expert
+	progress["difficulties"] = difficulties
+	evaluate_all_unlocks(progress)
+	save_progress(progress)
+	_sync_target(target, progress, _array(target.get("stream_frames")))
+
+static func force_expert_relay_unlock_for_target(target: Node) -> void:
+	force_expert_clear_all_stages_for_target(target)
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	var difficulties := _dict(progress.get("difficulties", {}))
+	var expert := _dict(difficulties.get(DIFFICULTY_EXPERT, create_default_difficulty_progress()))
+	var relay := _dict(expert.get("relay", create_default_relay_progress()))
+	relay["unlocked"] = true
+	expert["relay"] = relay
+	difficulties[DIFFICULTY_EXPERT] = expert
+	progress["difficulties"] = difficulties
+	evaluate_all_unlocks(progress)
+	save_progress(progress)
+	_sync_target(target, progress, _array(target.get("stream_frames")))
+
 static func selected_difficulty(progress: Dictionary) -> String:
 	return normalize_difficulty_id(_dict(progress.get("stageSelectUi", {})).get("selectedDifficulty", DIFFICULTY_NORMAL))
 
@@ -668,27 +714,71 @@ static func _relay_frame(progress: Dictionary, difficulty_id: String, relay: Dic
 	elif cleared:
 		status = "relay_cleared"
 	var segment := float(relay_config.get("segmentDuration", 120.0))
-	var total := segment * 5.0
-	var segment_minutes := segment / 60.0
-	var total_minutes := total / 60.0
+	var segment_seconds := maxi(0, int(round(segment)))
+	var total_seconds := segment_seconds * 5
+	var unlock_condition := "通常5枠をすべてクリアすると解禁されます。"
 	var reason := ""
 	if status == "difficulty_locked":
 		reason = _difficulty_condition(difficulty_id)
 	elif status == "relay_locked":
-		reason = "Standard stages cleared: %d/5" % count_cleared_standard_stages(progress, difficulty_id)
-	return {"id": STAGE_RELAY, "displayName": "Relay", "plainName": "Relay", "iconId": "stream_icon_relay", "iconPath": "res://assets/generated/stream_frame_icons_v1/relay/clean.png", "themeColor": "relay", "difficulty": 5, "difficultyMode": difficulty_id, "difficultyId": difficulty_id, "stageComplexity": 5, "difficultyText": "\u67a0\u96e3\u5ea6\uff1a*****", "description": "%s relay: each %.0f sec, total %.0f sec, final boss unlimited." % [difficulty_display_name(difficulty_id), segment, total], "features": ["5 sections", "sequential", "final boss"], "shortFeatures": ["5 sections", "%.0f sec" % segment], "mainGimmicks": ["sections", "transitions", "final boss"], "recommendText": "Clear all five standard stages to unlock.", "unlockConditionText": reason, "disabledReason": reason, "isUnlocked": unlocked, "isCleared": cleared, "isPlayable": unlocked, "isRelayMode": true, "status": status, "statusId": status, "statusText": _status_text(status), "relayProgress": count_cleared_standard_stages(progress, difficulty_id), "relayDurationText": "\u5404%.0f\u5206\u30fb\u5408\u8a08%.0f\u5206" % [segment_minutes, total_minutes], "difficultyLocked": status == "difficulty_locked", "relayLocked": status == "relay_locked", "detailTitle": "Relay"}
+		reason = unlock_condition
+	var features: Array[String] = ["5区間", "各%d秒" % segment_seconds]
+	var description := "5つの配信枠を各%d秒ずつ連続で進み、最後に時間制限なしの最終ボスへ挑みます。区間の合間には休憩が入り、回復やギフトを選択できます。" % segment_seconds
+	var recommend := "5つの配信枠を連続で走り切る、総仕上げの特別モードです。" if status == "selectable" or status == "relay_cleared" else ""
+	return {
+		"id": STAGE_RELAY,
+		"displayName": "配信リレー",
+		"plainName": "配信リレー",
+		"iconId": "stream_icon_relay",
+		"iconPath": "res://assets/generated/stream_frame_icons_v1/relay/clean.png",
+		"themeColor": "relay",
+		"difficulty": 5,
+		"difficultyMode": difficulty_id,
+		"difficultyId": difficulty_id,
+		"stageComplexity": 5,
+		"difficultyText": "枠難度：★★★★★",
+		"description": description,
+		"features": features,
+		"shortFeatures": features.duplicate(),
+		"mainGimmicks": ["5枠連続", "休憩", "最終ボス"],
+		"recommendText": recommend,
+		"unlockConditionText": reason,
+		"disabledReason": reason,
+		"isUnlocked": unlocked,
+		"isCleared": cleared,
+		"isPlayable": unlocked,
+		"isRelayMode": true,
+		"status": status,
+		"statusId": status,
+		"statusText": _relay_status_text(status),
+		"relayProgress": count_cleared_standard_stages(progress, difficulty_id),
+		"relayDurationText": "各%d秒・合計%d秒" % [segment_seconds, total_seconds],
+		"difficultyLocked": status == "difficulty_locked",
+		"relayLocked": status == "relay_locked",
+		"detailTitle": "配信リレー"
+	}
+
+static func _relay_status_text(status: String) -> String:
+	match status:
+		"difficulty_locked", "relay_locked":
+			return "未解禁"
+		"relay_cleared":
+			return "クリア"
+		"selectable":
+			return "挑戦可能"
+	return "未解禁"
 
 static func _status_text(status: String) -> String:
 	match status:
 		"difficulty_locked": return "LOCKED"
 		"stage_locked": return "PREVIOUS CLEAR REQUIRED"
-		"relay_locked": return "RELAY LOCKED"
+		"relay_locked": return "未解禁"
 		"not_played": return "NEW"
 		"in_progress": return "IN PROGRESS"
 		"cleared": return "CLEAR"
 		"boss_defeated": return "BOSS CLEAR"
 		"fully_extinguished": return "FULL CLEAR"
-		"relay_cleared": return "RELAY CLEAR"
+		"relay_cleared": return "クリア"
 	return "SELECTABLE"
 
 static func gameplay_implemented(config: Dictionary, difficulty_id: Variant) -> bool:
@@ -717,10 +807,10 @@ static func _lock_condition(progress: Dictionary, difficulty_id: String, stage_i
 
 static func _difficulty_condition(difficulty_id: String) -> String:
 	if difficulty_id == DIFFICULTY_HARD:
-		return "Clear the NORMAL relay final boss to unlock HARD."
+		return "NORMALの配信リレーをクリアするとHARDが解禁されます。"
 	if difficulty_id == DIFFICULTY_EXPERT:
-		return "Clear the HARD relay final boss to unlock EXPERT."
-	return "NORMAL is unlocked from the start."
+		return "HARDの配信リレーをクリアするとEXPERTが解禁されます。"
+	return "NORMALは最初から解禁されています。"
 
 static func _stage_is_unlocked(progress: Dictionary, difficulty_id: String, stage_id: String) -> bool:
 	if stage_id == DEFAULT_STAGE_ID:
@@ -731,6 +821,10 @@ static func _stage_is_unlocked(progress: Dictionary, difficulty_id: String, stag
 	if difficulty_id == DIFFICULTY_NORMAL:
 		if _safe_bool(_dict(_dict(progress.get("streamFrameProgress", {})).get(stage_id, {})).get("isUnlocked", false)):
 			return true
+	if difficulty_id == DIFFICULTY_EXPERT:
+		# EXPERT's five standard frames are selectable immediately after the
+		# difficulty unlock. NORMAL/HARD retain their existing sequential gates.
+		return bool(_difficulty_data(progress, difficulty_id).get("unlocked", false))
 	var stages := _dict(_difficulty_data(progress, difficulty_id).get("stages", {}))
 	return bool(_dict(stages.get(STANDARD_STAGE_IDS[index - 1], {})).get("cleared", false))
 

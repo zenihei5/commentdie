@@ -60,6 +60,23 @@ const OPTION_ACCENT_INDIGO := Color("#6D8DDE")
 const OPTION_ACCENT_TEAL := Color("#2FBFB6")
 const OPTION_ACCENT_MAGENTA := Color("#D673C4")
 
+const DIFFICULTY_NORMAL_ACCENT := Color("#E954A5")
+const DIFFICULTY_NORMAL_TINT := Color("#FFF2FA")
+const DIFFICULTY_HARD_ACCENT := Color("#D94B62")
+const DIFFICULTY_HARD_TINT := Color("#FFF0F2")
+const DIFFICULTY_EXPERT_ACCENT := Color("#7A56C8")
+const DIFFICULTY_EXPERT_TINT := Color("#F4EFFF")
+
+static func difficulty_palette(value: Variant) -> Dictionary:
+	var id := String(value).strip_edges().to_lower()
+	match id:
+		"hard":
+			return {"id": "hard", "accent": DIFFICULTY_HARD_ACCENT, "tint": DIFFICULTY_HARD_TINT}
+		"expert":
+			return {"id": "expert", "accent": DIFFICULTY_EXPERT_ACCENT, "tint": DIFFICULTY_EXPERT_TINT}
+		_:
+			return {"id": "normal", "accent": DIFFICULTY_NORMAL_ACCENT, "tint": DIFFICULTY_NORMAL_TINT}
+
 static func _style(fill: Color, border: Color = Color.TRANSPARENT, border_width: int = 0, radius: int = 16) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill

@@ -1,6 +1,8 @@
 class_name HudTextSystem
 extends RefCounted
 
+const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
+
 static func status_text(stats: Dictionary) -> String:
 	return "EXP %d/%d   効果 %ss   武器:%s   アクセ:%s" % [
 		int(stats.get("expValue", 0)),
@@ -9,6 +11,38 @@ static func status_text(stats: Dictionary) -> String:
 		String(stats.get("weaponSlots", "空き")),
 		String(stats.get("accessorySlots", "空き"))
 	]
+
+static func stream_frame_card_view(context: Dictionary) -> Dictionary:
+	var difficulty_id := DifficultyProgressSystemScript.normalize_difficulty_id(context.get("difficultyId", "normal"))
+	var frame_name := "配信リレー" if bool(context.get("relayMode", false)) else _stream_frame_card_name(context)
+	return {
+		"frameName": frame_name,
+		"difficultyId": difficulty_id,
+		"difficultyLabel": DifficultyProgressSystemScript.difficulty_display_name(difficulty_id)
+	}
+
+static func stream_frame_card_badge_rect(card_rect: Rect2) -> Rect2:
+	return Rect2(Vector2(card_rect.end.x - 76.0, card_rect.position.y + 10.0), Vector2(58.0, 20.0))
+
+static func _stream_frame_card_name(context: Dictionary) -> String:
+	var frame_value: Variant = context.get("streamFrame", {})
+	var frame: Dictionary = frame_value as Dictionary if frame_value is Dictionary else {}
+	var display_name := String(frame.get("displayName", "")).strip_edges()
+	if display_name != "":
+		return display_name
+	var frame_id := String(context.get("streamFrameId", frame.get("id", ""))).strip_edges().to_lower()
+	match frame_id:
+		"zatsudan":
+			return "雑談枠"
+		"gameplay":
+			return "ゲーム実況枠"
+		"singing":
+			return "歌枠"
+		"drawing":
+			return "お絵かき枠"
+		"collab":
+			return "コラボ枠"
+	return "雑談枠"
 
 static func texts_for_target(target: Node, comment_barrage_label: String, gift_arrival_text: String, active_genre_label: String, next_known_genre_label: String) -> Dictionary:
 	var effect_text: String = "%02d" % int(ceil(maxf(0.0, float(target.get("effect_timer")))))
@@ -74,14 +108,7 @@ static func update_labels_for_target(
 static func banner_text(context: Dictionary) -> String:
 	var state: String = String(context.get("state", "title"))
 	if state == "title":
-		var mode_text: String = "配信リレー" if bool(context.get("relayMode", false)) else ("60秒テスト" if bool(context.get("quickTestMode", false)) else "180秒通常")
-		var relay_text: String = "ON" if bool(context.get("relayModeUnlocked", false)) else "LOCKED"
-		return "タイトル  T:%s / R:リレー %s / U:解放 / B:%s / 画面揺れ:%s" % [
-			mode_text,
-			relay_text,
-			String(context.get("commentBarrageLabel", "通常")),
-			"ON" if bool(context.get("screenShakeEnabled", true)) else "OFF"
-		]
+		return ""
 	if state == "ranking":
 		return ""
 	if state == "options":

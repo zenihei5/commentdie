@@ -366,11 +366,11 @@ static func build_run_stats(
 static func build_run_stats_from_target(reason: String, target: Node) -> Dictionary:
 	var hard_runtime_variant: Variant = target.get("difficulty_runtime")
 	var hard_state: Dictionary = {}
-	var is_hard_run := false
+	var is_high_difficulty_run := false
 	if hard_runtime_variant is Dictionary:
 		var runtime_data := hard_runtime_variant as Dictionary
 		hard_state = runtime_data.get("bossState", {}) as Dictionary
-		is_hard_run = String(runtime_data.get("difficulty", "normal")) == "hard"
+		is_high_difficulty_run = String(runtime_data.get("difficulty", "normal")) in ["hard", "expert"]
 	var first_boss_defeated := bool(hard_state.get("firstBossDefeated", false))
 	var reignition_boss_defeated := bool(hard_state.get("secondBossDefeated", false))
 	var first_boss_spawned := bool(hard_state.get("firstBossSpawned", first_boss_defeated))
@@ -411,7 +411,7 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"reignitionBossDefeated": reignition_boss_defeated,
 		"firstBossSpawned": first_boss_spawned,
 		"reignitionBossSpawned": reignition_boss_spawned,
-		"bossCount": hard_boss_count if is_hard_run else (1 if bool(target.get("boss_defeated")) else 0),
+		"bossCount": hard_boss_count if is_high_difficulty_run else (1 if bool(target.get("boss_defeated")) else 0),
 		"difficultyId": String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else "normal",
 		"partnerId": String(target.get("collab_partner_id")),
 		"bossName": String(target.get("boss_last_name")),
@@ -476,8 +476,8 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	result["modeName"] = "配信リレー" if relay_mode else ("テスト配信" if quick_test_mode else "通常配信")
 	result["difficultyId"] = String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else "normal"
 	result["stageId"] = "relay" if relay_mode else String(result.get("streamFrameId", ""))
-	var hard_relay := relay_mode and String(result.get("difficultyId", "normal")) == "hard"
-	var relay_eligible := relay_mode and (hard_relay or bool(target.get("relay_boss_score_awarded")))
+	var high_difficulty_relay := relay_mode and String(result.get("difficultyId", "normal")) in ["hard", "expert"]
+	var relay_eligible := relay_mode and (high_difficulty_relay or bool(target.get("relay_boss_score_awarded")))
 	result["isRankingEligible"] = (not quick_test_mode) and (not relay_mode or relay_eligible)
 	result["isRelayRankingEligible"] = bool(result["isRankingEligible"]) and relay_mode
 	result["gameOver"] = String(result.get("endType", "")) == "mental_breakdown"
@@ -685,8 +685,33 @@ static func build_point_reward_view(stream_reward: Dictionary, grant_state: Stri
 		"rewardRows": rows
 	}
 
+static func result_stream_frame_display_name(result: Dictionary) -> String:
+	if bool(result.get("relayMode", false)):
+		return "配信リレー"
+	var frame_id := String(result.get("streamFrameId", "")).strip_edges().to_lower()
+	if frame_id == "":
+		frame_id = String(result.get("stageId", "")).strip_edges().to_lower()
+	if frame_id != "":
+		frame_id = DifficultyProgressSystemScript.normalize_stage_id(frame_id)
+	match frame_id:
+		"zatsudan":
+			return "雑談枠"
+		"gameplay":
+			return "ゲーム実況枠"
+		"singing":
+			return "歌枠"
+		"drawing":
+			return "お絵かき枠"
+		"collab":
+			return "コラボ枠"
+		"relay":
+			return "配信リレー"
+	var fallback := String(result.get("streamFrameName", "")).strip_edges()
+	return fallback if fallback != "" else "配信枠"
+
 static func build_result_data(result: Dictionary) -> Dictionary:
 	var end_type := String(result.get("endType", ""))
+	var run_difficulty_id := DifficultyProgressSystemScript.normalize_difficulty_id(result.get("runDifficultyId", result.get("difficultyId", "normal")))
 	var culprit_comment := _culprit_comment_for_result(result, end_type)
 	var death_reason_text := _death_reason_for_result(result, end_type, culprit_comment)
 	var trouble_note := _trouble_note_for_result(end_type, culprit_comment)
@@ -706,6 +731,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"modeId": String(result.get("modeId", "")),
 		"modeName": String(result.get("modeName", "")),
 		"difficultyId": String(result.get("difficultyId", "normal")),
+		"runDifficultyId": run_difficulty_id,
 		"difficulty": String(result.get("difficultyId", "normal")),
 		"relayMode": bool(result.get("relayMode", false)),
 		"stageId": String(result.get("stageId", result.get("streamFrameId", ""))),
@@ -716,7 +742,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"seniorUnitUnlocked": bool(result.get("seniorUnitUnlocked", false)),
 		"characterName": String(result.get("characterName", "配信者")),
 		"streamFrameId": String(result.get("streamFrameId", "")),
-		"streamFrameName": String(result.get("streamFrameName", "配信枠")),
+		"streamFrameName": result_stream_frame_display_name(result),
 		"relayClearedFrameCount": int(result.get("relayClearedFrameCount", 0)),
 		"relayCompletedFrameIds": result.get("relayCompletedFrameIds", []),
 		"relayCompletedFrameNames": result.get("relayCompletedFrameNames", []),
@@ -859,7 +885,7 @@ static func build_result_text(stats: Dictionary) -> String:
 		lines.append("配信結果：最後まで配信を走り切った！")
 		lines.append("最終指示コメ：%s" % String(stats.get("currentComment", "なし")))
 	else:
-		lines.append("戦犯指示コメ：%s" % String(stats.get("currentComment", "なし")))
+		lines.append("挑戦指示コメ：%s" % String(stats.get("currentComment", "なし")))
 		lines.append("死因：%s" % death_reason)
 		lines.append("最後の一撃：%s" % death_source)
 	lines.append("最終装備 武器：%s" % weapon_equipment)

@@ -19,7 +19,10 @@ func _run_tests() -> void:
 	_test_data_values()
 	_test_full_voice_dome()
 	_test_center_stage()
+	_test_kusa_wave_progression()
 	_test_great_grassland()
+	_test_grass_wave_reflection_and_distance()
+	_test_great_grassland_concurrent_load()
 	_test_comment_lockdown()
 	_test_emote_trigger_radius()
 	_test_emote_festival()
@@ -42,7 +45,7 @@ func _test_data_values() -> void:
 	var expected: Array = [
 		{"id": "full_voice_dome", "behavior": "full_voice_dome", "damage": 9.0, "interval": 0.40, "countKey": "pulseDamage", "count": 15.0},
 		{"id": "center_stage", "behavior": "center_stage", "damage": 4.0, "interval": 3.0, "countKey": "maxTicks", "count": 4},
-		{"id": "great_grassland", "behavior": "great_grassland", "damage": 11.0, "interval": 1.15, "countKey": "projectileCount", "count": 3},
+		{"id": "great_grassland", "behavior": "great_grassland", "damage": 12.0, "interval": 1.15, "countKey": "projectileCount", "count": 3},
 		{"id": "comment_lockdown", "behavior": "comment_lockdown", "damage": 11.0, "interval": 2.8, "countKey": "projectileCount", "count": 3},
 		{"id": "emote_festival", "behavior": "emote_festival", "damage": 18.0, "interval": 3.8, "countKey": "maxActiveCount", "count": 5},
 		{"id": "all_block_laser", "behavior": "all_block_laser", "damage": 20.0, "interval": 4.0, "countKey": "laserCount", "count": 3},
@@ -61,7 +64,14 @@ func _test_data_values() -> void:
 	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "center_stage", {}).get("radius", 0.0))), 105.0), "center_stage radius data", failures)
 	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "center_stage", {}).get("duration", 0.0))), 2.4), "center_stage duration data", failures)
 	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "center_stage", {}).get("hitInterval", 0.0))), 0.6), "center_stage hit interval data", failures)
-	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "great_grassland", {}).get("sideAngleDegrees", 0.0))), 18.0), "great_grassland side angle assumption is explicit", failures)
+	_check(not bool(WeaponSystem.find_weapon(weapons, "center_stage", {}).get("intermediateTickHitSe", true)), "center_stage intermediate tick hit SE is disabled", failures)
+	_check(is_zero_approx(float(WeaponSystem.find_weapon(weapons, "center_stage", {}).get("finishFlashDuration", -1.0))), "center_stage fullscreen finish flash is disabled", failures)
+	var grassland := WeaponSystem.find_weapon(weapons, "great_grassland", {})
+	_check(is_equal_approx(float(grassland.get("sideAngleDegrees", 0.0)), 18.0), "great_grassland side angle assumption is explicit", failures)
+	_check(is_equal_approx(float(grassland.get("range", 0.0)), 3200.0), "great_grassland maximum distance data", failures)
+	_check(is_equal_approx(float(grassland.get("sizeMultiplier", 0.0)), 1.70), "great_grassland size multiplier data", failures)
+	_check(int(grassland.get("bounceCount", 0)) == 8, "great_grassland bounce count data", failures)
+	_check(is_equal_approx(float(grassland.get("sameEnemyRehit", 0.0)), 0.30), "great_grassland rehit interval remains unchanged", failures)
 	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "emote_mine", {}).get("triggerRadius", 0.0))), 48.0), "emote_mine trigger radius data", failures)
 	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "emote_festival", {}).get("triggerRadius", 0.0))), 60.0), "emote_festival trigger radius data", failures)
 	_check(is_equal_approx(float((WeaponSystem.find_weapon(weapons, "emote_festival", {}).get("chainDamageCoefficient", 0.0))), 0.70), "emote_festival chain coefficient data", failures)
@@ -101,14 +111,51 @@ func _test_center_stage() -> void:
 	var area := _find_fx(generated, "center_stage_area")
 	_check(not area.is_empty() and is_equal_approx(float(area.get("radius", 0.0)), 105.0), "center_stage area uses data radius", failures)
 	_check(int(area.get("tickCount", 0)) == 1 and not _find_fx(generated, "center_stage_tick").is_empty(), "center_stage starts with tick one", failures)
+	_check(bool(result.get("enemyDamaged", false)), "center_stage initial tick still requests hit SE", failures)
 	_check(float(clearable.get("life", 1.0)) <= 0.0, "center_stage clears explicit bullet", failures)
+	var intermediate_feedback: Dictionary = {}
+	generated = WeaponSystem.update_hit_fx(generated, 0.6, [enemy, nearby], [], [clearable], [], [], intermediate_feedback, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
+	_check(not bool(intermediate_feedback.get("enemyDamaged", false)), "center_stage intermediate tick does not request hit SE", failures)
+	_check(String(intermediate_feedback.get("weaponCommentKind", "")) == "spotlight", "center_stage intermediate tick keeps weapon reaction feedback", failures)
 	var finish_feedback: Dictionary = {}
-	generated = WeaponSystem.update_hit_fx(generated, 2.4, [enemy, nearby], [], [clearable], [], [], finish_feedback, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
+	generated = WeaponSystem.update_hit_fx(generated, 1.8, [enemy, nearby], [], [clearable], [], [], finish_feedback, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
 	_check(is_equal_approx(float(enemy.get("hp", 0.0)), 76.0), "center_stage applies four ticks and one finish for 24 damage", failures)
 	_check(_find_fx(generated, "center_stage_area").is_empty() and not _find_fx(generated, "center_stage_finish").is_empty(), "center_stage ends once after finish", failures)
-	_check(is_equal_approx(float(finish_feedback.get("screenFlashDuration", 0.0)), 0.12), "center_stage finish emits one flash", failures)
-	generated = WeaponSystem.update_hit_fx(generated, 0.1, [enemy, nearby], [], [clearable], [], [], finish_feedback, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
-	_check(is_equal_approx(float(finish_feedback.get("screenFlashDuration", 0.0)), 0.12), "center_stage finish flash does not repeat", failures)
+	_check(bool(finish_feedback.get("enemyDamaged", false)), "center_stage finish still requests hit SE", failures)
+	_check(is_zero_approx(float(finish_feedback.get("screenFlashDuration", 0.0))), "center_stage finish does not emit fullscreen flash", failures)
+	var repeated_feedback: Dictionary = {}
+	generated = WeaponSystem.update_hit_fx(generated, 0.1, [enemy, nearby], [], [clearable], [], [], repeated_feedback, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
+	_check(not bool(repeated_feedback.get("enemyDamaged", false)) and is_zero_approx(float(repeated_feedback.get("screenFlashDuration", 0.0))), "center_stage finish feedback does not repeat", failures)
+
+
+func _test_kusa_wave_progression() -> void:
+	var level_one_context := _context("kusa_wave", [], [], {}, [], [], 0.0)
+	level_one_context["mainWeaponId"] = ""
+	level_one_context["playerWeapons"] = [{"id": "kusa_wave", "level": 1}]
+	var level_one_result := WeaponSystem.update_equipment_weapons(level_one_context)
+	var level_one_wave := _find_fx(level_one_result.get("hitFx", []) as Array, "kusa_wave")
+	_check(not level_one_wave.is_empty(), "kusa_wave Lv1 spawns", failures)
+	if not level_one_wave.is_empty():
+		_check(is_equal_approx(float(level_one_wave.get("damage", 0.0)), 5.0), "kusa_wave Lv1 damage remains five", failures)
+		_check(is_equal_approx(Vector2(level_one_wave.get("vel", Vector2.ZERO)).length(), 440.0), "kusa_wave Lv1 speed remains 440", failures)
+		_check(is_equal_approx(float(level_one_wave.get("maxDistance", 0.0)), 900.0), "kusa_wave Lv1 maximum distance is 900", failures)
+		_check(is_equal_approx(float(level_one_wave.get("sizeScale", 0.0)), 1.0), "kusa_wave Lv1 size remains 1.00", failures)
+		_check(int(level_one_wave.get("bouncesLeft", 0)) == 1, "kusa_wave Lv1 has one reflection", failures)
+		_check(is_equal_approx(float(level_one_wave.get("maxLife", 0.0)), 900.0 / 440.0 + 0.35), "kusa_wave Lv1 safety life follows distance", failures)
+
+	var level_five_context := _context("kusa_wave", [], [], {}, [], [], 0.0)
+	level_five_context["mainWeaponId"] = ""
+	level_five_context["playerWeapons"] = [{"id": "kusa_wave", "level": 5}]
+	var level_five_result := WeaponSystem.update_equipment_weapons(level_five_context)
+	var level_five_wave := _find_fx(level_five_result.get("hitFx", []) as Array, "kusa_wave")
+	_check(not level_five_wave.is_empty(), "kusa_wave Lv5 spawns", failures)
+	if not level_five_wave.is_empty():
+		_check(is_equal_approx(float(level_five_wave.get("damage", 0.0)), 12.0), "kusa_wave Lv5 damage remains twelve", failures)
+		_check(is_equal_approx(Vector2(level_five_wave.get("vel", Vector2.ZERO)).length(), 440.0), "kusa_wave Lv5 speed remains 440", failures)
+		_check(is_equal_approx(float(level_five_wave.get("maxDistance", 0.0)), 2400.0), "kusa_wave Lv5 maximum distance is 2400", failures)
+		_check(is_equal_approx(float(level_five_wave.get("sizeScale", 0.0)), 1.55), "kusa_wave Lv5 size is 1.55", failures)
+		_check(int(level_five_wave.get("bouncesLeft", 0)) == 5, "kusa_wave Lv5 has five reflections", failures)
+		_check(is_equal_approx(float(level_five_wave.get("maxLife", 0.0)), 2400.0 / 440.0 + 0.35), "kusa_wave Lv5 safety life follows distance", failures)
 
 
 func _test_great_grassland() -> void:
@@ -119,12 +166,107 @@ func _test_great_grassland() -> void:
 	var waves := _find_all_fx(generated, "great_grassland_wave")
 	_check(waves.size() == 3, "great_grassland always spawns three waves", failures)
 	if waves.size() == 3:
-		_check(is_equal_approx(float((waves[0] as Dictionary).get("sizeScale", 0.0)), 1.5), "great_grassland size multiplier is 1.50", failures)
-		_check(int((waves[0] as Dictionary).get("bouncesLeft", 0)) == 1, "great_grassland bounce count is one", failures)
+		var left_wave := waves[0] as Dictionary
+		var center_wave := waves[1] as Dictionary
+		var right_wave := waves[2] as Dictionary
+		_check(is_equal_approx(float(left_wave.get("damage", 0.0)), 12.0), "great_grassland damage is twelve per wave", failures)
+		_check(is_equal_approx(float(left_wave.get("sizeScale", 0.0)), 1.70), "great_grassland size multiplier is 1.70", failures)
+		_check(is_equal_approx(float(left_wave.get("maxDistance", 0.0)), 3200.0), "great_grassland maximum distance is 3200", failures)
+		_check(int(left_wave.get("bouncesLeft", 0)) == 8, "great_grassland bounce count is eight", failures)
+		_check(is_equal_approx(Vector2(left_wave.get("vel", Vector2.ZERO)).length(), 440.0), "great_grassland speed remains 440", failures)
+		_check(is_equal_approx(float(left_wave.get("maxLife", 0.0)), 3200.0 / 440.0 + 0.35), "great_grassland safety life follows distance", failures)
 		_check(is_equal_approx(float((waves[0] as Dictionary).get("sameEnemyRehit", 0.0)), 0.30), "great_grassland rehit cooldown is data-driven", failures)
+		_check(absf(absf(rad_to_deg(Vector2(left_wave.get("dir", Vector2.ZERO)).angle_to(Vector2(center_wave.get("dir", Vector2.ZERO))))) - 18.0) < 0.001, "great_grassland left wave keeps the 18 degree spread", failures)
+		_check(absf(absf(rad_to_deg(Vector2(center_wave.get("dir", Vector2.ZERO)).angle_to(Vector2(right_wave.get("dir", Vector2.ZERO))))) - 18.0) < 0.001, "great_grassland right wave keeps the 18 degree spread", failures)
 	generated = WeaponSystem.update_hit_fx(generated, 0.0, [enemy], [box], [], [], [], {}, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
-	_check(is_equal_approx(float(enemy.get("hp", 0.0)), 67.0), "great_grassland keeps independent hit memory per wave", failures)
+	_check(is_equal_approx(float(enemy.get("hp", 0.0)), 64.0), "great_grassland keeps independent hit memory per wave", failures)
 	_check(float(box.get("hp", 1.0)) <= 0.0, "great_grassland breaks a box", failures)
+
+
+func _test_grass_wave_reflection_and_distance() -> void:
+	var normal_context := _context("kusa_wave", [], [], {}, [], [], 0.0)
+	normal_context["mainWeaponId"] = ""
+	normal_context["playerWeapons"] = [{"id": "kusa_wave", "level": 5}]
+	var normal_result := WeaponSystem.update_equipment_weapons(normal_context)
+	var normal_wave := _find_fx(normal_result.get("hitFx", []) as Array, "kusa_wave")
+	_check(not normal_wave.is_empty(), "kusa_wave Lv5 reflection probe spawns", failures)
+	if not normal_wave.is_empty():
+		_test_wave_reflection_budget(normal_wave, "kusa_wave", 5)
+
+	var evolved_result := WeaponSystem.update_equipment_weapons(_context("great_grassland", [], [], {}, [], [], 0.0))
+	var evolved_wave := _find_fx(evolved_result.get("hitFx", []) as Array, "great_grassland_wave")
+	_check(not evolved_wave.is_empty(), "great_grassland reflection probe spawns", failures)
+	if evolved_wave.is_empty():
+		return
+	_test_wave_reflection_budget(evolved_wave, "great_grassland_wave", 8)
+
+	var distance_wave: Dictionary = evolved_wave.duplicate(true)
+	distance_wave["pos"] = Vector2.ZERO
+	distance_wave["dir"] = Vector2.RIGHT
+	distance_wave["vel"] = Vector2.RIGHT * 440.0
+	distance_wave["life"] = float(distance_wave.get("maxLife", 0.0))
+	distance_wave["distanceTraveled"] = 0.0
+	distance_wave["bouncesLeft"] = 8
+	var distance_fx: Array = [distance_wave]
+	distance_fx = WeaponSystem.update_hit_fx(distance_fx, 0.2, [], [], [], [], [], {}, Rect2(-80.0, -80.0, 160.0, 160.0), [], Vector2.ZERO)
+	var reflected_wave := _find_fx(distance_fx, "great_grassland_wave")
+	_check(not reflected_wave.is_empty() and int(reflected_wave.get("bouncesLeft", 0)) == 7, "great_grassland consumes one reflection in a narrow arena", failures)
+	_check(not reflected_wave.is_empty() and is_equal_approx(float(reflected_wave.get("distanceTraveled", 0.0)), 88.0), "reflection retains traveled distance", failures)
+	distance_fx = WeaponSystem.update_hit_fx(distance_fx, 7.0, [], [], [], [], [], {}, Rect2(), [], Vector2.ZERO)
+	reflected_wave = _find_fx(distance_fx, "great_grassland_wave")
+	_check(not reflected_wave.is_empty() and is_equal_approx(float(reflected_wave.get("distanceTraveled", 0.0)), 3168.0), "distance continues accumulating after reflection", failures)
+	distance_fx = WeaponSystem.update_hit_fx(distance_fx, 0.1, [], [], [], [], [], {}, Rect2(), [], Vector2.ZERO)
+	_check(_find_fx(distance_fx, "great_grassland_wave").is_empty(), "great_grassland expires when cumulative distance reaches 3200", failures)
+
+
+func _test_wave_reflection_budget(source_wave: Dictionary, kind: String, expected_reflections: int) -> void:
+	var wave: Dictionary = source_wave.duplicate(true)
+	wave["pos"] = Vector2.ZERO
+	wave["dir"] = Vector2(1.0, 1.0).normalized()
+	wave["vel"] = Vector2(1.0, 1.0).normalized() * 440.0
+	wave["life"] = float(wave.get("maxLife", 0.0))
+	wave["distanceTraveled"] = 0.0
+	wave["bouncesLeft"] = expected_reflections
+	var active_fx: Array = [wave]
+	var reflections := 0
+	var previous_bounces := expected_reflections
+	for _step in range(40):
+		active_fx = WeaponSystem.update_hit_fx(active_fx, 0.2, [], [], [], [], [], {}, Rect2(-80.0, -80.0, 160.0, 160.0), [], Vector2.ZERO)
+		var active_wave := _find_fx(active_fx, kind)
+		if active_wave.is_empty():
+			break
+		var current_bounces := int(active_wave.get("bouncesLeft", 0))
+		if current_bounces < previous_bounces:
+			reflections += previous_bounces - current_bounces
+		previous_bounces = current_bounces
+		if reflections >= expected_reflections:
+			break
+	var final_wave := _find_fx(active_fx, kind)
+	_check(reflections == expected_reflections, "%s performs all %d configured reflections" % [kind, expected_reflections], failures)
+	_check(not final_wave.is_empty() and int(final_wave.get("bouncesLeft", -1)) == 0, "%s remains active after its final allowed reflection" % kind, failures)
+
+
+func _test_great_grassland_concurrent_load() -> void:
+	var stress_enemies: Array = []
+	for index in range(120):
+		var column := index % 15
+		var row := index / 15
+		stress_enemies.append(_enemy(1000 + index, Vector2(160.0 + float(column) * 85.0, -300.0 + float(row) * 85.0), 100000.0, 18.0))
+	var timers: Dictionary = {}
+	var active_fx: Array = []
+	var max_concurrent_waves := 0
+	var start_usec := Time.get_ticks_usec()
+	for _frame in range(480):
+		var context := _context("great_grassland", stress_enemies, [], timers, active_fx, [], 1.0 / 60.0)
+		var result := WeaponSystem.update_equipment_weapons(context)
+		timers = result.get("timers", timers) as Dictionary
+		active_fx.append_array(result.get("hitFx", []) as Array)
+		active_fx = WeaponSystem.update_hit_fx(active_fx, 1.0 / 60.0, stress_enemies, [], [], [], [], {}, Rect2(), [], Vector2.ZERO)
+		max_concurrent_waves = maxi(max_concurrent_waves, _find_all_fx(active_fx, "great_grassland_wave").size())
+	var elapsed_msec := float(Time.get_ticks_usec() - start_usec) / 1000.0
+	print("GREAT_GRASSLAND_STRESS: 120 enemies / 480 frames / max waves %d / %.2f ms" % [max_concurrent_waves, elapsed_msec])
+	_check(max_concurrent_waves >= 18, "great_grassland keeps multiple projectile generations active", failures)
+	_check(max_concurrent_waves <= 24, "great_grassland concurrent waves match the configured interval and lifetime", failures)
 
 
 func _test_comment_lockdown() -> void:
@@ -351,7 +493,7 @@ func _test_visual_fallbacks() -> void:
 	var probes: Array = [
 		{"kind": "full_voice_dome_wave", "radius": 145.0, "hitCount": 1},
 		{"kind": "center_stage_area", "radius": 105.0},
-		{"kind": "great_grassland_wave", "dir": Vector2.RIGHT, "maxDistance": 800.0},
+		{"kind": "great_grassland_wave", "dir": Vector2.RIGHT, "maxDistance": 3200.0},
 		{"kind": "comment_lockdown_projectile", "dir": Vector2.RIGHT},
 		{"kind": "emote_festival_mine", "radius": 160.0},
 		{"kind": "all_block_laser", "dir": Vector2.RIGHT, "range": 875.0, "width": 60.0},
@@ -421,7 +563,7 @@ func _test_formal_visuals() -> void:
 	_check(not _find_layer(center_finish, "finish").is_empty(), "center stage finish uses one formal image", failures)
 
 	var grass_visuals: Dictionary = WeaponSystem.find_weapon(weapons, "great_grassland", {}).get("visuals", {}) as Dictionary
-	var grass := _draw_visual({"kind": "great_grassland_wave", "pos": Vector2.ZERO, "dir": Vector2.DOWN, "life": 1.0, "maxLife": 1.0, "sizeScale": 1.5, "attackAreaRate": 1.0, "maxDistance": 800.0, "visuals": grass_visuals})
+	var grass := _draw_visual({"kind": "great_grassland_wave", "pos": Vector2.ZERO, "dir": Vector2.DOWN, "life": 1.0, "maxLife": 1.0, "sizeScale": 1.70, "attackAreaRate": 1.0, "maxDistance": 3200.0, "visuals": grass_visuals})
 	_check(not _find_layer(grass, "wave").is_empty() and is_equal_approx(float(_find_layer(grass, "wave").get("rotation", 0.0)), PI * 0.5), "grass formal wave follows reflected direction", failures)
 
 	var lockdown_visuals: Dictionary = WeaponSystem.find_weapon(weapons, "comment_lockdown", {}).get("visuals", {}) as Dictionary

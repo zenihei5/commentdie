@@ -9,6 +9,13 @@
       "relaySectionDurationFrom": "relay_mode.segmentDuration",
       "relayFinalBossTimerEnabled": false,
       "experienceRate": 1.00,
+      "score": {
+        "baseRate": 1.00,
+        "climaxRate": 1.00,
+        "maxTemporaryRate": 999.0,
+        "clearScoreConversion": 1.00,
+        "gameOverScoreConversion": 1.00
+      },
       "performanceSafetyRate": 1.0
     },
     "hard": {
@@ -110,6 +117,7 @@
         "moveSpeedRate": 1.05,
         "actionIntervalRate": 0.85,
         "summonCountRate": 1.25,
+        "projectileSpeedRate": 1.00,
         "phase2HpRate": 0.50,
         "firstBossScoreRate": 2.00,
         "reignitionScoreRate": 3.00,
@@ -134,6 +142,7 @@
         "moveSpeedRate": 1.08,
         "actionIntervalRate": 0.85,
         "summonCountRate": 1.40,
+        "projectileSpeedRate": 1.10,
         "contactDamageEnabled": true,
         "phaseThresholds": [0.70, 0.30, 0.00],
         "phaseCount": 3,
@@ -216,13 +225,221 @@
       }
     },
     "expert": {
-      "implemented": false,
-      "combatModifiersImplemented": false,
-      "instructionCommentsImplemented": false,
-      "experienceRate": 1.30,
+      "implemented": true,
+      "combatModifiersImplemented": true,
+      "instructionCommentsImplemented": true,
+      "baseDifficulty": "hard",
+      "inheritFrom": "hard",
+      "experienceRate": 1.20,
       "singleDurationSeconds": 180.0,
       "relaySectionDurationFrom": "relay_mode.segmentDuration",
-      "relayFinalBossTimerEnabled": false
+      "relayFinalBossTimerEnabled": false,
+      "score": {
+        "baseRate": 1.40,
+        "climaxRate": 1.20,
+        "maxTemporaryRate": 2.00,
+        "clearScoreConversion": 1.40,
+        "gameOverScoreConversion": 0.60
+      },
+      "relativeModifiers": {
+        "enemy": {
+          "hpRate": 1.15,
+          "attackRate": 1.10,
+          "moveSpeedRate": 1.08,
+          "attackIntervalRate": 0.92,
+          "projectileSpeedRate": 1.10,
+          "activeEnemyLimitRate": 1.00
+        },
+        "boss": {
+          "hpRate": 1.20,
+          "attackRate": 1.10,
+          "actionIntervalRate": 0.90,
+          "summonCountRate": 1.20,
+          "moveSpeedRate": 1.00,
+          "projectileSpeedRate": 1.10
+        },
+        "finalBoss": {
+          "hpRate": 1.20,
+          "attackRate": 1.10,
+          "actionIntervalRate": 0.90,
+          "summonCountRate": 1.20,
+          "moveSpeedRate": 1.00,
+          "projectileSpeedRate": 1.10
+        },
+        "spawnPressure": {
+          "timePhases": [
+            {"start": 0.0, "end": 60.0, "rate": 1.05},
+            {"start": 60.0, "end": 120.0, "rate": 1.12},
+            {"start": 120.0, "end": 180.0, "rate": 1.20}
+          ],
+          "relaySectionRates": [1.00, 1.05, 1.08, 1.12, 1.15],
+          "hardWaveSelectionRateMultiplier": 1.20,
+          "groupCountRate": 1.15
+        },
+        "strongEnemySelection": {
+          "leadSeconds": 15.0,
+          "leadStartSeconds": 30.0
+        },
+        "comment": {
+          "hardOnlyTargetRate": 0.35
+        },
+        "stageProfiles": {
+          "zatsudan": {
+            "single": {
+              "spawnIntervalRate": 1.00,
+              "enemyPickerLeadSeconds": 15.0,
+              "enemyPickerLeadStartSeconds": 0.0,
+              "hardWaveSelectionRate": 1.15,
+              "hardWaveMaximumUses": 2,
+              "hardWaveGroupCountRate": 1.00,
+              "stageBoostedHighRiskLimit": 1
+            },
+            "relaySection": {
+              "spawnIntervalRate": 1.00,
+              "enemyPickerLeadSeconds": 15.0,
+              "enemyPickerLeadStartSeconds": 0.0,
+              "hardWaveSelectionRate": 1.10,
+              "hardWaveMaximumUses": 1,
+              "hardWaveGroupCountRate": 1.00,
+              "stageBoostedHighRiskLimit": 1
+            },
+            "hardWaves": [
+              {
+                "id": "expert_zatsudan_mixed_pressure",
+                "difficulty": "expert",
+                "expertOnly": true,
+                "stageId": "zatsudan",
+                "playModes": ["single", "relaySection"],
+                "minElapsedSeconds": 120.0,
+                "minElapsedSecondsByMode": {"relaySection": 90.0},
+                "maxElapsedSeconds": 180.0,
+                "minimumPlayerLevel": 4,
+                "maximumPlayerLevel": 999,
+                "cooldownSeconds": 36.0,
+                "maximumUsesPerRun": 2,
+                "activeEnemyLimitReserve": 5,
+                "weight": 1.0,
+                "dangerCategories": ["high_density", "ranged_pressure"],
+                "blockedDangerCategories": ["boss_major_attack", "screen_restriction", "forced_movement", "collab_challenge"],
+                "groups": [
+                  {"enemyId": "troll", "count": 2, "spawnPattern": "outer_arc"},
+                  {"enemyId": "fast", "count": 1, "spawnPattern": "left_right"},
+                  {"enemyId": "shooter", "count": 1, "spawnPattern": "player_back"},
+                  {"enemyId": "long_comment_guy", "count": 1, "spawnPattern": "player_front"},
+                  {"enemyId": "clipper", "count": 1, "spawnPattern": "outer_arc"}
+                ]
+              }
+            ]
+          },
+          "gameplay": {
+            "single": {
+              "eventIntervalRate": 0.85,
+              "hardWaveSelectionRate": 1.00,
+              "events": {
+                "race": {"enemySpawnIntervalRate": 0.90, "enemyWeights": {"wrongWay": 0.72, "jammer": 0.28}},
+                "bullet_hell": {"startExtraEnemies": 1, "eventBulletIntervalRate": 0.95},
+                "horror": {"ghostCountAdd": 1, "maxGhosts": 5}
+              }
+            },
+            "relaySection": {
+              "eventIntervalRate": 0.85,
+              "hardWaveSelectionRate": 1.00,
+              "events": {
+                "race": {"enemySpawnIntervalRate": 0.90, "enemyWeights": {"wrongWay": 0.72, "jammer": 0.28}},
+                "bullet_hell": {"startExtraEnemies": 1, "eventBulletIntervalRate": 0.95},
+                "horror": {"ghostCountAdd": 1, "maxGhosts": 5}
+              }
+            }
+          },
+          "singing": {
+            "single": {
+              "spawnIntervalRate": 0.95,
+              "spawnPressurePhases": [
+                {"start": 0.0, "end": 120.0, "rate": 1.00},
+                {"start": 120.0, "end": 180.0, "rate": 1.05}
+              ],
+              "hardWaveSelectionRate": 1.15,
+              "hardWaveGroupCountRate": 1.00
+            },
+            "relaySection": {
+              "spawnIntervalRate": 0.95,
+              "spawnPressurePhases": [
+                {"start": 0.0, "end": 90.0, "rate": 1.00},
+                {"start": 90.0, "end": 120.0, "rate": 1.05}
+              ],
+              "hardWaveSelectionRate": 1.10,
+              "hardWaveGroupCountRate": 1.00
+            }
+          },
+          "drawing": {
+            "single": {
+              "paintEventIntervalRate": 0.90,
+              "paintEventStartSeconds": 120.0,
+              "commentWeightMultipliers": {"drawing_palette_shuffle": 1.25, "drawing_spilled_bucket": 1.25},
+              "stageBoostedHighRiskLimit": 1
+            },
+            "relaySection": {
+              "paintEventIntervalRate": 0.90,
+              "paintEventStartSeconds": 90.0,
+              "commentWeightMultipliers": {"drawing_palette_shuffle": 1.25, "drawing_spilled_bucket": 1.25},
+              "stageBoostedHighRiskLimit": 1
+            }
+          },
+          "collab": {
+            "single": {
+              "hardWaveSelectionRate": 1.10,
+              "hardWaveMaximumUses": 2,
+              "hardWaveGroupCountRate": 1.00,
+              "commentWeightMultipliers": {
+                "partner_take_over": 1.25,
+                "dont_fail_collab": 1.25,
+                "keep_sync": 1.25,
+                "out_of_sync": 1.25,
+                "fast_collab_pass": 1.25
+              },
+              "stageBoostedHighRiskLimit": 1
+            },
+            "relaySection": {
+              "hardWaveSelectionRate": 0.75,
+              "hardWaveMaximumUses": 1,
+              "hardWaveGroupCountRate": 0.85,
+              "commentWeightMultipliers": {
+                "partner_take_over": 1.00,
+                "dont_fail_collab": 1.00,
+                "keep_sync": 1.00,
+                "out_of_sync": 1.00,
+                "fast_collab_pass": 1.00
+              },
+              "stageBoostedHighRiskLimit": 1
+            },
+            "hardWaves": [
+              {
+                "id": "expert_collab_division_mix",
+                "difficulty": "expert",
+                "expertOnly": true,
+                "stageId": "collab",
+                "playModes": ["single", "relaySection"],
+                "minElapsedSeconds": 120.0,
+                "minElapsedSecondsByMode": {"relaySection": 90.0},
+                "maxElapsedSeconds": 180.0,
+                "minimumPlayerLevel": 4,
+                "maximumPlayerLevel": 999,
+                "cooldownSeconds": 42.0,
+                "maximumUsesPerRun": 2,
+                "activeEnemyLimitReserve": 4,
+                "weight": 1.0,
+                "dangerCategories": ["high_density"],
+                "blockedDangerCategories": ["boss_major_attack", "screen_restriction", "collab_challenge", "forced_movement"],
+                "groups": [
+                  {"enemyId": "collab_comparison_troll", "count": 2, "spawnPattern": "outer_arc"},
+                  {"enemyId": "collab_messenger_pigeon", "count": 1, "spawnPattern": "left_right"},
+                  {"enemyId": "collab_division_noise", "count": 1, "spawnPattern": "partner_sandwich"}
+                ]
+              }
+            ]
+          }
+        }
+      }
     }
   }
 }

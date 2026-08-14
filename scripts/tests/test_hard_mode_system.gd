@@ -8,6 +8,7 @@ const Spawner := preload("res://scripts/systems/spawner_system.gd")
 const Exp := preload("res://scripts/systems/exp_system.gd")
 const Enemy := preload("res://scripts/systems/enemy_system.gd")
 const DrawData := preload("res://scripts/systems/draw_data_system.gd")
+const GenreEvent := preload("res://scripts/systems/genre_event_system.gd")
 
 class FakeTarget:
 	extends Node
@@ -59,11 +60,15 @@ class FakeTarget:
 	var enemies: Array = []
 	var enemy_bullets: Array = []
 	var next_enemy_uid := 1
+	var next_genre_event_time := 25.0
+	var next_known_genre_event := ""
+	var strategy_wiki := false
 
 func _ready() -> void:
 	var failures: Array[String] = []
-	var source := {"modes": {"normal": {}, "hard": {}, "expert": {"implemented": false}}}
+	var source := {"modes": {"normal": {}, "hard": {}, "expert": {"implemented": true, "combatModifiersImplemented": true, "instructionCommentsImplemented": true}}}
 	var hard_runtime := HardMode.build_runtime("hard", false, "talk", source, {"segmentDuration": 120.0})
+	var normal_runtime := HardMode.build_runtime("normal", false, "zatsudan", source, {})
 	_check(HardMode.is_hard_runtime(hard_runtime), "hard runtime implemented", failures)
 	_check(String(hard_runtime.get("stageId")) == "zatsudan", "talk alias", failures)
 	_check(is_equal_approx(HardMode.effective_exp_rate(hard_runtime), 1.20), "single exp rate", failures)
@@ -104,7 +109,73 @@ func _ready() -> void:
 	_check(HardMode.final_boss_phase(final_runtime, 0.80) == 0, "final phase 1", failures)
 	_check(HardMode.final_boss_phase(final_runtime, 0.50) == 1, "final phase 2", failures)
 	_check(HardMode.final_boss_phase(final_runtime, 0.20) == 2, "final phase 3", failures)
-	_check(not HardMode.is_hard_runtime(HardMode.build_runtime("expert", false, "zatsudan", source, {})), "expert does not inherit hard", failures)
+	var expert_runtime := HardMode.build_runtime("expert", false, "zatsudan", source, {})
+	_check(not HardMode.is_hard_runtime(expert_runtime), "expert keeps strict HARD compatibility", failures)
+	_check(HardMode.is_high_difficulty_runtime(expert_runtime) and HardMode.is_expert_runtime(expert_runtime), "expert uses high difficulty runtime", failures)
+	_check(is_equal_approx(HardMode.effective_exp_rate(expert_runtime), 1.20), "expert inherits HARD experience rate", failures)
+	var project_source: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/difficulty_modes.json")) as Dictionary
+	var project_expert_runtime := HardMode.build_runtime("expert", false, "zatsudan", project_source, {"segmentDuration": 120.0})
+	var project_gameplay_runtime := HardMode.build_runtime("expert", false, "gameplay", project_source, {"segmentDuration": 120.0})
+	var project_singing_runtime := HardMode.build_runtime("expert", false, "singing", project_source, {"segmentDuration": 120.0})
+	var project_drawing_runtime := HardMode.build_runtime("expert", false, "drawing", project_source, {"segmentDuration": 120.0})
+	var project_collab_runtime := HardMode.build_runtime("expert", false, "collab", project_source, {"segmentDuration": 120.0})
+	var project_collab_relay_runtime := HardMode.build_runtime("expert", true, "collab", project_source, {"segmentDuration": 120.0}, false, 4)
+	var zatsudan_profile := HardMode.expert_stage_profile(project_expert_runtime)
+	_check(is_equal_approx(HardMode.stage_profile_enemy_picker_lead(project_expert_runtime, 0.0), 15.0) and is_equal_approx(float((zatsudan_profile.get("single", {}) as Dictionary).get("enemyPickerLeadSeconds", 0.0)), 15.0), "zatsudan picker lead is data-driven", failures)
+	_check(is_equal_approx(HardMode.stage_profile_spawn_interval_rate(project_expert_runtime), 1.0) and is_equal_approx(HardMode.stage_profile_hard_wave_selection_rate(project_expert_runtime), 1.15), "zatsudan stage flavor profile", failures)
+	_check(is_equal_approx(HardMode.stage_profile_event_interval_rate(project_gameplay_runtime), 0.85) and is_equal_approx(float(HardMode.stage_profile_event_value(project_gameplay_runtime, "race", "enemySpawnIntervalRate", 1.0)), 0.90) and is_equal_approx(float(HardMode.stage_profile_event_value(project_gameplay_runtime, "bullet_hell", "eventBulletIntervalRate", 1.0)), 0.95), "gameplay event profile values", failures)
+	_check(is_equal_approx(HardMode.stage_profile_spawn_interval_rate(project_singing_runtime), 0.95) and is_equal_approx(HardMode.stage_profile_spawn_pressure_rate(project_singing_runtime, 119.9), 1.0) and is_equal_approx(HardMode.stage_profile_spawn_pressure_rate(project_singing_runtime, 120.0), 1.05), "singing stage flavor boundary", failures)
+	var singing_breakdown_before := HardMode.spawn_rate_breakdown(project_singing_runtime, 119.9)
+	var singing_breakdown_after := HardMode.spawn_rate_breakdown(project_singing_runtime, 120.0)
+	_check(is_equal_approx(float(singing_breakdown_before.get("commonExpert", 0.0)), 1.12) and is_equal_approx(float(singing_breakdown_before.get("stageFlavor", 0.0)), 1.0) and is_equal_approx(float(singing_breakdown_after.get("commonExpert", 0.0)), 1.20) and is_equal_approx(float(singing_breakdown_after.get("stageFlavor", 0.0)), 1.05), "singing breakdown separates common EXPERT and stage flavor", failures)
+	_check(HardMode.expert_stage_profile(hard_runtime).is_empty() and is_equal_approx(HardMode.stage_profile_spawn_interval_rate(normal_runtime), 1.0), "NORMAL/HARD do not receive stage profiles", failures)
+	_check(is_equal_approx(HardMode.stage_profile_paint_interval_rate(project_drawing_runtime, 119.9), 1.0) and is_equal_approx(HardMode.stage_profile_paint_interval_rate(project_drawing_runtime, 120.0), 0.90) and is_equal_approx(HardMode.stage_profile_comment_weight(project_drawing_runtime, "drawing_palette_shuffle"), 1.25), "drawing timing and comment profile", failures)
+	_check(is_equal_approx(HardMode.stage_profile_comment_weight(project_collab_runtime, "keep_sync"), 1.25) and is_equal_approx(HardMode.stage_profile_comment_weight(project_collab_relay_runtime, "keep_sync"), 1.0) and is_equal_approx(HardMode.stage_profile_hard_wave_group_count_rate(project_collab_relay_runtime), 0.85), "collab single versus relay flavor", failures)
+	var zatsudan_waves := HardMode.hard_wave_candidates(project_expert_runtime, 120.0, 4)
+	var zatsudan_wave: Dictionary = {}
+	for wave_value in zatsudan_waves:
+		if String((wave_value as Dictionary).get("id", "")) == "expert_zatsudan_mixed_pressure":
+			zatsudan_wave = wave_value as Dictionary
+			break
+	var zatsudan_ids: Array = []
+	for group_value in zatsudan_wave.get("groups", []) as Array:
+		zatsudan_ids.append(String((group_value as Dictionary).get("enemyId", "")))
+	_check(zatsudan_wave.size() > 0 and zatsudan_ids.has_all(["troll", "fast", "shooter", "long_comment_guy", "clipper"]) and int(zatsudan_wave.get("activeEnemyLimitReserve", 0)) == 5, "zatsudan expert mixed wave uses real IDs and reserve", failures)
+	var collab_relay_waves := HardMode.hard_wave_candidates(project_collab_relay_runtime, 100.0, 4)
+	var collab_wave: Dictionary = {}
+	for wave_value in collab_relay_waves:
+		if String((wave_value as Dictionary).get("id", "")) == "expert_collab_division_mix":
+			collab_wave = wave_value as Dictionary
+			break
+	_check(collab_wave.size() > 0 and int(collab_wave.get("maximumUsesPerRun", 0)) == 1, "collab relay fifth section limits expert wave uses", failures)
+	var expert_quick_rng := RandomNumberGenerator.new()
+	var hard_quick_rng := RandomNumberGenerator.new()
+	expert_quick_rng.seed = 117
+	hard_quick_rng.seed = 117
+	_check(Enemy.pick_wave_enemy(45.0, true, expert_quick_rng, "", "", 1.0, project_expert_runtime) == Enemy.pick_wave_enemy(45.0, true, hard_quick_rng), "zatsudan picker lead is not multiplied in quick test", failures)
+	var gameplay_schedule_target := FakeTarget.new()
+	gameplay_schedule_target.difficulty_runtime = project_gameplay_runtime
+	gameplay_schedule_target.elapsed = 0.0
+	GenreEvent.update_idle_event_for_target(gameplay_schedule_target, [{"id": "race", "weight": 1}, {"id": "bullet_hell", "weight": 1}, {"id": "horror", "weight": 1}], RandomNumberGenerator.new())
+	_check(is_equal_approx(float(gameplay_schedule_target.next_genre_event_time), 25.0 * 0.85), "gameplay first event interval is shortened once", failures)
+	gameplay_schedule_target.difficulty_runtime["genreLastEventId"] = "race"
+	gameplay_schedule_target.next_genre_event_time = 0.0
+	var scheduled_event := GenreEvent.update_idle_event_for_target(gameplay_schedule_target, [{"id": "race", "weight": 1}, {"id": "bullet_hell", "weight": 1}, {"id": "horror", "weight": 1}], RandomNumberGenerator.new()).get("startEvent", "")
+	_check(String(scheduled_event) != "race", "gameplay normal schedule excludes previous genre", failures)
+	var expert_standard_rates: Dictionary = ((expert_runtime.get("difficultyConfig", {}) as Dictionary).get("enemyFinalRates", {}) as Dictionary).get("standard", {}) as Dictionary
+	_check(is_equal_approx(float(expert_standard_rates.get("hpRate", 0.0)), 1.20 * 1.15) and is_equal_approx(float(expert_standard_rates.get("attackRate", 0.0)), 1.10 * 1.10) and is_equal_approx(float(expert_standard_rates.get("moveSpeedRate", 0.0)), 1.08 * 1.08) and is_equal_approx(float(expert_standard_rates.get("attackIntervalRate", 0.0)), 0.90 * 0.92) and is_equal_approx(float(expert_standard_rates.get("projectileSpeedRate", 0.0)), 1.10 * 1.10), "expert standard rates multiply HARD final values once", failures)
+	var expert_enemy := {"combatType": "standard", "hp": 10.0, "max_hp": 10.0, "speed": 100.0, "contactDamage": 10, "baseExp": 5.0}
+	HardMode.apply_enemy_runtime_stats(expert_enemy, expert_runtime)
+	var expert_enemy_hp := float(expert_enemy.get("max_hp"))
+	HardMode.apply_enemy_runtime_stats(expert_enemy, expert_runtime)
+	_check(is_equal_approx(expert_enemy_hp, 14.0) and is_equal_approx(float(expert_enemy.get("max_hp")), expert_enemy_hp) and int(expert_enemy.get("contactDamage")) == 12, "expert enemy stats apply once", failures)
+	var expert_terminal_breakdown := HardMode.spawn_rate_breakdown(expert_runtime, 180.0)
+	_check(is_equal_approx(HardMode.spawn_rate(expert_runtime, 0.0), 1.10 * 1.05) and is_equal_approx(HardMode.spawn_rate(expert_runtime, 59.9), 1.25 * 1.05) and is_equal_approx(HardMode.spawn_rate(expert_runtime, 60.0), 1.25 * 1.12) and is_equal_approx(HardMode.spawn_rate(expert_runtime, 119.9), 1.50 * 1.12) and is_equal_approx(HardMode.spawn_rate(expert_runtime, 120.0), 1.50 * 1.20) and is_equal_approx(HardMode.spawn_rate(expert_runtime, 180.0), 0.0) and is_equal_approx(float(expert_terminal_breakdown.get("expertTime", 0.0)), 1.20), "expert spawn pressure boundaries", failures)
+	var expert_relay_rates := [1.00, 1.05, 1.08, 1.12, 1.15]
+	for section_index in range(5):
+		var section_runtime := HardMode.build_runtime("expert", true, "gameplay", source, {"segmentDuration": 120.0}, false, section_index)
+		var section_breakdown := HardMode.spawn_rate_breakdown(section_runtime, 0.0)
+		_check(is_equal_approx(float(section_breakdown.get("section", 0.0)), float(expert_relay_rates[section_index])) and is_equal_approx(float(section_breakdown.get("expertTime", 0.0)), 1.05), "expert relay section breakdown %d" % (section_index + 1), failures)
 
 	var enemy := {"kind": "fast", "hp": 10.0, "max_hp": 10.0, "speed": 100.0, "contactDamage": 10, "exp": 10, "expValue": 10}
 	HardMode.apply_enemy_runtime_stats(enemy, hard_runtime)
@@ -139,7 +210,6 @@ func _ready() -> void:
 	_check(is_equal_approx(float(ranged_enemy.get("projectileSpeedRate")), 1.10) and is_equal_approx(HardMode.attack_interval_for_enemy(ranged_enemy, 1.0), 0.90), "ranged projectile and interval rates", failures)
 	fake_for_exp(hard_runtime, failures)
 	var normal_enemy := {"kind": "standard", "hp": 10.0, "max_hp": 10.0, "speed": 100.0, "contactDamage": 10, "exp": 10, "expValue": 10}
-	var normal_runtime := HardMode.build_runtime("normal", false, "zatsudan", source, {})
 	HardMode.apply_enemy_runtime_stats(normal_enemy, normal_runtime)
 	_check(is_equal_approx(float(normal_enemy.get("max_hp")), 10.0) and int(normal_enemy.get("contactDamage")) == 10, "normal has no hard correction", failures)
 	_check(is_equal_approx(HardMode.spawn_rate(normal_runtime, 150.0), 1.0) and is_equal_approx(HardMode.effective_exp_rate(normal_runtime), 1.0) and HardMode.active_enemy_cap(20, normal_runtime) == 20, "normal all hard rates are one", failures)
@@ -323,6 +393,40 @@ func _ready() -> void:
 		if int((item as Dictionary).get("riskLevel", 1)) >= 4:
 			danger4_count += 1
 	_check(hard_only_count <= 1 and danger4_count <= 1, "hard offer danger caps", failures)
+	fake.difficulty_runtime = expert_runtime
+	fake.run_difficulty_id = "expert"
+	fake.relay_mode = false
+	fake.current_stream_frame = zatsudan_frame
+	var expert_frame_comments := frame_comments.duplicate(true)
+	expert_frame_comments.append({"id": "hard_only_sample", "riskLevel": 4, "multiplier": 2.5, "minTime": 0.0, "hardOnly": true, "tags": ["default"]})
+	var expert_offer := Comment.build_offer_for_target(fake, expert_frame_comments, RandomNumberGenerator.new())
+	_check(expert_offer.size() == 3 and _offer_ids_are_unique(expert_offer), "expert offer keeps three unique cards", failures)
+	var expert_hard_only_count := 0
+	var expert_danger4_count := 0
+	for item in expert_offer:
+		var expert_card: Dictionary = item as Dictionary
+		expert_hard_only_count += 1 if bool(expert_card.get("hardOnly", false)) else 0
+		expert_danger4_count += 1 if int(expert_card.get("riskLevel", 1)) >= 4 else 0
+		_check(String(expert_card.get("difficultyId", "")) == "expert", "expert comment override resolves difficulty id", failures)
+	_check(expert_hard_only_count <= 1 and expert_danger4_count <= 1, "expert offer inherits HARD danger caps", failures)
+	fake.difficulty_runtime = project_drawing_runtime
+	fake.current_stream_frame = drawing_frame
+	fake.elapsed = 120.0
+	fake.last_comment_id = ""
+	fake.recent_comment_categories = []
+	var drawing_profile_comments := [
+		{"id": "safe_drawing_one", "riskLevel": 2, "multiplier": 1.0, "minTime": 0.0, "tags": ["drawing"], "category": "drawing_safe"},
+		{"id": "safe_drawing_two", "riskLevel": 2, "multiplier": 1.0, "minTime": 0.0, "tags": ["drawing"], "category": "drawing_safe"},
+		{"id": "drawing_palette_shuffle", "riskLevel": 3, "multiplier": 1.0, "minTime": 0.0, "tags": ["drawing"], "category": "drawing_stage"},
+		{"id": "drawing_spilled_bucket", "riskLevel": 3, "multiplier": 1.0, "minTime": 0.0, "tags": ["drawing"], "category": "drawing_stage"}
+	]
+	var drawing_profile_offer := Comment.build_offer_for_target(fake, drawing_profile_comments, RandomNumberGenerator.new())
+	var drawing_boosted_count := 0
+	for drawing_card_value in drawing_profile_offer:
+		var drawing_card: Dictionary = drawing_card_value as Dictionary
+		if String(drawing_card.get("id", "")) in ["drawing_palette_shuffle", "drawing_spilled_bucket"]:
+			drawing_boosted_count += 1
+	_check(drawing_profile_offer.size() == 3 and _offer_ids_are_unique(drawing_profile_offer) and drawing_boosted_count <= 1, "drawing boosted high-risk comments keep a safe three-card cap", failures)
 	fake.difficulty_runtime = HardMode.build_runtime("normal", false, "zatsudan", source, {})
 	fake.run_difficulty_id = "normal"
 	fake.relay_mode = false

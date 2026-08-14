@@ -29,6 +29,7 @@ static func spawn_step(context: Dictionary) -> Dictionary:
 		interval /= maxf(0.25, float(context.get("currentSpawnAmountMultiplier", 1.0)))
 	else:
 		interval /= maxf(0.25, float(context.get("spawnMultiplier", context.get("relaySpawnMultiplier", 1.0))))
+	interval *= maxf(0.25, float(context.get("stageFlavorIntervalRate", 1.0)))
 	interval /= maxf(0.25, float(context.get("hardSpawnRate", 1.0)))
 
 	var count: int = 2 if (more_spawns or (god_reservation and god_power >= 0.95)) else 1
@@ -56,6 +57,7 @@ static func spawn_kinds(context: Dictionary) -> Dictionary:
 		"useRelayStageBalance": context.get("useRelayStageBalance", false),
 		"timePhaseIntervalMultiplier": context.get("timePhaseIntervalMultiplier", 1.0),
 		"currentSpawnAmountMultiplier": context.get("currentSpawnAmountMultiplier", 1.0),
+		"stageFlavorIntervalRate": context.get("stageFlavorIntervalRate", 1.0),
 		"hardSpawnRate": context.get("hardSpawnRate", 1.0),
 		"additionalSpawnCount": context.get("additionalSpawnCount", 0)
 	})
@@ -104,7 +106,8 @@ static func _pick_kind(context: Dictionary, rng: RandomNumberGenerator) -> Strin
 		rng,
 		String(context.get("streamFrameId", "")),
 		String(context.get("activeGenreEvent", "")),
-		float(context.get("relayUpperWeight", 1.0))
+		float(context.get("relayUpperWeight", 1.0)),
+		(context.get("difficultyRuntime", {}) as Dictionary)
 	)
 
 static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumberGenerator) -> Dictionary:
@@ -144,6 +147,7 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 			# legacy relaySpawnCurves value out of both the interval and debug view.
 			spawn_multiplier = current_spawn_amount_multiplier
 	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
+	var stage_flavor_interval_rate := HardModeSystemScript.stage_profile_spawn_interval_rate(hard_runtime)
 	var collab_event_active := bool(target.get("relay_mode")) and String(target.get("current_stream_frame_id")) == "collab" and String(target.get("collab_challenge_status")) in ["starting", "active"]
 	var hard_breakdown := HardModeSystemScript.spawn_rate_breakdown(hard_runtime, float(target.get("elapsed")), bool(target.get("boss_active")), collab_event_active)
 	var hard_rate := float(hard_breakdown.get("final", 1.0))
@@ -182,6 +186,7 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 		"useRelayStageBalance": use_relay_stage_balance,
 		"timePhaseIntervalMultiplier": time_phase_interval_multiplier,
 		"currentSpawnAmountMultiplier": current_spawn_amount_multiplier,
+		"stageFlavorIntervalRate": stage_flavor_interval_rate,
 		"additionalSpawnCount": additional_spawn_count,
 		"activeEnemyCap": active_enemy_cap,
 		"hardOverlayRate": hard_rate,
@@ -195,7 +200,12 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 		"hardTimeRate": float(hard_breakdown.get("time", 1.0)),
 		"hardBossRate": float(hard_breakdown.get("boss", 1.0)),
 		"hardEventRate": float(hard_breakdown.get("event", 1.0)),
-		"hardSafetyRate": float(hard_breakdown.get("safety", 1.0))
+		"hardSafetyRate": float(hard_breakdown.get("safety", 1.0)),
+		"hardExpertTimeRate": float(hard_breakdown.get("expertTime", 1.0)),
+		"hardCommonExpertRate": float(hard_breakdown.get("commonExpert", 1.0)),
+		"hardSectionRate": float(hard_breakdown.get("section", 1.0)),
+		"hardStageFlavorRate": float(hard_breakdown.get("stageFlavor", 1.0)),
+		"difficultyRuntime": hard_runtime
 	}
 
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
@@ -218,11 +228,11 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 	var hard_wave_actual := 0
 	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
 	var pending_actual := _spawn_pending_requests(target, arena, rng, hard_runtime, cap)
-	if HardModeSystemScript.is_hard_runtime(hard_runtime):
+	if HardModeSystemScript.is_high_difficulty_runtime(hard_runtime):
 		pending_actual += _process_pending_pressure_wave(target, arena, rng, hard_runtime, cap)
 	if pending_actual > 0:
 		active_occupancy = EnemySystem.active_enemy_occupancy(target.get("enemies") as Array)
-	if HardModeSystemScript.is_hard_runtime(hard_runtime) and requested_count > 0:
+	if HardModeSystemScript.is_high_difficulty_runtime(hard_runtime) and requested_count > 0:
 		var player_level := int(target.get("exp_level"))
 		var active_dangers: Dictionary = hard_runtime.get("dangerCategories", {}) as Dictionary
 		var wave := HardModeSystemScript.choose_hard_wave(hard_runtime, float(target.get("elapsed")), player_level, active_occupancy, active_dangers, bool(target.get("boss_active")), rng, cap)
@@ -230,12 +240,15 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 			var reserve := int(wave.get("activeEnemyLimitReserve", 0))
 			if active_occupancy + reserve <= cap:
 				var wave_actual := 0
+				var wave_group_rate := 1.0
+				if HardModeSystemScript.is_expert_runtime(hard_runtime):
+					wave_group_rate = float((hard_runtime.get("difficultyConfig", {}) as Dictionary).get("expertGroupCountRate", 1.0)) * HardModeSystemScript.stage_profile_hard_wave_group_count_rate(hard_runtime)
 				for raw_group in wave.get("groups", []) as Array:
 					if not raw_group is Dictionary:
 						continue
 					var group: Dictionary = raw_group as Dictionary
 					var enemy_id := String(group.get("enemyId", ""))
-					var group_count := maxi(0, int(group.get("count", 0)))
+					var group_count := HardModeSystemScript.apply_spawn_count_rate(maxi(0, int(group.get("count", 0))), wave_group_rate, rng)
 					var pattern := String(group.get("spawnPattern", "outer_arc"))
 					for group_index in range(group_count):
 						if active_occupancy + wave_actual >= cap:
@@ -255,7 +268,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 	var enemies_after_wave: Array = target.get("enemies") as Array
 	active_occupancy = EnemySystem.active_enemy_occupancy(enemies_after_wave)
 	var available_slots := requested_count
-	var occupancy_for_cap := active_occupancy if HardModeSystemScript.is_hard_runtime(hard_runtime) else active_normal_wave_count
+	var occupancy_for_cap := active_occupancy if HardModeSystemScript.is_high_difficulty_runtime(hard_runtime) else active_normal_wave_count
 	if cap > 0:
 		available_slots = mini(requested_count, maxi(0, cap - occupancy_for_cap))
 	var actual_count := 0
@@ -422,10 +435,25 @@ static func _process_pending_pressure_wave(target: Node, arena: Rect2, rng: Rand
 	var max_delay := maxf(0.0, float(pending.get("maxDelay", 3.0)))
 	var groups: Array = pending.get("groups", []) as Array
 	var rate := clampf(float(pending.get("countRate", 1.0)), 0.1, 2.0)
+	var group_count_rate := rate
+	if HardModeSystemScript.is_expert_runtime(runtime):
+		group_count_rate *= float((runtime.get("difficultyConfig", {}) as Dictionary).get("expertGroupCountRate", 1.0))
+		group_count_rate *= HardModeSystemScript.stage_profile_hard_wave_group_count_rate(runtime)
+	var group_counts: Array[int] = []
+	var saved_counts: Array = pending.get("resolvedGroupCounts", []) as Array
+	if saved_counts.size() == groups.size():
+		for raw_count in saved_counts:
+			group_counts.append(maxi(0, int(raw_count)))
+	else:
+		for raw_group in groups:
+			if raw_group is Dictionary:
+				group_counts.append(HardModeSystemScript.apply_spawn_count_rate(maxi(0, int((raw_group as Dictionary).get("count", 0))), group_count_rate, rng))
+			else:
+				group_counts.append(0)
+		pending["resolvedGroupCounts"] = group_counts.duplicate()
 	var planned := 0
-	for raw_group in groups:
-		if raw_group is Dictionary:
-			planned += maxi(1, roundi(float((raw_group as Dictionary).get("count", 0)) * rate))
+	for count in group_counts:
+		planned += count
 	pending["plannedCount"] = planned
 	var enemies: Array = target.get("enemies") as Array
 	var occupancy := EnemySystem.active_enemy_occupancy(enemies)
@@ -445,11 +473,12 @@ static func _process_pending_pressure_wave(target: Node, arena: Rect2, rng: Rand
 		runtime["pendingPressureWave"] = {}
 		return 0
 	var valid_groups: Array = []
-	var group_counts: Array[int] = []
-	for raw_group in groups:
+	var valid_group_counts: Array[int] = []
+	for group_index in range(groups.size()):
+		var raw_group: Variant = groups[group_index]
 		if raw_group is Dictionary:
 			valid_groups.append(raw_group as Dictionary)
-			group_counts.append(maxi(1, roundi(float((raw_group as Dictionary).get("count", 0)) * rate)))
+			valid_group_counts.append(group_counts[group_index])
 	# Reserve one slot for every group whenever capacity allows it. This keeps
 	# the mixed-wave identity visible instead of letting the first group consume
 	# all available slots during a partial execution.
@@ -457,13 +486,13 @@ static func _process_pending_pressure_wave(target: Node, arena: Rect2, rng: Rand
 	var remaining_slots := available
 	for index in range(valid_groups.size()):
 		var reserve := 1 if remaining_slots > valid_groups.size() - index - 1 else 0
-		var amount := mini(group_counts[index], reserve)
+		var amount := mini(valid_group_counts[index], reserve)
 		spawn_counts.append(amount)
 		remaining_slots -= amount
 	for index in range(valid_groups.size()):
 		if remaining_slots <= 0:
 			break
-		var extra := mini(group_counts[index] - spawn_counts[index], remaining_slots)
+		var extra := mini(valid_group_counts[index] - spawn_counts[index], remaining_slots)
 		spawn_counts[index] += extra
 		remaining_slots -= extra
 	var actual := 0
@@ -487,7 +516,7 @@ static func _process_pending_pressure_wave(target: Node, arena: Rect2, rng: Rand
 
 static func prepare_capacity_for_boss(target: Node, needed: int = 1) -> int:
 	var runtime := HardModeSystemScript.runtime_for_target(target)
-	if not HardModeSystemScript.is_hard_runtime(runtime) or String(runtime.get("playMode", "")) != HardModeSystemScript.SINGLE:
+	if not HardModeSystemScript.is_high_difficulty_runtime(runtime) or String(runtime.get("playMode", "")) != HardModeSystemScript.SINGLE:
 		return 0
 	var cap := HardModeSystemScript.active_enemy_cap(int((target.get("relay_mode_config") as Dictionary).get("relayStageBalance", {}).get("baseActiveEnemyCap", 20)), runtime)
 	var enemies: Array = target.get("enemies") as Array

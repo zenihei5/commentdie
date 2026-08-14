@@ -3,6 +3,7 @@ extends RefCounted
 
 const MovementSystemScript := preload("res://scripts/systems/relay_boss_movement_system.gd")
 const PlayerSystemScript := preload("res://scripts/systems/player_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 const DEFAULT_CONTACT := {
     "damage": 12,
@@ -166,6 +167,9 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, freeze_g
         target.set("relay_boss_contact_runtime", runtime)
         return feedback
     var damage := maxi(0, int(config.get("damage", 12)))
+    if HardModeSystemScript.is_high_difficulty_target(target):
+        var rates := HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target))
+        damage = HardModeSystemScript.scaled_damage(float(damage), float(rates.get("attackRate", 1.10)))
     var damage_events: Array = feedback["damageEvents"] as Array
     damage_events.append({
         "source": "last_offline contact",

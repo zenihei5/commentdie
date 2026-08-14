@@ -170,7 +170,7 @@ static func is_active(target: Node) -> bool:
 	return bool(target.get("relay_boss_active"))
 
 static func _is_hard_final_target(target: Node) -> bool:
-	if not HardModeSystemScript.is_hard_target(target):
+	if not HardModeSystemScript.is_high_difficulty_target(target):
 		return false
 	return String(HardModeSystemScript.runtime_for_target(target).get("playMode", "")) == HardModeSystemScript.RELAY_FINAL_BOSS
 
@@ -235,6 +235,18 @@ static func _restore_body_for_target(target: Node, arena: Rect2) -> Dictionary:
 	boss["relayBossSummon"] = false
 	boss["isBoss"] = true
 	boss["noRewards"] = true
+	# relay_boss_max_hp / relay_boss_hp already contain the resolved HARD or
+	# EXPERT values. Mark the reconstructed body as resolved before applying
+	# the presentation/contact profile so a watchdog recovery cannot multiply
+	# the final-boss HP a second time.
+	var restore_runtime := HardModeSystemScript.runtime_for_target(target)
+	if HardModeSystemScript.is_high_difficulty_runtime(restore_runtime) and String(restore_runtime.get("playMode", "")) == HardModeSystemScript.RELAY_FINAL_BOSS:
+		var restore_rates := HardModeSystemScript.final_boss_rates(restore_runtime)
+		var restore_hp_rate := maxf(0.1, float(restore_rates.get("hpRate", 1.0)))
+		boss["hardFinalStatsApplied"] = true
+		boss["hardFinalBaseHp"] = max_hp / restore_hp_rate
+		boss["hardFinalBaseSpeed"] = float(boss.get("speed", 0.0))
+		boss["hardFinalBaseContactDamage"] = maxi(1, int(boss_config.get("contactDamage", 12)))
 	_apply_large_body_profile(boss, boss_config, true)
 	_apply_hard_final_profile(target, boss, boss_config)
 	boss["speed"] = 0.0
@@ -293,7 +305,7 @@ static func _apply_large_body_profile(boss: Dictionary, boss_config: Dictionary,
 
 static func _apply_hard_final_profile(target: Node, boss: Dictionary, boss_config: Dictionary) -> void:
 	var runtime := HardModeSystemScript.runtime_for_target(target)
-	if not HardModeSystemScript.is_hard_runtime(runtime) or String(runtime.get("playMode", "")) != HardModeSystemScript.RELAY_FINAL_BOSS:
+	if not HardModeSystemScript.is_high_difficulty_runtime(runtime) or String(runtime.get("playMode", "")) != HardModeSystemScript.RELAY_FINAL_BOSS:
 		return
 	var rates := HardModeSystemScript.final_boss_rates(runtime)
 	var base_contact_damage := int(boss_config.get("contactDamage", 12))
@@ -344,7 +356,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 	var boss_config: Dictionary = config.get("boss", {}) as Dictionary
 	target.set("relay_boss_hp", maxf(0.0, float(boss.get("hp", target.get("relay_boss_hp")))))
 	var ratio := float(target.get("relay_boss_hp")) / maxf(1.0, float(target.get("relay_boss_max_hp")))
-	var next_phase := phase_for_target(target) if HardModeSystemScript.is_hard_target(target) else _phase_for_ratio(boss_config, ratio)
+	var next_phase := phase_for_target(target) if HardModeSystemScript.is_high_difficulty_target(target) else _phase_for_ratio(boss_config, ratio)
 	var current_phase := int(target.get("relay_boss_phase"))
 	var pending_phase := int(target.get("relay_boss_pending_phase"))
 	if next_phase != current_phase:
@@ -428,7 +440,7 @@ static func _clear_phase_hazards(target: Node) -> void:
 static func start_comment_choice_for_target(target: Node, rng: RandomNumberGenerator, choice_box: Control) -> Dictionary:
 	var boss_config: Dictionary = (target.get("relay_mode_config") as Dictionary).get("boss", {}) as Dictionary
 	var all_comments: Array = (boss_config.get("comments", []) as Array).duplicate(true)
-	if HardModeSystemScript.is_hard_target(target):
+	if HardModeSystemScript.is_high_difficulty_target(target):
 		var runtime := HardModeSystemScript.runtime_for_target(target)
 		for i in range(all_comments.size()):
 			if all_comments[i] is Dictionary:
@@ -471,7 +483,7 @@ static func start_comment_choice_for_target(target: Node, rng: RandomNumberGener
 	var support_offered := false
 	var support_id := ""
 	var support_settings: Dictionary = (boss_config.get("bossInstructionSettings", {}) as Dictionary).get("support", {}) as Dictionary
-	if HardModeSystemScript.is_hard_target(target):
+	if HardModeSystemScript.is_high_difficulty_target(target):
 		support_settings = support_settings.duplicate(true)
 		support_settings["baseChance"] = float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("supportChance", support_settings.get("baseChance", 0.15)))
 	var support_enabled := bool(support_settings.get("enabled", false))

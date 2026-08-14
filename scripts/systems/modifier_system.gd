@@ -309,7 +309,7 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 		var runtime_value: Variant = target.get("difficulty_runtime")
 		if runtime_value is Dictionary:
 			var runtime: Dictionary = runtime_value as Dictionary
-			var wall_add: int = int(round(HardModeSystemScript.active_comment_param(runtime, "wallCountAdd", 0.0))) if HardModeSystemScript.is_hard_runtime(runtime) else 0
+			var wall_add: int = int(round(HardModeSystemScript.active_comment_param(runtime, "wallCountAdd", 0.0))) if HardModeSystemScript.is_high_difficulty_runtime(runtime) else 0
 			wall_count += wall_add
 		var min_player_distance: float = 150.0
 		for i in range(wall_count):
@@ -331,7 +331,7 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 		var pit_count := 7
 		var pit_cap := 999
 		var pit_runtime_value: Variant = target.get("difficulty_runtime")
-		if pit_runtime_value is Dictionary and HardModeSystemScript.is_hard_runtime(pit_runtime_value as Dictionary):
+		if pit_runtime_value is Dictionary and HardModeSystemScript.is_high_difficulty_runtime(pit_runtime_value as Dictionary):
 			var pit_runtime: Dictionary = pit_runtime_value as Dictionary
 			pit_count += int(round(HardModeSystemScript.active_comment_param(pit_runtime, "pitCountAdd", 0.0)))
 			pit_cap = maxi(1, int(round(HardModeSystemScript.active_comment_param(pit_runtime, "activeCap", 999.0)))) if HardModeSystemScript.active_comment_param(pit_runtime, "activeCap", 999.0) < 999.0 else 999

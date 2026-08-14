@@ -96,6 +96,7 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		"activeGenreEvent": target.get("active_genre_event"),
 		"songChorusActive": float(target.get("song_chorus_timer")) > 0.0 or float(target.get("song_chorus_telegraph_timer")) > 0.0,
 		"collabChallengeActive": target.has_method("_collab_challenge_active") and bool(target.call("_collab_challenge_active")),
+		"difficultyRuntime": target.get("difficulty_runtime"),
 		"debugRareCommentBoost": target.get("debug_rare_comment_boost"),
 		"rng": rng
 	})
@@ -122,6 +123,7 @@ static func build_forced_do_everything_offer_for_target(target: Node, comments: 
 		"bossSummonCount": target.get("boss_summon_count"),
 		"doEverythingOfferCount": 0,
 		"activeGenreEvent": target.get("active_genre_event"),
+		"difficultyRuntime": target.get("difficulty_runtime"),
 		"rng": rng
 	}
 	var offer: Array = _build_do_everything_offer(frame_comments, context, comment_time)
@@ -199,7 +201,7 @@ static func _repair_offer_for_target(target: Node, comments: Array, rng: RandomN
 	var difficulty_value: Variant = target.get("run_difficulty_id")
 	var difficulty_id := String(difficulty_value if difficulty_value != null else "normal").strip_edges().to_lower()
 	var frame_comments := comments_allowed_for_frame(frame, comments, difficulty_id)
-	if difficulty_id == "hard":
+	if difficulty_id == "hard" or difficulty_id == "expert":
 		var hard_default := HardModeSystemScript.build_safe_default_offer_for_target(target, frame_comments, rng)
 		if _valid_three_card_offer(hard_default):
 			return hard_default
@@ -368,7 +370,7 @@ static func comment_view(comment: Dictionary, has_heart: bool) -> Dictionary:
 		view["multiplier"] = 4.0 if has_heart else 5.0
 		view["giftHypeOnSelect"] = 50 if has_heart else 70
 		view["giftHypeOnClear"] = 20 if has_heart else 30
-	if has_heart and String(view.get("difficultyId", "")) == "hard":
+	if has_heart and String(view.get("difficultyId", "")) in ["hard", "expert"]:
 		view["scoreRate"] = HardModeSystemScript.score_rate_for_risk(int(view.get("riskLevel", 1)))
 	return view
 
@@ -526,6 +528,11 @@ static func _comment_pick_weight(comment: Dictionary, context: Dictionary) -> in
 		weight = maxi(weight + 1, ceili(float(weight) * DRAWING_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
 	if _should_boost_collab_instruction_weight(comment, context):
 		weight = maxi(weight + 1, ceili(float(weight) * COLLAB_INSTRUCTION_PICK_WEIGHT_MULTIPLIER))
+	var runtime_value: Variant = context.get("difficultyRuntime", {})
+	if runtime_value is Dictionary:
+		var stage_weight := HardModeSystemScript.stage_profile_comment_weight(runtime_value as Dictionary, String(comment.get("id", "")))
+		if stage_weight > 1.0:
+			weight = maxi(weight + 1, ceili(float(weight) * stage_weight))
 	if not _debug_rare_comment_boost(context):
 		return weight
 	var risk: int = int(comment.get("riskLevel", 1))

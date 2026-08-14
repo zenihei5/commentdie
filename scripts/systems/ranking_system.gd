@@ -572,7 +572,7 @@ static func _board_detail_view(entry: Dictionary, rank: int) -> Dictionary:
 	var extra_result_parts: Array[String] = []
 	if partner_text != "":
 		extra_result_parts.append(partner_text)
-	if difficulty_id == "hard" and not relay:
+	if difficulty_id in ["hard", "expert"] and not relay:
 		extra_result_parts.append("高難度指示コメ：%d回" % int(entry.get("selectedHighDifficultyCommentCount", entry.get("dangerCommentsChosen", 0))))
 	if not extra_result_parts.is_empty():
 		instruction_lines.append(" / ".join(extra_result_parts))
@@ -584,9 +584,10 @@ static func _board_detail_view(entry: Dictionary, rank: int) -> Dictionary:
 	detail["playedAtText"] = _format_played_at(String(entry.get("playedAt", entry.get("createdAt", ""))))
 	detail["endTypeLabel"] = _end_type_label(entry)
 	detail["endType"] = end_type
-	if difficulty_id == "hard":
-		detail["bossLabel"] = "HARD情報"
-		detail["bossText"] = _hard_relay_detail_text(entry) if relay else _hard_single_detail_text(entry)
+	if difficulty_id in ["hard", "expert"]:
+		var high_label := "EXPERT" if difficulty_id == "expert" else "HARD"
+		detail["bossLabel"] = "%s情報" % high_label
+		detail["bossText"] = _hard_relay_detail_text(entry, high_label) if relay else _hard_single_detail_text(entry, high_label)
 	return detail
 
 
@@ -601,22 +602,25 @@ static func _ranking_partner_name(entry: Dictionary) -> String:
 	return partner_id if nickname == "配信者" else nickname
 
 
-static func _hard_single_detail_text(entry: Dictionary) -> String:
+static func _hard_single_detail_text(entry: Dictionary, difficulty_label: String = "HARD") -> String:
 	var boss_data: Dictionary = entry.get("boss", {}) as Dictionary if entry.get("boss", {}) is Dictionary else {}
 	var first_defeated := bool(boss_data.get("firstBossDefeated", entry.get("firstBossDefeated", false)))
 	var first_spawned := bool(boss_data.get("firstBossSpawned", entry.get("firstBossSpawned", first_defeated)))
 	var reignition_defeated := bool(boss_data.get("reignitionBossDefeated", entry.get("reignitionBossDefeated", false)))
 	var reignition_spawned := bool(boss_data.get("reignitionBossSpawned", entry.get("reignitionBossSpawned", reignition_defeated)))
-	return "ハードボス %s / 再炎上ボス %s" % [
+	var boss_label := "ハード" if difficulty_label == "HARD" else difficulty_label
+	return "%sボス %s / 再炎上ボス %s" % [boss_label,
 		_boss_state_text(first_spawned, first_defeated),
 		_boss_state_text(reignition_spawned, reignition_defeated)
 	]
 
 
-static func _hard_relay_detail_text(entry: Dictionary) -> String:
+static func _hard_relay_detail_text(entry: Dictionary, difficulty_label: String = "HARD") -> String:
 	var relay_data: Dictionary = entry.get("relay", {}) as Dictionary if entry.get("relay", {}) is Dictionary else {}
 	var final_boss_defeated := bool(relay_data.get("finalBossDefeated", entry.get("finalBossDefeated", false)))
-	return "最高到達 %s / 最終ボス撃破 %s" % [_ranking_reach_text(entry), "達成" if final_boss_defeated else "未達成"]
+	if difficulty_label == "HARD":
+		return "最高到達 %s / 最終ボス撃破 %s" % [_ranking_reach_text(entry), "達成" if final_boss_defeated else "未達成"]
+	return "%sリレー / 最高到達 %s / 最終ボス撃破 %s" % [difficulty_label, _ranking_reach_text(entry), "達成" if final_boss_defeated else "未達成"]
 
 
 static func _boss_state_text(spawned: bool, defeated: bool) -> String:

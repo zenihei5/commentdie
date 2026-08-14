@@ -22,6 +22,17 @@ func _ready() -> void:
 	var hard_runtime := HardMode.build_runtime("hard", false, "zatsudan", source, {"segmentDuration": 120.0})
 	var normal_runtime := HardMode.build_runtime("normal", false, "zatsudan", source, {"segmentDuration": 120.0})
 	var final_runtime := HardMode.build_runtime("hard", true, "collab", source, {"segmentDuration": 120.0}, true)
+	var expert_source := {"modes": {"normal": {}, "hard": {}, "expert": {"implemented": true, "combatModifiersImplemented": true, "instructionCommentsImplemented": true}}}
+	var expert_runtime := HardMode.build_runtime("expert", false, "zatsudan", expert_source, {"segmentDuration": 120.0})
+	var expert_final_runtime := HardMode.build_runtime("expert", true, "collab", expert_source, {"segmentDuration": 120.0}, true, 4)
+	_check(not HardMode.is_hard_runtime(expert_runtime) and HardMode.is_high_difficulty_runtime(expert_runtime), "EXPERT strict HARD compatibility and shared high runtime", failures)
+	var expert_config: Dictionary = expert_runtime.get("difficultyConfig", {}) as Dictionary
+	var expert_enemy_rates: Dictionary = expert_config.get("enemyFinalRates", {}) as Dictionary
+	var expert_standard: Dictionary = expert_enemy_rates.get("standard", {}) as Dictionary
+	_check(is_equal_approx(float(expert_standard.get("hpRate", 0.0)), 1.20 * 1.15) and is_equal_approx(float(expert_standard.get("attackIntervalRate", 0.0)), 0.90 * 0.92), "EXPERT enemy rates inherit HARD once", failures)
+	_check(is_equal_approx(HardMode.effective_exp_rate(expert_runtime), 1.20), "EXPERT experience remains HARD rate", failures)
+	_check(is_equal_approx(float((HardMode.boss_rates(expert_runtime)).get("projectileSpeedRate", 0.0)), 1.10), "EXPERT regular boss projectile speed rate", failures)
+	_check(is_equal_approx(float((HardMode.final_boss_rates(expert_final_runtime)).get("hpRate", 0.0)), 1.35 * 1.20) and is_equal_approx(float((HardMode.final_boss_rates(expert_final_runtime)).get("attackRate", 0.0)), 1.10 * 1.10) and is_equal_approx(float((HardMode.final_boss_rates(expert_final_runtime)).get("actionIntervalRate", 0.0)), 0.85 * 0.90) and is_equal_approx(float((HardMode.final_boss_rates(expert_final_runtime)).get("projectileSpeedRate", 0.0)), 1.10 * 1.10), "EXPERT final boss rates inherit HARD once", failures)
 
 	var hard_enemy := {"combatType": "standard", "hp": 10.0, "max_hp": 10.0, "speed": 100.0, "contactDamage": 10, "baseExp": 5.0}
 	HardMode.apply_enemy_runtime_stats(hard_enemy, hard_runtime)
@@ -50,6 +61,9 @@ func _ready() -> void:
 	_check(HardMode.regular_boss_damage_for_target(target, 5) == 6, "regular HARD boss damage", failures)
 	target.difficulty_runtime = normal_runtime
 	_check(HardMode.regular_boss_summon_count_for_target(target, 2) == 2 and HardMode.regular_boss_damage_for_target(target, 5) == 5, "NORMAL boss unchanged", failures)
+	_check(is_equal_approx(HardMode.regular_boss_projectile_speed_for_target(target, 245.0), 245.0), "NORMAL boss projectile speed unchanged", failures)
+	target.difficulty_runtime = expert_runtime
+	_check(is_equal_approx(HardMode.regular_boss_projectile_speed_for_target(target, 245.0), 245.0 * 1.10), "EXPERT regular boss projectile speed", failures)
 	target.difficulty_runtime = final_runtime
 	_check(HardMode.regular_boss_summon_count_for_target(target, 2) == 2, "final boss excludes regular summon rate", failures)
 	var final_rng := RandomNumberGenerator.new()

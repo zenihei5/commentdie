@@ -4,6 +4,7 @@ extends RefCounted
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
 const WeaponEvolutionSystemScript := preload("res://scripts/systems/weapon_evolution_system.gd")
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
+const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
 const CURRENT_FRAME_BOSS_KEY := KEY_F7
 const CURRENT_FRAME_BOSS_KEY_LABEL := "F7"
 const EVOLUTION_GIFT_KEY := KEY_G
@@ -30,7 +31,10 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_P, "hype_100")
 	_add_if_pressed(actions, latch, KEY_F6, "heart_pending_on")
 	_add_if_pressed(actions, latch, KEY_HOME, "unlock_senior_unit")
-	_add_if_pressed(actions, latch, KEY_U, "unlock_stream_frames")
+	if Input.is_key_pressed(KEY_SHIFT):
+		_add_if_pressed(actions, latch, KEY_U, "unlock_expert_all")
+	else:
+		_add_if_pressed(actions, latch, KEY_U, "unlock_stream_frames")
 	_add_if_pressed(actions, latch, KEY_H, "toggle_rare_comment_boost")
 	_add_if_pressed(actions, latch, KEY_K, "clear_enemies")
 	_add_if_pressed(actions, latch, KEY_I, "toggle_invincible")
@@ -286,6 +290,9 @@ static func apply_cleanup_action_for_target(target: Node, action: String) -> Dic
 	if action == "unlock_stream_frames":
 		StreamFrameSystem.unlock_all_for_target(target)
 		chats.append("全配信枠と配信リレーを解放しました")
+	if action == "unlock_expert_all" and OS.is_debug_build():
+		DifficultyProgressSystemScript.force_expert_relay_unlock_for_target(target)
+		chats.append("DEBUG: EXPERT解禁・通常5枠CLEAR・リレー解禁")
 	return {"chats": chats}
 
 static func apply_general_action_for_target(target: Node, action: String, quick_test_mode: bool, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:

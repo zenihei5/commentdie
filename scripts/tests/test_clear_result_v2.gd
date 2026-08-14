@@ -2,6 +2,8 @@ extends Node
 
 const GameScript := preload("res://scripts/game.gd")
 const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
+const CommonLightUiStyleScript := preload("res://scripts/ui/common_light_ui_style.gd")
+const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
 
 var failures: Array[String] = []
 
@@ -52,6 +54,80 @@ func _run_tests() -> void:
 	_check_equal("completed detail base size", (layout["detailPanel"] as Rect2).size, Vector2(520, 480))
 	_check(not (layout["detailPanel"] as Rect2).intersects(layout["characterPanel"] as Rect2), "detail and character do not overlap")
 	_check(not (layout["detailPanel"] as Rect2).intersects(layout["shopButton"] as Rect2), "detail and buttons do not overlap")
+	var summary_rows: Array = game._result_summary_rows({
+		"characterName": "赤羽ばんり",
+		"streamFrameId": "gameplay",
+		"streamFrameName": "英語名は表示しない",
+		"difficultyId": "hard",
+		"viewerCount": 1234,
+		"survivalTime": 120.0,
+		"maxVoltage": 2.0,
+		"maxBurnCombo": 50,
+		"giftCount": 3
+	})
+	_check_equal("result summary has eight rows", summary_rows.size(), 8)
+	_check_equal("summary row order starts with streamer", String((summary_rows[0] as Dictionary).get("label", "")), "配信者")
+	_check_equal("summary row order keeps frame second", String((summary_rows[1] as Dictionary).get("label", "")), "配信枠")
+	_check_equal("difficulty is third summary row", String((summary_rows[2] as Dictionary).get("label", "")), "難易度")
+	_check_equal("summary row order ends with gift", String((summary_rows[7] as Dictionary).get("label", "")), "ギフト")
+	_check_equal("summary difficulty label", String((summary_rows[2] as Dictionary).get("difficultyLabel", "")), "HARD")
+	var summary_rects: Array = game._result_summary_row_rects(layout["summaryPanel"] as Rect2)
+	for index in range(summary_rects.size()):
+		var summary_row_rect: Rect2 = summary_rects[index] as Rect2
+		_check((layout["summaryPanel"] as Rect2).encloses(summary_row_rect), "summary row stays inside panel %d" % index)
+		if index > 0:
+			_check(not summary_row_rect.intersects(summary_rects[index - 1] as Rect2), "summary rows do not overlap %d" % index)
+	var summary_palette: Dictionary = (summary_rows[2] as Dictionary).get("difficultyPalette", {}) as Dictionary
+	_check_equal("hard summary uses hard accent", summary_palette.get("accent"), Color("#D94B62"))
+	_check_equal("hard summary uses hard tint", summary_palette.get("tint"), Color("#FFF0F2"))
+	for difficulty_id in ["normal", "hard", "expert"]:
+		var difficulty_rows: Array = game._result_summary_rows({"difficultyId": difficulty_id})
+		_check_equal("difficulty display %s" % difficulty_id, String((difficulty_rows[2] as Dictionary).get("difficultyLabel", "")), difficulty_id.to_upper())
+		var expected_palette: Dictionary = CommonLightUiStyleScript.difficulty_palette(difficulty_id)
+		var actual_palette: Dictionary = (difficulty_rows[2] as Dictionary).get("difficultyPalette", {}) as Dictionary
+		_check_equal("difficulty palette accent %s" % difficulty_id, actual_palette.get("accent"), expected_palette.get("accent"))
+		_check_equal("difficulty palette tint %s" % difficulty_id, actual_palette.get("tint"), expected_palette.get("tint"))
+	var summary_labels: Array[String] = []
+	for row_value in summary_rows:
+		summary_labels.append(String((row_value as Dictionary).get("label", "")))
+	for end_type in ["completed", "mental_breakdown"]:
+		for difficulty_id in ["normal", "hard", "expert"]:
+			var result_rows: Array = game._result_summary_rows({"endType": end_type, "difficultyId": difficulty_id, "streamFrameId": "zatsudan", "viewerCount": 12, "maxVoltage": 1.2})
+			var result_labels: Array[String] = []
+			for row_value in result_rows:
+				result_labels.append(String((row_value as Dictionary).get("label", "")))
+			_check_equal("summary order is stable for %s/%s" % [end_type, difficulty_id], result_labels, summary_labels)
+			_check_equal("summary difficulty label is stable for %s/%s" % [end_type, difficulty_id], String((result_rows[2] as Dictionary).get("difficultyLabel", "")), difficulty_id.to_upper())
+			var result_palette: Dictionary = (result_rows[2] as Dictionary).get("difficultyPalette", {}) as Dictionary
+			var expected_result_palette: Dictionary = CommonLightUiStyleScript.difficulty_palette(difficulty_id)
+			_check_equal("summary palette is stable for %s/%s" % [end_type, difficulty_id], result_palette, expected_result_palette)
+			_check_equal("summary text layout is end-type independent for %s/%s" % [end_type, difficulty_id], game._result_summary_row_text_layout(layout["summaryPanel"] as Rect2, result_rows[3] as Dictionary), game._result_summary_row_text_layout(layout["summaryPanel"] as Rect2, summary_rows[3] as Dictionary))
+	var relay_summary_rows: Array = game._result_summary_rows({
+		"relayMode": true,
+		"streamFrameId": "gameplay",
+		"relayMaxViewerCount": 987654,
+		"viewerCount": 1,
+		"relayMaxVoltage": 4.5,
+		"maxVoltage": 1.0
+	})
+	_check_equal("relay summary uses run-wide viewer maximum", String((relay_summary_rows[3] as Dictionary).get("value", "")), "987,654 人")
+	_check_equal("relay summary uses run-wide voltage maximum", String((relay_summary_rows[5] as Dictionary).get("value", "")), "x4.5")
+	_check_equal("result evaluation label is shared", game._result_evaluation_label(), "配信評価")
+	_check(game._result_pp_font_size(0) >= game._result_pp_font_size(99), "PP zero uses a safe normal font size")
+	_check(game._result_pp_font_size(99) >= game._result_pp_font_size(999), "PP two and three digits remain monotonic")
+	_check(game._result_pp_font_size(999) >= game._result_pp_font_size(9999), "PP four digits shrink when needed")
+	_check(game._result_pp_font_size(9999) >= game._result_pp_font_size(99999), "PP long values never grow")
+	var result_character_rect := layout["characterPanel"] as Rect2
+	for character_id in ["banri", "supana", "maron"]:
+		var completed_character_rect: Rect2 = game._result_character_content_rect(result_character_rect, character_id)
+		var defeat_character_rect: Rect2 = game._result_character_content_rect(result_character_rect, character_id)
+		_check_equal("character content geometry is shared for %s" % character_id, completed_character_rect, defeat_character_rect)
+		_check(completed_character_rect.size.x > 0.0 and completed_character_rect.size.y > 0.0, "character content geometry is positive for %s" % character_id)
+	_check_equal("unknown character keeps the fallback rect", game._result_character_content_rect(result_character_rect, "unknown_character"), result_character_rect)
+	for retry_difficulty_id in ["hard", "expert"]:
+		game.run_difficulty_id = retry_difficulty_id
+		_check_equal("retry keeps %s difficulty" % retry_difficulty_id, game._result_retry_difficulty_id(), retry_difficulty_id)
+	game.run_difficulty_id = "normal"
 	var completed_subtitle_baseline := (layout["panel"] as Rect2).position.y + 138.0
 	var summary_band_top := (layout["summaryPanel"] as Rect2).position.y - 18.0
 	_check(summary_band_top - completed_subtitle_baseline >= 6.0, "completed subtitle clears summary ribbon")
@@ -66,6 +142,33 @@ func _run_tests() -> void:
 	_check_approx("metric cards fit 800px row", owned_card.end.x, metric_rect.end.x)
 	_check(not evaluation_card.intersects(earned_card), "evaluation and earned cards do not overlap")
 	_check(not earned_card.intersects(owned_card), "earned and owned cards do not overlap")
+	var result_font := GameFontSystemScript.regular_font()
+	var owned_value_width := owned_card.size.x - 149.0
+	for pp_value in [0, 99, 999, 9999, 99999]:
+		var earned_text := "+%d" % pp_value
+		var owned_text := str(pp_value)
+		var earned_font_size := game._result_pp_font_size(pp_value)
+		var owned_before_font_size := game._result_pp_font_size(pp_value, 23)
+		var owned_after_font_size := game._result_pp_font_size(pp_value, 28)
+		_check(result_font.get_string_size(earned_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, earned_font_size).x <= 128.0, "earned PP text fits for %d" % pp_value)
+		_check(result_font.get_string_size(owned_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, owned_before_font_size).x <= 58.0, "owned before PP text fits for %d" % pp_value)
+		_check(result_font.get_string_size(owned_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, owned_after_font_size).x <= owned_value_width, "owned after PP text fits for %d" % pp_value)
+	var build_card := Rect2(Vector2.ZERO, Vector2(472.0, 128.0))
+	var build_slot_rows: Array = [
+		game._result_equipment_slot_rects(Vector2(76.0, 28.0), 5, 36.0, 44.0),
+		game._result_equipment_slot_rects(Vector2(76.0, 78.0), 5, 36.0, 44.0)
+	]
+	var all_build_slots: Array = []
+	for slot_row_value in build_slot_rows:
+		var slot_row: Array = slot_row_value as Array
+		_check_equal("build row has five slots", slot_row.size(), 5)
+		for slot_value in slot_row:
+			var slot: Rect2 = slot_value as Rect2
+			_check(build_card.encloses(slot), "build slot stays inside card")
+			all_build_slots.append(slot)
+	for slot_index in range(all_build_slots.size()):
+		for other_index in range(slot_index):
+			_check(not (all_build_slots[slot_index] as Rect2).intersects(all_build_slots[other_index] as Rect2), "build slots do not overlap")
 	var earned_coin_rect: Rect2 = game._completed_metric_pp_coin_rect(earned_card)
 	var owned_coin_rect: Rect2 = game._completed_metric_pp_coin_rect(owned_card)
 	_check_equal("earned and owned PP icons share size", earned_coin_rect.size, owned_coin_rect.size)
@@ -157,6 +260,59 @@ func _run_tests() -> void:
 	_check_equal("normal adapter row amount", int(normal_row.get("amount", 0)), 150)
 	var result_data := ResultSystemScript.build_result_data({"endType": "completed", "isRankingEligible": true})
 	_check(bool(result_data.get("rankingRegistered", false)), "result data carries ranking registration state")
+	var normalized_difficulty_data: Dictionary = ResultSystemScript.build_result_data({"endType": "completed", "difficultyId": "EXPERT"})
+	_check_equal("result keeps canonical run difficulty", String(normalized_difficulty_data.get("runDifficultyId", "")), "expert")
+	var expected_frame_names := {
+		"zatsudan": "雑談枠",
+		"gameplay": "ゲーム実況枠",
+		"singing": "歌枠",
+		"drawing": "お絵かき枠",
+		"collab": "コラボ枠"
+	}
+	for frame_id in expected_frame_names.keys():
+		var frame_view: Dictionary = ResultSystemScript.build_result_data({
+			"endType": "completed",
+			"streamFrameId": frame_id,
+			"streamFrameName": "Legacy English name"
+		})
+		_check_equal("result frame display %s" % frame_id, String(frame_view.get("streamFrameName", "")), expected_frame_names[frame_id])
+	var missing_frame_id_view: Dictionary = ResultSystemScript.build_result_data({"endType": "completed", "streamFrameId": "", "stageId": "singing", "streamFrameName": ""})
+	_check_equal("result frame display falls back to stage id", String(missing_frame_id_view.get("streamFrameName", "")), "歌枠")
+	var empty_frame_id_view: Dictionary = ResultSystemScript.build_result_data({"endType": "completed", "streamFrameId": "", "stageId": "", "streamFrameName": "過去の枠名"})
+	_check_equal("empty result frame id keeps fallback name", String(empty_frame_id_view.get("streamFrameName", "")), "過去の枠名")
+	var frame_aliases := {"talk": "雑談枠", "chat": "雑談枠", "game": "ゲーム実況枠", "song": "歌枠"}
+	for alias in frame_aliases.keys():
+		var alias_view: Dictionary = ResultSystemScript.build_result_data({"endType": "completed", "streamFrameId": alias})
+		_check_equal("result frame alias %s" % alias, String(alias_view.get("streamFrameName", "")), frame_aliases[alias])
+	for relay_end_type in ["completed", "mental_breakdown"]:
+		var relay_view: Dictionary = ResultSystemScript.build_result_data({
+			"endType": relay_end_type,
+			"relayMode": true,
+			"streamFrameId": "gameplay",
+			"streamFrameName": "通常枠の名前"
+		})
+		_check_equal("relay result name is stable for %s" % relay_end_type, String(relay_view.get("streamFrameName", "")), "配信リレー")
+
+	var clear_highlight_style: Dictionary = game._result_highlight_style("highlight", true)
+	var trouble_style: Dictionary = game._result_highlight_style("trouble", true)
+	_check_equal("game over trouble uses cross icon", String(trouble_style.get("icon", "")), "cross")
+	_check(trouble_style.get("border") != clear_highlight_style.get("border"), "game over trouble does not use clear gold border")
+	var fitted_trouble_text := game._result_fit_text("これはとても長いトラブル理由がカード幅を超えないように短縮される文章です", 14, 120.0)
+	_check(fitted_trouble_text.length() < 50, "long trouble value is shortened")
+	_check(GameFontSystemScript.regular_font().get_string_size(fitted_trouble_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 14).x <= 120.0, "long trouble value fits measured width")
+	for button_id in ["retry", "ranking", "shop", "title"]:
+		var completed_button_style: Dictionary = game._result_button_style(button_id)
+		game.last_result_data["endType"] = "mental_breakdown"
+		var defeat_button_style: Dictionary = game._result_button_style(button_id)
+		_check_equal("button color is result independent %s" % button_id, completed_button_style, defeat_button_style)
+		game.result_hover_button = button_id
+		var selected_button_count := 0
+		for selected_button_id in game._result_button_ids():
+			if game.result_hover_button == selected_button_id:
+				selected_button_count += 1
+		_check_equal("result selection has one focused button: %s" % button_id, selected_button_count, 1)
+	game.result_hover_button = ""
+	_check(game._result_button_style("codex").has("fill"), "optional Codex button keeps a shared style")
 
 	var mental_point_view := {
 		"grantState": "granted",
@@ -194,7 +350,9 @@ func _run_tests() -> void:
 	var mental_rows: Array = game._mental_breakdown_trouble_rows(game.last_result_data)
 	_check_equal("mental trouble rows are capped at three", mental_rows.size(), 3)
 	_check_equal("mental trouble starts with death reason", String((mental_rows[0] as Dictionary).get("label", "")), "終了理由")
-	_check_equal("mental trouble keeps culprit second", String((mental_rows[1] as Dictionary).get("label", "")), "戦犯指示コメ")
+	_check_equal("mental trouble keeps culprit second", String((mental_rows[1] as Dictionary).get("label", "")), "挑戦指示コメ")
+	_check_equal("mental trouble starts with cross", String((mental_rows[0] as Dictionary).get("icon", "")), "cross")
+	_check_equal("mental trouble uses rose variant", String((mental_rows[0] as Dictionary).get("variant", "")), "trouble")
 	_check_equal("mental trouble keeps final blow third", String((mental_rows[2] as Dictionary).get("label", "")), "最後の一撃")
 	var visible_reward_rows: Array = game._completed_visible_reward_rows({"rewardRows": [{"amount": 0}, {"amount": 75}]})
 	_check_equal("zero PP reward rows are hidden", visible_reward_rows.size(), 1)
