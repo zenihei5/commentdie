@@ -1,0 +1,126 @@
+{
+  "hard_overclock": {
+    "description": "敵の攻撃が激しくなる",
+    "heartVariant": {"description": "敵の攻撃が激しくなる"}
+  },
+  "hard_pressure_wave": {
+    "description": "いろんな敵が一気に押し寄せる",
+    "heartVariant": {
+      "description": "いろんな敵が一気に押し寄せる",
+      "params": {"countRate": 0.70}
+    }
+  },
+  "talk_comment_avalanche": {
+    "description": "流れるコメントに押し流される",
+    "heartVariant": {"description": "流れるコメントに押し流される"}
+  },
+  "game_genre_mix": {
+    "description": "短いジャンル変化が2回続く",
+    "heartVariant": {
+      "description": "短いジャンル変化が2回続く",
+      "params": {"eventDurationRate": 0.70}
+    }
+  },
+  "drawing_fast_dry": {
+    "description": "線がすぐ消える",
+    "heartVariant": {
+      "description": "線がすぐ消える",
+      "params": {"trailLifetime": 8.0}
+    }
+  },
+  "drawing_too_much_paint": {
+    "description": "線が太くなり絵具消費が増える",
+    "heartVariant": {
+      "description": "線が太くなり絵具消費が増える",
+      "params": {"trailWidthMultiplier": 1.25, "paintCostMultiplier": 1.30}
+    }
+  },
+  "drawing_spilled_bucket": {
+    "description": "汚れが出現・踏むと減速",
+    "heartVariant": {"description": "汚れが出現・踏むと減速"}
+  },
+  "banana_floor": {
+    "heartVariant": {"params": {"slipRate": 0.70}}
+  },
+  "no_stop": {
+    "heartVariant": {"params": {"stopDamage": 8}}
+  },
+  "no_brake": {
+    "heartVariant": {"params": {"inertiaRate": 0.70}}
+  },
+  "split_enemy": {
+    "heartVariant": {"params": {"splitProbability": 0.25}}
+  },
+  "hide_hp": {
+    "heartVariant": {"duration": 10.0}
+  },
+  "comment_barrage": {
+    "heartVariant": {"params": {"barrageCountBySetting": [9, 17, 27]}}
+  },
+  "temp_walls": {
+    "heartVariant": {"params": {"wallCountRate": 0.70}}
+  },
+  "damage_pits": {
+    "heartVariant": {"params": {"pitCount": 5}}
+  },
+  "takeback": {
+    "heartVariant": {"params": {"takebackRate": 0.70}}
+  },
+  "genre_change": {
+    "heartVariant": {"duration": 14.0}
+  },
+  "force_bullet_hell": {
+    "heartVariant": {"duration": 14.0}
+  },
+  "force_race": {
+    "heartVariant": {"duration": 14.0}
+  },
+  "force_horror": {
+    "heartVariant": {"duration": 14.0}
+  },
+  "song_mic_howling": {
+    "heartVariant": {"params": {"waveInterval": 4.0}}
+  },
+  "song_lighting_mistake": {
+    "heartVariant": {"params": {"badLightCount": 1}}
+  },
+  "song_lyrics_lost": {
+    "heartVariant": {"duration": 10.0, "params": {"lyricsCardLifetime": 10.0, "minimumSpawnDistanceRate": 0.75}}
+  },
+  "song_force_chorus": {
+    "heartVariant": {"params": {"forcedChorusDuration": 6.0}}
+  },
+  "enemy_spawn_up": {
+    "heartVariant": {"params": {"enemySpawnCountRate": 0.50}}
+  },
+  "giant_enemies": {
+    "heartVariant": {"params": {"giantHpRate": 1.35, "giantRadiusRate": 1.70}}
+  },
+  "fast_collab_pass": {
+    "heartVariant": {
+      "description": "コラボパスが4秒制限",
+      "params": {"passDuration": 4.0}
+    }
+  },
+  "partner_take_over": {
+    "heartVariant": {
+      "params": {
+        "playerWeaponDamageMultiplier": 0.70,
+        "partnerDamageMultiplier": 2.0,
+        "partnerAttackIntervalMultiplier": 0.70
+      }
+    }
+  },
+  "out_of_sync": {
+    "heartVariant": {
+      "params": {
+        "interferenceIntervalRate": 1.15
+      }
+    }
+  },
+  "summon_boss": {
+    "heartVariant": {
+      "params": {"bossHpRate": 0.80, "bossAttackIntervalRate": 1.10}
+    }
+  }
+}

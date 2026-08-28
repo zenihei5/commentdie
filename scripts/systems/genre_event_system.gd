@@ -59,7 +59,15 @@ static func clear_temp_objects_for_target(target: Node) -> void:
 		var bullet: Dictionary = bullet_item
 		if String(bullet.get("source", "")) != "genre_stg_shot":
 			kept_bullets.append(bullet)
-		target.set("player_bullets", kept_bullets)
+	target.set("player_bullets", kept_bullets)
+	var enemy_bullets_value: Variant = target.get("enemy_bullets")
+	if enemy_bullets_value is Array:
+		var kept_enemy_bullets: Array = []
+		for bullet_item in enemy_bullets_value as Array:
+			var bullet: Dictionary = bullet_item as Dictionary
+			if not bool(bullet.get("genreEventOwned", false)):
+				kept_enemy_bullets.append(bullet)
+		target.set("enemy_bullets", kept_enemy_bullets)
 	var enemies_value: Variant = target.get("enemies")
 	if enemies_value is Array:
 		var kept_enemies: Array = []
@@ -519,7 +527,12 @@ static func start_comment_event_if_enabled_for_target(target: Node, frame: Dicti
 		return {"toasts": [], "chats": []}
 	if event_id == "":
 		return {"toasts": [], "chats": []}
-	return start_world_event_for_target(target, event_id, arena, rng)
+	var duration := GENRE_EVENT_DURATION
+	var runtime := _difficulty_runtime_for_target(target)
+	var active_view: Dictionary = runtime.get("activeCommentView", {}) as Dictionary
+	if active_view.has("duration"):
+		duration = maxf(0.1, float(active_view.get("duration", duration)))
+	return start_world_event_for_target(target, event_id, arena, rng, duration, "comment_%s" % comment_id)
 
 static func update_active_event_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("genre_event_timer", float(target.get("genre_event_timer")) - delta)
@@ -715,7 +728,11 @@ static func make_bullet(arena: Rect2, player_pos: Vector2, rng: RandomNumberGene
 
 static func spawn_bullet_for_target(target: Node, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var bullets: Array = target.get("enemy_bullets") as Array
-	bullets.append(make_bullet(arena, Vector2(target.get("player_pos")), rng))
+	var bullet := make_bullet(arena, Vector2(target.get("player_pos")), rng)
+	if String(target.get("genre_event_source")) == "boss" and String(target.get("active_genre_event")) == "bullet_hell":
+		bullet["genreEventOwned"] = true
+		bullet["bossGenreVisual"] = true
+	bullets.append(bullet)
 	target.set("enemy_bullets", bullets)
 
 static func horror_positions(target: Node, arena: Rect2, _player_pos: Vector2, count: int, rng: RandomNumberGenerator) -> Array:

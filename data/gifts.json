@@ -93,7 +93,7 @@
     "maxLevel": 5,
     "effectType": "equipment_weapon",
     "weight": 9,
-    "iconPath": "res://assets/generated/weapon_fx_v1/emote_mine.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/emote_mine.png"
   },
   {
     "id": "ng_word_laser",
@@ -121,6 +121,7 @@
   },
   {
     "id": "stream_power",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"配信者の気持ちを道具へ乗せ、いつもの装備を動かすために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"準備の少ない配信でも、何かを始めるきっかけになる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"元気な日は光り方まで少し景気がいい。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["配信開始ボタンを押した瞬間、眠そうにしていた配信者が急に元気になる現象を、扱いやすい形で蓄えたもの。","配信前には「今日は短めにする」と話していた人物でも、配信パワーが入ると声が一段明るくなり、気づけば予定時間を大きく超えている。本人は気合いの問題だと説明するが、開始前と開始後であまりにも様子が違うため、何らかの変換が起きていることは間違いない。","効果が切れるのは、配信終了ボタンを押した直後である。","その瞬間だけ、全員かなり静かになる。"]},
     "codexStats": ["damageMultiplier"],
     "displayName": "配信パワー",
     "description": "全武器の攻撃力 +10% / Lv",
@@ -133,6 +134,7 @@
   },
   {
     "id": "bullet_support",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"飛び道具を扱う配信者のそばで、弾の準備を手伝うために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"画面へ飛び出す応援が増えるため、見た目にも賑やかになる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"弾を数える係は、途中で応援する側へ回りがち。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["配信者一人では足りない攻撃量を、周囲から飛んでくる応援やコメントで補うための支援システム。","視聴者の「もっと撃って」「数が足りない」という無責任な要望を忠実に反映し、画面を派手な弾幕で満たしてくれる。見栄えは大きく向上するが、何が起きているのか配信者本人にも分からなくなることがある。","設定を強くするほど画面は華やかになる。","同じ割合で、敵と自分の位置も見えなくなる。"]},
     "codexStats": ["projectileCountBonus"],
     "displayName": "弾幕支援",
     "description": "弾属性武器の発射数・生成数 +1",
@@ -145,6 +147,7 @@
   },
   {
     "id": "high_speed_connection",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"映像と声の流れを安定させ、長い配信を安心して続けるために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"回線落ちへの不安が減るだけでも、配信者の余裕が大きく変わる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"月額料金については、誰も詳しく話したがらない。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["長時間配信やコラボ配信を、突然の切断に怯えず続けるための安定した通信環境。","導入した配信者の多くは「もう以前の回線には戻れない」と話す。映像の乱れも音声の途切れも減り、回線落ちを心配する時間を配信内容へ使えるようになるため、精神的な効果も大きい。","それでも接続が切れた場合、まず回線会社が疑われ、次にルーター、最後にパソコンが疑われる。","実際の原因が抜けたケーブルだった場合、その事実は配信では報告されない。"]},
     "codexStats": ["attackIntervalMultiplier"],
     "displayName": "高速回線",
     "description": "全武器の攻撃間隔 -8% / Lv",
@@ -157,6 +160,7 @@
   },
   {
     "id": "wide_angle",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"配信の中で見渡せる範囲を広げ、画面の隅まで気を配るために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"見切れていた話題や小さな反応にも気づきやすくなる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"広げすぎた画角から、私物が見つかることがある。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["通常より広い範囲を配信画面へ収めるためのレンズと撮影設定。","複数人のコラボや大きなリアクションも見切れにくくなり、配信者が多少動き回っても画面内に残りやすい。映せる範囲が増えるため、狭い画角では伝わらなかった配信部屋の雰囲気まで視聴者へ届けられる。","同時に、片づけなければならない範囲も増える。","導入初日の配信では、画面の端に置いていた洗濯物や開封済みのお菓子が発見される確率が高い。"]},
     "codexStats": ["rangeAreaMultiplier"],
     "displayName": "ワイド画角",
     "description": "範囲・射程・回転半径 +10% / Lv",
@@ -169,6 +173,7 @@
   },
   {
     "id": "light_sneakers",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"配信中に席を立つような軽さで、画面の中を動き回るために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"準備から本番まで、足取りが少しだけ前向きになる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"履いたまま玄関へ出て、戻る理由を忘れる人もいる。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["配信中に動き回っても足が疲れにくいよう作られた、軽くて静かな室内用スニーカー。","長時間の立ち配信やライブ企画でも使いやすく、足音がマイクへ入りにくいことから愛用者は多い。興奮してその場で跳ねたり、急に画面外へ走っていったりする配信者にとっては、機材と同じくらい重要な装備だという。","靴音は静かになるが、机へ膝をぶつけた音までは消えない。","室内用であることを忘れ、そのまま外へ出た事例も複数確認されている。"]},
     "codexStats": ["moveSpeedMultiplier", "dashCooldownMultiplier"],
     "displayName": "軽量スニーカー",
     "description": "移動速度 +5%、ダッシュCT -5% / Lv",
@@ -181,6 +186,7 @@
   },
   {
     "id": "sweet_tooth",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"甘いものを味方につけ、配信中の小さな疲れを立て直すために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"休憩の理由を堂々と作れるため、甘党の配信者から好まれる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"食べる前に写真を撮る時間が、いちばん長いこともある。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["配信前や休憩中に甘いものを補給し、集中力と気分を立て直す配信者たちの習慣。","チョコレート、飴、焼き菓子など内容は人によって異なるが、長時間配信を乗り切るための非常食として机の近くに置かれていることが多い。白綿まろんも「念のためです」と説明しながら、かなりの量を常備している。","問題は、配信が始まる前に食べ終わっている場合があること。","包装を開ける音だけで、何を食べているか当てるリスナーもいる。"]},
     "codexStats": ["goodEffectMultiplier", "kusoDurationMultiplier"],
     "displayName": "甘党",
     "description": "マシュマロのメリット効果強化、クソマロ短縮",
@@ -193,6 +199,7 @@
   },
   {
     "id": "mental_care",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"配信者の心身を気にかけ、長い時間を安心して過ごすために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"無理をしていることに気づく前に、ひと息つく理由をくれる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"休もうと言われると、なぜか机の掃除を始める人が多い。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["荒れたコメントや配信事故で疲れた心を立て直すための、さまざまな対処法をまとめたケア用品。","深呼吸、温かい飲み物、短い休憩、信頼できる相手との会話などが含まれており、どれが有効かは配信者によって大きく異なる。何事もなかったように配信を続けるより、一度落ち着く方が結果的に早く立ち直れるとされている。","説明書の最初には、","無理な場合は、いったん配信を終了してください","と書かれている。","最も効果的で、最も守られない項目である。"]},
     "codexStats": ["maxHpBonus"],
     "displayName": "メンタルケア",
     "description": "最大HPが上がる。取得時に少し回復する",
@@ -205,6 +212,7 @@
   },
   {
     "id": "notification_bell",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"配信中に得た気づきや経験を、忘れず次へ持っていくために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"小さな成果にも音が鳴るので、成長を実感しやすい。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"鳴った気がして振り返るが、誰も何もしていないことがある。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["フォロー、ギフト、スパチャなど、配信中に起きたうれしい出来事を音で知らせる小さなベル。","鳴るたびに配信者が反応できるため、リスナーにとっても応援が届いたことを実感しやすい。短く明るい音が好まれるが、配信者によっては独自の通知音へ変更し、コメント欄へ強い印象を残している。","通知が続くと本編がなかなか進まないこともあるが、その状態を嫌がる配信者はほとんどいない。","音量確認のために鳴らしたテスト通知が、その日の配信で最も大きな音になることはよくある。"]},
     "codexStats": ["expMultiplier"],
     "displayName": "通知ベル",
     "description": "獲得EXPが増える",
@@ -217,6 +225,7 @@
   },
   {
     "id": "comment_radar",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"配信の中に落ちている小さな反応や贈り物を見つけるために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"拾い忘れを減らし、話題のきっかけを手元へ集めやすい。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"見つけすぎて、何を拾ったか分からなくなる日もある。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["高速で流れるコメントの中から、重要な反応や危険な空気を探知するための観測装置。","質問、応援、悪質な書き込みなどを分類し、配信者が見落としそうなコメントの位置を知らせてくれる。コメントを一つずつ読んでいるというより、コメント欄全体の流れを見ている配信者ほど使いこなしやすい。","感度を上げすぎると、ただの「こんばんは」にまで警戒反応を示す。","逆に下げすぎると、明らかに荒れているのに「異常なし」と表示する。最終的な調整には、人間のモデレーターが必要である。"]},
     "codexStats": ["pickupRangeBonus", "pickupSpeedMultiplier"],
     "displayName": "コメントレーダー",
     "description": "アイテムを拾いやすくなる",
@@ -229,6 +238,7 @@
   },
   {
     "id": "mini_humidifier",
+    "codexLore": {"cards":[{"id":"usage","title":"使い道","text":"乾いた配信部屋の空気を整え、落ち着いて話し続けるために使われる。","span":2},{"id":"popularity","title":"人気の理由","text":"机の隅に置いておくだけで、配信の雰囲気が少し柔らかくなる。","span":1},{"id":"streamer_memo","title":"配信者メモ","text":"水を入れ忘れたまま、音だけ聞いて安心する人がいる。","span":1}],"archiveTitle":"ITEM NOTE","archiveParagraphs":["長時間話し続ける配信者の喉を、乾燥から守るために机へ置かれる小型加湿器。","大きな機材の隙間にも置きやすく、冬場や歌配信では特に重宝されている。喉の調子が整うだけでなく、静かに立ち上る蒸気が配信部屋へ少し落ち着いた雰囲気を作るという意見もある。","カメラの近くへ置きすぎると、画面に白い霧が映り込み、怪奇現象として扱われる。","マイクの近くへ置きすぎた場合は、怪奇現象より先にスタッフが止めに来る。"]},
     "codexStats": ["healInterval", "healAmount"],
     "displayName": "ミニ加湿器",
     "description": "時間経過で少しずつ回復する。被弾すると少しの間止まる",

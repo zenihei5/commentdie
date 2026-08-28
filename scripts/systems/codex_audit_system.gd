@@ -18,7 +18,7 @@ static func audit(raw_masters: Dictionary, enabled_masters: Dictionary, disabled
 	var characters := _audit_characters(raw_masters.get("characters", []), enabled_masters.get("characters", []), warnings)
 	var weapons := _audit_weapons(raw_masters.get("weapons", []), enabled_masters.get("weapons", []), raw_masters.get("accessories", []), enabled_masters.get("accessories", []), warnings)
 	var accessories := _audit_accessories(raw_masters.get("accessories", []), enabled_masters.get("accessories", []), warnings)
-	var enemies := _audit_enemies(raw_masters.get("enemies", []), enabled_masters.get("enemies", []), warnings)
+	var enemies := _audit_enemies(raw_masters.get("enemies", []), enabled_masters.get("enemies", []), warnings, sources)
 	var enemy_catalog := EnemyCodexProfileSystemScript.build_catalog(raw_masters.get("enemies", []) as Array, sources)
 	var enemy_cohorts: Dictionary = enemy_catalog.get("cohorts", {}) as Dictionary
 	var normal_cohort: Dictionary = enemy_cohorts.get("normal", {}) as Dictionary
@@ -82,6 +82,7 @@ static func _audit_weapons(raw_value: Variant, enabled_value: Variant, accessori
 	for row in _dict_array(accessories_enabled_value):
 		accessory_ids[String(row.get("id", ""))] = true
 	for row in enabled:
+		_audit_item_lore(row, "weapons", ["origin", "usage", "rumor"] if not bool(row.get("isEvolved", false)) else ["evolution_trigger", "evolution_from", "reputation"], warnings)
 		if bool(row.get("evolutionEnabled", false)):
 			var evolution: Variant = row.get("evolution", {})
 			if not evolution is Dictionary:
@@ -112,14 +113,99 @@ static func _audit_accessories(raw_value: Variant, enabled_value: Variant, warni
 			if int(row.get("maxLevel", row.get("maxLv", 0))) < 1:
 				warnings.append("accessories invalid maxLevel: %s" % String(row.get("id", "")))
 			_audit_declared_stats(row, "accessories", warnings)
+	for row in enabled:
+		_audit_item_lore(row, "accessories", ["usage", "popularity", "streamer_memo"], warnings)
 	return {"raw": raw.size(), "enabled": enabled.size(), "disabled": maxi(0, raw.size() - enabled.size())}
 
-static func _audit_enemies(raw_value: Variant, enabled_value: Variant, warnings: Array[String]) -> Dictionary:
+static func _audit_item_lore(row: Dictionary, category: String, expected_ids: Array, warnings: Array[String]) -> void:
+	var id := String(row.get("id", ""))
+	var expected_titles: Dictionary = {}
+	if category == "accessories":
+		expected_titles = {
+			"usage": "使い道",
+			"popularity": "人気の理由",
+			"streamer_memo": "配信者メモ",
+		}
+	elif bool(row.get("isEvolved", false)):
+		expected_titles = {
+			"evolution_trigger": "変化のきっかけ",
+			"evolution_from": "進化前",
+			"reputation": "配信界隈の評判",
+		}
+	else:
+		expected_titles = {
+			"origin": "由来",
+			"usage": "扱われ方",
+			"rumor": "うわさ",
+		}
+	var lore_value: Variant = row.get("codexLore", null)
+	if not lore_value is Dictionary:
+		warnings.append("%s missing codexLore: %s" % [category, id])
+		return
+	var lore := lore_value as Dictionary
+	var cards_value: Variant = lore.get("cards", [])
+	if not cards_value is Array or (cards_value as Array).size() != 3:
+		warnings.append("%s codexLore cards must have 3 entries: %s" % [category, id])
+		return
+	var seen_ids: Dictionary = {}
+	var spans: Array[int] = []
+	for card_index in range((cards_value as Array).size()):
+		var card_value: Variant = (cards_value as Array)[card_index]
+		if not card_value is Dictionary:
+			warnings.append("%s codexLore card is not Dictionary: %s/%d" % [category, id, card_index])
+			continue
+		var card := card_value as Dictionary
+		var card_id := String(card.get("id", ""))
+		var title := String(card.get("title", "")).strip_edges()
+		var text := String(card.get("text", "")).strip_edges()
+		var raw_span: Variant = card.get("span", 1)
+		var span := int(raw_span) if raw_span is int or raw_span is float else 0
+		if not expected_ids.has(card_id):
+			warnings.append("%s unknown codexLore card id: %s/%s" % [category, id, card_id])
+		if seen_ids.has(card_id):
+			warnings.append("%s duplicate codexLore card id: %s/%s" % [category, id, card_id])
+		seen_ids[card_id] = true
+		if title == "":
+			warnings.append("%s codexLore card missing title: %s/%s" % [category, id, card_id])
+		elif expected_titles.has(card_id) and title != String(expected_titles.get(card_id, "")):
+			warnings.append("%s codexLore card title mismatch: %s/%s" % [category, id, card_id])
+		if text == "" and card_id != "evolution_from":
+			warnings.append("%s codexLore card missing text: %s/%s" % [category, id, card_id])
+		if span != 1 and span != 2:
+			warnings.append("%s codexLore invalid span: %s/%s" % [category, id, card_id])
+		spans.append(span)
+	if seen_ids.size() != expected_ids.size():
+		warnings.append("%s codexLore card ids incomplete: %s" % [category, id])
+	elif spans.size() == 3 and (spans[0] != 2 or spans[1] != 1 or spans[2] != 1):
+		warnings.append("%s codexLore span order is not 2/1/1: %s" % [category, id])
+	var archive_title := String(lore.get("archiveTitle", "")).strip_edges()
+	if archive_title == "":
+		warnings.append("%s codexLore missing archiveTitle: %s" % [category, id])
+	else:
+		var expected_archive_title := "ITEM NOTE" if category == "accessories" else "WEAPON ARCHIVE"
+		if archive_title != expected_archive_title:
+			warnings.append("%s codexLore archiveTitle mismatch: %s" % [category, id])
+	var paragraphs_value: Variant = lore.get("archiveParagraphs", [])
+	if not paragraphs_value is Array or (paragraphs_value as Array).is_empty():
+		warnings.append("%s codexLore missing archiveParagraphs: %s" % [category, id])
+	else:
+		for paragraph_value in paragraphs_value as Array:
+			if not paragraph_value is String or String(paragraph_value).strip_edges() == "":
+				warnings.append("%s codexLore has empty archive paragraph: %s" % [category, id])
+	var image_path := CodexPresentationSystemScript.image_path_for(category, row, true)
+	if image_path == "":
+		warnings.append("%s codexLore item has no valid image: %s" % [category, id])
+
+static func _audit_enemies(raw_value: Variant, enabled_value: Variant, warnings: Array[String], sources: Dictionary = {}) -> Dictionary:
 	var raw := _dict_array(raw_value)
 	var enabled := _dict_array(enabled_value)
+	var safe_sources := sources.duplicate(true)
+	if safe_sources.is_empty():
+		safe_sources = EnemyCodexProfileSystemScript.load_sources()
 	var ids: Dictionary = {}
 	var orders: Dictionary = {}
 	var relay_ids: Array[String] = []
+	var lore_template_counts := {"normal_enemy": 0, "special": 0, "boss": 0}
 	for row in raw:
 		var id := String(row.get("id", "")).strip_edges()
 		_check_duplicate_id(row, ids, "enemies", warnings)
@@ -127,7 +213,13 @@ static func _audit_enemies(raw_value: Variant, enabled_value: Variant, warnings:
 		if orders.has(order_key):
 			warnings.append("enemies duplicate order: %s" % order_key)
 		orders[order_key] = true
+		var codex_display_name := String(row.get("displayName", "")).strip_edges()
+		var runtime_display_name := EnemyCodexProfileSystemScript.runtime_display_name(row, safe_sources)
+		if runtime_display_name != "" and codex_display_name != runtime_display_name:
+			warnings.append("enemies displayName mismatch: id=%s codex=%s runtime=%s" % [id, codex_display_name, runtime_display_name])
 		if not bool(row.get("codexEnabled", true)):
+			if row.has("codexLore") or row.has("codex_lore"):
+				warnings.append("disabled enemy must not have codexLore: %s" % id)
 			continue
 		var order_value: Variant = row.get("order", null)
 		if not (order_value is int or order_value is float) or float(order_value) < 0.0:
@@ -172,6 +264,12 @@ static func _audit_enemies(raw_value: Variant, enabled_value: Variant, warnings:
 			warnings.append("enemies missing image resource: %s" % id)
 		if bool(row.get("relayBoss", false)):
 			relay_ids.append(id)
+		_audit_enemy_lore(row, warnings)
+		var lore_value: Variant = row.get("codexLore", {})
+		if lore_value is Dictionary:
+			var template := String((lore_value as Dictionary).get("template", ""))
+			if lore_template_counts.has(template):
+				lore_template_counts[template] += 1
 	if raw.size() != 44:
 		warnings.append("enemies raw count is %d (expected current 44)" % raw.size())
 	if enabled.size() != 42:
@@ -184,7 +282,81 @@ static func _audit_enemies(raw_value: Variant, enabled_value: Variant, warnings:
 			disabled_enemy_ids.append(String(row.get("id", "")))
 	if disabled_enemy_ids.size() != 2 or not disabled_enemy_ids.has("undo_ghost") or not disabled_enemy_ids.has("boss_super_long_comment"):
 		warnings.append("enemies disabled set is not undo_ghost/boss_super_long_comment")
-	return {"raw": raw.size(), "enabled": enabled.size(), "disabled": maxi(0, raw.size() - enabled.size()), "relayBossIds": relay_ids}
+	return {"raw": raw.size(), "enabled": enabled.size(), "disabled": maxi(0, raw.size() - enabled.size()), "relayBossIds": relay_ids, "loreTemplateCounts": lore_template_counts}
+
+static func _audit_enemy_lore(row: Dictionary, warnings: Array[String]) -> void:
+	var id := String(row.get("id", "")).strip_edges()
+	var lore_value: Variant = row.get("codexLore", null)
+	if not lore_value is Dictionary:
+		warnings.append("enemies missing codexLore: %s" % id)
+		return
+	var lore := lore_value as Dictionary
+	var template := String(lore.get("template", "")).strip_edges()
+	var expected_template := "boss" if bool(row.get("isBoss", false)) or bool(row.get("relayBoss", false)) else ("special" if bool(row.get("codexSpecial", false)) else "normal_enemy")
+	if template not in ["normal_enemy", "special", "boss"]:
+		warnings.append("enemies invalid codexLore template: %s/%s" % [id, template])
+	elif template != expected_template:
+		warnings.append("enemies codexLore template mismatch: %s/%s" % [id, template])
+	var cards_value: Variant = lore.get("cards", [])
+	if not cards_value is Array or (cards_value as Array).size() != 3:
+		warnings.append("enemies codexLore cards must have 3 entries: %s" % id)
+		return
+	var expected_ids: Array[String] = []
+	var expected_titles: Dictionary = {}
+	if template == "normal_enemy":
+		expected_ids = ["ecology", "appearance_reason", "observation_note"]
+		expected_titles = {"ecology": "生態", "appearance_reason": "出没理由", "observation_note": "観測メモ"}
+	elif template == "boss":
+		expected_ids = ["origin", "habit", "rumor"]
+		expected_titles = {"origin": "発生源", "habit": "習性", "rumor": "配信界隈のうわさ"}
+	var seen_ids: Dictionary = {}
+	var spans: Array[int] = []
+	for card_value in cards_value as Array:
+		if not card_value is Dictionary:
+			warnings.append("enemies codexLore card is not Dictionary: %s" % id)
+			continue
+		var card := card_value as Dictionary
+		var card_id := String(card.get("id", "")).strip_edges()
+		var title := String(card.get("title", "")).strip_edges()
+		var text := String(card.get("text", "")).strip_edges()
+		var span := int(card.get("span", 1))
+		if card_id == "" or seen_ids.has(card_id):
+			warnings.append("enemies duplicate/empty codexLore card id: %s/%s" % [id, card_id])
+		seen_ids[card_id] = true
+		if template != "special" and not expected_ids.has(card_id):
+			warnings.append("enemies unknown codexLore card id: %s/%s" % [id, card_id])
+		if title == "":
+			warnings.append("enemies codexLore card missing title: %s/%s" % [id, card_id])
+		elif expected_titles.has(card_id) and title != String(expected_titles.get(card_id, "")):
+			warnings.append("enemies codexLore card title mismatch: %s/%s" % [id, card_id])
+		if text == "":
+			warnings.append("enemies codexLore card missing text: %s/%s" % [id, card_id])
+		if span != 1 and span != 2:
+			warnings.append("enemies codexLore invalid span: %s/%s" % [id, card_id])
+		spans.append(span)
+	if template != "special" and seen_ids.size() != expected_ids.size():
+		warnings.append("enemies codexLore card ids incomplete: %s" % id)
+	if spans.size() == 3 and (spans[0] != 2 or spans[1] != 1 or spans[2] != 1):
+		warnings.append("enemies codexLore span order is not 2/1/1: %s" % id)
+	var archive_title := String(lore.get("archiveTitle", "")).strip_edges()
+	if archive_title != "ENEMY ARCHIVE":
+		warnings.append("enemies codexLore archiveTitle mismatch: %s" % id)
+	var paragraphs_value: Variant = lore.get("archiveParagraphs", [])
+	if not paragraphs_value is Array or (paragraphs_value as Array).is_empty():
+		warnings.append("enemies codexLore missing archiveParagraphs: %s" % id)
+	else:
+		for paragraph_value in paragraphs_value as Array:
+			if not paragraph_value is String or String(paragraph_value).strip_edges() == "":
+				warnings.append("enemies codexLore empty archive paragraph: %s" % id)
+	if lore.has("codexVisual"):
+		var visual_value: Variant = lore.get("codexVisual")
+		if not visual_value is Dictionary:
+			warnings.append("enemies codexVisual is not Dictionary: %s" % id)
+		else:
+			var visual := visual_value as Dictionary
+			var scale_value: Variant = visual.get("scale", 1.0)
+			if not (scale_value is int or scale_value is float) or float(scale_value) < 0.5 or float(scale_value) > 2.5:
+				warnings.append("enemies codexVisual scale out of range: %s" % id)
 
 static func _audit_comments(raw_value: Variant, enabled_value: Variant, warnings: Array[String]) -> Dictionary:
 	var raw := _dict_array(raw_value)
@@ -203,6 +375,8 @@ static func _audit_comments(raw_value: Variant, enabled_value: Variant, warnings
 		var id := String(row.get("id", ""))
 		if id != "" and not bool(reachability.get(id, false)):
 			warnings.append("comments has no normal/hard frame reachability: %s" % id)
+		elif id != "":
+			_audit_comment_lore(row, warnings)
 	var unreachable_ids: Array[String] = []
 	for id in reachability.keys():
 		if not bool(reachability[id]):
@@ -219,25 +393,62 @@ static func _audit_comments(raw_value: Variant, enabled_value: Variant, warnings
 	}
 
 static func _comment_reachability(comments: Array[Dictionary]) -> Dictionary:
-	var reachability: Dictionary = {}
-	var frames_value: Variant = _read_json("res://data/stream_frames.json")
-	if not frames_value is Array:
-		return reachability
-	for row in comments:
-		var id := String(row.get("id", ""))
-		if id != "":
-			reachability[id] = false
-	for frame_value in frames_value as Array:
-		if not frame_value is Dictionary:
+	return CommentSystemScript.codex_reachable_standard_comment_ids(comments)
+
+static func _audit_comment_lore(row: Dictionary, warnings: Array[String]) -> void:
+	var id := String(row.get("id", ""))
+	var lore_value: Variant = row.get("codexLore", row.get("codex_lore", null))
+	if not lore_value is Dictionary:
+		warnings.append("comments missing codexLore: %s" % id)
+		return
+	var lore := lore_value as Dictionary
+	if String(lore.get("template", "")).strip_edges() != "directive_comment":
+		warnings.append("comments codexLore template mismatch: %s" % id)
+	var cards_value: Variant = lore.get("cards", [])
+	var cards: Array = cards_value as Array if cards_value is Array else []
+	var expected := ["writer", "posting_moment", "observation_note"]
+	if cards.size() != 3:
+		warnings.append("comments codexLore cards count mismatch: %s" % id)
+	for index in range(mini(cards.size(), expected.size())):
+		var card_value: Variant = cards[index]
+		if not card_value is Dictionary:
+			warnings.append("comments codexLore card is not Dictionary: %s" % id)
 			continue
-		var frame := frame_value as Dictionary
-		for difficulty_id in ["normal", "hard"]:
-			for candidate_value in CommentSystemScript.comments_allowed_for_frame(frame, comments, difficulty_id):
-				if candidate_value is Dictionary:
-					var candidate_id := String((candidate_value as Dictionary).get("id", ""))
-					if reachability.has(candidate_id):
-						reachability[candidate_id] = true
-	return reachability
+		var card := card_value as Dictionary
+		if String(card.get("id", "")) != expected[index]:
+			warnings.append("comments codexLore card id mismatch: %s" % id)
+		if String(card.get("title", "")).strip_edges() == "" or String(card.get("text", "")).strip_edges() == "":
+			warnings.append("comments codexLore empty card: %s" % id)
+		var expected_span := 2 if index == 0 else 1
+		if int(card.get("span", 1)) != expected_span:
+			warnings.append("comments codexLore card span mismatch: %s" % id)
+	var archive_title := String(lore.get("archiveTitle", lore.get("archive_title", ""))).strip_edges()
+	if archive_title != "COMMENT ARCHIVE":
+		warnings.append("comments codexLore archiveTitle mismatch: %s" % id)
+	var paragraphs_value: Variant = lore.get("archiveParagraphs", lore.get("archive_paragraphs", []))
+	if not paragraphs_value is Array or (paragraphs_value as Array).is_empty():
+		warnings.append("comments codexLore missing archiveParagraphs: %s" % id)
+	else:
+		for paragraph_value in paragraphs_value as Array:
+			if not paragraph_value is String or String(paragraph_value).strip_edges() == "":
+				warnings.append("comments codexLore empty archive paragraph: %s" % id)
+	if String(row.get("description", "")).strip_edges() == "":
+		warnings.append("comments missing normal effect for codex detail: %s" % id)
+	if lore.has("codexVisual") or lore.has("codex_visual"):
+		var visual_value: Variant = lore.get("codexVisual", lore.get("codex_visual", {}))
+		if not visual_value is Dictionary:
+			warnings.append("comments codexVisual is not Dictionary: %s" % id)
+		else:
+			var visual := visual_value as Dictionary
+			var scale_value: Variant = visual.get("scale", 1.0)
+			var offset_x_value: Variant = visual.get("offsetX", visual.get("offset_x", 0.0))
+			var offset_y_value: Variant = visual.get("offsetY", visual.get("offset_y", 0.0))
+			if not (scale_value is int or scale_value is float) or not is_finite(float(scale_value)) or float(scale_value) < 0.5 or float(scale_value) > 2.5:
+				warnings.append("comments codexVisual scale out of range: %s" % id)
+			if not (offset_x_value is int or offset_x_value is float) or not is_finite(float(offset_x_value)) or float(offset_x_value) < -1.0 or float(offset_x_value) > 1.0:
+				warnings.append("comments codexVisual offsetX out of range: %s" % id)
+			if not (offset_y_value is int or offset_y_value is float) or not is_finite(float(offset_y_value)) or float(offset_y_value) < -1.0 or float(offset_y_value) > 1.0:
+				warnings.append("comments codexVisual offsetY out of range: %s" % id)
 
 static func _relay_comment_reachability(comments: Array[Dictionary]) -> Dictionary:
 	var reachability: Dictionary = {}

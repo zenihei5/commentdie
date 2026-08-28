@@ -7,6 +7,7 @@ extends Node
 
 const CodexAuditSystemScript := preload("res://scripts/systems/codex_audit_system.gd")
 const EnemyCodexProfileSystemScript := preload("res://scripts/systems/enemy_codex_profile_system.gd")
+const CommentSystemScript := preload("res://scripts/systems/comment_system.gd")
 
 signal codex_changed(category: String, id: String)
 signal codex_bulk_changed(category: String)
@@ -1008,6 +1009,9 @@ func _load_masters() -> void:
 func _load_standard_master(category: String, path: String, required_type: String) -> void:
 	var parsed := _read_array(path)
 	var relevant_raw: Array = []
+	var comment_reachability: Dictionary = {}
+	if category == CATEGORY_COMMENT:
+		comment_reachability = CommentSystemScript.codex_reachable_standard_comment_ids(parsed)
 	for index in range(parsed.size()):
 		var raw: Dictionary = parsed[index] as Dictionary
 		if raw.is_empty():
@@ -1015,6 +1019,16 @@ func _load_standard_master(category: String, path: String, required_type: String
 		if required_type != "" and String(raw.get("equipmentType", "")) != required_type:
 			continue
 		relevant_raw.append(raw.duplicate(true))
+		var raw_id := String(raw.get("id", "")).strip_edges()
+		if category == CATEGORY_COMMENT and not bool(raw.get("codexEnabled", true)):
+			_add_master(category, raw, index)
+			continue
+		# Keep the source array intact for audit/save compatibility, while the
+		# visible codex master contains only comments reachable from a standard
+		# NORMAL/HARD stream frame.  An empty reachability map means the source
+		# could not be inspected, so fail open rather than hiding the catalogue.
+		if category == CATEGORY_COMMENT and not comment_reachability.is_empty() and not bool(comment_reachability.get(raw_id, false)):
+			continue
 		_add_master(category, raw, index)
 	_raw_masters[category] = relevant_raw
 

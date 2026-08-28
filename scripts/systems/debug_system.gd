@@ -7,6 +7,9 @@ const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_sys
 const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
 const CURRENT_FRAME_BOSS_KEY := KEY_F7
 const CURRENT_FRAME_BOSS_KEY_LABEL := "F7"
+const UNLOCK_PRESENTATION_PREVIEW_KEY := KEY_F8
+const UNLOCK_PRESENTATION_PREVIEW_KEY_LABEL := "Shift+F8"
+const UNLOCK_PRESENTATION_PREVIEW_ACTION := "unlock_presentation_preview_all"
 const EVOLUTION_GIFT_KEY := KEY_G
 const EVOLUTION_GIFT_MODIFIER_KEY := KEY_SHIFT
 const EVOLUTION_GIFT_KEY_LABEL := "Shift+G"
@@ -63,8 +66,15 @@ static func pressed_actions(latch: Dictionary) -> Array[String]:
 	_add_if_pressed(actions, latch, KEY_F9, "relay_boss_toggle_debug")
 	_add_if_pressed(actions, latch, KEY_F11, "relay_boss_force_attack")
 	_add_if_pressed(actions, latch, KEY_F12, "relay_boss_next_phase")
-	_add_if_pressed(actions, latch, KEY_F8, "hard_balance_toggle")
+	var f8_action := f8_action_for_modifiers(Input.is_key_pressed(KEY_SHIFT), OS.is_debug_build())
+	if f8_action != "":
+		_add_if_pressed(actions, latch, UNLOCK_PRESENTATION_PREVIEW_KEY, f8_action)
 	return actions
+
+static func f8_action_for_modifiers(shift_pressed: bool, debug_build: bool) -> String:
+	if shift_pressed:
+		return UNLOCK_PRESENTATION_PREVIEW_ACTION if debug_build else ""
+	return "hard_balance_toggle"
 
 static func direct_action(latch: Dictionary) -> String:
 	if _pressed(latch, KEY_F10):
@@ -152,6 +162,14 @@ static func pause_action(latch: Dictionary) -> String:
 		return "pause_left"
 	if _pressed(latch, KEY_RIGHT) or _pressed(latch, KEY_D):
 		return "pause_right"
+	if _pressed(latch, KEY_1):
+		return "pause_continue"
+	if _pressed(latch, KEY_2):
+		return "pause_retry"
+	if _pressed(latch, KEY_3):
+		return "pause_options"
+	if _pressed(latch, KEY_4):
+		return "pause_title"
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
 		return "pause_select"
 	if _pressed(latch, KEY_Y):

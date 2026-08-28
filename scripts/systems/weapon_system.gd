@@ -2,6 +2,7 @@
 class_name WeaponSystem
 
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 const RelayBossDefenseSystemScript := preload("res://scripts/systems/relay_boss_defense_system.gd")
 const HIT_NONE := 0
 const HIT_DAMAGED := 1
@@ -263,8 +264,20 @@ static func _short_range_rate(context: Dictionary, normal_rate: float, heart_rat
 		return 1.0
 	return heart_rate if float(context.get("shortRangeRate", 1.0)) < 0.95 else normal_rate
 
+static func _short_range_param_rate(context: Dictionary, key: String) -> float:
+	if not bool(context.get("shortRange", false)):
+		return 1.0
+	var params: Dictionary = context.get("shortRangeParams", {}) as Dictionary
+	return maxf(0.0, float(params.get(key, 1.0)))
+
 static func _apply_short_range(context: Dictionary, value: float, normal_rate: float, heart_rate: float, min_value: float = 0.0) -> float:
 	var result: float = value * _short_range_rate(context, normal_rate, heart_rate)
+	if min_value > 0.0:
+		result = maxf(result, min_value)
+	return result
+
+static func _apply_short_range_param(context: Dictionary, value: float, key: String, min_value: float = 0.0) -> float:
+	var result := value * _short_range_param_rate(context, key)
 	if min_value > 0.0:
 		result = maxf(result, min_value)
 	return result
@@ -273,7 +286,7 @@ static func _alive_enemy_bullets(enemy_bullets: Array) -> Array:
 	var kept_bullets: Array = []
 	for bullet_item in enemy_bullets:
 		var bullet: Dictionary = bullet_item
-		if float(bullet.get("life", 0.0)) > 0.0:
+		if bool(bullet.get("redPenTelegraphPending", false)) or float(bullet.get("life", 0.0)) > 0.0:
 			kept_bullets.append(bullet)
 	return kept_bullets
 
@@ -324,19 +337,19 @@ static func _capped_hit_fx(hit_fx: Array) -> Array:
 	return capped
 
 static func _short_range_projectile_rate(context: Dictionary) -> float:
-	return _short_range_rate(context, 0.60, 0.75)
+	return _short_range_param_rate(context, "rangeRate")
 
 static func _short_range_area_rate(context: Dictionary) -> float:
-	return _short_range_rate(context, 0.75, 0.85)
+	return _short_range_param_rate(context, "areaRate")
 
 static func _short_range_orbit_rate(context: Dictionary) -> float:
 	return _short_range_rate(context, 0.70, 0.85)
 
 static func _short_range_explosion_area_rate(context: Dictionary) -> float:
-	return _short_range_rate(context, 0.85, 0.92)
+	return _short_range_param_rate(context, "explosionAreaRate")
 
 static func _short_range_search_rate(context: Dictionary) -> float:
-	return _short_range_rate(context, 0.60, 0.75)
+	return _short_range_param_rate(context, "searchRate")
 
 static func _short_range_laser_rate(context: Dictionary) -> float:
 	return _short_range_rate(context, 0.55, 0.75)
@@ -344,24 +357,24 @@ static func _short_range_laser_rate(context: Dictionary) -> float:
 static func _short_range_range_for_weapon(weapon_id: String, weapon: Dictionary, range_value: float, context: Dictionary) -> float:
 	match weapon_id:
 		"ban_hammer", "ban_judgement", "mic_barrier":
-			return _apply_short_range(context, range_value, 0.75, 0.85, SHORT_RANGE_MIN_AREA_RADIUS)
+			return _apply_short_range_param(context, range_value, "areaRate", SHORT_RANGE_MIN_AREA_RADIUS)
 		"comment_boomerang", "maro_comment_ring":
 			return _apply_short_range(context, range_value, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
 		"spotlight", "kusa_wave", "comment_pin", "center_stage", "great_grassland", "comment_lockdown":
-			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
+			return _apply_short_range_param(context, range_value, "rangeRate", SHORT_RANGE_MIN_PROJECTILE_RANGE)
 		"ng_word_laser", "all_block_laser":
 			return _apply_short_range(context, range_value, 0.55, 0.75, SHORT_RANGE_MIN_LASER_RANGE)
 		"listener_summon", "listener_assembly":
-			return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_SEARCH_RANGE)
+			return _apply_short_range_param(context, range_value, "searchRate", SHORT_RANGE_MIN_SEARCH_RANGE)
 		"fansa_baton", "fansa_climax":
-			return _apply_short_range(context, range_value, 0.75, 0.85, 0.0)
+			return _apply_short_range_param(context, range_value, "areaRate", 0.0)
 		"emote_mine", "emote_festival":
 			return range_value
 	if attack_type(weapon) == "orbit":
 		return _apply_short_range(context, range_value, 0.70, 0.85, SHORT_RANGE_MIN_ORBIT_RADIUS)
 	if is_melee_attack_type(attack_type(weapon)) or attack_type(weapon) == "aura":
-		return _apply_short_range(context, range_value, 0.75, 0.85, SHORT_RANGE_MIN_AREA_RADIUS)
-	return _apply_short_range(context, range_value, 0.60, 0.75, SHORT_RANGE_MIN_PROJECTILE_RANGE)
+		return _apply_short_range_param(context, range_value, "areaRate", SHORT_RANGE_MIN_AREA_RADIUS)
+	return _apply_short_range_param(context, range_value, "rangeRate", SHORT_RANGE_MIN_PROJECTILE_RANGE)
 
 static func orbit_count(weapon: Dictionary, boomerang_level: int) -> int:
 	var base_count: int = int(weapon.get("boomerangCount", 1)) if attack_type(weapon) == "orbit" else 0
@@ -425,6 +438,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"damage": context["damage"],
 		"shortRange": context["shortRange"],
 		"shortRangeRate": context["shortRangeRate"],
+		"shortRangeParams": context.get("shortRangeParams", {}),
 		"attackAreaRate": context.get("attackAreaRate", 1.0),
 		"playerPos": context["playerPos"],
 		"enemies": context["enemies"],
@@ -453,11 +467,13 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"weaponMute": context["weaponMute"],
 		"weaponMuteRate": context["weaponMuteRate"],
 		"takeback": context["takeback"],
+		"takebackRate": context.get("takebackRate", 1.0),
 		"attackRightOnly": context["attackRightOnly"],
 		"attackRightOnlyRate": context["attackRightOnlyRate"],
 		"attackJitter": context["attackJitter"],
 		"shortRange": context["shortRange"],
 		"shortRangeRate": context["shortRangeRate"],
+		"shortRangeParams": context.get("shortRangeParams", {}),
 		"playerPos": context["playerPos"],
 		"enemies": context["enemies"],
 		"destructibles": context["destructibles"],
@@ -494,6 +510,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"damage": context["damage"],
 		"shortRange": context["shortRange"],
 		"shortRangeRate": context["shortRangeRate"],
+		"shortRangeParams": context.get("shortRangeParams", {}),
 		"attackAreaRate": context.get("attackAreaRate", 1.0),
 		"knockback": context["knockback"],
 		"normalWeaponsDisabled": normal_weapons_disabled
@@ -535,6 +552,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		"bulletSupportLevel": context["equipmentBulletSupportLevel"],
 		"shortRange": context["shortRange"],
 		"shortRangeRate": context["shortRangeRate"],
+		"shortRangeParams": context.get("shortRangeParams", {}),
 		"knockback": context["knockback"],
 		"normalWeaponsDisabled": normal_weapons_disabled
 	})
@@ -568,11 +586,26 @@ static func normal_weapons_disabled_for_target(target: Node) -> bool:
 		return bool(target.call("_normal_weapons_disabled_by_song_bad_light"))
 	return false
 
+static func short_range_params_for_target(target: Node) -> Dictionary:
+	var runtime := HardModeSystemScript.runtime_for_target(target)
+	if runtime.is_empty() or not HardModeSystemScript.active_comment_id_is_active(runtime, "short_range"):
+		return {}
+	var result: Dictionary = {}
+	for key in ["rangeRate", "areaRate", "searchRate", "explosionAreaRate"]:
+		var value: Variant = HardModeSystemScript.active_comment_value_for_id(runtime, "short_range", String(key), null)
+		if value != null:
+			result[String(key)] = float(value)
+	return result
+
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	var current_weapon: Dictionary = target.get("current_weapon") as Dictionary
 	var song_cooldown_rate := song_live_heat_attack_cooldown_multiplier_for_target(target)
 	var collab_cooldown_rate := collab_attack_cooldown_multiplier_for_target(target)
 	var collab_damage_rate := collab_player_damage_multiplier_for_target(target)
+	var takeback_rate := 1.0
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	if runtime_value is Dictionary:
+		takeback_rate = HardModeSystemScript.active_comment_param_for_id(runtime_value as Dictionary, "takeback", "takebackRate", 1.0)
 	var support_attack_rate := ModifierSystem.combined_multiplier_for_target(target, "playerAttackDamage")
 	var character_damage_rate := 1.0
 	var raw_character_damage_rate: Variant = target.get("character_attack_multiplier")
@@ -607,11 +640,13 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		"weaponMute": ModifierSystem.has_effect_for_target(target, "weapon_mute"),
 		"weaponMuteRate": ModifierSystem.effect_rate_for_target(target, "weapon_mute"),
 		"takeback": ModifierSystem.has_effect_for_target(target, "takeback"),
+		"takebackRate": takeback_rate,
 		"attackRightOnly": ModifierSystem.has_effect_for_target(target, "attack_right_only"),
 		"attackRightOnlyRate": ModifierSystem.effect_rate_for_target(target, "attack_right_only"),
 		"attackJitter": float(target.get("attack_jitter_timer")) > 0.0,
 		"shortRange": ModifierSystem.has_effect_for_target(target, "short_range"),
 		"shortRangeRate": ModifierSystem.effect_rate_for_target(target, "short_range"),
+		"shortRangeParams": short_range_params_for_target(target),
 		"superchatLevel": target.get("superchat_level"),
 		"boomerangLevel": target.get("boomerang_level"),
 		"elapsed": target.get("elapsed"),
@@ -957,7 +992,7 @@ static func _clear_enemy_bullets_in_circle(enemy_bullets: Array, center: Vector2
 	var cleared: int = 0
 	for item in enemy_bullets:
 		var bullet: Dictionary = item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0:
+		if bool(bullet.get("redPenTelegraphPending", false)) or float(bullet.get("life", 0.0)) <= 0.0:
 			continue
 		var bullet_pos: Vector2 = Vector2(bullet["pos"])
 		var bullet_radius: float = float(bullet.get("hitRadius", 16.0))
@@ -986,7 +1021,7 @@ static func _clear_enemy_bullets_in_arc(enemy_bullets: Array, origin: Vector2, d
 	var dot_threshold: float = cos(deg_to_rad(arc_angle * 0.5))
 	for item in enemy_bullets:
 		var bullet: Dictionary = item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0:
+		if bool(bullet.get("redPenTelegraphPending", false)) or float(bullet.get("life", 0.0)) <= 0.0:
 			continue
 		var bullet_pos: Vector2 = Vector2(bullet["pos"])
 		var to_bullet: Vector2 = bullet_pos - origin
@@ -1190,7 +1225,7 @@ static func update_hammer(context: Dictionary) -> Dictionary:
 	if dir.length() < 0.1:
 		dir = Vector2.RIGHT
 	dir = dir.normalized()
-	if bool(context["takeback"]):
+	if bool(context["takeback"]) and rng.randf() <= clampf(float(context.get("takebackRate", 1.0)), 0.0, 1.0):
 		dir = Vector2.RIGHT.rotated(rng.randf_range(0.0, TAU))
 	elif bool(context["attackRightOnly"]):
 		var right_power: float = float(context["attackRightOnlyRate"])
@@ -1370,7 +1405,7 @@ static func update_projectiles(context: Dictionary) -> Dictionary:
 		if float(bullet["life"]) > 0.0:
 			for enemy_bullet_item in enemy_bullets:
 				var enemy_bullet: Dictionary = enemy_bullet_item as Dictionary
-				if float(enemy_bullet.get("life", 0.0)) <= 0.0:
+				if bool(enemy_bullet.get("redPenTelegraphPending", false)) or float(enemy_bullet.get("life", 0.0)) <= 0.0:
 					continue
 				var enemy_bullet_pos: Vector2 = Vector2(enemy_bullet["pos"])
 				var bullet_clash_radius: float = float(enemy_bullet.get("hitRadius", 16.0)) + float(bullet.get("hitRadius", 8.0))
@@ -2296,7 +2331,7 @@ static func _stage2_clear_enemy_bullets_in_circle(enemy_bullets: Array, center: 
 	var cleared := 0
 	for bullet_item in enemy_bullets:
 		var bullet: Dictionary = bullet_item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0 or not _stage2_shield_bullet_clearable(bullet):
+		if bool(bullet.get("redPenTelegraphPending", false)) or float(bullet.get("life", 0.0)) <= 0.0 or not _stage2_shield_bullet_clearable(bullet):
 			continue
 		var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
 		var hit_range := radius + float(bullet.get("hitRadius", 16.0))
@@ -3136,6 +3171,8 @@ static func _stage2_point_segment_distance(point: Vector2, from_pos: Vector2, to
 	return point.distance_to(from_pos + segment * t)
 
 static func _stage2_shield_bullet_clearable(bullet: Dictionary) -> bool:
+	if bool(bullet.get("redPenTelegraphPending", false)):
+		return false
 	# Explicit projectile metadata is authoritative.  The old source-name
 	# filter incorrectly made every boss/collab projectile unblockable and also
 	# rejected ordinary spread shots.
@@ -3477,7 +3514,7 @@ static func _shield_block_projectiles(fx: Dictionary, enemy_bullets: Array, cent
 	var effect_min_interval := maxf(0.0, float(block_effect_config.get("minIntervalSeconds", 0.03)))
 	for bullet_item in enemy_bullets:
 		var bullet: Dictionary = bullet_item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0 or bool(bullet.get("shieldBlocked", false)) or not _stage2_shield_bullet_clearable(bullet):
+		if bool(bullet.get("redPenTelegraphPending", false)) or float(bullet.get("life", 0.0)) <= 0.0 or bool(bullet.get("shieldBlocked", false)) or not _stage2_shield_bullet_clearable(bullet):
 			continue
 		var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
 		if not shield_fan_contains_point(center, direction, float(fx.get("radius", 0.0)), float(fx.get("arcDegrees", 0.0)), bullet_pos, float(bullet.get("hitRadius", 0.0))):
@@ -4865,7 +4902,7 @@ static func _apply_laser_damage(enemies: Array, destructibles: Array, enemy_bull
 			hits += 1
 	for bullet_item in enemy_bullets:
 		var bullet: Dictionary = bullet_item as Dictionary
-		if float(bullet.get("life", 0.0)) <= 0.0:
+		if bool(bullet.get("redPenTelegraphPending", false)) or float(bullet.get("life", 0.0)) <= 0.0:
 			continue
 		if clearable_only and not _stage2_shield_bullet_clearable(bullet):
 			continue

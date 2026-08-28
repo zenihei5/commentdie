@@ -3,6 +3,7 @@ class_name CommentSystem
 
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
 const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
+const CommentBalanceSystemScript := preload("res://scripts/systems/comment_balance_system.gd")
 
 const DO_EVERYTHING_ID := "do_everything"
 const DO_EVERYTHING_OFFER_CHANCE := 0.05
@@ -189,7 +190,7 @@ static func _valid_three_card_offer(offer: Array) -> bool:
 		if not item is Dictionary:
 			return false
 		var comment_id := String((item as Dictionary).get("id", "")).strip_edges()
-		if comment_id.is_empty() or (used_ids.has(comment_id) and not HardModeSystemScript.is_safe_offer_duplicate(item as Dictionary)):
+		if comment_id.is_empty() or used_ids.has(comment_id):
 			return false
 		used_ids[comment_id] = true
 		if i == 3 and comment_id != DO_EVERYTHING_ID:
@@ -256,13 +257,22 @@ static func choose_comment_for_target(target: Node, index: int, rng: RandomNumbe
 	var view: Dictionary = comment_view(comment, has_heart)
 	var sub_comments: Array = []
 	var sub_heart_cards: Array = []
+	var sub_views: Dictionary = {}
 	if _is_do_everything_comment(comment):
 		for i in range(mini(3, offered_comments.size())):
-			sub_comments.append(offered_comments[i])
-			sub_heart_cards.append(i < heart_cards.size() and bool(heart_cards[i]))
+			var sub_comment: Dictionary = offered_comments[i] as Dictionary
+			var sub_has_heart: bool = i < heart_cards.size() and bool(heart_cards[i])
+			sub_comments.append(sub_comment)
+			sub_heart_cards.append(sub_has_heart)
+			var sub_id := String(sub_comment.get("id", ""))
+			if sub_id != "":
+				sub_views[sub_id] = comment_view(sub_comment, sub_has_heart)
 	HardModeSystemScript.clear_active_comment_for_target(target)
 	var result: Dictionary = ModifierSystem.start_comment_for_target(target, comment, view, has_heart, rng, sub_comments, sub_heart_cards)
 	HardModeSystemScript.activate_comment_for_target(target, view, rng)
+	var runtime_value: Variant = target.get("difficulty_runtime")
+	if runtime_value is Dictionary:
+		(runtime_value as Dictionary)["activeCommentViews"] = sub_views
 	HardModeSystemScript.mark_comment_selected_for_target(target, String(comment.get("id", "")))
 	CodexManager.record_comment_selection(String(comment.get("id", "")), has_heart)
 	var modifier_feedback: Dictionary = result.get("feedback", {"chats": [], "toasts": []}) as Dictionary
@@ -351,28 +361,56 @@ static func build_forced_offer(comments: Array, id: String, has_heart: bool, fra
 	return {}
 
 static func comment_view(comment: Dictionary, has_heart: bool) -> Dictionary:
-	var view: Dictionary = comment.duplicate(true)
+	var normalized_comment: Dictionary = CommentBalanceSystemScript.normalize_comment(comment)
+	var view: Dictionary = normalized_comment.duplicate(true)
+	view["isHeartVariant"] = has_heart
+	var base_benefits: Dictionary = {}
+	for key in ["multiplier", "scoreRate", "giftHypeOnSelect", "giftHypeOnClear"]:
+		if normalized_comment.has(key):
+			base_benefits[key] = normalized_comment[key]
 	if has_heart:
-		if comment.has("heartVariant") and comment["heartVariant"] is Dictionary:
-			var variant: Dictionary = comment["heartVariant"] as Dictionary
+		if normalized_comment.has("heartVariant") and normalized_comment["heartVariant"] is Dictionary:
+			var variant: Dictionary = normalized_comment["heartVariant"] as Dictionary
 			for key in variant.keys():
-				view[key] = variant[key]
+				if key == "params" and variant[key] is Dictionary and view.get("params") is Dictionary:
+					view[key] = _merge_dict(view[key] as Dictionary, variant[key] as Dictionary)
+				else:
+					view[key] = variant[key]
 		else:
-			var display_name: String = String(comment["displayName"]) + "♡"
-			view["displayName"] = display_name
-			view["riskLevel"] = maxi(1, int(comment["riskLevel"]) - 1)
-			view["multiplier"] = snappedf(float(comment["multiplier"]) * 0.8, 0.1)
-			view["giftHypeOnSelect"] = int(round(float(comment["giftHypeOnSelect"]) * 0.75))
-			view["giftHypeOnClear"] = int(round(float(comment["giftHypeOnClear"]) * 0.75))
-			view["deathText"] = String(comment["deathText"]).replace(String(comment["displayName"]), display_name)
-	if _is_do_everything_comment(comment):
+			view["riskLevel"] = maxi(1, int(normalized_comment.get("riskLevel", 1)) - 1)
+	# The heart state is presentation metadata, not part of the title.  Legacy
+	# heartVariant display names may still carry a suffix in source data; strip
+	# it once here so every consumer receives the same canonical title.
+	view["displayName"] = _display_name_without_heart_marker(String(view.get("displayName", normalized_comment.get("displayName", ""))))
+	# Heart cards only soften player-side penalties. Never let a variant lower
+	# score, hype, quality, or other explicit reward signals.
+	for key in base_benefits.keys():
+		if view.has(key):
+			view[key] = maxf(float(base_benefits[key]), float(view[key])) if key in ["multiplier", "scoreRate"] else maxi(int(base_benefits[key]), int(view[key]))
+	if _is_do_everything_comment(normalized_comment):
 		view["riskLevel"] = 5
-		view["multiplier"] = 4.0 if has_heart else 5.0
-		view["giftHypeOnSelect"] = 50 if has_heart else 70
-		view["giftHypeOnClear"] = 20 if has_heart else 30
+		view["multiplier"] = 5.0
+		view["giftHypeOnSelect"] = 70
+		view["giftHypeOnClear"] = 30
 	if has_heart and String(view.get("difficultyId", "")) in ["hard", "expert"]:
-		view["scoreRate"] = HardModeSystemScript.score_rate_for_risk(int(view.get("riskLevel", 1)))
+		view["scoreRate"] = maxf(float(base_benefits.get("scoreRate", 1.0)), HardModeSystemScript.score_rate_for_risk(int(view.get("riskLevel", 1))))
+	if has_heart and String(view.get("id", "")) == "summon_boss":
+		var boss_params: Dictionary = view.get("params", {}) as Dictionary
+		boss_params.erase("bossRewardRate")
+		view["params"] = boss_params
 	return view
+
+static func _display_name_without_heart_marker(value: String) -> String:
+	var result := value.strip_edges()
+	while result.ends_with("♡"):
+		result = result.substr(0, result.length() - 1).strip_edges()
+	return result
+
+static func _merge_dict(base: Dictionary, patch: Dictionary) -> Dictionary:
+	var result: Dictionary = base.duplicate(true)
+	for key in patch.keys():
+		result[key] = patch[key]
+	return result
 
 static func codex_comment_view(comment: Dictionary, has_heart: bool = false) -> Dictionary:
 	# Public read-only alias so the codex and choice-card presentation use the
@@ -737,6 +775,39 @@ static func _normalize_stage_id(value: Variant) -> String:
 	if id == "song":
 		return "singing"
 	return id
+
+## Returns the standard NORMAL/HARD frame reachability used by the codex
+## master and the non-fatal audit.  Relay-private pools are intentionally not
+## consulted here; they are tracked separately by relay systems.
+static func codex_reachable_standard_comment_ids(comments: Array) -> Dictionary:
+	var result: Dictionary = {}
+	for item in comments:
+		if not item is Dictionary:
+			continue
+		var comment := item as Dictionary
+		if not bool(comment.get("codexEnabled", true)):
+			continue
+		var id := String(comment.get("id", "")).strip_edges()
+		if id != "":
+			result[id] = false
+	var file := FileAccess.open("res://data/stream_frames.json", FileAccess.READ)
+	if file == null:
+		return {}
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if not parsed is Array:
+		return {}
+	for frame_value in parsed as Array:
+		if not frame_value is Dictionary:
+			continue
+		var frame := frame_value as Dictionary
+		for difficulty_id in ["normal", "hard"]:
+			for candidate_value in comments_allowed_for_frame(frame, comments, difficulty_id):
+				if not candidate_value is Dictionary:
+					continue
+				var candidate_id := String((candidate_value as Dictionary).get("id", ""))
+				if result.has(candidate_id):
+					result[candidate_id] = true
+	return result
 
 ## Absolute frame-pool filter shared by NORMAL, HARD and debug/forced offers.
 ## Callers must pass this filtered array into every later risk/fallback path;

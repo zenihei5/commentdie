@@ -13,6 +13,7 @@ const GiftSystemScript := preload("res://scripts/systems/gift_system.gd")
 const CommentSystemScript := preload("res://scripts/systems/comment_system.gd")
 const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
+const CHARACTER_UNITS_MASTER_PATH := "res://data/character_units.json"
 const STAGES: Array[String] = ["zatsudan", "gameplay", "singing", "drawing", "collab", "relay"]
 const STAGE_LABELS: Dictionary = {
 	"zatsudan": "雑談",
@@ -340,46 +341,50 @@ static func load_sources() -> Dictionary:
 	var sources := {
 		"difficultyModes": _read_json("res://data/difficulty_modes.json"),
 		"bosses": _read_json("res://data/bosses.json"),
-		"relayMode": _read_json("res://data/relay_mode.json")
+		"relayMode": _read_json("res://data/relay_mode.json"),
+		"characterUnits": _read_json(CHARACTER_UNITS_MASTER_PATH)
 	}
 	var enemy_master: Variant = _read_json("res://data/codex_enemies.json")
 	if enemy_master is Array:
 		sources["enemyProfileCatalog"] = EnemyCodexProfileSystemScript.build_catalog(enemy_master as Array, sources)
 	return sources
 
+static func canonical_enemy_display_name(master: Dictionary, sources: Dictionary = {}) -> String:
+	return EnemyCodexProfileSystemScript.canonical_display_name(master, sources)
+
 static func build_enemy_model(master: Dictionary, discovered: bool, entry: Dictionary = {}, sources: Dictionary = {}) -> Dictionary:
 	var id := String(master.get("id", "")).strip_edges()
-	var types := spawn_types(master)
-	var stages := stage_ids_for_display(master, sources)
-	var conditions: Array = []
+	var types := spawn_types(master) if discovered else []
+	var stages := stage_ids_for_display(master, sources) if discovered else []
 	var hint_lines: Array = enemy_hint_lines(master)
-	if discovered:
-		conditions = enemy_condition_lines(master, sources)
-	else:
-		conditions = hint_lines
-	var kind := enemy_kind(master)
-	var codex_text := enemy_codex_text(master)
+	var conditions: Array = enemy_condition_lines(master, sources) if discovered else []
+	var kind := enemy_kind(master) if discovered else ""
+	var codex_text := enemy_codex_text(master) if discovered else {"description": "", "strategy": "", "flavor": ""}
+	var lore_model := enemy_lore_model(master, discovered)
 	var profile: Dictionary = {}
 	var profile_catalog: Dictionary = sources.get("enemyProfileCatalog", {}) as Dictionary
 	var profile_by_id: Dictionary = profile_catalog.get("byId", {}) as Dictionary
 	if discovered and profile_by_id.has(id) and profile_by_id.get(id) is Dictionary:
 		profile = (profile_by_id.get(id) as Dictionary).duplicate(true)
+	var canonical_name := String(profile.get("canonicalDisplayName", "")).strip_edges()
+	if canonical_name == "":
+		canonical_name = canonical_enemy_display_name(master, sources)
 	var related_ids: Array = []
 	if discovered:
 		related_ids = _string_array(master.get("relatedEnemyIds", []))
 	var model := {
 		"id": id,
-		"displayName": _display_name(master) if discovered else "？？？",
+		"displayName": canonical_name if discovered else "？？？",
 		"description": String(master.get("description", "")) if discovered else "",
 		"imagePath": image_path_for_enemy(id) if discovered else "",
 		"stageIds": stages,
-		"stageLabels": stage_labels(master, sources),
+		"stageLabels": stage_labels(master, sources) if discovered else [],
 		"spawnTypes": types,
-		"badges": enemy_badges(master),
+		"badges": (lore_model.get("classificationBadges", []) as Array).duplicate(true) if discovered else [],
 		"conditions": conditions,
-		"killCount": maxi(0, int(entry.get("kill_count", 0))),
-		"defeated": (entry.get("defeated", {}) as Dictionary).duplicate(true) if entry.get("defeated", {}) is Dictionary else {},
-		"relatedEnemyIds": _string_array(master.get("relatedEnemyIds", [])),
+		"killCount": maxi(0, int(entry.get("kill_count", 0))) if discovered else 0,
+		"defeated": (entry.get("defeated", {}) as Dictionary).duplicate(true) if discovered and entry.get("defeated", {}) is Dictionary else {},
+		"relatedEnemyIds": related_ids,
 		"discovered": discovered
 	}
 	model["kind"] = kind
@@ -398,13 +403,111 @@ static func build_enemy_model(master: Dictionary, discovered: bool, entry: Dicti
 	model["durabilityRating"] = (profile.get("durabilityRating", {}) as Dictionary).duplicate(true) if discovered else {}
 	model["speedRating"] = (profile.get("speedRating", {}) as Dictionary).duplicate(true) if discovered else {}
 	model["behaviorTagRows"] = enemy_behavior_tag_rows(master, profile) if discovered else []
-	if not discovered:
-		model["badges"] = ["SPECIAL BOSS"] if kind == "specialBoss" else []
 	model["conditionLines"] = conditions
 	model["hintLines"] = hint_lines
-	model["killCount"] = maxi(0, int(entry.get("kill_count", 0))) if discovered else 0
-	model["relatedEnemyIds"] = related_ids
+	model["loreTemplate"] = String(lore_model.get("template", "")) if discovered else ""
+	model["cards"] = (lore_model.get("cards", []) as Array).duplicate(true) if discovered else []
+	model["loreCards"] = (lore_model.get("cards", []) as Array).duplicate(true) if discovered else []
+	model["archiveTitle"] = String(lore_model.get("archiveTitle", "")) if discovered else ""
+	model["archiveParagraphs"] = (lore_model.get("archiveParagraphs", []) as Array).duplicate(true) if discovered else []
+	model["hasLore"] = bool(lore_model.get("hasLore", false)) if discovered else false
+	model["classificationBadges"] = (lore_model.get("classificationBadges", []) as Array).duplicate(true) if discovered else []
+	model["classificationLabel"] = String(lore_model.get("classificationLabel", "")) if discovered else ""
+	model["codexVisual"] = (lore_model.get("codexVisual", {}) as Dictionary).duplicate(true) if discovered else {}
 	return model
+
+static func enemy_lore_model(master: Dictionary, discovered: bool = true) -> Dictionary:
+	var result := {
+		"id": String(master.get("id", "")).strip_edges(),
+		"template": "",
+		"cards": [],
+		"loreCards": [],
+		"archiveTitle": "",
+		"archiveParagraphs": [],
+		"classificationBadges": [],
+		"classificationLabel": "",
+		"codexVisual": {},
+		"imagePath": "",
+		"hasLore": false
+	}
+	if not discovered or String(result.get("id", "")) == "":
+		return result
+	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
+	if not lore_value is Dictionary:
+		return result
+	var lore := lore_value as Dictionary
+	var template := String(lore.get("template", "")).strip_edges()
+	if not ["normal_enemy", "special", "boss"].has(template):
+		template = "boss" if bool(master.get("isBoss", false)) or bool(master.get("relayBoss", false)) else ("special" if bool(master.get("codexSpecial", false)) else "normal_enemy")
+	var normalized_cards: Array = []
+	var raw_cards: Variant = lore.get("cards", [])
+	if raw_cards is Array:
+		for raw_value in raw_cards as Array:
+			if not raw_value is Dictionary:
+				continue
+			var raw_card := raw_value as Dictionary
+			var card_id := String(raw_card.get("id", "")).strip_edges()
+			var title := String(raw_card.get("title", "")).strip_edges()
+			var text := String(raw_card.get("text", "")).strip_edges()
+			if card_id == "" or title == "" or text == "":
+				continue
+			var raw_span: Variant = raw_card.get("span", 1)
+			var span := 2 if (raw_span is int or raw_span is float) and int(raw_span) == 2 else 1
+			normalized_cards.append({"id": card_id, "title": title, "text": text, "span": span})
+	var paragraphs: Array[String] = []
+	var raw_paragraphs: Variant = lore.get("archiveParagraphs", lore.get("archive_paragraphs", []))
+	if raw_paragraphs is Array:
+		for raw_paragraph in raw_paragraphs as Array:
+			if raw_paragraph is String and String(raw_paragraph).strip_edges() != "":
+				paragraphs.append(String(raw_paragraph).strip_edges())
+	var badges := enemy_classification_badges(master)
+	var badge_label_parts: Array[String] = []
+	for badge in badges:
+		badge_label_parts.append(String(badge))
+	result["template"] = template
+	result["cards"] = normalized_cards
+	result["loreCards"] = normalized_cards.duplicate(true)
+	result["archiveTitle"] = String(lore.get("archiveTitle", lore.get("archive_title", ""))).strip_edges()
+	result["archiveParagraphs"] = paragraphs
+	result["classificationBadges"] = badges
+	result["classificationLabel"] = " / ".join(badge_label_parts)
+	var visual_value: Variant = lore.get("codexVisual", lore.get("codex_visual", {}))
+	result["codexVisual"] = {"scale": 1.0, "offsetX": 0.0, "offsetY": 0.0}
+	if visual_value is Dictionary:
+		var visual := visual_value as Dictionary
+		var raw_scale: Variant = visual.get("scale", 1.0)
+		var raw_offset_x: Variant = visual.get("offsetX", visual.get("offset_x", 0.0))
+		var raw_offset_y: Variant = visual.get("offsetY", visual.get("offset_y", 0.0))
+		var visual_scale := float(raw_scale) if raw_scale is int or raw_scale is float else 1.0
+		var visual_offset_x := float(raw_offset_x) if raw_offset_x is int or raw_offset_x is float else 0.0
+		var visual_offset_y := float(raw_offset_y) if raw_offset_y is int or raw_offset_y is float else 0.0
+		if is_finite(visual_scale):
+			visual_scale = clampf(visual_scale, 0.5, 2.5)
+		else:
+			visual_scale = 1.0
+		if not is_finite(visual_offset_x):
+			visual_offset_x = 0.0
+		if not is_finite(visual_offset_y):
+			visual_offset_y = 0.0
+		result["codexVisual"] = {"scale": visual_scale, "offsetX": clampf(visual_offset_x, -1.0, 1.0), "offsetY": clampf(visual_offset_y, -1.0, 1.0)}
+	result["imagePath"] = image_path_for_enemy(String(result.get("id", "")))
+	result["hasLore"] = not normalized_cards.is_empty() or not paragraphs.is_empty()
+	return result
+
+static func enemy_classification_badges(master: Dictionary) -> Array[String]:
+	var badges: Array[String] = []
+	var id := String(master.get("id", "")).strip_edges()
+	if bool(master.get("relayBoss", false)) or id == "last_offline":
+		badges.append("SPECIAL BOSS")
+	elif bool(master.get("isBoss", false)):
+		badges.append("BOSS")
+	elif bool(master.get("codexSpecial", false)):
+		badges.append("SPECIAL")
+	else:
+		badges.append("EVENT" if _has_event_spawn_type(master) else "NORMAL")
+	if badges.size() < 3 and not badges.has("SPECIAL BOSS") and not badges.has("BOSS") and _has_event_spawn_type(master) and not badges.has("EVENT"):
+		badges.append("EVENT")
+	return badges
 
 static func _attack_type_labels(values: Array) -> Array[String]:
 	var labels := {
@@ -508,14 +611,7 @@ static func _undiscovered_hint_raw(category: String, master: Dictionary = {}) ->
 	return ["まだ発見していません"]
 
 static func enemy_badges(master: Dictionary) -> Array[String]:
-	var badges: Array[String] = []
-	if bool(master.get("isBoss", false)):
-		badges.append("BOSS")
-	if bool(master.get("codexSpecial", false)):
-		badges.append("SPECIAL")
-	if not bool(master.get("isBoss", false)) and not bool(master.get("codexSpecial", false)):
-		badges.append("EVENT" if _has_event_spawn_type(master) else "NORMAL")
-	return badges
+	return enemy_classification_badges(master)
 
 static func enemy_condition_lines(master: Dictionary, sources: Dictionary = {}) -> Array[String]:
 	var result: Array[String] = []
@@ -541,15 +637,21 @@ static func enemy_condition_lines(master: Dictionary, sources: Dictionary = {}) 
 
 static func enemy_hint_lines(master: Dictionary) -> Array[String]:
 	var result: Array[String] = []
-	for stage in stage_labels(master):
-		if stage != "---" and not result.has(stage):
-			result.append(stage)
-	for spawn_type in spawn_types(master):
-		var hint := _spawn_type_hint(spawn_type, master)
-		if hint != "" and not result.has(hint):
-			result.append(hint)
+	var id := String(master.get("id", "")).strip_edges()
+	if bool(master.get("relayBoss", false)) or id == "last_offline":
+		result.append("配信リレー")
+	elif bool(master.get("isBoss", false)):
+		result.append("ボス戦")
+	elif bool(master.get("codexSpecial", false)):
+		var types := spawn_types(master)
+		if types.has("genre_race") or types.has("genre_bullet") or types.has("genre_horror") or types.has("genre_drawing") or types.has("genre_collab"):
+			result.append("特定のイベント")
+		else:
+			result.append("特別な配信")
+	else:
+		result.append("通常の配信中")
 	if result.is_empty():
-		result.append("出現条件：---")
+		result.append("まだ発見されていません")
 	return result
 
 static func hard_wave_condition_lines(enemy_id: String, difficulty_data: Variant) -> Array[String]:
@@ -680,19 +782,176 @@ static func character_profile_description(character: Dictionary) -> String:
 			return profile_description
 	return String(character.get("description", "")).strip_edges()
 
-static func character_profile_model(character: Dictionary, weapons: Array, discovered_ids: Array = [], discovered: bool = true) -> Dictionary:
+static func character_profile_model(character: Dictionary, weapons: Array, discovered_ids: Array = [], discovered: bool = true, sources: Dictionary = {}) -> Dictionary:
 	var model := character_model(character, weapons, discovered_ids, discovered)
 	model["description"] = character_profile_description(character) if discovered else ""
+	model["unitId"] = ""
+	model["unit"] = {}
+	model["unitDisplayName"] = ""
+	model["unitDescription"] = ""
+	model["streamStyle"] = ""
+	model["likes"] = []
+	model["dislikes"] = []
+	model["likesText"] = ""
+	model["dislikesText"] = ""
+	if not discovered:
+		return model
+	var resolved_sources := sources if not sources.is_empty() else load_sources()
+	var unit_id := String(character.get("unitId", "")).strip_edges()
+	var unit := _character_unit_model(unit_id, resolved_sources)
+	model["unitId"] = unit_id
+	model["unit"] = unit.duplicate(true)
+	model["unitDisplayName"] = String(unit.get("displayName", "")).strip_edges()
+	model["unitDescription"] = String(unit.get("description", "")).strip_edges()
 	var profile_value: Variant = character.get("codexProfile", {})
-	if profile_value is Dictionary and discovered:
+	if profile_value is Dictionary:
 		var profile: Dictionary = profile_value as Dictionary
-		for key in ["likes", "dislikes", "streamStyle"]:
-			var value: Variant = profile.get(key, {})
-			if value is Array and not (value as Array).is_empty():
-				model[key] = (value as Array).duplicate(true)
-			elif value is Dictionary and not (value as Dictionary).is_empty():
-				model[key] = (value as Dictionary).duplicate(true)
+		model["streamStyle"] = _profile_string(profile.get("streamStyle", ""))
+		model["likes"] = _profile_string_array(profile.get("likes", []))
+		model["dislikes"] = _profile_string_array(profile.get("dislikes", []))
+		model["likesText"] = _profile_list_text(model["likes"] as Array)
+		model["dislikesText"] = _profile_list_text(model["dislikes"] as Array)
 	return model
+
+## World-building model for weapon and accessory detail pages.  Lore is read
+## from the master only; classification and evolution names are derived from
+## the existing weapon/character relationships so they cannot drift from game
+## data.
+static func item_lore_model(master: Dictionary, category: String, discovered: bool = true, weapons: Array = [], characters: Array = []) -> Dictionary:
+	var item_id := String(master.get("id", "")).strip_edges()
+	var result := {
+		"id": item_id,
+		"category": category,
+		"classificationLabel": "",
+		"classificationKey": "",
+		"archiveTitle": "",
+		"archiveParagraphs": [],
+		"cards": [],
+		"imagePath": "",
+		"hasLore": false
+	}
+	if not discovered or item_id == "":
+		return result
+	var classification := _item_classification(master, category, weapons, characters)
+	result["classificationLabel"] = String(classification.get("label", ""))
+	result["classificationKey"] = String(classification.get("key", ""))
+	result["imagePath"] = image_path_for(category, master, true)
+	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
+	if not lore_value is Dictionary:
+		return result
+	var lore := lore_value as Dictionary
+	var cards: Array = []
+	var raw_cards: Variant = lore.get("cards", [])
+	if raw_cards is Array:
+		for card_value in raw_cards as Array:
+			if not card_value is Dictionary:
+				continue
+			var raw_card := card_value as Dictionary
+			var card_id := String(raw_card.get("id", "")).strip_edges()
+			var title := String(raw_card.get("title", "")).strip_edges()
+			var text := String(raw_card.get("text", "")).strip_edges()
+			if card_id == "" or title == "":
+				continue
+			var span := 2 if int(raw_card.get("span", 1)) == 2 else 1
+			if card_id == "evolution_from" and text == "":
+				text = String(classification.get("baseDisplayName", "")).strip_edges()
+			if text == "":
+				continue
+			cards.append({"id": card_id, "title": title, "text": text, "span": span})
+	result["cards"] = cards
+	var paragraphs: Array[String] = []
+	var raw_paragraphs: Variant = lore.get("archiveParagraphs", lore.get("archive_paragraphs", []))
+	if raw_paragraphs is Array:
+		for paragraph_value in raw_paragraphs as Array:
+			if not paragraph_value is String:
+				continue
+			var paragraph := String(paragraph_value).strip_edges()
+			if paragraph != "":
+				paragraphs.append(paragraph)
+	result["archiveTitle"] = String(lore.get("archiveTitle", lore.get("archive_title", ""))).strip_edges()
+	result["archiveParagraphs"] = paragraphs
+	result["hasLore"] = not cards.is_empty() or not paragraphs.is_empty()
+	return result
+
+static func _item_classification(master: Dictionary, category: String, weapons: Array, characters: Array) -> Dictionary:
+	if category == "accessories":
+		return {"key": "accessory", "label": "アクセサリ"}
+	if bool(master.get("isEvolved", false)):
+		var base_id := String(master.get("baseWeaponId", "")).strip_edges()
+		var base_name := _definition_name(weapons, base_id) if base_id != "" else ""
+		return {"key": "evolved", "label": "進化武器", "baseWeaponId": base_id, "baseDisplayName": base_name}
+	var initial_ids: Array[String] = []
+	for character_value in characters:
+		if not character_value is Dictionary:
+			continue
+		var initial_id := String((character_value as Dictionary).get("initialWeapon", "")).strip_edges()
+		if initial_id != "" and not initial_ids.has(initial_id):
+			initial_ids.append(initial_id)
+	var weapon_id := String(master.get("id", "")).strip_edges()
+	if initial_ids.has(weapon_id):
+		return {"key": "initial", "label": "初期武器"}
+	return {"key": "normal", "label": "通常武器"}
+
+static func _character_unit_model(unit_id: String, sources: Dictionary) -> Dictionary:
+	if unit_id == "":
+		return {}
+	var units_value: Variant = sources.get("characterUnits", [])
+	var units: Array = []
+	if units_value is Array:
+		units = units_value as Array
+	elif units_value is Dictionary:
+		var nested: Variant = (units_value as Dictionary).get("units", [])
+		if nested is Array:
+			units = nested as Array
+		elif (units_value as Dictionary).has(unit_id):
+			var mapped: Variant = (units_value as Dictionary).get(unit_id)
+			if mapped is Dictionary:
+				units = [{"id": unit_id, "displayName": (mapped as Dictionary).get("displayName", ""), "codexDescription": (mapped as Dictionary).get("codexDescription", (mapped as Dictionary).get("description", ""))}]
+	for unit_value in units:
+		if not unit_value is Dictionary:
+			continue
+		var unit := unit_value as Dictionary
+		if String(unit.get("id", "")).strip_edges() != unit_id:
+			continue
+		return {
+			"id": unit_id,
+			"displayName": String(unit.get("displayName", "")).strip_edges(),
+			"description": String(unit.get("codexDescription", unit.get("description", ""))).strip_edges()
+		}
+	return {}
+
+static func _profile_string(value: Variant) -> String:
+	return String(value).strip_edges() if value is String else ""
+
+static func _profile_string_array(value: Variant) -> Array[String]:
+	var result: Array[String] = []
+	if not value is Array:
+		return result
+	for item_value in value as Array:
+		if not item_value is String:
+			continue
+		var item := String(item_value).strip_edges()
+		if item != "":
+			result.append(item)
+	return result
+
+static func _profile_list_text(values: Array) -> String:
+	var parts: Array[String] = []
+	for value in values:
+		var item := String(value).strip_edges()
+		if item == "":
+			continue
+		parts.append(item)
+	var joined := "、".join(parts)
+	if joined != "" and not _ends_with_sentence_punctuation(joined):
+		joined += "。"
+	return joined
+
+static func _ends_with_sentence_punctuation(value: String) -> bool:
+	for suffix in ["。", "！", "？", "!", "?", "."]:
+		if value.ends_with(suffix):
+			return true
+	return false
 
 static func weapon_performance_model(weapon: Dictionary, initial_owner: bool = false) -> Dictionary:
 	var stat_keys := _declared_stats(weapon)
@@ -1040,6 +1299,136 @@ static func comment_record_model(master: Dictionary, entry: Dictionary) -> Dicti
 		"selectedCount": maxi(0, int(entry.get("selected_count", 0))),
 		"heartCount": maxi(0, int(entry.get("heart_count", 0)))
 	}
+
+## Unified presentation model for instruction-comment archive pages.  The
+## comment master remains the source of truth for the live card/effect view;
+## codexLore is optional editorial data layered on top of it.
+static func comment_lore_model(master: Dictionary, entry: Dictionary, discovered: bool = true) -> Dictionary:
+	var record := comment_record_model(master, entry)
+	var result: Dictionary = record.duplicate(true)
+	result["id"] = String(master.get("id", "")).strip_edges()
+	result["template"] = "directive_comment"
+	result["classificationLabels"] = []
+	result["classificationLabel"] = ""
+	result["stageLabels"] = []
+	result["cards"] = []
+	result["archiveTitle"] = ""
+	result["archiveParagraphs"] = []
+	result["hasLore"] = false
+	result["hasHeart"] = master.get("heartVariant", null) is Dictionary
+	result["effectSummary"] = ""
+	result["imagePath"] = ""
+	result["codexVisual"] = {}
+	result["illustrationModel"] = {}
+	if not discovered:
+		result["body"] = ""
+		result["description"] = ""
+		result["tags"] = []
+		result["stageIds"] = []
+		result["effectModel"] = {}
+		result["heartDescription"] = ""
+		result["appearedCount"] = 0
+		result["selectedCount"] = 0
+		result["heartCount"] = 0
+		result["hasHeart"] = false
+		return result
+
+	var stage_ids: Array[String] = record.get("stageIds", []) as Array[String]
+	var stage_labels := _comment_stage_labels(stage_ids)
+	var classification_labels: Array[String] = []
+	classification_labels.append_array(stage_labels)
+	if bool(result["hasHeart"]):
+		classification_labels.append("♡あり")
+	if classification_labels.size() > 3:
+		classification_labels = ["複数枠", "♡あり"] if bool(result["hasHeart"]) else ["複数枠"]
+	result["stageLabels"] = stage_labels
+	result["classificationLabels"] = classification_labels
+	result["classificationLabel"] = " / ".join(classification_labels)
+	result["imagePath"] = image_path_for("comments", master, true)
+	result["effectSummary"] = String(record.get("description", "")).strip_edges()
+	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
+	var lore: Dictionary = lore_value as Dictionary if lore_value is Dictionary else {}
+	result["codexVisual"] = _comment_codex_visual(lore)
+	result["illustrationModel"] = {
+		"imagePath": result["imagePath"],
+		"codexVisual": (result["codexVisual"] as Dictionary).duplicate(true)
+	}
+
+	var appeared_count := int(result.get("appearedCount", 0))
+	if appeared_count > 0:
+		result["selectionRate"] = float(result.get("selectedCount", 0)) / float(appeared_count) * 100.0
+
+	if lore.is_empty():
+		return result
+	var cards: Array = []
+	var raw_cards: Variant = lore.get("cards", [])
+	if raw_cards is Array:
+		for card_value in raw_cards as Array:
+			if not card_value is Dictionary:
+				continue
+			var raw_card := card_value as Dictionary
+			var card_id := String(raw_card.get("id", "")).strip_edges()
+			var title := String(raw_card.get("title", "")).strip_edges()
+			var text := String(raw_card.get("text", "")).strip_edges()
+			if card_id == "" or title == "" or text == "":
+				continue
+			var span := 2 if int(raw_card.get("span", 1)) == 2 else 1
+			cards.append({"id": card_id, "title": title, "text": text, "span": span})
+	var paragraphs: Array[String] = []
+	var raw_paragraphs: Variant = lore.get("archiveParagraphs", lore.get("archive_paragraphs", []))
+	if raw_paragraphs is Array:
+		for paragraph_value in raw_paragraphs as Array:
+			if not paragraph_value is String:
+				continue
+			var paragraph := String(paragraph_value).strip_edges()
+			if paragraph != "":
+				paragraphs.append(paragraph)
+	result["cards"] = cards
+	result["archiveTitle"] = String(lore.get("archiveTitle", lore.get("archive_title", ""))).strip_edges()
+	result["archiveParagraphs"] = paragraphs
+	result["hasLore"] = not cards.is_empty() or not paragraphs.is_empty()
+	return result
+
+static func _comment_codex_visual(lore: Dictionary) -> Dictionary:
+	var normalized := {"scale": 1.0, "offsetX": 0.0, "offsetY": 0.0}
+	var visual_value: Variant = lore.get("codexVisual", lore.get("codex_visual", {}))
+	if not visual_value is Dictionary:
+		return normalized
+	var visual := visual_value as Dictionary
+	var raw_scale: Variant = visual.get("scale", 1.0)
+	var raw_offset_x: Variant = visual.get("offsetX", visual.get("offset_x", 0.0))
+	var raw_offset_y: Variant = visual.get("offsetY", visual.get("offset_y", 0.0))
+	var scale := float(raw_scale) if raw_scale is int or raw_scale is float else 1.0
+	var offset_x := float(raw_offset_x) if raw_offset_x is int or raw_offset_x is float else 0.0
+	var offset_y := float(raw_offset_y) if raw_offset_y is int or raw_offset_y is float else 0.0
+	if not is_finite(scale):
+		scale = 1.0
+	if not is_finite(offset_x):
+		offset_x = 0.0
+	if not is_finite(offset_y):
+		offset_y = 0.0
+	return {
+		"scale": clampf(scale, 0.5, 2.5),
+		"offsetX": clampf(offset_x, -1.0, 1.0),
+		"offsetY": clampf(offset_y, -1.0, 1.0)
+	}
+
+static func _comment_stage_labels(stage_ids: Array[String]) -> Array[String]:
+	var normalized: Array[String] = []
+	for stage_id in stage_ids:
+		var stage := normalize_stage_id(stage_id)
+		if stage != "" and stage != "relay" and not normalized.has(stage):
+			normalized.append(stage)
+	# No explicit stage restriction means the runtime default pool, i.e. 共通.
+	if normalized.is_empty() or normalized.size() >= RECORD_STAGE_IDS.size():
+		return ["共通"]
+	var labels: Array[String] = []
+	var label_map := {"gameplay": "ゲーム実況", "singing": "歌枠", "drawing": "お絵かき", "collab": "コラボ", "zatsudan": "雑談"}
+	for stage in normalized:
+		var label := String(label_map.get(stage, stage))
+		if label != "" and not labels.has(label):
+			labels.append(label)
+	return labels if not labels.is_empty() else ["共通"]
 
 static func _comment_stage_ids(master: Dictionary) -> Array[String]:
 	var result: Array[String] = []

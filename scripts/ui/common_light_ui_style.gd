@@ -18,6 +18,9 @@ const COMBAT_LIGHT := Color("#F7B7D3")
 const COMBAT_PALE := Color("#FFF0F6")
 const COMBAT_DARK := Color("#D85E91")
 const COMBAT_HERO := Color("#F0A4C6")
+const NEW_BADGE_FILL := Color("#C93F7B")
+const NEW_BADGE_BORDER := Color("#FFD4E7")
+const NEW_BADGE_TEXT := Color.WHITE
 const SUPPORT_MAIN := Color("#62BED8")
 const SUPPORT_LIGHT := Color("#A7DDEA")
 const SUPPORT_PALE := Color("#EEF9FC")
@@ -145,6 +148,13 @@ static func create_tab_style(active: bool, accent: Color) -> StyleBoxFlat:
 
 static func create_outer_focus_ring_style(accent: Color) -> StyleBoxFlat:
 	var style := create_panel_style(Color(1, 1, 1, 0), Color(accent, 0.94), 2, 20, 0.0, 0.0)
+	return style
+
+static func create_new_badge_style() -> StyleBoxFlat:
+	var style := create_panel_style(NEW_BADGE_FILL, NEW_BADGE_BORDER, 1, 10, 9.0, 0.0)
+	style.shadow_color = Color.TRANSPARENT
+	style.shadow_size = 0
+	style.draw_center = true
 	return style
 
 static func create_footer_style() -> StyleBoxFlat:

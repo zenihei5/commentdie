@@ -5,6 +5,7 @@ const StreamPointRewardCalculatorScript := preload("res://scripts/systems/stream
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
 const StreamPointRewardResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
+const StreamEvaluationSystemScript := preload("res://scripts/systems/stream_evaluation_system.gd")
 const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
 const CodexPresentationSystemScript := preload("res://scripts/systems/codex_presentation_system.gd")
 
@@ -143,6 +144,12 @@ static func result_end_type_for_stats(stats: Dictionary, quick_test_mode: bool) 
 	return "mental_breakdown"
 
 static func build_ranking_entry(stats: Dictionary) -> Dictionary:
+	var evaluation_version := 2 if int(stats.get("evaluationVersion", 1)) >= 2 else 1
+	var evaluation_score := clampi(int(stats.get("evaluationScore", stats.get("kamiPoint", 0))), 0, 100)
+	var evaluation_rank := String(stats.get("evaluationRank", stats.get("kamiRank", stats.get("rank", "D")))).strip_edges().to_upper()
+	if not ["S", "A", "B", "C", "D"].has(evaluation_rank):
+		evaluation_rank = "D"
+	var stream_frame_name := result_stream_frame_display_name(stats)
 	return {
 		"dataVersion": 2,
 		"runId": String(stats.get("runId", "")),
@@ -151,9 +158,13 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"endType": String(stats.get("endType", "")),
 		"score": int(stats.get("score", 0)),
 		"viewerCount": int(stats.get("viewerCount", stats.get("score", 0))),
-		"rank": String(stats.get("rank", "D")),
-		"kamiRank": String(stats.get("kamiRank", stats.get("rank", "D"))),
-		"kamiPoint": int(stats.get("kamiPoint", 0)),
+		"rank": evaluation_rank if evaluation_version >= 2 else String(stats.get("rank", stats.get("kamiRank", "D"))),
+		"kamiRank": evaluation_rank if evaluation_version >= 2 else String(stats.get("kamiRank", stats.get("rank", "D"))),
+		"kamiPoint": evaluation_score if evaluation_version >= 2 else int(stats.get("kamiPoint", 0)),
+		"evaluationVersion": evaluation_version,
+		"evaluationScore": evaluation_score,
+		"evaluationRank": evaluation_rank,
+		"evaluationBreakdown": (stats.get("evaluationBreakdown", {}) as Dictionary).duplicate(true),
 		"time": int(stats.get("elapsed", 0.0)),
 		"survivalTime": float(stats.get("elapsed", 0.0)),
 		"cleared": bool(stats.get("cleared", false)),
@@ -171,7 +182,7 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 		"partnerName": String(stats.get("partnerName", stats.get("collabPartnerName", ""))),
 		"characterName": String(stats.get("characterName", "配信者")),
 		"streamFrameId": String(stats.get("streamFrameId", "")),
-		"streamFrameName": String(stats.get("streamFrameName", "配信枠")),
+		"streamFrameName": stream_frame_name,
 		"culpritInstructionComment": "なし" if String(stats.get("endType", "")) == "completed" else String(stats.get("currentComment", "なし")),
 		"weapons": stats.get("weapons", []),
 		"accessories": stats.get("accessories", []),
@@ -190,6 +201,12 @@ static func build_ranking_entry(stats: Dictionary) -> Dictionary:
 			"defeatedCount": clampi(int(stats.get("bossCount", 0)), 0, 2)
 		},
 		"selectedHighDifficultyCommentCount": int(stats.get("dangerCommentsChosen", 0)),
+		"averageBuzz": float(stats.get("averageBuzz", 0.0)),
+		"averageVoltage": float(stats.get("averageVoltage", 1.0)),
+		"normalizedDamageRatio": float(stats.get("normalizedDamageRatio", 0.0)),
+		"dangerousCommentCount": int(stats.get("evaluationDangerousCommentCount", stats.get("dangerCommentsChosen", 0))),
+		"giftCount": int(stats.get("evaluationGiftCount", stats.get("giftsTaken", 0))),
+		"evaluationMetrics": (stats.get("evaluationMetrics", {}) as Dictionary).duplicate(true) if stats.get("evaluationMetrics", {}) is Dictionary else {},
 		"gameOver": String(stats.get("endType", "")) == "mental_breakdown",
 		"createdAt": String(stats.get("playedAt", Time.get_datetime_string_from_system())),
 		"deathText": "" if String(stats.get("endType", "")) == "completed" else String(stats.get("deathText", stats.get("currentDeathText", ""))),
@@ -210,6 +227,16 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 	var ended_reason: String = "death"
 	var culprit_comment: String = String(stats.get("currentComment", "なし"))
 	var death_text: String = String(stats.get("currentDeathText", stats.get("reason", "")))
+	var evaluation_version := 2 if int(stats.get("evaluationVersion", 1)) >= 2 else 1
+	var evaluation_score := clampi(int(stats.get("evaluationScore", stats.get("kamiPoint", 0))), 0, 100)
+	var evaluation_rank := String(stats.get("evaluationRank", stats.get("kamiRank", stats.get("rank", "D")))).strip_edges().to_upper()
+	if not ["S", "A", "B", "C", "D"].has(evaluation_rank):
+		evaluation_rank = "D"
+	var reached_frame_name := result_stream_frame_display_name({
+		"relayMode": false,
+		"streamFrameId": String(stats.get("streamFrameId", "")),
+		"streamFrameName": String(stats.get("currentFrameName", stats.get("streamFrameName", "配信枠")))
+	})
 	if relay_completed:
 		ended_reason = "completed"
 		culprit_comment = "なし"
@@ -226,6 +253,13 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 		"difficulty": String(stats.get("difficultyId", "normal")),
 		"difficultyId": String(stats.get("difficultyId", "normal")),
 		"stageId": "relay",
+		"evaluationVersion": evaluation_version,
+		"evaluationScore": evaluation_score,
+		"evaluationRank": evaluation_rank,
+		"evaluationBreakdown": (stats.get("evaluationBreakdown", {}) as Dictionary).duplicate(true),
+		"kamiPoint": evaluation_score if evaluation_version >= 2 else int(stats.get("kamiPoint", 0)),
+		"kamiRank": evaluation_rank if evaluation_version >= 2 else String(stats.get("kamiRank", stats.get("rank", "D"))),
+		"rank": evaluation_rank if evaluation_version >= 2 else String(stats.get("rank", stats.get("kamiRank", "D"))),
 		"isRankingEligible": bool(stats.get("isRankingEligible", true)),
 		"characterId": String(stats.get("characterId", "")),
 		"characterName": String(stats.get("characterName", "配信者")),
@@ -240,7 +274,7 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 		"completedFrameIds": completed_frame_ids,
 		"completedFrameNames": completed_frame_names,
 		"currentFrameId": String(stats.get("streamFrameId", "")),
-		"currentFrameName": String(stats.get("streamFrameName", "配信枠")),
+		"currentFrameName": reached_frame_name,
 		"isRelayCompleted": relay_completed,
 		"relay": {
 			"reachedSectionIndex": clampi(cleared_count, 0, 5),
@@ -253,6 +287,13 @@ static func build_relay_ranking_entry(stats: Dictionary) -> Dictionary:
 		"totalViewerCount": total_viewer_count,
 		"maxVoltage": max_voltage,
 		"maxBurnCombo": max_burn_combo,
+		"streamFrameName": "配信リレー",
+		"averageBuzz": float(stats.get("averageBuzz", 0.0)),
+		"averageVoltage": float(stats.get("averageVoltage", 1.0)),
+		"normalizedDamageRatio": float(stats.get("normalizedDamageRatio", 0.0)),
+		"dangerousCommentCount": int(stats.get("evaluationDangerousCommentCount", stats.get("dangerCommentsChosen", 0))),
+		"giftCount": int(stats.get("evaluationGiftCount", stats.get("giftsTaken", 0))),
+		"evaluationMetrics": (stats.get("evaluationMetrics", {}) as Dictionary).duplicate(true) if stats.get("evaluationMetrics", {}) is Dictionary else {},
 		"totalSurvivalTime": float(cleared_count) * 180.0 + float(stats.get("elapsed", 0.0)),
 		"weapons": stats.get("weapons", []),
 		"accessories": stats.get("accessories", []),
@@ -295,6 +336,17 @@ static func build_run_stats(
 		"giftsTaken": int(core.get("giftsTaken", 0)),
 		"maxGiftHype": int(core.get("maxGiftHype", 0)),
 		"dangerCommentsChosen": int(core.get("dangerCommentsChosen", 0)),
+		"evaluationActiveTime": float(core.get("evaluationActiveTime", core.get("activeTime", 0.0))),
+		"evaluationBuzzIntegral": float(core.get("evaluationBuzzIntegral", core.get("buzzIntegral", 0.0))),
+		"evaluationVoltageIntegral": float(core.get("evaluationVoltageIntegral", core.get("voltageIntegral", 0.0))),
+		"evaluationCumulativeDamageTaken": float(core.get("evaluationCumulativeDamageTaken", core.get("cumulativeDamageTaken", 0.0))),
+		"evaluationDangerousCommentCount": int(core.get("evaluationDangerousCommentCount", core.get("dangerousCommentCount", core.get("dangerCommentsChosen", 0)))),
+		"evaluationGiftCount": int(core.get("evaluationGiftCount", core.get("giftCount", core.get("giftsTaken", 0)))),
+		"evaluationTargetBossReached": bool(core.get("evaluationTargetBossReached", core.get("targetBossReached", false))),
+		"evaluationTargetBossDefeated": bool(core.get("evaluationTargetBossDefeated", core.get("targetBossDefeated", false))),
+		"evaluationRelayFinalBossReached": bool(core.get("evaluationRelayFinalBossReached", core.get("relayFinalBossReached", false))),
+		"evaluationRelayFinalBossDefeated": bool(core.get("evaluationRelayFinalBossDefeated", core.get("relayFinalBossDefeated", false))),
+		"evaluationReferenceMaxMental": maxf(1.0, float(core.get("evaluationReferenceMaxMental", core.get("referenceMaxMental", 1.0)))),
 		"difficultyId": String(core.get("difficultyId", "normal")),
 		"heartUsedCount": int(core.get("heartUsedCount", 0)),
 		"relayMode": bool(core.get("relayMode", false)),
@@ -390,6 +442,17 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 		"giftsTaken": int(target.get("gifts_taken")),
 		"maxGiftHype": int(target.get("max_gift_hype")),
 		"dangerCommentsChosen": int(target.get("danger_comments_chosen")),
+		"evaluationActiveTime": float(target.get("evaluation_active_time")),
+		"evaluationBuzzIntegral": float(target.get("evaluation_buzz_integral")),
+		"evaluationVoltageIntegral": float(target.get("evaluation_voltage_integral")),
+		"evaluationCumulativeDamageTaken": float(target.get("evaluation_cumulative_damage_taken")),
+		"evaluationDangerousCommentCount": int(target.get("evaluation_dangerous_comment_count")),
+		"evaluationGiftCount": int(target.get("evaluation_gift_count")),
+		"evaluationTargetBossReached": bool(target.get("evaluation_target_boss_reached")),
+		"evaluationTargetBossDefeated": bool(target.get("evaluation_target_boss_defeated")),
+		"evaluationRelayFinalBossReached": bool(target.get("evaluation_relay_final_boss_reached")),
+		"evaluationRelayFinalBossDefeated": bool(target.get("evaluation_relay_final_boss_defeated")),
+		"evaluationReferenceMaxMental": maxf(1.0, float(target.get("evaluation_reference_max_mental"))),
 		"heartUsedCount": int(target.get("heart_used_count")),
 		"relayMode": bool(target.get("relay_mode")),
 		"relayBossScoreAwarded": bool(target.get("relay_boss_score_awarded")),
@@ -459,11 +522,37 @@ static func build_run_stats_from_target(reason: String, target: Node) -> Diction
 
 static func complete_run_stats(stats: Dictionary) -> Dictionary:
 	var result: Dictionary = stats.duplicate()
-	result["kamiPoint"] = calculate_kami_point(result)
-	var rank: String = calculate_rank(result)
-	result["rank"] = rank
+	var evaluation := StreamEvaluationSystemScript.calculate(result)
+	result.merge(evaluation, true)
+	result["averageBuzz"] = float(evaluation.get("averageBuzz", 0.0))
+	result["averageVoltage"] = float(evaluation.get("averageVoltage", 1.0))
+	result["normalizedDamageRatio"] = float(evaluation.get("normalizedDamageRatio", 0.0))
+	result["dangerousCommentCount"] = int(evaluation.get("dangerousCommentCount", 0))
+	result["giftCount"] = int(evaluation.get("giftCount", 0))
 	result["timeText"] = format_time(float(result.get("elapsed", 0.0)))
 	return result
+
+
+static func evaluation_breakdown_rows(result: Dictionary) -> Array:
+	var breakdown: Dictionary = result.get("evaluationBreakdown", {}) as Dictionary if result.get("evaluationBreakdown", {}) is Dictionary else {}
+	var definitions := [
+		["challenge", "挑戦行動", 20],
+		["hype", "盛り上がり", 25],
+		["stability", "安定性", 20],
+		["gifts", "ギフト", 10],
+		["combat", "戦闘成果", 5],
+		["completion", "完走", 20]
+	]
+	var rows: Array = []
+	var total := 0
+	for definition_value in definitions:
+		var definition: Array = definition_value as Array
+		var points := clampi(int(breakdown.get(String(definition[0]), 0)), 0, int(definition[2]))
+		total += points
+		rows.append({"id": String(definition[0]), "label": String(definition[1]), "points": points, "max": int(definition[2])})
+	rows.append({"id": "total", "label": "合計", "points": clampi(total, 0, 100), "max": 100})
+	rows.append({"id": "rank", "label": "評価", "value": String(result.get("evaluationRank", result.get("rank", "D")))})
+	return rows
 
 static func complete_run_for_target(reason: String, target: Node, quick_test_mode: bool) -> Dictionary:
 	var existing_result: Variant = target.get("last_result_stats")
@@ -488,8 +577,16 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	if String(result["runId"]).strip_edges() == "":
 		result["runId"] = "%s_%d" % [String(result["playedAt"]).replace(":", "").replace("-", "").replace("T", "_"), int(result.get("score", 0))]
 	result = complete_run_stats(result)
+	# Keep the raw stage id for logic/ranking scope, but make every user-facing
+	# result path use the canonical Japanese frame name. Relay always wins over
+	# the active segment, including the final-boss phase.
+	result["streamFrameName"] = result_stream_frame_display_name(result)
 	if not quick_test_mode:
 		CodexManager.record_character_result(result)
+	var unlock_before: Dictionary = DifficultyProgressSystemScript.unlock_presentation_snapshot_for_target(target) if not quick_test_mode else {}
+	if not quick_test_mode:
+		target.set("unlock_presentation_before", unlock_before.duplicate(true))
+	result["unlockPresentationBefore"] = unlock_before.duplicate(true)
 	# This is the single result-commit point for difficulty progression.  The
 	# system is run before the legacy normal-frame projection and carries a
 	# per-run guard so reward retries or result redraws cannot double-record it.
@@ -517,22 +614,33 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 		points_after,
 		relay_mode
 	)
-	var unlock_result: Dictionary = {"message": ""}
+	var unlock_result: Dictionary = {"message": "", "saved": true}
 	if not relay_mode:
 		unlock_result = StreamFrameSystem.clear_frame_for_target(target, result)
 	var legacy_unlock_message := String(unlock_result.get("message", ""))
-	result["unlockMessage"] = legacy_unlock_message if legacy_unlock_message != "" else String(result.get("difficultyUnlockMessage", ""))
+	# Unlocks are now announced by the shared presentation queue after the
+	# result transition is chosen.  Keep the legacy calculation above for
+	# compatibility, but do not duplicate it inside the result text.
+	result["unlockMessage"] = ""
 	if bool(reward_commit.get("seniorUnitUnlocked", false)):
 		for character_id in ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"]:
 			CodexManager.discover_character(character_id)
 	var session_discoveries: Dictionary = CodexManager.finish_run(String(result.get("runId", "")))
 	result["sessionDiscoveries"] = session_discoveries.duplicate(true)
+	var final_progress_saved: bool = true
 	if not quick_test_mode:
 		var final_progress: Variant = target.get("difficulty_progress")
 		if final_progress is Dictionary:
 			# record_result_for_target saves before PP rewards are committed.  This
 			# final write captures both the reward unlock and any codex discoveries.
-			DifficultyProgressSystemScript.save_progress(final_progress as Dictionary)
+			final_progress_saved = DifficultyProgressSystemScript.save_progress(final_progress as Dictionary)
+	var unlock_commit: Dictionary = {"saved": false, "ids": [], "pendingIds": [], "requiresSaveRetry": not quick_test_mode}
+	if not quick_test_mode and bool(difficulty_progress_result.get("saved", false)) and bool(unlock_result.get("saved", true)) and final_progress_saved and grant_state != "save_failed":
+		unlock_commit = DifficultyProgressSystemScript.commit_unlock_presentation_for_target(target, unlock_before)
+		if not bool(unlock_commit.get("saved", false)):
+			unlock_commit["requiresSaveRetry"] = true
+	result["unlockPresentationCommit"] = unlock_commit.duplicate(true)
+	result["unlockPresentationPending"] = unlock_commit.get("pendingIds", [])
 	var result_data: Dictionary = build_result_data(result)
 	var ranking_entry := build_relay_ranking_entry(result) if relay_mode else build_ranking_entry(result)
 	result["rankingText"] = RankingSystem.save_entry_and_format(ranking_entry, bool(result["isRankingEligible"]))
@@ -563,8 +671,16 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		(result.get("relayCompletedFrameIds", []) as Array)
 	)
 	input["difficultyId"] = String(target.get("run_difficulty_id")) if target.get("run_difficulty_id") != null else String(input.get("difficultyId", "normal"))
-	if input["difficultyId"] == "hard":
-		input["difficultyMultiplier"] = 1.20 if bool(result.get("cleared", false)) else 0.60
+	match String(input["difficultyId"]).strip_edges().to_lower():
+		"hard":
+			input["difficultyMultiplier"] = 1.20
+		"expert":
+			input["difficultyMultiplier"] = 1.40
+		_:
+			input["difficultyMultiplier"] = 1.00
+	input["evaluationVersion"] = int(result.get("evaluationVersion", 1))
+	input["evaluationScore"] = int(result.get("evaluationScore", 0))
+	input["evaluationRank"] = String(result.get("evaluationRank", result.get("rank", "D")))
 	var profile: Dictionary = manager.profile as Dictionary
 	var reward = StreamPointRewardCalculatorScript.calculate(
 		input,
@@ -583,7 +699,15 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		var grant_state := String(grant.get("state", "granted"))
 		var earned_points := maxi(0, after_balance - before_balance) if grant_state == "granted" else 0
 		return {"state": grant_state, "beforeBalance": before_balance, "earnedPoints": earned_points, "balance": after_balance, "reward": reward, "seniorUnitUnlocked": bool(grant.get("seniorUnitUnlocked", false))}
-	target.set("pending_power_up_reward", reward)
+	target.set("pending_power_up_reward", {
+		"runId": tracker.run_id,
+		"reward": reward,
+		"seniorUnitUnlockEligible": senior_unlock_eligible,
+		"relayMode": bool(result.get("relayMode", false)),
+		"difficultyId": String(result.get("difficultyId", "normal")),
+		"relayCompletedFrameIds": (result.get("relayCompletedFrameIds", []) as Array).duplicate(),
+		"relayFinalDefeated": bool(result.get("relayFinalBossDefeated", result.get("relayBossScoreAwarded", false)))
+	})
 	var failure_state := String(grant.get("state", "save_failed"))
 	if failure_state != "save_failed":
 		failure_state = "save_failed"
@@ -593,12 +717,21 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 	var tracker_variant: Variant = target.get("power_up_run_tracker")
 	var manager = target.get("power_up_shop_manager")
 	var pending_variant: Variant = target.get("pending_power_up_reward")
-	if tracker_variant == null or manager == null or pending_variant == null or not pending_variant.has_method("to_dictionary"):
+	if tracker_variant == null or manager == null or pending_variant == null:
 		return {"ok": false, "state": "nothing_to_retry"}
 	var tracker = tracker_variant
 	var reward = pending_variant
+	var pending_run_id: String = String(tracker.run_id)
+	var senior_unlock_eligible: bool = false
+	if pending_variant is Dictionary:
+		var pending: Dictionary = pending_variant as Dictionary
+		pending_run_id = String(pending.get("runId", pending_run_id))
+		senior_unlock_eligible = bool(pending.get("seniorUnitUnlockEligible", false))
+		reward = pending.get("reward", null)
+	if reward == null or not reward.has_method("to_dictionary"):
+		return {"ok": false, "state": "nothing_to_retry"}
 	var before_balance: int = int(manager.current_points())
-	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward)
+	var grant: Dictionary = manager.grant_reward(pending_run_id, reward, senior_unlock_eligible)
 	if bool(grant.get("ok", false)):
 		tracker.result_committed = true
 		target.set("pending_power_up_reward", null)
@@ -606,6 +739,7 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 		result_data["ppGrantState"] = String(grant.get("state", "granted"))
 		result_data["streamPointBalance"] = int(grant.get("balance", manager.current_points()))
 		result_data["streamPointReward"] = reward.to_dictionary()
+		result_data["seniorUnitUnlocked"] = bool(grant.get("seniorUnitUnlocked", false))
 		var after_balance: int = int(grant.get("balance", manager.current_points()))
 		var previous_view: Dictionary = result_data.get("pointRewardView", {}) as Dictionary
 		result_data["pointRewardView"] = build_point_reward_view(
@@ -617,6 +751,24 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 			bool(result_data.get("relayMode", false))
 		)
 		target.set("last_result_data", result_data)
+		if bool(grant.get("seniorUnitUnlocked", false)):
+			for character_id in ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"]:
+				CodexManager.discover_character(character_id)
+		var before_snapshot: Dictionary = {}
+		var before_variant: Variant = target.get("unlock_presentation_before")
+		if before_variant is Dictionary:
+			before_snapshot = (before_variant as Dictionary).duplicate(true)
+		if before_snapshot.is_empty():
+			var stored_result_data: Variant = target.get("last_result_data")
+			if stored_result_data is Dictionary and (stored_result_data as Dictionary).get("unlockPresentationBefore", {}) is Dictionary:
+				before_snapshot = ((stored_result_data as Dictionary).get("unlockPresentationBefore", {}) as Dictionary).duplicate(true)
+		if not before_snapshot.is_empty():
+			var unlock_commit := DifficultyProgressSystemScript.commit_unlock_presentation_for_target(target, before_snapshot)
+			if not bool(unlock_commit.get("saved", false)):
+				unlock_commit["requiresSaveRetry"] = true
+			result_data["unlockPresentationCommit"] = unlock_commit.duplicate(true)
+			result_data["unlockPresentationPending"] = unlock_commit.get("pendingIds", [])
+			target.set("last_result_data", result_data)
 		return {"ok": true, "state": "granted", "balance": manager.current_points()}
 	return {"ok": false, "state": String(grant.get("state", "save_failed"))}
 
@@ -641,13 +793,11 @@ static func point_reward_display_rows(stream_reward: Dictionary, relay_mode: boo
 			{"key": "firstBossDefeatPp", "id": "first_boss_defeat", "displayName": "ボス初回討伐", "isOneTimeBonus": true}
 		]
 	var rows: Array = []
-	var subtotal := 0
 	for entry_value in entries:
 		var entry: Dictionary = entry_value as Dictionary
 		var amount := int(stream_reward.get(String(entry["key"]), 0))
-		if amount <= 0:
+		if amount == 0:
 			continue
-		subtotal += amount
 		rows.append({
 			"id": String(entry["id"]),
 			"displayName": String(entry["displayName"]),
@@ -655,23 +805,29 @@ static func point_reward_display_rows(stream_reward: Dictionary, relay_mode: boo
 			"isOneTimeBonus": bool(entry["isOneTimeBonus"])
 		})
 	var field_gift_pp := int(stream_reward.get("fieldGiftPp", 0))
-	if field_gift_pp > 0:
-		subtotal += field_gift_pp
+	if field_gift_pp != 0:
 		rows.append({"id": "field_gift_pp", "displayName": "フィールドギフト", "amount": field_gift_pp, "isOneTimeBonus": false})
 	var gift_conversion_pp := int(stream_reward.get("fallbackGiftPp", 0)) + int(stream_reward.get("fullBuildConversionPp", 0))
-	if gift_conversion_pp > 0:
-		subtotal += gift_conversion_pp
+	if gift_conversion_pp != 0:
 		rows.append({"id": "gift_conversion_pp", "displayName": "ギフト変換", "amount": gift_conversion_pp, "isOneTimeBonus": false})
-	var total := int(stream_reward.get("totalPp", subtotal))
-	var adjustment := total - subtotal
-	if adjustment != 0:
-		rows.append({
+	var multiplier_rows: Array = []
+	var difficulty_adjustment := int(stream_reward.get("difficultyAdjustment", 0))
+	if difficulty_adjustment != 0:
+		multiplier_rows.append({
 			"id": "difficulty_adjustment",
 			"displayName": "難易度調整",
-			"amount": adjustment,
+			"amount": difficulty_adjustment,
 			"isOneTimeBonus": false
 		})
-	return rows
+	var evaluation_bonus := int(stream_reward.get("evaluationBonusPp", 0))
+	if evaluation_bonus != 0:
+		multiplier_rows.append({
+			"id": "evaluation_bonus",
+			"displayName": "配信評価ボーナス",
+			"amount": evaluation_bonus,
+			"isOneTimeBonus": false
+		})
+	return multiplier_rows + rows
 
 static func build_point_reward_view(stream_reward: Dictionary, grant_state: String, points_before: int, points_earned: int, points_after: int, relay_mode: bool) -> Dictionary:
 	var rows: Array = []
@@ -712,6 +868,11 @@ static func result_stream_frame_display_name(result: Dictionary) -> String:
 static func build_result_data(result: Dictionary) -> Dictionary:
 	var end_type := String(result.get("endType", ""))
 	var run_difficulty_id := DifficultyProgressSystemScript.normalize_difficulty_id(result.get("runDifficultyId", result.get("difficultyId", "normal")))
+	var evaluation_version := 2 if int(result.get("evaluationVersion", 1)) >= 2 else 1
+	var evaluation_score := clampi(int(result.get("evaluationScore", result.get("kamiPoint", 0))), 0, 100)
+	var evaluation_rank := String(result.get("evaluationRank", result.get("kamiRank", result.get("rank", "D")))).strip_edges().to_upper()
+	if not ["S", "A", "B", "C", "D"].has(evaluation_rank):
+		evaluation_rank = "D"
 	var culprit_comment := _culprit_comment_for_result(result, end_type)
 	var death_reason_text := _death_reason_for_result(result, end_type, culprit_comment)
 	var trouble_note := _trouble_note_for_result(end_type, culprit_comment)
@@ -719,7 +880,7 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 	var last_death_source := "なし" if end_type == "completed" else String(result.get("lastDeathSource", "接触"))
 	var final_blow_text := _last_blow_for_result(result, end_type)
 	var fallback_summary := DisplayTextSystem.result_one_liner(
-		String(result.get("rank", "D")),
+		evaluation_rank,
 		String(result.get("lastDeathSource", "")),
 		int(result.get("kusoMaroCount", 0)),
 		int(result.get("godMaroCount", 0))
@@ -753,16 +914,30 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"isRelayCompleted": _is_relay_completed(result),
 		"score": int(result.get("score", 0)),
 		"viewerCount": int(result.get("viewerCount", result.get("score", 0))),
-		"kamiRank": String(result.get("rank", "D")),
-		"kamiPoint": int(result.get("kamiPoint", 0)),
+		"kamiRank": evaluation_rank if evaluation_version >= 2 else String(result.get("kamiRank", result.get("rank", "D"))),
+		"kamiPoint": evaluation_score if evaluation_version >= 2 else int(result.get("kamiPoint", 0)),
+		"rank": evaluation_rank if evaluation_version >= 2 else String(result.get("rank", result.get("kamiRank", "D"))),
+		"evaluationVersion": evaluation_version,
+		"evaluationScore": evaluation_score,
+		"evaluationRank": evaluation_rank,
+		"evaluationBreakdown": (result.get("evaluationBreakdown", {}) as Dictionary).duplicate(true),
+		"evaluationRows": evaluation_breakdown_rows(result),
+		"evaluationMetrics": (result.get("evaluationMetrics", {}) as Dictionary).duplicate(true) if result.get("evaluationMetrics", {}) is Dictionary else {},
+		"averageBuzz": float(result.get("averageBuzz", 0.0)),
+		"averageVoltage": float(result.get("averageVoltage", 1.0)),
+		"normalizedDamageRatio": float(result.get("normalizedDamageRatio", 0.0)),
+		"evaluationActiveTime": float(result.get("evaluationActiveTime", 0.0)),
+		"evaluationCumulativeDamageTaken": float(result.get("evaluationCumulativeDamageTaken", 0.0)),
 		"survivalTime": float(result.get("elapsed", 0.0)),
 		"cleared": bool(result.get("cleared", false)),
 		"maxMultiplier": float(result.get("maxMultiplier", 1.0)),
 		"maxVoltage": float(result.get("maxVoltage", result.get("maxMultiplier", 1.0))),
 		"maxBurnCombo": BuzzSystemScript.clamp_percent(int(result.get("maxBurnCombo", result.get("burnComboMax", 0)))),
 		"dangerCommentSelectedCount": int(result.get("dangerCommentsChosen", 0)),
+		"evaluationDangerousCommentCount": int(result.get("evaluationDangerousCommentCount", result.get("dangerCommentsChosen", 0))),
 		"heartActivatedCount": int(result.get("heartUsedCount", 0)),
-		"giftCount": int(result.get("giftsTaken", 0)),
+		"giftCount": int(result.get("evaluationGiftCount", result.get("giftsTaken", 0))),
+		"evaluationGiftCount": int(result.get("evaluationGiftCount", result.get("giftsTaken", 0))),
 		"highestGiftHype": int(result.get("maxGiftHype", 0)),
 		"giftList": result.get("giftList", []),
 		"giftSummary": String(result.get("giftSummary", "")),
@@ -784,6 +959,9 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"ppGrantState": String(result.get("ppGrantState", "unavailable")),
 		"streamPointBalance": int(result.get("streamPointBalance", 0)),
 		"pointRewardView": result.get("pointRewardView", {}),
+		"unlockPresentationBefore": result.get("unlockPresentationBefore", {}),
+		"unlockPresentationCommit": result.get("unlockPresentationCommit", {}),
+		"unlockPresentationPending": result.get("unlockPresentationPending", []),
 		"rankingText": String(result.get("rankingText", "")),
 		"bossSummoned": bool(result.get("bossSummoned", false)),
 		"bossDefeated": bool(result.get("bossDefeated", false)),
@@ -849,10 +1027,11 @@ static func build_result_text(stats: Dictionary) -> String:
 	if relay_mode:
 		ranking_label = "配信リレー対象"
 	var lines: Array[String] = [
-		"%s  神回度：%s  %dpt" % [
+		"%s  配信評価：%s  %dpt  / 今回の獲得PP %+d PP" % [
 			header,
-			String(stats.get("rank", "D")),
-			int(stats.get("kamiPoint", 0))
+			String(stats.get("evaluationRank", stats.get("rank", "D"))),
+			int(stats.get("evaluationScore", stats.get("kamiPoint", 0))),
+			int((stats.get("pointRewardView", {}) as Dictionary).get("pointsEarned", 0))
 		],
 		"%s / %s / %s / %s" % [
 			String(stats.get("modeName", "通常配信")),
@@ -878,10 +1057,8 @@ static func build_result_text(stats: Dictionary) -> String:
 		""
 	]
 	if completed:
-		var completed_point_view: Dictionary = stats.get("pointRewardView", {}) as Dictionary
-		lines[0] = "%s  %s  +%d PP" % [header, String(stats.get("rank", "D")), int(completed_point_view.get("pointsEarned", 0))]
 		if relay_mode and _is_relay_completed(stats):
-			lines.append("RELAY COMPLETE")
+			lines.append("配信リレー完走")
 		lines.append("配信結果：最後まで配信を走り切った！")
 		lines.append("最終指示コメ：%s" % String(stats.get("currentComment", "なし")))
 	else:
@@ -903,6 +1080,11 @@ static func build_result_text(stats: Dictionary) -> String:
 		])
 	if stream_result != "":
 		lines.append(stream_result)
+	var evaluation_breakdown: Dictionary = stats.get("evaluationBreakdown", {}) as Dictionary
+	if not evaluation_breakdown.is_empty():
+		lines.append("配信評価内訳：挑戦 %d/20　盛り上がり %d/25　安定性 %d/20　ギフト %d/10　戦闘成果 %d/5　完走 %d/20　合計 %d/100" % [
+			int(evaluation_breakdown.get("challenge", 0)), int(evaluation_breakdown.get("hype", 0)), int(evaluation_breakdown.get("stability", 0)), int(evaluation_breakdown.get("gifts", 0)), int(evaluation_breakdown.get("combat", 0)), int(evaluation_breakdown.get("completion", 0)), int(stats.get("evaluationScore", 0))
+		])
 	if unlock_message != "":
 		lines.append("")
 		lines.append(unlock_message)
@@ -910,8 +1092,8 @@ static func build_result_text(stats: Dictionary) -> String:
 	var pp_state := String(stats.get("ppGrantState", "unavailable"))
 	if pp_state == "save_failed":
 		lines.append("PP保存に失敗しました。ショップから再試行できます")
-	elif int(reward_data.get("totalPp", 0)) > 0:
-		lines.append("パワーアップPP  +%d  / 所持 %d PP" % [int(reward_data.get("totalPp", 0)), int(stats.get("streamPointBalance", 0))])
+	elif int(reward_data.get("totalPp", 0)) != 0:
+		lines.append("パワーアップPP  %+d  / 所持 %d PP" % [int(reward_data.get("totalPp", 0)), int(stats.get("streamPointBalance", 0))])
 	if ranking_text != "":
 		lines.append("")
 		lines.append(ranking_text)

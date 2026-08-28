@@ -14,6 +14,7 @@ var comment_pools: Dictionary = {}
 var relay_mode_config: Dictionary = {}
 var difficulty_mode_config: Dictionary = {}
 var boss_cutin_v2_config: Dictionary = {}
+var comment_balance_overrides: Dictionary = {}
 
 static func loaded() -> DataRepository:
 	var repository: DataRepository = DataRepository.new()
@@ -21,7 +22,8 @@ static func loaded() -> DataRepository:
 	return repository
 
 func load_all() -> void:
-	comments = _load_array("res://data/comments.json")
+	comment_balance_overrides = _load_dictionary("res://data/comment_balance_overrides.json", true)
+	comments = _apply_comment_balance_overrides(_load_array("res://data/comments.json"), comment_balance_overrides)
 	gifts = _load_array("res://data/gifts.json")
 	marshmallows = _load_array("res://data/marshmallows.json")
 	stream_frames = _load_array("res://data/stream_frames.json")
@@ -74,3 +76,28 @@ func _load_dictionary(path: String, optional: bool = false) -> Dictionary:
 	if parsed is Dictionary:
 		return parsed as Dictionary
 	return {}
+
+func _apply_comment_balance_overrides(source: Array, overrides: Dictionary) -> Array:
+	if overrides.is_empty():
+		return source
+	var result: Array = []
+	for item in source:
+		if not item is Dictionary:
+			result.append(item)
+			continue
+		var comment: Dictionary = item as Dictionary
+		var comment_id := String(comment.get("id", ""))
+		result.append(_deep_merge(comment, overrides.get(comment_id, {})))
+	return result
+
+func _deep_merge(base: Dictionary, patch: Variant) -> Dictionary:
+	var result: Dictionary = base.duplicate(true)
+	if not patch is Dictionary:
+		return result
+	for key in (patch as Dictionary).keys():
+		var value: Variant = (patch as Dictionary)[key]
+		if value is Dictionary and result.get(key) is Dictionary:
+			result[key] = _deep_merge(result[key] as Dictionary, value)
+		else:
+			result[key] = value
+	return result

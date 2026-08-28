@@ -151,7 +151,7 @@ static func default_config() -> Dictionary:
 			"banana_floor": {"params": {"slipRate": 1.10}},
 			"no_brake": {"params": {"inertiaRate": 1.15}},
 			"enemy_speed_up": {"scoreRate": 1.25, "riskLevel": 3, "params": {"enemySpeedRate": 1.15}},
-			"enemy_spawn_up": {"scoreRate": 1.25, "riskLevel": 3, "params": {"enemySpawnRate": 1.20}},
+			"enemy_spawn_up": {"scoreRate": 1.25, "riskLevel": 3, "params": {"enemySpawnRate": 1.20, "enemySpawnCountRate": 2.0}},
 			"split_enemy": {"params": {"splitProbabilityRate": 1.20, "splitProbabilityCap": 1.0}},
 			"short_range": {"scoreRate": 1.10, "riskLevel": 2},
 			"comment_barrage": {"params": {"barrageCountRate": 1.20}},
@@ -160,15 +160,15 @@ static func default_config() -> Dictionary:
 			"kamiyoyaku": {"riskLevel": 4, "params": {"enemySpawnAmountRate": 1.20}},
 			"takeback": {"riskLevel": 4},
 			"song_tempo_up": {"params": {"enemySpawnAmountRate": 1.20}},
-			"song_force_chorus": {"params": {"forcedChorusProfile": "hard_short"}},
+			"song_force_chorus": {"params": {}},
 			"song_mic_howling": {"params": {"waveIntervalRate": 0.90}},
 			"song_lighting_mistake": {"params": {"badLightMoveSpeedRate": 1.10}},
 			"song_lyrics_lost": {"params": {"minimumSpawnDistanceRate": 1.15}},
 			"drawing_fast_dry": {"params": {"trailLifetime": 5.0}},
 			"drawing_too_much_paint": {"params": {"paintCostMultiplier": 1.75}},
-			"drawing_more_corrections": {"params": {"correctionBurst": 3, "correctionRewardMultiplier": 1.10}},
+			"drawing_more_corrections": {"params": {"correctionBurst": 3}},
 			"drawing_spilled_bucket": {"params": {"spillCount": 8}},
-			"partner_take_over": {"params": {"partnerDamageMultiplier": 1.10}},
+			"partner_take_over": {"params": {"playerWeaponDamageMultiplier": 0.40, "partnerDamageMultiplier": 2.0, "partnerAttackIntervalMultiplier": 0.70}},
 			"keep_sync": {"params": {"starLossCooldown": 1.0}},
 			"out_of_sync": {"params": {"interferenceIntervalRate": 0.85}},
 			"fast_collab_pass": {"params": {"passDuration": 3.0, "spawnDistanceRate": 1.15}},
@@ -338,7 +338,7 @@ static func build_runtime(difficulty_id: String, relay_mode: bool, stage_id: Str
 		"difficultyHardConfig": hard_config.duplicate(true),
 		"stageConfig": _dict(_dict(config.get("relayStageModifiers", {})).get(normalized_stage, {})).duplicate(true),
 		"climax": {"active": false, "started": false, "startRemainingSeconds": 0.0},
-		"bossState": {"firstBossSpawned": false, "firstBossDefeated": false, "reignitionOfferShown": false, "secondBossSpawned": false, "secondBossDefeated": false, "activeBossCount": 0, "firstBossSpawnElapsedSeconds": null, "reignitionSpawnElapsedSeconds": null},
+		"bossState": {"firstBossSpawned": false, "firstBossDefeated": false, "reignitionOfferShown": false, "secondBossSpawned": false, "secondBossDefeated": false, "activeBossCount": 0, "firstBossSpawnElapsedSeconds": null, "reignitionSpawnElapsedSeconds": null, "firstBossFinalHp": 0.0, "firstBossId": ""},
 		"pendingSpawn": {},
 		"pendingCommentWave": {},
 		"pendingPressureWave": {},
@@ -584,8 +584,9 @@ static func boss_id_for_stage(runtime: Dictionary, stage_id: String) -> String:
 static func boss_rates(runtime: Dictionary, role: String = "firstHardBoss") -> Dictionary:
 	var boss: Dictionary = _dict(_dict(runtime.get("difficultyConfig", {})).get("boss", {}))
 	var hp := float(boss.get("hpRate", 1.0))
-	if role == "reignition":
-		hp *= 0.70
+	# Reignition HP is replaced with the captured first HARD boss final HP in
+	# apply_boss_runtime_stats. Keep this fallback at the normal HARD rate for
+	# synthetic/legacy runtimes that have no capture yet.
 	return {"hpRate": hp, "attackRate": float(boss.get("attackRate", 1.0)), "moveSpeedRate": float(boss.get("moveSpeedRate", 1.0)), "actionIntervalRate": float(boss.get("actionIntervalRate", 1.0)), "summonCountRate": float(boss.get("summonCountRate", 1.0)), "projectileSpeedRate": float(boss.get("projectileSpeedRate", 1.0)), "scoreRate": float(boss.get("reignitionScoreRate", 3.0) if role == "reignition" else boss.get("firstBossScoreRate", 2.0))}
 
 static func final_boss_rates(runtime: Dictionary) -> Dictionary:
@@ -685,6 +686,8 @@ static func apply_enemy_runtime_stats(enemy: Dictionary, runtime: Dictionary, ro
 		enemy["maxHp"] = enemy["max_hp"]
 	enemy["contactDamage"] = scaled_damage(base_attack, attack_rate)
 	var active_move_rate := active_comment_param(runtime, "enemyMoveSpeedRate", active_comment_param(runtime, "enemySpeedRate", 1.0))
+	if active_comment_id_is_active(runtime, "hard_overclock"):
+		active_move_rate = active_comment_param_for_id(runtime, "hard_overclock", "enemyMoveSpeedRate", active_comment_param_for_id(runtime, "hard_overclock", "enemySpeedRate", active_move_rate))
 	enemy["speed"] = base_speed * float(rates.get("moveSpeedRate", enemy_config.get("moveSpeedRate", 1.0))) * maxf(0.1, active_move_rate)
 	enemy["projectileSpeedRate"] = float(rates.get("projectileSpeedRate", enemy_config.get("projectileSpeedRate", 1.0)))
 	enemy["projectileDamageRate"] = attack_rate
@@ -729,14 +732,14 @@ static func normalized_summon_rewards(runtime: Dictionary) -> Dictionary:
 static func attack_interval_for_enemy(enemy: Dictionary, base_interval: float, runtime: Dictionary = {}) -> float:
 	var minimum := maxf(0.1, float(enemy.get("minimumAttackInterval", 0.1)))
 	var rate := float(enemy.get("attackIntervalRate", 1.0))
-	if not runtime.is_empty() and is_high_difficulty_runtime(runtime) and String(_dict(runtime.get("activeComment", {})).get("id", "")) == "hard_overclock":
-		rate *= clampf(active_comment_param(runtime, "attackIntervalRate", 1.0), 0.1, 2.0)
+	if not runtime.is_empty() and is_high_difficulty_runtime(runtime) and active_comment_id_is_active(runtime, "hard_overclock"):
+		rate *= clampf(active_comment_param_for_id(runtime, "hard_overclock", "attackIntervalRate", 1.0), 0.1, 2.0)
 	return maxf(minimum, maxf(0.0, base_interval) * rate)
 
 static func projectile_speed_rate_for_enemy(enemy: Dictionary, runtime: Dictionary = {}) -> float:
 	var rate := float(enemy.get("projectileSpeedRate", 1.0))
-	if not runtime.is_empty() and is_high_difficulty_runtime(runtime) and String(_dict(runtime.get("activeComment", {})).get("id", "")) == "hard_overclock":
-		rate *= clampf(active_comment_param(runtime, "projectileSpeedRate", 1.0), 0.25, 3.0)
+	if not runtime.is_empty() and is_high_difficulty_runtime(runtime) and active_comment_id_is_active(runtime, "hard_overclock"):
+		rate *= clampf(active_comment_param_for_id(runtime, "hard_overclock", "projectileSpeedRate", 1.0), 0.25, 3.0)
 	return rate
 
 static func attack_interval_for_values(base_interval: float, attack_interval_rate: float, minimum_interval: float = 0.1) -> float:
@@ -753,7 +756,19 @@ static func apply_boss_runtime_stats(boss: Dictionary, runtime: Dictionary, role
 		return boss
 	var rates := boss_rates(runtime, role)
 	boss["difficultyBase"] = {"hp": float(boss.get("max_hp", boss.get("hp", 1.0))), "speed": float(boss.get("speed", 0.0)), "contactDamage": int(boss.get("contactDamage", 0))}
-	boss["hp"] = maxf(1.0, float(boss.get("max_hp", boss.get("hp", 1.0))) * float(rates.get("hpRate", 1.0)))
+	var final_hp := float(boss.get("max_hp", boss.get("hp", 1.0))) * float(rates.get("hpRate", 1.0))
+	var boss_state: Dictionary = _dict(runtime.get("bossState", {}))
+	if role == "reignition":
+		var captured_hp := float(boss_state.get("firstBossFinalHp", 0.0))
+		var same_boss := String(boss_state.get("firstBossId", "")) == String(boss.get("bossId", boss.get("kind", "")))
+		if captured_hp > 0.0 and same_boss:
+			var heart_rate := active_comment_param_for_id(runtime, "hard_reignition_boss", "reignitionHpRate", 1.0)
+			final_hp = captured_hp * 1.10 * heart_rate
+	else:
+		boss_state["firstBossFinalHp"] = final_hp
+		boss_state["firstBossId"] = String(boss.get("bossId", boss.get("kind", "")))
+		runtime["bossState"] = boss_state
+	boss["hp"] = maxf(1.0, final_hp)
 	boss["max_hp"] = boss["hp"]
 	boss["speed"] = float(boss.get("speed", 0.0)) * float(rates.get("moveSpeedRate", 1.0))
 	# Specialized bosses restore their movement speed from baseSpeed every
@@ -790,6 +805,33 @@ static func active_comment_param(runtime: Dictionary, key: String, fallback: flo
 	var params: Dictionary = _dict(comment.get("params", {}))
 	return float(params.get(key, fallback))
 
+static func active_comment_id_is_active(runtime: Dictionary, comment_id: String) -> bool:
+	if runtime.is_empty() or comment_id.is_empty():
+		return false
+	if String(_dict(runtime.get("activeComment", {})).get("id", "")) == comment_id:
+		return true
+	return _dict(runtime.get("activeCommentViews", {})).has(comment_id)
+
+static func active_comment_param_for_id(runtime: Dictionary, comment_id: String, key: String, fallback: float = 1.0) -> float:
+	if runtime.is_empty() or comment_id.is_empty():
+		return fallback
+	var views: Dictionary = _dict(runtime.get("activeCommentViews", {}))
+	var selected: Dictionary = _dict(views.get(comment_id, {}))
+	if selected.is_empty() and String(_dict(runtime.get("activeComment", {})).get("id", "")) == comment_id:
+		selected = _dict(runtime.get("activeComment", {}))
+	var params: Dictionary = _dict(selected.get("params", {}))
+	return float(params.get(key, fallback))
+
+static func active_comment_value_for_id(runtime: Dictionary, comment_id: String, key: String, fallback: Variant = null) -> Variant:
+	if runtime.is_empty() or comment_id.is_empty():
+		return fallback
+	var views: Dictionary = _dict(runtime.get("activeCommentViews", {}))
+	var selected: Dictionary = _dict(views.get(comment_id, {}))
+	if selected.is_empty() and String(_dict(runtime.get("activeComment", {})).get("id", "")) == comment_id:
+		selected = _dict(runtime.get("activeComment", {}))
+	var params: Dictionary = _dict(selected.get("params", {}))
+	return params.get(key, fallback)
+
 static func spawn_rate(runtime: Dictionary, elapsed: float, boss_active: bool = false, collab_challenge_active: bool = false) -> float:
 	return float(spawn_rate_breakdown(runtime, elapsed, boss_active, collab_challenge_active).get("final", 1.0))
 
@@ -819,14 +861,19 @@ static func spawn_rate_breakdown(runtime: Dictionary, elapsed: float, boss_activ
 		breakdown["boss"] = maxf(0.0, float(config.get("bossBattleSpawnRate", 0.65)))
 	if collab_challenge_active and String(runtime.get("playMode", SINGLE)) == RELAY_SECTION and normalize_stage(runtime.get("stageId", "")) == "collab":
 		breakdown["event"] = maxf(0.0, float(config.get("collabChallengeSpawnRate", 0.50)))
-	var active_comment: Dictionary = _dict(runtime.get("activeComment", {}))
-	var active_comment_id := String(active_comment.get("id", ""))
-	if active_comment_id in ["enemy_spawn_up", "kamiyoyaku"]:
-		breakdown["comment"] = maxf(0.25, active_comment_param(runtime, "enemySpawnRate", active_comment_param(runtime, "enemySpawnAmountRate", 1.0)))
-	elif active_comment_id == "game_genre_mix":
-		breakdown["comment"] = clampf(active_comment_param(runtime, "eventSpawnRate", 1.0), 0.25, 1.0)
-	elif active_comment_id == "song_tempo_up":
-		breakdown["comment"] = maxf(0.25, active_comment_param(runtime, "enemySpawnAmountRate", 1.0))
+	if active_comment_id_is_active(runtime, "enemy_spawn_up") or active_comment_id_is_active(runtime, "kamiyoyaku"):
+		var fallback_comment_rate := maxf(0.25, active_comment_param(runtime, "enemySpawnRate", active_comment_param(runtime, "enemySpawnAmountRate", 1.0)))
+		breakdown["comment"] = fallback_comment_rate
+		if active_comment_id_is_active(runtime, "enemy_spawn_up"):
+			breakdown["comment"] = maxf(0.25, active_comment_param_for_id(runtime, "enemy_spawn_up", "enemySpawnRate", active_comment_param_for_id(runtime, "enemy_spawn_up", "enemySpawnAmountRate", fallback_comment_rate)))
+		elif active_comment_id_is_active(runtime, "kamiyoyaku"):
+			breakdown["comment"] = maxf(0.25, active_comment_param_for_id(runtime, "kamiyoyaku", "enemySpawnRate", active_comment_param_for_id(runtime, "kamiyoyaku", "enemySpawnAmountRate", fallback_comment_rate)))
+	elif active_comment_id_is_active(runtime, "game_genre_mix"):
+		var genre_spawn_rate := clampf(active_comment_param(runtime, "eventSpawnRate", 1.0), 0.25, 1.0)
+		breakdown["comment"] = clampf(active_comment_param_for_id(runtime, "game_genre_mix", "eventSpawnRate", genre_spawn_rate), 0.25, 1.0)
+	elif active_comment_id_is_active(runtime, "song_tempo_up"):
+		var tempo_spawn_rate := maxf(0.25, active_comment_param(runtime, "enemySpawnAmountRate", 1.0))
+		breakdown["comment"] = maxf(0.25, active_comment_param_for_id(runtime, "song_tempo_up", "enemySpawnAmountRate", tempo_spawn_rate))
 	breakdown["safety"] = clampf(float(runtime.get("performanceSafetyRate", config.get("performanceSafetyRate", 1.0))), 0.0, 1.0)
 	breakdown["final"] = float(breakdown["base"]) * float(breakdown["stage"]) * float(breakdown["time"]) * float(breakdown["expertTime"]) * float(breakdown["section"]) * float(breakdown["stageFlavor"]) * float(breakdown["boss"]) * float(breakdown["event"]) * float(breakdown["comment"]) * float(breakdown["safety"])
 	return breakdown
@@ -1215,35 +1262,21 @@ static func build_offer_for_target(target: Node, comments: Array, rng: RandomNum
 		var fallback_card: Dictionary = fallback[rng.randi_range(0, fallback.size() - 1)] as Dictionary
 		if _append_offer_card(offer, used_ids, fallback_card):
 			hard_only_added = hard_only_added or bool(fallback_card.get("hardOnly", false))
-	# Final pass: relax composition preferences for ordinary safe comments, but
-	# never duplicate an ID.  Three identical cards are not meaningful choices.
+	# Final pass: preserve every already-resolved, selectable ID before applying
+	# composition preferences.  Category/risk composition is only a preference
+	# here; the candidate's availability and non-repeatable safety predicates
+	# were already resolved above and remain enforced.
 	while offer.size() < 3:
 		var unique_pool: Array = []
 		for item in candidates:
 			var candidate: Dictionary = item as Dictionary
 			var candidate_id := String(candidate.get("id", ""))
-			if used_ids.has(candidate_id) or _is_non_repeatable_candidate(candidate) or not _stage_boosted_high_risk_allowed(offer, candidate, runtime):
-				continue
-			# Preserve the pre-v0.2 HARD fallback behavior. EXPERT keeps the
-			# stricter category exclusion even in this final repair pass.
-			if is_expert_runtime(runtime) and not _categories_allowed(offer, candidate):
+			if used_ids.has(candidate_id) or _is_non_repeatable_candidate(candidate):
 				continue
 			unique_pool.append(candidate)
 		if unique_pool.is_empty():
 			break
 		_append_offer_card(offer, used_ids, unique_pool[rng.randi_range(0, unique_pool.size() - 1)] as Dictionary)
-	# A shortage must not expose a blank card. Only ordinary, low-risk,
-	# non-event comments may be duplicated, and each duplicate is a deep copy.
-	while offer.size() < 3:
-		var duplicate_pool: Array = []
-		for item in candidates:
-			var candidate: Dictionary = item as Dictionary
-			if is_safe_offer_duplicate(candidate):
-				duplicate_pool.append(candidate)
-		if duplicate_pool.is_empty():
-			break
-		var duplicate_source: Dictionary = duplicate_pool[rng.randi_range(0, duplicate_pool.size() - 1)] as Dictionary
-		offer.append(duplicate_source.duplicate(true))
 	var final_offer := offer.slice(0, 3)
 	if final_offer.size() == 3 and _should_offer_hard_do_everything(target, runtime, now, final_offer, comments, rng):
 		var special: Dictionary = resolve_comment(_find_comment_by_id(comments, "do_everything"), runtime)
@@ -1301,15 +1334,14 @@ static func build_safe_default_offer_for_target(target: Node, comments: Array, r
 			if String((unique_candidates[index] as Dictionary).get("id", "")) == String(selected.get("id", "")):
 				unique_candidates.remove_at(index)
 				break
-	while offer.size() < 3:
-		var duplicate_pool: Array = []
-		for item in candidates:
-			if is_safe_offer_duplicate(item as Dictionary):
-				duplicate_pool.append(item as Dictionary)
-		if duplicate_pool.is_empty():
-			break
-		var duplicate_source: Dictionary = duplicate_pool[rng.randi_range(0, duplicate_pool.size() - 1)] as Dictionary
-		offer.append(duplicate_source.duplicate(true))
+	# If category/risk composition left slots open, use the remaining resolved
+	# candidates in their own IDs.  Do not synthesize duplicate cards; a true
+	# shortage is returned to CommentSystem for its retry path.
+	while offer.size() < 3 and not unique_candidates.is_empty():
+		var selected_index := rng.randi_range(0, unique_candidates.size() - 1)
+		var selected_candidate: Dictionary = unique_candidates[selected_index] as Dictionary
+		offer.append(selected_candidate.duplicate(true))
+		unique_candidates.remove_at(selected_index)
 	return offer
 
 static func _append_offer_card(offer: Array, used_ids: Dictionary, candidate: Dictionary) -> bool:
@@ -1363,16 +1395,6 @@ static func _is_non_repeatable_candidate(candidate: Dictionary) -> bool:
 	if categories.has("boss") or int(candidate.get("riskLevel", 1)) >= 4:
 		return true
 	return bool(candidate.get("hardOnly", false)) or categories.has("compound") or bool(candidate.get("highComplexity", false)) or bool(candidate.get("complex", false))
-
-static func is_safe_offer_duplicate(candidate: Dictionary) -> bool:
-	if candidate.is_empty() or String(candidate.get("id", "")).is_empty():
-		return false
-	if _is_non_repeatable_candidate(candidate):
-		return false
-	for category in comment_categories(candidate):
-		if String(category) in ["control_restriction", "visibility", "stage_major_event", "boss", "compound", "hard_wave", "projectile_pressure", "movement_hazard"]:
-			return false
-	return true
 
 static func comment_categories(comment: Dictionary) -> Array:
 	var explicit: Variant = comment.get("categories", null)
@@ -1506,7 +1528,7 @@ static func _categories_allowed(selected: Array, candidate: Dictionary) -> bool:
 	return true
 
 static func _reignition_comment() -> Dictionary:
-	return {"id": "hard_reignition_boss", "displayName": "再炎上", "description": "倒したボスが強化されて再登場する", "category": "boss", "categories": ["boss"], "riskLevel": 4, "multiplier": 3.0, "scoreRate": 1.45, "duration": 15.0, "minTime": 0.0, "effectType": "hard_reignition_boss", "hardOnly": true, "maxUsesPerRun": 1, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "deathText": "REIGNITION"}
+	return {"id": "hard_reignition_boss", "displayName": "再炎上", "description": "倒したボスが強化されて再登場する", "category": "boss", "categories": ["boss"], "riskLevel": 4, "multiplier": 3.0, "scoreRate": 1.45, "duration": 15.0, "minTime": 0.0, "effectType": "hard_reignition_boss", "hardOnly": true, "maxUsesPerRun": 1, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "deathText": "REIGNITION", "heartVariant": {"params": {"reignitionHpRate": 0.90}}}
 
 static func mark_comment_selected_for_target(target: Node, comment_id: String) -> void:
 	var runtime := runtime_for_target(target)
@@ -1532,6 +1554,7 @@ static func clear_active_comment_for_target(target: Node) -> void:
 		runtime["pendingPressureWave"] = {}
 	runtime["activeComment"] = {}
 	runtime["activeCommentView"] = {}
+	runtime["activeCommentViews"] = {}
 	runtime["pendingCommentWave"] = {}
 
 static func activate_comment_for_target(target: Node, comment: Dictionary, rng: RandomNumberGenerator = null) -> void:
@@ -1545,6 +1568,12 @@ static func activate_comment_for_target(target: Node, comment: Dictionary, rng: 
 	if not categories.is_empty():
 		for category in categories:
 			DangerEventSystemScript.begin(runtime, String(category), "hard_comment", 40)
+	activate_comment_event_for_target(target, comment, rng)
+
+static func activate_comment_event_for_target(target: Node, comment: Dictionary, rng: RandomNumberGenerator = null) -> void:
+	var runtime := runtime_for_target(target)
+	if runtime.is_empty() or comment.is_empty():
+		return
 	var comment_id := String(comment.get("id", ""))
 	var params: Dictionary = _dict(comment.get("params", {}))
 	if comment_id == "hard_pressure_wave":

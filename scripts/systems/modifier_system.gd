@@ -88,7 +88,7 @@ static func combined_multiplier_for_target(target: Node, key: String, fallback: 
 		found = true
 	return result if found else fallback
 
-static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNumberGenerator, sub_comments: Array = [], _sub_heart_cards: Array = []) -> Dictionary:
+static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNumberGenerator, sub_comments: Array = [], sub_heart_cards: Array = []) -> Dictionary:
 	var effects: Array[String] = []
 	var rates: Dictionary = {}
 	var rate: float = 0.7 if has_heart else 1.0
@@ -100,13 +100,14 @@ static func build_activation(comment: Dictionary, has_heart: bool, rng: RandomNu
 				effects.append(String(candidates[i]))
 				rates[String(candidates[i])] = rate
 		else:
-			for item in sub_comments:
+			for sub_index in range(sub_comments.size()):
+				var item: Variant = sub_comments[sub_index]
 				var sub_comment: Dictionary = item as Dictionary
 				var id: String = String(sub_comment.get("id", ""))
 				if id == "" or id == "do_everything" or id == "summon_boss" or effects.has(id):
 					continue
 				effects.append(id)
-				rates[id] = rate
+				rates[id] = 0.7 if sub_index < sub_heart_cards.size() and bool(sub_heart_cards[sub_index]) else 1.0
 	else:
 		effects.append(String(comment["id"]))
 		rates[String(comment["id"])] = rate
@@ -190,6 +191,7 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 		var runtime: Dictionary = runtime_value as Dictionary
 		runtime["activeComment"] = view.duplicate(true)
 		runtime["activeCommentView"] = view.duplicate(true)
+		runtime["activeCommentViews"] = {}
 	target.set("active_effects", activation["effects"] as Array[String])
 	target.set("active_effect_rates", activation["rates"] as Dictionary)
 	if String(comment["id"]) == "do_everything":
@@ -208,7 +210,10 @@ static func start_comment_for_target(target: Node, comment: Dictionary, view: Di
 	var recent: Array[String] = target.get("recent_comment_categories") as Array[String]
 	target.set("recent_comment_categories", updated_recent_categories(recent, String(comment.get("category", "default"))))
 	var number_state: Dictionary = apply_choice_numbers_to_target(target, view)
-	var effect_duration := _effect_duration_for_target(target, comment)
+	# The resolved view carries heart-only duration overrides.  Keep the raw
+	# comment for identity/benefit bookkeeping, but time the live effect from
+	# the same view that was presented to the player.
+	var effect_duration := _effect_duration_for_target(target, view)
 	if bool(target.get("relay_mode")):
 		var relay_config: Dictionary = target.get("relay_mode_config") as Dictionary
 		var instruction: Dictionary = relay_config.get("instruction", {}) as Dictionary
@@ -309,8 +314,12 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 		var runtime_value: Variant = target.get("difficulty_runtime")
 		if runtime_value is Dictionary:
 			var runtime: Dictionary = runtime_value as Dictionary
-			var wall_add: int = int(round(HardModeSystemScript.active_comment_param(runtime, "wallCountAdd", 0.0))) if HardModeSystemScript.is_high_difficulty_runtime(runtime) else 0
-			wall_count += wall_add
+			var wall_rate := HardModeSystemScript.active_comment_param_for_id(runtime, "temp_walls", "wallCountRate", 1.0)
+			if not is_equal_approx(wall_rate, 1.0):
+				wall_count = maxi(1, roundi(float(wall_count) * wall_rate))
+			else:
+				var wall_add: int = int(round(HardModeSystemScript.active_comment_param_for_id(runtime, "temp_walls", "wallCountAdd", 0.0))) if HardModeSystemScript.is_high_difficulty_runtime(runtime) else 0
+				wall_count += wall_add
 		var min_player_distance: float = 150.0
 		for i in range(wall_count):
 			var wall_size: Vector2 = Vector2.ZERO
@@ -331,10 +340,15 @@ static func setup_stage_effects_for_target(target: Node, arena: Rect2, rng: Rand
 		var pit_count := 7
 		var pit_cap := 999
 		var pit_runtime_value: Variant = target.get("difficulty_runtime")
-		if pit_runtime_value is Dictionary and HardModeSystemScript.is_high_difficulty_runtime(pit_runtime_value as Dictionary):
+		if pit_runtime_value is Dictionary:
 			var pit_runtime: Dictionary = pit_runtime_value as Dictionary
-			pit_count += int(round(HardModeSystemScript.active_comment_param(pit_runtime, "pitCountAdd", 0.0)))
-			pit_cap = maxi(1, int(round(HardModeSystemScript.active_comment_param(pit_runtime, "activeCap", 999.0)))) if HardModeSystemScript.active_comment_param(pit_runtime, "activeCap", 999.0) < 999.0 else 999
+			var explicit_pit_count := HardModeSystemScript.active_comment_param_for_id(pit_runtime, "damage_pits", "pitCount", -1.0)
+			if explicit_pit_count >= 0.0:
+				pit_count = maxi(1, roundi(explicit_pit_count))
+			elif HardModeSystemScript.is_high_difficulty_runtime(pit_runtime):
+				pit_count += int(round(HardModeSystemScript.active_comment_param_for_id(pit_runtime, "damage_pits", "pitCountAdd", 0.0)))
+			var active_cap := HardModeSystemScript.active_comment_param_for_id(pit_runtime, "damage_pits", "activeCap", 999.0)
+			pit_cap = maxi(1, int(round(active_cap))) if active_cap < 999.0 else 999
 		for i in range(mini(pit_count, pit_cap)):
 			var p := Vector2(rng.randf_range(arena.position.x + 80, arena.end.x - 80), rng.randf_range(arena.position.y + 80, arena.end.y - 80))
 			pits.append({"pos": p, "radius": rng.randf_range(24, 42)})
@@ -441,5 +455,6 @@ static func clear_state_for_target(target: Node, suppress_clear_bonus: bool = fa
 		runtime["dangerCategories"] = active_dangers
 		runtime["activeComment"] = {}
 		runtime["activeCommentView"] = {}
+		runtime["activeCommentViews"] = {}
 		runtime["pendingCommentWave"] = {}
 	return clear_state_result

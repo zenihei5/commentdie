@@ -15,7 +15,7 @@ func _ready() -> void:
 
 func _run_tests() -> void:
 	CodexManager.initialize_empty()
-	_check(DifficultyProgressSystemScript.SAVE_VERSION == 5, "outer save schema is five")
+	_check(DifficultyProgressSystemScript.SAVE_VERSION == 6, "outer save schema includes unlock presentation state")
 	var weapons: Array = CodexManager.get_master_entries(CodexManager.CATEGORY_WEAPON)
 	var accessories: Array = CodexManager.get_master_entries(CodexManager.CATEGORY_ACCESSORY)
 	var characters: Array = CodexManager.get_master_entries(CodexManager.CATEGORY_CHARACTER)
@@ -130,12 +130,96 @@ func _test_comment_models(comments: Array) -> void:
 
 func _test_character_profiles(characters: Array) -> void:
 	var weapons := CodexManager.get_master_entries(CodexManager.CATEGORY_WEAPON)
+	var sources := Presentation.load_sources()
+	var unit_master := _read_array("res://data/character_units.json")
+	_check(unit_master.size() == 2, "character unit master contains rookie and senior units")
+	var rookie_unit := _find(unit_master, "rookie_unit")
+	_check(String(rookie_unit.get("id", "")) == "rookie_unit", "character unit master contains rookie_unit")
+	_check(String(rookie_unit.get("displayName", "")) == "初期メンバー" and String(rookie_unit.get("codexDescription", "")).contains("配信の進め方もコメントへの対応も手探り"), "rookie unit master keeps the canonical shared introduction")
+	var senior_unit := _find(unit_master, "senior_unit")
+	_check(String(senior_unit.get("id", "")) == "senior_unit", "character unit master contains senior_unit")
+	_check(String(senior_unit.get("displayName", "")) == "先輩メンバー", "senior unit master uses the canonical display name")
+	_check(not senior_unit.has("codexDescription") or String(senior_unit.get("codexDescription", "")) == "", "senior unit has no invented shared description")
+	var expected_profiles := {
+		"ban_chan": {
+			"description": "思ったことが顔や声にすぐ出る、明るく行動力のある新人配信者。\n\n少し慌てやすく、音声設定を間違えたり、画面を切り替え忘れたりと、配信に慣れていないことが原因の失敗もまだ多い。なかでも配信を終了したつもりで消し忘れ、そのまま一人反省会を始めてしまったことは何度かある。\n\n本人は事故のたびに落ち込むものの、引きずるよりも次の配信で取り返そうとするタイプ。困っている仲間を放っておけない面倒見のよさもあり、勢い任せに見えて意外と周囲のことをよく見ている。\n\n荒れたコメント欄を放っておけない性格もあって、BANハンマーはいつしか彼女を象徴する道具になった。",
+			"streamStyle": "勢いとリアクションを大切にする、にぎやかな配信が中心。細かく計画を立てるより、その場の流れに乗って進めることが多い。",
+			"likes": ["にぎやかなコメント欄", "分かりやすい勝負", "頼られること"],
+			"dislikes": ["細かい設定確認", "回りくどいやり取り", "気まずい空気"]
+		},
+		"superchat_chan": {
+			"description": "好奇心が強く、面白そうなものにはすぐ飛びつく新人配信者。\n\nお金が好きなことを隠す気がなく、スパチャが届けば素直に喜び、収益や数字の話も遠慮なく口にする。その正直さは彼女らしい魅力でもあるが、ときどき発言が少し過激になり、運営から注意されることもある。\n\n本人に悪気はなく、応援が目に見える形で届くことが純粋にうれしいらしい。企画を思いつく速度は速い一方、細かな準備は配信を始めてから考えることも多く、予定どおりに進まない状況すら楽しんでいる節がある。\n\nスパチャ弾は、そんな彼女がリスナーから受け取った応援をそのまま力に変えたものだと言われている。",
+			"streamStyle": "新しい企画や派手な演出を好み、見てすぐ分かる盛り上がりを大切にする。数字の変化にもよく気がつく。",
+			"likes": ["お金", "スパチャ", "新しい機材", "景気のいい数字"],
+			"dislikes": ["地味な展開", "成果の分かりにくい作業", "運営からの注意連絡"]
+		},
+		"maro_chan": {
+			"description": "大人しく柔らかな印象を持たれやすいが、自分の考えをしっかり持っている新人配信者。\n\n普段は穏やかな受け答えが多く、以前の配信で話した小さな内容まで覚えていることもある。争いごとを好むわけではないが、納得できない言葉まで笑って受け流すタイプではない。\n\n特に悪意のあるクソマロには、柔らかな口調のまま辛辣な返しをすることがある。その普段との落差がリスナーに受け、クソマロを読む場面だけを楽しみにしている視聴者も少なくない。\n\n本人は面白いことを言おうとしているのではなく、筋の通らない言葉へ率直に答えているだけらしい。コメントブーメランも、投げかけた言葉が相手へ返っていく彼女の配信スタイルを象徴している。",
+			"streamStyle": "穏やかな空気でリスナーと話す、ゆったりした配信が中心。コメントを丁寧に拾いながら、自分のペースで進めていく。",
+			"likes": ["甘いもの", "かわいい小物", "落ち着いた雑談", "礼儀のあるコメント"],
+			"dislikes": ["急かされること", "悪意を善意のように装った言葉", "誰かを傷つけて楽しむこと"]
+		}
+	}
 	for character_value in characters:
 		var character: Dictionary = character_value as Dictionary
 		var profile_value: Variant = character.get("codexProfile", {})
 		_check(profile_value is Dictionary and String((profile_value as Dictionary).get("description", "")).strip_edges() != "", "character has codexProfile description: %s" % String(character.get("id", "")))
-		var model := Presentation.character_profile_model(character, weapons, [])
+		var model := Presentation.character_profile_model(character, weapons, [], true, sources)
 		_check(String(model.get("description", "")).strip_edges() != "", "character presentation uses profile description: %s" % String(character.get("id", "")))
+		var character_id := String(character.get("id", ""))
+		if expected_profiles.has(character_id):
+			var expected: Dictionary = expected_profiles[character_id] as Dictionary
+			_check(String(model.get("description", "")) == String(expected.get("description", "")), "character profile description is canonical: %s" % character_id)
+			_check(String(model.get("streamStyle", "")) == String(expected.get("streamStyle", "")), "character stream style is canonical: %s" % character_id)
+			_check((model.get("likes", []) as Array) == (expected.get("likes", []) as Array), "character likes preserve order: %s" % character_id)
+			_check((model.get("dislikes", []) as Array) == (expected.get("dislikes", []) as Array), "character dislikes preserve order: %s" % character_id)
+			_check(not String(model.get("likesText", "")).contains("。。") and String(model.get("likesText", "")).ends_with("。"), "character likes text has one natural final punctuation: %s" % character_id)
+			_check(not String(model.get("dislikesText", "")).contains("。。") and String(model.get("dislikesText", "")).ends_with("。"), "character dislikes text has one natural final punctuation: %s" % character_id)
+			_check(String(model.get("unitDisplayName", "")) == "初期メンバー", "character uses the shared rookie unit name: %s" % character_id)
+			_check(String(model.get("unitDescription", "")).contains("ほぼ同じ時期にデビューした"), "character uses the shared rookie unit description: %s" % character_id)
+			var copied_likes: Array = model.get("likes", []) as Array
+			if not copied_likes.is_empty():
+				copied_likes[0] = "変更テスト"
+			var fresh_model := Presentation.character_profile_model(character, weapons, [], true, sources)
+			_check(String((fresh_model.get("likes", []) as Array).front()) == String((expected.get("likes", []) as Array).front()), "character profile arrays are copied defensively: %s" % character_id)
+	var expected_senior_profiles := {
+		"aosumi_kyasumi": {
+			"description": "冷静で落ち着いており、何か起きてもまず状況を整理しようとするタイプの配信者。\n\nコメント欄の変化にもかなり敏感で、荒れそうな流れや危ない空気を早い段階で察知することが多い。そのため、リスナーからは「本人が一番早く異変に気づく」と言われることもある。\n\n真面目で少し堅く見られがちだが、配信そのものを大切にしている気持ちは人一倍強い。誰かが安心して見られる空間を保ちたいという意識が強く、それがそのまま彼女の立ち回りにも表れている。\n\nモデレーターシールドは、自分のためというより配信全体を守るための道具として扱っているらしい。",
+			"streamStyle": "落ち着いた進行と丁寧なコメント対応を得意とする、安定感のある配信が中心。大きく盛り上げるというより、配信全体をきれいに整えるのがうまい。",
+			"likes": ["整理された環境", "静かな時間", "ルールが守られているコメント欄"],
+			"dislikes": ["突発的なトラブル", "場の空気を乱す言動", "説明を読まない人"]
+		},
+		"akarine_rizumu": {
+			"description": "見ている側まで元気になりそうな勢いを持つ、明るくエネルギッシュな配信者。\n\n考えるより先に体が動くタイプで、テンションが上がるとそのまま勢いで押し切ってしまうことも多い。ただ、その勢いが配信の空気を前向きに引っ張っていく場面も多く、本人の明るさそのものが武器になっている。\n\n視聴者へ反応を返すのが好きで、コメントに答えるだけでなく、その場で急にファンサを始めることも珍しくない。配信を「一緒に盛り上がる場」として考えている節が強く、見ている相手を置いていかないのが彼女らしさでもある。\n\nファンサバトンは、もともとはステージを盛り上げるための小道具だったらしいが、今では本人の手にすっかりなじんでいる。",
+			"streamStyle": "テンション高めで、リアクションやファンサを交えながら進めるライブ感の強い配信が中心。止まっている時間を作らず、常に何かしら動いていることが多い。",
+			"likes": ["ライブ感", "ファンサ", "拍手や反応", "身体を動かすこと"],
+			"dislikes": ["静かすぎる空気", "長い待ち時間", "反応の薄い場面"]
+		},
+		"shizuki_miimu": {
+			"description": "どこまで本気で、どこまで冗談なのか少し分かりにくい、つかみどころのない配信者。\n\n人の反応を見るのが好きで、タイトルやサムネイルにもつい工夫を入れたがる。少し煽るような見せ方をすることもあるが、本気で相手を困らせたいわけではなく、最終的には「見に来てよかった」と思ってもらうところまで含めて配信だと考えているらしい。\n\nいたずらっぽい印象を持たれやすい一方で、配信の見せ方についてはかなり計算しているところがあり、何が気になってもらえるか、どこで引きつけるかをよく考えている。軽く見えて、実はかなり手強いタイプ。\n\n釣りサムネロッドについて尋ねられると毎回答えが少し違うが、少なくとも人を惹きつけるための道具であることだけは確からしい。",
+			"streamStyle": "企画や見せ方にひとひねり加えるのが得意で、リスナーの反応を見ながら空気を転がしていくタイプ。少し怪しげな導入や、気になる見せ方を好む。",
+			"likes": ["面白い反応", "予想外の展開", "変わった企画", "目を引くサムネイル"],
+			"dislikes": ["予定調和", "印象の薄い配信", "反応のない空気"]
+		}
+	}
+	for senior_id_value in expected_senior_profiles.keys():
+		var senior_id := String(senior_id_value)
+		var senior_character := _find(characters, senior_id)
+		var expected_senior: Dictionary = expected_senior_profiles[senior_id] as Dictionary
+		var senior_model := Presentation.character_profile_model(senior_character, weapons, [], true, sources)
+		_check(String(senior_model.get("description", "")) == String(expected_senior.get("description", "")), "senior profile description is canonical: %s" % senior_id)
+		_check(String(senior_model.get("streamStyle", "")) == String(expected_senior.get("streamStyle", "")), "senior stream style is canonical: %s" % senior_id)
+		_check((senior_model.get("likes", []) as Array) == (expected_senior.get("likes", []) as Array), "senior likes preserve order: %s" % senior_id)
+		_check((senior_model.get("dislikes", []) as Array) == (expected_senior.get("dislikes", []) as Array), "senior dislikes preserve order: %s" % senior_id)
+		_check(String(senior_model.get("unitDisplayName", "")) == "先輩メンバー", "senior profile uses the shared unit name: %s" % senior_id)
+		_check(String(senior_model.get("unitDescription", "")) == "", "senior profile has no invented shared description: %s" % senior_id)
+		_check(not String(senior_model.get("description", "")).contains("**"), "senior profile does not expose markdown markers: %s" % senior_id)
+		_check(not String(senior_model.get("likesText", "")).contains("。。") and String(senior_model.get("likesText", "")).ends_with("。"), "senior likes text has one natural final punctuation: %s" % senior_id)
+		_check(not String(senior_model.get("dislikesText", "")).contains("。。") and String(senior_model.get("dislikesText", "")).ends_with("。"), "senior dislikes text has one natural final punctuation: %s" % senior_id)
+	var missing_model := Presentation.character_profile_model({"id": "missing", "unitId": "unknown_unit", "initialWeapon": "ban_hammer"}, weapons, [], true, sources)
+	_check(String(missing_model.get("unitDisplayName", "")) == "" and String(missing_model.get("streamStyle", "")) == "" and (missing_model.get("likes", []) as Array).is_empty(), "missing character profile sections fall back safely")
+	var hidden_model := Presentation.character_profile_model(_find(characters, "ban_chan"), weapons, [], false, sources)
+	_check(String(hidden_model.get("unitDisplayName", "")) == "" and String(hidden_model.get("description", "")) == "" and (hidden_model.get("likes", []) as Array).is_empty(), "undiscovered character profile stays masked")
 
 func _test_collection() -> void:
 	CodexManager.initialize_empty()

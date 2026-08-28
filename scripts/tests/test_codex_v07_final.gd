@@ -80,7 +80,8 @@ func _test_result_layout_and_summary() -> void:
 	_check(game._result_button_ids().size() == 4 and not game._result_layout().has("codexButton"), "empty result keeps the four legacy buttons")
 
 func _test_screen_modes_and_input() -> void:
-	# A formal list selection confirms a discovered NEW item before detail opens.
+	# A formal list selection confirms a discovered NEW item while the right
+	# panel remains the single complete detail view.
 	CodexManager.initialize_empty()
 	var formal_cases := [
 		[CodexManager.CATEGORY_CHARACTER, "aosumi_kyasumi"],
@@ -103,17 +104,37 @@ func _test_screen_modes_and_input() -> void:
 		screen.open_screen("title", {}, {"category": case_category})
 		screen._select_entry_by_id(case_id)
 		_check(not CodexManager.is_new(case_category, case_id), "formal selection clears NEW without requiring detail: %s" % case_category)
+		_check(not String(screen._detail_body.text).contains("決定で詳細") and not String(screen._detail_body.text).contains("選択でNEW確認済み"), "formal selection shows the complete detail model: %s" % case_category)
+		if case_category == CodexManager.CATEGORY_CHARACTER:
+			_check(screen._character_profile_content.visible, "character selection shows the structured profile immediately")
 
-	# Detail opening itself is not a second read operation.  This fixture is
-	# discovered after the screen is already open so it stays NEW until select.
+	# The right panel is always the complete detail.  Enter only changes the
+	# input destination when the detail has a scroll range.
 	CodexManager.initialize_empty()
-	screen.open_screen("title", {}, {"category": "weapons"})
 	CodexManager.discover_weapon("ban_hammer")
-	var detail_index: int = screen._selected_index(screen._visible_entries())
-	var before_detail: bool = CodexManager.is_new(CodexManager.CATEGORY_WEAPON, "ban_hammer")
-	screen._open_detail(detail_index)
-	_check(screen._detail_mode and before_detail and CodexManager.is_new(CodexManager.CATEGORY_WEAPON, "ban_hammer"), "detail open alone does not clear NEW")
-	screen._exit_detail()
+	screen.open_screen("title", {}, {"category": "weapons"})
+	screen._select_entry_by_id("ban_hammer")
+	_check(String(screen._detail_body.text).contains("標準性能"), "right panel renders the complete discovered detail from the initial selection")
+	_check(int(screen._input_focus) == 0, "opening a complete detail starts in LIST focus")
+	var detail_scrollable := screen._detail_is_scrollable()
+	_check(bool(screen.handle_input(_key_event(KEY_ENTER))), "list Enter is consumed")
+	if detail_scrollable:
+		_check(int(screen._input_focus) == 1, "scrollable detail enters DETAIL focus")
+		_check(screen._detail_focus_ring.visible and screen._detail_back_button.text == "一覧へ戻る", "DETAIL focus updates its outline and back action")
+		var detail_scroll_before := screen._detail_scroll.scroll_vertical
+		screen.handle_input(_key_event(KEY_PAGEDOWN))
+		_check(screen._detail_scroll.scroll_vertical >= detail_scroll_before, "DETAIL PageDown routes to the right detail scroll")
+		var detail_scroll_after_page := screen._detail_scroll.scroll_vertical
+		var horizontal_before := String(screen._selected_ids.get(CodexManager.CATEGORY_WEAPON, ""))
+		var horizontal_event := InputEventKey.new()
+		horizontal_event.pressed = true
+		horizontal_event.keycode = KEY_RIGHT
+		_check(bool(screen.handle_input(horizontal_event)), "DETAIL horizontal input is consumed")
+		_check(int(screen._input_focus) == 1 and String(screen._selected_ids.get(CodexManager.CATEGORY_WEAPON, "")) == horizontal_before and screen._detail_scroll.scroll_vertical == detail_scroll_after_page, "DETAIL horizontal input is reserved and does not move or scroll")
+		screen.handle_input(_key_event(KEY_ESCAPE))
+		_check(int(screen._input_focus) == 0 and screen._detail_focus_ring.visible == false, "DETAIL Escape returns to LIST")
+	else:
+		_check(int(screen._input_focus) == 0, "short detail keeps LIST focus")
 	screen._select_entry_by_id("ban_hammer")
 	_check(not CodexManager.is_new(CodexManager.CATEGORY_WEAPON, "ban_hammer"), "formal click clears the selected NEW item")
 
@@ -199,12 +220,11 @@ func _test_screen_modes_and_input() -> void:
 	_check(screen._new_only, "result codex can open in NEW-only mode")
 	_check(not CodexManager.is_new(CodexManager.CATEGORY_WEAPON, "ban_hammer"), "result codex reads only when it opens the formal initial selection")
 	screen._select_entry_by_id("ban_hammer")
-	_check(screen._new_only and screen._detail_mode, "reading the final NEW keeps the snapshot in NEW mode")
+	_check(screen._new_only, "reading the final NEW keeps the snapshot in NEW mode")
 	var escape := InputEventKey.new()
 	escape.pressed = true
 	escape.keycode = KEY_ESCAPE
-	_check(bool(screen.handle_input(escape)) and not screen._detail_mode and bool(screen.visible), "first Escape exits detail only")
-	_check(bool(screen.handle_input(escape)) and not bool(screen.visible) and closed_origin == "result", "second Escape closes and preserves origin")
+	_check(bool(screen.handle_input(escape)) and not bool(screen.visible) and closed_origin == "result", "Escape closes directly and preserves origin")
 
 	screen.open_screen("title", {}, {"category": "characters"})
 	var before_category: int = screen._category_index
@@ -242,6 +262,12 @@ func _test_audit_and_dynamic_totals() -> void:
 func _check(condition: bool, message: String) -> void:
 	if not condition:
 		failures.append(message)
+
+func _key_event(keycode: Key) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.pressed = true
+	event.keycode = keycode
+	return event
 
 func _entry_ids(entries: Array) -> Array:
 	var ids: Array = []

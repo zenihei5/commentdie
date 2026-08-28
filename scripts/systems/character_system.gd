@@ -4,11 +4,25 @@ extends RefCounted
 const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_system.gd")
 
 const SELECT_PAGE_SIZE := 6
-const SELECT_COLUMNS := 2
-const SELECT_CARD_ORIGIN := Vector2(24.0, 72.0)
-const SELECT_CARD_SIZE := Vector2(408.0, 192.0)
-const SELECT_CARD_GAP := Vector2(16.0, 12.0)
+const SELECT_COLUMNS := 3
+const SELECT_CARD_ORIGIN := Vector2(24.0, 90.0)
+const SELECT_CARD_SIZE := Vector2(264.0, 224.0)
+const SELECT_CARD_GAP := Vector2(16.0, 76.0)
+const SELECT_CARD_WEAPON_OFFSET := Vector2(108.0, 61.0)
+const SELECT_CARD_WEAPON_SIZE := Vector2(152.0, 118.0)
+const SELECT_CARD_COMPACT_WEAPON_ICON_SIZE := Vector2(40.0, 40.0)
+const SELECT_CARD_COMPACT_WEAPON_LABEL_FONT_SIZE := 13
+const SELECT_CARD_COMPACT_WEAPON_LABEL_BASELINE := 15.0
+const SELECT_CARD_COMPACT_WEAPON_LABEL_DARKEN := 0.14
+const SELECT_CARD_COMPACT_WEAPON_LABEL_ALPHA := 0.94
+const SELECT_LOCKED_ACCENT := Color("#8f70c8")
+const SELECT_LOCKED_SOFT_FILL := Color("#f1ebf7")
+const SELECT_LOCKED_SILHOUETTE_COLOR := Color("#44384f")
 const SELECT_CARD_CORNER_RADIUS := 20.0
+const SELECT_CARD_WALK_FPS := 8.0
+const SELECT_CARD_WALK_SCALE := 1.42
+const SELECT_CARD_AVATAR_VISUAL_HEIGHT := 140.0
+const SELECT_CARD_AVATAR_FOOT_INSET := 4.0
 const SELECT_LIST_PANEL_RECT := Rect2(76.0, 112.0, 880.0, 692.0)
 const SELECT_DETAIL_PANEL_SIZE := Vector2(542.0, 692.0)
 const DEFAULT_CHARACTER_ID := "ban_chan"
@@ -70,6 +84,8 @@ static func selected_character_state(characters: Array, weapons: Array, id: Stri
 	var weapon_fallback := fallback_weapon() if String(character.get("unlockGroup", "")) != "senior_unit" else fallback_null_weapon()
 	var weapon: Dictionary = WeaponSystem.find_weapon(weapons, weapon_id, weapon_fallback)
 	var sprite_path: String = String(character.get("sprite", ""))
+	if sprite_path == "":
+		sprite_path = gameplay_stationary_sprite_path(character)
 	var character_id: String = String(character.get("id", "ban_chan"))
 	var idle_sprite_path: String = String(character.get("idleSprite", ""))
 	if idle_sprite_path == "" and character_id == "ban_chan":
@@ -178,16 +194,172 @@ static func selection_card_rect(local_index: int) -> Rect2:
 		SELECT_CARD_SIZE
 	)
 
+static func selection_group_heading_rects() -> Array:
+	var row_width := SELECT_CARD_SIZE.x * float(SELECT_COLUMNS) + SELECT_CARD_GAP.x * float(SELECT_COLUMNS - 1)
+	var first_row_y := SELECT_CARD_ORIGIN.y - 34.0
+	var second_row_y := SELECT_CARD_ORIGIN.y + SELECT_CARD_SIZE.y + SELECT_CARD_GAP.y - 34.0
+	return [
+		Rect2(Vector2(SELECT_CARD_ORIGIN.x, first_row_y), Vector2(row_width, 22.0)),
+		Rect2(Vector2(SELECT_CARD_ORIGIN.x, second_row_y), Vector2(row_width, 22.0))
+	]
+
+static func selection_group_heading_labels() -> Array[String]:
+	return ["初期メンバー", "先輩メンバー"]
+
 static func selection_list_panel_rect() -> Rect2:
 	return SELECT_LIST_PANEL_RECT
 
 static func selection_card_content_rects(card_rect: Rect2) -> Dictionary:
 	return {
-		"portrait": Rect2(card_rect.position + Vector2(14.0, 46.0), Vector2(158.0, 138.0)),
-		"weapon": Rect2(card_rect.position + Vector2(184.0, 50.0), Vector2(210.0, 60.0)),
-		"tags": Rect2(card_rect.position + Vector2(184.0, 124.0), Vector2(210.0, 28.0)),
-		"info": Rect2(card_rect.position + Vector2(184.0, 46.0), Vector2(210.0, 132.0))
+		"portrait": Rect2(card_rect.position + Vector2(8.0, 46.0), Vector2(98.0, 162.0)),
+		"weapon": Rect2(card_rect.position + SELECT_CARD_WEAPON_OFFSET, SELECT_CARD_WEAPON_SIZE),
+		"info": Rect2(card_rect.position + Vector2(108.0, 10.0), Vector2(148.0, 30.0))
 	}
+
+static func selection_card_compact_weapon_text_rects(weapon_rect: Rect2) -> Dictionary:
+	var inner_width: float = maxf(1.0, weapon_rect.size.x - 20.0)
+	return {
+		"icon": Rect2(weapon_rect.position + Vector2(10.0, 10.0), SELECT_CARD_COMPACT_WEAPON_ICON_SIZE),
+		"label": Rect2(weapon_rect.position + Vector2(58.0, 8.0), Vector2(maxf(1.0, weapon_rect.size.x - 68.0), 22.0)),
+		"name": Rect2(weapon_rect.position + Vector2(10.0, 56.0), Vector2(inner_width, 54.0)),
+		"condition": Rect2(weapon_rect.position + Vector2(10.0, 42.0), Vector2(inner_width, 66.0))
+	}
+
+static func selection_card_compact_weapon_label_color(accent: Color) -> Color:
+	var label_color := accent.darkened(SELECT_CARD_COMPACT_WEAPON_LABEL_DARKEN)
+	label_color.a = SELECT_CARD_COMPACT_WEAPON_LABEL_ALPHA
+	return label_color
+
+static func selection_locked_silhouette_image(source_image: Image, silhouette_color: Color = SELECT_LOCKED_SILHOUETTE_COLOR) -> Image:
+	if source_image == null or source_image.get_width() <= 0 or source_image.get_height() <= 0:
+		return null
+	var result: Image = Image.create(source_image.get_width(), source_image.get_height(), false, Image.FORMAT_RGBA8)
+	if result == null:
+		return null
+	result.fill(Color(0.0, 0.0, 0.0, 0.0))
+	for y in range(source_image.get_height()):
+		for x in range(source_image.get_width()):
+			var source_pixel: Color = source_image.get_pixel(x, y)
+			if source_pixel.a > 0.0:
+				result.set_pixel(x, y, Color(silhouette_color.r, silhouette_color.g, silhouette_color.b, source_pixel.a))
+	return result
+
+static func selection_detail_locked_content_rects(panel_rect: Rect2) -> Dictionary:
+	var normal_content := selection_detail_content_rects(panel_rect)
+	return {
+		"image": normal_content["image"] as Rect2,
+		"condition": Rect2(panel_rect.position + Vector2(28.0, 426.0), Vector2(panel_rect.size.x - 56.0, 92.0))
+	}
+
+static func selection_card_walk_metadata(character: Dictionary) -> Dictionary:
+	var offset_value: Variant = character.get("cardWalkSpriteOffset", {"x": 0, "y": 0})
+	if not offset_value is Dictionary:
+		offset_value = {"x": 0, "y": 0}
+	var scale_value := maxf(0.1, float(character.get("cardWalkSpriteScale", SELECT_CARD_WALK_SCALE)))
+	return {
+		"path": String(character.get("runSprite", "")),
+		"cols": maxi(1, int(character.get("runSpriteCols", 10))),
+		"rows": maxi(1, int(character.get("runSpriteRows", 1))),
+		"fps": SELECT_CARD_WALK_FPS,
+		"sourceFps": maxf(0.0, float(character.get("runSpriteFps", 12.0))),
+		"staticFrame": 0,
+		"scale": scale_value,
+		"offset": offset_value as Dictionary
+	}
+
+static func gameplay_stationary_sprite_path(character: Dictionary) -> String:
+	var idle_path := String(character.get("idleSprite", ""))
+	if idle_path != "":
+		return idle_path
+	return String(character.get("sprite", ""))
+
+static func selection_card_stationary_metadata(character: Dictionary) -> Dictionary:
+	var uses_idle_sheet := String(character.get("idleSprite", "")) != ""
+	return {
+		"path": gameplay_stationary_sprite_path(character),
+		"cols": maxi(1, int(character.get("idleSpriteCols", 1))) if uses_idle_sheet else 1,
+		"rows": maxi(1, int(character.get("idleSpriteRows", 1))) if uses_idle_sheet else 1,
+		"staticFrame": 0
+	}
+
+static func selection_card_can_use_walk_sprite(texture_available: bool, status: String) -> bool:
+	return texture_available and status != "coming_soon"
+
+static func selection_card_walk_should_animate(status: String, selectable: bool, selected: bool) -> bool:
+	return selected and selectable and status != "locked" and status != "coming_soon"
+
+static func selection_card_avatar_mode(status: String, selectable: bool, selected: bool) -> String:
+	return "walk" if selection_card_walk_should_animate(status, selectable, selected) else "static"
+
+static func selection_card_walk_frame_index(time: float, selected: bool, selectable: bool, columns: int = 10, fps: float = SELECT_CARD_WALK_FPS) -> int:
+	if not selected or not selectable:
+		return 0
+	var frame_count := maxi(1, columns)
+	var frame := int(floor(maxf(0.0, time) * maxf(0.0, fps)))
+	return posmod(frame, frame_count)
+
+static func selection_card_walk_source_rect(texture_size: Vector2, columns: int, rows: int, frame_index: int) -> Rect2:
+	var safe_columns := maxi(1, columns)
+	var safe_rows := maxi(1, rows)
+	var cell_size := Vector2(texture_size.x / float(safe_columns), texture_size.y / float(safe_rows))
+	var frame_count := maxi(1, safe_columns * safe_rows)
+	var frame := posmod(frame_index, frame_count)
+	var frame_column := frame % safe_columns
+	var frame_row := int(frame / safe_columns)
+	return Rect2(Vector2(float(frame_column) * cell_size.x, float(frame_row) * cell_size.y), cell_size)
+
+static func selection_card_walk_destination_rect(container: Rect2, texture_size: Vector2, columns: int, rows: int, scale_factor: float = SELECT_CARD_WALK_SCALE, offset: Vector2 = Vector2.ZERO) -> Rect2:
+	var source_cell := selection_card_walk_source_rect(texture_size, columns, rows, 0).size
+	if source_cell.x <= 0.0 or source_cell.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
+		return Rect2(container.position, Vector2.ZERO)
+	var fit_scale := minf(container.size.x / source_cell.x, container.size.y / source_cell.y)
+	var destination_size := source_cell * fit_scale * maxf(0.1, scale_factor)
+	var destination_position := Vector2(container.get_center().x - destination_size.x * 0.5, container.end.y - destination_size.y)
+	return Rect2(destination_position + offset, destination_size)
+
+static func selection_card_walk_visible_rect(container: Rect2, destination: Rect2) -> Rect2:
+	return destination.intersection(container)
+
+static func selection_card_avatar_opaque_bounds(image: Image, columns: int, rows: int, union_frames: bool) -> Rect2:
+	if image == null or image.get_width() <= 0 or image.get_height() <= 0:
+		return Rect2()
+	var safe_columns := maxi(1, columns)
+	var safe_rows := maxi(1, rows)
+	var cell_size := Vector2i(maxi(1, int(image.get_width() / safe_columns)), maxi(1, int(image.get_height() / safe_rows)))
+	var frame_count := maxi(1, safe_columns * safe_rows) if union_frames else 1
+	var result := Rect2()
+	var has_bounds := false
+	for frame in range(frame_count):
+		var frame_column := frame % safe_columns
+		var frame_row := int(frame / safe_columns)
+		var frame_rect := Rect2i(Vector2i(frame_column * cell_size.x, frame_row * cell_size.y), cell_size)
+		var used := image.get_region(frame_rect).get_used_rect()
+		if used.size.x <= 0 or used.size.y <= 0:
+			continue
+		var bounds := Rect2(Vector2(used.position), Vector2(used.size))
+		if not has_bounds:
+			result = bounds
+			has_bounds = true
+		else:
+			result = result.merge(bounds)
+	return result if has_bounds else Rect2()
+
+static func selection_card_avatar_destination_rect(container: Rect2, source_cell_size: Vector2, opaque_bounds: Rect2, visual_height: float = SELECT_CARD_AVATAR_VISUAL_HEIGHT, foot_inset: float = SELECT_CARD_AVATAR_FOOT_INSET, scale_adjust: float = 1.0, offset: Vector2 = Vector2.ZERO) -> Rect2:
+	if source_cell_size.x <= 0.0 or source_cell_size.y <= 0.0 or opaque_bounds.size.x <= 0.0 or opaque_bounds.size.y <= 0.0 or container.size.x <= 0.0 or container.size.y <= 0.0:
+		return Rect2(container.position, Vector2.ZERO)
+	var scale_value := maxf(0.01, visual_height) / opaque_bounds.size.y * maxf(0.01, scale_adjust)
+	var destination_size := source_cell_size * scale_value
+	var destination_position := Vector2(
+		container.get_center().x - opaque_bounds.get_center().x * scale_value,
+		container.end.y - foot_inset - opaque_bounds.end.y * scale_value
+	)
+	return Rect2(destination_position + offset, destination_size)
+
+static func selection_card_avatar_mapped_opaque_rect(destination: Rect2, source_cell_size: Vector2, opaque_bounds: Rect2) -> Rect2:
+	if source_cell_size.x <= 0.0 or source_cell_size.y <= 0.0 or destination.size.x <= 0.0 or destination.size.y <= 0.0:
+		return Rect2()
+	var scale_value := destination.size.x / source_cell_size.x
+	return Rect2(destination.position + opaque_bounds.position * scale_value, opaque_bounds.size * scale_value)
 
 static func selection_detail_content_rects(panel_rect: Rect2) -> Dictionary:
 	return {
@@ -315,6 +487,8 @@ static func selection_card_view(character: Dictionary, weapons: Array) -> Dictio
 	var passive_data: Dictionary = passive(character)
 	var character_id: String = String(character.get("id", "ban_chan"))
 	var colors: Dictionary = theme_colors(character)
+	var walk_metadata: Dictionary = selection_card_walk_metadata(character)
+	var stationary_metadata: Dictionary = selection_card_stationary_metadata(character)
 	var select_sprite_path := String(character.get("selectSprite", ""))
 	if select_sprite_path == "":
 		select_sprite_path = String(character.get("sprite", ""))
@@ -323,7 +497,8 @@ static func selection_card_view(character: Dictionary, weapons: Array) -> Dictio
 	var evolved_weapon: Dictionary = WeaponSystem.find_weapon(weapons, evolved_weapon_id, {})
 	var evolved_weapon_name: String = String(character.get("evolvedWeaponName", evolved_weapon.get("displayName", "")))
 	var evolved_icon_path: String = String(evolved_weapon.get("iconPath", weapon.get("iconPath", "")))
-	return {
+	var status_value := status_id(character)
+	var view := {
 		"displayName": String(character.get("displayName", "配信者")),
 		"nickname": String(character.get("nickname", "")),
 		"roleName": String(character.get("roleName", "")),
@@ -339,6 +514,18 @@ static func selection_card_view(character: Dictionary, weapons: Array) -> Dictio
 		"cardTags": character.get("cardTags", default_card_tags(character_id)) as Array,
 		"detailTags": character.get("detailTags", default_detail_tags(character_id)) as Array,
 		"spritePath": select_sprite_path,
+		"walkSpritePath": walk_metadata["path"],
+		"walkSpriteCols": walk_metadata["cols"],
+		"walkSpriteRows": walk_metadata["rows"],
+		"walkSpriteFps": walk_metadata["fps"],
+		"walkSpriteSourceFps": walk_metadata["sourceFps"],
+		"walkSpriteStaticFrame": walk_metadata["staticFrame"],
+		"cardWalkSpriteScale": walk_metadata["scale"],
+		"cardWalkSpriteOffset": walk_metadata["offset"],
+		"staticSpritePath": stationary_metadata["path"],
+		"staticSpriteCols": stationary_metadata["cols"],
+		"staticSpriteRows": stationary_metadata["rows"],
+		"staticSpriteFrame": stationary_metadata["staticFrame"],
 		"gameplaySpritePath": String(character.get("sprite", "")),
 		"selectSpriteScale": float(character.get("selectSpriteScale", 1.0)),
 		"selectSpriteOffset": character.get("selectSpriteOffset", {"x": 0, "y": 0}) as Dictionary,
@@ -353,6 +540,25 @@ static func selection_card_view(character: Dictionary, weapons: Array) -> Dictio
 		"softFill": colors["soft"] as Color,
 		"unlockConditionText": String(character.get("unlockConditionText", "？？？"))
 	}
+	if status_value == "locked":
+		view["displayName"] = "？？？"
+		view["nickname"] = ""
+		view["roleName"] = ""
+		view["weaponName"] = ""
+		view["weaponIconPath"] = ""
+		view["evolvedWeaponName"] = ""
+		view["evolvedWeaponIconPath"] = ""
+		view["passiveName"] = ""
+		view["passiveDescription"] = ""
+		view["description"] = ""
+		view["recommendText"] = ""
+		view["specialtyText"] = ""
+		view["cardTags"] = []
+		view["detailTags"] = []
+		view["accent"] = SELECT_LOCKED_ACCENT
+		view["accent2"] = SELECT_LOCKED_ACCENT
+		view["softFill"] = SELECT_LOCKED_SOFT_FILL
+	return view
 
 static func fallback_character() -> Dictionary:
 	return {

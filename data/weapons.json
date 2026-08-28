@@ -1,6 +1,7 @@
 [
   {
     "id": "ban_hammer",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"配信者が持つコメント管理権限が、分かりやすい形を得たもの。なぜ巨大なハンマーになったのかは、使っている本人にもよく分かっていない。","span":2},{"id":"usage","title":"扱われ方","text":"荒れたコメント欄を手早く静かにしたい時に使われる。赤羽ばんりは細かな操作より、目の前の問題をまとめて片づけるために振るうことが多い。","span":1},{"id":"rumor","title":"うわさ","text":"見た目どおりかなり重いらしい。ばんり本人は\"慣れれば軽い\"と言っているが、ほかのメンバーは誰も試そうとしない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信中に現れた悪質なコメントを排除するための、巨大なモデレーション用ハンマー。","本来、コメント管理は画面上のボタンを押せば完了する。対象まで走っていき、物理的に叩きつぶす必要はない。しかし赤羽ばんりは、こちらの方が「ちゃんとBANした感じがする」と主張している。","振り下ろすたびに配信画面まで大きく揺れるため、荒らしより先に普通の視聴者が驚くことも多い。運営からは何度か使用方法を確認されているが、ばんりは毎回「規約には重さの上限まで書いてなかった」と答えている。","なお、BANの解除方法については誰も知らない。"]},
     "codexStats": ["damage", "range", "attackInterval"],
     "displayName": "BANハンマー",
     "description": "向いている方向へ広めの範囲を振り回す標準武器",
@@ -32,6 +33,7 @@
   },
   {
     "id": "superchat_shot",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"リスナーから送られた応援が、星のような光をまとって実体化したもの。金額ではなく、そこに込められた勢いが力になると言われている。","span":2},{"id":"usage","title":"扱われ方","text":"届いた応援をすぐ配信の盛り上がりへ変えたい時に使われる。星投すぱなは、スパチャが届く気配に誰よりも早く気づく。","span":1},{"id":"rumor","title":"うわさ","text":"すぱなは画面を見なくても、通知音だけでスパチャの金額がだいたい分かるらしい。本人は否定していない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["リスナーから届いた応援を、小さな弾として撃ち出すことのできる不思議なスパチャ。","公式には金額ではなく、そこに込められた気持ちが力になると説明されている。しかし星投すぱなは、高額スパチャが届いた時だけ明らかに声が大きくなるため、この説明を信じていない視聴者も多い。","本人は、受け取った応援を配信の盛り上がりとしてすぐ返しているだけだと話している。実際、届いたスパチャはほとんど間を置かず弾として撃ち返される。","ただし収益としての記録は残る。この点について、すぱなは非常に安心している。"]},
     "codexStats": ["damage", "range", "attackInterval", "projectileSpeed", "pierce"],
     "displayName": "スパチャ弾",
     "description": "近い敵に自動で弾を撃つ遠距離武器",
@@ -61,6 +63,7 @@
   },
   {
     "id": "comment_boomerang",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"配信者へ投げかけられた言葉が、形を持って送り主の方へ返っていくようになったもの。","span":2},{"id":"usage","title":"扱われ方","text":"すべてのコメントを力で排除するのではなく、受け取った言葉をそのまま返したい時に使われる。白綿まろんは、穏やかな口調で扱うことが多い。","span":1},{"id":"rumor","title":"うわさ","text":"悪意を込めて投げられた言葉ほど、勢いよく戻っていくらしい。匿名だからといって例外にはならない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信へ寄せられたコメントを受け止め、円を描くように送り主へ返すブーメラン。","白綿まろんは多少の失礼なら穏やかに流すが、悪意を善意のふりで包んだクソマロまで笑って受け入れるわけではない。柔らかな声で返された言葉ほどよく刺さるため、「声量と威力が反比例している」とリスナーから評されている。","まろん本人は攻撃しているつもりはなく、届いた言葉へ返事をしているだけだという。","なお、返ってきたコメントに対してさらに反論すると、もう一周してくる。"]},
     "codexStats": ["damage", "range", "hitInterval", "hitRadius", "boomerangCount", "orbitSpeed"],
     "displayName": "コメントブーメラン",
     "description": "プレイヤーの周囲を回転して敵を攻撃する武器",
@@ -91,6 +94,7 @@
   },
   {
     "id": "ban_judgement",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つずつコメントを処理していたのでは、荒れた配信に追いつかなくなった時に生まれたとされる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"振り下ろされるたびに周囲まで静かになるため、\"BANというより判決\"と呼ばれている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["大量のモデレーション権限がBANハンマーへ集中し、コメント欄へ直接裁定を下すほど強大になった姿。","一度振り下ろされると、問題のあるコメントだけでなく、その周囲で便乗していた言葉までまとめて静かになる。異議申し立てや反論を受け付ける機能はなく、そもそも受付窓口も存在しない。","名称を付けたのはばんり本人である。最初は勢いよく名乗っていたが、最近は他のメンバーの前で正式名称を読み上げられると、少しだけ目をそらすようになった。","運営上の分類は今も「コメント管理用ツール」のままである。"]},
     "codexStats": ["damage", "shockwaveDamage", "attackInterval", "range", "shockwaveRange", "shockwaveWidth", "stunDuration"],
     "displayName": "BANジャッジメント",
     "description": "前方に強力なハンマー攻撃と赤白の衝撃波を放つ、ばんちゃん専用の進化武器。",
@@ -122,6 +126,7 @@
   },
   {
     "id": "starlight_superchat",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つひとつの応援が重なり、配信全体を照らすほど大きな光になった時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"派手で見栄えがよく、発射された瞬間だけを切り抜いた動画も多い。すぱな本人も、その点をかなり気に入っている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["数多くのスパチャ弾が一つの星明かりへ集まり、配信空間を照らすほど鮮やかになった姿。","飛び交う光の一つひとつには、配信を応援するリスナーの気持ちが残されている。目標を追いかけて軌道を変えるため、暗い配信事故の最中でも妙に見栄えがよく、発射された場面だけを切り抜いた動画も多い。","すぱなは「応援が集まれば、演出が豪華になるのは当然」と説明している。運営からは、金額と光量に直接の関係があるような発言は控えるよう注意されている。","本人は「直接とは言ってない」と反論した。"]},
     "codexStats": ["damage", "premiumDamage", "premiumExplosionDamage", "attackInterval", "range", "projectileSpeed", "projectileCount", "premiumEvery", "premiumExplosionRadius"],
     "displayName": "スターライトスパチャ",
     "description": "スパチャ弾が進化した星の弾幕。近い敵へ高速の強化弾を撃つ。",
@@ -149,6 +154,7 @@
   },
   {
     "id": "maro_comment_ring",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"まろんの周囲へ集まった数多くのコメントが、彼女を守る輪となって定着したもの。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"見た目は柔らかくかわいらしいが、悪意を持って近づいたコメントにはまったく優しくない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメントブーメランが何重もの輪となり、まろんの周囲を巡るようになった姿。","寄せられた言葉のすべてを拒むのではなく、温かなコメントは内側へ残し、悪意のあるものだけを外へ押し返す。静かに回っている間はかわいらしく見えるが、一度拒まれた言葉が輪の内側へ戻ることはない。","まろん本人は「受け取らなくていい言葉まで、大切に持っておく必要はないですから」と話している。","その発言に反論するクソマロが届いたが、読む前にリングが処理した。"]},
     "codexStats": ["damage", "pulseDamage", "hitInterval", "orbitRadius", "pulseOrbitRadius", "pulseDuration", "pulseExpPullRadius", "boomerangCount"],
     "displayName": "まろコメントリング",
     "description": "コメントブーメランが進化した輪。複数のコメントが周囲を守る。",
@@ -175,6 +181,7 @@
   },
   {
     "id": "mic_barrier",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"配信者の声をリスナーへ届ける、ごく普通の配信用マイク。長く使われるうちに、声に込められた感情まで形にするようになった。","span":2},{"id":"usage","title":"扱われ方","text":"雑談、歌、叫び声まで、配信中に発せられたあらゆる声を周囲へ届けるために使われる。","span":1},{"id":"rumor","title":"うわさ","text":"深夜配信で音量を下げ忘れると、配信部屋の外にいる人までコメント欄の内容を知ることになる。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信者にとって最も身近で、活動に欠かすことのできない道具。","何気ない挨拶も、大きな笑い声も、悔しさから漏れた一言も、マイクを通せば多くのリスナーへ届く。この世界では声に込められた熱が音の波となり、配信者の周囲へ広がっていくことがある。","高価な機材ほど良い配信になるとは限らないが、新しいマイクを欲しがる配信者は後を絶たない。","なお、ミュート中は価格に関係なく高級な置物となる。"]},
     "codexStats": ["damage", "range", "attackInterval"],
     "displayName": "マイク",
     "description": "周囲に音波バリアを出す接近拒否武器",
@@ -200,6 +207,7 @@
   },
   {
     "id": "spotlight",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"視聴者の注目が一か所へ集まり、光の筋となって配信空間へ差し込んだもの。","span":2},{"id":"usage","title":"扱われ方","text":"見てほしい場面や、配信の中心に置きたいものを強調するために使われる。","span":1},{"id":"rumor","title":"うわさ","text":"一度強く照らされたものは、配信終了後もしばらく主役のつもりでいるらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信の中で最も注目されている場所を照らし出す、視線の光。","ステージ用の照明に似ているが、電源や機材によって動いているわけではない。リスナーが「今ここを見たい」と思った瞬間、その視線が集まって自然に点灯する。","照らされた者は、望んでいたかどうかにかかわらず配信の中心になる。決めポーズだけでなく、飲み物をこぼした瞬間や操作を間違えた場面まで公平に明るく映す。","スポットライトに空気を読む機能は搭載されていない。"]},
     "codexStats": ["damage", "range", "attackInterval", "duration"],
     "displayName": "スポットライト",
     "description": "敵付近に円形の光を設置する範囲武器",
@@ -226,6 +234,7 @@
   },
   {
     "id": "kusa_wave",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"コメント欄へ書き込まれた大量の「草」がまとまり、一つの波となって流れ出したもの。","span":2},{"id":"usage","title":"扱われ方","text":"配信中に大きな笑いが起きた時、誰かが意図して呼び出さなくても自然発生することがある。","span":1},{"id":"rumor","title":"うわさ","text":"画面の外へ流れていった草は消えたのではなく、どこか別の配信へ漂着しているらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメント欄を埋め尽くした大量の「草」が、一つの波となって実体化した配信現象。","笑いが長く続くほど草も勢いを増し、壁へぶつかっても向きを変えて配信空間を跳ね回る。何が面白かったのか全員が忘れた後も、草だけが残っていることは珍しくない。","配信者が話を戻そうとして真面目な説明を始めても、画面端からさっきの草が戻ってきて再び笑いが起こる。","モデレーターによると、草は規約違反ではないので止められないらしい。"]},
     "codexStats": ["damage", "attackInterval", "range", "sizeMultiplier", "bounceCount"],
     "displayName": "草ウェーブ",
     "description": "向いている方向へ草の波を出す前方範囲武器",
@@ -255,6 +264,7 @@
   },
   {
     "id": "comment_pin",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"勢いよく流れていくコメントの中から、どうしても残しておきたい一言を固定するために生まれたもの。","span":2},{"id":"usage","title":"扱われ方","text":"配信のお知らせや、大切な補足を見失わないように使われる。悪質なコメントをあえて目立つ場所へ留め、見せしめにする配信者もいる。","span":1},{"id":"rumor","title":"うわさ","text":"一度ピン留めされたコメントは、配信終了後も画面のどこかに残っているらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["絶え間なく流れるコメントの中から、特定の一言だけをその場へ固定する巨大なピン。","本来は大切なお知らせや、視聴者に見てほしい情報を残すための機能だった。しかし、配信空間で実体化したピンには、コメントそのものを動けなくする力がある。","便利な一方で、配信者の言い間違いや恥ずかしい発言まで長時間残される事故も多い。本人が解除しようとしている間だけ、コメント欄の流れが妙に速くなる傾向が確認されている。","リスナーはそういう時だけ操作方法を教えない。"]},
     "codexStats": ["damage", "attackInterval", "projectileCount", "range", "slowRate", "slowDuration"],
     "displayName": "コメントピン留め",
     "description": "近くの敵にピンを飛ばし、命中した敵の移動速度を下げる。",
@@ -288,6 +298,7 @@
   },
   {
     "id": "emote_mine",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"コメント欄へ投げ込まれた大量のエモートが、使われないまま配信空間の底へ沈み、反応の力を溜め込んだもの。","span":2},{"id":"usage","title":"扱われ方","text":"盛り上がる瞬間に合わせて置かれることもあれば、近づいてきた悪質なコメントを驚かせるために使われることもある。","span":1},{"id":"rumor","title":"うわさ","text":"同じエモートを何度も連投すると、そのエモートを模した地雷がどこかに一つ増えるらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["かわいらしいエモートの形をしながら、触れたものへ溜め込んだ反応を一気に返す危険物。","笑顔、驚き、泣き顔、拍手。配信中に使われた感情の断片が、行き場を失って地面へ定着したものだと考えられている。静かに置かれている間は普通のスタンプにしか見えない。","配信者によっては「盛り上げ用の装飾」と説明しているが、その説明を信じて笑顔のエモートへ近づいたスタッフは二度と装飾とは呼ばなくなった。","現在は設置場所へ目印を付けることが推奨されている。目印もエモートなので、あまり役には立っていない。"]},
     "codexStats": ["damage", "attackInterval", "mineCount", "maxActiveCount", "duration", "explosionRadius"],
     "displayName": "エモート地雷",
     "description": "足元にエモート地雷を置き、敵が踏むと爆発する。",
@@ -312,7 +323,7 @@
     "screenShakePower": 0.4,
     "screenShakeDuration": 0.15,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/weapon_fx_v1/emote_mine.png",
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/emote_mine.png",
     "evolutionEnabled": true,
     "evolution": {
       "evolvedWeaponId": "emote_festival",
@@ -325,6 +336,7 @@
   },
   {
     "id": "ng_word_laser",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"配信へ書き込まれた言葉を瞬時に確認し、登録された禁止表現だけを焼き切るフィルターが光線の形を得たもの。","span":2},{"id":"usage","title":"扱われ方","text":"コメントが速すぎて人の手では追いつかない時や、同じ迷惑な言葉が何度も書き込まれる時に使われる。","span":1},{"id":"rumor","title":"うわさ","text":"登録を間違えると、何の問題もない日常会話まできれいに消してしまうらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信中の発言を判別し、登録されたNGワードだけを焼き切るモデレーションレーザー。","コメントの流れる速度に左右されず、対象となった言葉を正確に消す。ただし言葉の意味や前後関係までは理解できないため、日常会話に含まれていた一部分だけが突然消えることもある。","過去には、配信者が自分の名前を誤ってNG登録し、本人に関するコメントだけがすべて遮断された事例も記録されている。","解除されるまで、その配信者はコメント欄で「例の人」と呼ばれていた。"]},
     "codexStats": ["damage", "attackInterval", "laserCount", "range", "width", "duration"],
     "displayName": "NGワードレーザー",
     "description": "前方に一直線の貫通レーザーを撃つ。",
@@ -357,6 +369,7 @@
   },
   {
     "id": "listener_summon",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"配信を長く見守ってきたリスナーたちの応援が、小さな分身として配信空間へ姿を現したもの。","span":2},{"id":"usage","title":"扱われ方","text":"配信者一人では手が回らない時に呼び出され、コメント欄の整理や周囲の見回りを手伝っている。","span":1},{"id":"rumor","title":"うわさ","text":"召喚されたリスナーの動きには、元になった視聴者の性格が少しだけ反映されるらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信者を応援するリスナーの存在感が、簡易的な姿を得て配信空間へ現れたもの。","実際の視聴者本人が転送されているわけではなく、コメント、視聴時間、応援の記憶から作られた分身だと考えられている。呼び出された後は配信者のそばを離れ、周囲の問題を自主的に片づけていく。","積極的に前へ出る者もいれば、少し離れた場所から見守るだけの者もいる。普段のコメント欄とあまり変わらない。","召喚された分身のどれが自分なのかについて、リスナー同士で毎回争いが起きる。"]},
     "codexStats": ["damage", "attackInterval", "summonCount", "maxActiveCount", "duration", "searchRange", "moveSpeed"],
     "displayName": "リスナー召喚",
     "description": "味方リスナーを召喚し、近くの敵を追尾攻撃させる。",
@@ -391,6 +404,7 @@
   },
   {
     "id": "full_voice_dome",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"配信者の声、BGM、コメント欄からの反応が重なり、配信空間全体を一つの音で包み込んだ時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"どこにいても声がはっきり聞こえるため好評だが、音量調整を間違えた時の被害も配信全体へ広がる。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["マイクから発せられた声が巨大な音響空間を作り、配信のあらゆる場所へ届くようになった姿。","小さなつぶやきまで聞き逃されず、笑い、拍手、BGM、机へ物を置いた音まで一つの響きへ混ざり合う。その内側にいる者は、配信そのものへ包まれているように感じるという。","何も聞き逃さないことは利点だが、配信者が聞かれたくなかった独り言も例外ではない。","発動中、最も忙しいのは敵ではなく音量調整担当である。"]},
     "codexStats": ["damage", "pulseDamage", "attackInterval", "radius", "pulseRadius", "pulseInterval"],
     "displayName": "フルボイス・ドーム",
     "description": "音波範囲が拡大。周期的に強力な音波で敵を吹き飛ばす。",
@@ -422,6 +436,7 @@
   },
   {
     "id": "center_stage",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つの対象へ集まった視線が配信全体を巻き込み、その場所を中心にステージそのものが形作られた時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"照らされた瞬間、何をしていても見せ場になる。そのため、準備ができていない時ほど発動しやすいと恐れられている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["スポットライトへ集まった注目が極限まで高まり、照らされた場所を配信の中心舞台へ変えてしまう現象。","光の内側では、ほんの小さな動きも大きな見せ場として受け取られる。決めポーズを取れば歓声が上がり、足を滑らせればそれもまた名場面として残る。","センターステージに立つ者が主役なのではない。そこへ視線が集まった瞬間、主役にされてしまうのである。","退場口は用意されていない。"]},
     "codexStats": ["damage", "tickDamage", "finishDamage", "attackInterval", "radius", "duration", "maxTicks"],
     "displayName": "センターステージ",
     "description": "スポットライトがその場に残り、範囲内へ継続ダメージを与える。",
@@ -458,6 +473,7 @@
   },
   {
     "id": "great_grassland",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"コメント欄の一部ではなく、配信全体が笑いに包まれ、草を流す勢いを誰にも止められなくなった時に発生する。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"あまりにも草が多いため、\"何が面白かったのか途中から誰も覚えていない\"と言われている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["複数の草ウェーブが一斉に広がり、配信空間全体を巨大な草原へ変える現象。","生まれた草は何度も壁を跳ね返り、別の草と交差しながら長時間その場に残る。途中から配信内容とは関係なく、画面に草があること自体がおかしくなって、さらに草が増える。","配信者が「もう草やめて」と頼むと、その発言に対して新しい草が流れるため、収束はほぼ不可能。","最終的には誰も発言しなくなるが、草だけはしばらく元気に跳ねている。"]},
     "codexStats": ["damage", "attackInterval", "projectileCount", "range", "sizeMultiplier", "bounceCount"],
     "displayName": "大草原不可避",
     "description": "草ウェーブを3方向へ同時発射する。画面いっぱいに草を生やせ！",
@@ -489,6 +505,7 @@
   },
   {
     "id": "comment_lockdown",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つのコメントを留めるだけでは収まらないほど、コメント欄全体が混乱した時に発生するとされる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"荒れたコメント欄が一瞬で静かになるため頼りにされているが、\"静かになりすぎて誰も書き込めない\"と恐れられてもいる。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメントピン留めが配信空間全体へ広がり、周囲の言葉をまとめて固定する緊急モデレーション状態。","一度ロックダウンが始まると、悪意あるコメントも、便乗して騒いでいた言葉も、その場から動けなくなる。配信者が落ち着きを取り戻す時間を作れる一方で、何も知らずに書き込んだ普通のコメントまで巻き込まれることがある。","完全に静かなコメント欄を見た配信者の多くは、まず回線が落ちたのではないかと疑う。","ロックダウンが成功したと気づくのは、ルーターを再起動した後である。"]},
     "codexStats": ["damage", "followupDamage", "attackInterval", "projectileCount", "range", "stunDuration", "largeStunDuration", "followupDelay"],
     "displayName": "コメント・ロックダウン",
     "description": "複数の敵を強力に拘束し、少し遅れてNG追撃を与える。",
@@ -528,6 +545,7 @@
   },
   {
     "id": "emote_festival",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つのエモートが爆発した反応へ、別のエモートが次々と呼応し始めた時に発生する。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"見た目だけなら華やかな祭りだが、安全な観覧場所がどこなのかは誰にも分からない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信空間に溜まったエモートが一斉に浮かび上がり、連鎖的な盛り上がりを引き起こす現象。","笑顔の隣で泣き顔が跳ね、拍手の直後に驚きが弾ける。もはや一つひとつの感情を見分けることは難しく、画面全体が視聴者の反応で埋め尽くされる。","開催中は華やかで盛り上がるが、誰が始めたのか、いつ終わるのか、片づけは誰が担当するのかについて決まった記録はない。","終了後もしばらく同じエモートが流れ続ける。余韻ではなく、処理待ちである。"]},
     "codexStats": ["damage", "attackInterval", "mineCount", "maxActiveCount", "explosionRadius", "duration", "chainRadius", "chainDamageCoefficient"],
     "displayName": "エモート・フェスティバル",
     "description": "地雷の設置上限と爆発範囲が増加。地雷同士が連鎖爆発する。",
@@ -563,6 +581,7 @@
   },
   {
     "id": "all_block_laser",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"NGワードを一つずつ登録しても、新しい言い回しが次々と現れ、判別が追いつかなくなった時に変化するとされる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"迷惑コメントを完全に止められる一方、\"最終的には全部NGになるのでは\"と警戒されている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["個別のNGワードを探すことをやめ、危険と判断した言葉をまとめて遮断するようになった強化型レーザー。","伏せ字、言い換え、遠回しな悪意まで捉えるが、何を基準に危険と判断しているのかは明らかにされていない。設定を厳しくしすぎると、迷惑コメントだけでなく会話そのものが成立しなくなる。","一度、荒らし対策として最高出力で使用した配信では、最後に「こんにちは」だけが残った。","その「こんにちは」も、数秒後に危険と判断された。"]},
     "codexStats": ["damage", "attackInterval", "laserCount", "range", "width", "duration"],
     "displayName": "オールブロックレーザー",
     "description": "3方向へ強力な貫通レーザーを放ち、まとめてNG処理する。",
@@ -595,6 +614,7 @@
   },
   {
     "id": "listener_assembly",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一人の呼びかけが配信全体へ広がり、普段は静かに見ているリスナーまで立ち上がった時に発生する。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"画面に表示された同時視聴者数より、実際に集まっているリスナーの方が多く見えると言われている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["少数のリスナー分身だけでなく、配信を見守っていた大勢の気配が一斉に姿を現した状態。","いつもコメントする常連、たまにだけ反応する視聴者、長い間何も言わず見守っていた者。それぞれが異なる動きをしながらも、配信者を支えるという一点では不思議とまとまっている。","配信画面へ表示された同時視聴者数より、実際に集まっている数の方が多く見えることがある。","運営は集計上の誤差だと説明している。誤差にしては、かなり元気に動き回っている。"]},
     "codexStats": ["damage", "attackInterval", "summonInterval", "summonCount", "maxActiveCount", "duration", "searchRange"],
     "displayName": "リスナー大集結",
     "description": "より多くのリスナーを長時間召喚し、敵へ一斉攻撃する。",
@@ -633,6 +653,7 @@
   },
   {
     "id": "moderator_shield",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"配信の空気を乱す言葉や、視聴者へ向けられた悪意を遮るために生まれた防壁。コメント管理を重視する配信者の意識が、盾の形を取ったものだと言われている。","span":2},{"id":"usage","title":"扱われ方","text":"問題が大きくなってから排除するのではなく、危険なコメントを早い段階で食い止めるために使われる。青澄きゃすみは、配信者本人だけでなくコメント欄全体を守るように盾を構える。","span":1},{"id":"rumor","title":"うわさ","text":"きゃすみは配信中の異変に気づくのがあまりにも早く、コメントが投稿される前から盾を出していることがある。本人は\"たまたまです\"と否定している。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["配信へ押し寄せる悪意や弾幕を受け止め、穏やかなコメント欄を保つためのモデレーション用シールド。","青澄きゃすみは問題が起きてから盾を出すのではなく、空気が変わるわずかな兆しを見つけて先回りする。そのため、視聴者が異変に気づいた頃には、すでに問題が盾の向こう側へ追いやられていることも多い。","ときどきコメントが投稿される前から盾を構えていることがあるが、本人は「たまたまです」と説明している。","その“たまたま”は週に何度も起きている。"]},
     "codexStats": ["damage", "attackInterval", "radius", "activeDuration", "arcDegrees", "shieldDurability", "blockEnemyProjectiles"],
     "displayName": "\u30e2\u30c7\u30ec\u30fc\u30bf\u30fc\u30b7\u30fc\u30eb\u30c9",
     "description": "\u524d\u65b9\u306b\u9577\u3081\u306b\u30b7\u30fc\u30eb\u30c9\u3092\u5c55\u958b\u3059\u308b\u3002\u89e6\u308c\u305f\u6575\u306b\u30c0\u30e1\u30fc\u30b8\u3092\u4e0e\u3048\u3066\u5439\u304d\u98db\u3070\u3057\u3001\u6575\u5f3e\u3092\u6d88\u6ec5\u3055\u305b\u308b\u3002",
@@ -693,6 +714,7 @@
   },
   {
     "id": "fansa_baton",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"ステージ上で観客の視線を集め、声援へ応えるために使われていた小道具。灯音りずむが振るううちに、配信の熱気を直接伝える道具へ変わった。","span":2},{"id":"usage","title":"扱われ方","text":"コメントや歓声へ間を置かず反応を返し、配信の勢いを途切れさせないために使われる。りずむは話している最中でも、気づけば手元でバトンを回している。","span":1},{"id":"rumor","title":"うわさ","text":"配信外でも無意識に振っていることがあり、近くにいるメンバーが少し距離を取るようになったらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["灯音りずむが愛用している、ステージ用のファンサバトン。","もともとは観客へ合図を送るための小道具だったが、彼女が素早く振り続けるうちに、声援や配信の熱気まで巻き込むようになった。コメントへ反応し、次の相手へ手を振り、また別の声へ応える。その忙しさは本人にとって苦ではなく、むしろ配信している実感そのものだという。","配信外でも無意識に回していることがあり、近くにいるメンバーは自然と一歩下がるようになった。","これは距離を置かれているのではなく、安全確保である。"]},
     "codexStats": ["normalDamage", "finisherDamage", "attackInterval", "range", "arcAngle", "hitInterval", "normalDamageCoefficient", "finisherDamageCoefficient"],
     "displayName": "\u30d5\u30a1\u30f3\u30b5\u30d0\u30c8\u30f3",
     "description": "\u53f3\u3068\u5de6\u306e3\u6bb5\u30b3\u30f3\u30dc\u653b\u6483\u3092\u884c\u3046Lv1\u6b66\u5668",
@@ -755,6 +777,7 @@
   },
   {
     "id": "tsuri_thumbnail_rod",
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"視聴者の興味を引くサムネイルと、何かを引き寄せる釣り竿の性質が混ざり合って生まれたもの。紫月みぃむは\"気になって来たなら、もう釣れてる\"と説明している。","span":2},{"id":"usage","title":"扱われ方","text":"散らばった注目を一か所へ集め、配信の流れを自分の望む方向へ動かすために使われる。何が引っかかるかは、投げた本人にも分からないことがある。","span":1},{"id":"rumor","title":"うわさ","text":"竿の先にはサムネイルが付いているはずだが、見る人によって内容が違って見えるらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["視聴者の好奇心へ針をかけ、配信の中心まで引き寄せる不思議な釣り竿。","紫月みぃむは、タイトルやサムネイルを単なる飾りではなく、配信を見る前から始まっている仕掛けだと考えている。少し怪しい見せ方で興味を引くこともあるが、呼び寄せた後にきちんと楽しませるところまでが本人なりの責任らしい。","何を餌にしているのか聞くたびに答えが変わるため、詳しい仕組みは分かっていない。","ただし「気になって見に来たなら、もう釣れてる」という説明だけは毎回同じである。"]},
     "codexStats": ["initialDamage", "reelDamage", "attackInterval", "range", "gatherRadius", "gatherMaxTargets", "gatherDuration", "maxActiveCasts"],
     "displayName": "\u91e3\u308a\u30b5\u30e0\u30cd\u30ed\u30c3\u30c9",
     "description": "\u6575\u3068\u30d5\u30a3\u30fc\u30eb\u30c9\u30a2\u30a4\u30c6\u30e0\u3092\u30eb\u30a2\u30fc\u3078\u5f15\u304d\u5bc4\u305b\u3066\u56de\u53ce\u3059\u308bLv1\u6b66\u5668",
@@ -833,6 +856,7 @@
   },
   {
     "id": "moderator_fortress",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"正面だけを守る盾では、配信全体へ広がった荒れ模様を防ぎきれなくなった時に生まれたとされる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"きゃすみの周囲へ複数の盾が並ぶ姿から、\"モデレーターというより警備本部\"と呼ばれることがある。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["モデレーターシールドが複数の防壁へ分かれ、きゃすみを中心に一つの要塞を築いた姿。","四方から押し寄せる悪意や弾幕をそれぞれの盾が受け持ち、内側には静かで整理された空間が残される。配信者一人を守る道具というより、コメント欄全体を保護する臨時の管理本部に近い。","本人は「少し守る範囲を広げただけ」と説明している。","外から見る限り、その“少し”には入口、警戒網、立入制限区域まで含まれている。"]},
     "codexStats": ["damage", "attackInterval", "radius", "activeDuration", "shieldDurability", "blockEnemyProjectiles"],
     "displayName": "\u30e2\u30c7\u30ec\u30fc\u30bf\u30fc\u30fb\u30d5\u30a9\u30fc\u30c8\u30ec\u30b9",
     "description": "\u524d\u65b9\u304b\u3089\u5de6\u53f3\u3078\u5927\u578b\u30b7\u30fc\u30eb\u30c9\u3092\u9577\u6642\u9593\u5c55\u958b\u3059\u308b\u3002\u5e83\u3044\u7bc4\u56f2\u306e\u6575\u3092\u62bc\u3057\u8fd4\u3057\u3001\u6575\u5f3e\u3092\u6d88\u6ec5\u3055\u305b\u308b\u3002",
@@ -899,6 +923,7 @@
   },
   {
     "id": "fansa_climax",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"配信の熱気と視聴者からの声援が最高潮に達し、一人ずつへ返していたファンサでは追いつかなくなった時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"どの瞬間を切り取っても決めポーズに見えるため、スクリーンショットを撮る側が最も忙しくなる武器だと言われている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["ファンサバトンが配信の熱気を吸収し、ステージの最後を飾るための姿へ変化したもの。","振るうたびに動きと光が重なり、一つの反応が次の反応を呼んで、配信全体が大きなフィナーレのように加速していく。どの瞬間を切り取っても決めポーズに見えるため、スクリーンショットを撮る側が最も忙しくなる武器だと言われている。","問題は、りずむ本人がどこをクライマックスだと思っているのか分からないことにある。","配信終了予定を過ぎても、本人だけはまだサビの途中にいることが多い。"]},
     "codexStats": ["normalDamage", "finisherDamage", "attackInterval", "fanRadius", "finisherRange", "fanWaveRadius", "echoDamageCoefficient"],
     "displayName": "\u30d5\u30a1\u30f3\u30b5\u30fb\u30af\u30e9\u30a4\u30de\u30c3\u30af\u30b9",
     "description": "\u4e09\u6bb5\u30b3\u30f3\u30dc\u306b\u53cd\u97ff\u6253\u3068\u30d5\u30a1\u30f3\u30a6\u30a7\u30fc\u30d6\u3092\u91cd\u306d\u308b",
@@ -958,6 +983,7 @@
   },
   {
     "id": "buzz_thumbnail_rod",
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つのサムネイルへ予想以上の注目が集まり、配信者自身にも止められないほど大きな流れになった時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"見た者が\"釣りだ\"と分かっていても、結局押してしまう。そのため、少し悔しそうな感想が多い。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["釣りサムネロッドが大量の注目と反応を釣り上げ、巨大なバズを生み出す姿へ変化したもの。","一度投げ込まれたサムネイルは周囲の視線を次々と巻き込み、何が起きているのか確かめようと近づいた者まで、新しい注目を呼ぶ一部になってしまう。","視聴者からは「釣りだと分かっていたのに押してしまった」という報告が多い。みぃむは「内容まで見たなら釣りじゃない」と主張している。","その説明への反論動画にも、非常に目を引くサムネイルが使われていた。"]},
     "codexStats": ["initialDamage", "caughtDamage", "attackInterval", "gatherRadius", "gatherMaxTargets", "gatherDuration", "explosionRadius", "explosionDamageCoefficient", "bossReelCoefficient"],
     "displayName": "\u7206\u91e3\u30d0\u30ba\u30b5\u30e0\u30cd",
     "description": "\u6575\u3092\u7206\u91e3\u3057\u3001\u30eb\u30a2\u30fc\u5730\u70b9\u306e\u30d5\u30a3\u30fc\u30eb\u30c9\u30a2\u30a4\u30c6\u30e0\u3082\u4e00\u7dd2\u306b\u56de\u53ce\u3059\u308b",

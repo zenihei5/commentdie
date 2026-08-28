@@ -497,7 +497,7 @@ static func arena_edge_shades(arena: Rect2) -> Array:
 static func arena_border_color() -> Color:
 	return Color("#34234d")
 
-static func comment_storm_style(setting: int, kuso_active: bool) -> Dictionary:
+static func comment_storm_style(setting: int, kuso_active: bool, amount_override: int = -1) -> Dictionary:
 	var amount: int = 24
 	var alpha: float = 0.72
 	var size: int = 31
@@ -509,6 +509,8 @@ static func comment_storm_style(setting: int, kuso_active: bool) -> Dictionary:
 		amount = 38
 		alpha = 0.82
 		size = 34
+	if amount_override >= 0:
+		amount = amount_override
 	if kuso_active:
 		amount = int(float(amount) * 1.5)
 		alpha = minf(0.92, alpha + 0.10)
@@ -542,10 +544,10 @@ static func comment_storm_color(index: int, alpha: float, kuso_active: bool) -> 
 	color.a = alpha
 	return color
 
-static func comment_storm_draw_data(arena: Rect2, elapsed: float, setting: int, kuso_active: bool, samples: Array[String]) -> Array:
+static func comment_storm_draw_data(arena: Rect2, elapsed: float, setting: int, kuso_active: bool, samples: Array[String], amount_override: int = -1) -> Array:
 	if samples.is_empty():
 		samples = ["www"]
-	var style: Dictionary = comment_storm_style(setting, kuso_active)
+	var style: Dictionary = comment_storm_style(setting, kuso_active, amount_override)
 	var amount: int = int(style["amount"])
 	var alpha: float = float(style["alpha"])
 	var size: int = int(style["size"])
@@ -1790,13 +1792,69 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var visual_scale := float(enemy.get("visualScale", 1.0)) if is_boss else 1.0
 	var visual_offset := Vector2(enemy.get("visualOffset", Vector2.ZERO)) if is_boss else Vector2.ZERO
 	var cutin_alpha := clampf(float(enemy.get("cutinVisualAlpha", 1.0)), 0.0, 1.0) if is_boss else 1.0
+	var unread_pop_in := kind == "unread_maro" and enemy.has("unreadMaroPopInTimer")
+	var unread_pop_timer := maxf(0.0, float(enemy.get("unreadMaroPopInTimer", 0.0)))
+	if unread_pop_in:
+		var pop_duration := maxf(0.01, float(enemy.get("unreadMaroPopInDuration", 0.20)))
+		var pop_progress := clampf(1.0 - unread_pop_timer / pop_duration, 0.0, 1.0)
+		var pop_scale := 1.0
+		if pop_progress < 0.70:
+			pop_scale = lerpf(0.70, 1.08, smoothstep(0.0, 0.70, pop_progress))
+		else:
+			pop_scale = lerpf(1.08, 1.0, smoothstep(0.70, 1.0, pop_progress))
+		visual_scale *= pop_scale
+		cutin_alpha *= lerpf(0.08, 1.0, smoothstep(0.0, 0.46, pop_progress))
+	var collab_mute_pop_in := kind == "collab_mute_core" and enemy.has("collabMutePopInTimer")
+	var collab_mute_pop_timer := maxf(0.0, float(enemy.get("collabMutePopInTimer", 0.0)))
+	if collab_mute_pop_in:
+		var pop_duration := maxf(0.01, float(enemy.get("collabMutePopInDuration", 0.20)))
+		var pop_progress := clampf(1.0 - collab_mute_pop_timer / pop_duration, 0.0, 1.0)
+		var pop_scale := lerpf(0.78, 1.06, smoothstep(0.0, 0.68, pop_progress)) if pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, pop_progress))
+		visual_scale *= pop_scale
+		cutin_alpha *= lerpf(0.85, 1.0, smoothstep(0.0, 0.42, pop_progress))
+	var red_pen_summon_pop_in := kind == "drawing_fix_note" and bool(enemy.get("redPenSummonVisual", false)) and enemy.has("redPenSummonPopInTimer")
+	var red_pen_summon_pop_timer := maxf(0.0, float(enemy.get("redPenSummonPopInTimer", 0.0)))
+	var red_pen_summon_pop_progress := 1.0
+	if red_pen_summon_pop_in:
+		var pop_duration := maxf(0.01, float(enemy.get("redPenSummonPopInDuration", 0.20)))
+		red_pen_summon_pop_progress = clampf(1.0 - red_pen_summon_pop_timer / pop_duration, 0.0, 1.0)
+		var pop_scale := lerpf(0.82, 1.06, smoothstep(0.0, 0.68, red_pen_summon_pop_progress)) if red_pen_summon_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, red_pen_summon_pop_progress))
+		visual_scale *= pop_scale
+		cutin_alpha *= lerpf(0.98, 1.0, smoothstep(0.0, 0.46, red_pen_summon_pop_progress))
+	var comparison_spam_pop_in := bool(enemy.get("comparisonSpamSpawn", false)) and enemy.has("comparisonSpamPopInTimer")
+	var comparison_spam_pop_timer := maxf(0.0, float(enemy.get("comparisonSpamPopInTimer", 0.0)))
+	var comparison_spam_pop_progress := 1.0
+	if comparison_spam_pop_in:
+		var pop_duration := maxf(0.01, float(enemy.get("comparisonSpamPopInDuration", 0.20)))
+		comparison_spam_pop_progress = clampf(1.0 - comparison_spam_pop_timer / pop_duration, 0.0, 1.0)
+		var pop_scale := lerpf(0.80, 1.06, smoothstep(0.0, 0.68, comparison_spam_pop_progress)) if comparison_spam_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, comparison_spam_pop_progress))
+		visual_scale *= pop_scale
+		cutin_alpha *= lerpf(0.90, 1.0, smoothstep(0.0, 0.46, comparison_spam_pop_progress))
+	var division_noise_pop_in := kind == "collab_division_noise" and bool(enemy.get("divisionNoiseVisual", false)) and enemy.has("divisionNoisePopInTimer")
+	var division_noise_pop_timer := maxf(0.0, float(enemy.get("divisionNoisePopInTimer", 0.0)))
+	var division_noise_pop_progress := 1.0
+	if division_noise_pop_in:
+		var division_pop_duration := maxf(0.01, float(enemy.get("divisionNoisePopInDuration", 0.20)))
+		division_noise_pop_progress = clampf(1.0 - division_noise_pop_timer / division_pop_duration, 0.0, 1.0)
+		var division_pop_scale := lerpf(0.84, 1.06, smoothstep(0.0, 0.68, division_noise_pop_progress)) if division_noise_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, division_noise_pop_progress))
+		visual_scale *= division_pop_scale
+		cutin_alpha *= lerpf(0.86, 1.0, smoothstep(0.0, 0.46, division_noise_pop_progress))
+	var relay_noise_summon_pop_in := kind == "noise_ghost_comment" and bool(enemy.get("relayNoiseSummonVisual", false)) and enemy.has("relayNoisePopInTimer")
+	var relay_noise_summon_pop_timer := maxf(0.0, float(enemy.get("relayNoisePopInTimer", 0.0)))
+	var relay_noise_summon_pop_progress := 1.0
+	if relay_noise_summon_pop_in:
+		var relay_noise_pop_duration := maxf(0.01, float(enemy.get("relayNoisePopInDuration", 0.20)))
+		relay_noise_summon_pop_progress = clampf(1.0 - relay_noise_summon_pop_timer / relay_noise_pop_duration, 0.0, 1.0)
+		var relay_noise_pop_scale := lerpf(0.84, 1.06, smoothstep(0.0, 0.68, relay_noise_summon_pop_progress)) if relay_noise_summon_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, relay_noise_summon_pop_progress))
+		visual_scale *= relay_noise_pop_scale
+		cutin_alpha *= lerpf(0.92, 1.0, smoothstep(0.0, 0.46, relay_noise_summon_pop_progress))
 	if is_boss:
 		visual_scale *= maxf(0.01, float(enemy.get("cutinVisualScale", 1.0)))
 		visual_offset += Vector2(enemy.get("cutinVisualOffset", Vector2.ZERO))
 	var visual_rotation := float(enemy.get("visualRotation", 0.0)) if is_boss else 0.0
 	var shadow_scale := float(enemy.get("shadowScale", 1.0)) if is_boss else 1.0
 	pos += visual_offset
-	radius *= maxf(0.8, visual_scale)
+	radius *= maxf(0.01 if unread_pop_in or red_pen_summon_pop_in or collab_mute_pop_in or comparison_spam_pop_in or division_noise_pop_in or relay_noise_summon_pop_in else 0.8, visual_scale)
 	if bool(enemy.get("defeatPending", false)) and is_boss:
 		var max_delay: float = maxf(0.01, float(enemy.get("defeatDelayMax", 0.55)))
 		var left: float = clampf(float(enemy.get("defeatDelay", 0.0)), 0.0, max_delay)
@@ -1808,9 +1866,26 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	var color: Color = enemy_color(body_kind)
 	var linked_speech_text: String = String(enemy.get("linkedSpeechText", ""))
 	var speech_text: String = "" if linked_speech_text != "" else String(enemy.get("speechText", ""))
+	if float(enemy.get("unreadMaroSpeechDelayTimer", 0.0)) > 0.0:
+		speech_text = ""
 	var flash_strength: float = enemy_hit_flash_strength(enemy)
 	var flash_color: Color = enemy.get("hitFlashColor", enemy_hit_flash_color(body_kind)) as Color
 	var body := enemy_body_data(body_kind, pos, radius, color, flash_color, flash_strength)
+	if kind == "bugged_final_boss":
+		var lag_warning := maxf(0.0, float(enemy.get("buggedLagWarpWarning", 0.0)))
+		var lag_rebuild := maxf(0.0, float(enemy.get("buggedLagWarpRebuildTimer", 0.0)))
+		var lag_old_ghost := maxf(0.0, float(enemy.get("buggedLagWarpOldGhostTimer", 0.0)))
+		body["bugLagWarpVisualActive"] = lag_warning > 0.0 or lag_rebuild > 0.0 or lag_old_ghost > 0.0
+		body["bugLagWarpWarning"] = lag_warning
+		body["bugLagWarpWarningDuration"] = maxf(0.01, float(enemy.get("buggedLagWarpWarningDuration", 0.40)))
+		body["bugLagWarpTarget"] = Vector2(enemy.get("buggedLagWarpTarget", Vector2.ZERO))
+		body["bugLagWarpOrigin"] = Vector2(enemy.get("buggedLagWarpOrigin", Vector2.ZERO))
+		body["bugLagWarpCurrentPos"] = Vector2(enemy.get("pos", pos))
+		body["bugLagWarpVisualSeed"] = float(enemy.get("buggedLagWarpVisualSeed", 0.0))
+		body["bugLagWarpRebuildTimer"] = lag_rebuild
+		body["bugLagWarpRebuildDuration"] = maxf(0.01, float(enemy.get("buggedLagWarpRebuildDuration", 0.15)))
+		body["bugLagWarpOldGhostTimer"] = lag_old_ghost
+		body["bugLagWarpOldGhostDuration"] = maxf(0.01, float(enemy.get("buggedLagWarpOldGhostDuration", 0.033)))
 	body["rotation"] = visual_rotation
 	var shadow := enemy_shadow_data(pos, radius)
 	if is_last_offline:
@@ -1828,9 +1903,11 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	body["modulate"] = body_modulate
 	if not shadow.is_empty():
 		shadow["alpha"] = float(shadow.get("alpha", 0.22)) * cutin_alpha
-	var bar: Dictionary = {} if is_last_offline and not bool(enemy.get("showWorldHpBar", false)) else enemy_hp_bar_data(pos, radius, float(enemy["hp"]), float(enemy["max_hp"]))
-	if bool(enemy.get("cutinIntroLocked", false)):
+	var ui_radius := float(enemy["radius"]) if (red_pen_summon_pop_in or comparison_spam_pop_in or division_noise_pop_in or relay_noise_summon_pop_in) and not is_boss else radius
+	var bar: Dictionary = {} if (is_last_offline and not bool(enemy.get("showWorldHpBar", false))) or kind == "collab_mute_core" else enemy_hp_bar_data(pos, ui_radius, float(enemy["hp"]), float(enemy["max_hp"]))
+	if bool(enemy.get("cutinIntroLocked", false)) or unread_pop_timer > 0.0:
 		bar = {}
+	var speech_offset_y := -ui_radius - 54.0 + float(enemy.get("unreadMaroSpeechOffsetY", 0.0))
 	return {
 		"kind": kind,
 		"displayName": String(enemy.get("displayName", "")),
@@ -1840,8 +1917,8 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 		"body": body,
 		"face": {} if body_kind == "long_comment_guy" or body_kind == "boss_super_long_comment" or enemy_sprite_path(body_kind) != "" or enemy_has_custom_body_face(body_kind) else enemy_face_data(pos),
 		"bar": bar,
-		"speech": speech_bubble_data(pos, speech_text, -radius - 54.0),
-		"linkedTrollSpeech": linked_troll_speech_bubble_data(pos, linked_speech_text, radius, float(enemy.get("linkedSpeechAlpha", 1.0)))
+		"speech": speech_bubble_data(pos, speech_text, speech_offset_y),
+		"linkedTrollSpeech": linked_troll_speech_bubble_data(pos, linked_speech_text, ui_radius, float(enemy.get("linkedSpeechAlpha", 1.0)))
 	}
 
 static func _vector2_from_config(value: Variant, fallback: Vector2) -> Vector2:
@@ -2220,29 +2297,42 @@ static func bullet_visual(player_owned: bool, bullet_item: Dictionary = {}) -> D
 		}
 	var enemy_visual_kind := String(bullet_item.get("visualKind", ""))
 	if enemy_visual_kind == "red_pen_mark":
-		var boss_scale := 1.28 if bool(bullet_item.get("bossProjectile", false)) else 1.0
+		if bool(bullet_item.get("bossProjectile", false)):
+			var boss_size := clampf(float(bullet_item.get("redPenDrawSize", 38.0)), 36.0, 40.0)
+			var boss_trail := clampf(float(bullet_item.get("redPenTrailLength", 24.0)), 20.0, 28.0)
+			return {
+				"trailLength": boss_trail,
+				"trailColor": Color(0.82, 0.02, 0.12, 0.76),
+				"trailWidth": 3.8,
+				"outerRadius": boss_size * 0.50,
+				"outerColor": Color("#3d0010"),
+				"innerRadius": boss_size * 0.30,
+				"innerColor": Color("#eb0b25"),
+				"glowRadius": 0.0,
+				"glowColor": Color(0.0, 0.0, 0.0, 0.0)
+			}
 		return {
-			"trailLength": 42.0 * boss_scale,
+			"trailLength": 42.0,
 			"trailColor": Color(1.0, 0.05, 0.16, 0.42),
-			"trailWidth": 11.0 * boss_scale,
-			"outerRadius": 14.0 * boss_scale,
+			"trailWidth": 11.0,
+			"outerRadius": 14.0,
 			"outerColor": Color("#ff2448"),
-			"innerRadius": 6.0 * boss_scale,
+			"innerRadius": 6.0,
 			"innerColor": Color("#fff5f7"),
-			"glowRadius": 26.0 * boss_scale,
+			"glowRadius": 26.0,
 			"glowColor": Color(1.0, 0.16, 0.24, 0.24)
 		}
 	if enemy_visual_kind == "pitch_police_note":
 		return {
 			"trailLength": 34.0,
-			"trailColor": Color(1.0, 0.12, 0.36, 0.44),
-			"trailWidth": 10.0,
-			"outerRadius": 13.0,
-			"outerColor": Color("#ff315f"),
-			"innerRadius": 6.0,
+			"trailColor": Color(1.0, 0.08, 0.34, 0.62),
+			"trailWidth": 3.4,
+			"outerRadius": 18.0,
+			"outerColor": Color("#ff245f"),
+			"innerRadius": 7.0,
 			"innerColor": Color("#fff6fb"),
-			"glowRadius": 24.0,
-			"glowColor": Color(1.0, 0.25, 0.55, 0.26)
+			"glowRadius": 22.0,
+			"glowColor": Color(1.0, 0.12, 0.46, 0.22)
 		}
 	return {
 		"trailLength": 18.0,
@@ -2297,66 +2387,117 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 			"innerColor": visual["innerColor"] as Color
 		}
 		if visual_kind == "pitch_police_note":
-			item["trailGlowStart"] = pos - vel * 46.0
-			item["trailGlowEnd"] = pos + vel * 4.0
-			item["trailGlowColor"] = Color(1.0, 0.62, 0.82, 0.22)
-			item["trailGlowWidth"] = 18.0
-			item["auraPos"] = pos
-			item["auraRadius"] = 23.0
-			item["auraColor"] = Color(1.0, 0.15, 0.45, 0.34)
-			item["noteText"] = "♪"
-			item["notePos"] = pos - side * 9.0 + Vector2(-12.0, 10.0)
-			item["noteWidth"] = 24
-			item["noteSize"] = 21
-			item["noteColor"] = Color("#fff8ff")
-			item["checkText"] = "✓"
-			item["checkPos"] = pos + side * 6.0 + Vector2(-12.0, 9.0)
-			item["checkWidth"] = 24
-			item["checkSize"] = 20
-			item["checkColor"] = Color("#ff315f")
-			item["sparkDot1Pos"] = pos + side * 13.0 - vel * 9.0
-			item["sparkDot1Radius"] = 3.0
-			item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.82)
-			item["sparkDot2Pos"] = pos - side * 12.0 - vel * 18.0
-			item["sparkDot2Radius"] = 2.5
-			item["sparkDot2Color"] = Color(1.0, 0.72, 0.88, 0.70)
+			var pitch_phase := clampi(int(bullet_item.get("pitchChiefPhase", 1)), 1, 3)
+			var phase_intensity := 1.0 + float(pitch_phase - 1) * 0.12
+			var pitch_seed := float(bullet_item.get("pitchNoteSeed", 0.0))
+			item["pitchDirection"] = vel
+			item["pitchNoteDrawSize"] = clampf(float(bullet_item.get("pitchNoteDrawSize", 38.0)), 34.0, 44.0)
+			item["pitchNoteRotationMode"] = String(bullet_item.get("pitchNoteRotationMode", "folded"))
+			item["pitchNoteLife"] = float(bullet_item.get("life", 0.0))
+			item["pitchNoteSeed"] = pitch_seed
+			item["pitchChiefPhase"] = pitch_phase
+			item["trailGlowStart"] = pos - vel * 34.0
+			item["trailGlowEnd"] = pos - vel * 7.0
+			item["trailGlowColor"] = Color(0.25, 0.01, 0.16, 0.50 * phase_intensity)
+			item["trailGlowWidth"] = 6.2
+			item["trailStart"] = pos - vel * 32.0
+			item["trailEnd"] = pos - vel * 7.0
+			item["trailColor"] = Color(1.0, 0.06, 0.38, 0.54 * phase_intensity)
+			item["trailWidth"] = 3.2
+			item["trailHighlightStart"] = pos - vel * 23.0 + side * 1.3
+			item["trailHighlightEnd"] = pos - vel * 8.0 + side * 0.4
+			item["trailHighlightColor"] = Color(1.0, 0.94, 0.98, 0.64)
+			item["trailHighlightWidth"] = 1.15
+			var wave_side := (4.4 + sin(pitch_seed) * 1.2) * (1.0 if pitch_phase < 3 else 1.18)
+			item["waveStart"] = pos - vel * 29.0 - side * wave_side
+			item["waveEnd"] = pos - vel * 20.0 + side * wave_side * 0.45
+			item["waveColor"] = Color(1.0, 0.30, 0.60, 0.42 * phase_intensity)
+			item["waveWidth"] = 1.4
+			item["noteChip1Pos"] = pos - vel * (22.0 + fposmod(pitch_seed * 3.0, 5.0)) + side * (7.0 + float(pitch_phase - 1) * 1.5)
+			item["noteChip1Radius"] = 1.5 + float(pitch_phase - 1) * 0.18
+			item["noteChip1Color"] = Color(1.0, 0.64, 0.82, 0.58 * phase_intensity)
+			item["noteChip2Pos"] = pos - vel * (28.0 + fposmod(pitch_seed * 5.0, 4.0)) - side * 5.5
+			item["noteChip2Radius"] = 1.1
+			item["noteChip2Color"] = Color(1.0, 0.96, 0.98, 0.54 if pitch_phase >= 2 else 0.34)
 		if visual_kind == "red_pen_mark":
 			var boss_projectile := bool(bullet_item.get("bossProjectile", false))
-			var projectile_scale := 1.28 if boss_projectile else 1.0
-			var phase := float(bullet_item.get("phase", 0.0))
-			item["trailGlowStart"] = pos - vel * (52.0 * projectile_scale)
-			item["trailGlowEnd"] = pos + vel * 4.0
-			item["trailGlowColor"] = Color(1.0, 0.44, 0.52, 0.20)
-			item["trailGlowWidth"] = 18.0 * projectile_scale
-			item["inkSideTrailStart"] = pos - vel * (46.0 * projectile_scale) + side * (6.0 * projectile_scale)
-			item["inkSideTrailEnd"] = pos - vel * (4.0 * projectile_scale) + side * (2.0 * projectile_scale)
-			item["inkSideTrailColor"] = Color(0.34, 0.01, 0.05, 0.58 if boss_projectile else 0.38)
-			item["inkSideTrailWidth"] = 5.0 * projectile_scale
-			item["inkHighlightStart"] = pos - vel * (36.0 * projectile_scale) - side * (4.0 * projectile_scale)
-			item["inkHighlightEnd"] = pos - vel * (2.0 * projectile_scale) - side * (1.0 * projectile_scale)
-			item["inkHighlightColor"] = Color(1.0, 0.72, 0.76, 0.52 if boss_projectile else 0.32)
-			item["inkHighlightWidth"] = 2.4 * projectile_scale
-			item["auraPos"] = pos
-			item["auraRadius"] = 24.0 * projectile_scale
-			item["auraColor"] = Color(1.0, 0.05, 0.18, 0.40 if boss_projectile else 0.32)
-			item["markRingPos"] = pos
-			item["markRingRadius"] = 18.0 * projectile_scale
-			item["markRingColor"] = Color(1.0, 0.72, 0.76, 0.62 if boss_projectile else 0.42)
-			item["markText"] = "×"
-			item["markText"] = "×"
-			item["markPos"] = pos + Vector2(-14.0, 11.0) * projectile_scale
-			item["markWidth"] = roundi(28.0 * projectile_scale)
-			item["markSize"] = roundi(25.0 * projectile_scale)
-			item["markColor"] = Color("#c60c2f") if boss_projectile else Color("#ffffff")
-			item["sparkDot1Pos"] = pos + side * (14.0 * projectile_scale) - vel * (10.0 * projectile_scale)
-			item["sparkDot1Radius"] = 3.2 * projectile_scale
-			item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.82)
-			item["sparkDot2Pos"] = pos - side * (12.0 * projectile_scale) - vel * (22.0 * projectile_scale)
-			item["sparkDot2Radius"] = 2.6 * projectile_scale
-			item["sparkDot2Color"] = Color(1.0, 0.70, 0.76, 0.68)
-			item["sparkDot3Pos"] = pos - vel * (31.0 * projectile_scale) + side * sin(phase) * (10.0 * projectile_scale)
-			item["sparkDot3Radius"] = 2.2 * projectile_scale
-			item["sparkDot3Color"] = Color(0.50, 0.01, 0.06, 0.58)
+			if boss_projectile:
+				var projectile_size := clampf(float(bullet_item.get("redPenDrawSize", 38.0)), 36.0, 40.0)
+				var trail_length := clampf(float(bullet_item.get("redPenTrailLength", 24.0)), 20.0, 28.0)
+				var phase := float(bullet_item.get("redPenPhase", bullet_item.get("phase", 0.0)))
+				item["trailGlowStart"] = pos - vel * trail_length
+				item["trailGlowEnd"] = pos - vel * 3.0
+				item["trailGlowColor"] = Color(0.45, 0.01, 0.08, 0.36)
+				item["trailGlowWidth"] = 5.5
+				item["inkSideTrailStart"] = pos - vel * 18.0 + side * 3.0
+				item["inkSideTrailEnd"] = pos - vel * 3.0 + side * 1.2
+				item["inkSideTrailColor"] = Color(0.28, 0.0, 0.06, 0.74)
+				item["inkSideTrailWidth"] = 4.4
+				item["trailStart"] = pos - vel * (trail_length - 3.0)
+				item["trailEnd"] = pos - vel * 2.0
+				item["trailColor"] = Color(0.88, 0.02, 0.12, 0.76)
+				item["trailWidth"] = 3.8
+				item["inkHighlightStart"] = pos - vel * 14.0 - side * 1.8
+				item["inkHighlightEnd"] = pos - vel * 4.0 - side * 0.7
+				item["inkHighlightColor"] = Color(1.0, 0.86, 0.88, 0.78)
+				item["inkHighlightWidth"] = 1.25
+				item["markRingPos"] = pos + vel * 2.5
+				item["markRingRadius"] = projectile_size * 0.19
+				item["markRingColor"] = Color(0.98, 0.30, 0.40, 0.72)
+				item["hookPos"] = pos + vel * 3.0
+				item["hookRadius"] = projectile_size * 0.23
+				item["hookStart"] = vel.angle() - 2.7
+				item["hookEnd"] = vel.angle() - 0.65
+				item["hookPoints"] = 8
+				item["hookColor"] = Color(0.40, 0.0, 0.06, 0.88)
+				item["hookWidth"] = 1.8
+				item["outerRadius"] = projectile_size * 0.50
+				item["outerColor"] = Color(0.24, 0.0, 0.04, 0.88)
+				item["innerRadius"] = projectile_size * 0.30
+				item["innerColor"] = Color(0.92, 0.03, 0.13, 0.82)
+				item["sparkDot1Pos"] = pos - vel * 5.0 + side * 4.2
+				item["sparkDot1Radius"] = 1.6
+				item["sparkDot1Color"] = Color(1.0, 0.92, 0.94, 0.82)
+				item["sparkDot2Pos"] = pos - vel * 15.0 - side * 4.0
+				item["sparkDot2Radius"] = 1.3
+				item["sparkDot2Color"] = Color(1.0, 0.48, 0.56, 0.62)
+				item["sparkDot3Pos"] = pos - vel * 20.0 + side * sin(phase) * 3.0
+				item["sparkDot3Radius"] = 1.1
+				item["sparkDot3Color"] = Color(0.48, 0.0, 0.06, 0.70)
+			else:
+				var phase := float(bullet_item.get("phase", 0.0))
+				item["trailGlowStart"] = pos - vel * 52.0
+				item["trailGlowEnd"] = pos + vel * 4.0
+				item["trailGlowColor"] = Color(1.0, 0.44, 0.52, 0.20)
+				item["trailGlowWidth"] = 18.0
+				item["inkSideTrailStart"] = pos - vel * 46.0 + side * 6.0
+				item["inkSideTrailEnd"] = pos - vel * 4.0 + side * 2.0
+				item["inkSideTrailColor"] = Color(0.34, 0.01, 0.05, 0.38)
+				item["inkSideTrailWidth"] = 5.0
+				item["inkHighlightStart"] = pos - vel * 36.0 - side * 4.0
+				item["inkHighlightEnd"] = pos - vel * 2.0 - side * 1.0
+				item["inkHighlightColor"] = Color(1.0, 0.72, 0.76, 0.32)
+				item["inkHighlightWidth"] = 2.4
+				item["auraPos"] = pos
+				item["auraRadius"] = 24.0
+				item["auraColor"] = Color(1.0, 0.05, 0.18, 0.32)
+				item["markRingPos"] = pos
+				item["markRingRadius"] = 18.0
+				item["markRingColor"] = Color(1.0, 0.72, 0.76, 0.42)
+				item["markText"] = "×"
+				item["markPos"] = pos + Vector2(-14.0, 11.0)
+				item["markWidth"] = 28
+				item["markSize"] = 25
+				item["markColor"] = Color("#ffffff")
+				item["sparkDot1Pos"] = pos + side * 14.0 - vel * 10.0
+				item["sparkDot1Radius"] = 3.2
+				item["sparkDot1Color"] = Color(1.0, 1.0, 1.0, 0.82)
+				item["sparkDot2Pos"] = pos - side * 12.0 - vel * 22.0
+				item["sparkDot2Radius"] = 2.6
+				item["sparkDot2Color"] = Color(1.0, 0.70, 0.76, 0.68)
+				item["sparkDot3Pos"] = pos - vel * 31.0 + side * sin(phase) * 10.0
+				item["sparkDot3Radius"] = 2.2
+				item["sparkDot3Color"] = Color(0.50, 0.01, 0.06, 0.58)
 		if visual_kind == "starlight_superchat" or visual_kind == "high_superchat":
 			var star_color: Color = visual["starColor"] as Color
 			var center_scale: float = 1.10 if bool(bullet_item.get("centerShot", true)) else 0.90
@@ -2445,6 +2586,18 @@ static func bullet_draw_data(bullets: Array, player_owned: bool) -> Array:
 static func bullet_parts(data: Dictionary = {}) -> Array:
 	var visual_kind: String = String(data.get("visualKind", ""))
 	if visual_kind == "red_pen_mark":
+		if bool(data.get("bossProjectile", false)):
+			return [
+				{"kind": "line", "prefix": "trailGlow"},
+				{"kind": "line", "prefix": "inkSideTrail"},
+				{"kind": "line", "prefix": "trail"},
+				{"kind": "line", "prefix": "inkHighlight"},
+				{"kind": "circle", "prefix": "sparkDot2"},
+				{"kind": "circle", "prefix": "markRing", "filled": false, "width": 1.8},
+				{"kind": "arc", "prefix": "hook"},
+				{"kind": "circle", "prefix": "sparkDot3"},
+				{"kind": "circle", "prefix": "sparkDot1"}
+			]
 		return [
 			{"kind": "line", "prefix": "trailGlow"},
 			{"kind": "line", "prefix": "inkSideTrail"},
@@ -2463,13 +2616,10 @@ static func bullet_parts(data: Dictionary = {}) -> Array:
 		return [
 			{"kind": "line", "prefix": "trailGlow"},
 			{"kind": "line", "prefix": "trail"},
-			{"kind": "circle", "prefix": "sparkDot2"},
-			{"kind": "circle", "prefix": "aura", "filled": false, "width": 2.5},
-			{"kind": "circle", "prefix": "outer"},
-			{"kind": "circle", "prefix": "inner"},
-			{"kind": "text", "prefix": "note", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
-			{"kind": "text", "prefix": "check", "alignment": HORIZONTAL_ALIGNMENT_CENTER},
-			{"kind": "circle", "prefix": "sparkDot1"}
+			{"kind": "line", "prefix": "wave"},
+			{"kind": "line", "prefix": "trailHighlight"},
+			{"kind": "circle", "prefix": "noteChip2"},
+			{"kind": "circle", "prefix": "noteChip1"}
 		]
 	if visual_kind == "high_superchat":
 		if String(data.get("imagePath", "")) != "":
@@ -5319,6 +5469,9 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 		if float(fx_item.get("delay", 0.0)) > 0.0:
 			continue
 		if use_culling and fx_item.has("pos") and not visible_rect.has_point(Vector2(fx_item.get("pos", Vector2.ZERO))):
+			continue
+		if String(fx_item.get("kind", "")) in ["kuso_maro_launch", "kuso_maro_hit", "bug_spoiler_launch", "bug_spoiler_hit", "bug_guide_cast", "bug_guide_player_hit", "pitch_police_note_launch", "pitch_police_note_hit", "comment_shotgun_launch", "comment_shotgun_hit", "offline_laser_launch", "offline_laser_hit", "red_pen_launch", "red_pen_summon_spawn", "red_pen_mark_hit", "red_pen_review_line_hit", "collab_crusher_vs_line_damage_hit", "collab_crusher_vs_line_knockback", "comment_divide_hit", "comment_divide_push", "pitch_wave_cast", "pitch_wave_hit", "megaphone_wave_hit"]:
+			items.append(fx_item.duplicate(true))
 			continue
 		if String(fx_item.get("kind", "")) == "hard_comment_avalanche_row":
 			items.append({

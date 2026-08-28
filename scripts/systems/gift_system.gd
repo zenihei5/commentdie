@@ -15,6 +15,25 @@ const COMMENT_RADAR_RANGE_PIXEL_SCALE := 82.5
 const COMMENT_RADAR_SPEED_RATE_PER_LEVEL := 0.08
 const COMMENT_RADAR_FX_COOLDOWN := 0.35
 const MINI_HUMIDIFIER_HURT_PAUSE_SECONDS := 3.0
+const GIFT_CARD_NAME_BREAK_INDEX_BY_WEAPON_ID := {
+	"comment_lockdown": 5,
+	"emote_festival": 5,
+	"all_block_laser": 7,
+	"moderator_fortress": 7,
+	"fansa_climax": 5
+}
+
+static func gift_card_display_name(gift: Dictionary, fallback_name: String) -> String:
+	var display_name := fallback_name
+	if display_name.contains("\n"):
+		return display_name
+	var weapon_id := String(gift.get("id", ""))
+	if WeaponEvolutionSystemScript.is_evolution_gift(gift):
+		weapon_id = String(gift.get("evolvedWeaponId", weapon_id))
+	var break_index := int(GIFT_CARD_NAME_BREAK_INDEX_BY_WEAPON_ID.get(weapon_id, -1))
+	if break_index <= 0 or break_index >= display_name.length():
+		return display_name
+	return "%s\n%s" % [display_name.substr(0, break_index), display_name.substr(break_index)]
 
 static func mental_care_max_hp_bonus(level: int) -> int:
 	return maxi(0, level) * MENTAL_CARE_MAX_HP_PER_LEVEL
@@ -978,6 +997,8 @@ static func choose_gift_for_target(target: Node, gift: Dictionary) -> Dictionary
 	var names: Array = target.get("taken_gift_names") as Array
 	names.append(_taken_name_for_target(target, gift))
 	target.set("gifts_taken", int(target.get("gifts_taken")) + 1)
+	if target.has_method("_record_evaluation_gift"):
+		target.call("_record_evaluation_gift")
 	var consume: int = consume_for_gift(gift)
 	target.set("gift_hype", maxi(0, int(target.get("gift_hype")) - consume))
 	if bool(result.get("heartPendingDuplicate", false)):
@@ -998,6 +1019,8 @@ static func choose_offer_index_for_target(target: Node, index: int) -> Dictionar
 			grant = tracker.grant_direct_pp(int(gift.get("amount", 0)), String(gift.get("source", "candidate_fallback")), String(gift.get("rewardId", "")))
 		if not bool(grant.get("granted", false)):
 			return {"selected": false, "giftName": String(gift.get("displayName", "パワーアップポイント")), "directPp": 0, "rollGenreEvent": false}
+		if target.has_method("_record_evaluation_gift"):
+			target.call("_record_evaluation_gift")
 		if bool(grant.get("granted", false)) and target.has_method("_show_direct_pp_toast"):
 			target.call("_show_direct_pp_toast", int(grant.get("amount", 0)), String(grant.get("source", "")))
 		target.set("state", "playing")

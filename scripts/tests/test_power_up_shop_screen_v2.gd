@@ -5,12 +5,15 @@ const SaveStoreScript := preload("res://scripts/systems/power_up_save_store.gd")
 const ShopManagerScript := preload("res://scripts/systems/power_up_shop_manager.gd")
 const UiStateScript := preload("res://scripts/ui/power_up_shop_ui_state.gd")
 const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
+const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 const ScreenScene := preload("res://scripts/ui/power_up_shop_screen.tscn")
+const ShopScreenScript := preload("res://scripts/ui/power_up_shop_screen.gd")
 const LogicTestScript := preload("res://scripts/tests/test_power_up_shop.gd")
 const GameScript := preload("res://scripts/game.gd")
 
 var failures: Array[String] = []
 var screen
+var se_volume: int = SettingsSystemScript.DEFAULT_SE_VOLUME
 var save_override_calls := 0
 var save_override_should_fail := false
 var signal_order: Array[String] = []
@@ -51,8 +54,12 @@ func _run_tests() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_check(screen.visible, "shop visible")
+	_check(screen.cursor_se.stream != null and String(screen.cursor_se.stream.resource_path) == "res://assets/audio/cursor_move.mp3", "cursor uses cursor SE")
 	_check(screen.purchase_se.stream != null and String(screen.purchase_se.stream.resource_path) == "res://assets/audio/power_up_upgrade.mp3", "upgrade success uses status treatment SE")
 	_check(screen.reset_success_se.stream != null and String(screen.reset_success_se.stream.resource_path) == "res://assets/audio/power_up_reset.mp3", "reset success uses item obtain SE")
+	_check(screen.error_se.stream != null and String(screen.error_se.stream.resource_path) == "res://assets/audio/back_transition.mp3", "error uses back transition SE")
+	_check(screen.max_se.stream != null and String(screen.max_se.stream.resource_path) == "res://assets/audio/level_up.mp3", "max uses level up SE")
+	_test_shop_se_volume()
 	_check(screen.get_node("FullScreenBackground").size == Vector2(1280, 720), "full viewport background")
 	_check(screen.background.texture != null and String(screen.background.texture.resource_path) == "res://assets/title/title_back.png", "shop shares ranking and options background")
 	var background_wash: ColorRect = screen.get_node("BackgroundWash") as ColorRect
@@ -142,7 +149,8 @@ func _run_tests() -> void:
 	manager.profile["upgrades"]["gift_luck"] = 5
 	screen._refresh_view()
 	_check(screen.purchase_button.disabled, "max level disables purchase button")
-	_check(screen.purchase_button.text == "強化完了\nMAX", "max level button label")
+	_check(screen.purchase_button.text == "強化完了", "max level button label")
+	_check(screen.comparison_next_caption.text == "強化完了" and not screen.comparison_arrow.visible, "max detail hides next-level arrow")
 	_check(screen.comparison_current.text == "当たり ×1.40\n大当たり ×1.60", "gift luck Lv5 current effect uses two lines")
 	_check(screen.comparison_next.text == "MAX", "gift luck Lv5 next effect is MAX")
 
@@ -156,6 +164,23 @@ func _run_tests() -> void:
 	await get_tree().process_frame
 	_check(not screen.reset_dialog.visible and not screen.toast_panel.visible, "reopen has no transient leftovers")
 	_test_input_navigation(manager)
+
+func _test_shop_se_volume() -> void:
+	se_volume = 70
+	var base_db := SettingsSystemScript.volume_db_from_percent(se_volume)
+	_check(is_equal_approx(ShopScreenScript.shop_se_volume_db_for_role(se_volume, true), base_db + ShopScreenScript.SHOP_CURSOR_SE_VOLUME_DB_OFFSET), "cursor SE follows current volume with -3 dB")
+	_check(is_equal_approx(ShopScreenScript.shop_se_volume_db_for_role(se_volume, false), base_db + ShopScreenScript.SHOP_FEEDBACK_SE_VOLUME_DB_OFFSET), "feedback SE follows current volume with -8 dB")
+	screen._play_se(screen.cursor_se)
+	_check(is_equal_approx(screen.cursor_se.volume_db, base_db + ShopScreenScript.SHOP_CURSOR_SE_VOLUME_DB_OFFSET), "cursor player applies current volume")
+	for player in [screen.purchase_se, screen.reset_success_se, screen.error_se, screen.max_se]:
+		screen._play_se(player as AudioStreamPlayer)
+		_check(is_equal_approx((player as AudioStreamPlayer).volume_db, base_db + ShopScreenScript.SHOP_FEEDBACK_SE_VOLUME_DB_OFFSET), "feedback player applies current volume")
+	se_volume = 0
+	_check(is_equal_approx(ShopScreenScript.shop_se_volume_db_for_role(se_volume, true), -80.0), "cursor SE clamps 0 percent to silence")
+	_check(is_equal_approx(ShopScreenScript.shop_se_volume_db_for_role(se_volume, false), -80.0), "feedback SE clamps 0 percent to silence")
+	screen._play_se(screen.purchase_se)
+	_check(is_equal_approx(screen.purchase_se.volume_db, -80.0), "feedback player silences at 0 percent")
+	se_volume = SettingsSystemScript.DEFAULT_SE_VOLUME
 
 func _test_reset_dialog_geometry() -> void:
 	var modal_size := Vector2(620, 390)
@@ -201,7 +226,7 @@ func _test_common_transition_adapter(manager) -> void:
 	var base_positions: Dictionary = {}
 	for node in transition_nodes:
 		base_positions[node] = node.global_position
-	var veil_base_position := screen.transition_veil.position
+	var veil_base_position: Vector2 = screen.transition_veil.position
 	screen.begin_common_front_transition("incoming")
 	_check(not screen.visible, "common incoming hides shop before midpoint")
 	screen.apply_common_front_transition(52.0, 0.70, true)
@@ -318,7 +343,7 @@ func _test_input_navigation(manager) -> void:
 	screen._handle_action("confirm")
 	screen._finish_reset_dialog_show()
 	_check(screen.reset_confirm_visible and screen.dialog_choice == 1, "dialog defaults to cancel")
-	var selected_before_modal_guard := screen.selected_index
+	var selected_before_modal_guard: int = screen.selected_index
 	screen._on_card_selected(1)
 	_check(screen.selected_index == selected_before_modal_guard, "reset modal blocks card mouse selection")
 	_check(screen.reset_title.text == "全強化をリセットしますか？", "reset dialog title")
@@ -419,6 +444,9 @@ func _test_v3_display_and_state(database, manager) -> void:
 	_check(int(short["state"]) == UiStateScript.PurchaseState.NOT_ENOUGH_PP and int(short["shortage"]) == 1, "one PP shortage state")
 	var maxed := UiStateScript.build(first_upgrade, 5, 0)
 	_check(int(maxed["state"]) == UiStateScript.PurchaseState.MAX_LEVEL and int(maxed["price"]) == 0, "max state ignores PP")
+	_check(String(exact["cardPriceText"]) == "必要PP %d" % first_price, "purchasable card price wording")
+	_check(String(short["cardPriceText"]) == "必要PP %d　あと1 PP" % first_price, "shortage card price wording")
+	_check(String(maxed["cardPriceText"]) == "強化完了", "MAX card price wording")
 	for category_data in database.categories:
 		var category: Dictionary = category_data as Dictionary
 		_check(String(category.get("detailTag", "")) != "", "category detail tag %s" % String(category.get("id", "")))
@@ -445,13 +473,31 @@ func _test_v3_display_and_state(database, manager) -> void:
 	_check(screen.detail_category_label.text == "戦闘強化", "detail category tag")
 	_check(screen.target_tags.get_child_count() == 2, "detail target tags")
 	_check(screen.comparison_current.text == "なし", "Lv0 current effect is none")
-	_check(screen.purchase_button.text == "パワーアップする\n120 PP", "purchasable button state")
+	_check(screen.purchase_button.text == "強化する\n120 PP", "purchasable button state")
+	_check(screen.required_point_row.visible and screen.required_point_value.text == "必要PP 120", "purchasable required PP row")
+	_check(not screen.owned_or_shortage.visible and screen.owned_or_shortage.text == "", "purchasable hides owned PP duplicate")
+	screen.size = Vector2(1600, 900)
+	screen._layout_responsive()
+	screen._refresh_view()
+	screen.force_update_transform()
+	for card in screen._cards:
+		card.force_update_transform()
+	var normal_name_rect: Rect2 = screen._cards[0].title_label.get_global_rect()
 	for combat_card in screen._cards:
 		_check(String(combat_card.title_label.text).strip_edges() != "", "combat card name is visible")
 	manager.profile["upgrades"]["max_hp"] = 5
 	screen._refresh_view()
+	screen.force_update_transform()
+	for card in screen._cards:
+		card.force_update_transform()
 	_check(screen.comparison_next.text == "MAX", "Lv5 next effect is MAX")
+	var max_name_rect: Rect2 = screen._cards[0].title_label.get_global_rect()
+	_check(is_equal_approx(normal_name_rect.size.x, max_name_rect.size.x), "MAX keeps full upgrade-name width at 1600x900")
+	_check(screen._cards[0].max_ribbon.visible and screen._cards[0].max_ribbon.get_global_rect().size.x >= 48.0 and screen._cards[0].max_ribbon.get_global_rect().size.x <= 54.0, "MAX badge has compact width")
+	_check(not screen._cards[0].max_ribbon.get_global_rect().intersects(screen._cards[0].title_label.get_global_rect()), "MAX badge reserves name space")
 	manager.profile["upgrades"]["max_hp"] = 0
+	screen.size = Vector2(1280, 720)
+	screen._layout_responsive()
 	screen._refresh_view()
 
 	screen.category_index = 1
@@ -460,7 +506,7 @@ func _test_v3_display_and_state(database, manager) -> void:
 	_check(screen._cards[0].title_label.text == "配信研究", "support card name")
 	_check(screen.detail_icon.texture != null, "support detail icon exists")
 	_check(screen.detail_category_label.text == "配信サポート", "support detail tag")
-	_check(screen.purchase_button.text == "パワーアップする\n100 PP", "support category purchase state")
+	_check(screen.purchase_button.text == "強化する\n100 PP", "support category purchase state")
 	_check(screen._cards[0].purchase_view == screen._selected_purchase_view, "support shared purchase state")
 	_check(String((database.get_upgrade("exp_gain") as Dictionary).get("iconPath", "")).ends_with("notification_bell.png"), "exp gain uses notification bell icon")
 	for support_card in screen._cards:
@@ -471,8 +517,10 @@ func _test_v3_display_and_state(database, manager) -> void:
 	var save_calls_before := save_override_calls
 	var api_calls_before: int = screen.purchase_api_call_count
 	screen._on_purchase_pressed()
-	_check(screen.purchase_button.text == "PPが足りません\nあと100 PP", "insufficient button text")
-	_check(not screen.purchase_button.disabled, "insufficient button remains clickable")
+	_check(screen.purchase_button.text == "PPが足りません", "insufficient button text")
+	_check(screen.purchase_button.disabled, "insufficient button is disabled")
+	_check(screen.required_point_row.visible and screen.required_point_value.text == "必要PP 100", "insufficient required PP row")
+	_check(screen.owned_or_shortage.visible and screen.owned_or_shortage.text == "あと100 PP", "insufficient amount appears once")
 	_check(screen.purchase_api_call_count == api_calls_before, "insufficient skips manager purchase API")
 	_check(save_override_calls == save_calls_before and manager.current_points() == 0, "insufficient skips save and PP spend")
 
@@ -483,7 +531,11 @@ func _test_v3_display_and_state(database, manager) -> void:
 	var max_api_calls: int = screen.purchase_api_call_count
 	var max_save_calls := save_override_calls
 	screen._on_purchase_pressed()
-	_check(screen.purchase_button.disabled and screen.purchase_button.text == "強化完了\nMAX", "MAX display is disabled")
+	_check(screen.purchase_button.disabled and screen.purchase_button.text == "強化完了", "MAX display is disabled")
+	_check(not screen.required_point_row.visible, "MAX hides required PP row")
+	_check(screen.comparison_next_caption.text == "強化完了" and not screen.comparison_arrow.visible, "MAX hides next-level comparison")
+	_check(screen._cards[0].max_ribbon.visible and screen._cards[0].max_ribbon_label.text == "MAX", "MAX uses one name-row badge")
+	_check(not screen.mascot_state_decoration.visible, "MAX mascot has no MAX decoration")
 	_check(screen.purchase_api_call_count == max_api_calls and save_override_calls == max_save_calls, "MAX skips manager and save")
 
 	manager.profile["upgrades"]["exp_gain"] = 0
@@ -491,6 +543,8 @@ func _test_v3_display_and_state(database, manager) -> void:
 	manager.profile["currentPoints"] = 10000
 	screen._purchase_cooldown = 0.0
 	screen._refresh_view()
+	_check(screen.required_point_row.visible and screen.purchase_button.text == "強化する\n100 PP" and not screen._cards[0].max_ribbon.visible, "MAX to purchasable clears residual state")
+	_check(screen.comparison_next_caption.text == "次のLv" and screen.comparison_arrow.visible, "MAX to normal restores comparison")
 	screen._on_purchase_pressed()
 	screen._complete_purchase_visual_update()
 	_check(screen._cards[0].purchase_animation_index == 0, "purchase animates new lamp only")
@@ -518,7 +572,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 	for item in [[0, UiStateScript.UpgradeVisualTier.UNPURCHASED], [1, UiStateScript.UpgradeVisualTier.LOW], [2, UiStateScript.UpgradeVisualTier.LOW], [3, UiStateScript.UpgradeVisualTier.HIGH], [4, UiStateScript.UpgradeVisualTier.HIGH], [5, UiStateScript.UpgradeVisualTier.MAX]]:
 		var view: Dictionary = UiStateScript.build(max_hp, int(item[0]), 10000)
 		_check(int(view["visualTier"]) == int(item[1]), "visual tier boundary Lv%d" % int(item[0]))
-	_check(String(max_hp.get("cardSummary", "")) != "", "card summary metadata exists")
+	_check(not (max_hp.get("cardSummary", {}) as Dictionary).is_empty(), "card summary metadata exists")
 	var attack: Dictionary = database.get_upgrade("attack_power") as Dictionary
 	var attack_view: Dictionary = UiStateScript.build(attack, 2, 10000)
 	_check(String(attack_view["currentEffectText"]) == "+6%" and String(attack_view["nextEffectText"]) == "+9%", "cumulative effect values")
@@ -539,7 +593,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 		_check(String(gift_view["cardEffectSummary"]) == ("当たり抽選を強化" if int(gift_case[0]) == 0 else "当たり・大当たり率UP"), "gift luck card summary stays short Lv%d" % int(gift_case[0]))
 		_check(String(gift_view["currentEffectText"]) == String(gift_case[1]) and String(gift_view["nextEffectText"]) == String(gift_case[2]), "gift luck effect text boundary Lv%d" % int(gift_case[0]))
 	var shortage_view: Dictionary = UiStateScript.build(max_hp, 0, 52)
-	_check(String(shortage_view["cardPriceText"]).contains("120") and String(shortage_view["cardPriceText"]).contains("あと68"), "card price includes required and shortage")
+	_check(String(shortage_view["cardPriceText"]) == "必要PP 120　あと68 PP", "card price includes required and shortage")
 	for item in database.upgrades:
 		var data: Dictionary = item as Dictionary
 		_check((data.get("cardSummary", {}) as Dictionary).has("levelZero"), "all cards have v4 summary %s" % String(data.get("id", "")))
@@ -570,6 +624,16 @@ func _test_v4_growth_expression(database, manager) -> void:
 	for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
 		_check(screen._cards[0].get_theme_stylebox(state_name) is StyleBoxEmpty, "card input slot stays transparent %s" % state_name)
 	_check(screen._cards[0].card_surface.get_theme_stylebox("panel") != screen._cards[0].get_theme_stylebox("normal"), "CardSurface owns the visible card style")
+	var combat_selection_style: StyleBoxFlat = screen._cards[0].card_surface.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(combat_selection_style.border_color == CommonLightUiStyle.COMBAT_MAIN and combat_selection_style.border_width_left == 4, "combat selection uses common pink")
+	screen.category_index = 1
+	screen.selected_index = 0
+	screen._refresh_view()
+	var support_selection_style: StyleBoxFlat = screen._cards[0].card_surface.get_theme_stylebox("panel") as StyleBoxFlat
+	_check(support_selection_style.border_color == CommonLightUiStyle.COMBAT_MAIN and support_selection_style.border_width_left == 4, "support selection uses common pink")
+	screen.category_index = 0
+	screen.selected_index = 0
+	screen._refresh_view()
 	screen.focus_area = screen.FocusArea.CATEGORY_TABS
 	screen._refresh_view()
 	_check(screen._cards[0].selected and screen._cards[0].z_index < 3, "detail-selected card returns to normal z while category tab is focused")
@@ -593,7 +657,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 	_check(screen._cards[1].scale.x <= 1.011, "hover-only scale stays below selected scale")
 	screen.last_input_device = "keyboard"
 	screen._refresh_focus_visuals()
-	var mascot_token_before_selection := screen._mascot_generation
+	var mascot_token_before_selection: int = screen._mascot_generation
 	screen._on_card_selected(1)
 	_check(screen._mascot_generation > mascot_token_before_selection, "selection change invalidates mascot token")
 	screen.selected_index = 0
@@ -613,9 +677,9 @@ func _test_v4_growth_expression(database, manager) -> void:
 		levels[id] = 0
 	manager.profile["currentPoints"] = 10000
 	screen._refresh_view()
-	var shortage_view := UiStateScript.build(max_hp, 0, 52)
-	_check(int(shortage_view["mascotBaseState"]) == UiStateScript.MascotState.SHORTAGE, "shortage maps to mascot state")
-	_check(String(screen._mascot_text(UiStateScript.MascotState.SHORTAGE, shortage_view)).contains("68"), "shortage mascot message uses dynamic amount")
+	var shortage_state_view := UiStateScript.build(max_hp, 0, 52)
+	_check(int(shortage_state_view["mascotBaseState"]) == UiStateScript.MascotState.SHORTAGE, "shortage maps to mascot state")
+	_check(String(screen._mascot_text(UiStateScript.MascotState.SHORTAGE, shortage_state_view)).contains("68"), "shortage mascot message uses dynamic amount")
 	signal_order.clear()
 	manager.points_changed.connect(_record_points_signal)
 	manager.upgrade_purchased.connect(_record_purchase_signal)
@@ -631,7 +695,7 @@ func _test_v4_growth_expression(database, manager) -> void:
 	_check(screen._mascot_presentation_state == UiStateScript.MascotState.PURCHASE_SUCCESS, "successful purchase shows mascot success state")
 	manager.points_changed.disconnect(_record_points_signal)
 	manager.upgrade_purchased.disconnect(_record_purchase_signal)
-	var mascot_generation_before_close := screen._mascot_generation
+	var mascot_generation_before_close: int = screen._mascot_generation
 	screen._show_toast("cleanup", 10.0)
 	screen.close_shop()
 	_check(not screen.purchase_light.visible and screen._pending_upgrade_id == "", "close clears purchase transient state")
@@ -697,7 +761,7 @@ func _test_v5_geometry() -> void:
 		_check(selected_surface_rect.size.x > 0.0 and selected_surface_rect.size.y > 0.0, "selected internal surface is rendered")
 		if selected_index == 1:
 			_check(selected_surface_rect != baseline_surface_rect, "selected surface transform moves background and border")
-		var hover_index := (selected_index + 1) % screen._cards.size()
+		var hover_index: int = (selected_index + 1) % screen._cards.size()
 		var hover_card: PowerUpShopCard = screen._cards[hover_index] as PowerUpShopCard
 		hover_card.hovered = true
 		hover_card.last_input_device = "mouse"

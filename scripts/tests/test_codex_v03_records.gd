@@ -16,9 +16,9 @@ func _ready() -> void:
 
 func _run_tests() -> void:
 	CodexManager.initialize_empty()
-	_check(DifficultyProgressSystemScript.SAVE_VERSION == 5, "outer save version is five")
+	_check(DifficultyProgressSystemScript.SAVE_VERSION == 6, "outer save version includes unlock presentation state")
 	var migrated_outer := DifficultyProgressSystemScript.migrate_save_data({"saveVersion": 2, "streamFrameProgress": {"talk": {"isCleared": true}}})
-	_check(int(migrated_outer.get("saveVersion", 0)) == 5 and migrated_outer.has("codex"), "save version two migrates without dropping codex")
+	_check(int(migrated_outer.get("saveVersion", 0)) == 6 and migrated_outer.has("codex") and migrated_outer.has("unlockPresentation"), "save version two migrates without dropping codex or presentation state")
 	CodexManager.begin_run("v03_play")
 	_check(CodexManager.record_character_play("ban_chan", "v03_play"), "formal run records one character play")
 	_check(not CodexManager.record_character_play("ban_chan", "v03_play"), "same run does not double record play")

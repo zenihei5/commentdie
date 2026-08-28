@@ -23,6 +23,9 @@ const LARGE_ATTACK_IDS := [
 	"eraser_sweep", "paint_warning", "collab_break", "all_genre_rush"
 ]
 
+const OFFLINE_LASER_LENGTH := 900.0
+const OFFLINE_LASER_HIT_WIDTH := 26.0
+
 static func empty_runtime() -> Dictionary:
 	return {
 		"active_attack": _empty_attack(),
@@ -44,6 +47,9 @@ static func empty_runtime() -> Dictionary:
 		"noise_summon_after_protected_attack_lock": 0.0,
 		"noise_summon_wave_serial": 0,
 		"noise_summon_pending_wave": {},
+		"noise_summon_visual_effects": [],
+		"kuso_maro_drop_visual_effects": [],
+		"kuso_maro_drop_visual_batch_serial": 0,
 		"sync_star_drop_cooldown": 0.0,
 		"sync_star_carrier_uid": -1
 	}
@@ -84,6 +90,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, rng: Ran
 		return feedback
 	_decay_reuse_cooldowns(runtime, delta)
 	_decay_noise_runtime(target, runtime, delta)
+	_decay_kuso_maro_drop_visual_effects(runtime, delta)
 	_sync_noise_carrier_uid(target, runtime)
 	_update_pending_noise_wave(target, runtime, delta, arena, rng)
 	var active := runtime.get("active_attack", {}) as Dictionary
@@ -171,6 +178,8 @@ static func clear_runtime_objects_for_target(target: Node, clear_attack: bool = 
 	var runtime := ensure_for_target(target)
 	runtime["hazards"] = []
 	runtime["noise_summon_pending_wave"] = {}
+	runtime["noise_summon_visual_effects"] = []
+	runtime["kuso_maro_drop_visual_effects"] = []
 	runtime["collab_break_uid"] = -1
 	if clear_attack:
 		runtime["active_attack"] = _empty_attack()
@@ -184,6 +193,106 @@ static func clear_runtime_objects_for_target(target: Node, clear_attack: bool = 
 	target.set("enemy_bullets", kept)
 	target.set("collab_boss_partner_muted", false)
 	_sync_legacy_attack_field(target, runtime)
+
+static func clear_kuso_maro_drop_visuals_for_target(target: Node, _reason: String = "forced_cleanup") -> void:
+	# Drop hazards are runtime-owned and can also be created by the
+	# all_genre_rush composite. Filter only drop provenance here: when the
+	# composite is active, its other hazards and active attack state remain.
+	var runtime := ensure_for_target(target)
+	var kept_hazards: Array = []
+	for item in runtime.get("hazards", []) as Array:
+		var hazard: Dictionary = item as Dictionary
+		var kind := String(hazard.get("kind", ""))
+		var source := String(hazard.get("source", ""))
+		var attack_id := String(hazard.get("attackId", hazard.get("bossAttackId", "")))
+		var is_drop := kind == "kuso_maro_drop" or source == "relay_boss_kuso_maro_drop" or attack_id == "kuso_maro_drop" or bool(hazard.get("kusoMaroDropVisual", false))
+		if is_drop:
+			continue
+		kept_hazards.append(hazard)
+	runtime["hazards"] = kept_hazards
+	runtime["kuso_maro_drop_visual_effects"] = []
+	var active: Dictionary = runtime.get("active_attack", {}) as Dictionary
+	if String(active.get("id", "")) == "kuso_maro_drop":
+		runtime["active_attack"] = _empty_attack()
+	var pending: Dictionary = runtime.get("pending_attack", {}) as Dictionary
+	if String(pending.get("id", "")) == "kuso_maro_drop":
+		runtime["pending_attack"] = {}
+
+	var effects_value: Variant = target.get("collab_effects")
+	if effects_value is Array:
+		var kept_effects: Array = []
+		for item in effects_value as Array:
+			var effect: Dictionary = item as Dictionary
+			var effect_kind := String(effect.get("kind", ""))
+			var effect_attack_id := String(effect.get("bossAttackId", ""))
+			if effect_kind.begins_with("kuso_maro_drop_") or effect_attack_id == "kuso_maro_drop":
+				continue
+			kept_effects.append(effect)
+		target.set("collab_effects", kept_effects)
+	var hit_fx_value: Variant = target.get("hit_fx")
+	if hit_fx_value is Array:
+		var kept_hit_fx: Array = []
+		for item in hit_fx_value as Array:
+			var hit: Dictionary = item as Dictionary
+			var hit_kind := String(hit.get("kind", ""))
+			var hit_attack_id := String(hit.get("bossAttackId", ""))
+			if hit_kind.begins_with("kuso_maro_drop_") or hit_attack_id == "kuso_maro_drop":
+				continue
+			kept_hit_fx.append(hit)
+		target.set("hit_fx", kept_hit_fx)
+	_sync_legacy_attack_field(target, runtime)
+	target.set("relay_boss_runtime", runtime)
+
+static func clear_noise_summon_visuals_for_target(target: Node, remove_spawned_children: bool = false, _reason: String = "forced_cleanup") -> void:
+	# This is deliberately narrower than clear_runtime_objects_for_target.  It
+	# is used by game-over/title/direct-stage cleanup and must not touch other
+	# relay attacks, normal noise enemies, or unrelated relay projectiles.
+	var runtime := ensure_for_target(target)
+	runtime["noise_summon_pending_wave"] = {}
+	runtime["noise_summon_visual_effects"] = []
+	var active: Dictionary = runtime.get("active_attack", {}) as Dictionary
+	if String(active.get("id", "")) == "noise_summon":
+		runtime["active_attack"] = _empty_attack()
+	var pending_attack: Dictionary = runtime.get("pending_attack", {}) as Dictionary
+	if String(pending_attack.get("id", "")) == "noise_summon":
+		runtime["pending_attack"] = {}
+
+	var hit_fx_value: Variant = target.get("hit_fx")
+	if hit_fx_value is Array:
+		var kept_hit_fx: Array = []
+		for item in hit_fx_value as Array:
+			var hit: Dictionary = item as Dictionary
+			var hit_kind := String(hit.get("kind", ""))
+			if hit_kind.begins_with("relay_noise_summon_"):
+				continue
+			kept_hit_fx.append(hit)
+		target.set("hit_fx", kept_hit_fx)
+
+	var collab_effects_value: Variant = target.get("collab_effects")
+	if collab_effects_value is Array:
+		var kept_effects: Array = []
+		for item in collab_effects_value as Array:
+			var effect: Dictionary = item as Dictionary
+			var effect_kind := String(effect.get("kind", ""))
+			if effect_kind.begins_with("relay_noise_summon_"):
+				continue
+			kept_effects.append(effect)
+		target.set("collab_effects", kept_effects)
+
+	if remove_spawned_children:
+		var kept_enemies: Array = []
+		var carrier_uid := int(runtime.get("sync_star_carrier_uid", -1))
+		for item in target.get("enemies") as Array:
+			var enemy: Dictionary = item as Dictionary
+			var is_noise_child := String(enemy.get("kind", "")) == "noise_ghost_comment" and bool(enemy.get("relayBossNoiseSummon", false))
+			if is_noise_child:
+				if int(enemy.get("uid", -1)) == carrier_uid:
+					runtime["sync_star_carrier_uid"] = -1
+				continue
+			kept_enemies.append(enemy)
+		target.set("enemies", kept_enemies)
+	_sync_legacy_attack_field(target, runtime)
+	target.set("relay_boss_runtime", runtime)
 
 static func set_debug_overlay_for_target(target: Node, enabled: bool) -> void:
 	var runtime := ensure_for_target(target)
@@ -212,6 +321,22 @@ static func _decay_noise_runtime(_target: Node, runtime: Dictionary, delta: floa
 	runtime["noise_summon_after_wave_lock"] = maxf(0.0, float(runtime.get("noise_summon_after_wave_lock", 0.0)) - delta)
 	runtime["noise_summon_after_protected_attack_lock"] = maxf(0.0, float(runtime.get("noise_summon_after_protected_attack_lock", 0.0)) - delta)
 	runtime["sync_star_drop_cooldown"] = maxf(0.0, float(runtime.get("sync_star_drop_cooldown", 0.0)) - delta)
+	var kept_effects: Array = []
+	for item in runtime.get("noise_summon_visual_effects", []) as Array:
+		var effect: Dictionary = item as Dictionary
+		effect["life"] = maxf(0.0, float(effect.get("life", 0.0)) - delta)
+		if float(effect.get("life", 0.0)) > 0.0:
+			kept_effects.append(effect)
+	runtime["noise_summon_visual_effects"] = kept_effects
+
+static func _decay_kuso_maro_drop_visual_effects(runtime: Dictionary, delta: float) -> void:
+	var kept_effects: Array = []
+	for item in runtime.get("kuso_maro_drop_visual_effects", []) as Array:
+		var effect: Dictionary = item as Dictionary
+		effect["life"] = maxf(0.0, float(effect.get("life", 0.0)) - delta)
+		if float(effect.get("life", 0.0)) > 0.0:
+			kept_effects.append(effect)
+	runtime["kuso_maro_drop_visual_effects"] = kept_effects
 
 static func _sync_noise_carrier_uid(target: Node, runtime: Dictionary) -> void:
 	var carrier_uid := int(runtime.get("sync_star_carrier_uid", -1))
@@ -327,7 +452,23 @@ static func _begin_attack(target: Node, runtime: Dictionary, attack_id: String, 
 	runtime["last_attack_id"] = attack_id
 	runtime["last_attack_was_large"] = false
 	runtime["hazards"] = []
-	RelayBossMovementSystem.on_attack_started(target, attack_id, _attack_marker_origin(target, attack_id, arena))
+	var attack_origin := _attack_marker_origin(target, attack_id, arena)
+	RelayBossMovementSystem.on_attack_started(target, attack_id, attack_origin)
+	if attack_id == "noise_summon":
+		# Warning geometry is intentionally boss-side only.  The gameplay
+		# reservation below remains untouched; this serial is visual metadata,
+		# not a position/count reservation and never consumes RNG.
+		active["noiseSummonWarningVisualActive"] = true
+		active["noiseSummonWarningVisualSeed"] = _noise_summon_warning_visual_seed(serial)
+		active["noiseSummonWarningVisualDuration"] = float(payload.get("telegraph", 1.0))
+	if attack_id == "kuso_maro_drop":
+		# The four actual positions are deliberately not known until the
+		# existing activation-time jitter calls. This seed is only for the
+		# boss-side warning and never participates in gameplay.
+		active["kusoMaroDropWarningVisualSeed"] = _kuso_maro_drop_warning_visual_seed(serial)
+		active["kusoMaroDropWarningVisualDuration"] = float(payload.get("telegraph", 1.2))
+	if attack_id == "offline_laser":
+		_capture_offline_laser_snapshot(target, active, arena)
 	if not forced:
 		var cooldowns: Dictionary = runtime.get("reuse_cooldowns", {}) as Dictionary
 		cooldowns[attack_id] = float(payload.get("reuseCooldown", 8.0))
@@ -365,6 +506,11 @@ static func _default_payload(attack_id: String) -> Dictionary:
 
 static func _update_telegraph(target: Node, runtime: Dictionary, active: Dictionary, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var prepared_this_tick := false
+	if String(active.get("id", "")) == "offline_laser":
+		# Keep the live tracking behavior, but do not refresh on the tick that
+		# crosses into ACTIVE.  The snapshot used by the last rendered warning
+		# is therefore the exact active collision geometry.
+		_refresh_offline_laser_snapshot_if_warning_renders(target, active, arena, delta)
 	if String(active.get("id", "")) == "noise_summon" and (runtime.get("noise_summon_pending_wave", {}) as Dictionary).is_empty():
 		var payload: Dictionary = active.get("payload", {}) as Dictionary
 		var remaining := float(active.get("timer", 0.0))
@@ -461,6 +607,37 @@ static func _process_hazards(target: Node, runtime: Dictionary, active: Dictiona
 				hazard_damage = roundi(float(hazard_damage) * float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("attackRate", 1.10)))
 			feedback["damageEvents"].append({"source": String(hazard.get("source", "relay_boss_attack")), "damage": hazard_damage, "attackId": String(active.get("id", "")), "attackType": String(hazard.get("kind", "hazard"))})
 			hazard["hitTimer"] = maxf(0.1, float(hazard.get("damageInterval", 999.0)))
+			if String(hazard.get("kind", "")) == "offline_laser" and not bool(hazard.get("offlineLaserHitFxEmitted", false)):
+				hazard["offlineLaserHitFxEmitted"] = true
+				var offline_hit_fx: Array = target.get("hit_fx") as Array
+				var hit_from := Vector2(hazard.get("from", Vector2.ZERO))
+				var hit_to := Vector2(hazard.get("to", hit_from))
+				var hit_dir := (hit_to - hit_from).normalized()
+				if hit_dir.length_squared() <= 0.01:
+					hit_dir = Vector2.RIGHT
+				offline_hit_fx.append({
+					"kind": "offline_laser_hit",
+					"bossAttackId": "offline_laser",
+					"pos": player_pos,
+					"dir": hit_dir,
+					"visualSeed": float(hazard.get("offlineLaserVisualSeed", 0.0)),
+					"offlineLaserSerial": int(hazard.get("offlineLaserSerial", 0)),
+					"life": 0.20,
+					"maxLife": 0.20
+				})
+				target.set("hit_fx", offline_hit_fx)
+			if bool(hazard.get("kusoMaroDropVisual", false)) and not bool(hazard.get("kusoMaroDropHitFxEmitted", false)):
+				hazard["kusoMaroDropHitFxEmitted"] = true
+				var drop_effects: Array = runtime.get("kuso_maro_drop_visual_effects", []) as Array
+				drop_effects.append({
+					"kind": "kuso_maro_drop_hit",
+					"bossAttackId": "kuso_maro_drop",
+					"pos": player_pos,
+					"visualSeed": float(hazard.get("kusoMaroDropVisualSeed", 0.0)) + 1.37,
+					"life": 0.20,
+					"maxLife": 0.20
+				})
+				runtime["kuso_maro_drop_visual_effects"] = drop_effects
 		if float(hazard.get("time", 0.0)) > 0.0:
 			kept.append(hazard)
 	runtime["hazards"] = kept
@@ -520,6 +697,35 @@ static func _append_bullet(target: Node, pos: Vector2, vel: Vector2, life: float
 	bullets.append({"pos": pos, "vel": vel, "life": life, "damage": damage, "source": source, "sourceKind": attack_id, "attackType": "projectile", "relayBossProjectile": true, "shieldBlockable": true})
 	target.set("enemy_bullets", bullets)
 
+static func _comment_shotgun_visual_seed(serial: int, index: int, pos: Vector2, vel: Vector2) -> float:
+	var raw := sin(
+		float(serial) * 17.173
+		+ float(index) * 43.917
+		+ pos.x * 0.0137
+		+ pos.y * 0.0179
+		+ vel.x * 0.0071
+		+ vel.y * 0.0093
+	) * 43758.5453
+	return fposmod(raw, 1.0)
+
+static func _noise_summon_warning_visual_seed(serial: int) -> float:
+	return fposmod(sin(float(serial) * 17.731 + 4.913) * 43758.5453, TAU)
+
+static func _noise_summon_visual_seed(wave_id: int, index: int, enemy_uid: int, pos: Vector2) -> float:
+	var raw := sin(
+		float(wave_id) * 13.917
+		+ float(index) * 31.173
+		+ float(enemy_uid) * 47.219
+		+ pos.x * 0.0173
+		+ pos.y * 0.0231
+	) * 43758.5453
+	return fposmod(raw, TAU)
+
+static func _append_noise_summon_visual_effect(runtime: Dictionary, effect: Dictionary) -> void:
+	var effects: Array = runtime.get("noise_summon_visual_effects", []) as Array
+	effects.append(effect)
+	runtime["noise_summon_visual_effects"] = effects
+
 static func emit_travel_attack_for_target(target: Node, attack_id: String, arena: Rect2, travel_context: Dictionary = {}) -> void:
 	if not bool(target.get("relay_boss_active")):
 		return
@@ -554,18 +760,117 @@ static func _handle_comment_shotgun(target: Node, active: Dictionary, arena: Rec
 	var origin := RelayBossMovementSystem.marker_world_position(target, "ChatModule", arena)
 	var direction := (Vector2(target.get("player_pos")) - origin).normalized()
 	var count := mini(12, maxi(1, int(payload.get("count", 5))))
+	var cast_serial := int(active.get("serial", 0))
 	for i in range(count):
-		_append_bullet(target, origin, direction.rotated((float(i) - float(count - 1) * 0.5) * 0.12) * 240.0, 4.0, int(payload.get("damage", 7)), "relay_boss_comment_shotgun", String(active.get("id", "")))
+		var pellet_velocity := direction.rotated((float(i) - float(count - 1) * 0.5) * 0.12) * 240.0
+		_append_bullet(target, origin, pellet_velocity, 4.0, int(payload.get("damage", 7)), "relay_boss_comment_shotgun", String(active.get("id", "")))
+		var bullets: Array = target.get("enemy_bullets") as Array
+		if bullets.is_empty():
+			continue
+		var bullet_index := bullets.size() - 1
+		var bullet: Dictionary = bullets[bullet_index] as Dictionary
+		var actual_velocity := Vector2(bullet.get("vel", pellet_velocity))
+		var visual_seed := _comment_shotgun_visual_seed(cast_serial, i, origin, actual_velocity)
+		bullet["visualKind"] = "comment_shotgun"
+		bullet["commentShotgunCastSerial"] = cast_serial
+		bullet["commentShotgunIndex"] = i
+		bullet["commentShotgunCount"] = count
+		bullet["commentShotgunVisualSeed"] = visual_seed
+		bullet["commentShotgunLaunchVisualTimer"] = 0.12
+		bullet["commentShotgunLaunchVisualDuration"] = 0.12
+		bullet["commentShotgunDrawSize"] = 40.0
+		bullet["commentShotgunTrailLength"] = 21.0
+		bullets[bullet_index] = bullet
+		target.set("enemy_bullets", bullets)
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "comment_shotgun_launch",
+		"bossAttackId": "comment_shotgun",
+		"pos": origin,
+		"dir": direction,
+		"pelletCount": count,
+		"visualSeed": _comment_shotgun_visual_seed(cast_serial, count, origin, direction),
+		"life": 0.16,
+		"maxLife": 0.16
+	})
+	target.set("hit_fx", hit_fx)
 
 static func _handle_offline_laser(target: Node, runtime: Dictionary, active: Dictionary, arena: Rect2) -> void:
 	var payload: Dictionary = active.get("payload", {}) as Dictionary
-	var origin := Vector2(runtime.get("locked_origin", RelayBossMovementSystem.marker_world_position(target, "CoreCenter", arena)))
-	var direction := (Vector2(target.get("player_pos")) - origin).normalized()
-	if direction.length_squared() < 0.01:
+	var snapshot_valid := bool(active.get("offlineLaserSnapshotValid", false))
+	if not snapshot_valid:
+		# Defensive recovery for old/injected runtime data only.  The normal
+		# path captures the snapshot at attack start and never re-aims here.
+		_capture_offline_laser_snapshot(target, active, arena)
+		snapshot_valid = bool(active.get("offlineLaserSnapshotValid", false))
+	var origin := Vector2(active.get("offlineLaserOrigin", Vector2.ZERO))
+	var direction := Vector2(active.get("offlineLaserDir", Vector2.DOWN))
+	var endpoint := Vector2(active.get("offlineLaserEndpoint", Vector2.ZERO))
+	if not snapshot_valid:
+		origin = RelayBossMovementSystem.marker_world_position(target, "CoreCenter", arena)
+		direction = (Vector2(target.get("player_pos")) - origin).normalized()
+		if direction.length_squared() < 0.01:
+			direction = Vector2.DOWN
+		endpoint = origin + direction * OFFLINE_LASER_LENGTH
+	if direction.length_squared() <= 0.01:
 		direction = Vector2.DOWN
+	else:
+		direction = direction.normalized()
+	if endpoint.distance_squared_to(origin) <= 0.01:
+		endpoint = origin + direction * OFFLINE_LASER_LENGTH
 	var hazard := _new_hazard("offline_laser", origin, float(payload.get("activeDuration", 0.8)), int(payload.get("damage", 16)))
-	hazard["shape"] = "line"; hazard["from"] = origin; hazard["to"] = origin + direction * 900.0; hazard["width"] = 26.0; hazard["source"] = "relay_boss_offline_laser"
+	hazard["shape"] = "line"; hazard["from"] = origin; hazard["to"] = endpoint; hazard["width"] = OFFLINE_LASER_HIT_WIDTH; hazard["source"] = "relay_boss_offline_laser"
+	hazard["attackId"] = "offline_laser"
+	hazard["offlineLaserSerial"] = int(active.get("serial", 0))
+	hazard["offlineLaserVisualSeed"] = float(active.get("offlineLaserVisualSeed", 0.0))
 	_append_hazard(runtime, hazard)
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append({
+		"kind": "offline_laser_launch",
+		"bossAttackId": "offline_laser",
+		"pos": origin,
+		"dir": direction,
+		"endpoint": endpoint,
+		"visualSeed": float(active.get("offlineLaserVisualSeed", 0.0)),
+		"offlineLaserSerial": int(active.get("serial", 0)),
+		"life": 0.18,
+		"maxLife": 0.18
+	})
+	target.set("hit_fx", hit_fx)
+
+static func _capture_offline_laser_snapshot(target: Node, active: Dictionary, arena: Rect2) -> void:
+	var origin := RelayBossMovementSystem.marker_world_position(target, "CoreCenter", arena)
+	var aim_point := Vector2(target.get("player_pos"))
+	var direction := aim_point - origin
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.DOWN
+	else:
+		direction = direction.normalized()
+	var endpoint := origin + direction * OFFLINE_LASER_LENGTH
+	active["offlineLaserSnapshotValid"] = true
+	active["offlineLaserOrigin"] = origin
+	active["offlineLaserDir"] = direction
+	active["offlineLaserEndpoint"] = endpoint
+	active["offlineLaserAimPoint"] = aim_point
+	active["offlineLaserVisualSeed"] = _offline_laser_visual_seed(int(active.get("serial", 0)), origin, direction)
+
+static func _refresh_offline_laser_snapshot_if_warning_renders(target: Node, active: Dictionary, arena: Rect2, delta: float) -> void:
+	var remaining := float(active.get("timer", 0.0))
+	# Treat the timer-crossing tick as a commit even when float rounding leaves
+	# a few ulps above zero.  No new aim sample is allowed on that tick.
+	if remaining <= 0.0 or remaining - maxf(0.0, delta) <= 0.00001:
+		return
+	_capture_offline_laser_snapshot(target, active, arena)
+
+static func _offline_laser_visual_seed(serial: int, origin: Vector2, direction: Vector2) -> float:
+	var raw := sin(
+		float(serial) * 19.371
+		+ origin.x * 0.0173
+		+ origin.y * 0.0119
+		+ direction.x * 31.17
+		+ direction.y * 47.83
+	) * 43758.5453
+	return fposmod(raw, 1.0)
 
 static func can_start_noise_summon_for_target(target: Node, runtime: Dictionary, payload: Dictionary, movement_state: String = "") -> bool:
 	return _can_prepare_noise_wave(target, runtime, payload, movement_state, false)
@@ -719,7 +1024,7 @@ static func _update_pending_noise_wave(target: Node, runtime: Dictionary, delta:
 	runtime["noise_summon_pending_wave"] = pending
 	_spawn_noise_wave(target, runtime, pending, arena, rng)
 
-static func _spawn_noise_wave(target: Node, runtime: Dictionary, pending: Dictionary, _arena: Rect2, rng: RandomNumberGenerator) -> bool:
+static func _spawn_noise_wave(target: Node, runtime: Dictionary, pending: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> bool:
 	var payload := _noise_payload_for_target(target)
 	var phase := clampi(int(pending.get("phaseIndex", target.get("relay_boss_phase"))), 0, 4)
 	var phase_settings := _noise_phase_settings(payload, phase)
@@ -739,6 +1044,20 @@ static func _spawn_noise_wave(target: Node, runtime: Dictionary, pending: Dictio
 		var uid := int(target.get("next_enemy_uid"))
 		var summon := EnemySystemScript.build_enemy(String(payload.get("enemyKind", "noise_ghost_comment")), Vector2(positions[i]), uid, 999.0)
 		_configure_noise_summon(summon, payload, source, int(pending.get("waveId", 0)), float(payload.get("enemyLifetimeSeconds", payload.get("lifetime", 14.0))))
+		var actual_kind := String(summon.get("kind", ""))
+		if actual_kind == "noise_ghost_comment":
+			# Only the committed child gets visual provenance.  The position is
+			# read from the built enemy itself; no predicted/hash position is used.
+			var actual_pos := Vector2(summon.get("pos", Vector2.ZERO))
+			var visual_seed := _noise_summon_visual_seed(int(pending.get("waveId", 0)), i, uid, actual_pos)
+			summon["relayNoiseSummonVisual"] = true
+			summon["relayNoiseVisualSeed"] = visual_seed
+			summon["relayNoiseWaveId"] = int(pending.get("waveId", 0))
+			summon["relayNoiseSource"] = source
+			summon["relayNoiseSpawnOrigin"] = actual_pos
+			summon["relayNoisePopInTimer"] = 0.20
+			summon["relayNoisePopInDuration"] = 0.20
+			summon["relayNoiseContactFxTimer"] = 0.0
 		if HardModeSystemScript.is_high_difficulty_target(target):
 			var rewardable_hard_summon := String(runtime.get("playMode", "")) == HardModeSystemScript.RELAY_FINAL_BOSS
 			if rewardable_hard_summon:
@@ -766,8 +1085,37 @@ static func _spawn_noise_wave(target: Node, runtime: Dictionary, pending: Dictio
 		enemies.append(summon)
 		target.set("next_enemy_uid", uid + 1)
 		spawned_count += 1
+		if actual_kind == "noise_ghost_comment":
+			var spawned_pos := Vector2(summon.get("pos", Vector2.ZERO))
+			var visual_seed := float(summon.get("relayNoiseVisualSeed", 0.0))
+			var strength := 0.70 if source == "travel_support" else 1.0
+			_append_noise_summon_visual_effect(runtime, {
+				"kind": "relay_noise_summon_spawn",
+				"bossAttackId": "noise_summon",
+				"spawnSource": source,
+				"waveId": int(pending.get("waveId", 0)),
+				"spawnIndex": i,
+				"pos": spawned_pos,
+				"visualSeed": visual_seed,
+				"strength": strength,
+				"life": 0.22,
+				"maxLife": 0.22
+			})
 	target.set("enemies", enemies)
 	if spawned_count > 0:
+		if source == "main_attack":
+			var boss_marker := RelayBossMovementSystem.marker_world_position(target, "ChatModule", arena)
+			_append_noise_summon_visual_effect(runtime, {
+				"kind": "relay_noise_summon_boss_cue",
+				"bossAttackId": "noise_summon",
+				"spawnSource": source,
+				"waveId": int(pending.get("waveId", 0)),
+				"pos": boss_marker,
+				"visualSeed": _noise_summon_warning_visual_seed(int(pending.get("waveId", 0))),
+				"strength": 1.0,
+				"life": 0.24,
+				"maxLife": 0.24
+			})
 		var min_cooldown := float(payload.get("cooldownMinSeconds", 11.0))
 		var max_cooldown := maxf(min_cooldown, float(payload.get("cooldownMaxSeconds", 14.0)))
 		runtime["noise_summon_cooldown"] = rng.randf_range(min_cooldown, max_cooldown) if rng != null else min_cooldown
@@ -832,9 +1180,46 @@ static func _clamp_point_to_arena(pos: Vector2, arena: Rect2, margin: float) -> 
 
 static func _handle_kuso_maro_drop(target: Node, runtime: Dictionary, active: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> void:
 	var center := Vector2(target.get("player_pos"))
+	var batch_serial := int(runtime.get("kuso_maro_drop_visual_batch_serial", 0)) + 1
+	runtime["kuso_maro_drop_visual_batch_serial"] = batch_serial
 	for i in range(4):
 		var pos := center + Vector2.from_angle(float(i) * TAU / 4.0 + rng.randf_range(-0.2, 0.2)) * 170.0
-		_add_circle(runtime, "kuso_maro_drop", _clamp_point_to_arena(pos, arena, 50.0), float((active.get("payload", {}) as Dictionary).get("activeDuration", 0.65)), 11, 52, "relay_boss_kuso_maro_drop")
+		var actual_pos := _clamp_point_to_arena(pos, arena, 50.0)
+		_add_circle(runtime, "kuso_maro_drop", actual_pos, float((active.get("payload", {}) as Dictionary).get("activeDuration", 0.65)), 11, 52, "relay_boss_kuso_maro_drop")
+		var hazards: Array = runtime.get("hazards", []) as Array
+		if hazards.is_empty():
+			continue
+		var hazard_index := hazards.size() - 1
+		var hazard: Dictionary = hazards[hazard_index] as Dictionary
+		var visual_seed := _kuso_maro_drop_visual_seed(batch_serial, i, actual_pos)
+		hazard["attackId"] = "kuso_maro_drop"
+		hazard["bossAttackId"] = "kuso_maro_drop"
+		hazard["kusoMaroDropVisual"] = true
+		hazard["kusoMaroDropBatchSerial"] = batch_serial
+		hazard["kusoMaroDropSlotIndex"] = i
+		hazard["kusoMaroDropVisualSeed"] = visual_seed
+		hazard["kusoMaroDropImpactDuration"] = 0.16
+		hazards[hazard_index] = hazard
+		runtime["hazards"] = hazards
+		var visual_effects: Array = runtime.get("kuso_maro_drop_visual_effects", []) as Array
+		visual_effects.append({
+			"kind": "kuso_maro_drop_impact",
+			"bossAttackId": "kuso_maro_drop",
+			"pos": actual_pos,
+			"visualSeed": visual_seed,
+			"batchSerial": batch_serial,
+			"slotIndex": i,
+			"life": 0.18,
+			"maxLife": 0.18
+		})
+		runtime["kuso_maro_drop_visual_effects"] = visual_effects
+
+static func _kuso_maro_drop_warning_visual_seed(serial: int) -> float:
+	return fposmod(sin(float(serial) * 12.9898 + 17.0) * 43758.5453, 1.0)
+
+static func _kuso_maro_drop_visual_seed(batch_serial: int, slot_index: int, pos: Vector2) -> float:
+	var value := float(batch_serial) * 97.13 + float(slot_index) * 31.71 + pos.x * 0.071 + pos.y * 0.113
+	return fposmod(sin(value) * 43758.5453, 1.0)
 
 static func _handle_long_comment_line(runtime: Dictionary, active: Dictionary, arena: Rect2) -> void:
 	for i in range(3):

@@ -155,11 +155,7 @@
           "starDropEnabled": true,
           "healDropEnabled": true,
           "healDropRate": 0.10
-        },
-        "supportComments": [
-          {"id": "boss_support_dont_lose", "effectType": "relay_boss_support", "params": {"healMaxHpRate": 0.05, "playerAttackRate": 1.15, "durationSeconds": 15.0}},
-          {"id": "boss_support_do_your_best", "effectType": "relay_boss_support", "params": {"recoverDash": true, "playerMoveSpeedRate": 1.10, "durationSeconds": 15.0}}
-        ]
+        }
       },
       "relayStageSpawnRates": {
         "zatsudan": 0.90,
@@ -199,7 +195,7 @@
         "banana_floor": {"params": {"slipRate": 1.10}},
         "no_brake": {"params": {"inertiaRate": 1.15}},
         "enemy_speed_up": {"scoreRate": 1.25, "riskLevel": 3, "params": {"enemySpeedRate": 1.15}},
-        "enemy_spawn_up": {"scoreRate": 1.25, "riskLevel": 3, "params": {"enemySpawnRate": 1.20}},
+        "enemy_spawn_up": {"scoreRate": 1.25, "riskLevel": 3, "params": {"enemySpawnRate": 1.20, "enemySpawnCountRate": 2.0}},
         "split_enemy": {"params": {"splitProbabilityRate": 1.20, "splitProbabilityCap": 1.0}},
         "short_range": {"scoreRate": 1.10, "riskLevel": 2},
         "comment_barrage": {"params": {"barrageCountRate": 1.20}},
@@ -208,16 +204,15 @@
         "kamiyoyaku": {"riskLevel": 4, "params": {"enemySpawnAmountRate": 1.20}},
         "takeback": {"riskLevel": 4},
         "song_tempo_up": {"params": {"enemySpawnAmountRate": 1.20}},
-        "song_force_chorus": {"params": {"forcedChorusProfile": "hard_short"}},
+        "song_force_chorus": {"params": {}},
         "song_mic_howling": {"params": {"waveIntervalRate": 0.90}},
         "song_lighting_mistake": {"params": {"badLightMoveSpeedRate": 1.10}},
         "song_lyrics_lost": {"params": {"minimumSpawnDistanceRate": 1.15}},
         "drawing_fast_dry": {"params": {"trailLifetime": 5.0}},
         "drawing_too_much_paint": {"params": {"paintCostMultiplier": 1.75}},
-        "drawing_more_corrections": {"params": {"correctionBurst": 3, "correctionRewardMultiplier": 1.10}},
+        "drawing_more_corrections": {"params": {"correctionBurst": 3}},
         "drawing_spilled_bucket": {"params": {"spillCount": 8}},
-        "partner_take_over": {"params": {"partnerDamageMultiplier": 1.10}},
-        "dont_fail_collab": {"params": {"hardChallenge": true}},
+        "partner_take_over": {"params": {"playerWeaponDamageMultiplier": 0.40, "partnerDamageMultiplier": 2.0, "partnerAttackIntervalMultiplier": 0.70}},
         "keep_sync": {"params": {"starLossCooldown": 1.0}},
         "out_of_sync": {"params": {"interferenceIntervalRate": 0.85}},
         "fast_collab_pass": {"params": {"passDuration": 3.0, "spawnDistanceRate": 1.15}},

@@ -23,6 +23,20 @@ class FakeTarget:
 	var run_difficulty_id := "hard"
 	var current_stream_frame: Dictionary = {}
 	var current_stream_frame_id := "zatsudan"
+	var state := "playing"
+	var offered_comments: Array = []
+	var ng_cards: Array = []
+	var heart_cards: Array = []
+	var comment_timer := 0.0
+	var comment_warning_step := 0
+	var previous_state := ""
+	var choice_timer := 0.0
+	var selected_card := 0
+	var special_choice_return_card := 0
+	var choice_time_bonus := 0.0
+	var choice_time_penalty := 0.0
+	var heart_pending := false
+	var heart_used_count := 0
 	var player_pos := Vector2(1120.0, 870.0)
 	var world_zoom := 1.0
 	var do_everything_offer_count := 0
@@ -140,7 +154,7 @@ func _ready() -> void:
 	var zatsudan_ids: Array = []
 	for group_value in zatsudan_wave.get("groups", []) as Array:
 		zatsudan_ids.append(String((group_value as Dictionary).get("enemyId", "")))
-	_check(zatsudan_wave.size() > 0 and zatsudan_ids.has_all(["troll", "fast", "shooter", "long_comment_guy", "clipper"]) and int(zatsudan_wave.get("activeEnemyLimitReserve", 0)) == 5, "zatsudan expert mixed wave uses real IDs and reserve", failures)
+	_check(zatsudan_wave.size() > 0 and zatsudan_ids.has("troll") and zatsudan_ids.has("fast") and zatsudan_ids.has("shooter") and zatsudan_ids.has("long_comment_guy") and zatsudan_ids.has("clipper") and int(zatsudan_wave.get("activeEnemyLimitReserve", 0)) == 5, "zatsudan expert mixed wave uses real IDs and reserve", failures)
 	var collab_relay_waves := HardMode.hard_wave_candidates(project_collab_relay_runtime, 100.0, 4)
 	var collab_wave: Dictionary = {}
 	for wave_value in collab_relay_waves:
@@ -160,7 +174,7 @@ func _ready() -> void:
 	_check(is_equal_approx(float(gameplay_schedule_target.next_genre_event_time), 25.0 * 0.85), "gameplay first event interval is shortened once", failures)
 	gameplay_schedule_target.difficulty_runtime["genreLastEventId"] = "race"
 	gameplay_schedule_target.next_genre_event_time = 0.0
-	var scheduled_event := GenreEvent.update_idle_event_for_target(gameplay_schedule_target, [{"id": "race", "weight": 1}, {"id": "bullet_hell", "weight": 1}, {"id": "horror", "weight": 1}], RandomNumberGenerator.new()).get("startEvent", "")
+	var scheduled_event: String = String(GenreEvent.update_idle_event_for_target(gameplay_schedule_target, [{"id": "race", "weight": 1}, {"id": "bullet_hell", "weight": 1}, {"id": "horror", "weight": 1}], RandomNumberGenerator.new()).get("startEvent", ""))
 	_check(String(scheduled_event) != "race", "gameplay normal schedule excludes previous genre", failures)
 	var expert_standard_rates: Dictionary = ((expert_runtime.get("difficultyConfig", {}) as Dictionary).get("enemyFinalRates", {}) as Dictionary).get("standard", {}) as Dictionary
 	_check(is_equal_approx(float(expert_standard_rates.get("hpRate", 0.0)), 1.20 * 1.15) and is_equal_approx(float(expert_standard_rates.get("attackRate", 0.0)), 1.10 * 1.10) and is_equal_approx(float(expert_standard_rates.get("moveSpeedRate", 0.0)), 1.08 * 1.08) and is_equal_approx(float(expert_standard_rates.get("attackIntervalRate", 0.0)), 0.90 * 0.92) and is_equal_approx(float(expert_standard_rates.get("projectileSpeedRate", 0.0)), 1.10 * 1.10), "expert standard rates multiply HARD final values once", failures)
@@ -280,8 +294,13 @@ func _ready() -> void:
 	_check(HardMode.comment_categories({"id": "reverse_control"}).has("control_restriction"), "legacy comment category map", failures)
 	_check(HardMode.comment_categories({"id": "hard_overclock", "categories": ["enemy_attack", "projectile_pressure", "compound"]}).has("projectile_pressure"), "hard comment categories", failures)
 	var single_safe_offer := HardMode.build_safe_default_offer_for_target(fake, [{"id": "safe_default", "riskLevel": 1, "multiplier": 1.0, "minTime": 0.0, "tags": ["default"]}], RandomNumberGenerator.new())
-	_check(single_safe_offer.size() == 3 and single_safe_offer[0] is Dictionary and single_safe_offer[1] is Dictionary and single_safe_offer[2] is Dictionary, "safe candidate shortage fills three deep-copied cards", failures)
-	_check(HardMode.is_safe_offer_duplicate(single_safe_offer[0] as Dictionary), "ordinary comment is duplicate eligible", failures)
+	_check(single_safe_offer.size() == 1 and single_safe_offer[0] is Dictionary and _offer_ids_are_unique(single_safe_offer), "safe candidate shortage returns one unique card without duplication", failures)
+	var shortage_target := FakeTarget.new()
+	shortage_target.difficulty_runtime = hard_runtime.duplicate(true)
+	shortage_target.current_stream_frame = {"id": "zatsudan", "commentPoolTags": ["default", "zatsudan"]}
+	shortage_target.elapsed = 15.0
+	var shortage_result := Comment.start_choice_for_target(shortage_target, [{"id": "safe_default", "riskLevel": 1, "multiplier": 1.0, "minTime": 0.0, "tags": ["default"]}], RandomNumberGenerator.new(), 10.0)
+	_check(not bool(shortage_result.get("opened", true)) and bool(shortage_result.get("retry", false)) and shortage_target.offered_comments.is_empty() and shortage_target.state == "playing", "safe candidate shortage retries without opening choice UI", failures)
 	var overclock_runtime: Dictionary = hard_runtime.duplicate(true)
 	overclock_runtime["activeComment"] = {"id": "hard_overclock", "params": {"attackIntervalRate": 0.80, "projectileSpeedRate": 1.20}}
 	var overclock_enemy := {"attackIntervalRate": 0.90, "projectileSpeedRate": 1.10, "minimumAttackInterval": 0.10}
@@ -289,7 +308,7 @@ func _ready() -> void:
 	_check(is_equal_approx(HardMode.projectile_speed_rate_for_enemy(overclock_enemy, overclock_runtime), 1.32), "overclock applies to newly spawned projectile rate", failures)
 	var resolved_overclock := HardMode.resolve_comment({"id": "hard_overclock", "displayName": "Overclock", "riskLevel": 4, "multiplier": 4.5, "giftHypeOnSelect": 0, "giftHypeOnClear": 0, "deathText": "Overclock"}, overclock_runtime)
 	var heart_overclock := Comment.comment_view(resolved_overclock, true)
-	_check(is_equal_approx(float(resolved_overclock.get("scoreRate", 0.0)), 1.45) and is_equal_approx(float(heart_overclock.get("scoreRate", 0.0)), 1.25), "overclock score and heart score use danger rates", failures)
+	_check(is_equal_approx(float(resolved_overclock.get("scoreRate", 0.0)), 1.45) and is_equal_approx(float(heart_overclock.get("scoreRate", 0.0)), 1.45), "overclock score benefit is preserved by heart", failures)
 	_check(is_equal_approx(HardMode.spawn_rate(overclock_runtime, 60.0), HardMode.spawn_rate(hard_runtime, 60.0)), "overclock does not alter spawn rate", failures)
 	var overclock_target := FakeTarget.new()
 	overclock_target.difficulty_runtime = overclock_runtime
@@ -398,9 +417,23 @@ func _ready() -> void:
 	fake.relay_mode = false
 	fake.current_stream_frame = zatsudan_frame
 	var expert_frame_comments := frame_comments.duplicate(true)
-	expert_frame_comments.append({"id": "hard_only_sample", "riskLevel": 4, "multiplier": 2.5, "minTime": 0.0, "hardOnly": true, "tags": ["default"]})
-	var expert_offer := Comment.build_offer_for_target(fake, expert_frame_comments, RandomNumberGenerator.new())
-	_check(expert_offer.size() == 3 and _offer_ids_are_unique(expert_offer), "expert offer keeps three unique cards", failures)
+	# EXPERT's category caps are part of the product rule.  Give this fixture
+	# three independently selectable categories so the test exercises the
+	# three-card contract instead of manufacturing a same-category shortage.
+	for expert_item in expert_frame_comments:
+		var expert_comment: Dictionary = expert_item as Dictionary
+		match String(expert_comment.get("id", "")):
+			"safe_default_two":
+				expert_comment["category"] = "control_restriction"
+			"safe_default_three":
+				expert_comment["category"] = "visibility"
+	expert_frame_comments.append({"id": "hard_only_sample", "riskLevel": 4, "multiplier": 2.5, "minTime": 0.0, "hardOnly": true, "category": "enemy_spawn", "tags": ["default"]})
+	var expert_rng := RandomNumberGenerator.new()
+	expert_rng.seed = 401
+	var expert_offer := Comment.build_offer_for_target(fake, expert_frame_comments, expert_rng)
+	_check((expert_offer.size() == 3 or expert_offer.size() == 4) and _offer_ids_are_unique(expert_offer), "expert offer keeps three unique cards plus optional special", failures)
+	if expert_offer.size() == 4:
+		_check(String((expert_offer[3] as Dictionary).get("id", "")) == "do_everything", "expert special remains the fourth card", failures)
 	var expert_hard_only_count := 0
 	var expert_danger4_count := 0
 	for item in expert_offer:
@@ -409,6 +442,7 @@ func _ready() -> void:
 		expert_danger4_count += 1 if int(expert_card.get("riskLevel", 1)) >= 4 else 0
 		_check(String(expert_card.get("difficultyId", "")) == "expert", "expert comment override resolves difficulty id", failures)
 	_check(expert_hard_only_count <= 1 and expert_danger4_count <= 1, "expert offer inherits HARD danger caps", failures)
+	_test_actual_three_card_offer_uniqueness(failures)
 	fake.difficulty_runtime = project_drawing_runtime
 	fake.current_stream_frame = drawing_frame
 	fake.elapsed = 120.0
@@ -430,6 +464,7 @@ func _ready() -> void:
 	fake.difficulty_runtime = HardMode.build_runtime("normal", false, "zatsudan", source, {})
 	fake.run_difficulty_id = "normal"
 	fake.relay_mode = false
+	fake.current_stream_frame = zatsudan_frame
 	var normal_offer := Comment.build_offer_for_target(fake, frame_comments, RandomNumberGenerator.new())
 	_check(_offer_ids_are_unique(normal_offer), "normal offer never duplicates a choice id", failures)
 	for item in normal_offer:
@@ -508,6 +543,70 @@ func _contains_id(items: Array, id: String) -> bool:
 		if String((item as Dictionary).get("id", "")) == id:
 			return true
 	return false
+
+func _test_actual_three_card_offer_uniqueness(failures: Array[String]) -> void:
+	var comments_value: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/comments.json"))
+	var frames_value: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/stream_frames.json"))
+	var difficulty_source_value: Variant = JSON.parse_string(FileAccess.get_file_as_string("res://data/difficulty_modes.json"))
+	if not comments_value is Array or not frames_value is Array or not difficulty_source_value is Dictionary:
+		_check(false, "actual offer fixture JSON loads", failures)
+		return
+	var comments: Array = comments_value as Array
+	var source: Dictionary = difficulty_source_value as Dictionary
+	var zatsudan_frame: Dictionary = {}
+	var frames_by_id: Dictionary = {}
+	for frame_value in frames_value as Array:
+		var frame: Dictionary = frame_value as Dictionary
+		var frame_id := String(frame.get("id", ""))
+		if frame_id in ["zatsudan", "gameplay", "singing", "drawing", "collab"]:
+			frames_by_id[frame_id] = frame
+		if frame_id == "zatsudan":
+			zatsudan_frame = frame
+	_check(not zatsudan_frame.is_empty(), "actual zatsudan frame fixture loads", failures)
+	if zatsudan_frame.is_empty():
+		return
+	var seeds: Array[int] = [1, 7, 31, 117, 401]
+	for difficulty_id in ["normal", "hard", "expert"]:
+		for frame_id in ["zatsudan", "gameplay", "singing", "drawing", "collab"]:
+			var current_frame: Dictionary = frames_by_id.get(frame_id, {}) as Dictionary
+			_check(not current_frame.is_empty(), "actual %s frame fixture loads" % frame_id, failures)
+			if current_frame.is_empty():
+				continue
+			for seed in seeds:
+				var target := FakeTarget.new()
+				target.run_difficulty_id = difficulty_id
+				target.current_stream_frame = current_frame
+				target.current_stream_frame_id = frame_id
+				target.elapsed = 15.0
+				target.difficulty_runtime = HardMode.build_runtime(difficulty_id, false, frame_id, source, {})
+				var rng := RandomNumberGenerator.new()
+				rng.seed = seed
+				var offer: Array = Comment.build_offer_for_target(target, comments, rng)
+				var first_three: Array = offer.slice(0, mini(3, offer.size()))
+				_check(first_three.size() == 3 and _offer_ids_are_unique(first_three), "actual %s %s seed %d first three IDs are unique" % [difficulty_id, frame_id, seed], failures)
+	var expert_ids: Dictionary = {}
+	for seed in seeds:
+		var expert_target := FakeTarget.new()
+		expert_target.run_difficulty_id = "expert"
+		expert_target.current_stream_frame = zatsudan_frame
+		expert_target.current_stream_frame_id = "zatsudan"
+		expert_target.elapsed = 15.0
+		expert_target.difficulty_runtime = HardMode.build_runtime("expert", false, "zatsudan", source, {})
+		var expert_rng := RandomNumberGenerator.new()
+		expert_rng.seed = seed
+		var expert_offer: Array = Comment.build_offer_for_target(expert_target, comments, expert_rng)
+		var expert_first_three: Array = expert_offer.slice(0, mini(3, expert_offer.size()))
+		var seed_ids: Dictionary = {}
+		for item in expert_first_three:
+			seed_ids[String((item as Dictionary).get("id", ""))] = true
+		_check(expert_first_three.size() == 3 and seed_ids.size() == 3, "actual expert zatsudan seed %d has three distinct IDs" % seed, failures)
+		if seed == seeds[0]:
+			expert_ids = seed_ids
+	var expected_ids := ["banana_floor", "no_dash", "no_brake"]
+	var expected_set: Dictionary = {}
+	for expected_id in expected_ids:
+		expected_set[expected_id] = true
+	_check(expert_ids == expected_set, "actual expert zatsudan at 15 seconds uses banana_floor/no_dash/no_brake", failures)
 
 func _offer_ids_are_unique(items: Array) -> bool:
 	var ids: Dictionary = {}

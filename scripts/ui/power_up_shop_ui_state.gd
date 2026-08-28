@@ -93,6 +93,15 @@ static func _card_effect_summary(upgrade: Dictionary, level: int, max_level: int
 	var value: Variant = values[clampi(level, 0, maxi(0, values.size() - 1))] if not values.is_empty() else 0.0
 	return "%s %s" % [value_label, _format_effect(upgrade, level, value)]
 
+static func card_price_text(state: int, price: int, shortage: int) -> String:
+	match state:
+		PurchaseState.PURCHASABLE:
+			return "必要PP %d" % price
+		PurchaseState.NOT_ENOUGH_PP:
+			return "必要PP %d　あと%d PP" % [price, shortage]
+		_:
+			return "強化完了"
+
 static func build(upgrade: Dictionary, level: int, points: int) -> Dictionary:
 	var max_level: int = int(upgrade.get("maxLevel", 5))
 	var maxed: bool = level >= max_level
@@ -107,11 +116,7 @@ static func build(upgrade: Dictionary, level: int, points: int) -> Dictionary:
 	var next_value: Variant = values[clampi(level + 1, 0, maxi(0, values.size() - 1))] if not values.is_empty() else 0.0
 	var current_effect: String = get_shop_effect_text(upgrade, level, false)
 	var next_effect: String = get_shop_effect_text(upgrade, level, true)
-	var card_price_text: String = "強化完了 MAX"
-	if state == PurchaseState.PURCHASABLE:
-		card_price_text = "次の強化 %d PP" % price
-	elif state == PurchaseState.NOT_ENOUGH_PP:
-		card_price_text = "必要 %d PP　あと%d PP" % [price, shortage]
+	var price_text := card_price_text(state, price, shortage)
 	return {
 		"id": String(upgrade.get("id", "")),
 		"displayName": String(upgrade.get("displayName", upgrade.get("id", ""))),
@@ -131,7 +136,7 @@ static func build(upgrade: Dictionary, level: int, points: int) -> Dictionary:
 		"mascotMessageArgs": {"shortage": shortage},
 		"effectLabel": String((upgrade.get("cardSummary", {}) as Dictionary).get("valueLabel", "効果")),
 		"cardEffectSummary": _card_effect_summary(upgrade, level, max_level),
-		"cardPriceText": card_price_text,
+		"cardPriceText": price_text,
 		"currentEffectText": current_effect,
 		"nextEffectText": next_effect,
 		"currentValue": current_value,

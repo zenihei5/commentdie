@@ -4,6 +4,7 @@ extends RefCounted
 const PowerUpDatabaseScript := preload("res://scripts/systems/power_up_database.gd")
 const PowerUpSaveStoreScript := preload("res://scripts/systems/power_up_save_store.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+const StreamPointRewardCalculatorScript := preload("res://scripts/systems/stream_point_reward_calculator.gd")
 
 signal points_changed(previous_value: int, new_value: int)
 signal upgrade_purchased(upgrade_id: String, new_level: int, price: int)
@@ -144,6 +145,13 @@ func consume_senior_unit_unlock_notice() -> bool:
 	candidate["seniorUnitUnlockShown"] = true
 	return _commit(candidate)
 
+func mark_senior_unit_unlock_presented() -> bool:
+	if not bool(profile.get("normalRelayCleared", false)) or bool(profile.get("seniorUnitUnlockShown", false)):
+		return true
+	var candidate := profile.duplicate(true)
+	candidate["seniorUnitUnlockShown"] = true
+	return _commit(candidate)
+
 func create_snapshot(enabled: bool):
 	return PowerUpEffectProviderScript.create_snapshot(profile, database, enabled)
 
@@ -252,14 +260,13 @@ func grant_reward(run_id: String, reward, senior_unit_unlock_eligible: bool = fa
 	if reward.grants_first_relay_clear and reward_keys.has("first:relay"):
 		duplicate_first_relay = int(reward.first_relay_clear_pp)
 	reward.boss_defeat_pp = maxi(0, original_boss_defeat_pp - duplicate_boss_points)
-	var non_boss_repeatable: int = reward.repeatable_subtotal - roundi(float(original_boss_defeat_pp) * float(reward.difficulty_multiplier))
-	reward.repeatable_subtotal = maxi(0, non_boss_repeatable + roundi(float(reward.boss_defeat_pp) * float(reward.difficulty_multiplier)))
 	reward.first_stage_clear_pp = maxi(0, int(reward.first_stage_clear_pp) - duplicate_first_stage)
 	reward.first_boss_defeat_pp = maxi(0, int(reward.first_boss_defeat_pp) - duplicate_first_boss)
 	reward.first_relay_clear_pp = maxi(0, int(reward.first_relay_clear_pp) - duplicate_first_relay)
-	reward.one_time_subtotal = reward.first_stage_clear_pp + reward.first_boss_defeat_pp + reward.first_relay_clear_pp
-	var direct_pp_subtotal: int = maxi(0, int(reward.direct_pp_subtotal))
-	reward.total_pp = reward.repeatable_subtotal + reward.one_time_subtotal + direct_pp_subtotal
+	# Rebuild every dependent subtotal after duplicate removal.  In v2 the
+	# evaluation bonus is based on the adjusted remainder, so subtracting only
+	# the old repeatable subtotal would leave an overpayment.
+	StreamPointRewardCalculatorScript.recalculate_totals(reward)
 	var points := int(reward.total_pp)
 	for key in reward.reward_keys:
 		if reward_keys.has(key):
@@ -291,8 +298,6 @@ func grant_reward(run_id: String, reward, senior_unit_unlock_eligible: bool = fa
 			if not unlocked_character_ids.has(character_id):
 				unlocked_character_ids.append(character_id)
 		candidate["unlockedCharacterIds"] = unlocked_character_ids
-		if not bool(candidate.get("seniorUnitUnlockShown", false)):
-			candidate["seniorUnitUnlockShown"] = true
 	if not _commit(candidate):
 		busy = false
 		return {"ok": false, "state": "save_failed", "totalPp": 0}

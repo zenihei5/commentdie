@@ -28,6 +28,7 @@ func _run_test() -> void:
 	var short_context := _context()
 	short_context["shortRange"] = true
 	short_context["shortRangeRate"] = 0.50
+	short_context["shortRangeParams"] = _heart_params_for_comment("short_range")
 	var short_shape := WeaponSystem.fansa_attack_shape(baton, 1, short_context)
 	_check(is_equal_approx(float(short_shape.get("radius", 0.0)), 93.5), "short_range did not affect only radius", failures)
 	_check(is_equal_approx(float(short_shape.get("arcDegrees", 0.0)), 130.0), "short_range changed baton arc", failures)
@@ -96,8 +97,16 @@ func _context() -> Dictionary:
 		"moveInput": Vector2.ZERO, "lastMoveDirection": Vector2.RIGHT, "attackRightOnly": false,
 		"attackRightOnlyRate": 1.0, "shortRange": false, "shortRangeRate": 1.0,
 		"rangeRate": 1.0, "intervalRate": 1.0, "attackAreaRate": 1.0, "damageRate": 1.0,
-		"enemies": [], "destructibles": [], "normalWeaponsDisabled": false, "activeFx": []
+		"enemies": [], "destructibles": [], "enemyBullets": [], "normalWeaponsDisabled": false, "activeFx": []
 	}
+
+func _heart_params_for_comment(comment_id: String) -> Dictionary:
+	var comments: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/comments.json")) as Array
+	for item in comments:
+		if item is Dictionary and String((item as Dictionary).get("id", "")) == comment_id:
+			var variant: Dictionary = (item as Dictionary).get("heartVariant", {}) as Dictionary
+			return (variant.get("params", {}) as Dictionary).duplicate(true)
+	return {}
 
 func _enemy(kind: String, pos: Vector2, hp: float, radius: float) -> Dictionary:
 	return {

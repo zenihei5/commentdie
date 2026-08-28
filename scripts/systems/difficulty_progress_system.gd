@@ -6,7 +6,8 @@ extends RefCounted
 
 const PROGRESS_PATH: String = "user://stream_frame_progress.json"
 const RANKINGS_PATH: String = "user://rankings.json"
-const SAVE_VERSION: int = 5
+const SAVE_VERSION: int = 6
+const UnlockPresentationSystemScript := preload("res://scripts/systems/unlock_presentation_system.gd")
 
 const DIFFICULTY_NORMAL: String = "normal"
 const DIFFICULTY_HARD: String = "hard"
@@ -49,7 +50,121 @@ const STAGE_COMPLEXITIES: Dictionary = {
 	STAGE_RELAY: 5
 }
 
-static var _pending_unlock_presentations: Array = []
+static func _default_unlock_presentation_state() -> Dictionary:
+	return UnlockPresentationSystemScript.create_state([], [], true, false)
+
+static func source_has_unlock_presentation(value: Variant) -> bool:
+	if not value is Dictionary:
+		return false
+	var source: Dictionary = value as Dictionary
+	var state: Variant = source.get("unlockPresentation", null)
+	return state is Dictionary and bool((state as Dictionary).get("initialized", false))
+
+static func _unlock_presentation_state(progress: Dictionary) -> Dictionary:
+	return UnlockPresentationSystemScript.normalize_state(progress.get("unlockPresentation", {}))
+
+static func _unlocked_presentation_ids(snapshot: Dictionary) -> Array:
+	var result: Array = []
+	for id in UnlockPresentationSystemScript.ORDER:
+		if bool(snapshot.get(id, false)):
+			result.append(id)
+	return result
+
+static func unlock_presentation_snapshot(progress: Dictionary, senior_unit_unlocked: bool = false) -> Dictionary:
+	var snapshot: Dictionary = {}
+	var normal := _difficulty_data(progress, DIFFICULTY_NORMAL)
+	var hard := _difficulty_data(progress, DIFFICULTY_HARD)
+	var expert := _difficulty_data(progress, DIFFICULTY_EXPERT)
+	var legacy := _dict(progress.get("streamFrameProgress", {}))
+	for stage_id in [STAGE_GAMEPLAY, STAGE_SINGING, STAGE_DRAWING, STAGE_COLLAB]:
+		var unlocked := _stage_is_unlocked(progress, DIFFICULTY_NORMAL, stage_id)
+		unlocked = unlocked or _safe_bool(_dict(legacy.get(stage_id, {})).get("isUnlocked", false))
+		snapshot["stage:" + stage_id] = unlocked
+	snapshot["mode:relay"] = bool(_dict(normal.get("relay", {})).get("unlocked", false)) or _safe_bool(progress.get("relayModeUnlocked", false))
+	snapshot["difficulty:hard"] = bool(hard.get("unlocked", false))
+	snapshot["difficulty:expert"] = bool(expert.get("unlocked", false))
+	snapshot["character_group:senior_unit"] = senior_unit_unlocked
+	return snapshot
+
+static func unlock_presentation_snapshot_for_target(target: Node) -> Dictionary:
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	if progress.is_empty():
+		progress = load_progress(_array(target.get("stream_frames")))
+	var senior_unlocked := false
+	var manager: Variant = target.get("power_up_shop_manager")
+	if manager != null:
+		if manager.has_method("unlocked_character_ids"):
+			var unlocked_ids: Array = manager.unlocked_character_ids() as Array
+			senior_unlocked = unlocked_ids.has("aosumi_kyasumi") and unlocked_ids.has("akarine_rizumu") and unlocked_ids.has("shizuki_miimu")
+		elif manager.get("profile") is Dictionary:
+			senior_unlocked = bool((manager.get("profile") as Dictionary).get("normalRelayCleared", false))
+	return unlock_presentation_snapshot(progress, senior_unlocked)
+
+static func pending_unlock_presentations_for_target(target: Node) -> Array:
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	if progress.is_empty():
+		return []
+	var state := _unlock_presentation_state(progress)
+	return (state.get("pendingIds", []) as Array).duplicate()
+
+static func commit_unlock_presentation_for_target(target: Node, before_snapshot: Dictionary) -> Dictionary:
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	if progress.is_empty():
+		return {"saved": false, "ids": [], "pendingIds": []}
+	var after_snapshot := unlock_presentation_snapshot_for_target(target)
+	var ids := UnlockPresentationSystemScript.false_to_true_ids(before_snapshot, after_snapshot)
+	var candidate: Dictionary = progress.duplicate(true)
+	var state := UnlockPresentationSystemScript.enqueue_ids(_unlock_presentation_state(candidate), ids)
+	candidate["unlockPresentation"] = state
+	if not save_progress(candidate):
+		return {"saved": false, "ids": ids, "pendingIds": state.get("pendingIds", [])}
+	_sync_target(target, candidate, _array(target.get("stream_frames")))
+	return {"saved": true, "ids": ids, "pendingIds": state.get("pendingIds", [])}
+
+static func confirm_unlock_presentation_for_target(target: Node, unlock_id: Variant) -> Dictionary:
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	if progress.is_empty():
+		return {"saved": false, "confirmed": false}
+	var candidate: Dictionary = progress.duplicate(true)
+	var result := UnlockPresentationSystemScript.confirm_id(_unlock_presentation_state(candidate), unlock_id)
+	if not bool(result.get("ok", false)):
+		return {"saved": true, "confirmed": false}
+	candidate["unlockPresentation"] = result.get("state", {})
+	if not save_progress(candidate):
+		return {"saved": false, "confirmed": false, "id": String(result.get("id", ""))}
+	_sync_target(target, candidate, _array(target.get("stream_frames")))
+	return {"saved": true, "confirmed": true, "id": String(result.get("id", "")), "pendingIds": (candidate["unlockPresentation"] as Dictionary).get("pendingIds", [])}
+
+static func sync_unlock_presentation_for_target(target: Node) -> Dictionary:
+	var progress: Dictionary = _dict(target.get("difficulty_progress"))
+	if progress.is_empty():
+		return {"saved": false, "migrated": false}
+	var state := _unlock_presentation_state(progress)
+	if bool(state.get("migrationComplete", false)):
+		return {"saved": true, "migrated": false}
+	# A real initialized queue may already contain an unlock that was saved
+	# before the app closed.  Preserve that pending work; only the empty state
+	# is treated as a legacy migration that needs current-unlock seeding.
+	var existing_pending: Array = state.get("pendingIds", []) as Array
+	if bool(state.get("initialized", false)) and not existing_pending.is_empty():
+		state["migrationComplete"] = true
+		var pending_candidate: Dictionary = progress.duplicate(true)
+		pending_candidate["unlockPresentation"] = state
+		if not save_progress(pending_candidate):
+			return {"saved": false, "migrated": false}
+		_sync_target(target, pending_candidate, _array(target.get("stream_frames")))
+		return {"saved": true, "migrated": false}
+	var snapshot := unlock_presentation_snapshot_for_target(target)
+	state["seenIds"] = UnlockPresentationSystemScript.sort_ids(_unlocked_presentation_ids(snapshot))
+	state["pendingIds"] = []
+	state["migrationComplete"] = true
+	state["initialized"] = true
+	var candidate: Dictionary = progress.duplicate(true)
+	candidate["unlockPresentation"] = state
+	if not save_progress(candidate):
+		return {"saved": false, "migrated": true}
+	_sync_target(target, candidate, _array(target.get("stream_frames")))
+	return {"saved": true, "migrated": true}
 
 static func normalize_difficulty_id(value: Variant) -> String:
 	var id := String(value).strip_edges().to_lower()
@@ -110,7 +225,7 @@ static func create_default_save_data(frames: Array = []) -> Dictionary:
 			legacy[stage_id] = _legacy_entry(_safe_bool(frame.get("initialUnlocked", stage_id == DEFAULT_STAGE_ID)))
 	var normal := create_default_difficulty_progress()
 	normal["unlocked"] = true
-	return {"saveVersion": SAVE_VERSION, "difficulties": {DIFFICULTY_NORMAL: normal, DIFFICULTY_HARD: create_default_difficulty_progress(), DIFFICULTY_EXPERT: create_default_difficulty_progress()}, "stageSelectUi": {"selectedDifficulty": DIFFICULTY_NORMAL, "lastSelectedStageByDifficulty": {DIFFICULTY_NORMAL: DEFAULT_STAGE_ID, DIFFICULTY_HARD: DEFAULT_STAGE_ID, DIFFICULTY_EXPERT: DEFAULT_STAGE_ID}}, "streamFrameProgress": legacy, "relayModeUnlocked": false, "codex": CodexManager.get_save_data()}
+	return {"saveVersion": SAVE_VERSION, "difficulties": {DIFFICULTY_NORMAL: normal, DIFFICULTY_HARD: create_default_difficulty_progress(), DIFFICULTY_EXPERT: create_default_difficulty_progress()}, "stageSelectUi": {"selectedDifficulty": DIFFICULTY_NORMAL, "lastSelectedStageByDifficulty": {DIFFICULTY_NORMAL: DEFAULT_STAGE_ID, DIFFICULTY_HARD: DEFAULT_STAGE_ID, DIFFICULTY_EXPERT: DEFAULT_STAGE_ID}}, "streamFrameProgress": legacy, "relayModeUnlocked": false, "unlockPresentation": _default_unlock_presentation_state(), "codex": CodexManager.get_save_data()}
 
 static func default_progress(frames: Array = []) -> Dictionary:
 	return create_default_save_data(frames)
@@ -144,9 +259,18 @@ static func load_progress(frames: Array) -> Dictionary:
 	CodexManager.sync_legacy_character_records(progress)
 	progress["codex"] = CodexManager.get_save_data()
 	CodexManager.set_legacy_import_pending(legacy_codex_import)
+	var has_unlock_presentation := source_has_unlock_presentation(parsed)
 	var unlocks := evaluate_all_unlocks(progress)
-	for unlock_id in unlocks:
-		queue_unlock_presentation(String(unlock_id))
+	if not has_unlock_presentation:
+		# Migration is deliberately marked incomplete until the shop profile is
+		# available.  Existing unlocks are seen, never presented as new.
+		var migrated_state := _unlock_presentation_state(progress)
+		migrated_state["seenIds"] = UnlockPresentationSystemScript.sort_ids(_unlocked_presentation_ids(unlock_presentation_snapshot(progress)))
+		migrated_state["pendingIds"] = []
+		migrated_state["migrationComplete"] = false
+		progress["unlockPresentation"] = migrated_state
+	else:
+		progress["unlockPresentation"] = UnlockPresentationSystemScript.normalize_state(progress.get("unlockPresentation", {}))
 	save_progress(progress)
 	return progress
 
@@ -161,6 +285,7 @@ static func load_progress_for_target(target: Node) -> void:
 static func save_progress(progress: Dictionary) -> bool:
 	var payload := progress.duplicate(true)
 	payload["saveVersion"] = SAVE_VERSION
+	payload["unlockPresentation"] = UnlockPresentationSystemScript.normalize_state(payload.get("unlockPresentation", {}))
 	payload["codex"] = CodexManager.get_save_data()
 	var temp_path := PROGRESS_PATH + ".tmp"
 	var file := FileAccess.open(temp_path, FileAccess.WRITE)
@@ -224,6 +349,7 @@ static func migrate_save_data(old_save: Dictionary, frames: Array = []) -> Dicti
 	difficulties[DIFFICULTY_NORMAL] = normal
 	result["difficulties"] = difficulties
 	result["streamFrameProgress"] = legacy_result
+	result["unlockPresentation"] = _default_unlock_presentation_state()
 	return result
 
 static func _legacy_rankings_have_normal_relay_clear() -> bool:
@@ -313,6 +439,8 @@ static func _normalize_save(defaults: Dictionary, source: Dictionary) -> Diction
 	result["streamFrameProgress"] = _normalize_legacy_projection(source.get("streamFrameProgress", {}), result)
 	var normal := _dict(difficulties.get(DIFFICULTY_NORMAL, {}))
 	result["relayModeUnlocked"] = bool(_dict(normal.get("relay", {})).get("unlocked", false))
+	var presentation: Variant = source.get("unlockPresentation", null)
+	result["unlockPresentation"] = UnlockPresentationSystemScript.normalize_state(presentation) if presentation is Dictionary else _default_unlock_presentation_state()
 	result["codex"] = CodexManager.get_save_data()
 	return result
 
@@ -516,26 +644,11 @@ static func record_result_for_target(target: Node, result: Dictionary, quick_tes
 		input["characterId"] = String(result.get("characterId", target.get("current_character_id")))
 		record = record_single_stage_result(progress, input)
 	var unlocks := evaluate_all_unlocks(progress)
-	for unlock_id in unlocks:
-		queue_unlock_presentation(String(unlock_id))
 	var saved := save_progress(progress)
 	_sync_target(target, progress, _array(target.get("stream_frames")))
 	if run_id != "":
 		target.set("difficulty_progress_recorded_run_id", run_id)
 	return {"changed": bool(record.get("changed", false)), "saved": saved, "record": record, "newlyUnlocked": unlocks}
-
-static func queue_unlock_presentation(unlock_id: String) -> void:
-	if unlock_id.strip_edges() == "" or _pending_unlock_presentations.has(unlock_id):
-		return
-	_pending_unlock_presentations.append(unlock_id)
-
-static func pop_unlock_presentation() -> String:
-	if _pending_unlock_presentations.is_empty():
-		return ""
-	return String(_pending_unlock_presentations.pop_front())
-
-static func pending_unlock_presentations() -> Array:
-	return _pending_unlock_presentations.duplicate()
 
 static func unlock_all_for_target(target: Node) -> void:
 	var progress: Dictionary = _dict(target.get("difficulty_progress"))

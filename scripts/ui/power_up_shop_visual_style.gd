@@ -134,12 +134,14 @@ static func apply_button_theme(button: Button, fill: Color, accent: Color, text_
 	apply_font(button, 17, true, text_color)
 	button.add_theme_color_override("font_disabled_color", BUTTON_DISABLED_TEXT)
 
-static func apply_tab_theme(button: Button, active: bool, accent: Color, accent_dark: Color) -> void:
-	var normal := CommonLightUiStyle.create_tab_style(active, accent)
-	var hover := CommonLightUiStyle.create_tab_style(true, accent.lightened(0.04))
+static func apply_tab_theme(button: Button, active: bool, _accent: Color, _accent_dark: Color) -> void:
+	var selection_accent := CommonLightUiStyle.COMBAT_MAIN
+	var selection_dark := CommonLightUiStyle.COMBAT_DARK
+	var normal := CommonLightUiStyle.create_tab_style(active, selection_accent)
+	var hover := CommonLightUiStyle.create_tab_style(true, selection_accent.lightened(0.04))
 	button.add_theme_stylebox_override("normal", normal)
 	button.add_theme_stylebox_override("hover", hover)
-	button.add_theme_stylebox_override("pressed", button_style(accent_dark, accent, 3, 14))
+	button.add_theme_stylebox_override("pressed", button_style(selection_dark, selection_accent, 3, 14))
 	button.add_theme_stylebox_override("focus", hover)
 	apply_font(button, 17, true, TEXT_LIGHT if active else TEXT_DARK)
 

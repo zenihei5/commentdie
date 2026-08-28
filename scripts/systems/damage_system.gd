@@ -3,6 +3,7 @@ extends RefCounted
 
 const RelayStageProfileSystemScript := preload("res://scripts/systems/relay_stage_profile_system.gd")
 const ModifierSystemScript := preload("res://scripts/systems/modifier_system.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 
@@ -104,11 +105,14 @@ static func apply_hit_to_target(target: Node, damage: int = DEFAULT_CONTACT_DAMA
 
 static func apply_damage_for_target(target: Node, source_text: String, damage: int = DEFAULT_CONTACT_DAMAGE) -> Dictionary:
 	if damage <= 0:
-		return {"ignored": true, "revived": false, "dead": false, "chat": "", "deathReason": ""}
+		return {"ignored": true, "actualDamage": 0, "revived": false, "dead": false, "chat": "", "deathReason": ""}
 	if float(target.get("invincible")) > 0.0 or bool(target.get("debug_invincible")):
-		return {"ignored": true, "revived": false, "dead": false, "chat": "", "deathReason": ""}
+		return {"ignored": true, "actualDamage": 0, "revived": false, "dead": false, "chat": "", "deathReason": ""}
 	target.set("last_death_source", source_text)
 	var result: Dictionary = apply_hit_to_target(target, damage)
+	var actual_damage := maxi(0, int(result.get("damage", 0)))
+	if actual_damage > 0 and target.has_method("_record_evaluation_damage"):
+		target.call("_record_evaluation_damage", actual_damage)
 	var dead: bool = int(target.get("player_hp")) <= 0
 	var death_text: String = ""
 	if dead:
@@ -119,6 +123,7 @@ static func apply_damage_for_target(target: Node, source_text: String, damage: i
 		)
 	return {
 		"ignored": false,
+		"actualDamage": actual_damage,
 		"revived": bool(result["revived"]),
 		"dead": dead,
 		"chat": "メンタル%dで復帰" % REVIVE_HP if bool(result["revived"]) else "",
@@ -133,6 +138,10 @@ static func apply_damage_for_target(target: Node, source_text: String, damage: i
 
 static func apply_damage_source_for_target(target: Node, source: String, damage: int = -1, debug_enemy_id: String = "", debug_runtime_variant: String = "", debug_attack_type: String = "") -> Dictionary:
 	var amount: int = source_damage(source) if damage < 0 else damage
+	if damage < 0 and source == "stopped moving":
+		var runtime_value: Variant = target.get("difficulty_runtime")
+		if runtime_value is Dictionary:
+			amount = maxi(1, roundi(HardModeSystemScript.active_comment_param_for_id(runtime_value as Dictionary, "no_stop", "stopDamage", float(amount))))
 	amount = _scale_enemy_damage_for_target(target, source, amount, debug_enemy_id, debug_runtime_variant, debug_attack_type)
 	var shop_snapshot = target.get("permanent_upgrade_snapshot")
 	if shop_snapshot != null and amount > 0:

@@ -6,12 +6,13 @@ signal hover_changed(index: int, hovering: bool)
 
 const UiState := preload("res://scripts/ui/power_up_shop_ui_state.gd")
 const VisualStyle := preload("res://scripts/ui/power_up_shop_visual_style.gd")
+const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
 
 @onready var card_icon: TextureRect = $VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate/Icon
 @onready var card_surface: PanelContainer = $VisualRoot/CardSurface
 @onready var icon_plate: PanelContainer = $VisualRoot/CardContent/VBox/HeaderRow/IconSlot/IconPlate
 @onready var title_label: Label = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/UpgradeName
-@onready var level_label: Label = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/LevelLabel
+@onready var level_label: Label = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/MetaRow/LevelLabel
 @onready var price_capsule: PanelContainer = $VisualRoot/CardContent/VBox/PriceCapsule
 @onready var price_label: Label = $VisualRoot/CardContent/VBox/PriceCapsule/PriceLabel
 @onready var effect_summary: Label = $VisualRoot/CardContent/VBox/EffectSummary
@@ -20,9 +21,8 @@ const VisualStyle := preload("res://scripts/ui/power_up_shop_visual_style.gd")
 @onready var tier_decoration: ColorRect = $VisualRoot/TierDecoration
 @onready var card_pattern: Control = $VisualRoot/CardPattern
 @onready var focus_ring: PanelContainer = $VisualRoot/FocusRing
-@onready var max_badge: Label = $VisualRoot/MaxBadge
-@onready var max_ribbon: PanelContainer = $VisualRoot/MaxRibbon
-@onready var max_ribbon_label: Label = $VisualRoot/MaxRibbon/Label
+@onready var max_ribbon: PanelContainer = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/MetaRow/MaxRibbon
+@onready var max_ribbon_label: Label = $VisualRoot/CardContent/VBox/HeaderRow/TextColumn/MetaRow/MaxRibbon/Label
 @onready var star_burst: Label = $VisualRoot/StarBurst
 @onready var visual_root: Control = $VisualRoot
 
@@ -67,7 +67,6 @@ func _ready() -> void:
 	VisualStyle.apply_font(level_label, 14, false, VisualStyle.SECONDARY)
 	VisualStyle.apply_font(price_label, 14, true, VisualStyle.TEXT_DARK)
 	VisualStyle.apply_font(effect_summary, 13, false, VisualStyle.SECONDARY)
-	VisualStyle.apply_font(max_badge, 13, true, VisualStyle.PP_DARK)
 	VisualStyle.apply_font(max_ribbon_label, 12, true, VisualStyle.TEXT_DARK)
 	VisualStyle.apply_font(star_burst, 22, true, VisualStyle.PP)
 	if not upgrade_data.is_empty():
@@ -97,7 +96,7 @@ func set_logical_focus(value: bool) -> void:
 	logical_focused = value
 	if is_node_ready():
 		focus_ring.visible = cursor_visible and value
-		focus_ring.add_theme_stylebox_override("panel", VisualStyle.focus_ring_style(category_color))
+		focus_ring.add_theme_stylebox_override("panel", VisualStyle.focus_ring_style(CommonLightUiStyle.COMBAT_MAIN))
 		_apply_card_style()
 		_apply_selection_transform()
 
@@ -128,8 +127,8 @@ func stop_animations() -> void:
 		self_modulate = Color.WHITE
 		_apply_selection_transform(true)
 		star_burst.modulate = Color(1, 1, 1, 0)
-		max_badge.visible = false
 		max_ribbon.visible = maxed
+		max_ribbon_label.text = "MAX"
 		max_ribbon.modulate = Color.WHITE
 		for lamp in lamp_panels:
 			lamp.scale = Vector2.ONE
@@ -153,8 +152,8 @@ func play_purchase_success(new_level: int = -1) -> void:
 	_success_tween.parallel().tween_property(star_burst, "modulate", Color.WHITE, 0.08)
 	_success_tween.tween_property(star_burst, "modulate", Color(1, 1, 1, 0), 0.24)
 	if new_level >= int(purchase_view.get("maxLevel", 5)):
-		max_badge.visible = false
 		max_ribbon.visible = true
+		max_ribbon_label.text = "MAX"
 		max_ribbon.modulate = Color(1, 1, 1, 0)
 		max_ribbon.add_theme_stylebox_override("panel", VisualStyle.compact_panel(VisualStyle.TIER_MAX_FILL, VisualStyle.TIER_MAX_BORDER, 2, 10, 6, 2))
 		_success_tween.parallel().tween_property(max_ribbon, "modulate", Color.WHITE, 0.12)
@@ -168,9 +167,8 @@ func _update_visuals(view: Dictionary, is_selected: bool) -> void:
 	maxed = purchase_state == UiState.PurchaseState.MAX_LEVEL
 	visual_tier = int(purchase_view.get("visualTier", UiState.UpgradeVisualTier.UNPURCHASED))
 	selected = is_selected
-	max_badge.visible = false
 	max_ribbon.visible = maxed
-	max_badge.modulate = Color.WHITE
+	max_ribbon_label.text = "MAX"
 	max_ribbon.modulate = Color.WHITE
 	title_label.text = String(upgrade_data.get("displayName", upgrade_data.get("id", "")))
 	level_label.text = "Lv %d / %d" % [_level, int(purchase_view.get("maxLevel", 5))]
@@ -217,7 +215,7 @@ func _update_category_style() -> void:
 	card_pattern.call("configure", visual_style, visual_tier)
 	icon_plate.add_theme_stylebox_override("panel", VisualStyle.compact_panel(tier_fill, tier_border, 2, 16, 0, 0))
 	max_ribbon.add_theme_stylebox_override("panel", VisualStyle.compact_panel(VisualStyle.TIER_MAX_FILL, VisualStyle.TIER_MAX_BORDER, 2, 10, 6, 2))
-	focus_ring.add_theme_stylebox_override("panel", VisualStyle.focus_ring_style(accent_color))
+	focus_ring.add_theme_stylebox_override("panel", VisualStyle.focus_ring_style(CommonLightUiStyle.COMBAT_MAIN))
 
 func _apply_card_style() -> void:
 	if not is_node_ready():
@@ -227,16 +225,17 @@ func _apply_card_style() -> void:
 	_refresh_z_order()
 	selection_lamp.visible = (cursor_visible and logical_focused) or hover_visible
 	var accent_color := Color(String(visual_style.get("accentColor", category_color.to_html(false))))
-	selection_lamp.color = accent_color
-	var border := accent_color if card_operation_focused or hover_visible else VisualStyle.tier_border(visual_tier, category_color)
+	var selection_accent := CommonLightUiStyle.COMBAT_MAIN
+	selection_lamp.color = selection_accent if card_operation_focused else accent_color
+	var border := selection_accent if card_operation_focused else (accent_color if hover_visible else VisualStyle.tier_border(visual_tier, category_color))
 	var border_width := 4 if card_operation_focused else (2 if hover_visible else 1)
 	var fill := Color(String(visual_style.get("baseColor", "#F7F3FF")))
 	fill = fill.lerp(VisualStyle.tier_fill(visual_tier, category_color), 0.18)
 	if card_operation_focused:
-		fill = fill.lightened(0.025)
+		fill = fill.lerp(CommonLightUiStyle.COMBAT_PALE, 0.34)
 	var normal_style := VisualStyle.button_style(fill, border, border_width, 16)
 	if card_operation_focused:
-		normal_style.shadow_color = Color(accent_color, 0.18)
+		normal_style.shadow_color = Color(selection_accent, 0.18)
 		normal_style.shadow_size = 7
 		normal_style.shadow_offset = Vector2.ZERO
 	card_surface.add_theme_stylebox_override("panel", normal_style)

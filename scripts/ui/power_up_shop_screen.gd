@@ -9,6 +9,7 @@ const CardScene := preload("res://scripts/ui/power_up_shop_card.tscn")
 const UiState := preload("res://scripts/ui/power_up_shop_ui_state.gd")
 const VisualStyle := preload("res://scripts/ui/power_up_shop_visual_style.gd")
 const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
+const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 
 const CATEGORIES := ["combat", "support"]
 const FRONT_SCREEN_BACKGROUND_PATH := "res://assets/title/title_back.png"
@@ -19,6 +20,19 @@ const STICK_REPEAT_INTERVAL := 0.14
 const STANDARD_CURRENT_EFFECT_FONT_SIZE := 22
 const STANDARD_NEXT_EFFECT_FONT_SIZE := 24
 const GIFT_EFFECT_FONT_SIZE := 20
+const SHOP_CURSOR_SE_VOLUME_DB_OFFSET := -3.0
+const SHOP_FEEDBACK_SE_VOLUME_DB_OFFSET := -8.0
+const SHOP_MIN_SE_VOLUME_DB := -80.0
+
+static func shop_se_volume_db(volume_percent: int, offset_db: float) -> float:
+	var normalized_percent := SettingsSystemScript.normalized_volume(volume_percent)
+	if normalized_percent <= 0:
+		return SHOP_MIN_SE_VOLUME_DB
+	return maxf(SHOP_MIN_SE_VOLUME_DB, SettingsSystemScript.volume_db_from_percent(normalized_percent) + offset_db)
+
+static func shop_se_volume_db_for_role(volume_percent: int, is_cursor: bool) -> float:
+	var offset_db := SHOP_CURSOR_SE_VOLUME_DB_OFFSET if is_cursor else SHOP_FEEDBACK_SE_VOLUME_DB_OFFSET
+	return shop_se_volume_db(volume_percent, offset_db)
 
 enum FocusArea {
 	CARDS,
@@ -87,6 +101,9 @@ enum FooterChoice {
 @onready var comparison_next: Label = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/NextEffectBox/NextContent/Value
 @onready var comparison_current_box: PanelContainer = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/CurrentEffectBox
 @onready var comparison_next_box: PanelContainer = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/NextEffectBox
+@onready var comparison_current_caption: Label = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/CurrentEffectBox/CurrentContent/Caption
+@onready var comparison_next_caption: Label = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/NextEffectBox/NextContent/Caption
+@onready var comparison_arrow: Label = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/EffectComparison/Arrow
 @onready var required_point_row: HBoxContainer = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow
 @onready var required_point_caption: Label = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow/RequiredCaption
 @onready var required_point_value: Label = $SafeAreaMargin/MainCenter/ShopContent/Body/DetailPanel/DetailMargin/InformationSection/InformationMargin/DetailContent/RequiredPointRow/RequiredValue
@@ -289,12 +306,12 @@ func _connect_ui() -> void:
 	VisualStyle.apply_back_button_theme(reset_cancel_button)
 
 func _apply_static_styles() -> void:
-	VisualStyle.apply_font(english_title, 14, true, CommonLightUiStyle.ENGLISH_TITLE)
+	VisualStyle.apply_font(english_title, 12, true, CommonLightUiStyle.ENGLISH_TITLE)
 	VisualStyle.apply_font(title_label, 30, true, CommonLightUiStyle.TEXT_PRIMARY)
 	VisualStyle.apply_font(title_description, 15, false, CommonLightUiStyle.TEXT_SECONDARY)
 	VisualStyle.apply_font(progress_caption, 12, true, CommonLightUiStyle.TEXT_SECONDARY)
 	VisualStyle.apply_font(progress_value, 15, true, CommonLightUiStyle.PP_TEXT)
-	VisualStyle.apply_font(pp_value, 28, true, CommonLightUiStyle.PP_TEXT)
+	VisualStyle.apply_font(pp_value, 32, true, CommonLightUiStyle.PP_TEXT)
 	VisualStyle.apply_font($SafeAreaMargin/MainCenter/ShopContent/Header/PpCapsule/PpRow/Caption, 17, true, CommonLightUiStyle.TEXT_PRIMARY)
 	VisualStyle.apply_font(combat_tab, 17, true, CommonLightUiStyle.TEXT_PRIMARY)
 	VisualStyle.apply_font(support_tab, 17, true, CommonLightUiStyle.TEXT_PRIMARY)
@@ -310,6 +327,7 @@ func _apply_static_styles() -> void:
 	VisualStyle.apply_font(required_point_caption, 14, false, VisualStyle.SECONDARY)
 	VisualStyle.apply_font(required_point_value, 15, true, VisualStyle.PP_DARK)
 	VisualStyle.apply_font(owned_or_shortage, 15, true, VisualStyle.SECONDARY)
+	required_point_caption.hide()
 	VisualStyle.apply_font(mascot_message, 14, true, VisualStyle.TEXT_DARK)
 	VisualStyle.apply_font(mascot_state_decoration, 24, true, VisualStyle.PP_DARK)
 	VisualStyle.apply_font(input_hints, 13, false, CommonLightUiStyle.TEXT_SECONDARY)
@@ -345,7 +363,7 @@ func _apply_static_styles() -> void:
 	VisualStyle.apply_tab_theme(combat_tab, true, VisualStyle.COMBAT, VisualStyle.COMBAT_DARK)
 	VisualStyle.apply_tab_theme(support_tab, false, VisualStyle.SUPPORT, VisualStyle.SUPPORT_DARK)
 	combat_tab_outer_ring.add_theme_stylebox_override("panel", CommonLightUiStyle.create_outer_focus_ring_style(CommonLightUiStyle.COMBAT_MAIN))
-	support_tab_outer_ring.add_theme_stylebox_override("panel", CommonLightUiStyle.create_outer_focus_ring_style(CommonLightUiStyle.SUPPORT_MAIN))
+	support_tab_outer_ring.add_theme_stylebox_override("panel", CommonLightUiStyle.create_outer_focus_ring_style(CommonLightUiStyle.COMBAT_MAIN))
 	combat_tab_outer_ring.hide()
 	support_tab_outer_ring.hide()
 
@@ -657,7 +675,7 @@ func _update_detail() -> void:
 	_update_target_tags(data)
 	comparison_current.text = String(_selected_purchase_view.get("currentEffectText", "なし"))
 	comparison_next.text = "MAX" if maxed else String(_selected_purchase_view.get("nextEffectText", "なし"))
-	_apply_effect_comparison_style(id)
+	_apply_effect_comparison_style(id, maxed)
 	_update_detail_level_gauge(level, max_level, String(data.get("category", CATEGORIES[category_index])))
 	_refresh_purchase_visuals(data, _selected_purchase_view)
 	for index in range(_cards.size()):
@@ -743,8 +761,8 @@ func _show_mascot_state(state: int, view: Dictionary, token: int) -> void:
 	var accent := VisualStyle.COMBAT if String(view.get("category", "combat")) == "combat" else VisualStyle.SUPPORT
 	speech_bubble.add_theme_stylebox_override("panel", VisualStyle.rounded_panel(CommonLightUiStyle.MAIN_PANEL, accent, 2, 14))
 	mascot_glow.hide()
-	mascot_state_decoration.visible = state in [UiState.MascotState.PURCHASE_SUCCESS, UiState.MascotState.MAX_LEVEL]
-	mascot_state_decoration.text = "MAX" if state == UiState.MascotState.MAX_LEVEL else "✦"
+	mascot_state_decoration.visible = state == UiState.MascotState.PURCHASE_SUCCESS
+	mascot_state_decoration.text = "✦" if mascot_state_decoration.visible else ""
 	mascot.scale = Vector2.ONE
 	if state == UiState.MascotState.PURCHASE_SUCCESS:
 		_mascot_message_tween = create_tween()
@@ -841,20 +859,20 @@ func _refresh_purchase_visuals(data: Dictionary, view: Dictionary) -> void:
 	var state := int(view.get("state", UiState.PurchaseState.PURCHASABLE))
 	match state:
 		UiState.PurchaseState.PURCHASABLE:
-			purchase_button.text = "パワーアップする\n%d PP" % int(view.get("price", 0))
+			purchase_button.text = "強化する\n%d PP" % int(view.get("price", 0))
 			purchase_button.disabled = _purchase_lock_remaining > 0.0 or _pending_upgrade_id != ""
 			var button_border := CommonLightUiStyle.COMBAT_LIGHT if category == "combat" else CommonLightUiStyle.SUPPORT_LIGHT
 			VisualStyle.apply_button_theme(purchase_button, accent, button_border, VisualStyle.TEXT_LIGHT)
 		UiState.PurchaseState.NOT_ENOUGH_PP:
-			purchase_button.text = "PPが足りません\nあと%d PP" % int(view.get("shortage", 0))
-			purchase_button.disabled = false
+			purchase_button.text = "PPが足りません"
+			purchase_button.disabled = true
 			var insufficient := VisualStyle.button_style(VisualStyle.BUTTON_DISABLED_FILL, VisualStyle.BUTTON_DISABLED_BORDER, 1, 12)
 			for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
 				purchase_button.add_theme_stylebox_override(state_name, insufficient)
 			VisualStyle.apply_font(purchase_button, 17, true, VisualStyle.BUTTON_DISABLED_TEXT)
 			purchase_button.add_theme_color_override("font_disabled_color", VisualStyle.BUTTON_DISABLED_TEXT)
 		UiState.PurchaseState.MAX_LEVEL:
-			purchase_button.text = "強化完了\nMAX"
+			purchase_button.text = "強化完了"
 			purchase_button.disabled = true
 			var max_style := VisualStyle.button_style(VisualStyle.MAX_FILL, VisualStyle.PP, 2, 12)
 			for state_name in ["normal", "hover", "pressed", "focus", "disabled"]:
@@ -863,25 +881,35 @@ func _refresh_purchase_visuals(data: Dictionary, view: Dictionary) -> void:
 			purchase_button.add_theme_color_override("font_disabled_color", VisualStyle.PP_DARK)
 	detail_level_gauge.modulate = Color.WHITE if state != UiState.PurchaseState.MAX_LEVEL else Color(1.0, 0.96, 0.76, 1.0)
 	var price: int = int(view.get("price", 0))
-	var points: int = int(view.get("points", 0))
-	if state == UiState.PurchaseState.MAX_LEVEL:
-		required_point_value.text = "-"
-		owned_or_shortage.text = "所持PP %s" % _format_point_amount(points)
-		required_point_value.add_theme_color_override("font_color", VisualStyle.SECONDARY)
-		owned_or_shortage.add_theme_color_override("font_color", VisualStyle.SECONDARY)
-	else:
+	var required_visible := state != UiState.PurchaseState.MAX_LEVEL
+	required_point_row.visible = required_visible
+	required_point_caption.hide()
+	owned_or_shortage.visible = state == UiState.PurchaseState.NOT_ENOUGH_PP
+	if required_visible:
 		required_point_value.text = "必要PP %s" % _format_point_amount(price)
-		owned_or_shortage.text = "所持PP %s" % _format_point_amount(points) if state == UiState.PurchaseState.PURCHASABLE else "あと%s PP" % _format_point_amount(int(view.get("shortage", 0)))
 		required_point_value.add_theme_color_override("font_color", VisualStyle.PP_DARK)
-		owned_or_shortage.add_theme_color_override("font_color", VisualStyle.SECONDARY if state == UiState.PurchaseState.PURCHASABLE else VisualStyle.WARNING)
+		if state == UiState.PurchaseState.NOT_ENOUGH_PP:
+			owned_or_shortage.text = "あと%s PP" % _format_point_amount(int(view.get("shortage", 0)))
+			owned_or_shortage.add_theme_color_override("font_color", VisualStyle.WARNING)
+		else:
+			owned_or_shortage.text = ""
+			owned_or_shortage.add_theme_color_override("font_color", VisualStyle.SECONDARY)
+	else:
+		required_point_value.text = ""
+		owned_or_shortage.text = ""
 	_update_mascot(view)
 
-func _apply_effect_comparison_style(upgrade_id: String) -> void:
+func _apply_effect_comparison_style(upgrade_id: String, maxed: bool = false) -> void:
 	var is_gift_luck := upgrade_id == "gift_luck"
 	var current_size := GIFT_EFFECT_FONT_SIZE if is_gift_luck else STANDARD_CURRENT_EFFECT_FONT_SIZE
 	var next_size := GIFT_EFFECT_FONT_SIZE if is_gift_luck else STANDARD_NEXT_EFFECT_FONT_SIZE
 	VisualStyle.apply_font(comparison_current, current_size, true, VisualStyle.TEXT_DARK)
-	VisualStyle.apply_font(comparison_next, next_size, true, VisualStyle.COMBAT_DARK)
+	VisualStyle.apply_font(comparison_next, next_size, true, VisualStyle.PP_DARK if maxed else VisualStyle.COMBAT_DARK)
+	VisualStyle.apply_font(comparison_current_caption, 13, false, VisualStyle.SECONDARY)
+	VisualStyle.apply_font(comparison_next_caption, 13, false, VisualStyle.PP_DARK if maxed else VisualStyle.COMBAT_DARK)
+	comparison_current_caption.text = "現在"
+	comparison_next_caption.text = "強化完了" if maxed else "次のLv"
+	comparison_arrow.visible = not maxed
 	comparison_current.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	comparison_next.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	comparison_current.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -892,8 +920,10 @@ func _apply_effect_comparison_style(upgrade_id: String) -> void:
 	comparison_next.max_lines_visible = 2 if is_gift_luck else 1
 	comparison_current.clip_text = false
 	comparison_next.clip_text = false
-	var current_box_style: StyleBoxFlat = comparison_current_box.get_theme_stylebox("panel") as StyleBoxFlat
-	var next_box_style: StyleBoxFlat = comparison_next_box.get_theme_stylebox("panel") as StyleBoxFlat
+	var current_box_style := VisualStyle.rounded_panel(VisualStyle.CARD_SUBTLE, CommonLightUiStyle.LILAC_BORDER, 1, 14)
+	var next_box_style := VisualStyle.rounded_panel(VisualStyle.MAX_FILL if maxed else VisualStyle.PRICE_FILL, VisualStyle.PP, 2 if maxed else 1, 14)
+	comparison_current_box.add_theme_stylebox_override("panel", current_box_style)
+	comparison_next_box.add_theme_stylebox_override("panel", next_box_style)
 	if current_box_style != null:
 		current_box_style.content_margin_left = 12.0 if is_gift_luck else 18.0
 		current_box_style.content_margin_right = 12.0 if is_gift_luck else 18.0
@@ -938,7 +968,7 @@ func _refresh_category_tab_focus() -> void:
 	if not tab_focus:
 		return
 	var active_tab := combat_tab if category_index == 0 else support_tab
-	var accent := VisualStyle.COMBAT if category_index == 0 else VisualStyle.SUPPORT
+	var accent := CommonLightUiStyle.COMBAT_MAIN
 	var focused_style := CommonLightUiStyle.create_panel_style(accent, accent.lightened(0.16), 4, 16, 16.0, 8.0)
 	active_tab.add_theme_stylebox_override("normal", focused_style)
 	active_tab.add_theme_stylebox_override("hover", CommonLightUiStyle.create_panel_style(accent.lightened(0.06), accent.lightened(0.16), 4, 16, 16.0, 8.0))
@@ -1463,9 +1493,20 @@ func _animate_category_switch() -> void:
 
 func _play_se(player: AudioStreamPlayer) -> void:
 	if player != null and player.stream != null:
-		if player == cursor_se and player.playing:
+		var is_cursor := player == cursor_se
+		player.volume_db = shop_se_volume_db_for_role(_current_se_volume(), is_cursor)
+		if is_cursor and player.playing:
 			player.stop()
 		player.play()
+
+func _current_se_volume() -> int:
+	var current: Node = self
+	while current != null:
+		var candidate: Variant = current.get("se_volume")
+		if candidate != null:
+			return SettingsSystemScript.normalized_volume(int(candidate))
+		current = current.get_parent()
+	return SettingsSystemScript.DEFAULT_SE_VOLUME
 
 func _kill_reset_dialog_tween() -> void:
 	if _reset_dialog_tween != null and is_instance_valid(_reset_dialog_tween):

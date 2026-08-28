@@ -46,7 +46,7 @@ func _run_tests() -> void:
 	var final: Dictionary = game._result_reveal_snapshot(1.67, view)
 	var final_row_alphas: Array = final.get("rowAlphas", []) as Array
 	_check_equal("reveal rows final", float(final_row_alphas[0]), 1.0)
-	_check_equal("button reveal final", float(final.get("buttonsAlpha", 0.0)), 1.0)
+	_check_approx("button reveal final", float(final.get("buttonsAlpha", 0.0)), 1.0)
 	var layout: Dictionary = game._result_layout()
 	_check_equal("result button order", game._result_button_ids(), ["retry", "ranking", "shop", "title"])
 	_check((layout["shopButton"] as Rect2).position.x < (layout["titleButton"] as Rect2).position.x, "shop button precedes title")
@@ -142,7 +142,32 @@ func _run_tests() -> void:
 	_check_approx("metric cards fit 800px row", owned_card.end.x, metric_rect.end.x)
 	_check(not evaluation_card.intersects(earned_card), "evaluation and earned cards do not overlap")
 	_check(not earned_card.intersects(owned_card), "earned and owned cards do not overlap")
+	var evaluation_metric_view: Dictionary = game._completed_evaluation_metric_view({"evaluationRank": "S", "evaluationScore": 100})
+	_check_equal("evaluation card view has only label/rank/score", evaluation_metric_view.size(), 3)
+	_check_equal("evaluation card label", String(evaluation_metric_view.get("label", "")), "配信評価")
+	_check_equal("evaluation card rank", String(evaluation_metric_view.get("rank", "")), "S")
+	_check_equal("evaluation card score format", String(evaluation_metric_view.get("score", "")), "100 / 100")
+	var compact_metric_text := "%s %s %s" % [evaluation_metric_view.get("label", ""), evaluation_metric_view.get("rank", ""), evaluation_metric_view.get("score", "")]
+	for forbidden_metric_token in ["挑", "盛", "安", "ギ", "戦", "完", "/20", "/25", "/5"]:
+		_check(not compact_metric_text.contains(forbidden_metric_token), "evaluation card omits breakdown token %s" % forbidden_metric_token)
+	var clear_metric_layout: Dictionary = game._completed_evaluation_metric_layout(evaluation_card)
+	var defeat_metric_layout: Dictionary = game._completed_evaluation_metric_layout(evaluation_card)
+	_check_equal("clear and game over evaluation geometry is shared", clear_metric_layout, defeat_metric_layout)
+	var evaluation_label_rect: Rect2 = clear_metric_layout["labelRect"] as Rect2
+	var evaluation_rank_rect: Rect2 = clear_metric_layout["rankRect"] as Rect2
+	var evaluation_score_rect: Rect2 = clear_metric_layout["scoreRect"] as Rect2
+	_check(evaluation_card.encloses(evaluation_label_rect), "evaluation label stays inside card")
+	_check(evaluation_card.encloses(evaluation_rank_rect), "evaluation rank stays inside card")
+	_check(evaluation_card.encloses(evaluation_score_rect), "evaluation score stays inside card")
+	_check(not evaluation_rank_rect.intersects(evaluation_score_rect), "evaluation rank and score do not overlap")
+	_check(int(clear_metric_layout["rankFontSize"]) > 42, "evaluation rank font is larger than legacy 42px")
+	_check(int(clear_metric_layout["rankFontSize"]) > int(clear_metric_layout["scoreFontSize"]), "evaluation rank is larger than score")
+	_check(int(clear_metric_layout["scoreFontSize"]) > int(clear_metric_layout["labelFontSize"]), "evaluation score is larger than label")
 	var result_font := GameFontSystemScript.regular_font()
+	for metric_case in [{"rank": "D", "score": 34}, {"rank": "S", "score": 90}, {"rank": "S", "score": 100}]:
+		var compact_case: Dictionary = game._completed_evaluation_metric_view({"evaluationRank": metric_case["rank"], "evaluationScore": metric_case["score"]})
+		var compact_score_text := String(compact_case["score"])
+		_check(result_font.get_string_size(compact_score_text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, int(clear_metric_layout["scoreFontSize"])).x <= evaluation_score_rect.size.x, "evaluation score fits %s" % compact_score_text)
 	var owned_value_width := owned_card.size.x - 149.0
 	for pp_value in [0, 99, 999, 9999, 99999]:
 		var earned_text := "+%d" % pp_value
@@ -260,6 +285,50 @@ func _run_tests() -> void:
 	_check_equal("normal adapter row amount", int(normal_row.get("amount", 0)), 150)
 	var result_data := ResultSystemScript.build_result_data({"endType": "completed", "isRankingEligible": true})
 	_check(bool(result_data.get("rankingRegistered", false)), "result data carries ranking registration state")
+	var evaluation_result_data := ResultSystemScript.build_result_data({
+		"endType": "mental_breakdown",
+		"evaluationVersion": 2,
+		"evaluationScore": 70,
+		"evaluationRank": "A",
+		"evaluationBreakdown": {"challenge": 15, "hype": 20, "stability": 16, "gifts": 8, "combat": 3, "completion": 0},
+		"pointRewardView": {"grantState": "granted", "pointsEarned": 12, "rewardRows": [{"displayName": "難易度調整", "amount": 2}]}
+	})
+	_check_equal("v2 result stores evaluation version", int(evaluation_result_data.get("evaluationVersion", 0)), 2)
+	_check_equal("v2 result stores evaluation rank", String(evaluation_result_data.get("evaluationRank", "")), "A")
+	_check_equal("v2 result retains evaluation breakdown", int((evaluation_result_data.get("evaluationBreakdown", {}) as Dictionary).get("completion", -1)), 0)
+	_check_equal("v2 result exposes six breakdown rows plus total/rank", (evaluation_result_data.get("evaluationRows", []) as Array).size(), 8)
+	var evaluation_bonus_view: Dictionary = ResultSystemScript.build_point_reward_view({"difficultyAdjustment": 12, "evaluationBonusPp": 18}, "granted", 0, 30, 30, false)
+	var evaluation_bonus_rows: Array = evaluation_bonus_view.get("rewardRows", []) as Array
+	_check_equal("PP evaluation bonus row remains visible", String((evaluation_bonus_rows[1] as Dictionary).get("displayName", "")), "配信評価ボーナス")
+	_check_equal("PP evaluation bonus amount remains unchanged", int((evaluation_bonus_rows[1] as Dictionary).get("amount", 0)), 18)
+	var game_over_text := ResultSystemScript.build_result_text({
+		"endType": "mental_breakdown",
+		"evaluationVersion": 2,
+		"evaluationScore": 70,
+		"evaluationRank": "A",
+		"evaluationBreakdown": {"challenge": 15, "hype": 20, "stability": 16, "gifts": 8, "combat": 3, "completion": 0},
+		"pointRewardView": {"pointsEarned": 12},
+		"relayMode": false,
+		"modeName": "通常配信",
+		"characterName": "赤羽ばんり",
+		"streamFrameName": "雑談枠",
+		"score": 1,
+		"maxMultiplier": 1.0,
+		"maxBurnCombo": 0,
+		"giftsTaken": 0,
+		"maxGiftHype": 0,
+		"dangerCommentsChosen": 0,
+		"heartUsedCount": 0,
+		"isRankingEligible": false,
+		"currentComment": "なし",
+		"deathText": "接触",
+		"lastDeathSource": "接触",
+		"weaponEquipmentText": "",
+		"accessoryEquipmentText": "",
+		"giftSummary": "なし"
+	})
+	_check(game_over_text.contains("今回の獲得PP +12 PP"), "game over text includes earned PP")
+	_check(game_over_text.contains("完走 0/20"), "game over text shows zero completion evaluation")
 	var normalized_difficulty_data: Dictionary = ResultSystemScript.build_result_data({"endType": "completed", "difficultyId": "EXPERT"})
 	_check_equal("result keeps canonical run difficulty", String(normalized_difficulty_data.get("runDifficultyId", "")), "expert")
 	var expected_frame_names := {

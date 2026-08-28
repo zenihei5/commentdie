@@ -2,6 +2,7 @@ class_name PlayerSystem
 extends RefCounted
 
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
+const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
 
 static func input_vector() -> Vector2:
 	var input := Vector2.ZERO
@@ -24,7 +25,7 @@ static func adjusted_input(input: Vector2, reverse_power: float, elapsed: float)
 		return input.rotated(sin(elapsed * 9.0) * 0.55)
 	return input
 
-static func friction(banana_power: float, no_brake_power: float, input: Vector2, player_vel: Vector2, active_genre_event: String, kusoge_resist_level: int) -> float:
+static func friction(banana_power: float, no_brake_power: float, input: Vector2, player_vel: Vector2, active_genre_event: String, kusoge_resist_level: int, no_brake_inertia_rate: float = 1.0) -> float:
 	var value := 11.0
 	if banana_power > 0.0:
 		value = lerpf(value, 3.4, banana_power)
@@ -35,9 +36,9 @@ static func friction(banana_power: float, no_brake_power: float, input: Vector2,
 		if input_power_sq >= 0.01 and player_speed_sq >= 400.0:
 			braking = input.dot(player_vel / sqrt(player_speed_sq)) < -0.35
 		if braking:
-			value = minf(value, lerpf(11.0, 0.85, no_brake_power))
+			value = minf(value, lerpf(11.0, 0.85, clampf(no_brake_power * no_brake_inertia_rate, 0.0, 1.0)))
 		else:
-			value = minf(value, lerpf(11.0, 5.8, no_brake_power))
+			value = minf(value, lerpf(11.0, 5.8, clampf(no_brake_power * no_brake_inertia_rate, 0.0, 1.0)))
 	if active_genre_event == "race":
 		var resist: float = 0.35 * float(kusoge_resist_level)
 		value = minf(value, 6.0 + resist)
@@ -70,14 +71,14 @@ static func banana_input(input: Vector2, banana_power: float, elapsed: float) ->
 		return input
 	return input.rotated(sin(elapsed * 7.0) * 0.28 * banana_power)
 
-static func banana_floor_drift(player_vel: Vector2, banana_power: float, elapsed: float, player_pos: Vector2, delta: float) -> Vector2:
+static func banana_floor_drift(player_vel: Vector2, banana_power: float, elapsed: float, player_pos: Vector2, delta: float, slip_rate: float = 1.0) -> Vector2:
 	var player_speed_sq := player_vel.length_squared()
 	if banana_power <= 0.0 or player_speed_sq < 1444.0:
 		return player_vel
 	var dir: Vector2 = player_vel / sqrt(player_speed_sq)
 	var side: Vector2 = Vector2(-dir.y, dir.x)
 	var wave: float = sin(elapsed * 9.0 + player_pos.x * 0.025 + player_pos.y * 0.017)
-	return player_vel + side * wave * 118.0 * banana_power * delta
+	return player_vel + side * wave * 118.0 * banana_power * maxf(0.0, slip_rate) * delta
 
 static func can_dash(no_dash_power: float, dash_cd: float) -> bool:
 	return dash_cd <= 0.0 and no_dash_power < 0.95
@@ -179,14 +180,14 @@ static func update_motion(context: Dictionary) -> Dictionary:
 	var player_vel: Vector2 = Vector2(context["playerVel"])
 	var no_brake_sliding_value: bool = no_brake_sliding(no_brake_power, input, player_vel)
 	var player_speed: float = float(context["playerSpeed"])
-	var friction_value: float = friction(banana_power, no_brake_power, input, player_vel, String(context["activeGenreEvent"]), int(context["kusogeResistLevel"]))
+	var friction_value: float = friction(banana_power, no_brake_power, input, player_vel, String(context["activeGenreEvent"]), int(context["kusogeResistLevel"]), float(context.get("noBrakeInertiaRate", 1.0)))
 	var speed_rate_value: float = speed_rate(float(context["moveSlowTimer"]), String(context["activeGenreEvent"]), banana_power, no_brake_power, float(context.get("fieldSlowRate", 0.0)), float(context.get("raceDashBoostTimer", 0.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("songLiveHeatMoveSpeedMultiplier", 1.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("collabMoveSpeedMultiplier", 1.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("relayBossMoveSpeedMultiplier", 1.0)))
 	speed_rate_value *= maxf(0.1, float(context.get("hardCommentMoveRate", 1.0)))
 	player_vel = player_vel.lerp(input * player_speed * speed_rate_value, minf(1.0, delta * friction_value))
-	player_vel = banana_floor_drift(player_vel, banana_power, elapsed, Vector2(context["playerPos"]), delta)
+	player_vel = banana_floor_drift(player_vel, banana_power, elapsed, Vector2(context["playerPos"]), delta, float(context.get("bananaSlipRate", 1.0)))
 
 	var dash_recovery_multiplier := maxf(0.05, float(context.get("songDashCooldownRecoveryMultiplier", 1.0)))
 	var dash_cd_value: float = maxf(0.0, float(context["dashCd"]) - delta * dash_recovery_multiplier)
@@ -290,6 +291,13 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 	var banana_power: float = ModifierSystem.effect_rate_for_target(target, "banana_floor")
 	var no_brake_power: float = maxf(ModifierSystem.effect_rate_for_target(target, "no_brake"), ModifierSystem.effect_rate_for_target(target, "takeback"))
 	var no_dash_power: float = ModifierSystem.effect_rate_for_target(target, "no_dash")
+	var banana_slip_rate := 1.0
+	var no_brake_inertia_rate := 1.0
+	var hard_runtime_value: Variant = target.get("difficulty_runtime")
+	if hard_runtime_value is Dictionary:
+		var hard_runtime: Dictionary = hard_runtime_value as Dictionary
+		banana_slip_rate = HardModeSystemScript.active_comment_param_for_id(hard_runtime, "banana_floor", "slipRate", 1.0)
+		no_brake_inertia_rate = HardModeSystemScript.active_comment_param_for_id(hard_runtime, "no_brake", "inertiaRate", 1.0)
 	var song_move_rate := 1.0
 	if target.has_method("_song_live_heat_move_speed_multiplier"):
 		song_move_rate = maxf(0.1, float(target.call("_song_live_heat_move_speed_multiplier")))
@@ -307,7 +315,6 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		field_slow_rate = maxf(field_slow_rate, float(target.call("_drawing_spilled_paint_slow_rate")))
 	var hard_comment_move_rate := 1.0
 	var hard_comment_knockback_velocity := Vector2.ZERO
-	var hard_runtime_value: Variant = target.get("difficulty_runtime")
 	if hard_runtime_value is Dictionary:
 		var avalanche: Dictionary = hard_runtime_value.get("commentAvalanche", {}) as Dictionary
 		if bool(avalanche.get("active", false)) and float(avalanche.get("slowRemaining", 0.0)) > 0.0:
@@ -322,6 +329,8 @@ static func update_for_target(target: Node, delta: float, arena: Rect2) -> Dicti
 		"reversePower": reverse_power,
 		"bananaPower": banana_power,
 		"noBrakePower": no_brake_power,
+		"bananaSlipRate": banana_slip_rate,
+		"noBrakeInertiaRate": no_brake_inertia_rate,
 		"moveSlowTimer": target.get("move_slow_timer"),
 		"fieldSlowRate": field_slow_rate,
 		"activeGenreEvent": target.get("active_genre_event"),

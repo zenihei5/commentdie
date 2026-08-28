@@ -12,6 +12,7 @@ func _ready() -> void:
 	_test_candidate_counts()
 	_test_initial_weapon_fixed_offer_rate()
 	_test_variable_choice_cards()
+	_test_gift_card_name_wrapping()
 	_test_direct_pp_dedup_and_result()
 	if failures.is_empty():
 		print("GIFT_SYSTEM_TESTS: PASS")
@@ -111,6 +112,17 @@ func _test_variable_choice_cards() -> void:
 	_check((buttons[1] as Button).visible, "second live gift button stays visible")
 	_check((buttons[2] as Button).visible, "fallback gift button fills the third slot")
 	_check(not (buttons[2] as Button).disabled, "fallback gift button can be selected")
+
+func _test_gift_card_name_wrapping() -> void:
+	_check_equal("all block laser gift name wraps naturally", GiftSystemScript.gift_card_display_name({"id": "all_block_laser"}, "オールブロックレーザー"), "オールブロック\nレーザー")
+	_check_equal("comment lockdown gift name wraps naturally", GiftSystemScript.gift_card_display_name({"id": "comment_lockdown"}, "コメント・ロックダウン"), "コメント・\nロックダウン")
+	_check_equal("emote festival gift name wraps naturally", GiftSystemScript.gift_card_display_name({"id": "emote_festival"}, "エモート・フェスティバル"), "エモート・\nフェスティバル")
+	_check_equal("moderator fortress gift name wraps naturally", GiftSystemScript.gift_card_display_name({"id": "moderator_fortress"}, "モデレーター・フォートレス"), "モデレーター・\nフォートレス")
+	_check_equal("fansa climax gift name wraps naturally", GiftSystemScript.gift_card_display_name({"id": "fansa_climax"}, "ファンサ・クライマックス"), "ファンサ・\nクライマックス")
+	_check_equal("evolution gift uses evolved weapon wrapping", GiftSystemScript.gift_card_display_name({"id": "evolution_comment_pin", "equipmentType": "evolution", "isEvolutionGift": true, "evolvedWeaponId": "comment_lockdown"}, "コメント・ロックダウン"), "コメント・\nロックダウン")
+	_check_equal("short gift name stays on one line", GiftSystemScript.gift_card_display_name({"id": "center_stage"}, "センターステージ"), "センターステージ")
+	var wrapped_card := ChoiceCardSystemScript.gift_card(0, {"id": "all_block_laser", "displayName": "オールブロックレーザー", "equipmentType": "weapon", "maxLevel": 1, "levelGain": 1, "description": ""}, 0)
+	_check(String(wrapped_card.get("text", "")).contains("オールブロック\nレーザー"), "rendered gift card keeps the configured line break")
 
 func _test_direct_pp_dedup_and_result() -> void:
 	var tracker = TrackerScript.start(true, 0, true)

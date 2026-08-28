@@ -583,6 +583,8 @@ static func choose_instruction_for_target(target: Node, index: int, choice_box: 
 	target.set("comment_warning_step", 0)
 	choice_box.visible = false
 	PauseReasonSystemScript.remove(target, "InstructionComment")
+	if int(comment.get("riskLevel", 1)) >= 3 and target.has_method("_record_evaluation_dangerous_comments"):
+		target.call("_record_evaluation_dangerous_comments", 1)
 	return {"selected": true, "commentId": String(comment.get("id", "")), "chat": String(comment.get("displayName", "")) + " を選択", "supportSelected": support_selected, "supportId": String(comment.get("id", "")) if support_selected else "", "healAmount": heal_amount, "buzzBefore": buzz_before, "buzzAfter": buzz_after, "buzzDelta": int(buzz_state["buzzDelta"]), "buzzGainRequested": buzz_gain, "buzzChanged": bool(buzz_state["buzzChanged"]), "buzzReachedMax": bool(buzz_state["buzzReachedMax"])}
 	return {"selected": true, "commentId": String(comment.get("id", "")), "chat": String(comment.get("displayName", "指示コメ")) + " を選択"}
 

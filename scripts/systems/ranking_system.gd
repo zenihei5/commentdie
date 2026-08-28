@@ -123,9 +123,25 @@ static func normalize_entry(raw_value: Variant, legacy_relay: bool = false) -> D
 	var difficulty := normalize_difficulty_id(source.get("difficulty", source.get("difficultyId", "normal")))
 	var stage := "relay" if relay else normalize_ranking_stage_id(source.get("stageId", source.get("streamFrameId", "talk")))
 	result["dataVersion"] = RANKING_DATA_VERSION
+	var evaluation_version := int(source.get("evaluationVersion", 1))
+	result["evaluationVersion"] = 2 if evaluation_version >= 2 else 1
+	if result["evaluationVersion"] >= 2:
+		result["evaluationScore"] = clampi(int(source.get("evaluationScore", source.get("kamiPoint", 0))), 0, 100)
+		result["evaluationRank"] = String(source.get("evaluationRank", source.get("kamiRank", source.get("rank", "D")))).strip_edges().to_upper()
+		if not ["S", "A", "B", "C", "D"].has(String(result["evaluationRank"])):
+			result["evaluationRank"] = "D"
+		result["evaluationBreakdown"] = (source.get("evaluationBreakdown", {}) as Dictionary).duplicate(true) if source.get("evaluationBreakdown", {}) is Dictionary else {}
+		# Keep the v2 aliases available to older UI/readers without converting
+		# legacy v1 records or projecting their kamiPoint onto the new scale.
+		result["kamiPoint"] = int(result["evaluationScore"])
+		result["kamiRank"] = String(result["evaluationRank"])
+		result["rank"] = String(result["evaluationRank"])
 	result["difficulty"] = difficulty
 	result["difficultyId"] = difficulty
 	result["stageId"] = stage
+	var canonical_frame_name := String(RANKING_STAGE_LABELS.get(stage, ""))
+	if canonical_frame_name != "":
+		result["streamFrameName"] = canonical_frame_name
 	if not result.has("streamFrameId") or String(result.get("streamFrameId", "")).strip_edges() == "":
 		result["streamFrameId"] = stream_frame_id_for_stage(stage)
 	if relay:
@@ -503,14 +519,35 @@ static func ranking_view_for_board(progress: Dictionary, difficulty: Variant, st
 	if not locked and _ranking_stage_locked(progress, difficulty_id, stage_id):
 		locked = true
 		lock_text = "この枠はまだ解禁されていません"
-	var view: Dictionary = {"title": "%s・%sランキング" % [stage_label(stage_id), difficulty_id.to_upper()], "subtitle": "%s / %s" % [stage_label(stage_id), difficulty_id.to_upper()], "difficultyId": difficulty_id, "stageId": stage_id, "boardKey": create_board_key(difficulty_id, stage_id), "tabs": tabs, "stageTabs": stage_tabs, "locked": locked, "empty": false, "messageLines": [], "rows": [], "selectedIndex": 0, "pageIndex": maxi(0, page), "pageCount": 1, "detailVisible": true, "detail": {}}
+	var view: Dictionary = {
+		"title": "%s・%sランキング" % [stage_label(stage_id), difficulty_id.to_upper()],
+		"subtitle": "最大同時視聴者数ランキング",
+		"detailTitle": "%s・%s" % [stage_label(stage_id), difficulty_id.to_upper()],
+		"difficultyId": difficulty_id,
+		"difficultyLabel": difficulty_id.to_upper(),
+		"stageId": stage_id,
+		"stageLabel": stage_label(stage_id),
+		"boardKey": create_board_key(difficulty_id, stage_id),
+		"tabs": tabs,
+		"stageTabs": stage_tabs,
+		"locked": locked,
+		"empty": false,
+		"messageLines": [],
+		"emptyDetailLines": ["記録を残すと、ここで配信を振り返れます"],
+		"rows": [],
+		"selectedIndex": 0,
+		"pageIndex": maxi(0, page),
+		"pageCount": 1,
+		"detailVisible": true,
+		"detail": {}
+	}
 	if locked:
 		view["messageLines"] = ["この難易度は未解禁です", lock_text]
 		return view
 	var all_entries := _sorted_entries_for_board(difficulty_id, stage_id)
 	if all_entries.is_empty():
 		view["empty"] = true
-		view["messageLines"] = ["まだランキング記録がありません"]
+		view["messageLines"] = ["まだ記録がありません", "この配信枠をプレイして記録を残そう！"]
 		return view
 	var page_count := maxi(1, int(ceil(float(all_entries.size()) / float(MAX_TAB_ENTRIES))))
 	var page_index := clampi(page, 0, page_count - 1)
@@ -535,18 +572,19 @@ static func _ranking_stage_locked(progress: Dictionary, difficulty_id: String, s
 
 static func _board_row_view(entry: Dictionary, rank: int, selected: bool) -> Dictionary:
 	var relay := entry_stage(entry) == "relay"
-	var status := "CLEAR" if bool(entry.get("cleared", entry.get("isRelayCompleted", false))) else _ranking_reach_text(entry)
+	var end_type := _entry_end_type(entry)
+	var status := "完走" if end_type == "completed" else "GAME OVER"
 	var boss_source: Dictionary = entry.get("boss", {}) as Dictionary if entry.get("boss", {}) is Dictionary else {}
 	var boss_count := clampi(int(boss_source.get("defeatedCount", entry.get("bossCount", 0))), 0, 2)
-	return {"rank": rank, "selected": selected, "characterId": _character_id(entry), "character": _character_nickname(entry), "title": _character_nickname(entry), "scoreLabel": "最大同時視聴者数", "scoreText": "%s人" % _format_number(_entry_score(entry)), "summary": ("BOSS×%d / %s" % [boss_count, status]) if not relay else ("%s / %s" % [status, _ranking_reach_text(entry)]), "build": _format_build_short(entry), "weapons": _slice_items(_safe_array(entry.get("weapons", [])), 5), "accessories": _slice_items(_safe_array(entry.get("accessories", [])), 5), "endType": _entry_end_type(entry), "endTypeLabel": _end_type_label(entry), "accent": _rank_accent(rank - 1)}
+	return {"rank": rank, "selected": selected, "characterId": _character_id(entry), "character": _character_nickname(entry), "title": _character_nickname(entry), "scoreLabel": "最大同時視聴者数", "scoreText": "%s人" % _format_number(_viewer_count(entry)), "summary": ("BOSS×%d / %s" % [boss_count, status]) if not relay else ("%s / %s" % [status, _ranking_reach_text(entry)]), "build": _format_build_short(entry), "weapons": _slice_items(_safe_array(entry.get("weapons", [])), 5), "accessories": _slice_items(_safe_array(entry.get("accessories", [])), 5), "endType": end_type, "endTypeLabel": _board_end_type_label(entry), "evaluationVersion": _evaluation_version(entry), "evaluationScore": _evaluation_score(entry), "evaluationRank": _evaluation_rank(entry), "accent": _rank_accent(rank - 1)}
 
 
 static func _ranking_reach_text(entry: Dictionary) -> String:
 	var relay: Dictionary = entry.get("relay", {}) as Dictionary if entry.get("relay", {}) is Dictionary else {}
 	if bool(relay.get("finalBossDefeated", entry.get("finalBossDefeated", false))):
-		return "CLEAR"
+		return "最終ボス撃破"
 	if bool(relay.get("reachedFinalBoss", entry.get("reachedFinalBoss", false))):
-		return "FINAL P%d" % clampi(int(relay.get("finalBossPhase", entry.get("finalBossPhase", 1))), 1, 3)
+		return "最終ボス P%d" % clampi(int(relay.get("finalBossPhase", entry.get("finalBossPhase", 1))), 1, 3)
 	return stage_label(relay.get("reachedStageId", entry.get("stageId", "talk")))
 
 
@@ -558,16 +596,20 @@ static func _board_detail_view(entry: Dictionary, rank: int) -> Dictionary:
 	var detail: Dictionary = _relay_detail_view(entry, rank) if relay else _normal_detail_view(entry, rank)
 	var summary_lines: Array = [
 		"%s / %s・%s" % [_character_nickname(entry), stage_label(stage_id), difficulty_id.to_upper()],
-		"最大同時視聴者数：%s人" % _format_number(_entry_score(entry))
+		"最大同時視聴者数：%s人" % _format_number(_viewer_count(entry))
 	]
 	if relay:
-		summary_lines.append("最高到達：%s / 終了：%s" % [_ranking_reach_text(entry), _end_type_label(entry)])
+		summary_lines.append("最高到達：%s / 終了：%s" % [_ranking_reach_text(entry), _board_end_type_label(entry)])
 	else:
-		summary_lines.append("神回度：%s / 終了：%s" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _end_type_label(entry)])
+		if _evaluation_version(entry) >= 2:
+			summary_lines.append("配信評価：%s / %dpt / 終了：%s" % [_evaluation_rank(entry), _evaluation_score(entry), _board_end_type_label(entry)])
+		else:
+			summary_lines.append("神回度：%s / 終了：%s" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _board_end_type_label(entry)])
 	var partner_text := ""
 	if stage_id == "collab" or relay:
-		partner_text = "相方: %s" % _ranking_partner_name(entry)
-		summary_lines[2] = "%s / %s" % [String(summary_lines[2]), partner_text]
+		var partner_name := _ranking_partner_name(entry)
+		if partner_name != "" and partner_name != "なし":
+			partner_text = "相方: %s" % partner_name
 	var instruction_lines: Array = _instruction_lines(entry, end_type)
 	var extra_result_parts: Array[String] = []
 	if partner_text != "":
@@ -582,8 +624,11 @@ static func _board_detail_view(entry: Dictionary, rank: int) -> Dictionary:
 	detail["instructionTitle"] = _instruction_title(end_type)
 	detail["instructionLines"] = instruction_lines
 	detail["playedAtText"] = _format_played_at(String(entry.get("playedAt", entry.get("createdAt", ""))))
-	detail["endTypeLabel"] = _end_type_label(entry)
+	detail["endTypeLabel"] = _board_end_type_label(entry)
 	detail["endType"] = end_type
+	detail["difficultyId"] = difficulty_id
+	detail["stageId"] = stage_id
+	detail["evaluation"] = _evaluation_detail_view(entry)
 	if difficulty_id in ["hard", "expert"]:
 		var high_label := "EXPERT" if difficulty_id == "expert" else "HARD"
 		detail["bossLabel"] = "%s情報" % high_label
@@ -620,7 +665,7 @@ static func _hard_relay_detail_text(entry: Dictionary, difficulty_label: String 
 	var final_boss_defeated := bool(relay_data.get("finalBossDefeated", entry.get("finalBossDefeated", false)))
 	if difficulty_label == "HARD":
 		return "最高到達 %s / 最終ボス撃破 %s" % [_ranking_reach_text(entry), "達成" if final_boss_defeated else "未達成"]
-	return "%sリレー / 最高到達 %s / 最終ボス撃破 %s" % [difficulty_label, _ranking_reach_text(entry), "達成" if final_boss_defeated else "未達成"]
+	return "配信リレー / 最高到達 %s / 最終ボス撃破 %s" % [_ranking_reach_text(entry), "達成" if final_boss_defeated else "未達成"]
 
 
 static func _boss_state_text(spawned: bool, defeated: bool) -> String:
@@ -859,7 +904,7 @@ static func _format_relay_entry_row(entry: Dictionary, index: int, selected: boo
 static func _normal_row_view(entry: Dictionary, index: int, selected: bool, _show_frame: bool) -> Dictionary:
 	var viewer_count: int = _viewer_count(entry)
 	var meta_parts: Array[String] = [
-		"神回度 %s" % String(entry.get("kamiRank", entry.get("rank", "D"))),
+		("配信評価 %s %dpt" % [_evaluation_rank(entry), _evaluation_score(entry)]) if _evaluation_version(entry) >= 2 else ("神回度 %s" % String(entry.get("kamiRank", entry.get("rank", "D")))),
 		"x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0))),
 		_format_time(float(entry.get("survivalTime", entry.get("time", 0))))
 	]
@@ -877,6 +922,9 @@ static func _normal_row_view(entry: Dictionary, index: int, selected: bool, _sho
 		"accessories": _slice_items(_safe_array(entry.get("accessories", [])), 5),
 		"endType": _entry_end_type(entry),
 		"endTypeLabel": _end_type_label(entry),
+		"evaluationVersion": _evaluation_version(entry),
+		"evaluationScore": _evaluation_score(entry),
+		"evaluationRank": _evaluation_rank(entry),
 		"accent": _rank_accent(index)
 	}
 
@@ -905,23 +953,28 @@ static func _relay_row_view(entry: Dictionary, index: int, selected: bool) -> Di
 		"accessories": _slice_items(_safe_array(entry.get("accessories", [])), 5),
 		"endType": _entry_end_type(entry),
 		"endTypeLabel": _end_type_label(entry),
+		"evaluationVersion": _evaluation_version(entry),
+		"evaluationScore": _evaluation_score(entry),
+		"evaluationRank": _evaluation_rank(entry),
 		"accent": _rank_accent(index)
 	}
 
 
 static func _normal_detail_view(entry: Dictionary, rank_index: int) -> Dictionary:
 	var end_type: String = _entry_end_type(entry)
+	var evaluation_label := "配信評価" if _evaluation_version(entry) >= 2 else "神回度"
+	var evaluation_value := "%s  %dpt" % [_evaluation_rank(entry), _evaluation_score(entry)] if _evaluation_version(entry) >= 2 else "%s  %dpt" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _god_point(entry)]
 	return {
 		"title": "記録詳細",
 		"rankLabel": "%d位記録" % rank_index,
 		"summaryLines": [
 			"%s / %s" % [_character_nickname(entry), String(entry.get("streamFrameName", "配信枠"))],
 			"最大同時視聴者数：%s人" % _format_number(_viewer_count(entry)),
-			"神回度：%s / 終了：%s" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _end_type_label(entry)]
+			"%s：%s / 終了：%s" % [evaluation_label, _evaluation_rank(entry) if _evaluation_version(entry) >= 2 else String(entry.get("kamiRank", entry.get("rank", "D"))), _end_type_label(entry)]
 		],
 		"stats": [
 			{"label": "最大同時視聴者数", "value": "%s人" % _format_number(_viewer_count(entry))},
-			{"label": "神回度", "value": "%s  %dpt" % [String(entry.get("kamiRank", entry.get("rank", "D"))), _god_point(entry)]},
+			{"label": evaluation_label, "value": evaluation_value},
 			{"label": "生存時間", "value": _format_time(float(entry.get("survivalTime", entry.get("time", 0))))},
 			{"label": "最大ボルテージ", "value": "x%.1f" % float(entry.get("maxVoltage", entry.get("maxMultiplier", 1.0)))},
 			{"label": "最大バズ度", "value": "%d%%" % int(entry.get("maxBurnCombo", 0))},
@@ -933,7 +986,8 @@ static func _normal_detail_view(entry: Dictionary, rank_index: int) -> Dictionar
 		"instructionLines": _instruction_lines(entry, end_type),
 		"bossText": _boss_detail_text(entry) if _boss_detail_text(entry) != "" else "なし",
 		"playedAtText": _format_played_at(String(entry.get("playedAt", ""))),
-		"endTypeLabel": _end_type_label(entry)
+		"endTypeLabel": _end_type_label(entry),
+		"evaluation": _evaluation_detail_view(entry)
 	}
 
 
@@ -963,7 +1017,8 @@ static func _relay_detail_view(entry: Dictionary, rank_index: int) -> Dictionary
 		"instructionLines": _instruction_lines(entry, end_type),
 		"bossText": _boss_detail_text(entry) if _boss_detail_text(entry) != "" else "なし",
 		"playedAtText": _format_played_at(String(entry.get("playedAt", ""))),
-		"endTypeLabel": _end_type_label(entry)
+		"endTypeLabel": _end_type_label(entry),
+		"evaluation": _evaluation_detail_view(entry)
 	}
 
 
@@ -1307,14 +1362,17 @@ static func _entry_is_higher(a: Dictionary, b: Dictionary) -> bool:
 	var score_b: int = _entry_score(b)
 	if score_a != score_b:
 		return score_a > score_b
-	var point_a: int = _god_point(a)
-	var point_b: int = _god_point(b)
-	if point_a != point_b:
-		return point_a > point_b
-	var a_rank: int = _rank_value(String(a.get("kamiRank", a.get("rank", "D"))))
-	var b_rank: int = _rank_value(String(b.get("kamiRank", b.get("rank", "D"))))
-	if a_rank != b_rank:
-		return a_rank > b_rank
+	# Evaluation points/rank are comparable only inside the same version.  A
+	# legacy v1 kamiPoint is intentionally never projected onto the v2 scale.
+	if _evaluation_version(a) == _evaluation_version(b):
+		var point_a: int = _evaluation_score(a)
+		var point_b: int = _evaluation_score(b)
+		if point_a != point_b:
+			return point_a > point_b
+		var a_rank: int = _rank_value(_evaluation_rank(a))
+		var b_rank: int = _rank_value(_evaluation_rank(b))
+		if a_rank != b_rank:
+			return a_rank > b_rank
 	var a_time: float = float(a.get("survivalTime", a.get("time", 0)))
 	var b_time: float = float(b.get("survivalTime", b.get("time", 0)))
 	if not is_equal_approx(a_time, b_time):
@@ -1343,6 +1401,15 @@ static func _relay_entry_is_higher(a: Dictionary, b: Dictionary) -> bool:
 	var voltage_b: float = float(b.get("maxVoltage", 1.0))
 	if not is_equal_approx(voltage_a, voltage_b):
 		return voltage_a > voltage_b
+	if _evaluation_version(a) == _evaluation_version(b):
+		var evaluation_a := _evaluation_score(a)
+		var evaluation_b := _evaluation_score(b)
+		if evaluation_a != evaluation_b:
+			return evaluation_a > evaluation_b
+		var rank_a := _rank_value(_evaluation_rank(a))
+		var rank_b := _rank_value(_evaluation_rank(b))
+		if rank_a != rank_b:
+			return rank_a > rank_b
 	return String(a.get("playedAt", "")) > String(b.get("playedAt", ""))
 
 
@@ -1395,6 +1462,34 @@ static func _god_point(entry: Dictionary) -> int:
 	return int(entry.get("godPoint", entry.get("kamiPoint", 0)))
 
 
+static func _evaluation_version(entry: Dictionary) -> int:
+	return 2 if int(entry.get("evaluationVersion", 1)) >= 2 else 1
+
+
+static func _evaluation_score(entry: Dictionary) -> int:
+	if _evaluation_version(entry) >= 2:
+		return clampi(int(entry.get("evaluationScore", 0)), 0, 100)
+	return _god_point(entry)
+
+
+static func _evaluation_rank(entry: Dictionary) -> String:
+	var value := String(entry.get("evaluationRank", "D")) if _evaluation_version(entry) >= 2 else String(entry.get("kamiRank", entry.get("rank", "D")))
+	value = value.strip_edges().to_upper()
+	return value if RANK_ORDER.has(value) else "D"
+
+
+static func _evaluation_detail_view(entry: Dictionary) -> Dictionary:
+	if _evaluation_version(entry) < 2:
+		return {"version": 1, "label": "旧バージョンの記録", "score": _god_point(entry), "rank": String(entry.get("kamiRank", entry.get("rank", "D")))}
+	return {
+		"version": 2,
+		"label": "配信評価",
+		"score": _evaluation_score(entry),
+		"rank": _evaluation_rank(entry),
+		"breakdown": (entry.get("evaluationBreakdown", {}) as Dictionary).duplicate(true) if entry.get("evaluationBreakdown", {}) is Dictionary else {}
+	}
+
+
 static func _slice_items(items: Array, max_count: int) -> Array:
 	if items.size() <= max_count:
 		return items
@@ -1425,6 +1520,10 @@ static func _end_type_label(entry: Dictionary) -> String:
 	if end_type == "relay_failed" or end_type == "quit" or end_type == "debug":
 		return "中断"
 	return "記録"
+
+
+static func _board_end_type_label(entry: Dictionary) -> String:
+	return "完走" if _entry_end_type(entry) == "completed" else "GAME OVER"
 
 
 static func _instruction_title(end_type: String) -> String:

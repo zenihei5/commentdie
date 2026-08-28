@@ -2,6 +2,7 @@ extends Node
 
 const GameScript := preload("res://scripts/game.gd")
 const HudTextSystemScript := preload("res://scripts/systems/hud_text_system.gd")
+const CommonLightUiStyleScript := preload("res://scripts/ui/common_light_ui_style.gd")
 
 class FakeShopManager extends RefCounted:
 	var unlocked := true
@@ -59,6 +60,7 @@ func _run_all_tests() -> void:
 	var codex_badge_rect := game._title_codex_new_badge_rect(base_rects[2])
 	_check(shop_status_rect.size == Vector2(96.0, 20.0), "shop badge uses the shared 96x20 minimum")
 	_check(codex_badge_rect.size == Vector2(96.0, 20.0), "codex NEW badge uses the shared 96x20 minimum")
+	_check(CommonLightUiStyleScript.NEW_BADGE_FILL == Color("#C93F7B") and CommonLightUiStyleScript.NEW_BADGE_BORDER == Color("#FFD4E7") and CommonLightUiStyleScript.NEW_BADGE_TEXT == Color.WHITE, "title and list NEW badges share the fixed color tokens")
 	_check(shop_status_rect.position - base_rects[1].position == Vector2(base_rects[1].size.x - 12.0 - shop_status_rect.size.x, -12.0), "shop badge uses the base rect anchor")
 	_check(codex_badge_rect.position - base_rects[2].position == Vector2(base_rects[2].size.x - 12.0 - codex_badge_rect.size.x, -12.0), "codex NEW badge uses the base rect anchor")
 	_check_approx(shop_status_rect.position.y + shop_status_rect.size.y - base_rects[1].position.y, 8.0, "shop badge overlaps the owner top edge by 8px")
@@ -151,6 +153,9 @@ func _run_all_tests() -> void:
 	_check(GameScript.TITLE_MENU_BUTTON_IMAGES[2] == "res://assets/title/menu_buttons_v2/title_menu_codex.png", "title codex button uses supplied image")
 	_check(FileAccess.file_exists(GameScript.TITLE_MENU_BUTTON_IMAGES[2]), "title codex button image exists")
 	_check(absf(game._title_menu_button_rect(2).size.y - game._title_menu_button_rect(0).size.y) < 0.5, "title codex button matches standard menu height")
+	var game_source := FileAccess.get_file_as_string("res://scripts/game.gd")
+	_check(game_source.contains("func _prepare_codex_from_title()") and game_source.contains("codex_screen.begin_common_front_transition(\"incoming\")"), "title codex activation prepares the common incoming transition")
+	_check(game_source.contains("_begin_front_screen_transition(\"title\", \"codex\", \"forward\")"), "title codex activation uses the shared front-screen clock")
 	CodexManager.initialize_empty()
 	_check(game._codex_title_new_badge_text() == "", "codex title badge hides at zero")
 	CodexManager.discover_weapon("ban_hammer")

@@ -57,6 +57,39 @@ static func load_sources() -> Dictionary:
 		"difficultyModes": _read_json("res://data/difficulty_modes.json")
 	}
 
+static func runtime_display_name(master: Dictionary, sources: Dictionary = {}) -> String:
+	var id := String(master.get("id", "")).strip_edges()
+	if id == "":
+		return ""
+	var safe_sources := sources.duplicate(true)
+	if safe_sources.is_empty():
+		safe_sources = load_sources()
+	if bool(master.get("relayBoss", false)) or id == "last_offline":
+		var relay_mode := _dictionary(safe_sources.get("relayMode", {}))
+		var relay_boss := _dictionary(relay_mode.get("boss", {}))
+		var relay_name := String(relay_boss.get("displayName", "")).strip_edges()
+		if relay_name != "":
+			return relay_name
+	elif bool(master.get("isBoss", false)):
+		var boss_data := _find_boss_data(id, safe_sources.get("bosses", []))
+		var boss_name := String(boss_data.get("displayName", "")).strip_edges()
+		if boss_name != "":
+			return boss_name
+	else:
+		var runtime_data := EnemySystemScript.enemy_data(id)
+		var runtime_name := String(runtime_data.get("displayName", "")).strip_edges()
+		if runtime_name != "":
+			return runtime_name
+	return ""
+
+static func canonical_display_name(master: Dictionary, sources: Dictionary = {}) -> String:
+	var id := String(master.get("id", "")).strip_edges()
+	var runtime_name := runtime_display_name(master, sources)
+	if runtime_name != "":
+		return runtime_name
+	var master_name := String(master.get("displayName", "")).strip_edges()
+	return master_name if master_name != "" else id
+
 static func build_catalog(raw_enemy_masters: Array, sources: Dictionary = {}) -> Dictionary:
 	var safe_sources := sources.duplicate(true)
 	if safe_sources.is_empty():
@@ -154,6 +187,9 @@ static func build_profile(master: Dictionary, sources: Dictionary = {}) -> Dicti
 	if safe_sources.is_empty():
 		safe_sources = load_sources()
 	var id := String(master.get("id", "")).strip_edges()
+	var master_display_name := String(master.get("displayName", "")).strip_edges()
+	var runtime_display_name_value := runtime_display_name(master, safe_sources)
+	var canonical_display_name_value := runtime_display_name_value if runtime_display_name_value != "" else (master_display_name if master_display_name != "" else id)
 	var is_boss := bool(master.get("isBoss", false)) or bool(master.get("relayBoss", false))
 	var source := "enemy_system"
 	var runtime_data: Dictionary = {}
@@ -239,15 +275,31 @@ static func build_profile(master: Dictionary, sources: Dictionary = {}) -> Dicti
 		missing.append("moveSpeed")
 	if contact_damage == null:
 		missing.append("contactDamage")
+	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
+	var lore_template := ""
+	var lore_card_count := 0
+	var lore_archive_count := 0
+	if lore_value is Dictionary:
+		var lore := lore_value as Dictionary
+		lore_template = String(lore.get("template", ""))
+		var lore_cards: Variant = lore.get("cards", [])
+		var lore_paragraphs: Variant = lore.get("archiveParagraphs", lore.get("archive_paragraphs", []))
+		lore_card_count = (lore_cards as Array).size() if lore_cards is Array else 0
+		lore_archive_count = (lore_paragraphs as Array).size() if lore_paragraphs is Array else 0
 	return {
 		"id": id,
-		"displayName": String(master.get("displayName", id)),
+		"displayName": canonical_display_name_value,
+		"runtimeDisplayName": runtime_display_name_value,
+		"canonicalDisplayName": canonical_display_name_value,
 		"stageIds": _string_array(master.get("codexStages", master.get("spawnFrames", []))),
 		"stageLabels": _stage_labels(master.get("codexStages", master.get("spawnFrames", []))),
 		"spawnTypes": _string_array(master.get("codexSpawnTypes", [])),
 		"source": source,
 		"codexEnabled": bool(master.get("codexEnabled", true)),
 		"isBoss": is_boss,
+		"loreTemplate": lore_template,
+		"loreCardCount": lore_card_count,
+		"loreArchiveParagraphCount": lore_archive_count,
 		"order": int(master.get("order", 0)),
 		"hp": hp,
 		"moveSpeed": move_speed,
@@ -337,6 +389,7 @@ static func build_report_text(catalog: Dictionary) -> String:
 		lines.append("Codex Enabled: %s" % ("true" if bool(profile.get("codexEnabled", false)) else "false"))
 		lines.append("Boss: %s" % ("true" if bool(profile.get("isBoss", false)) else "false"))
 		lines.append("Source: %s" % String(profile.get("source", "---")))
+		lines.append("Lore: %s / cards: %s / archive paragraphs: %s" % [String(profile.get("loreTemplate", "---")) if String(profile.get("loreTemplate", "")) != "" else "---", int(profile.get("loreCardCount", 0)), int(profile.get("loreArchiveParagraphCount", 0))])
 		lines.append("Stages: %s" % _array_text(profile.get("stageLabels", [])))
 		lines.append("Spawn: %s" % _array_text(profile.get("spawnTypes", [])))
 		lines.append("Stats:")

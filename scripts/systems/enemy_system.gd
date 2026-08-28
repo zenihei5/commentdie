@@ -906,7 +906,7 @@ static func random_speech(kind: String, rng: RandomNumberGenerator) -> String:
 		return ""
 	return lines[rng.randi_range(0, lines.size() - 1)]
 
-static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, giant_power: float = 0.0, speech_text: String = "") -> Dictionary:
+static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, giant_power: float = 0.0, speech_text: String = "", giant_hp_rate: float = 0.0, giant_radius_rate: float = 0.0) -> Dictionary:
 	var data: Dictionary = enemy_data(kind)
 	if kind == "noise_ghost_comment":
 		data["displayName"] = "召喚ノイズ"
@@ -915,8 +915,8 @@ static func build_enemy(kind: String, pos: Vector2, uid: int, shoot: float, gian
 	]
 	_spawn_token_serial += 1
 	if giant_power > 0.0:
-		data["hp"] = float(data["hp"]) * lerpf(1.25, 1.5, giant_power)
-		data["radius"] = float(data["radius"]) * lerpf(1.5, 2.0, giant_power)
+		data["hp"] = float(data["hp"]) * (giant_hp_rate if giant_hp_rate > 0.0 else lerpf(1.25, 1.5, giant_power))
+		data["radius"] = float(data["radius"]) * (giant_radius_rate if giant_radius_rate > 0.0 else lerpf(1.5, 2.0, giant_power))
 	var enemy: Dictionary = {
 		"uid": uid,
 		"kind": kind,
@@ -1252,51 +1252,7 @@ static func pick_linked_troll_enemy_kind(enemy_tags: Array, rng: RandomNumberGen
 		return ""
 	return candidates[rng.randi_range(0, candidates.size() - 1)]
 
-static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2 = Vector2.INF, linked_comment_id: String = "", linked_speech_text: String = "", runtime_variant: String = "", spawn_source: String = "") -> int:
-	var spawn_pos: Vector2 = pos
-	var giant_power: float = 0.0
-	if ModifierSystem.has_effect_for_target(target, "giant_enemies"):
-		giant_power = ModifierSystem.effect_rate_for_target(target, "giant_enemies")
-	var enemies: Array = target.get("enemies") as Array
-	if String(target.get("current_stream_frame_id")) == "drawing" and kind == "red_pen_teacher" and linked_comment_id == "":
-		if drawing_shooter_count(enemies) >= drawing_shooter_limit_for_target(target):
-			kind = drawing_non_shooter_enemy(rng)
-	if String(target.get("current_stream_frame_id")) == "collab":
-		if linked_comment_id == "":
-			kind = collab_spawn_kind_for_target(target, kind, rng)
-			if kind == "":
-				return -1
-		elif collab_enemy_count(enemies, kind) >= collab_enemy_limit(kind):
-			return -1
-	kind = _safe_kind_for_target(target, kind)
-	var data := enemy_data(kind)
-	var spawn_radius := float(data.get("radius", 22.0))
-	if giant_power > 0.0:
-		spawn_radius *= lerpf(1.5, 2.0, giant_power)
-	if spawn_pos == Vector2.INF:
-		spawn_pos = spawn_position_for_target(target, arena, rng, spawn_radius)
-		if spawn_pos == Vector2.INF:
-			return -1
-	elif spawn_source == "hard_wave":
-		spawn_pos = resolve_pattern_spawn_position_for_target(target, arena, rng, spawn_pos, spawn_radius)
-		if spawn_pos == Vector2.INF:
-			return -1
-	var shoot_seed: float = rng.randf_range(0.6, 1.4) if pos == Vector2.INF else 1.0
-	if kind == "shooter":
-		shoot_seed = rng.randf_range(1.4, SHOOTER_FIRE_INTERVAL_MAX)
-	elif kind == "enemy_armchair_strategist":
-		shoot_seed = rng.randf_range(1.3, ARMCHAIR_FIRE_INTERVAL_MAX)
-	elif kind == "red_pen_teacher":
-		shoot_seed = rng.randf_range(1.6, DRAWING_RED_PEN_FIRE_INTERVAL_MAX)
-	elif kind == "enemy_dot_invader":
-		shoot_seed = rng.randf_range(1.0, DOT_INVADER_FIRE_INTERVAL_MAX)
-	elif kind == "enemy_strategy_wiki_ojisan":
-		shoot_seed = rng.randf_range(1.4, WIKI_FIRE_INTERVAL_MAX)
-	elif kind == "enemy_bullet_drone":
-		shoot_seed = rng.randf_range(1.2, DRONE_FIRE_INTERVAL_MAX)
-	elif kind == "enemy_lag_comment":
-		shoot_seed = rng.randf_range(LAG_WARP_COOLDOWN_MIN, LAG_WARP_COOLDOWN_MAX)
-	var next_uid: int = int(target.get("next_enemy_uid"))
+static func normal_speech_rate_for_target(target: Node) -> float:
 	var normal_speech_rate := 0.20 if String(target.get("current_stream_frame_id")) == "collab" else 1.0
 	var linked_comments: Variant = target.get("troll_linked_comments")
 	if linked_comments is Dictionary:
@@ -1313,10 +1269,141 @@ static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng
 			normal_speech_rate *= 0.50
 	if String(target.get("current_stream_frame_id")) == "collab" and int(target.get("collab_pass_target_uid")) >= 0:
 		normal_speech_rate *= 0.75
-	var speech_text: String = ""
-	if linked_comment_id == "" and rng.randf() < 0.33 * normal_speech_rate:
-		speech_text = random_speech(kind, rng)
-	var enemy := apply_runtime_variant(build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power, speech_text), runtime_variant)
+	return normal_speech_rate
+
+static func prepare_enemy_spawn_for_target(target: Node, requested_kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2, linked_comment_id: String = "", linked_speech_text: String = "", runtime_variant: String = "", spawn_source: String = "") -> Dictionary:
+	if pos == Vector2.INF:
+		return {}
+	var kind := requested_kind
+	var enemies: Array = target.get("enemies") as Array
+	if String(target.get("current_stream_frame_id")) == "drawing" and kind == "red_pen_teacher" and linked_comment_id == "":
+		if drawing_shooter_count(enemies) >= drawing_shooter_limit_for_target(target):
+			kind = drawing_non_shooter_enemy(rng)
+	if String(target.get("current_stream_frame_id")) == "collab":
+		if linked_comment_id == "":
+			kind = collab_spawn_kind_for_target(target, kind, rng)
+			if kind == "":
+				return {}
+		elif collab_enemy_count(enemies, kind) >= collab_enemy_limit(kind):
+			return {}
+	kind = _safe_kind_for_target(target, kind)
+	var speech_roll := -1.0
+	var conditional_speech_index := -1
+	var speech_text := ""
+	if linked_comment_id == "":
+		speech_roll = rng.randf()
+		if speech_roll < 0.33 * normal_speech_rate_for_target(target):
+			var lines: Array[String] = speech_lines(kind)
+			if not lines.is_empty():
+				conditional_speech_index = rng.randi_range(0, lines.size() - 1)
+				speech_text = lines[conditional_speech_index]
+	return {
+		"prepared": true,
+		"requestedKind": requested_kind,
+		"resolvedKind": kind,
+		"position": pos,
+		"explicitPosition": true,
+		"linkedCommentId": linked_comment_id,
+		"linkedSpeechText": linked_speech_text,
+		"runtimeVariant": runtime_variant,
+		"spawnSource": spawn_source,
+		"shootSeed": 1.0,
+		"speechRoll": speech_roll,
+		"conditionalSpeechIndex": conditional_speech_index,
+		"speechText": speech_text,
+		"arena": arena
+	}
+
+static func spawn_enemy_for_target(target: Node, kind: String, arena: Rect2, rng: RandomNumberGenerator, pos: Vector2 = Vector2.INF, linked_comment_id: String = "", linked_speech_text: String = "", runtime_variant: String = "", spawn_source: String = "", prepared_spawn: Dictionary = {}) -> int:
+	var prepared_mode := not prepared_spawn.is_empty()
+	var requested_kind := kind
+	if prepared_mode:
+		if not bool(prepared_spawn.get("prepared", false)):
+			return -1
+		if String(prepared_spawn.get("requestedKind", "")) != requested_kind:
+			return -1
+		if String(prepared_spawn.get("resolvedKind", "")) == "":
+			return -1
+		if String(prepared_spawn.get("linkedCommentId", "")) != linked_comment_id:
+			return -1
+		if String(prepared_spawn.get("runtimeVariant", "")) != runtime_variant:
+			return -1
+		if String(prepared_spawn.get("spawnSource", "")) != spawn_source:
+			return -1
+		if bool(prepared_spawn.get("explicitPosition", false)) != (pos != Vector2.INF):
+			return -1
+		kind = String(prepared_spawn.get("resolvedKind", ""))
+	var spawn_pos: Vector2 = pos
+	var giant_power: float = 0.0
+	var giant_hp_rate := 0.0
+	var giant_radius_rate := 0.0
+	if ModifierSystem.has_effect_for_target(target, "giant_enemies"):
+		giant_power = ModifierSystem.effect_rate_for_target(target, "giant_enemies")
+		var runtime_value: Variant = target.get("difficulty_runtime")
+		if runtime_value is Dictionary:
+			var giant_runtime: Dictionary = runtime_value as Dictionary
+			giant_hp_rate = HardModeSystemScript.active_comment_param_for_id(giant_runtime, "giant_enemies", "giantHpRate", 0.0)
+			giant_radius_rate = HardModeSystemScript.active_comment_param_for_id(giant_runtime, "giant_enemies", "giantRadiusRate", 0.0)
+	var enemies: Array = target.get("enemies") as Array
+	if not prepared_mode and String(target.get("current_stream_frame_id")) == "drawing" and kind == "red_pen_teacher" and linked_comment_id == "":
+		if drawing_shooter_count(enemies) >= drawing_shooter_limit_for_target(target):
+			kind = drawing_non_shooter_enemy(rng)
+	if not prepared_mode and String(target.get("current_stream_frame_id")) == "collab":
+		if linked_comment_id == "":
+			kind = collab_spawn_kind_for_target(target, kind, rng)
+			if kind == "":
+				return -1
+		elif collab_enemy_count(enemies, kind) >= collab_enemy_limit(kind):
+			return -1
+	kind = _safe_kind_for_target(target, kind)
+	var data := enemy_data(kind)
+	var spawn_radius := float(data.get("radius", 22.0))
+	if giant_power > 0.0:
+		spawn_radius *= giant_radius_rate if giant_radius_rate > 0.0 else lerpf(1.5, 2.0, giant_power)
+	if spawn_pos == Vector2.INF:
+		if prepared_mode:
+			return -1
+		spawn_pos = spawn_position_for_target(target, arena, rng, spawn_radius)
+		if spawn_pos == Vector2.INF:
+			return -1
+	elif not prepared_mode and spawn_source == "hard_wave":
+		spawn_pos = resolve_pattern_spawn_position_for_target(target, arena, rng, spawn_pos, spawn_radius)
+		if spawn_pos == Vector2.INF:
+			return -1
+	var shoot_seed: float = float(prepared_spawn.get("shootSeed", 1.0)) if prepared_mode else (rng.randf_range(0.6, 1.4) if pos == Vector2.INF else 1.0)
+	if not prepared_mode:
+		if kind == "shooter":
+			shoot_seed = rng.randf_range(1.4, SHOOTER_FIRE_INTERVAL_MAX)
+		elif kind == "enemy_armchair_strategist":
+			shoot_seed = rng.randf_range(1.3, ARMCHAIR_FIRE_INTERVAL_MAX)
+		elif kind == "red_pen_teacher":
+			shoot_seed = rng.randf_range(1.6, DRAWING_RED_PEN_FIRE_INTERVAL_MAX)
+		elif kind == "enemy_dot_invader":
+			shoot_seed = rng.randf_range(1.0, DOT_INVADER_FIRE_INTERVAL_MAX)
+		elif kind == "enemy_strategy_wiki_ojisan":
+			shoot_seed = rng.randf_range(1.4, WIKI_FIRE_INTERVAL_MAX)
+		elif kind == "enemy_bullet_drone":
+			shoot_seed = rng.randf_range(1.2, DRONE_FIRE_INTERVAL_MAX)
+		elif kind == "enemy_lag_comment":
+			shoot_seed = rng.randf_range(LAG_WARP_COOLDOWN_MIN, LAG_WARP_COOLDOWN_MAX)
+	var next_uid: int = int(target.get("next_enemy_uid"))
+	var speech_text: String = String(prepared_spawn.get("speechText", "")) if prepared_mode else ""
+	var speech_roll := -1.0
+	var conditional_speech_index := -1
+	if not prepared_mode and linked_comment_id == "":
+		speech_roll = rng.randf()
+		if speech_roll < 0.33 * normal_speech_rate_for_target(target):
+			var lines: Array[String] = speech_lines(kind)
+			if not lines.is_empty():
+				conditional_speech_index = rng.randi_range(0, lines.size() - 1)
+				speech_text = lines[conditional_speech_index]
+	var enemy := apply_runtime_variant(build_enemy(kind, spawn_pos, next_uid, shoot_seed, giant_power, speech_text, giant_hp_rate, giant_radius_rate), runtime_variant)
+	if prepared_mode:
+		enemy["preparedSpawn"] = true
+		enemy["preparedRequestedKind"] = requested_kind
+		enemy["preparedResolvedKind"] = kind
+		enemy["preparedSpeechRoll"] = float(prepared_spawn.get("speechRoll", -1.0))
+		enemy["preparedConditionalSpeechIndex"] = int(prepared_spawn.get("conditionalSpeechIndex", -1))
 	if bool(target.get("relay_mode")) and not bool(enemy.get("relayBoss", false)) and not bool(enemy.get("relayBossSummon", false)):
 		var profile := RelayStageProfileSystemScript.profile_for_target(target)
 		var hp_rate := float(profile.get("hp", 1.0))
@@ -1404,6 +1491,28 @@ static func gameplay_marshmallow_drop_request_for_target(target: Node, enemy: Di
 		"source": source
 	}
 
+static func append_relay_noise_visual_effect_for_target(target: Node, enemy: Dictionary, effect_kind: String, duration: float) -> void:
+	if target == null or String(enemy.get("kind", "")) != "noise_ghost_comment" or not bool(enemy.get("relayBossNoiseSummon", false)):
+		return
+	var runtime_value: Variant = target.get("relay_boss_runtime")
+	if not runtime_value is Dictionary:
+		return
+	var runtime: Dictionary = runtime_value as Dictionary
+	var effects: Array = runtime.get("noise_summon_visual_effects", []) as Array
+	effects.append({
+		"kind": effect_kind,
+		"bossAttackId": "noise_summon",
+		"spawnSource": String(enemy.get("relayBossSummonSource", enemy.get("relayNoiseSource", "main_attack"))),
+		"waveId": int(enemy.get("relayBossSummonWaveId", enemy.get("relayNoiseWaveId", 0))),
+		"pos": Vector2(enemy.get("pos", Vector2.ZERO)),
+		"visualSeed": float(enemy.get("relayNoiseVisualSeed", 0.0)),
+		"strength": 1.0,
+		"life": duration,
+		"maxLife": duration
+	})
+	runtime["noise_summon_visual_effects"] = effects
+	target.set("relay_boss_runtime", runtime)
+
 static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:
 	target.set("kills", int(target.get("kills")) + 1)
 	if not bool(enemy.get("_codex_defeat_recorded", false)):
@@ -1413,6 +1522,8 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		var difficulty_id := String(difficulty_value if difficulty_value != null else "normal")
 		if codex_id != "":
 			CodexManager.record_enemy_defeat(codex_id, difficulty_id)
+	if bool(enemy.get("relayBossNoiseSummon", false)) and String(enemy.get("kind", "")) == "noise_ghost_comment":
+		append_relay_noise_visual_effect_for_target(target, enemy, "relay_noise_summon_defeat", 0.18)
 	if bool(enemy.get("noRewards", false)) and not bool(enemy.get("relayBoss", false)):
 		return {"enemyDefeated": true, "noRewards": true}
 	if target.has_method("get") and String(enemy.get("spawnSource", "")) == "normal_wave":
@@ -1450,9 +1561,11 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 	_apply_song_live_heat_for_kill(target, enemy)
 	_apply_drawing_progress_for_kill(target, enemy)
 	if is_boss:
+		var defeat_owner := String(enemy.get("defeatOwner", ""))
+		if bool(enemy.get("isPpRewardTarget", false)) and defeat_owner == "player" and target.has_method("_record_evaluation_target_boss"):
+			target.call("_record_evaluation_target_boss", true, true)
 		var tracker_variant: Variant = target.get("power_up_run_tracker")
 		if tracker_variant != null and tracker_variant.has_method("register_boss_defeat"):
-			var defeat_owner := String(enemy.get("defeatOwner", ""))
 			var pp_reward_id := String(enemy.get("ppRewardId", enemy.get("bossId", enemy.get("kind", ""))))
 			var hard_boss_role := String(enemy.get("hardBossRole", ""))
 			var reward_key := "boss:%s:%s" % [String(tracker_variant.run_id), pp_reward_id]
@@ -1482,8 +1595,11 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 	if not marshmallow_drop_request.is_empty():
 		marshmallow_drop_requests.append(marshmallow_drop_request)
 	var split_enemy: bool = ModifierSystem.has_effect_for_target(target, "split_enemy")
-	var hard_split_rate := HardModeSystemScript.active_comment_param(HardModeSystemScript.runtime_for_target(target), "splitProbabilityRate", 1.0)
-	var events: Dictionary = kill_events(enemy, split_enemy, rng, minf(1.0, 0.35 * hard_split_rate))
+	var split_runtime := HardModeSystemScript.runtime_for_target(target)
+	var hard_split_rate := HardModeSystemScript.active_comment_param_for_id(split_runtime, "split_enemy", "splitProbabilityRate", 1.0)
+	var split_probability := HardModeSystemScript.active_comment_param_for_id(split_runtime, "split_enemy", "splitProbability", 0.35)
+	var split_cap := HardModeSystemScript.active_comment_param_for_id(split_runtime, "split_enemy", "splitProbabilityCap", 1.0)
+	var events: Dictionary = kill_events(enemy, split_enemy, rng, minf(split_cap, split_probability * hard_split_rate))
 	var splits: Array = events["splits"] as Array
 	for item in splits:
 		spawn_enemy_for_target(target, "troll", arena, rng, Vector2(item))
@@ -1934,7 +2050,8 @@ static func append_linked_troll_reward_popup_for_target(target: Node, enemy: Dic
 static func update_enemy_world(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
 		"bullets": context["bullets"],
-		"damageEvents": []
+		"damageEvents": [],
+		"hitFx": []
 	}
 	var enemy_result: Dictionary = update_enemies(context)
 	result["bullets"] = enemy_result["bullets"]
@@ -1948,6 +2065,7 @@ static func update_enemy_world(context: Dictionary) -> Dictionary:
 	})
 	result["bullets"] = bullet_result["bullets"]
 	_merge_damage_events(result, bullet_result)
+	(result["hitFx"] as Array).append_array(bullet_result.get("hitFx", []) as Array)
 	return result
 
 static func update_world_for_target(target: Node, delta: float, rng: RandomNumberGenerator, arena: Rect2) -> Dictionary:
@@ -1956,6 +2074,8 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 	discover_spawned_enemies_for_target(target)
 	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
 	var hard_comment_speed := HardModeSystemScript.active_comment_param(hard_runtime, "enemyMoveSpeedRate", HardModeSystemScript.active_comment_param(hard_runtime, "enemySpeedRate", 1.0))
+	if HardModeSystemScript.active_comment_id_is_active(hard_runtime, "hard_overclock"):
+		hard_comment_speed = HardModeSystemScript.active_comment_param_for_id(hard_runtime, "hard_overclock", "enemyMoveSpeedRate", HardModeSystemScript.active_comment_param_for_id(hard_runtime, "hard_overclock", "enemySpeedRate", hard_comment_speed))
 	var result: Dictionary = update_enemy_world({
 		"delta": delta,
 		"rng": rng,
@@ -1975,6 +2095,9 @@ static func update_world_for_target(target: Node, delta: float, rng: RandomNumbe
 	})
 	_apply_hard_projectile_rates_for_target(target, result["bullets"] as Array)
 	target.set("enemy_bullets", result["bullets"])
+	var hit_fx: Array = target.get("hit_fx") as Array
+	hit_fx.append_array(result.get("hitFx", []) as Array)
+	target.set("hit_fx", hit_fx)
 	apply_pending_defeats_for_target(target, result, arena, rng)
 	return result
 
@@ -2120,6 +2243,22 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		enemy["shieldContactSuppressTimer"] = maxf(0.0, float(enemy.get("shieldContactSuppressTimer", 0.0)) - delta)
 		enemy["hitFlashTimer"] = maxf(0.0, float(enemy.get("hitFlashTimer", 0.0)) - delta)
 		enemy["spawnGraceTimer"] = maxf(0.0, float(enemy.get("spawnGraceTimer", 0.0)) - delta)
+		if enemy.has("unreadMaroPopInTimer"):
+			enemy["unreadMaroPopInTimer"] = maxf(0.0, float(enemy.get("unreadMaroPopInTimer", 0.0)) - delta)
+		if enemy.has("redPenSummonPopInTimer"):
+			enemy["redPenSummonPopInTimer"] = maxf(0.0, float(enemy.get("redPenSummonPopInTimer", 0.0)) - delta)
+		if enemy.has("collabMutePopInTimer"):
+			enemy["collabMutePopInTimer"] = maxf(0.0, float(enemy.get("collabMutePopInTimer", 0.0)) - delta)
+		if enemy.has("comparisonSpamPopInTimer"):
+			enemy["comparisonSpamPopInTimer"] = maxf(0.0, float(enemy.get("comparisonSpamPopInTimer", 0.0)) - delta)
+		if enemy.has("divisionNoisePopInTimer"):
+			enemy["divisionNoisePopInTimer"] = maxf(0.0, float(enemy.get("divisionNoisePopInTimer", 0.0)) - delta)
+		if enemy.has("relayNoisePopInTimer"):
+			enemy["relayNoisePopInTimer"] = maxf(0.0, float(enemy.get("relayNoisePopInTimer", 0.0)) - delta)
+		if enemy.has("relayNoiseContactFxTimer"):
+			enemy["relayNoiseContactFxTimer"] = maxf(0.0, float(enemy.get("relayNoiseContactFxTimer", 0.0)) - delta)
+		if enemy.has("unreadMaroSpeechDelayTimer"):
+			enemy["unreadMaroSpeechDelayTimer"] = maxf(0.0, float(enemy.get("unreadMaroSpeechDelayTimer", 0.0)) - delta)
 		enemy["syncStarCarrierRevealTimer"] = maxf(0.0, float(enemy.get("syncStarCarrierRevealTimer", 0.0)) - delta)
 		if bool(enemy.get("relayBossNoiseSummon", false)):
 			var summon_lifetime := float(enemy.get("relayBossSummonLifetime", enemy.get("lifeTimer", 0.0))) - delta
@@ -2138,6 +2277,9 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		if stun_timer > 0.0:
 			enemy["stunTimer"] = maxf(0.0, stun_timer - delta)
 			enemy_pos = apply_knockback_motion(enemy, enemy_pos, previous_enemy_pos, delta, arena, effect_walls, stream_frame_id)
+			enemy["pos"] = enemy_pos
+			continue
+		if String(enemy.get("kind", "")) == "unread_maro" and float(enemy.get("unreadMaroPopInTimer", 0.0)) > 0.0:
 			enemy["pos"] = enemy_pos
 			continue
 		var behavior: String = String(enemy["behavior"])
@@ -2538,15 +2680,20 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			var contact_source: String = String(enemy["kind"]) + " contact"
 			var contact_damage: int = int(enemy.get("contactDamage", contact_damage_for_kind(String(enemy["kind"]), bool(enemy.get("isBoss", false)))))
 			damage_events.append({"source": contact_source, "damage": contact_damage, "enemyId": String(enemy.get("kind", "")), "runtimeVariant": String(enemy.get("runtimeVariant", "")), "attackType": "contact"})
+			if target != null and String(enemy.get("kind", "")) == "noise_ghost_comment" and bool(enemy.get("relayBossNoiseSummon", false)) and float(enemy.get("relayNoiseContactFxTimer", 0.0)) <= 0.0:
+				append_relay_noise_visual_effect_for_target(target as Node, enemy, "relay_noise_summon_contact", 0.16)
+				enemy["relayNoiseContactFxTimer"] = 0.16
 	result["bullets"] = bullets
 	return result
 
 static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
 		"bullets": context["bullets"],
-		"damageEvents": []
+		"damageEvents": [],
+		"hitFx": []
 	}
 	var damage_events: Array = result["damageEvents"] as Array
+	var hit_fx: Array = result["hitFx"] as Array
 	var bullets: Array = context["bullets"] as Array
 	var delta: float = float(context["delta"])
 	var player_pos: Vector2 = Vector2(context["playerPos"])
@@ -2554,19 +2701,108 @@ static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 	var bullet_hit_rate: float = 0.8 if bool(context["bulletHell"]) else 1.0
 	for bullet_item in bullets:
 		var bullet: Dictionary = bullet_item
+		if bool(bullet.get("redPenTelegraphPending", false)):
+			# Reserved red-pen boss shots occupy the cap but do not move, tick,
+			# collide, or emit hit FX until BossSystem launches them.
+			continue
 		if float(bullet.get("life", 0.0)) <= 0.0:
 			continue
 		bullet["pos"] = Vector2(bullet["pos"]) + Vector2(bullet["vel"]) * delta
 		bullet["life"] = float(bullet["life"]) - delta
+		if String(bullet.get("visualKind", "")) == "kuso_maro":
+			var visual_rotation := float(bullet.get("visualRotation", 0.0))
+			var visual_spin_speed := float(bullet.get("visualSpinSpeed", 0.0))
+			bullet["visualRotation"] = fposmod(visual_rotation + visual_spin_speed * delta, TAU)
+		if bullet.has("commentShotgunLaunchVisualTimer"):
+			bullet["commentShotgunLaunchVisualTimer"] = maxf(0.0, float(bullet.get("commentShotgunLaunchVisualTimer", 0.0)) - delta)
 		var hit_radius: float = float(bullet.get("hitRadius", 22.0)) * bullet_hit_rate
 		var bullet_pos: Vector2 = Vector2(bullet["pos"])
 		if bullet_pos.distance_squared_to(player_pos) < hit_radius * hit_radius:
 			bullet["life"] = -1.0
 			damage_events.append({"source": String(bullet.get("source", "enemy bullet")), "damage": int(bullet.get("damage", DamageSystem.ENEMY_BULLET_DAMAGE)), "enemyId": String(bullet.get("sourceKind", "")), "runtimeVariant": String(bullet.get("runtimeVariant", "")), "attackType": String(bullet.get("attackType", "projectile"))})
+			var visual_kind := String(bullet.get("visualKind", ""))
+			if visual_kind == "kuso_maro":
+				var impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if impact_dir.length_squared() <= 0.01:
+					impact_dir = Vector2.RIGHT
+				hit_fx.append({
+					"kind": "kuso_maro_hit",
+					"pos": bullet_pos,
+					"dir": impact_dir.normalized(),
+					"seed": fposmod(bullet_pos.x * 0.013 + bullet_pos.y * 0.017, TAU),
+					"life": 0.22,
+					"maxLife": 0.22
+				})
+			elif visual_kind == "bug_spoiler":
+				var spoiler_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if spoiler_impact_dir.length_squared() <= 0.01:
+					spoiler_impact_dir = Vector2.RIGHT
+				hit_fx.append({
+					"kind": "bug_spoiler_hit",
+					"pos": bullet_pos,
+					"dir": spoiler_impact_dir.normalized(),
+					"seed": fposmod(bullet_pos.x * 0.019 + bullet_pos.y * 0.023, TAU),
+					"life": 0.20,
+					"maxLife": 0.20
+				})
+			elif visual_kind == "pitch_police_note":
+				var note_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if note_impact_dir.length_squared() <= 0.01:
+					note_impact_dir = Vector2.RIGHT
+				hit_fx.append({
+					"kind": "pitch_police_note_hit",
+					"pos": bullet_pos,
+					"dir": note_impact_dir.normalized(),
+					"phase": clampi(int(bullet.get("pitchChiefPhase", 1)), 1, 3),
+					"seed": float(bullet.get("pitchNoteSeed", fposmod(bullet_pos.x * 0.017 + bullet_pos.y * 0.021, TAU))),
+					"life": 0.20,
+					"maxLife": 0.20
+				})
+			elif visual_kind == "red_pen_mark" and bool(bullet.get("bossProjectile", false)):
+				var red_pen_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if red_pen_impact_dir.length_squared() <= 0.01:
+					red_pen_impact_dir = Vector2.RIGHT
+				var red_pen_hit_fx_duration := clampf(float(bullet.get("redPenHitFxDuration", 0.20)), 0.18, 0.22)
+				var red_pen_seed := fposmod(
+					float(bullet.get("redPenPhase", bullet.get("phase", 0.0)))
+					+ float(bullet.get("redPenShotIndex", 0)) * 1.37
+					+ bullet_pos.x * 0.013
+					+ bullet_pos.y * 0.017,
+					TAU
+				)
+				hit_fx.append({
+					"kind": "red_pen_mark_hit",
+					"pos": bullet_pos,
+					"dir": red_pen_impact_dir.normalized(),
+					"phase": float(bullet.get("redPenPhase", bullet.get("phase", 0.0))),
+					"count": clampi(int(bullet.get("redPenShotCount", 3)), 3, 5),
+					"shotIndex": int(bullet.get("redPenShotIndex", 0)),
+					"seed": red_pen_seed,
+					"redPenBossUid": int(bullet.get("redPenBossUid", bullet.get("sourceUid", -1))),
+					"life": red_pen_hit_fx_duration,
+					"maxLife": red_pen_hit_fx_duration
+				})
+			elif visual_kind == "comment_shotgun":
+				var comment_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if comment_impact_dir.length_squared() <= 0.01:
+					comment_impact_dir = Vector2.RIGHT
+				hit_fx.append({
+					"kind": "comment_shotgun_hit",
+					"bossAttackId": "comment_shotgun",
+					"pos": bullet_pos,
+					"dir": comment_impact_dir.normalized(),
+					"pelletIndex": int(bullet.get("commentShotgunIndex", 0)),
+					"visualSeed": float(bullet.get("commentShotgunVisualSeed", fposmod(bullet_pos.x * 0.013 + bullet_pos.y * 0.017, TAU))),
+					"life": 0.20,
+					"maxLife": 0.20
+				})
 	var bullet_keep_area: Rect2 = arena.grow(80.0)
 	var kept_bullets: Array = []
 	for bullet_item in bullets:
 		var bullet: Dictionary = bullet_item
+		if bool(bullet.get("redPenTelegraphPending", false)):
+			kept_bullets.append(bullet)
+			continue
 		if float(bullet["life"]) > 0.0 and bullet_keep_area.has_point(Vector2(bullet["pos"])):
 			kept_bullets.append(bullet)
 	result["bullets"] = kept_bullets

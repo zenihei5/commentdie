@@ -10,12 +10,15 @@ const MarshmallowSystemScript := preload("res://scripts/systems/marshmallow_syst
 const GenreEventSystemScript := preload("res://scripts/systems/genre_event_system.gd")
 const StreamFrameSystemScript := preload("res://scripts/systems/stream_frame_system.gd")
 const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
+const UnlockPresentationSystemScript := preload("res://scripts/systems/unlock_presentation_system.gd")
 const HardModeSystemScript := preload("res://scripts/systems/hard_mode_system.gd")
+const CollabChallengeSystemScript := preload("res://scripts/systems/collab_challenge_system.gd")
 const DisplayTextSystemScript := preload("res://scripts/systems/display_text_system.gd")
 const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 const CharacterSystemScript := preload("res://scripts/systems/character_system.gd")
 const CollabComboSystemScript := preload("res://scripts/systems/collab_combo_system.gd")
 const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
+const StreamEvaluationSystemScript := preload("res://scripts/systems/stream_evaluation_system.gd")
 const CodexPresentationSystemScript := preload("res://scripts/systems/codex_presentation_system.gd")
 const RankingSystemScript := preload("res://scripts/systems/ranking_system.gd")
 const UiStyleSystemScript := preload("res://scripts/systems/ui_style_system.gd")
@@ -27,6 +30,8 @@ const ChatSystemScript := preload("res://scripts/systems/chat_system.gd")
 const ChoiceCardSystemScript := preload("res://scripts/systems/choice_card_system.gd")
 const UiBuilderSystemScript := preload("res://scripts/systems/ui_builder_system.gd")
 const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
+const PauseUiSystemScript := preload("res://scripts/systems/pause_ui_system.gd")
+const OptionsUiSystemScript := preload("res://scripts/systems/options_ui_system.gd")
 const StateFlowSystemScript := preload("res://scripts/systems/state_flow_system.gd")
 const ExpSystemScript := preload("res://scripts/systems/exp_system.gd")
 const DestructibleSystemScript := preload("res://scripts/systems/destructible_system.gd")
@@ -92,6 +97,7 @@ const CHARACTER_SELECT_CARD_SIZE := CharacterSystemScript.SELECT_CARD_SIZE
 const CHARACTER_SELECT_CARD_GAP := CharacterSystemScript.SELECT_CARD_GAP
 const STREAM_FRAME_SELECT_HEADER_ICON := "res://assets/generated/stream_frame_select_icons_v1/stream_frame_select.png"
 const HARD_CLIMAX_BANNER_IMAGE := "res://assets/generated/instruction_comment_icons_v1/hard_climax_banner.png"
+const INSTRUCTION_COMMENT_HEART_MARKER_IMAGE := "res://assets/generated/field_pickup_icons_v1/icons/heart_drop.png"
 const OPTIONS_HEADER_ICON := "res://assets/generated/options_icons_v1/options_header.png"
 const OPTIONS_BGM_ICON := "res://assets/generated/options_icons_v1/option_bgm.png"
 const OPTIONS_SE_ICON := "res://assets/generated/options_icons_v1/option_se.png"
@@ -224,6 +230,8 @@ const STREAM_COMPLETE_SUPANA_IMAGE := "res://assets/generated/game_clear_cutin_v
 const STREAM_COMPLETE_MARON_IMAGE := "res://assets/generated/game_clear_cutin_v1/maron_stream_complete.png"
 const COMMENT_BOOMERANG_IMAGE := "res://assets/generated/comment_boomerang_sprite_v1/comment_boomerang.png"
 const COLLAB_SUPERCHAT_BULLET_IMAGE := "res://assets/generated/weapon_fx_v1/starlight_superchat_bullet.png"
+const STICKY_MARO_FLOOR_IMAGE := "res://assets/generated/boss_attack_fx_v1/sticky_maro_floor.png"
+const STICKY_MARO_FLOOR_DRAW_SIZE := Vector2(192.0, 192.0)
 const COLLAB_SYNC_STAR_IMAGE := "res://assets/generated/field_pickup_icons_v1/icons/sync_star.png"
 const COLLAB_STAGE_HUD_IMAGE := "res://assets/generated/collab_hud_v1/collab_stage_hud.png"
 const COLLAB_CHALLENGE_HUD_IMAGE := "res://assets/generated/collab_challenge_v1/collab_challenge_frame.png"
@@ -277,14 +285,34 @@ const COLLAB_DIVISION_NOISE_KIND := "collab_division_noise"
 const COLLAB_MUTE_CORE_KIND := "collab_mute_core"
 const COLLAB_CRUSHER_DIVISION_MAX_ACTIVE := 3
 const COLLAB_CRUSHER_DIVISION_INTERVAL := 8.0
+const COLLAB_CRUSHER_DIVISION_WARNING_DURATION := 0.48
+const COLLAB_CRUSHER_DIVISION_SPAWN_FX_DURATION := 0.20
+const COLLAB_CRUSHER_DIVISION_POP_IN_DURATION := 0.20
 const COLLAB_CRUSHER_VS_LINE_WARNING := 0.9
 const COLLAB_CRUSHER_VS_LINE_ACTIVE := 2.2
 const COLLAB_CRUSHER_VS_LINE_WIDTH := 72.0
+const COLLAB_CRUSHER_VS_LINE_CLOSE_THRESHOLD := 24.0
+const COLLAB_CRUSHER_VS_LINE_SYNTHETIC_LENGTH := 64.0
+const COLLAB_CRUSHER_VS_LINE_BOUNDARY_OFFSET := 49.0
+const COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION := 0.19
+const COLLAB_CRUSHER_VS_LINE_POST_FADE_DURATION := 0.13
+const COLLAB_CRUSHER_VS_LINE_ACTIVE_MIN_ALPHA := 0.58
 const COLLAB_CRUSHER_VS_LINE_DAMAGE := 7
 const COLLAB_CRUSHER_COMMENT_WARNING := 0.8
 const COLLAB_CRUSHER_COMMENT_RADIUS := 240.0
 const COLLAB_CRUSHER_COMMENT_DAMAGE := 5
+const COLLAB_CRUSHER_COMMENT_ECHO_DURATION := 0.56
+const COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION := 0.19
+const COLLAB_CRUSHER_COMMENT_IMPACT_FLASH_DURATION := 0.12
+const COLLAB_CRUSHER_MUTE_WARNING := 0.50
 const COLLAB_CRUSHER_MUTE_DURATION := 8.0
+const COLLAB_CRUSHER_MUTE_SIGNAL_DURATION := 0.24
+const COLLAB_CRUSHER_MUTE_SPAWN_FX_DURATION := 0.24
+const COLLAB_CRUSHER_MUTE_POP_IN_DURATION := 0.20
+const COLLAB_CRUSHER_MUTE_HIT_FX_DURATION := 0.14
+const COLLAB_CRUSHER_MUTE_DESTROY_FX_DURATION := 0.28
+const COLLAB_CRUSHER_MUTE_TIMEOUT_FX_DURATION := 0.26
+const COLLAB_CRUSHER_MUTE_RESTORE_FX_DURATION := 0.22
 const COLLAB_CRUSHER_COMPARISON_SUMMON_COUNT := 5
 const COLLAB_CRUSHER_PHASE2_THRESHOLD := 0.50
 const COLLAB_CRUSHER_FINAL_THRESHOLD := 0.15
@@ -359,10 +387,6 @@ const COLLAB_INSTRUCTION_PARTNER_DAMAGE_MULTIPLIER := 2.0
 const COLLAB_INSTRUCTION_PARTNER_INTERVAL_MULTIPLIER := 0.70
 const COLLAB_INSTRUCTION_PLAYER_DAMAGE_MULTIPLIER := 0.50
 const COLLAB_INSTRUCTION_KEEP_SYNC_STAR_LOSS_COOLDOWN := 3.0
-const COLLAB_INSTRUCTION_OUT_OF_SYNC_MOVE_MULTIPLIER := 0.70
-const COLLAB_INSTRUCTION_OUT_OF_SYNC_SLOW_DURATION := 0.50
-const COLLAB_INSTRUCTION_OUT_OF_SYNC_WARNING_DURATION := 0.40
-const COLLAB_INSTRUCTION_OUT_OF_SYNC_PROJECTILE_GRACE := 0.20
 const COLLAB_INSTRUCTION_FAST_PASS_DURATION := 3.0
 const GENRE_CHANGE_BANNER_RACE_IMAGE := "res://assets/generated/genre_change_banners_v1/genre_change_banner_race.png"
 const GENRE_CHANGE_BANNER_BULLET_HELL_IMAGE := "res://assets/generated/genre_change_banners_v1/genre_change_banner_bullet_hell.png"
@@ -472,20 +496,26 @@ const SONG_PITCH_WAVE_TELEGRAPH_DURATION := 0.7
 const SONG_PITCH_WAVE_ACTIVE_DURATION := 0.4
 const SONG_PITCH_WAVE_DAMAGE := 12
 const SONG_PITCH_WAVE_WIDTH := 165.0
+const SONG_PITCH_WAVE_HIT_FX_DURATION := 0.20
+const SONG_PITCH_WAVE_CAST_FX_DURATION := 0.20
+const SONG_PITCH_WAVE_FINAL_WARNING_DURATION := 0.14
+const SONG_MEGAPHONE_WAVE_LAUNCH_FX_DURATION := 0.20
+const SONG_MEGAPHONE_WAVE_HIT_FX_DURATION := 0.21
+const SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION := 0.12
+const SONG_CHORUS_JUDGE_TELEGRAPH_DURATION := 1.20
+const SONG_CHORUS_JUDGE_NOTE_POP_DURATION := 0.18
+const SONG_CHORUS_JUDGE_PIP_PULSE_DURATION := 0.18
+const SONG_CHORUS_JUDGE_COMPLETION_DURATION := 0.36
+const SONG_CHORUS_JUDGE_SUCCESS_VISUAL_DURATION := 2.0
+const SONG_CHORUS_JUDGE_FAIL_VISUAL_DURATION := 0.80
+const SONG_CHORUS_JUDGE_FAIL_NOTICE_DURATION := 0.78
 const SONG_HOWLING_EMITTER_COUNT := 2
 const SONG_HOWLING_WAVE_INTERVAL := 2.8
-const SONG_HOWLING_TELEGRAPH_DURATION := 0.45
-const SONG_HOWLING_WAVE_EXPAND_DURATION := 0.75
-const SONG_HOWLING_WAVE_START_RADIUS := 30.0
-const SONG_HOWLING_WAVE_END_RADIUS := 260.0
 const SONG_HOWLING_WAVE_THICKNESS := 34.0
-const SONG_HOWLING_DAMAGE := 12
 const SONG_HOWLING_PLAYER_KNOCKBACK := 170.0
 const SONG_HOWLING_SPEAKER_IMAGE := "res://assets/generated/song_howling_props_v1/howling_speaker.png"
 const SONG_BAD_LIGHT_COUNT := 2
-const SONG_BAD_LIGHT_RADIUS := 135.0
 const SONG_BAD_LIGHT_LIFETIME := 3.0
-const SONG_BAD_LIGHT_RESPAWN_DELAY := 0.4
 const SONG_BAD_LIGHT_DISABLE_NORMAL_WEAPONS := true
 const SONG_BAD_LIGHT_DISABLE_LIVE_HEAT_SUPPORT := false
 const SONG_LYRICS_CARD_LIFETIME := 15.0
@@ -526,7 +556,6 @@ const DRAWING_PAINT_CYAN_IMAGE := "res://assets/generated/drawing_pickups_v1/pai
 const DRAWING_PAINT_GREEN_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_green.png"
 const DRAWING_PAINT_YELLOW_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_yellow.png"
 const DRAWING_PAINT_GRAY_IMAGE := "res://assets/generated/drawing_pickups_v1/paint_gray.png"
-const DRAWING_PALETTE_SHUFFLE_WEAK_GRAY_RATE := 0.5
 const DRAWING_PALETTE_SHUFFLE_RANDOM_WEIGHTS := {"pink": 1.0, "cyan": 1.0, "green": 1.0, "yellow": 1.0}
 const DRAWING_HUD_GAUGE_IMAGE := "res://assets/generated/drawing_hud_v1/drawing_gauge.png"
 const DRAWING_PAINT_GAUGE_APPEAR_DURATION := 0.12
@@ -741,6 +770,9 @@ const STREAM_END_BANNER_DURATION := 0.72
 const GENRE_CHANGE_BANNER_DURATION := 1.38
 const RESULT_DROP_DURATION := 0.48
 const RESULT_DROP_START_Y := -860.0
+const UNLOCK_PRESENTATION_INTRO_DURATION := 0.34
+const UNLOCK_PRESENTATION_CARD_RECT := Rect2(390.0, 165.0, 820.0, 570.0)
+const UNLOCK_PRESENTATION_PREVIEW_LABEL := "DEBUG PREVIEW"
 const COMMENT_PANEL_BG_V25 := "res://assets/generated/ui_parts_v2/comment_panel_bg_v1_370x606.png"
 const HUD_ICON_BANRI_IMAGE := "res://assets/generated/hud_character_icons_v1/banri_hud_icon.png"
 const HUD_ICON_SUPANA_IMAGE := "res://assets/generated/hud_character_icons_v1/supana_hud_icon.png"
@@ -764,6 +796,11 @@ const HUD_UI_SLOT_WEAPON_EMPTY_IMAGE := "res://assets/generated/hud_ui_parts_v2/
 const HUD_UI_SLOT_WEAPON_FILLED_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_weapon_filled_34x34.png"
 const HUD_UI_SLOT_ACCESSORY_EMPTY_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_accessory_empty_34x34.png"
 const HUD_UI_SLOT_ACCESSORY_FILLED_IMAGE := "res://assets/generated/hud_ui_parts_v2/slot_accessory_filled_34x34.png"
+const EQUIPMENT_LEVEL_BADGE_SCALE := 0.85
+const EQUIPMENT_LEVEL_BADGE_OFFSET := Vector2(2.5, 2.5)
+const EQUIPMENT_LEVEL_BADGE_MIN_OFFSET_SCALE := 0.65
+const EQUIPMENT_LEVEL_BADGE_HORIZONTAL_PADDING := 2.0
+const EQUIPMENT_LEVEL_BADGE_MIN_FONT_SIZE := 6
 const HUD_METRIC_ICON_MENTAL_IMAGE := "res://assets/generated/hud_metric_icons_v1/mental.png"
 const HUD_METRIC_ICON_EXP_IMAGE := "res://assets/generated/hud_metric_icons_v1/exp.png"
 const HUD_METRIC_ICON_GIFT_IMAGE := "res://assets/generated/hud_metric_icons_v1/gift_hype.png"
@@ -868,6 +905,7 @@ var player_sprite: Texture2D
 var player_idle_sprite: Texture2D
 var player_run_sprite: Texture2D
 var selected_character_index := 0
+var character_select_walk_time := 0.0
 var selected_stream_frame_index := 0
 var selected_collab_partner_index := 0
 var character_select_focus_area := PRE_RUN_SELECT_FOCUS_ITEMS
@@ -907,9 +945,14 @@ var collab_effects: Array = []
 var collab_hazard_fields: Array = []
 var collab_messenger_trails: Array = []
 var collab_boss_attacks: Array = []
+var collab_comment_divide_cast_uid := 1
+var collab_comparison_spam_cast_uid := 1
+var collab_crusher_division_spawn_serial := 1
 var collab_boss_partner_muted := false
 var collab_boss_mute_timer := 0.0
 var collab_boss_mute_core_uid := -1
+var collab_boss_mute_cast_serial := 1
+var collab_boss_mute_core_last_hp := -1.0
 var collab_boss_star_supply_timer := 0.0
 var collab_partner_support_blocked := false
 var collab_distance_grace_timer := 0.0
@@ -957,8 +1000,15 @@ var pre_run_select_press_active := false
 var pre_run_select_press_screen := ""
 var pre_run_select_pressed_index := -1
 var option_menu_index := 0
+var option_hover_index := -1
+var option_reset_confirm_visible := false
+var option_reset_confirm_index := 0
+var option_reset_confirm_hover_index := -1
+var option_stick_axis_latch := Vector2.ZERO
 var options_return_state := "title"
 var character_sprite_cache: Dictionary = {}
+var character_select_avatar_opaque_bounds_cache: Dictionary = {}
+var character_select_silhouette_cache: Dictionary = {}
 var ranking_avatar_source_cache: Dictionary = {}
 var ranking_view_cache: Dictionary = {}
 var equipment_icon_cache: Dictionary = {}
@@ -1016,6 +1066,9 @@ var boss_last_name := ""
 var boss_last_result := ""
 var boss_reward_viewers := 0
 var boss_slow_fields: Array = []
+var boss_slow_field_telegraphs: Array = []
+var boss_slow_field_fx: Array = []
+var boss_slow_field_player_inside := false
 var boss_guide_lines: Array = []
 var exp_orbs: Array = []
 var player_bullets: Array = []
@@ -1095,6 +1148,13 @@ var song_boss_chorus_judge_notice_duration := 0.0
 var song_boss_chorus_judge_notice_title := ""
 var song_boss_chorus_judge_notice_subtitle := ""
 var song_boss_chorus_judge_notice_success := false
+var song_boss_chorus_judge_visual_phase := ""
+var song_boss_chorus_judge_visual_timer := 0.0
+var song_boss_chorus_judge_visual_duration := 0.0
+var song_boss_chorus_judge_start_pulse_timer := 0.0
+var song_boss_chorus_judge_collect_pulse_timer := 0.0
+var song_boss_chorus_judge_completion_timer := 0.0
+var song_boss_chorus_judge_pip_pulse_timers: Array = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 var song_boss_megaphone_waves: Array = []
 var song_encore_timer := 0.0
 var song_encore_triggered := false
@@ -1421,6 +1481,17 @@ var effect_walls: Array = []
 var effect_pits: Array = []
 var danger_comments_chosen := 0
 var max_gift_hype := 0
+var evaluation_active_time := 0.0
+var evaluation_buzz_integral := 0.0
+var evaluation_voltage_integral := 0.0
+var evaluation_cumulative_damage_taken := 0.0
+var evaluation_dangerous_comment_count := 0
+var evaluation_gift_count := 0
+var evaluation_target_boss_reached := false
+var evaluation_target_boss_defeated := false
+var evaluation_relay_final_boss_reached := false
+var evaluation_relay_final_boss_defeated := false
+var evaluation_reference_max_mental := 1.0
 var run_rank := "D"
 var last_result_data: Dictionary = {}
 var last_result_text := ""
@@ -1447,6 +1518,8 @@ var pause_weapon_slot_index := 0
 var pause_accessory_slot_index := 0
 var pause_nav_repeat_timer := 0.0
 var pause_nav_last_dir := 0
+var pause_stick_axis_latch := Vector2.ZERO
+var pause_navigation_se_frame := -1
 var toast_text := ""
 var toast_timer := 0.0
 var time_announcement_flags: Dictionary = {}
@@ -1464,6 +1537,12 @@ var genre_event_timer := 0.0
 var genre_event_duration := GenreEventSystemScript.GENRE_EVENT_DURATION
 var genre_event_source := ""
 var active_genre_event := ""
+var boss_genre_visual_active := false
+var boss_genre_visual_event := ""
+var boss_genre_visual_phase := ""
+var boss_genre_visual_seed := 0.0
+var boss_genre_break_visual_timer := 0.0
+var boss_genre_break_visual_duration := 1.2
 var comment_genre_mix_queue: Array = []
 var comment_genre_mix_transition_timer := 0.0
 var next_known_genre_event := ""
@@ -1601,6 +1680,15 @@ var result_reveal_complete := false
 var result_reveal_input_latched := false
 var result_reward_se_played := false
 var result_shop_emphasis_timer := 0.0
+var unlock_presentation_before: Dictionary = {}
+var unlock_presentation_active := false
+var unlock_presentation_preview_mode := false
+var unlock_presentation_ids: Array = []
+var unlock_presentation_index := 0
+var unlock_presentation_intro_timer := 0.0
+var unlock_presentation_input_guard_frames := 0
+var unlock_presentation_release_guard := false
+var pending_result_transition_action := ""
 var title_logo_drop_timer := TITLE_LOGO_DROP_DURATION
 var title_character_appear_timer := TITLE_CHARACTER_APPEAR_TOTAL_DURATION
 var pending_game_over_reason := ""
@@ -1685,6 +1773,7 @@ func _ready() -> void:
 		CodexManager.clear_legacy_import_pending()
 		DifficultyProgressSystemScript.save_progress(difficulty_progress)
 	CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+	DifficultyProgressSystemScript.sync_unlock_presentation_for_target(self)
 	current_character_id = CharacterSystemScript.validated_character_id(characters, current_character_id)
 	CharacterSystemScript.apply_selected_character_for_target(self, characters, weapons, current_character_id, character_sprite_cache)
 	_build_ui()
@@ -1697,6 +1786,8 @@ func _ready() -> void:
 	_sync_result_bgm()
 
 func _process(delta: float) -> void:
+	if state == "character_select":
+		character_select_walk_time += delta
 	_update_boss_cutin_bgm_release(delta)
 	_update_window_resize_lock()
 	_update_world_zoom(delta)
@@ -1864,8 +1955,10 @@ func _update_pause_input_with_se() -> void:
 	var before_state := state
 	StateFlowSystemScript.update_pause_input_for_target(self)
 	if before_state != "pause" and state == "pause":
+		pause_stick_axis_latch = Vector2.ZERO
 		_play_pause_open_se()
 	elif before_state == "pause" and state != "pause":
+		pause_stick_axis_latch = Vector2.ZERO
 		_play_back_transition_se()
 
 func _setup_title_bgm() -> void:
@@ -3160,6 +3253,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if front_screen_transition_active:
 		get_viewport().set_input_as_handled()
 		return
+	if unlock_presentation_active:
+		_unlock_presentation_confirm_event(event)
+		get_viewport().set_input_as_handled()
+		return
+	if event is InputEventKey:
+		var preview_key_event := event as InputEventKey
+		if preview_key_event.pressed and preview_key_event.keycode == DebugSystemScript.UNLOCK_PRESENTATION_PREVIEW_KEY and Input.is_key_pressed(KEY_SHIFT) and OS.is_debug_build():
+			_debug_start_unlock_presentation_preview()
+			get_viewport().set_input_as_handled()
+			return
 	if state == "codex":
 		if codex_screen != null and codex_screen.handle_input(event):
 			get_viewport().set_input_as_handled()
@@ -3238,6 +3341,45 @@ func _unhandled_input(event: InputEvent) -> void:
 			if partner_mouse_button.button_index == MOUSE_BUTTON_LEFT and partner_mouse_button.pressed:
 				if _activate_collab_partner_select_mouse(partner_mouse_button.position):
 					get_viewport().set_input_as_handled()
+	elif state == "pause":
+		if event is InputEventJoypadButton:
+			var pause_pad := event as InputEventJoypadButton
+			if pause_pad.pressed:
+				var pause_action := PauseUiSystemScript.pause_input_action(-1, pause_pad.button_index)
+				if pause_action != "":
+					var confirm_was_open := pause_confirm_action != ""
+					var moved_by_pause_input := _apply_pause_input_action(pause_action)
+					if moved_by_pause_input and not (confirm_was_open and pause_action in ["pause_left", "pause_right"]):
+						_play_pause_navigation_se_once()
+					get_viewport().set_input_as_handled()
+		elif event is InputEventJoypadMotion:
+			var pause_motion := event as InputEventJoypadMotion
+			var motion_pause_action := ""
+			if pause_motion.axis == JOY_AXIS_LEFT_Y:
+				var y_transition: Dictionary = PauseUiSystemScript.stick_latch_transition(int(pause_stick_axis_latch.y), pause_motion.axis_value)
+				pause_stick_axis_latch.y = float(y_transition["latch"])
+				if bool(y_transition["moved"]):
+					motion_pause_action = "pause_down" if int(y_transition["direction"]) > 0 else "pause_up"
+			elif pause_motion.axis == JOY_AXIS_LEFT_X:
+				var x_transition: Dictionary = PauseUiSystemScript.stick_latch_transition(int(pause_stick_axis_latch.x), pause_motion.axis_value)
+				pause_stick_axis_latch.x = float(x_transition["latch"])
+				if bool(x_transition["moved"]):
+					motion_pause_action = "pause_right" if int(x_transition["direction"]) > 0 else "pause_left"
+			if motion_pause_action != "":
+				var confirm_was_open := pause_confirm_action != ""
+				var moved_by_pause_input := _apply_pause_input_action(motion_pause_action)
+				if moved_by_pause_input and not (confirm_was_open and motion_pause_action in ["pause_left", "pause_right"]):
+					_play_pause_navigation_se_once()
+				get_viewport().set_input_as_handled()
+		elif event is InputEventAction:
+			var pause_action_event := event as InputEventAction
+			var mapped_pause_action := PauseUiSystemScript.pause_input_action(-1, -1, String(pause_action_event.action), pause_action_event.pressed)
+			if mapped_pause_action != "":
+				var confirm_was_open := pause_confirm_action != ""
+				var moved_by_pause_input := _apply_pause_input_action(mapped_pause_action)
+				if moved_by_pause_input and not (confirm_was_open and mapped_pause_action in ["pause_left", "pause_right"]):
+					_play_pause_navigation_se_once()
+				get_viewport().set_input_as_handled()
 	elif state == "options":
 		if event is InputEventMouseMotion:
 			_update_options_mouse_selection((event as InputEventMouseMotion).position)
@@ -3245,6 +3387,36 @@ func _unhandled_input(event: InputEvent) -> void:
 			var options_mouse_button := event as InputEventMouseButton
 			if options_mouse_button.button_index == MOUSE_BUTTON_LEFT and options_mouse_button.pressed:
 				if _activate_options_mouse(options_mouse_button.position):
+					get_viewport().set_input_as_handled()
+		elif event is InputEventJoypadButton:
+			var options_pad := event as InputEventJoypadButton
+			if options_pad.pressed:
+				var options_pad_action := OptionsUiSystemScript.pad_action(options_pad.button_index)
+				if options_pad_action != "":
+					_apply_options_input_action(options_pad_action)
+					get_viewport().set_input_as_handled()
+		elif event is InputEventJoypadMotion:
+			var options_motion := event as InputEventJoypadMotion
+			var options_motion_action := ""
+			if options_motion.axis == JOY_AXIS_LEFT_Y:
+				var y_transition: Dictionary = OptionsUiSystemScript.stick_latch_transition(int(option_stick_axis_latch.y), options_motion.axis_value)
+				option_stick_axis_latch.y = float(y_transition["latch"])
+				if bool(y_transition["moved"]):
+					options_motion_action = "option_down" if int(y_transition["direction"]) > 0 else "option_up"
+			elif options_motion.axis == JOY_AXIS_LEFT_X:
+				var x_transition: Dictionary = OptionsUiSystemScript.stick_latch_transition(int(option_stick_axis_latch.x), options_motion.axis_value)
+				option_stick_axis_latch.x = float(x_transition["latch"])
+				if bool(x_transition["moved"]):
+					options_motion_action = "option_right" if int(x_transition["direction"]) > 0 else "option_left"
+			if options_motion_action != "":
+				_apply_options_input_action(options_motion_action)
+				get_viewport().set_input_as_handled()
+		elif event is InputEventAction:
+			var options_action_event := event as InputEventAction
+			if options_action_event.pressed:
+				var mapped_options_action := OptionsUiSystemScript.ui_action(String(options_action_event.action))
+				if mapped_options_action != "":
+					_apply_options_input_action(mapped_options_action)
 					get_viewport().set_input_as_handled()
 	elif state == "ranking" or (state == "result" and result_showing_ranking):
 		var ranking_cursor_before: Array = _cursor_sound_snapshot()
@@ -3305,8 +3477,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				_move_result_button(1)
 				get_viewport().set_input_as_handled()
 			elif result_joypad_button.pressed and result_joypad_button.button_index == JOY_BUTTON_B:
-				_play_back_transition_se()
-				_back_to_title()
+				_request_result_transition("title")
 				get_viewport().set_input_as_handled()
 	elif state == "gift_choice":
 		var reroll_requested := false
@@ -4143,9 +4314,28 @@ func _start_stream_complete_intro(reason: String) -> void:
 		score = int(round(float(score) * SONG_ENCORE_CLEAR_BONUS_MULTIPLIER))
 	_start_ending_cutin(reason, "completed")
 
+func _clear_boss_genre_visuals_for_game_over() -> void:
+	if genre_event_source != "boss" and not boss_genre_visual_active:
+		return
+	GenreEventSystemScript.clear_temp_objects_for_target(self)
+	active_genre_event = ""
+	genre_event_timer = 0.0
+	genre_event_duration = GenreEventSystemScript.GENRE_EVENT_DURATION
+	genre_event_source = ""
+	genre_change_banner_event = ""
+	genre_change_banner_timer = 0.0
+	genre_result_card_timer = 0.0
+	genre_result_card_data.clear()
+	BossSystemScript.clear_bugged_genre_visual_state_for_target(self)
+
 func _start_ending_cutin(reason: String, end_type: String) -> void:
 	if state == "result" or state == "game_over_intro":
 		return
+	if end_type == "mental_breakdown":
+		_clear_boss_genre_visuals_for_game_over()
+	_clear_relay_offline_laser_visuals()
+	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_noise_summon_visuals_for_target(self, true, "forced_cleanup")
 	if HardModeSystemScript.is_high_difficulty_target(self):
 		HardModeSystemScript.clear_dangers_for_target(self)
 		HardModeSystemScript.clear_hard_comment_events_for_target(self, "ending_cutin")
@@ -4164,6 +4354,11 @@ func _start_ending_cutin(reason: String, end_type: String) -> void:
 		effect_pits.clear()
 		effect_timer = 0.0
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "ending_cutin")
+	_clear_collab_crusher_comparison_spam_visuals()
+	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
+	_clear_collab_crusher_vs_line_visuals()
+	_clear_collab_crusher_comment_divide_visuals()
+	_clear_collab_crusher_division_noise_visuals(true)
 	_clear_troll_linked_comments(true)
 	_clear_toast()
 	_clear_drawing_toast()
@@ -4463,6 +4658,286 @@ func _consume_result_reveal_input(event: InputEvent) -> bool:
 		_complete_result_reveal()
 	return true
 
+func _unlock_presentation_confirm_is_down() -> bool:
+	return Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_SPACE) or Input.is_action_pressed("ui_accept")
+
+func _unlock_presentation_start(action_id: String) -> bool:
+	var pending := DifficultyProgressSystemScript.pending_unlock_presentations_for_target(self)
+	if pending.is_empty():
+		return false
+	unlock_presentation_ids = pending.duplicate()
+	unlock_presentation_index = 0
+	unlock_presentation_intro_timer = UNLOCK_PRESENTATION_INTRO_DURATION
+	unlock_presentation_input_guard_frames = 1
+	unlock_presentation_release_guard = true
+	unlock_presentation_active = true
+	pending_result_transition_action = action_id
+	_play_level_up_se()
+	return true
+
+func _unlock_presentation_update(delta: float) -> void:
+	if not unlock_presentation_active:
+		return
+	unlock_presentation_intro_timer = maxf(0.0, unlock_presentation_intro_timer - maxf(0.0, delta))
+	if unlock_presentation_input_guard_frames > 0:
+		unlock_presentation_input_guard_frames -= 1
+	if unlock_presentation_release_guard and not _unlock_presentation_confirm_is_down():
+		unlock_presentation_release_guard = false
+	queue_redraw()
+
+func _debug_start_unlock_presentation_preview() -> bool:
+	if not OS.is_debug_build() or unlock_presentation_active:
+		return false
+	unlock_presentation_preview_mode = true
+	unlock_presentation_ids = UnlockPresentationSystemScript.ORDER.duplicate()
+	unlock_presentation_index = 0
+	unlock_presentation_intro_timer = UNLOCK_PRESENTATION_INTRO_DURATION
+	unlock_presentation_input_guard_frames = 1
+	unlock_presentation_release_guard = true
+	unlock_presentation_active = true
+	pending_result_transition_action = ""
+	debug_key_latch[DebugSystemScript.UNLOCK_PRESENTATION_PREVIEW_KEY] = true
+	_play_level_up_se()
+	queue_redraw()
+	return true
+
+func _end_unlock_presentation_preview() -> void:
+	if not unlock_presentation_preview_mode:
+		return
+	unlock_presentation_preview_mode = false
+	unlock_presentation_active = false
+	unlock_presentation_ids.clear()
+	unlock_presentation_index = 0
+	unlock_presentation_intro_timer = 0.0
+	unlock_presentation_input_guard_frames = 0
+	unlock_presentation_release_guard = false
+	pending_result_transition_action = ""
+	queue_redraw()
+
+func _advance_unlock_presentation_preview() -> void:
+	if not unlock_presentation_preview_mode:
+		return
+	unlock_presentation_index += 1
+	if unlock_presentation_index < unlock_presentation_ids.size():
+		unlock_presentation_intro_timer = UNLOCK_PRESENTATION_INTRO_DURATION
+		unlock_presentation_input_guard_frames = 1
+		unlock_presentation_release_guard = true
+		_play_level_up_se()
+		return
+	_end_unlock_presentation_preview()
+
+func _unlock_presentation_confirm_event(event: InputEvent) -> bool:
+	if not unlock_presentation_active:
+		return false
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		if not key_event.pressed:
+			if key_event.keycode in [KEY_ENTER, KEY_SPACE]:
+				unlock_presentation_release_guard = false
+			return true
+		if key_event.keycode == KEY_ESCAPE or key_event.keycode == KEY_BACKSPACE:
+			if unlock_presentation_preview_mode:
+				_end_unlock_presentation_preview()
+			return true
+		if not (key_event.keycode in [KEY_ENTER, KEY_SPACE] or key_event.is_action_pressed("ui_accept")):
+			return true
+	elif event is InputEventJoypadButton:
+		var button_event := event as InputEventJoypadButton
+		if unlock_presentation_preview_mode and button_event.pressed and (button_event.button_index == JOY_BUTTON_B or button_event.is_action_pressed("ui_cancel")):
+			_end_unlock_presentation_preview()
+			return true
+		if not button_event.pressed:
+			if button_event.button_index == JOY_BUTTON_A:
+				unlock_presentation_release_guard = false
+			return true
+		if button_event.button_index != JOY_BUTTON_A and not button_event.is_action_pressed("ui_accept"):
+			return true
+	elif event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if not mouse_event.pressed or mouse_event.button_index != MOUSE_BUTTON_LEFT:
+			return true
+	else:
+		return true
+	if unlock_presentation_intro_timer > 0.0 or unlock_presentation_input_guard_frames > 0 or unlock_presentation_release_guard:
+		return true
+	_confirm_unlock_presentation()
+	return true
+
+func _confirm_unlock_presentation() -> void:
+	if not unlock_presentation_active or unlock_presentation_index >= unlock_presentation_ids.size():
+		return
+	if unlock_presentation_preview_mode:
+		_advance_unlock_presentation_preview()
+		return
+	var unlock_id := String(unlock_presentation_ids[unlock_presentation_index])
+	if unlock_id == "character_group:senior_unit" and power_up_shop_manager != null and power_up_shop_manager.has_method("mark_senior_unit_unlock_presented"):
+		if not bool(power_up_shop_manager.mark_senior_unit_unlock_presented()):
+			toast_text = "キャラクター解放情報の保存に失敗しました。もう一度決定してください"
+			toast_timer = 2.6
+			return
+	var confirmation := DifficultyProgressSystemScript.confirm_unlock_presentation_for_target(self, unlock_id)
+	if not bool(confirmation.get("saved", false)):
+		toast_text = "解放情報の保存に失敗しました。もう一度決定してください"
+		toast_timer = 2.6
+		return
+	if not bool(confirmation.get("confirmed", false)):
+		return
+	unlock_presentation_index += 1
+	if unlock_presentation_index < unlock_presentation_ids.size():
+		unlock_presentation_intro_timer = UNLOCK_PRESENTATION_INTRO_DURATION
+		unlock_presentation_input_guard_frames = 1
+		unlock_presentation_release_guard = true
+		_play_level_up_se()
+		return
+	var action_id := pending_result_transition_action
+	unlock_presentation_active = false
+	unlock_presentation_ids.clear()
+	unlock_presentation_index = 0
+	pending_result_transition_action = ""
+	unlock_presentation_release_guard = false
+	_execute_result_transition(action_id)
+
+func _result_reward_ready_for_transition() -> bool:
+	if String(last_result_data.get("ppGrantState", "")) != "save_failed":
+		return true
+	var retry_result := ResultSystemScript.retry_power_up_reward_for_target(self)
+	if not bool(retry_result.get("ok", false)):
+		toast_text = "PP保存に失敗しました。再試行してください"
+		toast_timer = 2.0
+		return false
+	last_result_data = (get("last_result_data") as Dictionary).duplicate(true)
+	return true
+
+func _result_unlock_queue_ready_for_transition() -> bool:
+	var commit_variant: Variant = last_result_data.get("unlockPresentationCommit", {})
+	var transition_decision: Dictionary = UnlockPresentationSystemScript.unlock_queue_transition_decision(commit_variant)
+	if bool(transition_decision.get("ready", true)):
+		return true
+	var before_variant: Variant = last_result_data.get("unlockPresentationBefore", {})
+	if not before_variant is Dictionary:
+		toast_text = "解放情報の保存に失敗しました。もう一度決定してください"
+		toast_timer = 2.6
+		return false
+	var retry_commit: Dictionary = DifficultyProgressSystemScript.commit_unlock_presentation_for_target(self, before_variant as Dictionary)
+	if not bool(retry_commit.get("saved", false)):
+		retry_commit["requiresSaveRetry"] = true
+		last_result_data["unlockPresentationCommit"] = retry_commit.duplicate(true)
+		last_result_data["unlockPresentationPending"] = retry_commit.get("pendingIds", [])
+		set("last_result_data", last_result_data)
+		toast_text = "解放情報の保存に失敗しました。もう一度決定してください"
+		toast_timer = 2.6
+		return false
+	last_result_data["unlockPresentationCommit"] = retry_commit.duplicate(true)
+	last_result_data["unlockPresentationPending"] = retry_commit.get("pendingIds", [])
+	set("last_result_data", last_result_data)
+	return true
+
+func _request_result_transition(action_id: String) -> bool:
+	if action_id == "" or action_id == "ranking":
+		return false
+	if not _result_reward_ready_for_transition():
+		return true
+	if not _result_unlock_queue_ready_for_transition():
+		return true
+	if _unlock_presentation_start(action_id):
+		_play_confirm_se()
+		return true
+	_execute_result_transition(action_id)
+	return true
+
+func _execute_result_transition(action_id: String) -> void:
+	match action_id:
+		"retry":
+			_play_confirm_se()
+			_restart()
+		"shop":
+			_play_confirm_se()
+			_open_power_up_shop("result")
+		"codex":
+			_play_confirm_se()
+			_open_codex_from_result()
+		"title":
+			_play_back_transition_se()
+			_back_to_title()
+
+func _unlock_presentation_descriptor() -> Dictionary:
+	if unlock_presentation_index < 0 or unlock_presentation_index >= unlock_presentation_ids.size():
+		return {}
+	return UnlockPresentationSystemScript.descriptor(
+		unlock_presentation_ids[unlock_presentation_index],
+		stream_frames,
+		characters
+	)
+
+func _draw_unlock_presentation_multiline(text_value: String, pos: Vector2, width: int, size: int, color: Color) -> void:
+	var line_index := 0
+	for line in text_value.split("\n"):
+		_draw_text_item({"pos": pos + Vector2(0.0, float(line_index) * float(size + 7)), "text": String(line), "width": width, "size": size, "color": color}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		line_index += 1
+
+func _draw_unlock_presentation_overlay() -> void:
+	if not unlock_presentation_active:
+		return
+	var descriptor := _unlock_presentation_descriptor()
+	if descriptor.is_empty():
+		return
+	draw_rect(TITLE_SCREEN_RECT, Color(0.035, 0.012, 0.065, 0.76), true)
+	var card := UNLOCK_PRESENTATION_CARD_RECT
+	var intro_progress := 1.0 - clampf(unlock_presentation_intro_timer / UNLOCK_PRESENTATION_INTRO_DURATION, 0.0, 1.0)
+	var eased := clampf(intro_progress * intro_progress * (3.0 - 2.0 * intro_progress), 0.0, 1.0)
+	var scale := UnlockPresentationSystemScript.intro_scale(eased)
+	var alpha := clampf(eased, 0.0, 1.0)
+	var theme: Color = descriptor.get("theme", Color("#E954A5")) as Color
+	var is_special_mode: bool = bool(descriptor.get("specialMode", false))
+	var secondary_theme: Color = descriptor.get("secondaryTheme", theme) as Color
+	var local_card := Rect2(-card.size * 0.5, card.size)
+	draw_set_transform(card.get_center(), 0.0, Vector2(scale, scale))
+	var shadow_style := CommonLightUiStyle.create_panel_style(Color(0.22, 0.08, 0.28, 0.26 * alpha), Color(0.22, 0.08, 0.28, 0.0), 0, 30, 0.0, 0.0)
+	draw_style_box(shadow_style, Rect2(local_card.position + Vector2(0.0, 8.0), local_card.size))
+	var card_style := CommonLightUiStyle.create_panel_style(Color(1.0, 0.985, 1.0, 0.98 * alpha), Color(theme.r, theme.g, theme.b, 0.92 * alpha), 4, 30, 0.0, 0.0)
+	draw_style_box(card_style, local_card)
+	if is_special_mode:
+		var special_inner_style := CommonLightUiStyle.create_panel_style(Color(1.0, 1.0, 1.0, 0.0), Color(secondary_theme.r, secondary_theme.g, secondary_theme.b, 0.74 * alpha), 2, 24, 0.0, 0.0)
+		draw_style_box(special_inner_style, local_card.grow(-12.0))
+	_draw_text_item({"pos": Vector2(-370.0, -226.0), "text": String(descriptor.get("kindLabel", "新しい要素が解放！")), "width": 740, "size": 22, "fontWeight": "black", "color": Color(theme.r, theme.g, theme.b, alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	if unlock_presentation_ids.size() > 1:
+		_draw_text_item({"pos": Vector2(270.0, -220.0), "text": "%d / %d" % [unlock_presentation_index + 1, unlock_presentation_ids.size()], "width": 110, "size": 16, "color": Color("#765F78", alpha)}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	if unlock_presentation_preview_mode:
+		_draw_text_item({"pos": Vector2(250.0, -260.0), "text": UNLOCK_PRESENTATION_PREVIEW_LABEL, "width": 145, "size": 12, "fontWeight": "bold", "color": Color("#8A6E99", alpha)}, "", HORIZONTAL_ALIGNMENT_RIGHT)
+	var icon_path := String(descriptor.get("iconPath", ""))
+	var icon: Texture2D = null
+	if icon_path != "":
+		icon = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, icon_path)
+	if icon != null:
+		var icon_rect := _fit_texture_rect(Rect2(-130.0, -178.0, 260.0, 178.0), icon.get_size())
+		draw_texture_rect(icon, icon_rect, false, Color(1.0, 1.0, 1.0, alpha))
+	var difficulty_id := String(descriptor.get("difficultyId", ""))
+	if difficulty_id != "":
+		_draw_outlined_text(Vector2(-220.0, -78.0), difficulty_id.to_upper(), 440, 88, Color(theme.r, theme.g, theme.b, alpha), Color(1.0, 1.0, 1.0, 0.84 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	var image_paths: Array = descriptor.get("imagePaths", []) as Array
+	for i in range(image_paths.size()):
+		var path := String(image_paths[i])
+		var texture: Texture2D = TextureCacheSystemScript.load_png_texture(character_sprite_cache, path)
+		if texture == null:
+			continue
+		var image_rect := Rect2(-286.0 + float(i) * 190.0, -178.0, 182.0, 222.0)
+		draw_texture_rect(texture, _fit_texture_rect(image_rect, texture.get_size()), false, Color(1.0, 1.0, 1.0, alpha))
+	var names: Array = descriptor.get("memberNames", []) as Array
+	for i in range(names.size()):
+		_draw_text_item({"pos": Vector2(-286.0 + float(i) * 190.0, 80.0), "text": String(names[i]), "width": 182, "size": 18, "fontWeight": "black", "color": Color("#3F2C4E", alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({"pos": Vector2(-360.0, 126.0), "text": String(descriptor.get("title", "解放！")), "width": 720, "size": 30, "fontWeight": "black", "color": Color(theme.r, theme.g, theme.b, alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_unlock_presentation_multiline(String(descriptor.get("description", "")), Vector2(-360.0, 188.0), 720, 19, Color("#5F4B66", alpha))
+	var sparkle_alpha := alpha * (0.55 + 0.45 * sin(Time.get_ticks_msec() / 420.0))
+	for i in range(8):
+		var angle := float(i) * TAU / 8.0
+		var sparkle_pos := Vector2(cos(angle) * 340.0, -15.0 + sin(angle) * 190.0)
+		var sparkle_color := Color(1.0, 0.80, 0.95, sparkle_alpha)
+		if is_special_mode and i % 2 == 0:
+			sparkle_color = Color(secondary_theme.r, secondary_theme.g, secondary_theme.b, sparkle_alpha * 0.88)
+		draw_circle(sparkle_pos, 3.0 + float(i % 2) * 2.0, sparkle_color)
+	_draw_text_item({"pos": Vector2(-360.0, 248.0), "text": "Enter / A：次へ", "width": 720, "size": 16, "color": Color("#765F78", alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
 func _activate_result_mouse(pos: Vector2) -> bool:
 	var button_id: String = _result_button_at(pos)
 	return _activate_result_button(button_id)
@@ -4471,27 +4946,15 @@ func _activate_result_button(button_id: String) -> bool:
 	if _result_reveal_is_playing():
 		_complete_result_reveal()
 		return true
-	if button_id == "retry":
-		_play_confirm_se()
-		_restart()
-		return true
 	if button_id == "ranking":
+		if not _result_reward_ready_for_transition():
+			return true
+		if not _result_unlock_queue_ready_for_transition():
+			return true
 		_play_confirm_se()
 		_toggle_result_ranking()
 		return true
-	if button_id == "shop":
-		_play_confirm_se()
-		_open_power_up_shop("result")
-		return true
-	if button_id == "codex":
-		_play_confirm_se()
-		_open_codex_from_result()
-		return true
-	if button_id == "title":
-		_play_back_transition_se()
-		_back_to_title()
-		return true
-	return false
+	return _request_result_transition(button_id)
 
 func _update_result_mouse_selection(pos: Vector2) -> void:
 	var button_id: String = _result_button_at(pos)
@@ -4561,6 +5024,17 @@ func _update_active_state(delta: float) -> void:
 
 func _update_front_state(delta: float) -> bool:
 	var cursor_before: Array = _cursor_sound_snapshot()
+	if unlock_presentation_active:
+		_unlock_presentation_update(delta)
+		_update_ui()
+		queue_redraw()
+		return true
+	if state == "title" and not front_screen_transition_active:
+		var title_pending := DifficultyProgressSystemScript.pending_unlock_presentations_for_target(self)
+		if not title_pending.is_empty() and _unlock_presentation_start(""):
+			_update_ui()
+			queue_redraw()
+			return true
 	if state == "title":
 		var title_press_committed := _update_title_menu_feedback(delta)
 		if title_press_committed or title_menu_press_active or title_menu_accept_latched:
@@ -4587,7 +5061,7 @@ func _update_front_state(delta: float) -> bool:
 	if state == "pause":
 		_update_pause_menu(delta)
 		if _cursor_sound_snapshot_changed(cursor_before):
-			_play_cursor_move_se()
+			_play_pause_navigation_se_once()
 		_update_ui()
 		queue_redraw()
 		return true
@@ -4653,11 +5127,25 @@ func _update_front_state(delta: float) -> bool:
 	var title_action: String = DebugSystemScript.title_action(debug_key_latch) if state == "title" else ""
 	var result_action: String = DebugSystemScript.result_action(debug_key_latch) if state == "result" and not result_showing_ranking else ""
 	var options_action: String = DebugSystemScript.options_action(debug_key_latch) if state == "options" else ""
+	if state == "options" and options_action != "":
+		_apply_options_input_action(options_action)
+		return true
 	var title_menu_index_before_action: int = title_menu_index
 	var result: Dictionary = StateFlowSystemScript.front_state_action_for_target(self, delta, title_action, result_action, ranking_action, options_action)
 	if not bool(result["handled"]):
 		return false
 	var action: String = String(result["action"])
+	if state == "result" and not result_showing_ranking:
+		if action == "back_to_title":
+			_request_result_transition("title")
+			_update_ui()
+			queue_redraw()
+			return true
+		if action == "restart":
+			_request_result_transition("retry")
+			_update_ui()
+			queue_redraw()
+			return true
 	if state == "title" and title_menu_index != title_menu_index_before_action:
 		_on_title_menu_selection_changed()
 	if state == "title" and action in ["start_character_select", "open_power_up_shop", "open_codex", "open_title_ranking", "open_title_options", "quit_game"]:
@@ -4667,8 +5155,6 @@ func _update_front_state(delta: float) -> bool:
 		return true
 	var is_back_transition := action == "back_to_title" or (action == "toggle_ranking" and state == "result" and result_showing_ranking)
 	if action in ["start_character_select", "open_power_up_shop", "open_codex", "open_title_ranking", "open_title_options", "quit_game"]:
-		_play_confirm_se()
-	if state == "options" and options_action == "option_select" and not is_back_transition:
 		_play_confirm_se()
 	if is_back_transition:
 		_play_back_transition_se()
@@ -5431,6 +5917,7 @@ func _draw_status_overlay_layer() -> void:
 	if _should_draw_relay_progress_overlay() and state != "relay_break":
 		_draw_relay_progress_overlay()
 	_draw_screen_flash()
+	_draw_bug_genre_screen_fx()
 	_draw_hard_climax_banner()
 	_draw_hard_balance_debug_overlay()
 	_draw_direct_pp_debug_overlay()
@@ -5451,6 +5938,46 @@ func _draw_status_overlay_layer() -> void:
 	_draw_drawing_stage_toast()
 	_draw_toast()
 	_draw_collab_combo_cutin_overlay()
+
+func _draw_bug_genre_screen_fx() -> void:
+	if not boss_genre_visual_active or state != "playing":
+		return
+	var boss := _bug_genre_visual_boss()
+	if boss.is_empty() or boss_genre_visual_phase == "break":
+		return
+	var phase_clock := elapsed * 16.0 + boss_genre_visual_seed * 9.0
+	var pulse := 0.5 + 0.5 * sin(phase_clock)
+	var active_boss_event := genre_event_source == "boss" and active_genre_event != ""
+	var intensity := 0.34
+	if boss_genre_visual_phase == "telegraph":
+		var remaining := clampf(float(boss.get("buggedStateTimer", 0.0)), 0.0, 1.0)
+		intensity = lerpf(0.34, 0.90, 1.0 - remaining)
+		if remaining <= 0.10:
+			var flash_alpha := (1.0 - remaining / 0.10) * 0.28
+			draw_rect(FIELD_VIEW, Color(0.58, 0.97, 1.0, flash_alpha), true)
+	elif active_boss_event and genre_event_timer <= 1.0:
+		intensity = lerpf(0.38, 0.86, 1.0 - genre_event_timer)
+		if genre_event_timer <= 0.10:
+			var flash_alpha := (1.0 - genre_event_timer / 0.10) * 0.25
+			draw_rect(FIELD_VIEW, Color(0.62, 0.98, 1.0, flash_alpha), true)
+	var cyan := Color(0.08, 0.92, 1.0, (0.14 + pulse * 0.06) * intensity)
+	var magenta := Color(1.0, 0.08, 0.68, (0.12 + (1.0 - pulse) * 0.05) * intensity)
+	var corner_size := Vector2(86.0, 6.0)
+	for corner in [FIELD_VIEW.position, Vector2(FIELD_VIEW.end.x - corner_size.x, FIELD_VIEW.position.y), Vector2(FIELD_VIEW.position.x, FIELD_VIEW.end.y - corner_size.y), FIELD_VIEW.end - corner_size]:
+		draw_rect(Rect2(corner, corner_size), cyan if int(corner.x + corner.y) % 2 == 0 else magenta, true)
+	for i in range(5):
+		var y := FIELD_VIEW.position.y + 88.0 + float(i) * 131.0 + float((int(phase_clock) + i * 7) % 5)
+		var start_x := FIELD_VIEW.position.x + 24.0 + float((i * 113) % 260)
+		draw_line(Vector2(start_x, y), Vector2(minf(FIELD_VIEW.end.x - 24.0, start_x + 150.0 + float(i % 3) * 80.0), y), cyan if i % 2 == 0 else magenta, 1.0, true)
+	if active_boss_event and active_genre_event == "horror":
+		for i in range(5):
+			var inset := float(i) * 13.0
+			var vignette := FIELD_VIEW.grow(-inset)
+			draw_rect(vignette, Color(0.15, 0.02, 0.23, (0.028 - float(i) * 0.003) * (0.72 + pulse * 0.20)), false, 7.0)
+		for i in range(4):
+			var side_x := FIELD_VIEW.position.x + 10.0 + float(i % 2) * (FIELD_VIEW.size.x - 28.0)
+			var y := FIELD_VIEW.position.y + 110.0 + float(i) * 142.0
+			draw_rect(Rect2(Vector2(side_x, y), Vector2(18.0, 4.0 + float(i % 2) * 4.0)), Color(0.37, 0.12, 0.56, 0.18), true)
 
 func _draw_hard_climax_banner() -> void:
 	if hard_climax_banner_timer <= 0.0 or hard_climax_banner_text == "":
@@ -5565,6 +6092,19 @@ func _draw_world_layer() -> void:
 	_draw_collab_stage_effects(visible_world_rect)
 	_draw_collab_dash_sync_world_effects(visible_world_rect)
 	_draw_enemies(visible_world_rect)
+	_draw_red_pen_bullet_telegraph()
+	WeaponDrawSystemScript.draw_red_pen_foreground(self, enemy_bullets, visible_world_rect)
+	_draw_red_pen_launch_fx_foreground(visible_world_rect)
+	WeaponDrawSystemScript.draw_comment_shotgun_launch_foreground(self, enemy_bullets, visible_world_rect, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"))
+	_draw_bug_genre_boss_glitch()
+	_draw_bug_genre_race_start_glitch(visible_world_rect)
+	_draw_bug_genre_break()
+	_draw_pitch_chief_bullet_telegraph()
+	_draw_kuso_maro_bullets(visible_world_rect)
+	_draw_bug_spoiler_bullets(visible_world_rect)
+	_draw_pitch_police_note_bullets(visible_world_rect)
+	_draw_song_boss_megaphone_foreground()
+	_draw_song_boss_chorus_judge_foreground()
 	if relay_boss_active:
 		RelayBossDrawSystemScript.draw_front_for_target(self, _current_arena())
 	_draw_collab_boss_enemy_overlays(visible_world_rect)
@@ -5572,12 +6112,21 @@ func _draw_world_layer() -> void:
 	_draw_boomerang()
 	_draw_player()
 	_draw_collab_partner()
+	_draw_collab_boss_attack_foreground(visible_world_rect)
+	WeaponDrawSystemScript.draw_red_pen_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
+	WeaponDrawSystemScript.draw_comment_shotgun_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
+	_draw_sticky_maro_player_fx()
+	_draw_boss_guide_lines_foreground()
+	_draw_kuso_maro_bullet_rims(visible_world_rect)
+	_draw_pitch_police_note_bullet_rims(visible_world_rect)
 	_draw_song_spotlight_labels(visible_world_rect)
 	_draw_hit_fx(false, hit_fx_draw_items, "front")
 	_draw_map_foreground()
+	_draw_red_pen_review_tips_foreground()
 	world_draw_active = false
 	_reset_world_transform()
 	_draw_field_clip_masks()
+	_draw_comment_shotgun_launch_edge_foreground()
 	_draw_frames()
 
 func _draw_overlay_layer() -> void:
@@ -5642,6 +6191,7 @@ func _draw_overlay_layer() -> void:
 			_draw_relay_boss_support_fx()
 		else:
 			_draw_boss_overlay()
+		_draw_comment_shotgun_launch_overlay()
 	if StateFlowSystemScript.shows_comment_countdown(state):
 		_draw_comment_countdown()
 	if state == "playing":
@@ -5652,6 +6202,8 @@ func _draw_overlay_layer() -> void:
 		_draw_result_overlay()
 	if state == "boss_cutin":
 		_draw_boss_cutin_overlay()
+	if unlock_presentation_active:
+		_draw_unlock_presentation_overlay()
 
 func _is_front_screen_state(screen_id: String) -> bool:
 	return screen_id in ["title", "power_up_shop", "codex", "character_select", "stream_frame_select", "collab_partner_select", "ranking", "options"]
@@ -5699,7 +6251,10 @@ func _update_front_screen_transition(delta: float) -> bool:
 	return true
 
 func _finish_front_screen_transition() -> void:
-	if front_screen_transition_from == "title" and front_screen_transition_to == "power_up_shop":
+	if front_screen_transition_from == "title" and front_screen_transition_to == "codex":
+		if codex_screen != null:
+			codex_screen.finish_common_front_transition(true)
+	elif front_screen_transition_from == "title" and front_screen_transition_to == "power_up_shop":
 		if power_up_shop_screen != null:
 			power_up_shop_screen.finish_common_front_transition(true)
 	elif front_screen_transition_from == "power_up_shop" and front_screen_transition_to == "title":
@@ -5743,10 +6298,14 @@ func _front_screen_transition_frame() -> Dictionary:
 	}
 
 func _apply_front_screen_transition_adapter(frame: Dictionary) -> void:
-	if power_up_shop_screen == null:
-		return
 	var at_midpoint := bool(frame.get("atMidpoint", false))
 	var overlay_alpha := float(frame.get("overlayAlpha", 0.0))
+	if front_screen_transition_from == "title" and front_screen_transition_to == "codex":
+		if codex_screen != null:
+			codex_screen.apply_common_front_transition(float(frame.get("incomingOffsetX", 0.0)), overlay_alpha, at_midpoint)
+		return
+	if power_up_shop_screen == null:
+		return
 	if front_screen_transition_from == "title" and front_screen_transition_to == "power_up_shop":
 		power_up_shop_screen.apply_common_front_transition(float(frame.get("incomingOffsetX", 0.0)), overlay_alpha, at_midpoint)
 	elif front_screen_transition_from == "power_up_shop" and front_screen_transition_to == "title":
@@ -5772,6 +6331,8 @@ func _draw_front_screen_overlay_for_state(screen_id: String) -> void:
 		"options":
 			_draw_options_overlay()
 		"power_up_shop":
+			pass
+		"codex":
 			pass
 
 func _draw_front_screen_transition_overlay() -> void:
@@ -5821,6 +6382,7 @@ func _build_ui() -> void:
 	codex_screen.cursor_moved.connect(_on_codex_cursor_moved)
 	codex_screen.confirm_requested.connect(_on_codex_confirm_requested)
 	codex_screen.cancel_requested.connect(_on_codex_cancel_requested)
+	codex_screen.read_state_save_requested.connect(_on_codex_read_state_save_requested)
 	codex_screen.debug_save_requested.connect(_on_codex_debug_save_requested)
 	codex_screen.completion_notice_requested.connect(_on_codex_completion_notice)
 
@@ -5837,6 +6399,8 @@ func _current_run_length() -> float:
 
 func _update_world(delta: float) -> void:
 	var run_length := _current_run_length()
+	var previous_elapsed := elapsed
+	var evaluation_sample_delta := 0.0
 	if stream_end_banner_timer > 0.0:
 		stream_end_banner_timer = maxf(0.0, stream_end_banner_timer - delta)
 		if stream_end_banner_timer <= 0.0:
@@ -5845,6 +6409,7 @@ func _update_world(delta: float) -> void:
 		return
 	if is_inf(run_length):
 		elapsed += delta
+		evaluation_sample_delta = maxf(0.0, elapsed - previous_elapsed)
 	else:
 		var previous_remaining := maxf(0.0, run_length - elapsed)
 		elapsed += delta
@@ -5853,8 +6418,12 @@ func _update_world(delta: float) -> void:
 		_update_stream_end_countdown_feedback(remaining)
 		if elapsed >= run_length:
 			elapsed = run_length
+			evaluation_sample_delta = maxf(0.0, elapsed - previous_elapsed)
+			_sample_stream_evaluation(evaluation_sample_delta)
 			_start_stream_end_banner()
 			return
+		evaluation_sample_delta = maxf(0.0, elapsed - previous_elapsed)
+	_sample_stream_evaluation(evaluation_sample_delta)
 
 	_update_relay_boss_phase_lock_watchdog(delta)
 	_update_relay_boss_combo_watchdog(delta)
@@ -6053,10 +6622,12 @@ func _update_world_systems(delta: float, boss_delta: float = -1.0) -> void:
 	WeaponSystemScript.prepare_shield_defense_for_target(self)
 	_update_enemies(delta, arena)
 	_update_collab_stage(delta, arena)
+	_update_collab_partner_mute_hit_visuals()
 	if state != "playing":
 		return
 	_update_destructibles(delta, arena)
 	_update_weapons(delta, arena)
+	_update_collab_partner_mute_hit_visuals()
 	_resolve_collab_pass_target()
 	var exp_result: Dictionary = ExpSystemScript.update_world_for_target(self, delta)
 	if int(exp_result.get("collectedExp", 0)) > 0:
@@ -6398,13 +6969,11 @@ func _start_character_select() -> void:
 	_prepare_character_select()
 
 func _prepare_character_select() -> void:
+	character_select_walk_time = 0.0
 	_reset_pre_run_select_press_feedback()
 	if power_up_shop_manager != null:
 		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
 		current_character_id = CharacterSystemScript.validated_character_id(characters, power_up_shop_manager.selected_character_id())
-		if power_up_shop_manager.consume_senior_unit_unlock_notice():
-			toast_text = "シニアユニットの3人が解禁されました"
-			toast_timer = 4.0
 	var result: Dictionary = CharacterSystemScript.start_selection_for_target(self, choice_box, result_panel, characters)
 	character_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(result["chat"])]}, chat_box)
@@ -6523,6 +7092,13 @@ func _open_power_up_shop(origin: String) -> void:
 func _open_codex() -> void:
 	if state != "title" or front_screen_transition_active:
 		return
+	_prepare_codex_from_title()
+	if codex_screen != null:
+		codex_screen.begin_common_front_transition("incoming")
+	_begin_front_screen_transition("title", "codex", "forward")
+	queue_redraw()
+
+func _prepare_codex_from_title() -> void:
 	codex_return_state = "title"
 	previous_state = state
 	state = "codex"
@@ -6531,7 +7107,6 @@ func _open_codex() -> void:
 	if codex_screen != null:
 		codex_screen.open_screen("title", difficulty_progress.duplicate(true))
 	_update_ui()
-	queue_redraw()
 
 func _open_codex_from_result() -> void:
 	if state != "result" or result_showing_ranking or front_screen_transition_active:
@@ -6576,6 +7151,13 @@ func _on_codex_confirm_requested() -> void:
 
 func _on_codex_cancel_requested() -> void:
 	_play_back_transition_se()
+
+func _on_codex_read_state_save_requested(category: String, item_id: String) -> void:
+	if difficulty_progress.is_empty():
+		push_warning("Codex read state save skipped: difficulty progress is empty (%s:%s)" % [category, item_id])
+		return
+	if not DifficultyProgressSystemScript.save_progress(difficulty_progress):
+		push_warning("Codex read state save failed for %s:%s" % [category, item_id])
 
 func _on_codex_debug_save_requested() -> void:
 	if not OS.is_debug_build():
@@ -7128,6 +7710,10 @@ func _open_title_options() -> void:
 func _prepare_title_options() -> void:
 	options_return_state = "title"
 	state = "options"
+	option_reset_confirm_visible = false
+	option_reset_confirm_hover_index = -1
+	option_hover_index = -1
+	option_stick_axis_latch = Vector2.ZERO
 	choice_box.visible = false
 	result_panel.visible = false
 	_refresh_options_screen()
@@ -7141,7 +7727,12 @@ func _refresh_options_screen() -> void:
 
 func _back_from_front_screen() -> void:
 	if state == "options" and options_return_state == "pause":
+		option_reset_confirm_visible = false
+		option_reset_confirm_hover_index = -1
+		option_hover_index = -1
+		option_stick_axis_latch = Vector2.ZERO
 		state = "pause"
+		pause_stick_axis_latch = Vector2.ZERO
 		pause_escape_release_blocked = true
 		result_label.text = ""
 		result_panel.visible = false
@@ -7167,12 +7758,17 @@ func _prepare_back_to_title(play_title_intro: bool) -> void:
 		if not quick_test_mode and not difficulty_progress.is_empty():
 			DifficultyProgressSystemScript.save_progress(difficulty_progress)
 		CodexManager.abandon_run()
+	_clear_relay_offline_laser_visuals()
+	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "title_transition")
 	if relay_mode:
 		_prepare_relay_start()
 	relay_mode = false
 	relay_flow_state = "CharacterSelect"
 	HardModeSystemScript.clear_hard_comment_events_for_target(self, "title_transition")
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "title_transition")
+	_clear_collab_crusher_comparison_spam_visuals()
+	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
+	_clear_collab_crusher_division_noise_visuals(true)
 	_clear_toast()
 	options_return_state = "title"
 	state = "title"
@@ -7443,7 +8039,19 @@ func _clear_troll_linked_comments(release_lines: bool) -> void:
 	zatsudan_comment_linked_cooldown = 0.0
 
 func _update_enemies(delta: float, arena: Rect2) -> void:
+	var boss_genre_enemy_uids: Dictionary = {}
+	if genre_event_source == "boss" and active_genre_event == "bullet_hell" and boss_genre_visual_active:
+		for enemy_item in enemies:
+			var genre_enemy: Dictionary = enemy_item as Dictionary
+			if bool(genre_enemy.get("genreEventEnemy", false)):
+				boss_genre_enemy_uids[int(genre_enemy.get("uid", -1))] = true
 	var result: Dictionary = EnemySystemScript.update_world_for_target(self, delta, rng, arena)
+	if not boss_genre_enemy_uids.is_empty():
+		for bullet_item in enemy_bullets:
+			var genre_bullet: Dictionary = bullet_item as Dictionary
+			if boss_genre_enemy_uids.has(int(genre_bullet.get("sourceUid", -2))):
+				genre_bullet["genreEventOwned"] = true
+				genre_bullet["bossGenreVisual"] = true
 	_update_drawing_yellow_walls_vs_enemies(delta, arena)
 	var marshmallow_drop_requests: Array = result.get("marshmallowDropRequests", []) as Array
 	if not marshmallow_drop_requests.is_empty():
@@ -7566,7 +8174,7 @@ func _try_lose_collab_sync_star_on_damage() -> void:
 	if collab_sync_stars <= 0 or collab_keep_sync_star_loss_cooldown > 0.0:
 		return
 	collab_sync_stars = maxi(0, collab_sync_stars - 1)
-	collab_keep_sync_star_loss_cooldown = _collab_instruction_variant_value("keep_sync", COLLAB_INSTRUCTION_KEEP_SYNC_STAR_LOSS_COOLDOWN, COLLAB_INSTRUCTION_KEEP_SYNC_STAR_LOSS_COOLDOWN, 4.0)
+	collab_keep_sync_star_loss_cooldown = _comment_runtime_param("keep_sync", "starLossCooldown", COLLAB_INSTRUCTION_KEEP_SYNC_STAR_LOSS_COOLDOWN)
 	var lost_slot := collab_sync_stars
 	while collab_sync_star_slot_fx.size() <= lost_slot:
 		collab_sync_star_slot_fx.append(0.0)
@@ -7603,22 +8211,61 @@ func _choose_comment(index: int) -> void:
 		return
 	var had_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
 	var before_genre_event := String(active_genre_event)
+	var danger_comments_before := danger_comments_chosen
 	var result: Dictionary = CommentSystemScript.choose_comment_with_feedback_for_target(self, index, rng, _current_arena(), COMMENT_INTERVAL, choice_box, genre_events)
 	if not bool(result["selected"]):
 		return
+	_record_evaluation_dangerous_comments(maxi(0, danger_comments_chosen - danger_comments_before))
 	_apply_buzz_feedback(result)
-	_maybe_start_genre_change_banner(before_genre_event)
 	_play_confirm_se()
 	_suppress_dash_button_after_ui_confirm()
 	if bool(result.get("bossWarningStarted", false)):
 		_play_boss_warning_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
-	_apply_song_instruction_comment(String(result.get("commentId", "")))
-	_apply_drawing_instruction_comment(String(result.get("commentId", "")))
-	_apply_collab_instruction_comment(String(result.get("commentId", "")))
-	_start_hard_reignition_if_selected(String(result.get("commentId", "")))
+	var selected_comment_id := String(result.get("commentId", ""))
+	_apply_song_instruction_comment(selected_comment_id)
+	_apply_drawing_instruction_comment(selected_comment_id)
+	_apply_collab_instruction_comment(selected_comment_id)
+	if selected_comment_id == "do_everything":
+		_apply_do_everything_sub_comments()
+	_maybe_start_genre_change_banner(before_genre_event)
+	_start_hard_reignition_if_selected(selected_comment_id)
 	if not had_banana_floor and ModifierSystemScript.has_effect_for_target(self, "banana_floor"):
 		_start_banana_floor_appear()
+
+func _apply_do_everything_sub_comments() -> void:
+	if active_sub_comment_ids.is_empty():
+		return
+	var runtime: Dictionary = HardModeSystemScript.runtime_for_target(self)
+	if runtime.is_empty():
+		return
+	var views: Dictionary = runtime.get("activeCommentViews", {}) as Dictionary
+	var original_effect_timer := effect_timer
+	var event_ids := ["game_genre_mix", "genre_change", "force_bullet_hell", "force_race", "force_horror"]
+	for raw_id in active_sub_comment_ids:
+		var comment_id := String(raw_id)
+		var sub_view: Dictionary = views.get(comment_id, {}) as Dictionary
+		if sub_view.is_empty():
+			continue
+		# Duration is a view-level value, so a heart variant also affects the
+		# one-shot card/event it owns without shortening the compound comment UI.
+		effect_timer = maxf(0.1, float(sub_view.get("duration", original_effect_timer)))
+		_apply_song_instruction_comment(comment_id)
+		_apply_drawing_instruction_comment(comment_id)
+		_apply_collab_instruction_comment(comment_id)
+		if comment_id in ["hard_pressure_wave", "talk_comment_avalanche"]:
+			HardModeSystemScript.activate_comment_event_for_target(self, sub_view, rng)
+		if comment_id in event_ids:
+			var previous_view: Dictionary = runtime.get("activeCommentView", {}) as Dictionary
+			runtime["activeCommentView"] = sub_view.duplicate(true)
+			var feedback: Dictionary = GenreEventSystemScript.start_comment_event_if_enabled_for_target(self, current_stream_frame, comment_id, genre_events, _current_arena(), rng)
+			runtime["activeCommentView"] = previous_view
+			var event_chats: Array = feedback.get("chats", []) as Array
+			if not event_chats.is_empty():
+				chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": event_chats}, chat_box)
+			for raw_toast in feedback.get("toasts", []) as Array:
+				_push_time_toast(String(raw_toast), 1.15)
+	effect_timer = original_effect_timer
 
 func _enqueue_gift_request(source: String, gift_quality: String = "normal", pp_eligible: bool = true, field_random_eligible: bool = false, fallback_eligible: bool = true, reward_id: String = "", debug: bool = false) -> Dictionary:
 	return GiftSystemScript.enqueue_gift_request(self, source, gift_quality, pp_eligible, field_random_eligible, fallback_eligible, reward_id, debug)
@@ -7942,8 +8589,6 @@ func _finish_run(reason: String) -> void:
 	ResultSystemScript.open_result_ui_for_target(reason, self, quick_test_mode, choice_box, result_panel, result_label, heart_cards, chat_box)
 	if bool(last_result_data.get("seniorUnitUnlocked", false)):
 		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
-		toast_text = "シニアユニットの3人が解禁されました"
-		toast_timer = 4.0
 
 func _end_type_for_finish_reason(reason: String) -> String:
 	if reason.contains("成功") or reason.contains("完走") or player_hp > 0:
@@ -7976,9 +8621,12 @@ func _toggle_result_ranking() -> void:
 func _update_pause_menu(delta: float) -> void:
 	_update_pause_menu_navigation(delta)
 	var action: String = DebugSystemScript.pause_action(debug_key_latch)
-	if action == "":
-		return
 	if action in ["pause_up", "pause_down", "pause_left", "pause_right"]:
+		return
+	_handle_pause_action(action)
+
+func _handle_pause_action(action: String) -> void:
+	if action == "":
 		return
 	if pause_confirm_action != "":
 		if action == "pause_cancel":
@@ -7992,6 +8640,9 @@ func _update_pause_menu(delta: float) -> void:
 				_play_back_transition_se()
 				_close_pause_confirm()
 			return
+	if action == "pause_cancel":
+		_resume_from_pause()
+		return
 	if action == "pause_continue":
 		pause_focus_area = "actions"
 		pause_menu_index = 0
@@ -8019,6 +8670,46 @@ func _update_pause_menu(delta: float) -> void:
 			_open_pause_options()
 		else:
 			_open_pause_confirm("title")
+
+func _apply_pause_input_action(action: String) -> bool:
+	var before := _pause_navigation_snapshot()
+	match action:
+		"pause_up":
+			if pause_confirm_action == "":
+				_apply_pause_navigation(-2)
+		"pause_down":
+			if pause_confirm_action == "":
+				_apply_pause_navigation(2)
+		"pause_left":
+			if pause_confirm_action != "":
+				_apply_pause_confirm_navigation(-1)
+			else:
+				_apply_pause_navigation(-1)
+		"pause_right":
+			if pause_confirm_action != "":
+				_apply_pause_confirm_navigation(1)
+			else:
+				_apply_pause_navigation(1)
+		_:
+			_handle_pause_action(action)
+	return PauseUiSystemScript.navigation_changed(before, _pause_navigation_snapshot())
+
+func _pause_navigation_snapshot() -> Dictionary:
+	return PauseUiSystemScript.navigation_snapshot(
+		pause_menu_index,
+		pause_focus_area,
+		pause_equipment_row,
+		pause_weapon_slot_index,
+		pause_accessory_slot_index,
+		pause_confirm_index
+	)
+
+func _play_pause_navigation_se_once() -> void:
+	var current_frame := Engine.get_process_frames()
+	if pause_navigation_se_frame == current_frame:
+		return
+	pause_navigation_se_frame = current_frame
+	_play_cursor_move_se()
 
 func _update_pause_menu_navigation(delta: float) -> void:
 	var nav: int = 0
@@ -8126,6 +8817,7 @@ func _move_pause_equipment_cursor(dir: int) -> void:
 func _resume_from_pause() -> void:
 	_play_back_transition_se()
 	_close_pause_confirm()
+	pause_stick_axis_latch = Vector2.ZERO
 	pause_nav_repeat_timer = 0.0
 	pause_nav_last_dir = 0
 	state = previous_state if previous_state != "" and previous_state != "pause" else "playing"
@@ -8133,6 +8825,11 @@ func _resume_from_pause() -> void:
 func _open_pause_options() -> void:
 	_play_confirm_se()
 	_close_pause_confirm()
+	pause_stick_axis_latch = Vector2.ZERO
+	option_reset_confirm_visible = false
+	option_reset_confirm_hover_index = -1
+	option_hover_index = -1
+	option_stick_axis_latch = Vector2.ZERO
 	options_return_state = "pause"
 	state = "options"
 	choice_box.visible = false
@@ -8141,83 +8838,89 @@ func _open_pause_options() -> void:
 
 func _draw_pause_overlay() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(0.04, 0.01, 0.05, 0.62), true)
-	var panel: Rect2 = Rect2(Vector2(188, 68), Vector2(1224, 744))
+	var pause_layout := PauseUiSystemScript.layout()
+	var panel: Rect2 = pause_layout["panel"] as Rect2
 	_draw_ranking_panel(panel, Color(1.0, 0.972, 0.99, 0.98), Color("#ff72ad"), 28, 4, true)
 	_draw_text_item({"pos": panel.position + Vector2(40, 54), "text": "ポーズ中", "width": 260, "size": 38, "color": Color("#e73763")})
 	_draw_text_item({"pos": panel.position + Vector2(42, 84), "text": "配信を一時停止しています", "width": 360, "size": 17, "color": Color("#7a526b")})
-	_draw_pause_status_panel(Rect2(panel.position + Vector2(36, 104), Vector2(1152, 86)))
-	_draw_pause_equipment_slot_panel(Rect2(panel.position + Vector2(36, 210), Vector2(560, 244)), true)
-	_draw_pause_equipment_slot_panel(Rect2(panel.position + Vector2(628, 210), Vector2(560, 244)), false)
-	_draw_pause_current_instruction_panel(Rect2(panel.position + Vector2(36, 474), Vector2(356, 126)))
-	_draw_pause_compact_stream_rule_panel(Rect2(panel.position + Vector2(416, 474), Vector2(356, 126)))
-	_draw_pause_short_controls_panel(Rect2(panel.position + Vector2(796, 474), Vector2(392, 126)))
-	_draw_pause_action_panel(Rect2(panel.position + Vector2(36, 626), Vector2(1152, 84)))
+	_draw_pause_status_panel(pause_layout["status"] as Rect2)
+	_draw_pause_equipment_slot_panel(pause_layout["weapon"] as Rect2, true)
+	_draw_pause_equipment_slot_panel(pause_layout["accessory"] as Rect2, false)
+	_draw_pause_current_instruction_panel(pause_layout["instruction"] as Rect2)
+	_draw_pause_compact_stream_rule_panel(pause_layout["rule"] as Rect2)
+	_draw_pause_short_controls_panel(pause_layout["controls"] as Rect2)
+	_draw_pause_action_panel(pause_layout["actions"] as Rect2)
 
 func _draw_pause_status_panel(rect: Rect2) -> void:
-	_draw_pause_section_box(rect, Color("#eef9ff"), Color("#bfe8ff"))
-	var remaining: float = 0.0 if is_inf(_current_run_length()) else maxf(0.0, _current_run_length() - elapsed)
-	var status_lines: Array[String] = [
-		"配信者：%s　配信枠：%s" % [
-			String(current_character.get("displayName", "赤羽ばんり")),
-			String(current_stream_frame.get("displayName", "雑談枠"))
-		],
-		"残り時間：%s　視聴者数：%d人　ボルテージ：x%.1f" % [
-			_format_pause_time(remaining),
-			score,
-			multiplier
-		],
-		"バズ度：%d%%　撃破スコア +%d%%　ギフト期待度：%d%%　♡待機：%s" % [
-			burn_combo,
-			roundi((BuzzSystemScript.score_multiplier(burn_combo) - 1.0) * 100.0),
-			gift_hype,
-			"あり" if heart_pending else "なし"
-		]
-	]
-	var line_colors: Array[Color] = [Color("#26435c"), Color("#142033"), Color("#6d4b75")]
-	for i in range(status_lines.size()):
-		_draw_text_item({
-			"pos": rect.position + Vector2(20, 27 + i * 24),
-			"text": status_lines[i],
-			"width": int(rect.size.x - 40),
-			"size": 17 if i < 2 else 16,
-			"color": line_colors[i]
-		})
+	var status_context := _pause_status_context()
+	var rows: Array[Dictionary] = PauseUiSystemScript.status_rows(status_context)
+	var cells: Array[Rect2] = PauseUiSystemScript.status_cell_rects(rect)
+	for index in range(mini(rows.size(), cells.size())):
+		_draw_pause_status_cell(cells[index], rows[index], int(status_context.get("burnResistCharges", 0)))
 
-func _pause_empty_slot_description(is_weapon: bool) -> Dictionary:
-	if is_weapon:
-		return {"title": "空き武器スロット", "body": "ギフトで武器を入手すると、ここに表示されます"}
-	return {"title": "空きアクセサリスロット", "body": "ギフトでアクセサリを入手すると、ここに表示されます"}
-
-func _pause_default_equipment_description() -> Dictionary:
+func _pause_status_context() -> Dictionary:
 	return {
-		"title": "装備説明",
-		"body": "武器・アクセサリにカーソルを合わせると説明が表示されます"
+		"characterName": String(current_character.get("displayName", "赤羽ばんり")),
+		"relayMode": relay_mode,
+		"streamFrame": current_stream_frame,
+		"streamFrameId": current_stream_frame_id,
+		"difficultyId": run_difficulty_id,
+		"runLength": _current_run_length(),
+		"elapsed": elapsed,
+		"score": score,
+		"multiplier": multiplier,
+		"burnCombo": burn_combo,
+		"giftHype": gift_hype,
+		"heartPending": heart_pending,
+		"burnResistCharges": burn_resist_charges
 	}
 
+func _draw_pause_status_cell(rect: Rect2, row: Dictionary, protection_charges: int) -> void:
+	var fill := Color(1.0, 1.0, 1.0, 0.78)
+	var border := Color("#d8d0e1")
+	if String(row.get("key", "")) == "difficulty":
+		var difficulty_palette: Dictionary = row.get("palette", {}) as Dictionary
+		var tint: Color = difficulty_palette.get("tint", Color("#fff2fa"))
+		tint.a = 0.78
+		fill = tint
+		border = difficulty_palette.get("accent", Color("#e954a5"))
+	_draw_ranking_panel(rect, fill, border, 10, 1, false)
+	var content_rects: Dictionary = PauseUiSystemScript.status_cell_content_rects(rect, protection_charges if String(row.get("key", "")) == "buzz" else 0)
+	var label_rect: Rect2 = content_rects["label"] as Rect2
+	var value_rect: Rect2 = content_rects["value"] as Rect2
+	var badge_rect: Rect2 = content_rects["badge"] as Rect2
+	if String(row.get("key", "")) == "buzz" and protection_charges > 0:
+		_draw_ranking_panel(badge_rect, Color("#f2feff"), Color("#5ccfe6"), 8, 1, false)
+		_draw_ranking_text("保護 ×%d" % protection_charges, badge_rect.position + Vector2(0, 12), 9, Color("#2587b8"), badge_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(String(row.get("label", "")), label_rect.position + Vector2(0, 14), 12, Color("#6b5f78"), label_rect.size.x)
+	if String(row.get("key", "")) == "difficulty":
+		var difficulty_value_palette: Dictionary = row.get("palette", {}) as Dictionary
+		_draw_ranking_panel(value_rect, difficulty_value_palette.get("tint", Color("#fff2fa")), difficulty_value_palette.get("accent", Color("#e954a5")), 8, 1, false)
+		_draw_ranking_text(String(row.get("value", "NORMAL")), value_rect.position + Vector2(0, 17), 15, difficulty_value_palette.get("accent", Color("#e954a5")), value_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	else:
+		var value_text := String(row.get("value", ""))
+		var value_size := 15 if value_text.length() > 12 else 16
+		_draw_ranking_text(value_text, value_rect.position + Vector2(0, 15), value_size, Color("#263044"), value_rect.size.x)
+
+func _pause_empty_slot_description(is_weapon: bool) -> Dictionary:
+	return PauseUiSystemScript.equipment_description({}, is_weapon, true)
+
+func _pause_default_equipment_description() -> Dictionary:
+	return PauseUiSystemScript.equipment_description({}, true, false)
+
 func _pause_equipment_description(selected_info: Dictionary, is_weapon: bool, active_row: bool) -> Dictionary:
-	if active_row:
-		if selected_info.is_empty() or not bool(selected_info.get("filled", false)):
-			return _pause_empty_slot_description(is_weapon)
-		var level_text: String = "進化" if bool(selected_info.get("evolved", false)) else "Lv%d" % int(selected_info.get("level", 1))
-		return {
-			"title": "%s %s" % [String(selected_info.get("name", "")), level_text],
-			"body": String(selected_info.get("description", "")),
-			"guide": String(selected_info.get("recipeGuide", ""))
-		}
-	return _pause_default_equipment_description()
+	return PauseUiSystemScript.equipment_description(selected_info, is_weapon, active_row)
 
 func _draw_pause_description_box(rect: Rect2, accent: Color, description: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.86), Color(accent.r, accent.g, accent.b, 0.50), 14, 2, false)
-	_draw_ranking_text(String(description.get("title", "")), rect.position + Vector2(16, 34), 19, accent, rect.size.x - 32)
-	var body_lines := _pause_description_lines(description)
-	if not body_lines.is_empty():
-		_draw_multiline_text_item({
-			"pos": rect.position + Vector2(16, 56),
-			"text": "\n".join(body_lines),
-			"width": int(rect.size.x - 32),
-			"size": 13 if not String(description.get("guide", "")).is_empty() else 15,
-			"color": Color("#2d2530")
-		})
+	_draw_ranking_text("装備説明", rect.position + Vector2(16, 20), 13, Color("#7b6f82"), rect.size.x - 32)
+	var title := String(description.get("title", ""))
+	var has_detail_title := title != "" and title != "装備説明"
+	if has_detail_title:
+		_draw_ranking_text(_short_pause_text(title, 30), rect.position + Vector2(16, 40), 16, accent, rect.size.x - 32)
+	var line_layout: Array[Dictionary] = PauseUiSystemScript.equipment_description_line_layout(rect, description)
+	for line in line_layout:
+		_draw_ranking_text(String(line.get("text", "")), Vector2(rect.position.x + 16.0, float(line.get("baseline", rect.position.y + 42.0))), int(line.get("fontSize", 11)), Color("#2d2530"), rect.size.x - 32.0)
 
 func _draw_pause_equipment_slot_panel(rect: Rect2, is_weapon: bool) -> void:
 	var accent: Color = Color("#ffb433") if is_weapon else Color("#45c8df")
@@ -8225,20 +8928,18 @@ func _draw_pause_equipment_slot_panel(rect: Rect2, is_weapon: bool) -> void:
 	_draw_pause_section_box(rect, fill, accent)
 	var title: String = "武器" if is_weapon else "アクセサリ"
 	_draw_text_item({"pos": rect.position + Vector2(20, 32), "text": title, "width": 190, "size": 24, "color": accent})
+	var equipment_layout: Dictionary = PauseUiSystemScript.equipment_layout(rect)
 	var selected_index: int = pause_weapon_slot_index if is_weapon else pause_accessory_slot_index
 	var row: int = 0 if is_weapon else 1
 	var active_row: bool = pause_focus_area == "equipment" and pause_equipment_row == row
-	var slot_size := Vector2(58, 58)
-	var slot_step := 66.0
-	var slot_start := rect.position + Vector2(22, 56)
+	var slots: Array[Rect2] = equipment_layout["slots"] as Array[Rect2]
 	var selected_info: Dictionary = {}
-	for i in range(5):
+	for i in range(slots.size()):
 		var info: Dictionary = _pause_equipment_slot_info(i, is_weapon)
 		if i == selected_index:
 			selected_info = info
-		var slot_rect := Rect2(slot_start + Vector2(float(i) * slot_step, 0), slot_size)
-		_draw_pause_equipment_slot(slot_rect, info, i == selected_index, active_row, accent)
-	var desc_rect := Rect2(rect.position + Vector2(18, 132), Vector2(rect.size.x - 36, 112))
+		_draw_pause_equipment_slot(slots[i], info, i == selected_index, active_row, accent)
+	var desc_rect: Rect2 = equipment_layout["description"] as Rect2
 	_draw_pause_description_box(desc_rect, accent, _pause_equipment_description(selected_info, is_weapon, active_row))
 
 func _pause_equipment_slot_info(index: int, is_weapon: bool) -> Dictionary:
@@ -8270,11 +8971,11 @@ func _draw_pause_equipment_slot(rect: Rect2, info: Dictionary, selected: bool, a
 	var active_selected: bool = selected and active_focus
 	var border: Color = Color("#ffd15a") if evolved else Color("#d9c8ee")
 	if active_selected:
-		border = Color("#ff4f9b")
+		border = accent
 	var fill: Color = Color("#fff4d6") if evolved else (Color(1, 1, 1, 0.95) if filled else Color(1, 1, 1, 0.40))
 	_draw_ranking_panel(rect, fill, border, 11, 4 if active_selected else (2 if filled else 1), false)
 	if active_selected:
-		draw_rect(rect.grow(4), Color("#ff5b9c"), false, 2.0)
+		draw_rect(rect.grow(4), accent, false, 2.0)
 	if not filled:
 		draw_rect(Rect2(rect.position + Vector2(13, 13), rect.size - Vector2(26, 26)), Color(1, 1, 1, 0.22), true)
 		return
@@ -8290,25 +8991,41 @@ func _draw_pause_equipment_slot(rect: Rect2, info: Dictionary, selected: bool, a
 	_draw_ranking_text(badge_text, badge_rect.position + Vector2(0, 12), 9, Color("#6a3a00") if evolved else Color.WHITE, badge_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_pause_current_instruction_panel(rect: Rect2) -> void:
-	_draw_pause_section_box(rect, Color("#fff8fc"), Color("#ff8fc4"))
-	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "現在の指示コメ", "width": 230, "size": 21, "color": Color("#e73763")})
+	var active := current_comment != "なし" and effect_timer > 0.0
+	var instruction_view: Dictionary = PauseUiSystemScript.instruction_view({
+		"active": active,
+		"commentName": current_comment,
+		"effectTimer": effect_timer,
+		"body": _pause_instruction_text()
+	})
+	_draw_pause_section_box(rect, instruction_view["fill"] as Color, instruction_view["border"] as Color)
+	var instruction_text_color: Color = instruction_view["text"] as Color
+	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "現在の指示コメ", "width": 210, "size": 20, "color": instruction_text_color})
+	var badge_rect := Rect2(rect.end - Vector2(78.0, 31.0), Vector2(60.0, 22.0))
+	_draw_ranking_panel(badge_rect, instruction_view["badgeFill"] as Color, Color(1, 1, 1, 0), 9, 0, false)
+	_draw_ranking_text(String(instruction_view.get("badge", "なし")), badge_rect.position + Vector2(0, 16), 11, instruction_view["badgeText"] as Color, badge_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var text_pos := rect.position + Vector2(20, 58)
 	var text_width := int(rect.size.x - 40)
-	if current_comment != "なし" and effect_timer > 0.0:
+	if active:
 		var icon: Texture2D = _load_instruction_comment_icon(last_comment_id)
 		if icon != null:
 			var icon_rect := Rect2(rect.position + Vector2(20, 50), Vector2(48, 48))
 			draw_texture_rect(icon, icon_rect, false)
 			text_pos.x += 58.0
 			text_width -= 58
-	_draw_multiline_text_item({"pos": text_pos, "text": _pause_instruction_text(), "width": text_width, "size": 15, "color": Color("#142033")})
+	var instruction_lines: Array[String] = PauseUiSystemScript.instruction_body_lines(String(instruction_view.get("body", "")), text_width, 13 if active else 14, 4)
+	_draw_multiline_text_item({"pos": text_pos, "text": "\n".join(instruction_lines), "width": text_width, "size": 13 if active else 14, "color": instruction_text_color})
 
 func _draw_pause_compact_stream_rule_panel(rect: Rect2) -> void:
 	_draw_pause_section_box(rect, Color("#fffdf4"), Color("#ffbf5c"))
 	_draw_text_item({"pos": rect.position + Vector2(18, 30), "text": "配信枠ルール", "width": 220, "size": 21, "color": Color("#d97706")})
-	var frame_name: String = String(current_stream_frame.get("displayName", "雑談枠"))
-	_draw_ranking_text(frame_name, rect.position + Vector2(20, 58), 17, Color("#8f4b00"), rect.size.x - 40)
-	_draw_multiline_text_item({"pos": rect.position + Vector2(20, 82), "text": _short_pause_text(_pause_stream_rule_text(), 45), "width": int(rect.size.x - 40), "size": 14, "color": Color("#33281e")})
+	var rule_view: Dictionary = PauseUiSystemScript.stream_rule_view({
+		"relayMode": relay_mode,
+		"streamFrame": current_stream_frame,
+		"streamFrameId": current_stream_frame_id
+	})
+	_draw_ranking_text(String(rule_view.get("frameName", "雑談枠")), rect.position + Vector2(20, 54), 16, Color("#8f4b00"), rect.size.x - 40)
+	_draw_multiline_text_item({"pos": rect.position + Vector2(20, 76), "text": String(rule_view.get("body", "")), "width": int(rect.size.x - 40), "size": 12, "color": Color("#33281e")})
 
 func _draw_pause_short_controls_panel(rect: Rect2) -> void:
 	_draw_pause_section_box(rect, Color("#f8fbff"), Color("#c9d7ef"))
@@ -8334,15 +9051,22 @@ func _draw_pause_action_panel(rect: Rect2) -> void:
 			_draw_ranking_text(confirm_labels[i], item_rect.position + Vector2(0, 32), 20, Color.WHITE if selected else Color("#573349"), item_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	var labels: Array[String] = ["配信に戻る", "リトライ", "オプション", "タイトルへ"]
-	var gap := 20.0
-	var button_width := (rect.size.x - 48.0 - gap * 3.0) / 4.0
-	for i in range(labels.size()):
+	var ids: Array[String] = PauseUiSystemScript.action_button_ids()
+	var button_rects: Array[Rect2] = PauseUiSystemScript.action_button_rects(rect)
+	for i in range(mini(labels.size(), button_rects.size())):
 		var selected: bool = pause_focus_area == "actions" and i == pause_menu_index
-		var item_rect := Rect2(rect.position + Vector2(24.0 + float(i) * (button_width + gap), 17.0), Vector2(button_width, 50.0))
-		var fill := Color("#ff5b9c") if selected else Color(1, 1, 1, 0.88)
-		var border := Color("#ff5b9c") if selected else Color("#e6cfe1")
-		_draw_ranking_panel(item_rect, fill, border, 16, 3 if selected else 2, false)
-		_draw_ranking_text("[%d] %s" % [i + 1, labels[i]], item_rect.position + Vector2(0, 32), 19, Color.WHITE if selected else Color("#573349"), item_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var item_rect: Rect2 = button_rects[i]
+		var style: Dictionary = PauseUiSystemScript.action_button_style(ids[i])
+		var focus_visual: Dictionary = PauseUiSystemScript.action_focus_visual(ids[i], selected, float(Time.get_ticks_msec()) / 1000.0)
+		if bool(focus_visual.get("selected", false)):
+			var glow_alpha: float = float(focus_visual.get("glowAlpha", 0.0))
+			var glow_color := Color(0.48, 0.16, 0.68, glow_alpha)
+			_draw_ranking_panel(item_rect.grow(float(focus_visual.get("grow", 0.0))), Color(0.48, 0.16, 0.68, glow_alpha * 0.28), glow_color, 20, 2, false)
+		_draw_ranking_panel(item_rect, style["fill"] as Color, style["border"] as Color, 16, 2, false)
+		_draw_ranking_text("[%d] %s" % [i + 1, labels[i]], item_rect.position + Vector2(0, 32), 18 if selected else 17, style["text"] as Color, item_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		if selected:
+			_draw_ranking_panel(item_rect.grow(6.0), Color(0, 0, 0, 0), Color("#7a2aa8"), 20, 2, false)
+			_draw_result_button_focus_markers(item_rect)
 
 func _draw_pause_section_box(rect: Rect2, fill: Color, border: Color) -> void:
 	_draw_ranking_panel(rect, fill, border, 18, 2, false)
@@ -8433,9 +9157,7 @@ func _pause_instruction_text() -> String:
 		"%s　残り%02d秒" % [current_comment, int(ceil(effect_timer))]
 	]
 	if not active_sub_comment_ids.is_empty():
-		lines.append("内訳：")
-		for label in _active_sub_instruction_labels():
-			lines.append("・%s" % label)
+		lines.append("内訳：%s" % " / ".join(_active_sub_instruction_labels()))
 	elif active_effects.size() > 1:
 		lines.append("発動中効果：%s" % _pause_active_effect_text())
 	else:
@@ -8443,17 +9165,19 @@ func _pause_instruction_text() -> String:
 	return "\n".join(lines)
 
 func _pause_stream_rule_text() -> String:
-	var frame_id: String = String(current_stream_frame.get("id", current_stream_frame_id))
-	if frame_id == "gameplay":
-		return "ゲーム実況枠：一定時間ごとにジャンルイベントが発生します。\nレース風、弾幕風、ホラー風などが一時的に混ざります。"
-	return "雑談枠：マシュマロが届く基本配信枠です。\n拾うとメリット効果、たまにクソマロが混ざります。"
+	return String(PauseUiSystemScript.stream_rule_view({
+		"relayMode": relay_mode,
+		"streamFrame": current_stream_frame,
+		"streamFrameId": current_stream_frame_id
+	}).get("body", ""))
 
 func _pause_comment_description() -> String:
 	var comment: Dictionary = _find_comment_data(last_comment_id)
 	if comment.is_empty():
 		return _pause_active_effect_text()
-	var has_heart: bool = current_comment.ends_with("♡")
-	var view: Dictionary = CommentSystemScript.comment_view(comment, has_heart)
+	var view: Dictionary = _active_instruction_comment_view(last_comment_id)
+	if view.is_empty():
+		view = CommentSystemScript.comment_view(comment, _instruction_comment_heart_active(last_comment_id))
 	return _short_pause_text(String(view.get("description", _pause_active_effect_text())), 34)
 
 func _pause_active_effect_text() -> String:
@@ -8521,20 +9245,64 @@ func _short_pause_text(text: String, max_chars: int) -> String:
 		return one_line
 	return one_line.substr(0, max_chars - 1) + "…"
 
-func _pause_description_lines(description: Dictionary) -> Array[String]:
-	var lines: Array[String] = []
-	var body := String(description.get("body", "")).replace("\r", " ").strip_edges()
-	if body != "":
-		lines.append(_short_pause_text(body, 42))
-	var guide := String(description.get("guide", "")).replace("\r", "").strip_edges()
-	if guide != "":
-		for raw_line in guide.split("\n"):
-			var line := String(raw_line).strip_edges()
-			if line != "":
-				lines.append(_short_pause_text(line, 42))
-	while lines.size() > 5:
-		lines.pop_back()
-	return lines
+func _reset_stream_evaluation_metrics(reference_max_mental: float = 1.0) -> void:
+	evaluation_active_time = 0.0
+	evaluation_buzz_integral = 0.0
+	evaluation_voltage_integral = 0.0
+	evaluation_cumulative_damage_taken = 0.0
+	evaluation_dangerous_comment_count = 0
+	evaluation_gift_count = 0
+	evaluation_target_boss_reached = false
+	evaluation_target_boss_defeated = false
+	evaluation_relay_final_boss_reached = false
+	evaluation_relay_final_boss_defeated = false
+	evaluation_reference_max_mental = maxf(1.0, reference_max_mental)
+
+func _stream_evaluation_state() -> Dictionary:
+	return {
+		"evaluationActiveTime": evaluation_active_time,
+		"evaluationBuzzIntegral": evaluation_buzz_integral,
+		"evaluationVoltageIntegral": evaluation_voltage_integral,
+		"evaluationCumulativeDamageTaken": evaluation_cumulative_damage_taken,
+		"evaluationDangerousCommentCount": evaluation_dangerous_comment_count,
+		"evaluationGiftCount": evaluation_gift_count,
+		"evaluationTargetBossReached": evaluation_target_boss_reached,
+		"evaluationTargetBossDefeated": evaluation_target_boss_defeated,
+		"evaluationRelayFinalBossReached": evaluation_relay_final_boss_reached,
+		"evaluationRelayFinalBossDefeated": evaluation_relay_final_boss_defeated,
+		"evaluationReferenceMaxMental": evaluation_reference_max_mental
+	}
+
+func _record_evaluation_damage(actual_damage: int) -> void:
+	evaluation_cumulative_damage_taken += maxf(0.0, float(actual_damage))
+
+func _record_evaluation_gift() -> void:
+	evaluation_gift_count += 1
+
+func _record_evaluation_dangerous_comments(amount: int = 1) -> void:
+	evaluation_dangerous_comment_count += maxi(0, amount)
+
+func _record_evaluation_target_boss(reached: bool = true, defeated: bool = false) -> void:
+	if not reached:
+		return
+	evaluation_target_boss_reached = true
+	if defeated:
+		evaluation_target_boss_defeated = true
+
+func _record_evaluation_relay_final_boss(reached: bool = true, defeated: bool = false) -> void:
+	if not reached:
+		return
+	evaluation_relay_final_boss_reached = true
+	evaluation_target_boss_reached = true
+	if defeated:
+		evaluation_relay_final_boss_defeated = true
+		evaluation_target_boss_defeated = true
+
+func _sample_stream_evaluation(sample_delta: float) -> void:
+	var sampled := StreamEvaluationSystemScript.sample_state(_stream_evaluation_state(), sample_delta, burn_combo, multiplier)
+	evaluation_active_time = float(sampled.get("evaluationActiveTime", evaluation_active_time))
+	evaluation_buzz_integral = float(sampled.get("evaluationBuzzIntegral", evaluation_buzz_integral))
+	evaluation_voltage_integral = float(sampled.get("evaluationVoltageIntegral", evaluation_voltage_integral))
 
 func _restart() -> void:
 	var retry_difficulty_id := _result_retry_difficulty_id()
@@ -8607,6 +9375,7 @@ func _restart() -> void:
 	if not quick_test_mode:
 		CodexManager.record_character_play(current_character_id, run_id)
 	GiftSystemScript._apply_equipment_stats_to_target(self)
+	_reset_stream_evaluation_metrics(float(player_max_hp))
 	if bool(restart_state["saveSettings"]):
 		SettingsSystemScript.save_for_target(self)
 	_sync_viewer_score_countup()
@@ -8627,6 +9396,9 @@ func _result_retry_difficulty_id() -> String:
 	return DifficultyProgressSystemScript.normalize_difficulty_id(run_difficulty_id)
 
 func _prepare_relay_start() -> void:
+	_clear_relay_offline_laser_visuals()
+	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_noise_summon_visuals_for_target(self, true, "direct_stage_reset")
 	RelayBossDefenseSystemScript.force_clear(self, RelayBossDefenseSystemScript.STATE_NORMAL)
 	quick_test_mode = false
 	relay_completed_frame_ids.clear()
@@ -9276,6 +10048,9 @@ func _prepare_normal_boss_cutin() -> void:
 	player_bullets.clear()
 	boomerang_hits.clear()
 	boss_slow_fields.clear()
+	boss_slow_field_telegraphs.clear()
+	boss_slow_field_fx.clear()
+	boss_slow_field_player_inside = false
 	boss_guide_lines.clear()
 	collab_hazard_fields.clear()
 	collab_boss_attacks.clear()
@@ -9314,6 +10089,7 @@ func _start_relay_boss() -> void:
 		_start_next_relay_segment()
 		_initialize_hard_runtime(true)
 		RelayBossSystemScript.start_for_target(self, _current_arena(), rng)
+		_record_evaluation_relay_final_boss(true, false)
 		if power_up_run_tracker != null:
 			power_up_run_tracker.mark_relay_final_reached()
 	_activate_relay_boss_after_cutin()
@@ -9414,6 +10190,8 @@ func _relay_boss_reserved_sync_stars() -> int:
 func _on_relay_boss_enemy_defeated(enemy: Dictionary) -> void:
 	if not relay_boss_active or relay_boss_score_awarded:
 		return
+	if String(enemy.get("defeatOwner", "")) == "player":
+		_record_evaluation_relay_final_boss(true, true)
 	if power_up_run_tracker != null:
 		power_up_run_tracker.mark_relay_final_defeated()
 		var owner := String(enemy.get("defeatOwner", ""))
@@ -9524,6 +10302,8 @@ func _start_next_relay_segment() -> void:
 	effect_walls.clear()
 	effect_pits.clear()
 	WeaponSystemScript.cleanup_runtime_for_weapon(self, "", "", "run_reset")
+	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
+	_clear_collab_crusher_division_noise_visuals(true)
 	enemies.clear()
 	_clear_troll_linked_comments(true)
 	enemy_bullets.clear()
@@ -9546,6 +10326,12 @@ func _start_next_relay_segment() -> void:
 	genre_event_timer = 0.0
 	genre_event_duration = GenreEventSystemScript.GENRE_EVENT_DURATION
 	genre_event_source = ""
+	boss_genre_visual_active = false
+	boss_genre_visual_event = ""
+	boss_genre_visual_phase = ""
+	boss_genre_visual_seed = 0.0
+	boss_genre_break_visual_timer = 0.0
+	boss_genre_break_visual_duration = 1.2
 	genre_bullet_timer = 0.0
 	genre_event_hurt = false
 	relay_gameplay_event_a = ""
@@ -9593,11 +10379,15 @@ func _start_next_relay_segment() -> void:
 func _handle_debug_keys() -> void:
 	for action in DebugSystemScript.pressed_actions(debug_key_latch):
 		var cycles_debug_evolution := action == "gift_evolution" and state == "gift_choice" and _is_debug_evolution_gift_choice()
-		if (state == "comment_choice" or state == "gift_choice") and action != "unlock_senior_unit" and not cycles_debug_evolution:
+		if (state == "comment_choice" or state == "gift_choice") and action != "unlock_senior_unit" and action != DebugSystemScript.UNLOCK_PRESENTATION_PREVIEW_ACTION and not cycles_debug_evolution:
 			continue
 		_apply_debug_action(action)
 
 func _apply_debug_action(action: String) -> void:
+	if action == DebugSystemScript.UNLOCK_PRESENTATION_PREVIEW_ACTION:
+		if OS.is_debug_build():
+			_debug_start_unlock_presentation_preview()
+		return
 	if action == "hard_balance_toggle":
 		if OS.is_debug_build():
 			hard_balance_debug_overlay_enabled = not hard_balance_debug_overlay_enabled
@@ -9895,6 +10685,153 @@ func _clamp_relay_boss_actors_to_arena() -> void:
 	collab_partner_pos.x = clampf(collab_partner_pos.x, arena.position.x + 30.0, arena.end.x - 30.0)
 	collab_partner_pos.y = clampf(collab_partner_pos.y, arena.position.y + 36.0, arena.end.y - 36.0)
 
+func _bug_genre_visual_boss() -> Dictionary:
+	if not boss_genre_visual_active or not boss_active:
+		return {}
+	var boss := BossSystemScript.active_boss_for_target(self)
+	if String(boss.get("kind", "")) != "bugged_final_boss":
+		return {}
+	return boss
+
+func _bug_genre_background_texture(event_id: String) -> Texture2D:
+	var data := MapBackgroundSystemScript.background_data_for_stream_frame("gameplay", event_id)
+	var path := MapBackgroundSystemScript.floor_path(data)
+	var texture := _load_ui_part(path)
+	if texture == null:
+		texture = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	return texture
+
+func _draw_bug_genre_texture_bands(event_id: String, map_rect: Rect2, count: int, shift: float, alpha: float) -> void:
+	var texture := _bug_genre_background_texture(event_id)
+	if texture == null or count <= 0:
+		return
+	var texture_size := Vector2(texture.get_size())
+	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
+		return
+	var slots: Array[int] = [1, 4, 0, 5, 2, 3]
+	var heights: Array[float] = [0.074, 0.092, 0.066, 0.082, 0.070, 0.088]
+	for i in range(mini(count, slots.size())):
+		var slot := slots[i]
+		var height := map_rect.size.y * heights[i]
+		var center_y := map_rect.position.y + map_rect.size.y * (0.10 + float(slot) * 0.155)
+		var band := Rect2(Vector2(map_rect.position.x, center_y - height * 0.5), Vector2(map_rect.size.x, height))
+		var offset_x := shift * (-1.0 if i % 2 == 0 else 1.0)
+		var destination := Rect2(band.position + Vector2(offset_x, 0.0), band.size)
+		var scale := texture_size / map_rect.size
+		var source := Rect2((band.position - map_rect.position) * scale, band.size * scale)
+		draw_texture_rect_region(texture, destination, source, Color(1.0, 1.0, 1.0, alpha))
+		var edge_color := Color(0.14, 0.94, 1.0, 0.30 * alpha) if i % 2 == 0 else Color(1.0, 0.12, 0.67, 0.28 * alpha)
+		draw_line(destination.position, Vector2(destination.end.x, destination.position.y), edge_color, 1.4, true)
+		draw_line(Vector2(destination.position.x, destination.end.y), destination.end, edge_color, 1.0, true)
+
+func _draw_bug_genre_background_bands(map_rect: Rect2) -> void:
+	var boss := _bug_genre_visual_boss()
+	if boss.is_empty() or current_stream_frame_id != "gameplay":
+		return
+	var phase := String(boss_genre_visual_phase)
+	if phase == "telegraph":
+		var remaining := clampf(float(boss.get("buggedStateTimer", 0.0)), 0.0, 1.0)
+		if remaining > 0.55:
+			var early_progress := clampf((1.0 - remaining) / 0.45, 0.0, 1.0)
+			_draw_bug_genre_texture_bands("", map_rect, 3, lerpf(2.0, 5.0, early_progress), 0.36)
+			return
+		var intrusion := clampf((0.55 - remaining) / 0.55, 0.0, 1.0)
+		var band_count := 3 + int(floor(intrusion * 2.2))
+		if remaining <= 0.20:
+			band_count = 4 + int(floor(clampf((0.20 - remaining) / 0.20, 0.0, 1.0) * 2.9))
+		_draw_bug_genre_texture_bands(boss_genre_visual_event, map_rect, mini(6, band_count), 2.0 + intrusion * 3.0, 0.90)
+		return
+	if phase == "active" and genre_event_source == "boss" and active_genre_event != "":
+		if genre_event_timer <= 1.0:
+			var recovery := clampf(1.0 - genre_event_timer, 0.0, 1.0)
+			var count := 2 + int(floor(recovery * 4.8))
+			_draw_bug_genre_texture_bands("", map_rect, mini(6, count), 2.0 + recovery * 3.0, 0.92)
+		elif active_genre_event == "race":
+			var race_age := genre_event_duration - genre_event_timer
+			if race_age >= 0.0 and race_age <= 0.36:
+				var race_strength := 1.0 - race_age / 0.36
+				_draw_bug_genre_texture_bands("race", map_rect, 2, 2.0 + race_strength * 3.0, 0.30 + race_strength * 0.20)
+
+func _draw_bug_genre_boss_glitch() -> void:
+	var boss := _bug_genre_visual_boss()
+	if boss.is_empty() or boss_genre_visual_phase == "break":
+		return
+	var draw_data := DrawDataSystemScript.enemy_draw_data(boss)
+	var body: Dictionary = draw_data.get("body", {}) as Dictionary
+	var texture_path := String(body.get("texturePath", ""))
+	var texture := TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, texture_path)
+	var rect := body.get("rect", Rect2()) as Rect2
+	if texture == null or rect.size == Vector2.ZERO:
+		return
+	var strength := 0.32
+	if boss_genre_visual_phase == "telegraph":
+		var remaining := clampf(float(boss.get("buggedStateTimer", 0.0)), 0.0, 1.0)
+		strength = lerpf(0.28, 0.82, 1.0 - remaining)
+	elif genre_event_source == "boss" and genre_event_timer <= 1.0:
+		strength = lerpf(0.30, 0.70, 1.0 - genre_event_timer)
+	var frame := int(floor(elapsed * 24.0 + boss_genre_visual_seed * 11.0))
+	var stutter := float((frame % 3) - 1)
+	var split := 2.0 + strength * 3.0
+	draw_texture_rect(texture, Rect2(rect.position + Vector2(-split + stutter, 0.0), rect.size), false, Color(0.10, 0.94, 1.0, 0.12 + strength * 0.10))
+	draw_texture_rect(texture, Rect2(rect.position + Vector2(split + stutter, 0.0), rect.size), false, Color(1.0, 0.05, 0.70, 0.10 + strength * 0.10))
+	for i in range(4):
+		var y := rect.position.y + rect.size.y * (0.18 + float(i) * 0.19)
+		var offset := float(((frame + i * 3) % 5) - 2) * (1.0 + strength)
+		draw_line(Vector2(rect.position.x + 18.0 + offset, y), Vector2(rect.end.x - 14.0 + offset, y), Color(0.62, 0.96, 1.0, 0.14 + strength * 0.14), 1.0 + float(i % 2), true)
+	for i in range(3):
+		var w := 14.0 + float((i * 11 + frame) % 20)
+		var y := rect.position.y + rect.size.y * (0.26 + float(i) * 0.22)
+		var x := rect.position.x + rect.size.x * (0.16 + float((frame + i * 5) % 7) * 0.09)
+		draw_rect(Rect2(Vector2(x, y), Vector2(w, 3.0 + float(i % 2) * 2.0)), Color(0.05, 0.01, 0.10, 0.18 + strength * 0.16), true)
+
+func _draw_bug_genre_race_start_glitch(visible_rect: Rect2) -> void:
+	if not boss_genre_visual_active or boss_genre_visual_phase != "active" or genre_event_source != "boss" or active_genre_event != "race":
+		return
+	var race_age := genre_event_duration - genre_event_timer
+	if race_age < 0.0 or race_age > 0.36:
+		return
+	var alpha := (1.0 - race_age / 0.36) * 0.62
+	for pad_item in genre_race_dash_pads:
+		var pad: Dictionary = pad_item as Dictionary
+		var pos := Vector2(pad.get("pos", Vector2.ZERO))
+		if not visible_rect.has_point(pos):
+			continue
+		draw_line(pos + Vector2(-48.0, -22.0), pos + Vector2(40.0, -22.0), Color(0.0, 0.92, 1.0, alpha), 2.0, true)
+		draw_line(pos + Vector2(-38.0, 24.0), pos + Vector2(50.0, 24.0), Color(1.0, 0.12, 0.72, alpha * 0.80), 2.0, true)
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not bool(enemy.get("genreEventEnemy", false)):
+			continue
+		var pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		if visible_rect.has_point(pos):
+			draw_rect(Rect2(pos + Vector2(-28.0, -20.0), Vector2(20.0, 3.0)), Color(0.0, 0.92, 1.0, alpha * 0.70), true)
+			draw_rect(Rect2(pos + Vector2(8.0, 17.0), Vector2(24.0, 3.0)), Color(1.0, 0.12, 0.72, alpha * 0.64), true)
+
+func _draw_bug_genre_break() -> void:
+	if not boss_genre_visual_active or boss_genre_visual_phase != "break" or boss_genre_break_visual_timer <= 0.0:
+		return
+	var boss := _bug_genre_visual_boss()
+	if boss.is_empty():
+		return
+	var duration := maxf(0.01, boss_genre_break_visual_duration)
+	var remaining_ratio := clampf(boss_genre_break_visual_timer / duration, 0.0, 1.0)
+	var progress := 1.0 - remaining_ratio
+	var fade := clampf(boss_genre_break_visual_timer / 0.15, 0.0, 1.0)
+	var pulse := 0.58 + 0.42 * sin(progress * 28.0)
+	var pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var radius := lerpf(float(boss.get("radius", 96.0)) * 1.52, float(boss.get("radius", 96.0)) * 1.14, progress)
+	draw_circle(pos, radius * 0.82, Color(0.72, 0.86, 0.90, 0.035 * fade))
+	for i in range(6):
+		var start := float(i) * TAU / 6.0 + progress * 0.6
+		var span := 0.54 + float(i % 2) * 0.16
+		var color := Color(0.28, 0.94, 1.0, (0.62 + pulse * 0.22) * fade) if i % 3 != 2 else Color(1.0, 0.12, 0.72, 0.50 * fade)
+		draw_arc(pos, radius + float(i % 2) * 5.0, start, start + span, 18, color, 3.0 if i % 2 == 0 else 2.0, true)
+		var dir := Vector2.from_angle(start + span * 0.5)
+		draw_line(pos + dir * (radius + 3.0), pos + dir * (radius - 24.0), Color(0.86, 0.98, 1.0, 0.58 * fade), 2.0, true)
+	var text_pos := pos + Vector2(-116.0, -radius - 42.0)
+	_draw_outlined_text(text_pos, "BUG BREAK", 232, 24, Color(0.84, 1.0, 1.0, fade), Color(0.12, 0.01, 0.18, 0.96 * fade), HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_outlined_text(text_pos + Vector2(0.0, 24.0), "DAMAGE x1.2", 232, 16, Color(1.0, 0.52, 0.88, fade), Color(0.12, 0.01, 0.18, 0.90 * fade), HORIZONTAL_ALIGNMENT_CENTER)
+
 func _draw_arena() -> void:
 	var map_data: Dictionary = _current_map_data()
 	var map_rect: Rect2 = MapBackgroundSystemScript.world_rect(map_data)
@@ -9914,6 +10851,7 @@ func _draw_arena() -> void:
 					_draw_arena_part(part as Dictionary)
 	else:
 		has_image_background = true
+	_draw_bug_genre_background_bands(map_rect)
 	if has_image_background and _is_drawing_frame():
 		_draw_drawing_canvas_progress_layer(map_data)
 	var has_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
@@ -10080,16 +11018,23 @@ func _draw_genre_horror_fake_gift(gift: Dictionary) -> void:
 	var pos := Vector2(gift.get("pos", Vector2.ZERO))
 	var seed := float(gift.get("seed", 0.0))
 	var wobble := sin(elapsed * 8.0 + seed) * 2.0
+	var boss_horror_visual := boss_genre_visual_active and genre_event_source == "boss" and active_genre_event == "horror"
+	var glitch_frame := int(floor(elapsed * 12.0 + seed * 17.0)) % 11
+	var glitch_shift := Vector2((3.0 if glitch_frame == 3 else -2.0) if glitch_frame in [3, 4] else 0.0, 0.0)
 	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, GENRE_EVENT_FAKE_GIFT_IMAGE)
 	if texture != null:
-		var draw_pos := pos + Vector2(0.0, wobble - 4.0)
+		var draw_pos := pos + Vector2(0.0, wobble - 4.0) + (glitch_shift if boss_horror_visual else Vector2.ZERO)
 		var image_size := Vector2(58.0, 58.0) * (1.0 + sin(elapsed * 5.5 + seed) * 0.015)
 		_draw_shadow(pos + Vector2(0.0, 18.0), Vector2(45.0, 13.0), 0.23)
 		draw_circle(pos + Vector2(0.0, wobble), 36.0, Color(0.38, 0.20, 0.60, 0.10))
 		_draw_rotated_texture(texture, draw_pos, image_size, sin(elapsed * 3.0 + seed) * 0.035, 0.98)
-		if int(elapsed * 5.0 + seed) % 3 == 0:
-			draw_circle(pos + Vector2(9.0, -5.0 + wobble), 2.4, Color(0.10, 0.02, 0.05, 0.68))
-			draw_circle(pos + Vector2(-9.0, -5.0 + wobble), 2.4, Color(0.10, 0.02, 0.05, 0.68))
+		if boss_horror_visual:
+			draw_arc(pos + Vector2(0.0, wobble), 33.0, 0.18, PI * 1.18, 24, Color(0.66, 0.32, 0.92, 0.52), 1.5, true)
+			draw_rect(Rect2(pos + Vector2(-32.0, -15.0 + wobble), Vector2(18.0, 3.0)), Color(0.38, 0.04, 0.56, 0.42), true)
+			draw_rect(Rect2(pos + Vector2(16.0, 14.0 + wobble), Vector2(20.0, 3.0)), Color(0.72, 0.30, 0.92, 0.34), true)
+		if boss_horror_visual or int(elapsed * 5.0 + seed) % 3 == 0:
+			draw_circle(pos + Vector2(9.0, -5.0 + wobble), 3.0, Color(0.07, 0.01, 0.04, 0.90))
+			draw_circle(pos + Vector2(-9.0, -5.0 + wobble), 3.0, Color(0.07, 0.01, 0.04, 0.90))
 		return
 	var body := Rect2(pos + Vector2(-21.0, -18.0 + wobble), Vector2(42.0, 36.0))
 	var lid := Rect2(pos + Vector2(-25.0, -28.0 + wobble), Vector2(50.0, 12.0))
@@ -10103,9 +11048,12 @@ func _draw_genre_horror_fake_gift(gift: Dictionary) -> void:
 	draw_rect(Rect2(pos + Vector2(-21.0, -4.0 + wobble), Vector2(42.0, 8.0)), Color("#7660c9"), true)
 	draw_line(pos + Vector2(-15.0, -28.0 + wobble), pos + Vector2(0.0, -40.0 + wobble), Color("#e0c7ff"), 4.0, true)
 	draw_line(pos + Vector2(15.0, -28.0 + wobble), pos + Vector2(0.0, -40.0 + wobble), Color("#e0c7ff"), 4.0, true)
-	if int(elapsed * 5.0 + seed) % 3 == 0:
-		draw_circle(pos + Vector2(9.0, -5.0 + wobble), 2.5, Color("#3b254f"))
-		draw_circle(pos + Vector2(-9.0, -5.0 + wobble), 2.5, Color("#3b254f"))
+	if boss_horror_visual:
+		draw_arc(pos + Vector2(0.0, wobble), 35.0, 0.18, PI * 1.18, 24, Color(0.66, 0.32, 0.92, 0.52), 1.5, true)
+		draw_rect(Rect2(pos + Vector2(-32.0, -15.0 + wobble), Vector2(18.0, 3.0)), Color(0.38, 0.04, 0.56, 0.42), true)
+	if boss_horror_visual or int(elapsed * 5.0 + seed) % 3 == 0:
+		draw_circle(pos + Vector2(9.0, -5.0 + wobble), 3.0, Color("#241021"))
+		draw_circle(pos + Vector2(-9.0, -5.0 + wobble), 3.0, Color("#241021"))
 
 func _draw_genre_stg_player_overlay() -> void:
 	if active_genre_event != "bullet_hell":
@@ -10387,9 +11335,9 @@ func _draw_collab_challenge_hud() -> void:
 
 func _draw_collab_challenge_active_hud(rect: Rect2, accent: Color, alpha: float) -> void:
 	var view := _collab_challenge_hud_view()
-	var hard_challenge := bool(collab_challenge_data.get("hardChallenge", false))
-	var tab_text := "HARD CHALLENGE" if hard_challenge else "COLLAB CHALLENGE"
-	var tab_color := Color("#cf416f") if hard_challenge else Color("#8f5878")
+	var high_profile := _collab_challenge_profile() != CollabChallengeSystemScript.PROFILE_STANDARD
+	var tab_text := "HARD CHALLENGE" if high_profile else "COLLAB CHALLENGE"
+	var tab_color := Color("#cf416f") if high_profile else Color("#8f5878")
 	_draw_outlined_text(rect.position + Vector2(11.0, 18.0), tab_text, 104, 10, Color(tab_color.r, tab_color.g, tab_color.b, alpha), Color(1.0, 1.0, 1.0, 0.92 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
 
 	var title := _collab_challenge_display_name(collab_challenge_type)
@@ -10698,7 +11646,7 @@ func _draw_collab_dash_sync_phase_text(panel: Rect2, center: Vector2, phase: Str
 	elif phase == "go":
 		text = "せーの！"
 		color = Color.WHITE
-		var go_duration := 0.40 if bool(data.get("hardChallenge", false)) else COLLAB_CHALLENGE_DASH_GO_DURATION
+		var go_duration := float(data.get("inputWindow", COLLAB_CHALLENGE_DASH_GO_DURATION))
 		var go_progress := 1.0 - clampf(float(data.get("phaseTimer", 0.0)) / go_duration, 0.0, 1.0)
 		var pop_scale := lerpf(0.70, 1.20, clampf(go_progress / 0.16, 0.0, 1.0))
 		if go_progress > 0.16:
@@ -11261,15 +12209,149 @@ func _draw_collab_partner() -> void:
 	_draw_collab_partner_blocked_marker()
 
 func _draw_collab_partner_blocked_marker() -> void:
-	if not collab_partner_support_blocked:
+	if not collab_partner_support_blocked and not collab_boss_partner_muted:
 		return
 	var pos := collab_partner_pos + Vector2(0.0, -70.0)
 	var label := "MUTE" if collab_boss_partner_muted else "独占中"
 	var pulse := 0.84 + 0.16 * sin(elapsed * 8.0)
-	draw_circle(pos, 13.0 * pulse, Color(0.35, 0.13, 0.30, 0.32))
-	draw_circle(pos, 10.0 * pulse, Color("#c98cab"), false, 2.6)
-	draw_line(pos + Vector2(-6.0, -6.0), pos + Vector2(6.0, 6.0), Color("#75435f"), 2.4, true)
-	_draw_outlined_text(pos + Vector2(-31.0, -17.0), label, 62, 12, Color("#fff8ff"), Color("#55243f"), HORIZONTAL_ALIGNMENT_CENTER)
+	if collab_boss_partner_muted:
+		_draw_collab_partner_mute_icon(pos, 0.86 + 0.14 * pulse)
+	else:
+		draw_circle(pos, 13.0 * pulse, Color(0.35, 0.13, 0.30, 0.32))
+		draw_circle(pos, 10.0 * pulse, Color("#c98cab"), false, 2.6)
+		draw_line(pos + Vector2(-6.0, -6.0), pos + Vector2(6.0, 6.0), Color("#75435f"), 2.4, true)
+		_draw_outlined_text(pos + Vector2(-31.0, -17.0), label, 62, 12, Color("#fff8ff"), Color("#55243f"), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_partner_mute_icon(pos: Vector2, alpha: float) -> void:
+	var visible_alpha := clampf(alpha, 0.0, 1.0)
+	draw_circle(pos, 31.0, Color(0.30, 0.16, 0.42, 0.07 * visible_alpha), true)
+	draw_arc(pos, 16.0, -2.52, 1.90, 18, Color(0.67, 0.48, 0.78, 0.66 * visible_alpha), 2.0, true)
+	var speaker := pos + Vector2(-9.0, 0.0)
+	draw_colored_polygon(PackedVector2Array([
+		speaker + Vector2(-7.0, -3.5),
+		speaker + Vector2(-2.0, -3.5),
+		speaker + Vector2(4.0, -9.0),
+		speaker + Vector2(4.0, 9.0),
+		speaker + Vector2(-2.0, 3.5),
+		speaker + Vector2(-7.0, 3.5)
+	]), Color(0.80, 0.68, 0.88, 0.82 * visible_alpha))
+	draw_line(pos + Vector2(-2.0, -10.0), pos + Vector2(12.0, 10.0), Color(0.35, 0.14, 0.46, 0.94 * visible_alpha), 2.8, true)
+	draw_line(pos + Vector2(6.0, -7.0), pos + Vector2(11.0, -2.0), Color(0.85, 0.72, 0.92, 0.72 * visible_alpha), 1.5, true)
+	draw_line(pos + Vector2(14.0, -1.0), pos + Vector2(18.0, 3.0), Color(0.85, 0.72, 0.92, 0.64 * visible_alpha), 1.5, true)
+	draw_line(pos + Vector2(6.0, 5.0), pos + Vector2(10.0, 8.0), Color(0.85, 0.72, 0.92, 0.58 * visible_alpha), 1.5, true)
+	_draw_outlined_text(pos + Vector2(-29.0, -19.0), "MUTE", 58, 11, Color(0.98, 0.94, 1.0, visible_alpha), Color(0.20, 0.08, 0.28, 0.94 * visible_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_partner_mute_pending_visuals(visible_rect: Rect2) -> void:
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		if String(attack.get("kind", "")) != "partner_mute_warning":
+			continue
+		var boss_pos := Vector2(attack.get("bossSnapshot", Vector2.ZERO))
+		var partner_pos := Vector2(attack.get("partnerSnapshot", Vector2.ZERO))
+		var core_pos := Vector2(attack.get("corePosition", partner_pos))
+		if not visible_rect.grow(72.0).has_point(boss_pos) and not visible_rect.grow(72.0).has_point(partner_pos) and not visible_rect.grow(72.0).has_point(core_pos):
+			continue
+		var max_warning := maxf(0.01, float(attack.get("maxWarning", COLLAB_CRUSHER_MUTE_WARNING)))
+		var warning := clampf(float(attack.get("warning", max_warning)), 0.0, max_warning)
+		var progress := clampf(1.0 - warning / max_warning, 0.0, 1.0)
+		var seed := float(attack.get("visualSeed", 0.0))
+		var marker_alpha := lerpf(0.34, 0.86, smoothstep(0.0, 1.0, progress))
+		_draw_collab_mute_warning_marker(partner_pos, marker_alpha, seed, false)
+		_draw_collab_mute_warning_marker(core_pos, marker_alpha, seed + 0.7, true)
+		var age := max_warning - warning
+		if age < COLLAB_CRUSHER_MUTE_SIGNAL_DURATION:
+			var signal_progress := clampf(age / COLLAB_CRUSHER_MUTE_SIGNAL_DURATION, 0.0, 1.0)
+			var signal_dir := core_pos - boss_pos
+			if signal_dir.length_squared() > 0.01:
+				signal_dir = signal_dir.normalized()
+				var signal_end := boss_pos.lerp(core_pos, lerpf(0.30, 0.58, signal_progress))
+				draw_line(boss_pos, signal_end, Color(0.29, 0.13, 0.39, 0.35 * (1.0 - signal_progress)), 1.8, true)
+				var signal_side := Vector2(-signal_dir.y, signal_dir.x)
+				for i in range(3):
+					var signal_t := clampf(0.32 + float(i) * 0.12 + signal_progress * 0.22, 0.0, 0.70)
+					var signal_pos := boss_pos.lerp(core_pos, signal_t)
+					var signal_length := 4.0 + float(i % 2) * 2.0
+					draw_line(signal_pos - signal_side * signal_length, signal_pos + signal_side * signal_length, Color(0.66, 0.48, 0.76, 0.44 * (1.0 - signal_progress)), 1.4, true)
+		if warning <= 0.10:
+			var pulse := 1.0 + 0.08 * sin(progress * TAU * 2.0)
+			draw_arc(core_pos, 38.0 * pulse, seed, seed + PI * 1.34, 20, Color(0.88, 0.72, 0.96, 0.62), 2.0, true)
+
+func _draw_collab_mute_warning_marker(pos: Vector2, alpha: float, seed: float, is_core: bool) -> void:
+	var marker_radius := 36.0 if is_core else 32.0
+	var gap := fposmod(seed, TAU)
+	var purple := Color(0.39, 0.18, 0.53, 0.70 * alpha)
+	var highlight := Color(0.90, 0.80, 0.96, 0.64 * alpha)
+	draw_arc(pos, marker_radius, gap + 0.25, gap + PI * 0.90, 24, purple, 2.6, true)
+	draw_arc(pos, marker_radius, gap + PI * 1.12, gap + PI * 1.65, 14, purple, 2.6, true)
+	draw_arc(pos, marker_radius - 3.0, gap + 0.50, gap + PI * 0.70, 18, highlight, 1.2, true)
+	draw_circle(pos, 3.0, Color(0.97, 0.93, 1.0, 0.72 * alpha), true)
+	draw_line(pos + Vector2(-7.0, 0.0), pos + Vector2(7.0, 0.0), Color(0.74, 0.58, 0.84, 0.54 * alpha), 1.2, true)
+	draw_line(pos + Vector2(0.0, -7.0), pos + Vector2(0.0, 7.0), Color(0.74, 0.58, 0.84, 0.54 * alpha), 1.2, true)
+	var notch_side := -1.0 if sin(seed * 1.31) < 0.0 else 1.0
+	draw_line(pos + Vector2(-10.0, 11.0), pos + Vector2(-2.0, 7.0) + Vector2(8.0 * notch_side, 0.0), Color(0.72, 0.48, 0.78, 0.74 * alpha), 2.0, true)
+	if is_core:
+		_draw_collab_partner_mute_icon(pos + Vector2(0.0, -1.0), 0.62 * alpha)
+	else:
+		_draw_outlined_text(pos + Vector2(-26.0, -44.0), "MUTE", 52, 10, Color(0.96, 0.90, 1.0, alpha), Color(0.22, 0.08, 0.30, 0.82 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_partner_mute_active_tether(visible_rect: Rect2) -> void:
+	if not collab_boss_partner_muted:
+		return
+	var core := _collab_enemy_by_uid(collab_boss_mute_core_uid)
+	if core.is_empty():
+		return
+	var from_pos := collab_partner_pos + Vector2(0.0, -5.0)
+	var to_pos := Vector2(core.get("pos", from_pos))
+	if not visible_rect.grow(70.0).has_point(from_pos) and not visible_rect.grow(70.0).has_point(to_pos):
+		return
+	var segment := to_pos - from_pos
+	if segment.length_squared() < 0.01:
+		return
+	var dir := segment.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	draw_line(from_pos, to_pos, Color(0.20, 0.08, 0.29, 0.40), 1.8, true)
+	draw_line(from_pos + side * 2.0, to_pos + side * 2.0, Color(0.56, 0.38, 0.66, 0.22), 1.0, true)
+	for i in range(5):
+		var t := 0.12 + float(i) * 0.17
+		var wave_pos := from_pos.lerp(to_pos, t)
+		var wave_size := 3.0 + float(i % 2) * 1.5
+		draw_line(wave_pos - side * wave_size, wave_pos + side * wave_size, Color(0.74, 0.60, 0.84, 0.50), 1.3, true)
+
+func _draw_collab_partner_mute_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(effect.get("pos", collab_partner_pos))
+	if not visible_rect.grow(64.0).has_point(pos):
+		return
+	var life := maxf(0.0, float(effect.get("life", 0.0)))
+	var max_life := maxf(0.01, float(effect.get("maxLife", life)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := 1.0 - progress
+	var seed := float(effect.get("visualSeed", 0.0))
+	var kind := String(effect.get("kind", ""))
+	if kind == "partner_mute_spawn_fx":
+		var scale := lerpf(0.70, 1.16, smoothstep(0.0, 0.64, progress)) if progress < 0.64 else lerpf(1.16, 1.0, smoothstep(0.64, 1.0, progress))
+		draw_arc(pos, 37.0 * scale, seed, seed + PI * 1.45, 22, Color(0.77, 0.58, 0.90, 0.72 * fade), 2.6, true)
+		draw_arc(pos, 30.0 * scale, seed + PI, seed + PI * 1.72, 14, Color(0.97, 0.90, 1.0, 0.54 * fade), 1.4, true)
+		for i in range(4):
+			var angle := seed + float(i) * TAU / 4.0
+			var particle_pos := pos + Vector2(cos(angle), sin(angle)) * (16.0 + progress * 24.0)
+			draw_circle(particle_pos, 2.0 + float(i % 2), Color(0.84, 0.68, 0.92, 0.72 * fade), true)
+		_draw_collab_partner_mute_icon(pos, 0.74 * fade)
+	elif kind == "partner_mute_destroy_fx":
+		draw_arc(pos, 27.0 + progress * 18.0, seed, seed + PI * 1.32, 20, Color(0.70, 0.46, 0.80, 0.76 * fade), 2.8, true)
+		draw_arc(pos, 38.0 + progress * 19.0, seed + PI, seed + PI * 1.34, 16, Color(0.92, 0.98, 1.0, 0.64 * fade), 1.8, true)
+		for i in range(6):
+			var angle := seed + float(i) * TAU / 6.0
+			var particle_pos := pos + Vector2(cos(angle), sin(angle)) * (14.0 + progress * 46.0)
+			draw_line(particle_pos, particle_pos + Vector2(cos(angle), sin(angle)) * 8.0, Color(0.66, 0.46, 0.78, 0.70 * fade), 2.0, true)
+	elif kind == "partner_mute_timeout_fx":
+		var radius := lerpf(36.0, 27.0, progress)
+		draw_arc(pos, radius, seed, seed + PI * 1.45, 22, Color(0.60, 0.44, 0.70, 0.44 * fade), 1.8, true)
+		for i in range(3):
+			var wave_x := pos.x - 18.0 + float(i) * 10.0
+			draw_line(Vector2(wave_x, pos.y + 10.0), Vector2(wave_x + 5.0, pos.y + 10.0 - 4.0 * sin(seed + float(i))), Color(0.78, 0.70, 0.88, 0.40 * fade), 1.2, true)
+	elif kind == "partner_mute_restore_fx":
+		draw_arc(pos + Vector2(0.0, -5.0), 25.0 + progress * 12.0, -0.70, 2.1, 18, Color(0.86, 0.95, 1.0, 0.52 * fade), 1.6, true)
+		draw_line(pos + Vector2(6.0, 4.0), pos + Vector2(12.0, -3.0), Color(0.78, 0.96, 1.0, 0.58 * fade), 1.5, true)
 
 func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 	if not _is_collab_frame():
@@ -11283,12 +12365,24 @@ func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 	_draw_collab_player_debuff_marker(draw_rect_world)
 	_draw_collab_combo_barrier(draw_rect_world)
 	_draw_collab_boss_attack_objects(draw_rect_world)
+	_draw_collab_partner_mute_pending_visuals(draw_rect_world)
+	_draw_collab_partner_mute_active_tether(draw_rect_world)
 	for effect_item in collab_effects:
 		var effect: Dictionary = effect_item as Dictionary
 		var kind := String(effect.get("kind", ""))
 		match kind:
 			"shockwave":
 				_draw_collab_shockwave_effect(effect, draw_rect_world)
+			"comparison_spam_boss_cue":
+				_draw_comparison_spam_boss_cue_effect(effect, draw_rect_world)
+			"comparison_spam_spawn":
+				_draw_comparison_spam_spawn_effect(effect, draw_rect_world)
+			"division_noise_boss_cue":
+				_draw_collab_division_noise_boss_cue_effect(effect, draw_rect_world)
+			"division_noise_spawn":
+				_draw_collab_division_noise_spawn_effect(effect, draw_rect_world)
+			"division_noise_completion":
+				_draw_collab_division_noise_completion_effect(effect, draw_rect_world)
 			"partner_hammer":
 				_draw_collab_partner_hammer_effect(effect, draw_rect_world)
 			"partner_superchat_bullet":
@@ -11317,6 +12411,12 @@ func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 				_draw_collab_crusher_combo_hit_effect(effect, draw_rect_world)
 			"crusher_combo_finish":
 				_draw_collab_crusher_combo_finish_effect(effect, draw_rect_world)
+			"comment_divide_echo":
+				_draw_collab_crusher_comment_divide_echo(effect, draw_rect_world)
+			"vs_line_post_fade":
+				_draw_collab_crusher_vs_line_post_fade(effect, draw_rect_world)
+			"partner_mute_spawn_fx", "partner_mute_destroy_fx", "partner_mute_timeout_fx", "partner_mute_restore_fx":
+				_draw_collab_partner_mute_effect(effect, draw_rect_world)
 
 func _draw_collab_partner_weapon_effect(effect: Dictionary, visible_rect: Rect2) -> void:
 	var kind := String(effect.get("kind", ""))
@@ -11604,50 +12704,484 @@ func _draw_collab_boss_attack_objects(visible_rect: Rect2) -> void:
 	for attack_item in collab_boss_attacks:
 		var attack: Dictionary = attack_item as Dictionary
 		var kind := String(attack.get("kind", ""))
-		var warning := float(attack.get("warning", 0.0))
 		if kind == "vs_line":
 			var from_pos := Vector2(attack.get("from", Vector2.ZERO))
 			var to_pos := Vector2(attack.get("to", from_pos))
-			if not visible_rect.has_point(from_pos) and not visible_rect.has_point(to_pos):
+			if not visible_rect.grow(110.0).has_point(from_pos) and not visible_rect.grow(110.0).has_point(to_pos):
 				continue
-			var dir := (to_pos - from_pos).normalized()
-			if dir.length_squared() < 0.01:
-				dir = Vector2.RIGHT
-			var side := Vector2(-dir.y, dir.x)
-			var midpoint := (from_pos + to_pos) * 0.5
-			if warning > 0.0:
-				var progress := 1.0 - clampf(warning / COLLAB_CRUSHER_VS_LINE_WARNING, 0.0, 1.0)
-				var pulse := 0.55 + 0.45 * sin(elapsed * 18.0)
-				draw_line(from_pos, to_pos, Color(0.20, 0.06, 0.24, 0.20 + 0.12 * pulse), COLLAB_CRUSHER_VS_LINE_WIDTH + 12.0, true)
-				draw_line(from_pos + side * 17.0, to_pos + side * 17.0, Color(1.0, 0.25, 0.48, 0.34 + 0.28 * progress), 28.0, true)
-				draw_line(from_pos - side * 17.0, to_pos - side * 17.0, Color(0.25, 0.76, 1.0, 0.34 + 0.28 * progress), 28.0, true)
-				for i in range(9):
-					var t := float(i) / 8.0
-					var zig := side * (9.0 if i % 2 == 0 else -9.0)
-					var mark := from_pos.lerp(to_pos, t) + zig
-					draw_circle(mark, 4.0 + pulse * 2.0, Color(1.0, 1.0, 1.0, 0.58))
-			else:
-				var alpha := clampf(float(attack.get("active", 0.0)) / COLLAB_CRUSHER_VS_LINE_ACTIVE, 0.0, 1.0)
-				draw_line(from_pos, to_pos, Color(0.12, 0.02, 0.16, 0.48 * alpha), COLLAB_CRUSHER_VS_LINE_WIDTH + 18.0, true)
-				draw_line(from_pos + side * 18.0, to_pos + side * 18.0, Color(1.0, 0.18, 0.40, 0.80 * alpha), 30.0, true)
-				draw_line(from_pos - side * 18.0, to_pos - side * 18.0, Color(0.20, 0.72, 1.0, 0.80 * alpha), 30.0, true)
-				draw_line(from_pos, to_pos, Color(1.0, 1.0, 1.0, 0.78 * alpha), 5.0, true)
-			_draw_outlined_text(midpoint + Vector2(-30.0, 6.0), "VS", 60, 22, Color("#fff7d6"), Color("#4b1839"), HORIZONTAL_ALIGNMENT_CENTER)
+			_draw_collab_crusher_vs_line_base(attack, from_pos, to_pos)
 		elif kind == "comment_divide":
-			var pos := Vector2(attack.get("pos", Vector2.ZERO))
-			if not visible_rect.has_point(pos):
-				continue
-			var progress := 1.0 - clampf(warning / COLLAB_CRUSHER_COMMENT_WARNING, 0.0, 1.0)
-			var pulse := 0.5 + 0.5 * sin(elapsed * 16.0 + float(attack.get("phase", 0.0)))
-			var size := Vector2(150.0, 92.0) * (0.90 + progress * 0.10 + pulse * 0.03)
-			var rect := Rect2(pos - size * 0.5, size)
-			draw_rect(rect.grow(7.0), Color(0.18, 0.05, 0.20, 0.30), true)
-			draw_rect(rect, Color(0.50, 0.16, 0.48, 0.72), true)
-			draw_rect(rect, Color(1.0, 0.38, 0.62, 0.82), false, 4.0)
-			var tail := PackedVector2Array([rect.position + Vector2(34.0, rect.size.y), rect.position + Vector2(66.0, rect.size.y), rect.position + Vector2(45.0, rect.size.y + 25.0)])
-			draw_colored_polygon(tail, Color(0.50, 0.16, 0.48, 0.72))
-			_draw_outlined_text(pos + Vector2(-54.0, 9.0), "VS  ⇄", 108, 24, Color("#fff0f6"), Color("#42152f"), HORIZONTAL_ALIGNMENT_CENTER)
-			draw_arc(pos, COLLAB_CRUSHER_COMMENT_RADIUS * progress, 0.0, TAU, 56, Color(0.92, 0.28, 0.62, 0.54), 4.0, true)
+			_draw_collab_crusher_comment_divide_warning(attack, visible_rect)
+
+func _collab_comment_divide_visual_hash(seed: float, salt: int) -> float:
+	return fposmod(sin(seed * 12.9898 + float(salt) * 78.233) * 43758.5453, 1.0)
+
+func _collab_comment_divide_visual_seed(center: Vector2, phase: float, cast_uid: int, center_index: int) -> float:
+	return fposmod(center.x * 0.013 + center.y * 0.017 + phase * 1.91 + float(cast_uid) * 0.731 + float(center_index) * 1.37, TAU)
+
+func _draw_collab_crusher_comment_divide_warning(attack: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(attack.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(24.0).has_point(center):
+		return
+	var warning := float(attack.get("warning", 0.0))
+	var progress := 1.0 - clampf(warning / COLLAB_CRUSHER_COMMENT_WARNING, 0.0, 1.0)
+	var phase := float(attack.get("phase", 0.0))
+	var seed := float(attack.get("visual_seed", phase))
+	var final_charge := smoothstep(0.80, 1.0, progress)
+	var pulse := 0.5 + 0.5 * sin(progress * TAU * 1.25 + phase)
+	# The outer rail is the gameplay boundary from the first warning frame.
+	draw_circle(center, COLLAB_CRUSHER_COMMENT_RADIUS, Color(0.36, 0.04, 0.30, 0.012 + progress * 0.008), true)
+	draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, 0.0, TAU, 96, Color(0.16, 0.015, 0.20, 0.20 + progress * 0.10 + final_charge * 0.10), 4.6, true)
+	draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, 0.02, TAU - 0.02, 96, Color(1.0, 0.84, 0.94, 0.30 + progress * 0.16 + final_charge * 0.14), 1.6, true)
+	# This smaller ring is only a timer cue inside the fixed danger rail.
+	var timer_radius := lerpf(60.0, 225.0, progress)
+	var timer_arc := TAU * (0.25 + progress * 0.65)
+	draw_arc(center, timer_radius, -PI * 0.5, -PI * 0.5 + timer_arc, 52, Color(0.88, 0.20, 0.56, 0.10 + progress * 0.10), 1.4, true)
+	_draw_collab_comment_divide_center_marker(center, seed, progress, 0.60 + progress * 0.30)
+	_draw_collab_comment_divide_fragments(center, seed, progress, 0.72 + progress * 0.22, COLLAB_CRUSHER_COMMENT_RADIUS)
+	if final_charge > 0.0:
+		var boundary_pulse := 0.5 + 0.5 * sin((progress - 0.80) / 0.20 * TAU + phase)
+		draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, -0.10, TAU + 0.10, 96, Color(1.0, 0.30, 0.64, 0.18 + boundary_pulse * 0.16), 3.0 + boundary_pulse * 1.2, true)
+		draw_circle(center, 5.0 + boundary_pulse * 2.0, Color(1.0, 0.94, 0.99, 0.22 + boundary_pulse * 0.24), true)
+
+func _draw_collab_comment_divide_center_marker(center: Vector2, seed: float, progress: float, alpha: float) -> void:
+	var pulse := 0.5 + 0.5 * sin(seed * 1.7 + progress * TAU)
+	var radius := 27.0 + pulse * 2.0
+	var marker_alpha := clampf(alpha, 0.0, 1.0)
+	draw_circle(center, radius + 5.0, Color(0.10, 0.015, 0.14, 0.12 * marker_alpha), true)
+	draw_arc(center, radius, seed, seed + 1.85, 18, Color(0.34, 0.015, 0.28, 0.72 * marker_alpha), 2.8, true)
+	draw_arc(center, radius, seed + 2.18, seed + 3.92, 17, Color(1.0, 0.20, 0.54, 0.66 * marker_alpha), 2.0, true)
+	draw_arc(center, radius, seed + 4.30, seed + 5.62, 13, Color(0.74, 0.12, 0.48, 0.58 * marker_alpha), 1.8, true)
+	var tail_dir := Vector2.from_angle(seed + 0.22)
+	var tail_side := Vector2(-tail_dir.y, tail_dir.x)
+	var tail_start := center + tail_dir * (radius - 2.0) + tail_side * 8.0
+	var tail_mid := center + tail_dir * (radius + 8.0)
+	var tail_end := tail_mid + tail_side * 7.0
+	draw_polyline(PackedVector2Array([tail_start, tail_mid, tail_end]), Color(0.55, 0.04, 0.36, 0.70 * marker_alpha), 2.0, true)
+	var tick_dir := Vector2.from_angle(seed + 2.7)
+	draw_line(center + tick_dir * (radius + 2.0), center + tick_dir * (radius + 9.0), Color(1.0, 0.76, 0.90, 0.68 * marker_alpha), 1.5, true)
+	draw_line(center - tick_dir * (radius + 2.0), center - tick_dir * (radius + 7.0), Color(0.54, 0.10, 0.44, 0.58 * marker_alpha), 1.4, true)
+	draw_circle(center, 3.0 + pulse * 0.9, Color(1.0, 0.96, 0.99, 0.78 * marker_alpha), true)
+	var symbols := ["…", "!?", "×"]
+	var symbol_index := mini(symbols.size() - 1, int(_collab_comment_divide_visual_hash(seed, 4) * symbols.size()))
+	_draw_outlined_text(center + Vector2(-18.0, 6.5), String(symbols[symbol_index]), 36, 16, Color(1.0, 0.92, 0.98, 0.76 * marker_alpha), Color(0.24, 0.015, 0.22, 0.74 * marker_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_comment_divide_fragments(center: Vector2, seed: float, progress: float, alpha: float, base_radius: float) -> void:
+	var count := 2
+	if progress >= 0.34:
+		count += 2
+	if progress >= 0.78:
+		count += 2
+	var fragment_alpha := clampf(alpha, 0.0, 1.0)
+	for index in range(count):
+		var ratio := float(index) / float(maxi(1, count))
+		var angle := seed + ratio * TAU + (_collab_comment_divide_visual_hash(seed, index + 13) - 0.5) * 0.28
+		var outward := Vector2.from_angle(angle)
+		var tangent := Vector2(-outward.y, outward.x)
+		var start := center + outward * (base_radius - 3.0 + _collab_comment_divide_visual_hash(seed, index + 21) * 7.0)
+		var length := 8.0 + progress * 10.0 + float(index % 2) * 3.0
+		var end := start + outward * length
+		var color := Color(1.0, 0.24, 0.58, (0.36 + progress * 0.24) * fragment_alpha) if index % 2 == 0 else Color(0.38, 0.78, 0.94, (0.28 + progress * 0.22) * fragment_alpha)
+		draw_line(start - outward * 2.0, end, color, 2.0 + progress * 0.8, true)
+		if index % 2 == 0:
+			var piece_center := start + outward * (length * 0.45) + tangent * (2.0 + _collab_comment_divide_visual_hash(seed, index + 31) * 4.0)
+			_draw_collab_comment_divide_bubble_piece(piece_center, outward, tangent, (0.50 + progress * 0.35) * fragment_alpha, 0.72 + _collab_comment_divide_visual_hash(seed, index + 41) * 0.34)
+
+func _draw_collab_comment_divide_bubble_piece(pos: Vector2, outward: Vector2, tangent: Vector2, alpha: float, scale: float) -> void:
+	var size := 5.0 * scale
+	var piece := PackedVector2Array([
+		pos - tangent * size * 0.72 - outward * size * 0.46,
+		pos + tangent * size * 0.78 - outward * size * 0.18,
+		pos + outward * size * 0.74,
+		pos - tangent * size * 0.35 + outward * size * 0.44
+	])
+	draw_polyline(piece, Color(0.55, 0.03, 0.34, 0.78 * alpha), 1.8, true)
+	draw_line(pos - tangent * size * 0.34, pos + outward * size * 0.78, Color(1.0, 0.86, 0.95, 0.55 * alpha), 1.0, true)
+
+func _draw_collab_crusher_comment_divide_echo(effect: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(30.0).has_point(center):
+		return
+	var max_life := maxf(0.01, float(effect.get("maxLife", COLLAB_CRUSHER_COMMENT_ECHO_DURATION)))
+	var life := float(effect.get("life", max_life))
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var progress := 1.0 - fade
+	var seed := float(effect.get("visual_seed", 0.0))
+	var echo_radius := lerpf(COLLAB_CRUSHER_COMMENT_RADIUS, COLLAB_CRUSHER_COMMENT_RADIUS + 42.0, smoothstep(0.04, 0.92, progress))
+	draw_circle(center, COLLAB_CRUSHER_COMMENT_RADIUS, Color(0.54, 0.05, 0.36, 0.012 * fade), true)
+	draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, 0.0, TAU, 96, Color(1.0, 0.30, 0.62, 0.20 * fade), 2.5, true)
+	draw_arc(center, echo_radius, 0.03, TAU - 0.03, 96, Color(0.72, 0.22, 0.58, 0.055 * fade), 2.0, true)
+	_draw_collab_comment_divide_fragments(center, seed + progress * 0.8, progress, 0.72 * fade, COLLAB_CRUSHER_COMMENT_RADIUS + progress * 14.0)
+	if bool(effect.get("impact_flash", false)):
+		var flash := 1.0 - clampf(progress / COLLAB_CRUSHER_COMMENT_IMPACT_FLASH_DURATION, 0.0, 1.0)
+		if flash > 0.0:
+			draw_circle(center, COLLAB_CRUSHER_COMMENT_RADIUS, Color(1.0, 0.54, 0.78, 0.035 * flash), true)
+			draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, 0.0, TAU, 96, Color(1.0, 0.96, 1.0, 0.70 * flash), 4.8, true)
+			draw_arc(center, 208.0 + flash * 32.0, -0.16, TAU + 0.16, 84, Color(1.0, 0.80, 0.93, 0.34 * flash), 2.2, true)
+			_draw_collab_comment_divide_fragments(center, seed + 1.7, 1.0, 0.90 * flash, COLLAB_CRUSHER_COMMENT_RADIUS)
+	# Small link remnants unify the visual language without turning this into a VS line.
+	for link_index in range(2):
+		var link_angle := seed + float(link_index) * PI + progress * 0.7
+		var link_dir := Vector2.from_angle(link_angle)
+		var link_pos := center + link_dir * (COLLAB_CRUSHER_COMMENT_RADIUS - 5.0 + progress * 20.0)
+		draw_line(link_pos - link_dir * 5.0, link_pos + link_dir * 8.0, Color(0.22, 0.80, 0.96, 0.28 * fade) if link_index == 0 else Color(1.0, 0.20, 0.60, 0.30 * fade), 1.8, true)
+
+func _collab_vs_line_visual_hash(phase: float, salt: int) -> float:
+	return fposmod(sin(phase * 12.9898 + float(salt) * 78.233) * 43758.5453, 1.0)
+
+func _draw_collab_crusher_vs_line_base(attack: Dictionary, from_pos: Vector2, to_pos: Vector2) -> void:
+	var segment := to_pos - from_pos
+	var segment_length := segment.length()
+	if segment_length <= 0.01:
+		return
+	var dir := segment / segment_length
+	var side := Vector2(-dir.y, dir.x)
+	var phase := float(attack.get("phase", 0.0))
+	var warning := float(attack.get("warning", 0.0))
+	var progress := 1.0 - clampf(warning / COLLAB_CRUSHER_VS_LINE_WARNING, 0.0, 1.0)
+	var endpoint_is_actual_partner := bool(attack.get("endpoint_is_actual_partner", true))
+	if warning > 0.0:
+		var final_charge := smoothstep(0.78, 1.0, progress)
+		var pulse := 0.5 + 0.5 * sin(progress * TAU * 1.35 + phase)
+		var body_alpha := 0.12 + progress * 0.10 + final_charge * 0.05
+		var rail_alpha := 0.28 + progress * 0.32 + final_charge * 0.12
+		draw_line(from_pos, to_pos, Color(0.12, 0.025, 0.18, body_alpha), 98.0, true)
+		draw_line(from_pos + side * 31.0, to_pos + side * 31.0, Color(1.0, 0.16, 0.46, rail_alpha), 3.2, true)
+		draw_line(from_pos - side * 31.0, to_pos - side * 31.0, Color(0.16, 0.78, 1.0, rail_alpha), 3.2, true)
+		draw_line(from_pos, to_pos, Color(1.0, 0.94, 0.99, 0.16 + progress * 0.16), 2.0, true)
+		_draw_collab_vs_line_boundaries(from_pos, to_pos, side, 0.62 + progress * 0.30)
+		_draw_collab_vs_line_endcaps(from_pos, to_pos, dir, phase, 0.28 + progress * 0.44)
+		_draw_collab_vs_line_endpoint_marker(from_pos, dir, side, Color(0.18, 0.84, 1.0), phase + 0.23, progress, false)
+		_draw_collab_vs_line_endpoint_marker(to_pos, dir, side, Color(1.0, 0.24, 0.57) if endpoint_is_actual_partner else Color(0.55, 0.16, 0.50), phase + 1.07, progress, not endpoint_is_actual_partner)
+		_draw_collab_vs_line_crack(from_pos, to_pos, dir, side, phase, 0.22 + progress * 0.44 + final_charge * 0.18)
+		if progress > 0.56:
+			var warning_vs_alpha := 0.10 + (progress - 0.56) * 0.22 + pulse * 0.03
+			_draw_outlined_text((from_pos + to_pos) * 0.5 + Vector2(-18.0, 7.0), "VS", 36, 16, Color(1.0, 0.92, 0.98, warning_vs_alpha), Color(0.20, 0.02, 0.18, warning_vs_alpha * 0.90), HORIZONTAL_ALIGNMENT_CENTER)
+		return
+	var active_elapsed := COLLAB_CRUSHER_VS_LINE_ACTIVE - maxf(0.0, float(attack.get("active", 0.0)))
+	var active_flash := 1.0 - clampf(active_elapsed / 0.18, 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(active_elapsed * 8.0 + phase)
+	var body_alpha := maxf(COLLAB_CRUSHER_VS_LINE_ACTIVE_MIN_ALPHA, 0.62 + pulse * 0.08)
+	var rail_alpha := maxf(0.64, 0.74 + pulse * 0.08)
+	draw_line(from_pos, to_pos, Color(0.10, 0.018, 0.15, body_alpha), 98.0, true)
+	draw_line(from_pos + side * 31.0, to_pos + side * 31.0, Color(1.0, 0.13, 0.43, rail_alpha), 3.8, true)
+	draw_line(from_pos - side * 31.0, to_pos - side * 31.0, Color(0.15, 0.76, 1.0, rail_alpha), 3.8, true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.96, 1.0, 0.56 + pulse * 0.10), 3.2, true)
+	_draw_collab_vs_line_boundaries(from_pos, to_pos, side, 0.86 + pulse * 0.10)
+	_draw_collab_vs_line_endcaps(from_pos, to_pos, dir, phase, 0.56 + pulse * 0.12)
+	_draw_collab_vs_line_endpoint_marker(from_pos, dir, side, Color(0.18, 0.84, 1.0), phase + 0.23, 1.0, false)
+	_draw_collab_vs_line_endpoint_marker(to_pos, dir, side, Color(1.0, 0.24, 0.57) if endpoint_is_actual_partner else Color(0.55, 0.16, 0.50), phase + 1.07, 1.0, not endpoint_is_actual_partner)
+	_draw_collab_vs_line_crack(from_pos, to_pos, dir, side, phase, 0.38 + active_flash * 0.62)
+	if active_flash > 0.0:
+		var midpoint := (from_pos + to_pos) * 0.5
+		_draw_outlined_text(midpoint + Vector2(-21.0, 8.0), "VS", 42, 20, Color(1.0, 0.96, 0.99, 0.76 + active_flash * 0.20), Color(0.25, 0.015, 0.20, 0.86), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_vs_line_boundaries(from_pos: Vector2, to_pos: Vector2, side: Vector2, strength: float) -> void:
+	var alpha_scale := clampf(strength, 0.0, 1.0)
+	for sign_value in [-1.0, 1.0]:
+		var sign := float(sign_value)
+		var boundary_from := from_pos + side * COLLAB_CRUSHER_VS_LINE_BOUNDARY_OFFSET * sign
+		var boundary_to := to_pos + side * COLLAB_CRUSHER_VS_LINE_BOUNDARY_OFFSET * sign
+		var inner_from := from_pos + side * (COLLAB_CRUSHER_VS_LINE_BOUNDARY_OFFSET - 0.75) * sign
+		var inner_to := to_pos + side * (COLLAB_CRUSHER_VS_LINE_BOUNDARY_OFFSET - 0.75) * sign
+		draw_line(boundary_from, boundary_to, Color(0.31, 0.015, 0.30, 0.78 * alpha_scale), 2.6, true)
+		draw_line(inner_from, inner_to, Color(1.0, 0.86, 0.97, 0.72 * alpha_scale), 1.1, true)
+
+func _draw_collab_vs_line_endcaps(from_pos: Vector2, to_pos: Vector2, dir: Vector2, phase: float, strength: float) -> void:
+	var alpha_scale := clampf(strength, 0.0, 1.0)
+	var center_points: Array[Vector2] = [from_pos, to_pos]
+	for endpoint_index in range(center_points.size()):
+		var center := center_points[endpoint_index]
+		for arc_index in range(3):
+			var arc_phase := dir.angle() + phase * 0.17 + float(endpoint_index) * 1.8 + float(arc_index) * 2.05
+			draw_arc(center, COLLAB_CRUSHER_VS_LINE_BOUNDARY_OFFSET, arc_phase, arc_phase + 0.34, 7, Color(0.38, 0.025, 0.36, 0.54 * alpha_scale), 2.2, true)
+
+func _draw_collab_vs_line_endpoint_marker(pos: Vector2, dir: Vector2, side: Vector2, accent: Color, phase: float, progress: float, synthetic: bool) -> void:
+	var alpha_scale := clampf(0.54 + progress * 0.46, 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(phase + progress * TAU)
+	var radius := 11.0 + pulse * 1.5
+	var accent_color := Color(accent.r, accent.g, accent.b, 0.84 * alpha_scale)
+	draw_circle(pos, radius + 3.5, Color(0.10, 0.015, 0.14, 0.24 * alpha_scale), true)
+	draw_arc(pos, radius + 2.0, phase, phase + 1.62, 12, Color(1.0, 0.96, 1.0, 0.86 * alpha_scale), 1.5, true)
+	draw_arc(pos, radius + 2.0, phase + 2.05, phase + 3.42, 11, accent_color, 2.2, true)
+	draw_circle(pos, radius - 4.0, Color(accent.r, accent.g, accent.b, 0.22 * alpha_scale), true)
+	draw_circle(pos, radius - 4.0, Color(1.0, 0.95, 0.99, 0.68 * alpha_scale), false, 1.0, true)
+	if synthetic:
+		var slash_a := pos - dir * 6.5 - side * 6.0
+		var slash_b := pos + dir * 6.5 + side * 6.0
+		var slash_c := pos - dir * 6.5 + side * 6.0
+		var slash_d := pos + dir * 6.5 - side * 6.0
+		draw_line(slash_a, slash_b, Color(0.38, 0.03, 0.34, 0.92 * alpha_scale), 2.1, true)
+		draw_line(slash_c, slash_d, Color(0.62, 0.10, 0.47, 0.74 * alpha_scale), 1.5, true)
+	else:
+		var notch_center := pos - dir * 3.0 + side * 8.0
+		draw_line(notch_center - dir * 4.0, notch_center + dir * 4.0, Color(1.0, 1.0, 1.0, 0.76 * alpha_scale), 1.4, true)
+		draw_circle(pos - dir * 2.0, 2.2 + pulse, Color(1.0, 1.0, 1.0, 0.78 * alpha_scale), true)
+
+func _draw_collab_vs_line_crack(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, phase: float, strength: float) -> void:
+	var line_length := from_pos.distance_to(to_pos)
+	var span := minf(28.0, maxf(12.0, line_length * 0.38))
+	var gap := minf(8.0, span * 0.34)
+	var midpoint := (from_pos + to_pos) * 0.5
+	var wobble := (_collab_vs_line_visual_hash(phase, 7) - 0.5) * 8.0
+	var crack_center := midpoint + side * wobble
+	var dark := Color(0.18, 0.01, 0.20, 0.84 * strength)
+	var light := Color(1.0, 0.92, 0.98, 0.82 * strength)
+	var left_a := crack_center - dir * span
+	var left_b := crack_center - dir * gap
+	var right_a := crack_center + dir * gap
+	var right_b := crack_center + dir * span
+	draw_line(left_a, left_b, dark, 5.0, true)
+	draw_line(left_a.lerp(left_b, 0.18), left_a.lerp(left_b, 0.72), light, 1.5, true)
+	draw_line(right_a, right_b, dark, 5.0, true)
+	draw_line(right_a.lerp(right_b, 0.12), right_a.lerp(right_b, 0.68), light, 1.5, true)
+	var zig_a := crack_center - side * 10.0 - dir * 4.0
+	var zig_b := crack_center + side * 4.0
+	var zig_c := crack_center - side * 3.0 + dir * 5.0
+	draw_polyline(PackedVector2Array([zig_a, zig_b, zig_c]), Color(0.84, 0.08, 0.48, 0.82 * strength), 2.3, true)
+
+func _draw_collab_boss_attack_foreground(visible_rect: Rect2) -> void:
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		var kind := String(attack.get("kind", ""))
+		if kind == "comment_divide":
+			_draw_collab_crusher_comment_divide_foreground(attack, visible_rect)
+			continue
+		if kind != "vs_line":
+			continue
+		var from_pos := Vector2(attack.get("from", Vector2.ZERO))
+		var to_pos := Vector2(attack.get("to", from_pos))
+		var segment := to_pos - from_pos
+		var length_squared := segment.length_squared()
+		if length_squared <= 0.01:
+			continue
+		var length := sqrt(length_squared)
+		var dir := segment / length
+		var side := Vector2(-dir.y, dir.x)
+		var warning := float(attack.get("warning", 0.0))
+		var progress := 1.0 - clampf(warning / COLLAB_CRUSHER_VS_LINE_WARNING, 0.0, 1.0)
+		var phase := float(attack.get("phase", 0.0))
+		var endpoint_is_actual_partner := bool(attack.get("endpoint_is_actual_partner", true))
+		if visible_rect.grow(70.0).has_point(from_pos):
+			_draw_collab_vs_line_endpoint_marker(from_pos, dir, side, Color(0.18, 0.84, 1.0), phase + 0.23, progress, false)
+		if visible_rect.grow(70.0).has_point(to_pos):
+			_draw_collab_vs_line_endpoint_marker(to_pos, dir, side, Color(1.0, 0.24, 0.57) if endpoint_is_actual_partner else Color(0.55, 0.16, 0.50), phase + 1.07, progress, not endpoint_is_actual_partner)
+		var projected_t := clampf((player_pos - from_pos).dot(segment) / length_squared, 0.0, 1.0)
+		var projected := from_pos + segment * projected_t
+		if projected.distance_to(player_pos) > 180.0:
+			continue
+		var local_half_length := minf(110.0, length * 0.5)
+		var local_start := projected - dir * local_half_length
+		var local_end := projected + dir * local_half_length
+		var boundary_strength := (0.72 + progress * 0.18) if warning > 0.0 else 0.86
+		_draw_collab_vs_line_boundaries(local_start, local_end, side, boundary_strength)
+		draw_line(local_start, local_end, Color(1.0, 0.92, 0.98, 0.24 if warning > 0.0 else 0.34), 2.0, true)
+		var midpoint := (from_pos + to_pos) * 0.5
+		if local_start.distance_to(midpoint) + local_end.distance_to(midpoint) <= local_start.distance_to(local_end) + 34.0:
+			_draw_collab_vs_line_crack(from_pos, to_pos, dir, side, phase, 0.28 if warning > 0.0 else 0.52)
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		if String(effect.get("kind", "")) == "comment_divide_echo":
+			_draw_collab_crusher_comment_divide_echo_foreground(effect, visible_rect)
+		elif String(effect.get("kind", "")) == "comparison_spam_boss_cue":
+			_draw_comparison_spam_boss_cue_foreground(effect, visible_rect)
+		elif String(effect.get("kind", "")) == "comparison_spam_spawn":
+			_draw_comparison_spam_spawn_foreground(effect, visible_rect)
+
+func _draw_collab_crusher_comment_divide_foreground(attack: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(attack.get("pos", Vector2.ZERO))
+	var distance_to_player := center.distance_to(player_pos)
+	if not visible_rect.grow(28.0).has_point(center) and distance_to_player > COLLAB_CRUSHER_COMMENT_RADIUS + 64.0:
+		return
+	var warning := float(attack.get("warning", 0.0))
+	var progress := 1.0 - clampf(warning / COLLAB_CRUSHER_COMMENT_WARNING, 0.0, 1.0)
+	var seed := float(attack.get("visual_seed", attack.get("phase", 0.0)))
+	if visible_rect.grow(36.0).has_point(center):
+		_draw_collab_comment_divide_center_marker(center, seed, progress, 0.84 + progress * 0.12)
+	if distance_to_player > COLLAB_CRUSHER_COMMENT_RADIUS + 52.0:
+		return
+	var toward_player := player_pos - center
+	if toward_player.length_squared() < 0.01:
+		toward_player = Vector2.RIGHT
+	else:
+		toward_player = toward_player.normalized()
+	var local_angle := toward_player.angle()
+	draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, local_angle - 0.28, local_angle + 0.28, 18, Color(0.30, 0.02, 0.28, 0.52 + progress * 0.18), 2.8, true)
+	draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, local_angle - 0.20, local_angle + 0.20, 14, Color(1.0, 0.82, 0.94, 0.34 + progress * 0.16), 1.0, true)
+	var edge_pos := center + toward_player * COLLAB_CRUSHER_COMMENT_RADIUS
+	_draw_collab_comment_divide_bubble_piece(edge_pos, toward_player, Vector2(-toward_player.y, toward_player.x), 0.56 + progress * 0.24, 0.86)
+
+func _draw_collab_crusher_comment_divide_echo_foreground(effect: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", Vector2.ZERO))
+	var distance_to_player := center.distance_to(player_pos)
+	if not visible_rect.grow(28.0).has_point(center) and distance_to_player > COLLAB_CRUSHER_COMMENT_RADIUS + 52.0:
+		return
+	var max_life := maxf(0.01, float(effect.get("maxLife", COLLAB_CRUSHER_COMMENT_ECHO_DURATION)))
+	var fade := clampf(float(effect.get("life", max_life)) / max_life, 0.0, 1.0)
+	var seed := float(effect.get("visual_seed", 0.0))
+	var toward_player := player_pos - center
+	if toward_player.length_squared() < 0.01:
+		toward_player = Vector2.RIGHT
+	else:
+		toward_player = toward_player.normalized()
+	var local_angle := toward_player.angle()
+	draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, local_angle - 0.24, local_angle + 0.24, 16, Color(1.0, 0.80, 0.94, 0.26 * fade), 2.0, true)
+	var edge_pos := center + toward_player * COLLAB_CRUSHER_COMMENT_RADIUS
+	_draw_collab_comment_divide_bubble_piece(edge_pos, toward_player, Vector2(-toward_player.y, toward_player.x), 0.34 * fade, 0.72)
+	if bool(effect.get("impact_flash", false)):
+		var progress := 1.0 - fade
+		var flash := 1.0 - clampf(progress / COLLAB_CRUSHER_COMMENT_IMPACT_FLASH_DURATION, 0.0, 1.0)
+		if flash > 0.0:
+			draw_arc(center, COLLAB_CRUSHER_COMMENT_RADIUS, local_angle - 0.32, local_angle + 0.32, 18, Color(1.0, 0.96, 1.0, 0.48 * flash), 3.2, true)
+
+func _draw_collab_crusher_vs_line_post_fade(effect: Dictionary, visible_rect: Rect2) -> void:
+	var from_pos := Vector2(effect.get("from", Vector2.ZERO))
+	var to_pos := Vector2(effect.get("to", from_pos))
+	if not visible_rect.grow(110.0).has_point(from_pos) and not visible_rect.grow(110.0).has_point(to_pos):
+		return
+	var segment := to_pos - from_pos
+	if segment.length_squared() <= 0.01:
+		return
+	var dir := segment.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	var fade := clampf(float(effect.get("life", 0.0)) / maxf(0.01, float(effect.get("maxLife", COLLAB_CRUSHER_VS_LINE_POST_FADE_DURATION))), 0.0, 1.0)
+	var phase := float(effect.get("phase", 0.0))
+	draw_line(from_pos, to_pos, Color(0.10, 0.018, 0.15, 0.28 * fade), 98.0, true)
+	draw_line(from_pos + side * 31.0, to_pos + side * 31.0, Color(1.0, 0.13, 0.43, 0.36 * fade), 2.4, true)
+	draw_line(from_pos - side * 31.0, to_pos - side * 31.0, Color(0.15, 0.76, 1.0, 0.36 * fade), 2.4, true)
+	_draw_collab_vs_line_boundaries(from_pos, to_pos, side, 0.50 * fade)
+	_draw_collab_vs_line_crack(from_pos, to_pos, dir, side, phase, 0.70 * fade)
+
+func _draw_collab_division_noise_warning(visible_rect: Rect2) -> void:
+	var boss := _collab_crusher_boss()
+	if boss.is_empty() or not bool(boss.get("collabDivisionNoiseWarningActive", false)):
+		return
+	var center := Vector2(boss.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(100.0).has_point(center):
+		return
+	var duration := maxf(0.01, float(boss.get("collabDivisionNoiseWarningDuration", COLLAB_CRUSHER_DIVISION_WARNING_DURATION)))
+	var real_left := clampf(float(boss.get("collabDivisionNoiseWarningRealLeft", duration)), 0.0, duration)
+	var progress := 1.0 - real_left / duration
+	var seed := float(boss.get("collabDivisionNoiseWarningSeed", 0.0))
+	var phase := seed + progress * 0.34
+	var fade := lerpf(0.24, 0.82, smoothstep(0.0, 1.0, progress))
+	var pulse := 0.5 + 0.5 * sin(progress * TAU * 1.15 + seed)
+	var ring_radius := clampf(float(boss.get("radius", 112.0)) * 1.56, 136.0, 190.0)
+	var cyan := Color(0.30, 0.82, 1.0, fade * 0.70)
+	var pink := Color(1.0, 0.30, 0.66, fade * 0.70)
+	var fracture := Color(0.10, 0.025, 0.16, fade * 0.82)
+	draw_arc(center, ring_radius, phase + 0.18, phase + PI - 0.28, 22, cyan, 2.5, true)
+	draw_arc(center, ring_radius, phase + PI + 0.28, phase + TAU - 0.18, 22, pink, 2.5, true)
+	draw_arc(center, ring_radius + 4.0, phase + 0.52, phase + 1.54, 11, Color(0.82, 0.70, 0.96, fade * 0.34), 1.0, true)
+	var crack_scale := 9.0 + progress * 5.0
+	var crack_a := center + Vector2(-crack_scale, -3.0)
+	var crack_b := center + Vector2(-2.0, 2.0)
+	var crack_c := center + Vector2(5.0, -4.0)
+	var crack_d := center + Vector2(crack_scale, 3.0)
+	draw_polyline(PackedVector2Array([crack_a, crack_b, crack_c, crack_d]), fracture, 2.0 + progress * 1.2, true)
+	if progress > 0.26:
+		var cross := 4.0 + progress * 4.0
+		draw_line(center + Vector2(-cross, cross), center + Vector2(cross, -cross), Color(0.96, 0.90, 1.0, fade * 0.56), 1.2, true)
+	if progress > 0.38:
+		var split_gap := 3.0 + progress * 3.0
+		draw_line(center + Vector2(-split_gap, -13.0), center + Vector2(-split_gap, 13.0), cyan, 1.3, true)
+		draw_line(center + Vector2(split_gap, -13.0), center + Vector2(split_gap, 13.0), pink, 1.3, true)
+	var noise_count := 2 + int(floor(_collab_division_noise_visual_hash(seed, 3) * 2.0))
+	for i in range(noise_count):
+		var noise_angle := phase + float(i) * TAU / float(noise_count) + 0.42
+		var noise_radius := ring_radius + 10.0 + _collab_division_noise_visual_hash(seed, i + 10) * 16.0
+		var noise_pos := center + Vector2(cos(noise_angle), sin(noise_angle)) * noise_radius
+		var noise_size := 5.0 + _collab_division_noise_visual_hash(seed, i + 20) * 5.0
+		var noise_color := cyan if i % 2 == 0 else pink
+		draw_rect(Rect2(noise_pos - Vector2(noise_size, noise_size * 0.42), Vector2(noise_size * 2.0, noise_size * 0.84)), Color(noise_color.r, noise_color.g, noise_color.b, fade * 0.56), false, 1.4)
+		if progress > 0.58:
+			draw_line(noise_pos - Vector2(noise_size * 0.7, 0.0), noise_pos + Vector2(noise_size * 0.7, 0.0), Color(0.95, 0.92, 1.0, fade * 0.42), 1.0, true)
+	var pip_count := clampi(int(boss.get("collabDivisionNoiseWarningCount", 0)), 0, 3)
+	for i in range(pip_count):
+		var pip_angle := phase + 0.82 + float(i - (pip_count - 1) * 0.5) * 0.62
+		var pip_pos := center + Vector2(cos(pip_angle), sin(pip_angle)) * (ring_radius + 23.0)
+		var pip_color := cyan if (i + int(seed * 10.0)) % 2 == 0 else pink
+		var pip_alpha := fade * (0.60 + 0.24 * pulse)
+		draw_rect(Rect2(pip_pos - Vector2(8.0, 4.0), Vector2(16.0, 8.0)), Color(pip_color.r, pip_color.g, pip_color.b, pip_alpha), false, 1.7)
+		draw_line(pip_pos - Vector2(4.0, 2.0), pip_pos + Vector2(4.0, 2.0), fracture, 1.1, true)
+		if i % 2 == 0:
+			draw_line(pip_pos + Vector2(-5.0, 3.0), pip_pos + Vector2(3.0, -3.0), Color(1.0, 0.92, 0.98, pip_alpha * 0.76), 1.1, true)
+	if progress > 0.78:
+		draw_arc(center, ring_radius + 8.0 + pulse * 2.0, phase - 0.20, phase + 0.76, 12, Color(1.0, 0.94, 1.0, fade * 0.54), 1.7, true)
+
+func _draw_collab_division_noise_fracture(center: Vector2, seed: float, strength: float, scale: float) -> void:
+	var angle := seed + 0.31
+	var direction := Vector2(cos(angle), sin(angle))
+	var side := Vector2(-direction.y, direction.x)
+	var start := center - direction * scale
+	var mid := center + side * scale * 0.42
+	var end := center + direction * scale
+	draw_polyline(PackedVector2Array([start, mid, end]), Color(0.08, 0.02, 0.14, strength), maxf(1.4, scale * 0.18), true)
+	draw_line(center - side * scale * 0.52, center + side * scale * 0.52, Color(0.92, 0.88, 1.0, strength * 0.52), maxf(0.8, scale * 0.09), true)
+
+func _draw_collab_division_noise_spawn_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(54.0).has_point(center):
+		return
+	var life := maxf(0.0, float(effect.get("life", 0.0)))
+	var max_life := maxf(0.01, float(effect.get("maxLife", COLLAB_CRUSHER_DIVISION_SPAWN_FX_DURATION)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var pulse := sin(progress * PI)
+	var ring_radius := 21.0 + pulse * 5.0
+	draw_arc(center, ring_radius, seed + 0.18, seed + PI * 0.84, 16, Color(0.30, 0.82, 1.0, 0.72 * fade), 2.2, true)
+	draw_arc(center, ring_radius, seed + PI + 0.22, seed + TAU - 0.18, 16, Color(1.0, 0.30, 0.66, 0.72 * fade), 2.2, true)
+	_draw_collab_division_noise_fracture(center, seed + progress * 0.28, 0.82 * fade, 8.0 + pulse * 2.0)
+	draw_circle(center, 2.5 + pulse * 2.0, Color(1.0, 0.96, 1.0, 0.72 * fade), true)
+	var fragment_count := 3 + int(floor(_collab_division_noise_visual_hash(seed, 31) * 3.0))
+	for i in range(fragment_count):
+		var fragment_angle := seed + float(i) * TAU / float(fragment_count) + 0.44
+		var direction := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_pos := center + direction * (24.0 + pulse * 8.0 + _collab_division_noise_visual_hash(seed, i + 40) * 9.0)
+		var fragment_size := 3.0 + _collab_division_noise_visual_hash(seed, i + 50) * 4.0
+		var fragment_color := Color(0.30, 0.82, 1.0, 0.70 * fade) if i % 2 == 0 else Color(1.0, 0.30, 0.66, 0.70 * fade)
+		draw_rect(Rect2(fragment_pos - Vector2(fragment_size, fragment_size * 0.36), Vector2(fragment_size * 2.0, fragment_size * 0.72)), fragment_color, true)
+		draw_line(fragment_pos - direction * 5.0, fragment_pos + direction * 5.0, Color(0.94, 0.90, 1.0, 0.46 * fade), 1.0, true)
+	if progress < 0.42:
+		draw_arc(center, 13.0 + progress * 12.0, seed - 0.8, seed + 0.32, 12, Color(1.0, 0.96, 1.0, 0.48 * fade), 1.6, true)
+
+func _draw_collab_division_noise_boss_cue_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(70.0).has_point(center):
+		return
+	var life := maxf(0.0, float(effect.get("life", 0.0)))
+	var max_life := maxf(0.01, float(effect.get("maxLife", 0.24)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var final_phase := bool(effect.get("finalPhase", false))
+	var ring_radius := 31.0 + sin(progress * PI) * 5.0
+	draw_arc(center, ring_radius, seed, seed + PI * 0.70, 14, Color(0.30, 0.82, 1.0, 0.66 * fade), 2.3, true)
+	draw_arc(center, ring_radius, seed + PI * 1.18, seed + PI * 1.88, 14, Color(1.0, 0.30, 0.66, 0.66 * fade), 2.3, true)
+	_draw_collab_division_noise_fracture(center, seed + 0.17, 0.78 * fade, 9.0)
+	var fragment_count := 3 + (1 if final_phase else 0)
+	for i in range(fragment_count):
+		var angle := seed + float(i) * TAU / float(fragment_count) + 0.2
+		var direction := Vector2(cos(angle), sin(angle))
+		var fragment_pos := center + direction * (37.0 + sin(progress * PI + float(i)) * 3.0)
+		draw_rect(Rect2(fragment_pos - Vector2(5.0, 2.5), Vector2(10.0, 5.0)), Color(0.30, 0.82, 1.0, 0.52 * fade) if i % 2 == 0 else Color(1.0, 0.30, 0.66, 0.52 * fade), false, 1.4)
+	if progress < 0.35:
+		draw_circle(center, 4.0 + progress * 8.0, Color(1.0, 0.96, 1.0, 0.48 * fade), false, 1.8)
+
+func _draw_collab_division_noise_completion_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(50.0).has_point(center):
+		return
+	var life := maxf(0.0, float(effect.get("life", 0.0)))
+	var max_life := maxf(0.01, float(effect.get("maxLife", 0.18)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var radius := 25.0 + progress * 9.0
+	draw_arc(center, radius, seed, seed + 1.22, 12, Color(0.30, 0.82, 1.0, 0.46 * fade), 1.7, true)
+	draw_arc(center, radius, seed + PI + 0.3, seed + PI + 1.48, 12, Color(1.0, 0.30, 0.66, 0.46 * fade), 1.7, true)
+	_draw_collab_division_noise_fracture(center, seed + progress * 0.2, 0.48 * fade, 6.0)
 
 func _draw_collab_boss_enemy_overlays(visible_rect: Rect2) -> void:
 	if not _is_collab_frame():
@@ -11668,6 +13202,7 @@ func _draw_collab_boss_enemy_overlays(visible_rect: Rect2) -> void:
 			_draw_collab_division_noise_overlay(enemy, pos)
 		else:
 			_draw_collab_mute_core_overlay(enemy, pos)
+	_draw_collab_division_noise_warning(visible_rect)
 
 func _draw_collab_crusher_body_overlay(boss: Dictionary, pos: Vector2) -> void:
 	if DrawDataSystemScript.enemy_sprite_path(COLLAB_CRUSHER_BOSS_ID) != "":
@@ -11728,21 +13263,99 @@ func _draw_collab_crusher_sprite_overlay(boss: Dictionary, pos: Vector2) -> void
 
 func _draw_collab_division_noise_overlay(enemy: Dictionary, pos: Vector2) -> void:
 	var radius := float(enemy.get("radius", 25.0))
-	var pulse := 0.88 + 0.12 * sin(elapsed * 9.0 + float(enemy.get("divisionOrbitPhase", 0.0)))
-	draw_arc(pos, radius * 1.16 * pulse, -PI * 0.15, PI * 0.84, 18, Color("#ff5683"), 4.0, true)
-	draw_arc(pos, radius * 1.16 * pulse, PI * 0.85, PI * 1.84, 18, Color("#57c9ff"), 4.0, true)
-	_draw_outlined_text(pos + Vector2(-22.0, 8.0), "VS", 44, 15, Color("#fff8ec"), Color("#35112d"), HORIZONTAL_ALIGNMENT_CENTER)
-	for i in range(4):
-		var angle := elapsed * 4.0 + float(i) * TAU / 4.0
-		var noise_pos := pos + Vector2(cos(angle), sin(angle)) * radius * 1.35
-		draw_rect(Rect2(noise_pos - Vector2(3.0, 2.0), Vector2(6.0, 4.0)), Color("#ff5c8a") if i % 2 == 0 else Color("#5bcaff"), true)
+	var uid := int(enemy.get("uid", 0))
+	var seed := float(enemy.get("divisionNoiseVisualSeed", enemy.get("divisionOrbitPhase", 0.0)))
+	var pulse := 0.94 + 0.06 * sin(elapsed * 7.0 + seed)
+	var nearby_count := 0
+	for other_item in enemies:
+		var other: Dictionary = other_item as Dictionary
+		if int(other.get("uid", -1)) == uid or _song_enemy_inactive(other):
+			continue
+		if String(other.get("kind", "")) == COLLAB_DIVISION_NOISE_KIND and pos.distance_to(Vector2(other.get("pos", pos))) < 96.0:
+			nearby_count += 1
+	var crowd_alpha := 1.0 - minf(0.32, float(nearby_count) * 0.16)
+	var variant := posmod(uid, 3)
+	var cyan_strength := 0.76 if variant == 0 else 0.58
+	var pink_strength := 0.76 if variant == 1 else 0.58
+	var fracture_strength := 0.82 if variant == 2 else 0.64
+	var edge_radius := radius * 1.18 * pulse
+	draw_arc(pos, edge_radius, seed + 0.14, seed + PI * 0.72, 14, Color(0.30, 0.82, 1.0, cyan_strength * crowd_alpha), 2.2, true)
+	draw_arc(pos, edge_radius, seed + PI * 1.16, seed + PI * 1.84, 14, Color(1.0, 0.30, 0.66, pink_strength * crowd_alpha), 2.2, true)
+	var broken_radius := radius * 1.34
+	draw_arc(pos, broken_radius, seed + 2.15, seed + 2.86, 8, Color(0.12, 0.025, 0.18, 0.62 * crowd_alpha), 1.4, true)
+	_draw_collab_division_noise_fracture(pos, seed + elapsed * 0.35, fracture_strength * crowd_alpha, radius * 0.34)
+	var noise_count := 2 + posmod(uid, 2)
+	for i in range(noise_count):
+		var angle := seed + elapsed * 1.4 + float(i) * TAU / float(noise_count)
+		var noise_pos := pos + Vector2(cos(angle), sin(angle)) * radius * (1.43 + 0.06 * sin(seed + float(i)))
+		var noise_color := Color(0.30, 0.82, 1.0, 0.54 * crowd_alpha) if (i + variant) % 2 == 0 else Color(1.0, 0.30, 0.66, 0.54 * crowd_alpha)
+		draw_rect(Rect2(noise_pos - Vector2(3.5, 2.0), Vector2(7.0, 4.0)), noise_color, false, 1.2)
+	var dash_start := pos + Vector2(cos(seed + 3.0), sin(seed + 3.0)) * radius * 1.08
+	var dash_end := pos + Vector2(cos(seed + 3.52), sin(seed + 3.52)) * radius * 1.33
+	draw_line(dash_start, dash_end, Color(0.86, 0.78, 0.96, 0.46 * crowd_alpha), 1.3, true)
 
 func _draw_collab_mute_core_overlay(enemy: Dictionary, pos: Vector2) -> void:
 	var radius := float(enemy.get("radius", 27.0))
-	var pulse := 0.88 + 0.12 * sin(elapsed * 12.0)
-	draw_circle(pos, radius * 1.25 * pulse, Color(0.58, 0.26, 0.72, 0.16), true)
-	draw_arc(pos, radius * 1.10, elapsed * 2.8, elapsed * 2.8 + PI * 1.55, 28, Color("#df86ff"), 4.0, true)
-	_draw_outlined_text(pos + Vector2(-28.0, 7.0), "MUTE", 56, 12, Color("#fff8ff"), Color("#32113d"), HORIZONTAL_ALIGNMENT_CENTER)
+	var max_hp := maxf(1.0, float(enemy.get("max_hp", 1.0)))
+	var hp_ratio := clampf(float(enemy.get("hp", max_hp)) / max_hp, 0.0, 1.0)
+	var pulse := 0.92 + 0.08 * sin(elapsed * 9.0 + float(enemy.get("collabMuteVisualSeed", 0.0)))
+	var pop_timer := maxf(0.0, float(enemy.get("collabMutePopInTimer", 0.0)))
+	var pop_duration := maxf(0.01, float(enemy.get("collabMutePopInDuration", COLLAB_CRUSHER_MUTE_POP_IN_DURATION)))
+	if pop_timer > 0.0:
+		var pop_progress := clampf(1.0 - pop_timer / pop_duration, 0.0, 1.0)
+		var pop_scale := lerpf(0.78, 1.06, smoothstep(0.0, 0.68, pop_progress)) if pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, pop_progress))
+		radius *= pop_scale
+	var pop_alpha := lerpf(0.85, 1.0, smoothstep(0.0, 0.42, 1.0 - pop_timer / pop_duration)) if pop_timer > 0.0 else 1.0
+	draw_circle(pos, radius * 1.18 * pulse, Color(0.35, 0.16, 0.48, 0.10 * pop_alpha), true)
+	draw_arc(pos, radius * 1.22, -PI * 0.72, PI * 0.92, 28, Color(0.49, 0.31, 0.60, 0.72 * pop_alpha), 2.2, true)
+	draw_arc(pos, radius * 1.34, -PI * 0.5, -PI * 0.5 + TAU * clampf(collab_boss_mute_timer / COLLAB_CRUSHER_MUTE_DURATION, 0.0, 1.0), 36, Color(0.38, 0.24, 0.50, 0.52 * pop_alpha), 1.4, true)
+	# The radial ring is the core's only HP readout; generic bars are suppressed
+	# for this kind in DrawDataSystemScript.enemy_draw_data().
+	draw_arc(pos, radius * 1.42, -PI * 0.5, PI * 1.5, 36, Color(0.15, 0.07, 0.21, 0.76 * pop_alpha), 2.6, true)
+	if hp_ratio > 0.0:
+		draw_arc(pos, radius * 1.42, -PI * 0.5, -PI * 0.5 + TAU * hp_ratio, 36, Color(0.90, 0.82, 0.98, 0.90 * pop_alpha), 3.2, true)
+	var crack_stage := 0
+	if hp_ratio <= 0.25:
+		crack_stage = 4
+	elif hp_ratio <= 0.50:
+		crack_stage = 3
+	elif hp_ratio <= 0.75:
+		crack_stage = 1
+	for i in range(crack_stage):
+		var crack_angle := float(enemy.get("collabMuteVisualSeed", 0.0)) * 0.31 + float(i) * 1.47
+		var crack_dir := Vector2(cos(crack_angle), sin(crack_angle))
+		var crack_side := Vector2(-crack_dir.y, crack_dir.x)
+		var crack_start := pos + crack_dir * radius * 0.22 + crack_side * 3.0
+		var crack_mid := pos + crack_dir * radius * 0.58 - crack_side * 2.0
+		var crack_end := pos + crack_dir * radius * 0.92 + crack_side * 4.0
+		draw_polyline(PackedVector2Array([crack_start, crack_mid, crack_end]), Color(0.96, 0.84, 1.0, 0.62 * pop_alpha), 1.5 + float(i) * 0.25, true)
+	_draw_collab_partner_mute_icon(pos, 0.78 * pop_alpha)
+	if hp_ratio <= 0.25:
+		var unstable := 0.58 + 0.42 * sin(elapsed * 18.0 + float(enemy.get("uid", 0)))
+		draw_line(pos + Vector2(-14.0, 13.0), pos + Vector2(14.0, 13.0), Color(0.97, 0.87, 1.0, 0.28 * unstable * pop_alpha), 1.4, true)
+
+func _draw_collab_partner_mute_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", collab_partner_pos))
+	var life := maxf(0.0, float(data.get("life", 0.0)))
+	var max_life := maxf(0.01, float(data.get("maxLife", COLLAB_CRUSHER_MUTE_HIT_FX_DURATION)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := 1.0 - progress
+	var dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if dir.length_squared() < 0.01:
+		dir = Vector2.RIGHT
+	else:
+		dir = dir.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	draw_arc(pos, lerpf(11.0, 25.0, progress), -PI * 0.35, PI * 1.25, 20, Color(0.93, 0.84, 1.0, 0.72 * fade), 2.2, true)
+	draw_line(pos - dir * 27.0 - side * 5.0, pos + dir * 31.0 + side * 5.0, Color(0.72, 0.50, 0.82, 0.82 * fade), 3.0, true)
+	draw_line(pos - dir * 18.0 + side * 10.0, pos + dir * 14.0 + side * 4.0, Color(0.97, 0.92, 1.0, 0.64 * fade), 1.5, true)
+	for i in range(5):
+		var angle := float(data.get("visualSeed", 0.0)) + float(i) * TAU / 5.0
+		var particle_pos := pos + Vector2(cos(angle), sin(angle)) * (14.0 + progress * 26.0)
+		draw_circle(particle_pos, 1.6 + float(i % 2), Color(0.70, 0.48, 0.80, 0.74 * fade), true)
+	for i in range(3):
+		var wave_pos := pos + side * (8.0 + float(i) * 5.0) - dir * (12.0 - float(i) * 8.0)
+		draw_line(wave_pos - side * 2.0, wave_pos + side * 2.0, Color(0.86, 0.76, 0.94, 0.54 * fade), 1.3, true)
 
 func _draw_collab_sync_star_pickups(visible_rect: Rect2) -> void:
 	var texture := _load_field_icon(COLLAB_SYNC_STAR_IMAGE)
@@ -11908,6 +13521,106 @@ func _draw_collab_shockwave_effect(effect: Dictionary, visible_rect: Rect2) -> v
 	var label := String(effect.get("label", ""))
 	if label != "":
 		_draw_outlined_text(pos + Vector2(-54.0, -radius * 0.36 - 10.0 * progress), label, 108, 17, Color(1.0, 1.0, 1.0, alpha), Color(0.30, 0.08, 0.04, 0.84 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_comparison_spam_spawn_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.has_point(pos):
+		return
+	var life := float(effect.get("life", 0.0))
+	var max_life := maxf(0.01, float(effect.get("maxLife", 0.22)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var pulse := sin(progress * PI)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var phase := seed * TAU + float(int(effect.get("actualIndex", 0))) * 0.63
+	var ring_radius := 20.0 + pulse * 5.0
+	draw_arc(pos, ring_radius, phase, phase + PI * 0.82, 16, Color(0.78, 0.22, 0.68, 0.62 * fade), 2.4, true)
+	draw_arc(pos, ring_radius + 5.0, phase + PI * 1.10, phase + PI * 1.62, 11, Color(0.52, 0.18, 0.62, 0.48 * fade), 1.6, true)
+	draw_arc(pos, ring_radius + 9.0, phase + PI * 1.82, phase + PI * 2.28, 10, Color(1.0, 0.45, 0.70, 0.40 * fade), 1.3, true)
+	draw_circle(pos, 3.0 + pulse * 2.0, Color(1.0, 0.95, 1.0, (0.38 + pulse * 0.28) * fade), true)
+	draw_circle(pos, 1.8 + pulse * 1.2, Color(1.0, 0.54, 0.76, 0.64 * fade), true)
+	for i in range(3):
+		var fragment_angle := phase + float(i) * TAU / 3.0 + 0.35
+		var direction := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_center := pos + direction * (25.0 + pulse * 4.0 + float(i % 2) * 3.0)
+		draw_arc(fragment_center, 4.0 + float(i % 2), fragment_angle + 0.45, fragment_angle + 2.2, 8, Color(0.92, 0.45, 0.76, 0.72 * fade), 1.7, true)
+		draw_line(fragment_center - direction * 5.0, fragment_center + direction * 7.0, Color(1.0, 0.91, 0.96, 0.58 * fade), 1.2, true)
+	var flame_angle := phase + 1.7
+	var flame_dir := Vector2(cos(flame_angle), sin(flame_angle))
+	var flame_pos := pos + flame_dir * (31.0 + pulse * 5.0)
+	var flame_side := Vector2(-flame_dir.y, flame_dir.x)
+	draw_polyline(PackedVector2Array([
+		flame_pos - flame_dir * 7.0 - flame_side * 3.0,
+		flame_pos + flame_side * 4.0,
+		flame_pos + flame_dir * 8.0,
+		flame_pos + flame_side * 1.0
+	]), Color(1.0, 0.38, 0.24, 0.62 * fade), 1.8, true)
+	draw_line(pos + Vector2(-7.0, -5.0), pos + Vector2(7.0, 5.0), Color(0.88, 0.22, 0.60, 0.64 * fade), 1.8, true)
+	draw_line(pos + Vector2(-5.0, 7.0), pos + Vector2(6.0, -6.0), Color(0.96, 0.56, 0.80, 0.58 * fade), 1.4, true)
+
+func _draw_comparison_spam_boss_cue_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.has_point(pos):
+		return
+	var life := float(effect.get("life", 0.0))
+	var max_life := maxf(0.01, float(effect.get("maxLife", 0.30)))
+	var progress := 1.0 - clampf(life / max_life, 0.0, 1.0)
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var pulse := sin(progress * PI)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var phase := seed * TAU
+	var ring_radius := 30.0 + pulse * 8.0
+	draw_arc(pos, ring_radius, phase, phase + PI * 0.72, 16, Color(0.64, 0.14, 0.54, 0.60 * fade), 2.6, true)
+	draw_arc(pos, ring_radius + 8.0, phase + PI * 1.08, phase + PI * 1.55, 12, Color(0.94, 0.27, 0.64, 0.50 * fade), 1.8, true)
+	draw_circle(pos, 7.0 + pulse * 4.0, Color(1.0, 0.82, 0.94, 0.18 * fade + 0.16 * pulse), true)
+	_draw_outlined_text(pos + Vector2(-20.0, -37.0 - pulse * 4.0), "!?", 40, 17, Color(1.0, 0.92, 0.98, 0.82 * fade), Color(0.28, 0.02, 0.24, 0.76 * fade), HORIZONTAL_ALIGNMENT_CENTER)
+	var pip_phase := phase + PI * 0.18
+	for i in range(3):
+		var pip_angle := pip_phase + float(i - 1) * 0.48
+		var pip_pos := pos + Vector2(cos(pip_angle), sin(pip_angle)) * (42.0 + pulse * 4.0)
+		draw_circle(pip_pos, 3.5 + pulse * 1.2, Color(0.98, 0.52, 0.78, 0.78 * fade), true)
+		draw_circle(pip_pos, 1.5, Color(1.0, 0.94, 0.98, 0.72 * fade), true)
+	var fragment_count := 3 if bool(effect.get("finalPhase", false)) else 2
+	for i in range(fragment_count):
+		var fragment_angle := phase + 1.2 + float(i) * 2.2
+		var direction := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var start := pos + direction * 19.0
+		var finish := pos + direction * (35.0 + pulse * 8.0)
+		draw_line(start, finish, Color(0.88, 0.29, 0.68, 0.56 * fade), 2.1, true)
+		draw_line(start + Vector2(-direction.y, direction.x) * 3.0, finish + Vector2(-direction.y, direction.x) * 1.0, Color(1.0, 0.50, 0.38, 0.42 * fade), 1.2, true)
+	var vs_direction := Vector2(cos(phase + 2.7), sin(phase + 2.7))
+	var vs_side := Vector2(-vs_direction.y, vs_direction.x)
+	draw_line(pos + vs_direction * 17.0 - vs_side * 5.0, pos + vs_direction * 28.0, Color(0.94, 0.42, 0.76, 0.70 * fade), 2.2, true)
+	draw_line(pos + vs_direction * 28.0, pos + vs_direction * 39.0 + vs_side * 5.0, Color(0.72, 0.28, 0.84, 0.56 * fade), 2.2, true)
+
+func _draw_comparison_spam_boss_cue_foreground(effect: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(170.0).has_point(pos):
+		return
+	var life := float(effect.get("life", 0.0))
+	var max_life := maxf(0.01, float(effect.get("maxLife", 0.30)))
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var progress := 1.0 - fade
+	var pulse := sin(progress * PI)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var marker_pos := pos + Vector2(0.0, -132.0 - pulse * 5.0)
+	var phase := seed * TAU
+	draw_arc(marker_pos, 16.0 + pulse * 3.0, phase, phase + PI * 0.72, 12, Color(0.90, 0.30, 0.70, 0.58 * fade), 1.8, true)
+	_draw_outlined_text(marker_pos + Vector2(-18.0, 6.0), "!?", 36, 14, Color(1.0, 0.92, 0.98, 0.84 * fade), Color(0.24, 0.01, 0.22, 0.76 * fade), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_comparison_spam_spawn_foreground(effect: Dictionary, visible_rect: Rect2) -> void:
+	var pos := Vector2(effect.get("pos", Vector2.ZERO))
+	if not visible_rect.grow(36.0).has_point(pos):
+		return
+	var life := float(effect.get("life", 0.0))
+	var max_life := maxf(0.01, float(effect.get("maxLife", 0.22)))
+	var fade := clampf(life / max_life, 0.0, 1.0)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var phase := seed * TAU + 0.4
+	var direction := Vector2(cos(phase), sin(phase))
+	var side := Vector2(-direction.y, direction.x)
+	draw_line(pos - direction * 7.0 - side * 3.0, pos + direction * 7.0 + side * 3.0, Color(1.0, 0.82, 0.94, 0.52 * fade), 1.2, true)
+	draw_line(pos - direction * 5.0 + side * 4.0, pos + direction * 5.0 - side * 4.0, Color(0.76, 0.20, 0.66, 0.64 * fade), 1.5, true)
 
 func _draw_collab_ban_star_rush_effect(effect: Dictionary, visible_rect: Rect2) -> void:
 	var center := Vector2(effect.get("pos", player_pos))
@@ -12272,11 +13985,246 @@ func _draw_field_icon(path: String, center: Vector2, size: Vector2, alpha: float
 	return true
 
 func _draw_enemy_bullets(visible_rect: Rect2) -> void:
-	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false, Callable(), Callable(), visible_rect)
+	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"), visible_rect, "exclude_foreground_boss_projectiles")
+
+func _draw_comment_shotgun_launch_edge_foreground() -> void:
+	if enemy_bullets.is_empty():
+		return
+	var edge_bullets: Array = []
+	var edge_rect := FIELD_VIEW.grow(48.0)
+	for bullet_item in enemy_bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if String(bullet.get("visualKind", "")) != "comment_shotgun":
+			continue
+		if float(bullet.get("commentShotgunLaunchVisualTimer", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		# The launch pass can lift a muzzle-hidden projectile above the field
+		# clip, but never redraw the complete bubble over a nearby player.
+		if pos.distance_squared_to(player_pos) <= 112.0 * 112.0:
+			continue
+		var screen_pos := _world_transform_position() + pos * world_zoom
+		if not edge_rect.has_point(screen_pos):
+			continue
+		edge_bullets.append(bullet)
+	if edge_bullets.is_empty():
+		return
+	var previous_world_draw_active := world_draw_active
+	world_draw_active = true
+	_apply_world_transform()
+	WeaponDrawSystemScript.draw_comment_shotgun_launch_foreground(
+		self,
+		edge_bullets,
+		_visible_world_rect_for_spawning().grow(260.0),
+		Callable(self, "_draw_rotated_texture"),
+		Callable(self, "_load_raw_png_texture")
+	)
+	world_draw_active = previous_world_draw_active
+	if world_draw_active:
+		_apply_world_transform()
+	else:
+		_reset_world_transform()
+
+func _draw_comment_shotgun_launch_overlay() -> void:
+	if enemy_bullets.is_empty():
+		return
+	var overlay_bullets: Array = []
+	var screen_rect := Rect2(Vector2.ZERO, Vector2(1600.0, 900.0)).grow(28.0)
+	for bullet_item in enemy_bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if String(bullet.get("visualKind", "")) != "comment_shotgun":
+			continue
+		if float(bullet.get("commentShotgunLaunchVisualTimer", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) <= 112.0 * 112.0:
+			continue
+		var screen_pos := _world_transform_position() + pos * world_zoom
+		if not screen_rect.has_point(screen_pos):
+			continue
+		overlay_bullets.append(bullet)
+	if overlay_bullets.is_empty():
+		return
+	var previous_world_draw_active := world_draw_active
+	world_draw_active = true
+	_apply_world_transform()
+	WeaponDrawSystemScript.draw_comment_shotgun_launch_foreground(
+		self,
+		overlay_bullets,
+		_visible_world_rect_for_spawning().grow(260.0),
+		Callable(self, "_draw_rotated_texture"),
+		Callable(self, "_load_raw_png_texture")
+	)
+	world_draw_active = previous_world_draw_active
+	if world_draw_active:
+		_apply_world_transform()
+	else:
+		_reset_world_transform()
+
+func _red_pen_visual_hash(seed: float, index: int) -> float:
+	return fposmod(sin(seed * 12.9898 + float(index) * 78.233) * 43758.5453, 1.0)
+
+func _draw_red_pen_bullet_telegraph() -> void:
+	var boss := BossSystemScript.active_boss_for_target(self)
+	if boss.is_empty() or String(boss.get("bossId", boss.get("kind", ""))) != "red_pen_review_chief":
+		return
+	if not bool(boss.get("redPenBulletTelegraphPending", false)):
+		return
+	var telegraph_timer := maxf(0.0, float(boss.get("redPenBulletTelegraphTimer", 0.0)))
+	var telegraph_max := maxf(0.01, float(boss.get("redPenBulletTelegraphDuration", 0.38)))
+	var progress := clampf(1.0 - telegraph_timer / telegraph_max, 0.0, 1.0)
+	var final_charge := clampf((0.08 - telegraph_timer) / 0.08, 0.0, 1.0)
+	var phase := clampi(int(boss.get("redPenBulletTelegraphPhase", 1)), 1, 3)
+	var phase_intensity := 1.0 + float(phase - 1) * 0.08
+	var pulse := (0.5 + 0.5 * sin(elapsed * 12.0 + float(boss.get("redPenBulletTelegraphCastSerial", 0)) * 0.37)) * final_charge
+	var boss_pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var boss_radius := float(boss.get("radius", 100.0))
+	var boss_uid := int(boss.get("uid", -1))
+	var cast_serial := int(boss.get("redPenBulletTelegraphCastSerial", 0))
+	for bullet_item in enemy_bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if not bool(bullet.get("redPenTelegraphPending", false)):
+			continue
+		if int(bullet.get("redPenBossUid", -1)) != boss_uid or int(bullet.get("redPenCastSerial", -1)) != cast_serial:
+			continue
+		var direction := Vector2(bullet.get("redPenDirection", Vector2.RIGHT))
+		if direction.length_squared() < 0.01:
+			direction = Vector2.RIGHT
+		direction = direction.normalized()
+		var side := Vector2(-direction.y, direction.x)
+		var shot_index := int(bullet.get("redPenShotIndex", 0))
+		var visual_seed := float(bullet.get("redPenPhase", bullet.get("phase", 0.0))) + float(shot_index) * 1.618
+		var length := lerpf(50.0, 67.0, _red_pen_visual_hash(visual_seed, 1))
+		var start := boss_pos + direction * (boss_radius * 0.56)
+		var end := start + direction * length
+		var alpha := (0.18 + progress * 0.16 + final_charge * 0.20) * phase_intensity
+		var core_alpha := (0.34 + progress * 0.20 + final_charge * 0.24) * phase_intensity
+		draw_line(start, end, Color(0.25, 0.005, 0.08, alpha), 3.8, true)
+		draw_line(start + side * 0.5, end - direction * 2.0 + side * 0.2, Color(1.0, 0.08, 0.26, core_alpha), 2.6 + final_charge * 0.7, true)
+		var highlight_start := start.lerp(end, 0.18) - side * 0.8
+		var highlight_end := start.lerp(end, 0.52) - side * 0.3
+		draw_line(highlight_start, highlight_end, Color(1.0, 0.92, 0.96, (0.30 + final_charge * 0.30) * phase_intensity), 1.15 + final_charge * 0.55, true)
+		var marker := end + direction * (1.0 + pulse * 1.4)
+		draw_circle(marker, 4.4 + final_charge * 1.7, Color(0.40, 0.005, 0.10, (0.24 + final_charge * 0.22) * phase_intensity), false, 1.4, true)
+		draw_circle(marker, 2.3 + final_charge * 0.9, Color(1.0, 0.16, 0.36, (0.42 + final_charge * 0.30) * phase_intensity))
+		var hook_center := marker - direction * 3.0 + side * 2.0
+		draw_arc(hook_center, 3.6 + final_charge * 0.8, direction.angle() - 0.92, direction.angle() + 0.75, 9, Color(0.36, 0.005, 0.10, 0.70 * phase_intensity), 1.4, true)
+		if final_charge > 0.0:
+			for ink_index in range(2):
+				var ink_t := 0.70 + float(ink_index) * 0.16
+				var ink_pos := start.lerp(end, ink_t) + side * (3.0 + _red_pen_visual_hash(visual_seed, ink_index + 4) * 4.0)
+				draw_circle(ink_pos, 1.1 + final_charge * 0.8, Color(0.76, 0.01, 0.12, 0.55 * final_charge))
+		if final_charge > 0.35:
+			draw_circle(start + direction * 4.0, 3.4 + pulse * 1.4, Color(1.0, 0.96, 0.98, 0.34 * final_charge), true)
+
+func _draw_red_pen_launch_fx_foreground(visible_rect: Rect2) -> void:
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "red_pen_launch" or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(fx.get("pos", Vector2.ZERO))
+		if visible_rect.size != Vector2.ZERO and not visible_rect.grow(90.0).has_point(pos):
+			continue
+		_draw_red_pen_launch_fx(fx)
+
+func _draw_red_pen_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var directions: Array = data.get("directions", []) as Array
+	var count := maxi(1, int(data.get("count", directions.size())))
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.16)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var cast_serial := float(data.get("redPenCastSerial", 0))
+	for index in range(directions.size()):
+		var direction := Vector2(directions[index])
+		if direction.length_squared() < 0.01:
+			continue
+		direction = direction.normalized()
+		var side := Vector2(-direction.y, direction.x)
+		var spawn_pos := pos + direction * 70.0
+		var flash_alpha := (0.38 + burst * 0.34) * life_ratio
+		draw_circle(spawn_pos, 3.2 + burst * 3.4, Color(1.0, 0.96, 0.98, flash_alpha), true)
+		draw_line(spawn_pos - direction * 4.0, spawn_pos + direction * (10.0 + burst * 8.0), Color(0.30, 0.005, 0.08, 0.74 * life_ratio), 4.0, true)
+		draw_line(spawn_pos - direction * 2.0, spawn_pos + direction * (8.0 + burst * 7.0), Color(1.0, 0.08, 0.26, 0.88 * life_ratio), 2.2, true)
+		var spray_count := 2 + (1 if count >= 4 else 0) + (1 if count >= 5 else 0)
+		for spray_index in range(spray_count):
+			var spray_seed := cast_serial + float(index) * 1.91 + float(spray_index) * 2.37
+			var spray_dir := (direction * (0.62 + _red_pen_visual_hash(spray_seed, 2) * 0.25) + side * (float(spray_index) - float(spray_count - 1) * 0.5) * 0.22).normalized()
+			var spray_pos := spawn_pos + spray_dir * (7.0 + progress * (8.0 + float(spray_index) * 2.5))
+			draw_circle(spray_pos, 1.2 + float(spray_index % 2) * 0.55, Color(0.70, 0.01, 0.12, (0.58 - float(spray_index) * 0.06) * life_ratio))
+			if spray_index == 0 or (count >= 5 and spray_index == spray_count - 1):
+				draw_line(spawn_pos + spray_dir * 3.0, spray_pos, Color(1.0, 0.22, 0.40, 0.42 * life_ratio), 1.3, true)
+
+func _draw_kuso_maro_bullets(visible_rect: Rect2) -> void:
+	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"), visible_rect, "only_kuso_maro")
+
+func _draw_bug_spoiler_bullets(visible_rect: Rect2) -> void:
+	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"), visible_rect, "only_bug_spoiler")
+
+func _draw_pitch_police_note_bullets(visible_rect: Rect2) -> void:
+	WeaponDrawSystemScript.draw_bullets(self, enemy_bullets, false, Callable(), Callable(), visible_rect, "only_pitch_police_note")
+
+func _draw_kuso_maro_bullet_rims(visible_rect: Rect2) -> void:
+	WeaponDrawSystemScript.draw_kuso_maro_foreground_rims(self, enemy_bullets, player_pos, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"), visible_rect)
+
+func _draw_pitch_police_note_bullet_rims(visible_rect: Rect2) -> void:
+	WeaponDrawSystemScript.draw_pitch_police_note_foreground_rims(self, enemy_bullets, player_pos, visible_rect)
+
+func _draw_pitch_chief_bullet_telegraph() -> void:
+	var boss := BossSystemScript.active_boss_for_target(self)
+	if boss.is_empty() or String(boss.get("bossId", boss.get("kind", ""))) != "pitch_police_chief":
+		return
+	if String(boss.get("pitchChiefState", "normal")) != "normal":
+		return
+	var directions: Array = boss.get("pitchChiefBulletTelegraphDirections", []) as Array
+	if directions.is_empty():
+		return
+	var timer := maxf(0.0, float(boss.get("pitchChiefBulletTelegraphTimer", 0.0)))
+	var max_timer := maxf(0.01, float(boss.get("pitchChiefBulletTelegraphMax", 0.40)))
+	var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
+	var final_charge := clampf((0.12 - timer) / 0.12, 0.0, 1.0)
+	var pulse := 0.5 + 0.5 * sin(elapsed * (9.0 + final_charge * 8.0))
+	var phase := clampi(int(boss.get("pitchChiefBulletTelegraphPhase", 1)), 1, 3)
+	var phase_intensity := 1.0 + float(phase - 1) * 0.10
+	var pos := Vector2(boss.get("pos", Vector2.ZERO))
+	var radius := float(boss.get("radius", 102.0))
+	for index in range(directions.size()):
+		var dir := Vector2(directions[index])
+		if dir.length_squared() < 0.01:
+			continue
+		dir = dir.normalized()
+		var side := Vector2(-dir.y, dir.x)
+		var start := pos + dir * (radius * 0.72)
+		var end := pos + dir * (radius + 92.0)
+		var outer_alpha := (0.20 + progress * 0.17 + final_charge * 0.23) * phase_intensity
+		var core_alpha := (0.38 + progress * 0.22 + final_charge * 0.30) * phase_intensity
+		draw_line(start, end, Color(0.32, 0.01, 0.12, outer_alpha), 6.0, true)
+		for segment in range(3):
+			var segment_from := start.lerp(end, float(segment) / 3.0) + dir * 2.0
+			var segment_to := start.lerp(end, (float(segment) + 0.64) / 3.0)
+			draw_line(segment_from, segment_to, Color(1.0, 0.10, 0.42, core_alpha), 2.4 + final_charge * 0.7, true)
+		var marker := end + dir * (2.0 + pulse * 2.0)
+		draw_circle(marker, 6.2 + final_charge * 1.1, Color(1.0, 0.18, 0.50, (0.18 + final_charge * 0.16) * phase_intensity), false, 1.7, true)
+		var check_a := marker - dir * 3.6 - side * 3.0
+		var check_b := marker - dir * 1.0 + side * 0.6
+		var check_c := marker + dir * 4.6 - side * 3.3
+		draw_line(check_a, check_b, Color(0.30, 0.01, 0.14, 0.86), 3.4, true)
+		draw_line(check_b, check_c, Color(0.30, 0.01, 0.14, 0.86), 3.4, true)
+		draw_line(check_a, check_b, Color(1.0, 0.28, 0.58, 0.88 + final_charge * 0.10), 1.7, true)
+		draw_line(check_b, check_c, Color(1.0, 0.28, 0.58, 0.88 + final_charge * 0.10), 1.7, true)
+		var note_head := start.lerp(end, 0.74) + side * (7.0 if index % 2 == 0 else -7.0)
+		draw_circle(note_head, 2.4, Color(1.0, 0.86, 0.94, 0.72 + final_charge * 0.20))
+		draw_line(note_head + side * 1.3, note_head + side * 1.3 - dir * 7.0, Color(1.0, 0.30, 0.58, 0.76 + final_charge * 0.18), 1.8, true)
 
 func _draw_boss_slow_fields() -> void:
-	for item in boss_slow_fields:
+	_draw_sticky_maro_floor_telegraphs()
+	for index in range(boss_slow_fields.size()):
+		var item: Variant = boss_slow_fields[index]
 		var field: Dictionary = item as Dictionary
+		if String(field.get("visualKind", "")) == "sticky_maro":
+			_draw_sticky_maro_floor_field(field, index)
+			continue
 		var pos: Vector2 = Vector2(field.get("pos", Vector2.ZERO))
 		var radius: float = float(field.get("radius", 90.0))
 		var life: float = float(field.get("life", 0.0))
@@ -12289,96 +14237,461 @@ func _draw_boss_slow_fields() -> void:
 		draw_circle(pos + Vector2(-radius * 0.28, -radius * 0.16), radius * 0.13, Color(0.22, 0.04, 0.26, 0.22 * alpha), true)
 		draw_circle(pos + Vector2(radius * 0.30, radius * 0.12), radius * 0.10, Color(0.95, 0.20, 0.62, 0.24 * alpha), true)
 
+func _draw_sticky_maro_floor_telegraphs() -> void:
+	for item in boss_slow_field_telegraphs:
+		var telegraph: Dictionary = item as Dictionary
+		var timer := maxf(0.0, float(telegraph.get("timer", 0.0)))
+		var max_timer := maxf(0.01, float(telegraph.get("maxTimer", 0.50)))
+		var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
+		var radius := float(telegraph.get("radius", 96.0))
+		var positions: Array = telegraph.get("positions", []) as Array
+		for position_index in range(positions.size()):
+			var pos := Vector2(positions[position_index])
+			var seed := pos.x * 0.013 + pos.y * 0.017 + float(position_index) * 1.73
+			var pulse := 0.5 + 0.5 * sin(elapsed * 8.0 + seed)
+			var ring_radius := radius * (0.94 + progress * 0.06) + pulse * 1.5
+			var points := _sticky_maro_ring_points(pos, ring_radius, seed, 3.2 - progress * 0.8)
+			draw_polyline(points, Color(0.52, 0.20, 0.62, 0.20 + progress * 0.08), 4.2, true)
+			_draw_sticky_maro_segmented_ring(points, Color(1.0, 0.76, 0.90, 0.46 + pulse * 0.12), 2.1)
+			for dot_index in range(3):
+				var dot_angle := seed + float(dot_index) * TAU / 3.0 + progress * 0.16
+				var dot_pos := pos + Vector2(cos(dot_angle), sin(dot_angle)) * ring_radius * 0.91
+				var dot_radius := 3.2 + pulse * 1.2 + float(dot_index % 2)
+				draw_circle(dot_pos, dot_radius + 2.4, Color(0.72, 0.44, 0.82, 0.10 + progress * 0.06), true)
+				draw_circle(dot_pos, dot_radius, Color(1.0, 0.88, 0.95, 0.54 + progress * 0.12), true)
+
+func _draw_sticky_maro_floor_field(field: Dictionary, field_index: int) -> void:
+	var pos := Vector2(field.get("pos", Vector2.ZERO))
+	var radius := float(field.get("radius", 96.0))
+	var alpha := _sticky_maro_field_alpha(field)
+	var formation_duration := maxf(0.01, float(field.get("formationDuration", 0.22)))
+	var formation_timer := maxf(0.0, float(field.get("formationTimer", 0.0)))
+	var formation_progress := clampf(1.0 - formation_timer / formation_duration, 0.0, 1.0)
+	var formation_scale := _sticky_maro_formation_scale(formation_progress)
+	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, STICKY_MARO_FLOOR_IMAGE)
+	var draw_size := STICKY_MARO_FLOOR_DRAW_SIZE * (radius / 96.0) * formation_scale
+	if texture != null:
+		draw_texture_rect(texture, Rect2(pos - draw_size * 0.5, draw_size), false, Color(1.0, 1.0, 1.0, 0.90 * alpha))
+	else:
+		draw_circle(pos, radius * formation_scale, Color(1.0, 0.78, 0.88, 0.24 * alpha), true)
+	if formation_timer > 0.0:
+		_draw_sticky_maro_formation_fx(pos, radius, formation_progress, alpha, float(field.get("visualSeed", float(field_index))))
+
+func _sticky_maro_field_alpha(field: Dictionary) -> float:
+	var life := maxf(0.0, float(field.get("life", 0.0)))
+	var fade_duration := maxf(0.01, float(field.get("fadeDuration", 0.70)))
+	if life >= fade_duration:
+		return 1.0
+	var fade_progress := clampf(life / fade_duration, 0.0, 1.0)
+	return lerpf(0.28, 1.0, smoothstep(0.0, 1.0, fade_progress))
+
+func _sticky_maro_formation_scale(progress: float) -> float:
+	var clamped := clampf(progress, 0.0, 1.0)
+	if clamped < 0.70:
+		var spread := sin((clamped / 0.70) * PI * 0.5)
+		return lerpf(0.52, 1.08, spread)
+	return lerpf(1.08, 1.0, smoothstep(0.70, 1.0, clamped))
+
+func _draw_sticky_maro_formation_fx(pos: Vector2, radius: float, progress: float, alpha: float, seed: float) -> void:
+	var burst := sin(clampf(progress, 0.0, 1.0) * PI)
+	var center_alpha := (1.0 - progress) * alpha
+	draw_circle(pos, lerpf(radius * 0.22, radius * 0.07, progress), Color(1.0, 0.94, 0.97, 0.22 * center_alpha), true)
+	for i in range(4):
+		var angle := seed + float(i) * TAU / 4.0 + sin(seed + float(i)) * 0.18
+		var dir := Vector2(cos(angle), sin(angle))
+		var splash_pos := pos + dir * radius * lerpf(0.20, 0.78, progress)
+		var splash_radius := lerpf(8.0, 2.6, progress) * (1.0 + burst * 0.25)
+		var splash_color := Color(1.0, 0.83, 0.92, (0.34 + burst * 0.20) * alpha) if i % 2 == 0 else Color(0.72, 0.50, 0.82, (0.30 + burst * 0.18) * alpha)
+		draw_circle(splash_pos, splash_radius + 1.8, Color(0.40, 0.10, 0.46, 0.14 * alpha), true)
+		draw_circle(splash_pos, splash_radius, splash_color, true)
+
+func _sticky_maro_ring_points(pos: Vector2, radius: float, seed: float, wobble: float) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	var segments := 48
+	for i in range(segments + 1):
+		var angle := TAU * float(i) / float(segments)
+		var edge_offset := sin(angle * 5.0 + seed) * wobble + sin(angle * 3.0 - seed * 0.73) * wobble * 0.42
+		points.append(pos + Vector2(cos(angle), sin(angle)) * (radius + edge_offset))
+	return points
+
+func _draw_sticky_maro_segmented_ring(points: PackedVector2Array, color: Color, width: float) -> void:
+	if points.size() < 49:
+		draw_polyline(points, color, width, true)
+		return
+	for segment_index in range(6):
+		var segment := PackedVector2Array()
+		var start_index := segment_index * 8
+		for point_index in range(start_index, start_index + 8):
+			segment.append(points[point_index])
+		draw_polyline(segment, color, width, true)
+
+func _draw_sticky_maro_player_fx() -> void:
+	var field := _nearest_sticky_maro_field_touching_player()
+	if not field.is_empty():
+		_draw_sticky_maro_player_threads(field)
+	for item in boss_slow_field_fx:
+		var fx: Dictionary = item as Dictionary
+		var kind := String(fx.get("kind", ""))
+		if kind == "sticky_maro_enter":
+			_draw_sticky_maro_entry_fx(fx)
+		elif kind == "sticky_maro_exit":
+			_draw_sticky_maro_exit_fx(fx)
+
+func _nearest_sticky_maro_field_touching_player() -> Dictionary:
+	var nearest: Dictionary = {}
+	var nearest_distance_sq := INF
+	for item in boss_slow_fields:
+		var field: Dictionary = item as Dictionary
+		if String(field.get("visualKind", "")) != "sticky_maro" or float(field.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(field.get("pos", Vector2.ZERO))
+		var contact_radius := float(field.get("radius", 0.0)) + 18.0
+		var distance_sq := player_pos.distance_squared_to(pos)
+		if distance_sq <= contact_radius * contact_radius and distance_sq < nearest_distance_sq:
+			nearest_distance_sq = distance_sq
+			nearest = field
+	return nearest
+
+func _draw_sticky_maro_player_threads(field: Dictionary) -> void:
+	var field_pos := Vector2(field.get("pos", player_pos + Vector2.DOWN))
+	var toward_floor := field_pos - player_pos
+	if toward_floor.length_squared() <= 0.01:
+		toward_floor = Vector2.DOWN
+	else:
+		toward_floor = toward_floor.normalized()
+	toward_floor = Vector2(toward_floor.x * 0.55, absf(toward_floor.y) * 0.30 + 0.70).normalized()
+	var side := Vector2(-toward_floor.y, toward_floor.x)
+	var foot_pos := player_pos + Vector2(0.0, 15.0)
+	var pulse := 0.5 + 0.5 * sin(elapsed * 7.0)
+	draw_line(foot_pos - side * 12.0, foot_pos + side * 12.0, Color(0.52, 0.18, 0.58, 0.62), 6.0, true)
+	draw_line(foot_pos - side * 10.0, foot_pos + side * 10.0, Color(1.0, 0.84, 0.92, 0.90), 3.0, true)
+	for i in range(3):
+		var lane := float(i - 1)
+		var stretch := 22.0 + sin(elapsed * 7.2 + float(i) * 1.7) * 4.0
+		var from_pos := foot_pos + side * lane * 8.0
+		var to_pos := from_pos + toward_floor * stretch + side * sin(elapsed * 5.6 + float(i)) * 2.4
+		draw_line(from_pos, to_pos, Color(0.45, 0.12, 0.53, 0.82), 5.8, true)
+		draw_line(from_pos, to_pos, Color(1.0, 0.78, 0.90, 0.96), 3.0, true)
+		draw_circle(to_pos, 3.4 + pulse * 0.8, Color(1.0, 0.92, 0.96, 0.92), true)
+	for i in range(2):
+		var bubble_pos := foot_pos + side * (-10.0 + float(i) * 20.0) + toward_floor * (10.0 + sin(elapsed * 6.0 + float(i)) * 2.5)
+		draw_circle(bubble_pos, 5.4, Color(0.54, 0.20, 0.62, 0.52), true)
+		draw_circle(bubble_pos - Vector2(1.2, 1.2), 3.2, Color(1.0, 0.90, 0.96, 0.88), true)
+
+func _draw_sticky_maro_entry_fx(fx: Dictionary) -> void:
+	var pos := Vector2(fx.get("pos", Vector2.ZERO))
+	var direction := Vector2(fx.get("dir", Vector2.DOWN))
+	var max_life := maxf(0.01, float(fx.get("maxLife", 0.16)))
+	var life_ratio := clampf(float(fx.get("life", 0.0)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(fx.get("seed", 0.0))
+	draw_circle(pos, 9.0 + burst * 5.0, Color(0.52, 0.16, 0.58, 0.24 * life_ratio), true)
+	draw_circle(pos, 6.0 + burst * 3.0, Color(1.0, 0.82, 0.92, 0.54 * life_ratio), true)
+	for i in range(4):
+		var angle := direction.angle() + seed * 0.13 + float(i - 1) * 0.70
+		var dir := Vector2(cos(angle), sin(angle))
+		var splash_pos := pos + dir * lerpf(3.0, 20.0, progress)
+		draw_line(pos, splash_pos, Color(1.0, 0.76, 0.89, 0.62 * life_ratio), 3.4, true)
+		draw_circle(splash_pos, 3.3 + burst * 2.6, Color(1.0, 0.91, 0.96, 0.86 * life_ratio), true)
+		draw_circle(splash_pos + Vector2(2.0, -1.0), 1.8 + burst, Color(0.70, 0.40, 0.80, 0.72 * life_ratio), true)
+
+func _draw_sticky_maro_exit_fx(fx: Dictionary) -> void:
+	var pos := Vector2(fx.get("pos", Vector2.ZERO))
+	var direction := Vector2(fx.get("dir", Vector2.DOWN))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.DOWN
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(fx.get("maxLife", 0.14)))
+	var life_ratio := clampf(float(fx.get("life", 0.0)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var length := lerpf(20.0, 2.0, progress)
+	draw_circle(pos, lerpf(10.0, 3.0, progress), Color(1.0, 0.84, 0.93, 0.30 * life_ratio), false, 3.0, true)
+	for i in range(3):
+		var lane := float(i - 1)
+		var from_pos := pos + side * lane * 6.0
+		var to_pos := from_pos + direction * length + side * lane * (1.0 - progress) * 2.0
+		draw_line(from_pos, to_pos, Color(0.46, 0.14, 0.53, 0.72 * life_ratio), 5.0, true)
+		draw_line(from_pos, to_pos, Color(1.0, 0.80, 0.91, 0.92 * life_ratio), 2.6, true)
+		draw_circle(to_pos, 3.0 * life_ratio, Color(1.0, 0.92, 0.96, 0.88 * life_ratio), true)
+
 func _draw_boss_guide_lines() -> void:
+	var review_groups: Dictionary = {}
 	for item in boss_guide_lines:
 		var line: Dictionary = item as Dictionary
 		var from_pos := Vector2(line.get("from", Vector2.ZERO))
 		var to_pos := Vector2(line.get("to", Vector2.ZERO))
 		var width := float(line.get("width", 58.0))
-		var dir := to_pos - from_pos
-		var length := dir.length()
+		var line_vector := to_pos - from_pos
+		var length := line_vector.length()
 		if length <= 0.1:
 			continue
-		dir /= length
+		var dir := line_vector / length
 		var side := Vector2(-dir.y, dir.x)
-		var visual_kind := String(line.get("visualKind", ""))
+		var visual_kind := String(line.get("visualKind", "bug_guide"))
+		if visual_kind == "red_pen_review":
+			var saved_dir := Vector2(line.get("dir", dir))
+			if saved_dir.length_squared() > 0.01:
+				dir = saved_dir.normalized()
+			var saved_side := Vector2(line.get("side", Vector2(-dir.y, dir.x)))
+			if saved_side.length_squared() > 0.01:
+				side = saved_side.normalized()
 		var phase := float(line.get("phase", 0.0))
+		var route_seed := float(line.get("routeSeed", phase))
+		var route_index := int(line.get("routeIndex", 0))
 		if bool(line.get("hit", false)):
 			var flash_life := clampf(float(line.get("flashLife", 0.0)) / 0.16, 0.0, 1.0)
 			if visual_kind == "red_pen_review":
-				_draw_red_pen_review_line_hit(from_pos, to_pos, dir, side, width, flash_life, phase)
+				_draw_red_pen_review_line_hit(line, from_pos, to_pos, dir, side, width, flash_life, phase)
 				continue
-			_draw_boss_guide_line_hit(from_pos, to_pos, dir, side, width, flash_life)
+			_draw_boss_guide_line_hit(from_pos, to_pos, dir, side, width, flash_life, phase, route_seed, route_index)
 			continue
 		var timer := float(line.get("timer", 0.0))
 		var max_timer := maxf(0.01, float(line.get("maxTimer", 0.72)))
 		var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
 		if visual_kind == "red_pen_review":
-			_draw_red_pen_review_line_warning(from_pos, to_pos, dir, side, width, progress, phase)
+			_draw_red_pen_review_line_warning(line, from_pos, to_pos, dir, side, width, progress, phase)
+			var group_key := "%d:%d" % [int(line.get("redPenBossUid", -1)), int(line.get("reviewCastSerial", 0))]
+			if not review_groups.has(group_key):
+				review_groups[group_key] = []
+			(review_groups[group_key] as Array).append(line)
 			continue
-		_draw_boss_guide_line_warning(from_pos, to_pos, dir, side, width, progress)
+		_draw_boss_guide_line_warning(from_pos, to_pos, dir, side, width, progress, timer, max_timer, phase, route_seed, route_index)
+	if not review_groups.is_empty():
+		_draw_red_pen_review_retake_groups(review_groups, false)
 
-func _draw_boss_guide_beam_body(from_pos: Vector2, to_pos: Vector2, side: Vector2, half_width: float, alpha: float, hot: bool = false) -> void:
-	var points := PackedVector2Array([
-		from_pos - side * half_width,
-		to_pos - side * half_width * 0.92,
-		to_pos + side * half_width * 0.92,
-		from_pos + side * half_width
-	])
-	var colors := PackedColorArray([
-		Color(0.16, 0.00, 0.08, 0.08 * alpha),
-		Color(1.0, 0.04, 0.24, (0.38 if hot else 0.24) * alpha),
-		Color(1.0, 0.28, 0.68, (0.34 if hot else 0.22) * alpha),
-		Color(0.10, 0.00, 0.12, 0.08 * alpha)
-	])
-	draw_polygon(points, colors)
+func _bug_guide_charge_strength(timer: float, max_timer: float) -> float:
+	var charge_window := minf(0.14, maxf(0.01, max_timer))
+	return smoothstep(0.0, 1.0, clampf((charge_window - timer) / charge_window, 0.0, 1.0))
 
-func _draw_boss_guide_line_warning(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, progress: float) -> void:
-	var pulse := 0.5 + 0.5 * sin(elapsed * 18.0)
-	var alpha := 0.48 + progress * 0.34
-	var half_width := width * (0.39 + progress * 0.10)
-	draw_line(from_pos, to_pos, Color(0.02, 0.00, 0.05, 0.34 + progress * 0.22), width * (1.66 + progress * 0.20), true)
-	draw_line(from_pos, to_pos, Color(1.0, 0.04, 0.24, 0.18 + progress * 0.22), width * (1.24 + progress * 0.22), true)
-	_draw_boss_guide_beam_body(from_pos, to_pos, side, half_width, alpha, false)
-	draw_line(from_pos - side * half_width * 0.78, to_pos - side * half_width * 0.72, Color(1.0, 0.13, 0.24, 0.56 * alpha), 3.4 + pulse * 1.4, true)
-	draw_line(from_pos + side * half_width * 0.78, to_pos + side * half_width * 0.72, Color(0.72, 0.92, 1.0, 0.34 * alpha), 2.6 + pulse * 1.1, true)
-	draw_line(from_pos, to_pos, Color(0.80, 0.98, 1.0, (0.36 + pulse * 0.18) * alpha), maxf(4.5, width * (0.09 + progress * 0.035)), true)
-	_draw_boss_guide_scans(from_pos, to_pos, dir, side, width, alpha, progress, false)
+func _draw_boss_guide_line_warning(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, progress: float, timer: float, max_timer: float, phase: float, route_seed: float, route_index: int) -> void:
+	var pulse := 0.5 + 0.5 * sin(elapsed * 10.0 + phase)
+	var charge := _bug_guide_charge_strength(timer, max_timer)
+	var route_alpha := 0.16 + progress * 0.07 + charge * 0.12
+	draw_line(from_pos, to_pos, Color(0.12, 0.00, 0.10, 0.16 + charge * 0.06), width + 4.0, true)
+	draw_line(from_pos, to_pos, Color(0.96, 0.025, 0.30, route_alpha), width, true)
+	draw_line(from_pos + side * 7.0, to_pos + side * 7.0, Color(1.0, 0.30, 0.62, 0.055 + pulse * 0.025 + charge * 0.045), width * 0.42, true)
+	_draw_bug_guide_boundaries(from_pos, to_pos, side, width, 0.48 + progress * 0.14 + charge * 0.24, charge, false, false)
+	_draw_bug_guide_route_dashes(from_pos, to_pos, dir, side, width, 0.48 + charge * 0.30, charge, phase, route_seed)
+	_draw_bug_guide_chevrons(from_pos, to_pos, dir, side, width, 0.50 + charge * 0.26, 23.0 + charge * 48.0, phase, route_index, false, false)
+	_draw_bug_guide_checkpoints(from_pos, to_pos, dir, side, width, 0.52 + charge * 0.30, pulse, phase, route_index, false, false)
+	_draw_bug_guide_cyan_fragments(from_pos, to_pos, dir, side, width, 0.44 + charge * 0.34, charge, route_seed, route_index, false, false)
 
-func _draw_boss_guide_line_hit(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, flash_life: float) -> void:
+func _draw_boss_guide_line_hit(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, flash_life: float, phase: float, route_seed: float, route_index: int) -> void:
 	var burst := sin(flash_life * PI)
-	var half_width := width * (0.58 + burst * 0.10)
-	draw_line(from_pos, to_pos, Color(0.01, 0.00, 0.03, 0.56 * flash_life), width * (2.18 + burst * 0.26), true)
-	draw_line(from_pos, to_pos, Color(1.0, 0.02, 0.18, 0.48 * flash_life), width * (1.50 + burst * 0.18), true)
-	_draw_boss_guide_beam_body(from_pos, to_pos, side, half_width, flash_life, true)
-	draw_line(from_pos - side * half_width * 0.76, to_pos - side * half_width * 0.72, Color(1.0, 0.07, 0.12, 0.86 * flash_life), 5.2 + burst * 2.0, true)
-	draw_line(from_pos + side * half_width * 0.76, to_pos + side * half_width * 0.72, Color(1.0, 0.42, 0.74, 0.64 * flash_life), 4.2 + burst * 1.6, true)
-	draw_line(from_pos, to_pos, Color(1.0, 0.08, 0.40, 0.95 * flash_life), maxf(7.0, width * (0.24 + burst * 0.05)), true)
-	draw_line(from_pos, to_pos, Color(1.0, 0.96, 0.98, 0.82 * flash_life), maxf(2.8, width * 0.075), true)
-	_draw_boss_guide_scans(from_pos, to_pos, dir, side, width, flash_life, 1.0 - flash_life, true)
-	_draw_boss_guide_sparks((from_pos + to_pos) * 0.5, dir, side, width, flash_life, burst)
+	draw_line(from_pos, to_pos, Color(0.10, 0.00, 0.09, 0.38 * flash_life), width + 5.0, true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.015, 0.25, (0.56 + burst * 0.12) * flash_life), width, true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.12, 0.48, (0.68 + burst * 0.16) * flash_life), 8.0 + burst * 2.0, true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.97, 0.99, 0.88 * flash_life), 2.1 + burst * 0.8, true)
+	_draw_bug_guide_boundaries(from_pos, to_pos, side, width, flash_life, burst, true, false)
+	_draw_boss_guide_scans(from_pos, to_pos, dir, side, width, flash_life, phase)
+	_draw_bug_guide_chevrons(from_pos, to_pos, dir, side, width, 0.86 * flash_life, 145.0, phase, route_index, true, false)
+	_draw_bug_guide_checkpoints(from_pos, to_pos, dir, side, width, 0.88 * flash_life, burst, phase, route_index, true, false)
+	_draw_bug_guide_cyan_fragments(from_pos, to_pos, dir, side, width, 0.88 * flash_life, 1.0, route_seed, route_index, true, false)
+	_draw_bug_guide_hit_glitches(from_pos, to_pos, dir, side, width, flash_life, burst, route_seed)
 
-func _draw_boss_guide_scans(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, progress: float, hit: bool) -> void:
-	var center := (from_pos + to_pos) * 0.5
-	var span := 1280.0
-	var count := 9 if hit else 7
+func _draw_bug_guide_boundaries(from_pos: Vector2, to_pos: Vector2, side: Vector2, width: float, alpha: float, charge: float, hit: bool, foreground: bool) -> void:
+	var half_width := width * 0.5
+	var dark_width := 3.4 if foreground else (4.4 if hit else 3.8)
+	var bright_width := 1.8 + charge * (0.9 if hit else 0.6)
+	var dark_alpha := (0.42 if hit else 0.28) * alpha
+	var bright_alpha := (0.90 if hit else 0.72) * alpha
+	for sign_value in [-1.0, 1.0]:
+		var offset := side * half_width * float(sign_value)
+		draw_line(from_pos + offset, to_pos + offset, Color(0.16, 0.00, 0.12, dark_alpha), dark_width, true)
+		var edge_color := Color(1.0, 0.08, 0.31, bright_alpha) if sign_value < 0.0 else Color(1.0, 0.34, 0.66, bright_alpha)
+		draw_line(from_pos + offset, to_pos + offset, edge_color, bright_width, true)
+	if foreground:
+		return
+	var contact_half_width := half_width + 13.0
+	draw_line(from_pos - side * contact_half_width, to_pos - side * contact_half_width, Color(1.0, 0.18, 0.46, (0.10 + charge * 0.04) * alpha), 1.0, true)
+	draw_line(from_pos + side * contact_half_width, to_pos + side * contact_half_width, Color(0.20, 0.90, 1.0, (0.08 + charge * 0.04) * alpha), 1.0, true)
+
+func _draw_bug_guide_route_dashes(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, charge: float, phase: float, route_seed: float) -> void:
+	var length := from_pos.distance_to(to_pos)
+	var step := 112.0
+	var flow := fposmod(elapsed * (17.0 + charge * 35.0) + phase * 19.0, step)
+	var count := ceili(length / step) + 2
+	for i in range(-1, count):
+		if posmod(i + int(floor(route_seed * 3.0)), 5) == 2:
+			continue
+		var start_distance := float(i) * step + flow
+		var end_distance := minf(length, start_distance + 43.0 + float(posmod(i, 3)) * 5.0)
+		if end_distance <= 0.0 or start_distance >= length:
+			continue
+		start_distance = maxf(0.0, start_distance)
+		var route_offset := side * (2.0 if i % 2 == 0 else -2.0)
+		var dash_from := from_pos + dir * start_distance + route_offset
+		var dash_to := from_pos + dir * end_distance + route_offset
+		draw_line(dash_from, dash_to, Color(1.0, 0.25, 0.58, alpha * (0.54 + charge * 0.18)), 3.0 + charge * 0.8, true)
+
+func _draw_bug_guide_chevrons(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, speed: float, phase: float, route_index: int, hit: bool, foreground: bool) -> void:
+	var length := from_pos.distance_to(to_pos)
+	var step := 286.0
+	var flow := fposmod(elapsed * speed + phase * 47.0 + float(route_index) * 71.0, step)
+	var count := ceili(length / step) + 2
+	for i in range(-1, count):
+		if foreground and posmod(i + route_index, 2) != 0:
+			continue
+		var distance := float(i) * step + flow
+		if distance < 16.0 or distance > length - 16.0:
+			continue
+		var center := from_pos + dir * distance + side * (width * (0.10 if i % 2 == 0 else -0.10))
+		var arrow_length := 9.0 if hit else 7.2
+		var arrow_width := 6.2 if hit else 5.0
+		var tip := center + dir * arrow_length
+		var back := center - dir * arrow_length
+		var color := Color(1.0, 0.90, 0.96, alpha * (0.68 if foreground else 0.86)) if hit else Color(1.0, 0.28, 0.61, alpha * (0.68 if foreground else 0.84))
+		draw_line(back + side * arrow_width, tip, color, 1.8 if foreground else 2.3, true)
+		draw_line(back - side * arrow_width, tip, color, 1.8 if foreground else 2.3, true)
+
+func _draw_bug_guide_checkpoints(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, pulse: float, phase: float, route_index: int, hit: bool, foreground: bool) -> void:
+	for i in range(4):
+		if foreground and posmod(i + route_index, 2) != 0:
+			continue
+		var t := (float(i) + 1.0) / 5.0
+		var center := from_pos.lerp(to_pos, t)
+		var local_pulse := 0.76 + 0.24 * sin(elapsed * (26.0 if hit else 8.0) + phase + float(i) * 1.7)
+		var radius := (6.4 if hit else 5.2) + pulse * (2.2 if hit else 1.2)
+		var node_color := Color(0.12, 0.95, 1.0, alpha * local_pulse) if posmod(i + route_index, 2) == 0 else Color(1.0, 0.30, 0.66, alpha * local_pulse)
+		var shape_kind := posmod(i + route_index, 3)
+		if hit:
+			var split := dir * (3.0 + pulse * 4.0)
+			_draw_bug_guide_checkpoint_shape(center - split, radius, shape_kind, node_color, 1.8, true)
+			_draw_bug_guide_checkpoint_shape(center + split + side * 2.0, radius * 0.72, shape_kind, Color(node_color.r, node_color.g, node_color.b, node_color.a * 0.62), 1.4, true)
+		else:
+			_draw_bug_guide_checkpoint_shape(center, radius, shape_kind, node_color, 1.7 if foreground else 2.1, false)
+
+func _draw_bug_guide_checkpoint_shape(center: Vector2, radius: float, shape_kind: int, color: Color, line_width: float, broken: bool) -> void:
+	if shape_kind == 0:
+		if broken:
+			draw_arc(center, radius, 0.18, PI * 0.78, 8, color, line_width, true)
+			draw_arc(center, radius, PI * 1.08, PI * 1.72, 8, color, line_width, true)
+		else:
+			draw_circle(center, radius, color, false, line_width, true)
+		return
+	var points: PackedVector2Array
+	if shape_kind == 1:
+		points = PackedVector2Array([center + Vector2(0.0, -radius), center + Vector2(radius, 0.0), center + Vector2(0.0, radius), center + Vector2(-radius, 0.0), center + Vector2(0.0, -radius)])
+	else:
+		points = PackedVector2Array([center + Vector2(-radius, -radius), center + Vector2(radius, -radius), center + Vector2(radius, radius), center + Vector2(-radius, radius), center + Vector2(-radius, -radius)])
+	if broken:
+		draw_line(points[0], points[1], color, line_width, true)
+		draw_line(points[2], points[3], color, line_width, true)
+	else:
+		draw_polyline(points, color, line_width, true)
+
+func _draw_bug_guide_cyan_fragments(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, split_strength: float, route_seed: float, route_index: int, hit: bool, foreground: bool) -> void:
+	var length := from_pos.distance_to(to_pos)
+	var count := 10
+	var step := length / float(count + 1)
+	var glitch_tick := int(floor(elapsed * (20.0 if hit else 7.0) + route_seed * 2.0))
 	for i in range(count):
-		var offset := (float(i) - float(count - 1) * 0.5) * (span / float(maxi(1, count - 1)))
-		offset += sin(elapsed * 5.5 + float(i) * 1.3) * 24.0 + progress * 72.0
-		var p := center + dir * offset
-		var length := width * (0.52 if hit else 0.42)
-		var scan_alpha := (0.22 if hit else 0.13) * alpha
-		var color := Color(1.0, 0.88, 0.92, scan_alpha) if i % 2 == 0 else Color(0.58, 0.96, 1.0, scan_alpha * 0.85)
-		draw_line(p - side * length - dir * width * 0.15, p + side * length + dir * width * 0.15, color, 2.4 if hit else 1.8, true)
+		if foreground and posmod(i + route_index, 2) != 0:
+			continue
+		var distance := step * float(i + 1)
+		var sign_value := -1.0 if posmod(glitch_tick + i + route_index, 2) == 0 else 1.0
+		var offset_amount := 6.0 + float(posmod(i + route_index, 3)) * 2.0 + split_strength * (8.0 if hit else 3.5)
+		var center := from_pos + dir * distance + side * offset_amount * sign_value
+		var fragment_length := 15.0 + float(posmod(i, 4)) * 4.0 + split_strength * (8.0 if hit else 2.0)
+		var cyan := Color(0.05, 0.94, 1.0, alpha * (0.56 if foreground else 0.76))
+		draw_line(center - dir * fragment_length * 0.5, center + dir * fragment_length * 0.5, cyan, 1.6 if foreground else 2.2, true)
+		if hit and i % 3 == 0 and not foreground:
+			var mirror_center := from_pos + dir * distance - side * offset_amount * sign_value
+			draw_line(mirror_center - dir * fragment_length * 0.34, mirror_center + dir * fragment_length * 0.34, Color(0.50, 0.16, 1.0, alpha * 0.58), 1.8, true)
 
-func _draw_boss_guide_sparks(center: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, burst: float) -> void:
-	for i in range(6):
-		var p := center + dir * ((float(i) - 2.5) * width * 1.6) + side * sin(elapsed * 7.0 + float(i)) * width * 0.36
-		var spark_dir := (dir * (0.52 + burst * 0.20) + side * (0.58 if i % 2 == 0 else -0.58)).normalized()
-		var size := width * (0.18 + 0.08 * burst)
-		var color := Color(1.0, 0.92, 0.58, 0.44 * alpha)
-		draw_line(p - spark_dir * size, p + spark_dir * size * 1.6, color, 2.0 + burst * 1.2, true)
-		draw_line(p - side * size * 0.62, p + side * size * 0.62, Color(0.78, 0.96, 1.0, 0.30 * alpha), 1.5 + burst * 0.8, true)
+func _draw_boss_guide_scans(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, phase: float) -> void:
+	var length := from_pos.distance_to(to_pos)
+	for i in range(9):
+		var t := fposmod((float(i) + 0.5) / 9.0 + elapsed * 0.34 + phase * 0.03, 1.0)
+		var center := from_pos + dir * length * t
+		var scan_half := width * (0.30 + float(i % 3) * 0.055)
+		var color := Color(1.0, 0.94, 0.98, 0.44 * alpha) if i % 2 == 0 else Color(0.12, 0.94, 1.0, 0.36 * alpha)
+		draw_line(center - side * scan_half - dir * 2.0, center + side * scan_half + dir * 2.0, color, 1.4 + float(i % 2) * 0.6, true)
+
+func _draw_bug_guide_hit_glitches(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, alpha: float, burst: float, route_seed: float) -> void:
+	var length := from_pos.distance_to(to_pos)
+	for i in range(7):
+		var t := fposmod((float(i) + 0.62) / 7.0 + route_seed * 0.021, 1.0)
+		var center := from_pos + dir * length * t + side * sin(route_seed + float(i) * 1.9) * width * 0.34
+		var half_length := 4.0 + float(i % 3) * 2.0 + burst * 2.0
+		var half_width := 1.8 + float(i % 2) * 1.1
+		var points := PackedVector2Array([
+			center - dir * half_length - side * half_width,
+			center + dir * half_length - side * half_width,
+			center + dir * half_length + side * half_width,
+			center - dir * half_length + side * half_width
+		])
+		var color := Color(0.10, 0.94, 1.0, 0.62 * alpha) if i % 2 == 0 else Color(1.0, 0.32, 0.66, 0.72 * alpha)
+		draw_colored_polygon(points, color)
+
+func _draw_boss_guide_lines_foreground() -> void:
+	var review_groups: Dictionary = {}
+	for item in boss_guide_lines:
+		var line: Dictionary = item as Dictionary
+		var visual_kind := String(line.get("visualKind", ""))
+		if visual_kind == "red_pen_review":
+			var from_pos := Vector2(line.get("from", Vector2.ZERO))
+			var to_pos := Vector2(line.get("to", Vector2.ZERO))
+			var line_vector := to_pos - from_pos
+			var line_length := line_vector.length()
+			if line_length <= 0.1:
+				continue
+			var dir := line_vector / line_length
+			var saved_dir := Vector2(line.get("dir", dir))
+			if saved_dir.length_squared() > 0.01:
+				dir = saved_dir.normalized()
+			var side := Vector2(-dir.y, dir.x)
+			var saved_side := Vector2(line.get("side", side))
+			if saved_side.length_squared() > 0.01:
+				side = saved_side.normalized()
+			var width := float(line.get("width", 58.0))
+			var phase := float(line.get("phase", 0.0))
+			if bool(line.get("hit", false)):
+				var flash_life := clampf(float(line.get("flashLife", 0.0)) / 0.16, 0.0, 1.0)
+				_draw_red_pen_review_line_foreground(line, from_pos, to_pos, dir, side, width, flash_life, phase)
+			else:
+				var timer := float(line.get("timer", 0.0))
+				var max_timer := maxf(0.01, float(line.get("maxTimer", 0.76)))
+				var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
+				_draw_red_pen_review_line_foreground(line, from_pos, to_pos, dir, side, width, progress, phase)
+				var group_key := "%d:%d" % [int(line.get("redPenBossUid", -1)), int(line.get("reviewCastSerial", 0))]
+				if not review_groups.has(group_key):
+					review_groups[group_key] = []
+				(review_groups[group_key] as Array).append(line)
+			continue
+		if visual_kind != "bug_guide":
+			continue
+		var from_pos := Vector2(line.get("from", Vector2.ZERO))
+		var to_pos := Vector2(line.get("to", Vector2.ZERO))
+		var line_vector := to_pos - from_pos
+		var length := line_vector.length()
+		if length <= 0.1:
+			continue
+		var dir := line_vector / length
+		var side := Vector2(-dir.y, dir.x)
+		var width := float(line.get("width", 58.0))
+		var phase := float(line.get("phase", 0.0))
+		var route_seed := float(line.get("routeSeed", phase))
+		var route_index := int(line.get("routeIndex", 0))
+		if bool(line.get("hit", false)):
+			var flash_life := clampf(float(line.get("flashLife", 0.0)) / 0.16, 0.0, 1.0)
+			_draw_bug_guide_boundaries(from_pos, to_pos, side, width, 0.72 * flash_life, 0.55, true, true)
+			_draw_bug_guide_chevrons(from_pos, to_pos, dir, side, width, 0.52 * flash_life, 145.0, phase, route_index, true, true)
+			_draw_bug_guide_checkpoints(from_pos, to_pos, dir, side, width, 0.46 * flash_life, 0.55, phase, route_index, true, true)
+			_draw_bug_guide_cyan_fragments(from_pos, to_pos, dir, side, width, 0.48 * flash_life, 1.0, route_seed, route_index, true, true)
+			continue
+		var timer := float(line.get("timer", 0.0))
+		var max_timer := maxf(0.01, float(line.get("maxTimer", 0.72)))
+		var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
+		var charge := _bug_guide_charge_strength(timer, max_timer)
+		var pulse := 0.5 + 0.5 * sin(elapsed * 10.0 + phase)
+		_draw_bug_guide_boundaries(from_pos, to_pos, side, width, 0.34 + progress * 0.08 + charge * 0.20, charge, false, true)
+		_draw_bug_guide_chevrons(from_pos, to_pos, dir, side, width, 0.32 + charge * 0.16, 23.0 + charge * 48.0, phase, route_index, false, true)
+		_draw_bug_guide_checkpoints(from_pos, to_pos, dir, side, width, 0.30 + charge * 0.18, pulse, phase, route_index, false, true)
+		_draw_bug_guide_cyan_fragments(from_pos, to_pos, dir, side, width, 0.28 + charge * 0.18, charge, route_seed, route_index, false, true)
+	if not review_groups.is_empty():
+		_draw_red_pen_review_retake_groups(review_groups, true)
 
 func _draw_red_pen_attack_tip(pos: Vector2, dir: Vector2, size: float, alpha: float) -> void:
 	var side := Vector2(-dir.y, dir.x)
@@ -12390,46 +14703,327 @@ func _draw_red_pen_attack_tip(pos: Vector2, dir: Vector2, size: float, alpha: fl
 	draw_colored_polygon(inner, Color(1.0, 0.18, 0.28, 0.96 * alpha))
 	draw_line(back - side * size * 0.16, back + side * size * 0.16, Color(1.0, 0.86, 0.88, 0.76 * alpha), 2.2, true)
 	draw_circle(tip - dir * size * 0.06, size * 0.07, Color(1.0, 0.94, 0.94, 0.86 * alpha))
+	draw_circle(tip + dir * size * 0.015, size * 0.038, Color(0.56, 0.005, 0.08, 0.76 * alpha))
 
-func _draw_red_pen_review_line_warning(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, progress: float, phase: float) -> void:
+func _clip_review_line_to_visible_rect(from_pos: Vector2, to_pos: Vector2, visible_rect: Rect2) -> Dictionary:
+	if visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0:
+		return {}
+	var delta := to_pos - from_pos
+	var lower := 0.0
+	var upper := 1.0
+	for axis in range(2):
+		var origin := from_pos.x if axis == 0 else from_pos.y
+		var direction := delta.x if axis == 0 else delta.y
+		var minimum := visible_rect.position.x if axis == 0 else visible_rect.position.y
+		var maximum := visible_rect.end.x if axis == 0 else visible_rect.end.y
+		if absf(direction) < 0.000001:
+			if origin < minimum or origin > maximum:
+				return {}
+			continue
+		var t_a := (minimum - origin) / direction
+		var t_b := (maximum - origin) / direction
+		if t_a > t_b:
+			var swap_value := t_a
+			t_a = t_b
+			t_b = swap_value
+		lower = maxf(lower, t_a)
+		upper = minf(upper, t_b)
+		if lower > upper:
+			return {}
+	return {"start": from_pos + delta * lower, "end": from_pos + delta * upper}
+
+func _red_pen_review_visible_segment(line: Dictionary, from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2) -> Dictionary:
+	var visible_rect := _visible_world_rect_for_spawning().intersection(_current_arena())
+	var clipped := _clip_review_line_to_visible_rect(from_pos, to_pos, visible_rect)
+	var physical_start := from_pos
+	var physical_end := to_pos
+	if not clipped.is_empty():
+		physical_start = Vector2(clipped.get("start", from_pos))
+		physical_end = Vector2(clipped.get("end", to_pos))
+	var start := physical_start
+	var finish := physical_end
+	var travel_dir := dir
+	if posmod(int(line.get("reviewLineIndex", 0)), 2) == 1:
+		var swap_point := start
+		start = finish
+		finish = swap_point
+		travel_dir = -dir
+	return {
+		"start": start,
+		"end": finish,
+		"physicalStart": physical_start,
+		"physicalEnd": physical_end,
+		"travelDir": travel_dir,
+		"side": side
+	}
+
+func _red_pen_review_player_segment(from_pos: Vector2, to_pos: Vector2, player_position: Vector2, reach: float) -> Dictionary:
+	var segment := to_pos - from_pos
+	var length_squared := segment.length_squared()
+	if length_squared <= 0.01:
+		return {"start": from_pos, "end": to_pos}
+	var length := sqrt(length_squared)
+	var projected_t := clampf((player_position - from_pos).dot(segment) / length_squared, 0.0, 1.0)
+	var projected_distance := projected_t * length
+	var axis := segment / length
+	var start_distance := maxf(0.0, projected_distance - reach)
+	var end_distance := minf(length, projected_distance + reach)
+	return {"start": from_pos + axis * start_distance, "end": from_pos + axis * end_distance}
+
+func _draw_red_pen_review_boundary_rails(from_pos: Vector2, to_pos: Vector2, side: Vector2, strength: float, final_charge: float = 0.0) -> void:
+	var rail_strength := clampf(strength, 0.0, 1.0)
+	for sign_value in [-1.0, 1.0]:
+		var boundary_offset: Vector2 = side * (50.0 * float(sign_value))
+		var inner_offset: Vector2 = side * (49.25 * float(sign_value))
+		draw_line(from_pos + boundary_offset, to_pos + boundary_offset, Color(0.25, 0.005, 0.12, (0.48 + final_charge * 0.18) * rail_strength), 2.6, true)
+		draw_line(from_pos + inner_offset, to_pos + inner_offset, Color(1.0, 0.76, 0.87, (0.62 + final_charge * 0.18) * rail_strength), 1.2, true)
+
+func _red_pen_review_group_label_data(lines: Array) -> Dictionary:
+	var warning_lines: Array = []
+	var geometry: Array = []
+	var progress := 0.0
+	for item in lines:
+		var line: Dictionary = item as Dictionary
+		if bool(line.get("hit", false)):
+			continue
+		var from_pos := Vector2(line.get("from", Vector2.ZERO))
+		var to_pos := Vector2(line.get("to", Vector2.ZERO))
+		var line_vector := to_pos - from_pos
+		if line_vector.length_squared() <= 0.01:
+			continue
+		var dir := line_vector.normalized()
+		var saved_dir := Vector2(line.get("dir", dir))
+		if saved_dir.length_squared() > 0.01:
+			dir = saved_dir.normalized()
+		var side := Vector2(-dir.y, dir.x)
+		var saved_side := Vector2(line.get("side", side))
+		if saved_side.length_squared() > 0.01:
+			side = saved_side.normalized()
+		var segment := _red_pen_review_visible_segment(line, from_pos, to_pos, dir, side)
+		var timer := float(line.get("timer", 0.0))
+		var max_timer := maxf(0.01, float(line.get("maxTimer", 0.76)))
+		progress = maxf(progress, clampf(1.0 - timer / max_timer, 0.0, 1.0))
+		warning_lines.append(line)
+		geometry.append({"line": line, "segment": segment, "from": from_pos, "to": to_pos, "side": side})
+	if warning_lines.is_empty() or geometry.is_empty():
+		return {}
+	var visible_rect := _visible_world_rect_for_spawning().intersection(_current_arena())
+	var candidate_t_values := [0.35, 0.65, 0.25, 0.75]
+	var candidate_offsets := [-82.0, -72.0, 72.0, 82.0]
+	var best_score := INF
+	var best_anchor := Vector2.ZERO
+	var best_rect := Rect2()
+	var average_center := Vector2.ZERO
+	var average_side := Vector2.ZERO
+	for geometry_item in geometry:
+		var geometry_data: Dictionary = geometry_item as Dictionary
+		var segment_data: Dictionary = geometry_data.get("segment", {}) as Dictionary
+		average_center += Vector2(segment_data.get("start", Vector2.ZERO)).lerp(Vector2(segment_data.get("end", Vector2.ZERO)), 0.5)
+		average_side += Vector2(geometry_data.get("side", Vector2.RIGHT))
+	var geometry_count := float(geometry.size())
+	average_center /= geometry_count
+	if average_side.length_squared() <= 0.01:
+		average_side = Vector2(geometry[0].get("side", Vector2.RIGHT))
+	else:
+		average_side = average_side.normalized()
+	var boss := BossSystemScript.active_boss_for_target(self)
+	var boss_position := Vector2(boss.get("pos", Vector2.INF)) if not boss.is_empty() else Vector2.INF
+	var boss_radius := float(boss.get("radius", 100.0)) if not boss.is_empty() else 100.0
+	for candidate_t in candidate_t_values:
+		var base := Vector2.ZERO
+		var normal := Vector2.ZERO
+		for geometry_item in geometry:
+			var geometry_data: Dictionary = geometry_item as Dictionary
+			var segment_data: Dictionary = geometry_data.get("segment", {}) as Dictionary
+			base += Vector2(segment_data.get("start", Vector2.ZERO)).lerp(Vector2(segment_data.get("end", Vector2.ZERO)), float(candidate_t))
+			normal += Vector2(geometry_data.get("side", average_side))
+		base /= geometry_count
+		if normal.length_squared() <= 0.01:
+			normal = average_side
+		else:
+			normal = normal.normalized()
+		for offset in candidate_offsets:
+			var anchor := base + normal * float(offset)
+			var label_rect := Rect2(anchor - Vector2(54.0, 14.0), Vector2(108.0, 28.0))
+			var score := absf(absf(float(offset)) - 72.0) * 0.02
+			var margin := 8.0
+			if label_rect.position.x < visible_rect.position.x + margin:
+				score += (visible_rect.position.x + margin - label_rect.position.x) * 100.0
+			if label_rect.position.y < visible_rect.position.y + margin:
+				score += (visible_rect.position.y + margin - label_rect.position.y) * 100.0
+			if label_rect.end.x > visible_rect.end.x - margin:
+				score += (label_rect.end.x - (visible_rect.end.x - margin)) * 100.0
+			if label_rect.end.y > visible_rect.end.y - margin:
+				score += (label_rect.end.y - (visible_rect.end.y - margin)) * 100.0
+			if label_rect.grow(18.0).has_point(player_pos):
+				score += 100000.0
+			if boss_position != Vector2.INF:
+				var nearest_boss_point := Vector2(
+					clampf(boss_position.x, label_rect.position.x, label_rect.end.x),
+					clampf(boss_position.y, label_rect.position.y, label_rect.end.y)
+				)
+				var boss_clearance := boss_position.distance_to(nearest_boss_point)
+				if boss_clearance < boss_radius + 16.0:
+					score += 120000.0 + (boss_radius + 16.0 - boss_clearance) * 100.0
+			for geometry_item in geometry:
+				var geometry_data: Dictionary = geometry_item as Dictionary
+				var geometry_from := Vector2(geometry_data.get("from", Vector2.ZERO))
+				var geometry_to := Vector2(geometry_data.get("to", Vector2.ZERO))
+				var line_distance := BossSystemScript.distance_to_segment(anchor, geometry_from, geometry_to)
+				score += absf(line_distance - 72.0) * 0.03
+			if score < best_score:
+				best_score = score
+				best_anchor = anchor
+				best_rect = label_rect
+	if best_score == INF:
+		best_anchor = average_center + average_side * 72.0
+		best_anchor.x = clampf(best_anchor.x, visible_rect.position.x + 62.0, visible_rect.end.x - 62.0)
+		best_anchor.y = clampf(best_anchor.y, visible_rect.position.y + 18.0, visible_rect.end.y - 18.0)
+		best_rect = Rect2(best_anchor - Vector2(54.0, 14.0), Vector2(108.0, 28.0))
+	return {"anchor": best_anchor, "rect": best_rect, "progress": progress}
+
+func _draw_red_pen_review_retake_groups(groups: Dictionary, foreground: bool) -> void:
+	for group_value in groups.values():
+		var lines: Array = group_value as Array
+		var label_data := _red_pen_review_group_label_data(lines)
+		if label_data.is_empty():
+			continue
+		var label_rect := Rect2(label_data.get("rect", Rect2()))
+		if foreground and not label_rect.grow(28.0).has_point(player_pos):
+			continue
+		var progress := clampf(float(label_data.get("progress", 0.0)), 0.0, 1.0)
+		if progress <= 0.22:
+			continue
+		var alpha := 0.22 + clampf((progress - 0.22) / 0.78, 0.0, 1.0) * 0.58
+		if foreground:
+			alpha = minf(0.92, alpha + 0.12)
+		var anchor := Vector2(label_data.get("anchor", Vector2.ZERO))
+		_draw_outlined_text(anchor + Vector2(-54.0, 7.0), "RETAKE!", 108, 14, Color(1.0, 0.96, 0.97, alpha), Color(0.30, 0.01, 0.05, minf(0.94, alpha + 0.18)), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_red_pen_review_line_foreground(line: Dictionary, from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, progress: float, phase: float) -> void:
+	var local_segment := _red_pen_review_player_segment(from_pos, to_pos, player_pos, 110.0)
+	var local_start := Vector2(local_segment.get("start", from_pos))
+	var local_end := Vector2(local_segment.get("end", to_pos))
+	if local_start.distance_squared_to(local_end) <= 0.01:
+		return
+	var is_hit := bool(line.get("hit", false))
+	if is_hit:
+		var fade := clampf(progress, 0.0, 1.0)
+		_draw_red_pen_review_boundary_rails(local_start, local_end, side, 0.82 * fade, 0.45)
+		draw_line(local_start, local_end, Color(0.22, 0.005, 0.10, 0.26 * fade), 4.2, true)
+		return
+	var final_charge := smoothstep(0.84, 1.0, clampf(progress, 0.0, 1.0))
+	_draw_red_pen_review_boundary_rails(local_start, local_end, side, 0.62 + progress * 0.18, final_charge)
+	draw_line(local_start, local_end, Color(0.82, 0.015, 0.13, (0.20 + progress * 0.12) * (0.72 + final_charge * 0.18)), 3.0, true)
+
+func _draw_red_pen_review_tips_foreground() -> void:
+	for item in boss_guide_lines:
+		var line: Dictionary = item as Dictionary
+		if String(line.get("visualKind", "")) != "red_pen_review" or bool(line.get("hit", false)):
+			continue
+		var from_pos := Vector2(line.get("from", Vector2.ZERO))
+		var to_pos := Vector2(line.get("to", Vector2.ZERO))
+		var line_vector := to_pos - from_pos
+		if line_vector.length_squared() <= 0.01:
+			continue
+		var dir := Vector2(line.get("dir", line_vector.normalized()))
+		if dir.length_squared() <= 0.01:
+			dir = line_vector.normalized()
+		else:
+			dir = dir.normalized()
+		var side := Vector2(line.get("side", Vector2(-dir.y, dir.x)))
+		if side.length_squared() <= 0.01:
+			side = Vector2(-dir.y, dir.x)
+		else:
+			side = side.normalized()
+		var timer := float(line.get("timer", 0.0))
+		var max_timer := maxf(0.01, float(line.get("maxTimer", 0.76)))
+		var progress := clampf(1.0 - timer / max_timer, 0.0, 1.0)
+		var final_charge := smoothstep(0.84, 1.0, progress)
+		var visible_segment := _red_pen_review_visible_segment(line, from_pos, to_pos, dir, side)
+		var visible_start := Vector2(visible_segment.get("start", from_pos))
+		var visible_end := Vector2(visible_segment.get("end", to_pos))
+		var reveal := smoothstep(0.0, 1.0, progress)
+		var pen_pos := visible_start.lerp(visible_end, reveal)
+		# The head is intentionally the only review-line element drawn after the
+		# map foreground, keeping it legible without forwarding the full band.
+		_draw_red_pen_attack_tip(pen_pos, Vector2(visible_segment.get("travelDir", dir)), 36.0 + final_charge * 2.0, 0.84 + final_charge * 0.12)
+
+func _draw_red_pen_review_line_warning(line: Dictionary, from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, progress: float, phase: float) -> void:
 	var pulse := 0.5 + 0.5 * sin(elapsed * 16.0 + phase)
 	var alpha := 0.42 + progress * 0.40
+	var final_charge := smoothstep(0.84, 1.0, progress)
+	var mid_pulse := maxf(0.0, 1.0 - absf(progress - 0.52) / 0.16) * (0.56 + 0.44 * sin(elapsed * 8.0 + phase))
+	var visible_segment := _red_pen_review_visible_segment(line, from_pos, to_pos, dir, side)
+	var visible_start := Vector2(visible_segment.get("start", from_pos))
+	var visible_end := Vector2(visible_segment.get("end", to_pos))
+	var travel_dir := Vector2(visible_segment.get("travelDir", dir))
 	var reveal := smoothstep(0.0, 1.0, progress)
-	var pen_pos := from_pos.lerp(to_pos, reveal)
-	draw_line(from_pos, to_pos, Color(0.18, 0.01, 0.04, (0.16 + progress * 0.14) * alpha), width * 1.28, true)
-	draw_line(from_pos, to_pos, Color(1.0, 0.22, 0.28, (0.10 + pulse * 0.06) * alpha), width * 0.88, true)
-	draw_line(from_pos, pen_pos, Color(0.95, 0.03, 0.12, 0.54 * alpha), width * (0.20 + progress * 0.06), true)
-	draw_line(from_pos - side * width * 0.30, pen_pos - side * width * 0.26, Color(1.0, 0.72, 0.74, 0.36 * alpha), 3.0 + pulse * 1.2, true)
-	var length := from_pos.distance_to(to_pos)
-	var dash_count := clampi(ceili(length / 105.0), 8, 28)
-	for i in range(dash_count):
-		if i % 2 != 0:
+	var pen_pos := visible_start.lerp(visible_end, reveal)
+	# The pale underlay stays at the audited 94.72px visual band.  It is kept
+	# quiet so the two ±50px rails, not the theme stroke, explain the hazard.
+	draw_line(from_pos, to_pos, Color(0.18, 0.01, 0.04, (0.10 + progress * 0.06) * alpha), width * 1.28, true)
+	draw_line(from_pos, to_pos, Color(1.0, 0.22, 0.28, (0.06 + pulse * 0.035) * alpha), width * 0.74, true)
+	_draw_red_pen_review_boundary_rails(from_pos, to_pos, side, 0.78 + progress * 0.20 + mid_pulse * 0.20 + final_charge * 0.16, final_charge)
+	draw_line(visible_start, pen_pos, Color(0.95, 0.03, 0.12, (0.42 + progress * 0.14) * alpha), width * (0.16 + progress * 0.08), true)
+	draw_line(visible_start - side * 3.5, pen_pos - side * 3.5, Color(1.0, 0.72, 0.78, (0.18 + progress * 0.10) * alpha), 2.4, true)
+	var visible_length := visible_start.distance_to(visible_end)
+	var dash_step := 105.0
+	var dash_count := clampi(ceili(visible_length / dash_step), 8, 28)
+	var review_index := int(line.get("reviewLineIndex", 0))
+	var dash_flow := fposmod(elapsed * 17.0 + phase * 19.0 + float(review_index) * 31.0, dash_step)
+	for i in range(-1, dash_count + 1):
+		if posmod(i + review_index, 2) != 0:
 			continue
-		var start_t := float(i) / float(dash_count)
-		var end_t := minf(1.0, start_t + 0.48 / float(dash_count))
-		var dash_offset := side * width * (0.38 + 0.04 * sin(phase + float(i)))
-		draw_line(from_pos.lerp(to_pos, start_t) + dash_offset, from_pos.lerp(to_pos, end_t) + dash_offset, Color(1.0, 0.18, 0.24, 0.52 * alpha), 3.2, true)
-	_draw_red_pen_attack_tip(pen_pos, dir, width * (0.46 + pulse * 0.05), alpha)
-	if progress > 0.22:
-		var label_pos := (from_pos + to_pos) * 0.5 + side * width * 0.66 + Vector2(-54.0, 6.0)
-		_draw_outlined_text(label_pos, "RETAKE!", 108, 14, Color(1.0, 0.96, 0.96, 0.84 * alpha), Color(0.30, 0.01, 0.05, 0.90 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+		var start_distance := float(i) * dash_step + dash_flow
+		var end_distance := minf(visible_length, start_distance + 48.0 + float(posmod(i + review_index, 3)) * 5.0)
+		if end_distance <= 0.0 or start_distance >= visible_length:
+			continue
+		start_distance = maxf(0.0, start_distance)
+		var dash_offset := side * (3.0 + 1.4 * sin(phase + float(i) + float(review_index)))
+		var dash_from := visible_start + travel_dir * start_distance + dash_offset
+		var dash_to := visible_start + travel_dir * end_distance + dash_offset
+		draw_line(dash_from, dash_to, Color(1.0, 0.18, 0.24, (0.34 + progress * 0.15) * alpha), 2.6, true)
+	var tick_t := 0.30 + float(posmod(review_index, 3)) * 0.18
+	var tick_center := visible_start.lerp(visible_end, tick_t) + side * (8.0 if review_index % 2 == 0 else -8.0)
+	draw_line(tick_center - travel_dir * 9.0, tick_center + travel_dir * 7.0, Color(0.50, 0.005, 0.10, (0.34 + progress * 0.18) * alpha), 2.0, true)
+	draw_line(tick_center + side * 1.0 - travel_dir * 3.0, tick_center + side * 1.0 + travel_dir * 8.0, Color(1.0, 0.24, 0.40, (0.30 + progress * 0.14) * alpha), 1.2, true)
+	_draw_red_pen_attack_tip(pen_pos, travel_dir, 36.0 + pulse * 2.0, (0.64 + progress * 0.24) * alpha)
+	if final_charge > 0.01:
+		for ink_index in range(2):
+			var ink_t := clampf(progress - float(ink_index) * 0.018, 0.0, 1.0)
+			var ink_pos := visible_start.lerp(visible_end, ink_t) + side * sin(phase + float(ink_index) * 2.4) * (4.0 + final_charge * 4.0)
+			draw_circle(ink_pos, 1.3 + final_charge * 0.8, Color(0.64, 0.005, 0.10, final_charge * 0.58))
 
-func _draw_red_pen_review_line_hit(from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, flash_life: float, phase: float) -> void:
-	var burst := sin(flash_life * PI)
-	draw_line(from_pos, to_pos, Color(0.16, 0.00, 0.03, 0.52 * flash_life), width * (1.72 + burst * 0.20), true)
-	draw_line(from_pos - side * width * 0.15, to_pos - side * width * 0.10, Color(0.90, 0.01, 0.10, 0.76 * flash_life), width * (0.60 + burst * 0.08), true)
-	draw_line(from_pos + side * width * 0.12, to_pos + side * width * 0.18, Color(1.0, 0.12, 0.22, 0.82 * flash_life), width * (0.42 + burst * 0.06), true)
-	draw_line(from_pos - side * width * 0.02, to_pos + side * width * 0.04, Color(1.0, 0.82, 0.84, 0.72 * flash_life), width * 0.10, true)
-	for i in range(9):
-		var t := (float(i) + 0.5) / 9.0
-		var ink_center := from_pos.lerp(to_pos, t)
-		ink_center += side * sin(phase + float(i) * 1.73) * width * (0.24 + 0.08 * burst)
-		var ink_radius := width * (0.035 + float(i % 3) * 0.014) * (0.8 + burst * 0.5)
-		draw_circle(ink_center, ink_radius, Color(0.96, 0.03, 0.14, (0.52 + float(i % 2) * 0.16) * flash_life))
-		if i % 3 == 0:
-			var streak_dir := (dir + side * (0.42 if i % 2 == 0 else -0.42)).normalized()
-			draw_line(ink_center, ink_center + streak_dir * width * (0.20 + burst * 0.12), Color(1.0, 0.38, 0.46, 0.44 * flash_life), 2.2 + burst, true)
-	_draw_red_pen_attack_tip(to_pos - dir * width * 0.28, dir, width * 0.52, flash_life)
+func _draw_red_pen_review_line_hit(line: Dictionary, from_pos: Vector2, to_pos: Vector2, dir: Vector2, side: Vector2, width: float, flash_life: float, phase: float) -> void:
+	var fade := clampf(flash_life, 0.0, 1.0)
+	var burst := sin((1.0 - fade) * PI)
+	var visible_segment := _red_pen_review_visible_segment(line, from_pos, to_pos, dir, side)
+	var visible_start := Vector2(visible_segment.get("start", from_pos))
+	var visible_end := Vector2(visible_segment.get("end", to_pos))
+	# A faint 116px residue is allowed outside the formal hit envelope.  All
+	# strong red/white components below stay inside the ±50px rails.
+	draw_line(from_pos, to_pos, Color(0.16, 0.00, 0.03, 0.055 * fade), 116.0, true)
+	draw_line(from_pos, to_pos, Color(0.12, 0.00, 0.04, 0.30 * fade), 96.0, true)
+	draw_line(from_pos - side * 8.0, to_pos - side * 8.0, Color(0.78, 0.005, 0.09, (0.56 + burst * 0.08) * fade), 66.0, true)
+	draw_line(from_pos + side * 7.0, to_pos + side * 7.0, Color(1.0, 0.08, 0.22, (0.52 + burst * 0.08) * fade), 46.0, true)
+	draw_line(from_pos + side * 1.5, to_pos + side * 1.5, Color(1.0, 0.88, 0.92, (0.74 + burst * 0.10) * fade), 7.5, true)
+	_draw_red_pen_review_boundary_rails(from_pos, to_pos, side, 0.92 * fade, burst * 0.45)
+	var segment_length := visible_start.distance_to(visible_end)
+	var review_index := int(line.get("reviewLineIndex", 0))
+	var particle_count := 2 + posmod(review_index, 3)
+	for particle_index in range(particle_count):
+		var t := fposmod(0.18 + float(particle_index) * 0.27 + phase * 0.013, 1.0)
+		var particle_center := visible_start.lerp(visible_end, t)
+		particle_center += side * sin(phase + float(particle_index) * 2.1) * (28.0 + burst * 8.0)
+		var particle_radius := 1.4 + float(particle_index % 2) * 0.7 + burst * 0.7
+		draw_circle(particle_center, particle_radius, Color(0.70, 0.005, 0.12, (0.48 + burst * 0.20) * fade))
+		if particle_index < 2:
+			draw_line(particle_center - dir * 3.0, particle_center + dir * (7.0 + burst * 3.0), Color(1.0, 0.24, 0.38, 0.46 * fade), 1.4, true)
+	if segment_length > 0.1:
+		var scratch_center := visible_start.lerp(visible_end, 0.52)
+		var scratch_dir := (dir + side * (0.16 if review_index % 2 == 0 else -0.16)).normalized()
+		draw_line(scratch_center - scratch_dir * 9.0, scratch_center + scratch_dir * 10.0, Color(1.0, 0.25, 0.40, 0.48 * fade), 1.8, true)
 
 func _draw_player_bullets(visible_rect: Rect2) -> void:
 	WeaponDrawSystemScript.draw_bullets(
@@ -12459,7 +15053,8 @@ func _draw_boomerang() -> void:
 			side_range,
 			{
 				"shortRange": ModifierSystemScript.has_effect_for_target(self, "short_range"),
-				"shortRangeRate": ModifierSystemScript.effect_rate_for_target(self, "short_range")
+				"shortRangeRate": ModifierSystemScript.effect_rate_for_target(self, "short_range"),
+				"shortRangeParams": WeaponSystemScript.short_range_params_for_target(self)
 			}
 		)
 	var boomerang_draw_state: Dictionary = equipment_weapon_timers.duplicate()
@@ -12617,6 +15212,104 @@ func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null, image_l
 		_draw_hit_fx_item(data, image_layer)
 
 func _draw_hit_fx_item(data: Dictionary, image_layer: String = "front") -> void:
+	var effect_kind := String(data.get("kind", ""))
+	if effect_kind == "kuso_maro_launch":
+		if image_layer == "front":
+			_draw_kuso_maro_launch_fx(data)
+		return
+	if effect_kind == "kuso_maro_hit":
+		if image_layer == "front":
+			_draw_kuso_maro_hit_fx(data)
+		return
+	if effect_kind == "bug_spoiler_launch":
+		if image_layer == "front":
+			_draw_bug_spoiler_launch_fx(data)
+		return
+	if effect_kind == "bug_spoiler_hit":
+		if image_layer == "front":
+			_draw_bug_spoiler_hit_fx(data)
+		return
+	if effect_kind == "pitch_police_note_launch":
+		if image_layer == "front":
+			_draw_pitch_police_note_launch_fx(data)
+		return
+	if effect_kind == "pitch_police_note_hit":
+		if image_layer == "front":
+			_draw_pitch_police_note_hit_fx(data)
+		return
+	if effect_kind == "comment_shotgun_launch":
+		if image_layer == "front":
+			_draw_comment_shotgun_launch_fx(data)
+		return
+	if effect_kind == "comment_shotgun_hit":
+		if image_layer == "front":
+			_draw_comment_shotgun_hit_fx(data)
+		return
+	if effect_kind == "offline_laser_launch":
+		if image_layer == "front":
+			_draw_offline_laser_launch_fx(data)
+		return
+	if effect_kind == "offline_laser_hit":
+		if image_layer == "front":
+			_draw_offline_laser_hit_fx(data)
+		return
+	if effect_kind == "red_pen_launch":
+		# Launch FX is drawn in the boss foreground pass so it appears after the
+		# boss sprite but before the player; do not let the generic hit-FX pass
+		# draw it a second time.
+		return
+	if effect_kind == "red_pen_summon_spawn":
+		if image_layer == "back":
+			_draw_red_pen_summon_spawn_fx(data)
+		return
+	if effect_kind == "red_pen_mark_hit":
+		if image_layer == "front":
+			_draw_red_pen_mark_hit_fx(data)
+		return
+	if effect_kind == "red_pen_review_line_hit":
+		if image_layer == "front":
+			_draw_red_pen_review_line_hit_fx(data)
+		return
+	if effect_kind == "collab_crusher_vs_line_damage_hit":
+		if image_layer == "front":
+			_draw_collab_crusher_vs_line_damage_hit_fx(data)
+		return
+	if effect_kind == "collab_crusher_vs_line_knockback":
+		if image_layer == "front":
+			_draw_collab_crusher_vs_line_knockback_fx(data)
+		return
+	if effect_kind == "comment_divide_hit":
+		if image_layer == "front":
+			_draw_collab_crusher_comment_divide_hit_fx(data)
+		return
+	if effect_kind == "comment_divide_push":
+		if image_layer == "front":
+			_draw_collab_crusher_comment_divide_push_fx(data)
+		return
+	if effect_kind == "partner_mute_hit":
+		if image_layer == "front":
+			_draw_collab_partner_mute_hit_fx(data)
+		return
+	if effect_kind == "pitch_wave_cast":
+		if image_layer == "front":
+			_draw_pitch_wave_cast_fx(data)
+		return
+	if effect_kind == "pitch_wave_hit":
+		if image_layer == "front":
+			_draw_pitch_wave_hit_fx(data)
+		return
+	if effect_kind == "megaphone_wave_hit":
+		if image_layer == "front":
+			_draw_megaphone_wave_hit_fx(data)
+		return
+	if effect_kind == "bug_guide_cast":
+		if image_layer == "front":
+			_draw_bug_guide_cast_fx(data)
+		return
+	if effect_kind == "bug_guide_player_hit":
+		if image_layer == "front":
+			_draw_bug_guide_player_hit_fx(data)
+		return
 	if String(data.get("kind", "")) == "hard_comment_avalanche_row":
 		if image_layer != "front":
 			return
@@ -12659,6 +15352,783 @@ func _draw_hit_fx_item(data: Dictionary, image_layer: String = "front") -> void:
 	if bool(data.get("showHammer", false)):
 		_draw_rotated_texture(hammer_texture, data["hammerPos"] as Vector2, data["hammerSize"] as Vector2, float(data["hammerAngle"]), float(data["hammerAlpha"]))
 		_draw_ban_hammer_sparks(data)
+
+func _draw_kuso_maro_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var radius := float(data.get("radius", 96.0))
+	var count := maxi(1, int(data.get("count", 6)))
+	var start_angle := float(data.get("startAngle", 0.0))
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.23)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	for i in range(count):
+		var angle := start_angle + TAU * float(i) / float(count)
+		var dir := Vector2(cos(angle), sin(angle))
+		var side := Vector2(-dir.y, dir.x)
+		var spawn_pos := pos + dir * radius * 0.42
+		var puff_pos := spawn_pos + dir * (2.0 + progress * 13.0)
+		draw_line(spawn_pos - dir * 2.0, puff_pos + dir * 3.0, Color(1.0, 0.90, 0.96, 0.28 * life_ratio), 2.2, true)
+		draw_circle(puff_pos, 6.2 + burst * 1.8, Color(1.0, 0.96, 0.90, 0.30 * life_ratio))
+		draw_circle(puff_pos - side * 3.2, 4.0 + burst, Color(1.0, 0.62, 0.80, 0.34 * life_ratio))
+		draw_circle(puff_pos + side * 4.2, 2.5 + burst * 0.7, Color(0.72, 0.48, 0.82, 0.38 * life_ratio))
+		draw_circle(spawn_pos - dir * 3.0 + side * (5.0 if i % 2 == 0 else -5.0), 1.5, Color(0.24, 0.04, 0.30, 0.30 * life_ratio))
+		draw_circle(puff_pos - dir * 5.0 - side * 5.5, 1.3, Color(1.0, 0.94, 0.97, 0.42 * life_ratio))
+
+func _draw_kuso_maro_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var hit_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if hit_dir.length_squared() <= 0.01:
+		hit_dir = Vector2.RIGHT
+	hit_dir = hit_dir.normalized()
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.22)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var seed := float(data.get("seed", 0.0))
+	var flash := sin(minf(1.0, progress * 1.8) * PI)
+	var impact_side := Vector2(-hit_dir.y, hit_dir.x)
+	var splat_center := pos - hit_dir * 5.0
+	var splat_points := PackedVector2Array()
+	for i in range(12):
+		var angle := TAU * float(i) / 12.0
+		var wobble := 1.0 + sin(angle * 3.0 + seed) * 0.10
+		var side_extent := (18.0 + progress * 6.0) * wobble
+		var forward_extent := (10.0 + progress * 3.0) * wobble
+		splat_points.append(splat_center + impact_side * cos(angle) * side_extent + hit_dir * sin(angle) * forward_extent)
+	splat_points.append(splat_points[0])
+	draw_colored_polygon(splat_points, Color(1.0, 0.94, 0.86, (0.82 + flash * 0.14) * life_ratio))
+	draw_polyline(splat_points, Color(0.34, 0.08, 0.38, 0.86 * life_ratio), 2.4, true)
+	draw_circle(splat_center - hit_dir * 1.0, 8.0 + flash * 2.0, Color(1.0, 0.54, 0.76, 0.58 * life_ratio))
+	for i in range(4):
+		var chunk_angle := seed + float(i) * TAU / 4.0 + float(i % 2) * 0.31
+		var chunk_dir := Vector2(cos(chunk_angle), sin(chunk_angle))
+		var chunk_pos := splat_center + chunk_dir * (8.0 + progress * (18.0 + float(i) * 3.0))
+		var chunk_radius := 4.2 - float(i % 2) * 0.7
+		draw_line(splat_center + chunk_dir * 4.0, chunk_pos, Color(1.0, 0.72, 0.84, 0.30 * life_ratio), 2.2, true)
+		draw_circle(chunk_pos, chunk_radius + 0.8, Color(0.31, 0.07, 0.37, 0.48 * life_ratio))
+		draw_circle(chunk_pos, chunk_radius, Color(1.0, 0.94, 0.86, 0.90 * life_ratio))
+		draw_circle(chunk_pos - chunk_dir * 1.0 + impact_side * 0.7, 1.1, Color(1.0, 0.60, 0.80, 0.72 * life_ratio))
+	for i in range(6):
+		var sugar_angle := seed * 0.7 + float(i) * TAU / 6.0
+		var sugar_dir := Vector2(cos(sugar_angle), sin(sugar_angle))
+		var sugar_pos := splat_center + sugar_dir * (10.0 + progress * (20.0 + float(i % 3) * 4.0))
+		var sugar_color := Color(0.72, 0.47, 0.84, 0.58 * life_ratio) if i % 2 == 0 else Color(1.0, 0.82, 0.91, 0.68 * life_ratio)
+		draw_circle(sugar_pos, 1.4 + float(i % 3) * 0.35, sugar_color)
+	for i in range(2):
+		var dirt_angle := seed + 0.8 + float(i) * 2.7
+		var dirt_dir := Vector2(cos(dirt_angle), sin(dirt_angle))
+		draw_circle(splat_center + dirt_dir * (9.0 + progress * (14.0 + float(i) * 5.0)), 1.5 + float(i) * 0.4, Color(0.20, 0.03, 0.25, 0.50 * life_ratio))
+
+func _draw_bug_spoiler_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var radius := float(data.get("radius", 96.0))
+	var directions: Array = data.get("directions", []) as Array
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.15)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var intensity := float(data.get("intensity", 1.0))
+	for index in range(directions.size()):
+		var dir: Vector2 = directions[index]
+		if dir.length_squared() < 0.01:
+			continue
+		dir = dir.normalized()
+		var side := Vector2(-dir.y, dir.x)
+		var spawn_pos := pos + dir * radius * 0.42
+		var pop_center := spawn_pos + dir * (7.0 + progress * 14.0)
+		var pop_forward := dir * (7.0 + burst * 2.0)
+		var pop_side := side * (4.0 + burst)
+		var pop_points := PackedVector2Array([
+			pop_center - pop_forward - pop_side,
+			pop_center + pop_forward - pop_side,
+			pop_center + pop_forward + pop_side,
+			pop_center - pop_forward * 0.20 + pop_side,
+			pop_center - pop_forward * 0.58 + pop_side * 1.42,
+			pop_center - pop_forward * 0.52 + pop_side,
+			pop_center - pop_forward - pop_side
+		])
+		draw_colored_polygon(pop_points, Color(1.0, 0.08, 0.42, 0.52 * life_ratio * intensity))
+		draw_polyline(pop_points, Color(0.25, 0.01, 0.13, 0.74 * life_ratio), 1.8, true)
+		draw_line(spawn_pos, spawn_pos + dir * (18.0 + progress * 11.0), Color(1.0, 0.94, 0.97, 0.82 * life_ratio * intensity), 2.0, true)
+		var censor_center := pop_center + side * (-6.0 if index % 2 == 0 else 6.0)
+		draw_line(censor_center - dir * 4.5, censor_center + dir * 4.5, Color(0.10, 0.00, 0.08, 0.92 * life_ratio), 3.2, true)
+		var cyan_center := spawn_pos + dir * (13.0 + progress * 18.0) + side * 8.0
+		draw_line(cyan_center - dir * 4.0, cyan_center + dir * 3.0, Color(0.0, 0.94, 1.0, 0.84 * life_ratio * intensity), 2.2, true)
+		if directions.size() >= 4 or index % 2 == 0:
+			var purple_center := cyan_center - side * 12.0 + dir * 3.0
+			draw_line(purple_center - side * 3.0, purple_center + side * 3.0, Color(0.68, 0.10, 1.0, 0.66 * life_ratio * intensity), 1.8, true)
+
+func _draw_bug_spoiler_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var hit_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if hit_dir.length_squared() < 0.01:
+		hit_dir = Vector2.RIGHT
+	hit_dir = hit_dir.normalized()
+	var side := Vector2(-hit_dir.y, hit_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var flash := sin(minf(1.0, progress * 1.7) * PI)
+	var seed := float(data.get("seed", 0.0))
+	draw_circle(pos, 5.0 + flash * 12.0, Color(1.0, 0.96, 0.98, 0.34 * life_ratio), true)
+	for i in range(5):
+		var angle := hit_dir.angle() + seed + (float(i) - 2.0) * 0.62
+		var shard_dir := Vector2(cos(angle), sin(angle))
+		var shard_side := Vector2(-shard_dir.y, shard_dir.x)
+		var shard_center := pos + shard_dir * (8.0 + progress * (19.0 + float(i % 2) * 8.0))
+		var shard_forward := shard_dir * (5.4 - float(i % 2) * 0.8)
+		var shard_width := shard_side * (3.0 + float(i % 3) * 0.4)
+		var shard_points := PackedVector2Array([
+			shard_center - shard_forward - shard_width,
+			shard_center + shard_forward,
+			shard_center - shard_forward + shard_width,
+			shard_center - shard_forward - shard_width
+		])
+		draw_colored_polygon(shard_points, Color(1.0, 0.12 + float(i % 2) * 0.18, 0.48, 0.86 * life_ratio))
+		draw_polyline(shard_points, Color(0.28, 0.01, 0.17, 0.88 * life_ratio), 1.6, true)
+		if i < 3:
+			var glitch_center := shard_center + shard_side * (5.0 if i % 2 == 0 else -5.0)
+			var glitch_color := Color(0.0, 0.94, 1.0, 0.80 * life_ratio) if i % 2 == 0 else Color(0.67, 0.10, 1.0, 0.74 * life_ratio)
+			draw_line(glitch_center - shard_dir * 3.8, glitch_center + shard_dir * 3.0, glitch_color, 2.0, true)
+	var censor_travel := 6.0 + progress * 20.0
+	draw_line(pos - side * 5.0 + hit_dir * censor_travel, pos + side * 5.0 + hit_dir * censor_travel, Color(0.08, 0.00, 0.07, 0.94 * life_ratio), 4.0, true)
+	draw_line(pos - side * 4.0 - hit_dir * censor_travel * 0.78, pos + side * 4.0 - hit_dir * censor_travel * 0.78, Color(0.17, 0.01, 0.12, 0.88 * life_ratio), 3.0, true)
+	var punctuation_pos := pos - hit_dir * (6.0 + progress * 14.0) + side * (10.0 + progress * 5.0)
+	draw_string(GameFontSystemScript.black_font(), punctuation_pos, "!?", HORIZONTAL_ALIGNMENT_LEFT, -1.0, 10, Color(1.0, 0.22, 0.52, 0.88 * life_ratio))
+
+func _draw_comment_shotgun_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() < 0.01:
+		direction = Vector2.RIGHT
+	direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.16)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	var count := clampi(int(data.get("pelletCount", 5)), 1, 12)
+	# One compact shared muzzle cue: paper-white comment pop with a restrained
+	# pink/cyan split, kept small so the boss sprite and five pellets remain legible.
+	draw_circle(pos, 6.0 + pulse * 5.0, Color(1.0, 0.96, 0.99, 0.20 * life_ratio), true)
+	draw_arc(pos, 11.0 + pulse * 7.0, seed * TAU, seed * TAU + PI * 1.42, 14, Color(1.0, 0.78, 0.92, 0.56 * life_ratio), 2.0, true)
+	draw_line(pos - direction * 5.0, pos + direction * (10.0 + pulse * 5.0), Color(1.0, 1.0, 1.0, 0.76 * life_ratio), 2.2, true)
+	draw_line(pos - side * 4.0, pos + side * 7.0, Color(0.06, 0.86, 1.0, 0.54 * life_ratio), 1.6, true)
+	draw_string(GameFontSystemScript.black_font(), pos + Vector2(-10.0, 4.0), "…", HORIZONTAL_ALIGNMENT_CENTER, 20.0, 12, Color(1.0, 1.0, 1.0, 0.78 * life_ratio))
+	for i in range(4):
+		var fragment_angle := seed * TAU + float(i) * TAU / 4.0 + float(count % 3) * 0.12
+		var fragment_dir := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_start := pos + fragment_dir * 7.0
+		var fragment_end := pos + fragment_dir * (13.0 + pulse * 8.0 + float(i % 2) * 3.0)
+		var fragment_color := Color(0.06, 0.86, 1.0, 0.58 * life_ratio) if i % 2 == 0 else Color(1.0, 0.20, 0.64, 0.58 * life_ratio)
+		draw_line(fragment_start, fragment_end, fragment_color, 1.8, true)
+		draw_rect(Rect2(fragment_end - Vector2(1.6, 1.0), Vector2(3.2, 2.0)), Color(fragment_color.r, fragment_color.g, fragment_color.b, 0.54 * life_ratio), true)
+
+func _draw_comment_shotgun_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() < 0.01:
+		direction = Vector2.RIGHT
+	direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	var burst_center := pos - direction * (2.0 + progress * 4.0)
+	# A short bubble rupture and white flash distinguish this from a generic
+	# impact without implying a larger damage radius.
+	draw_circle(burst_center, 4.0 + pulse * 5.0, Color(1.0, 0.96, 0.99, 0.34 * life_ratio), true)
+	draw_arc(burst_center, 10.0 + pulse * 8.0, direction.angle() - 2.3, direction.angle() - 0.45, 10, Color(1.0, 0.62, 0.82, 0.78 * life_ratio), 2.2, true)
+	draw_arc(burst_center, 13.0 + pulse * 6.0, direction.angle() + 0.55, direction.angle() + 2.05, 10, Color(0.42, 0.10, 0.54, 0.70 * life_ratio), 1.8, true)
+	for i in range(5):
+		var fragment_angle := seed * TAU + direction.angle() + (float(i) - 2.0) * 0.54
+		var fragment_dir := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_center := burst_center + fragment_dir * (8.0 + progress * (15.0 + float(i % 2) * 5.0))
+		var fragment_length := 4.0 + float(i % 2) * 1.5
+		var fragment_color := Color(0.08, 0.88, 1.0, 0.76 * life_ratio) if i % 2 == 0 else Color(1.0, 0.34, 0.72, 0.80 * life_ratio)
+		draw_line(fragment_center - fragment_dir * fragment_length, fragment_center + fragment_dir * fragment_length, fragment_color, 2.0, true)
+		if i < 3:
+			draw_circle(fragment_center + side * (1.5 if i % 2 == 0 else -1.5), 1.5, Color(1.0, 0.94, 0.98, 0.72 * life_ratio))
+	var ellipsis_center := burst_center + side * 5.0 - direction * 1.5
+	for i in range(2):
+		draw_circle(ellipsis_center + direction * float(i) * 5.0, 1.6, Color(1.0, 0.94, 0.98, 0.82 * life_ratio))
+	draw_line(burst_center - side * 4.0 - direction * 3.0, burst_center + side * 4.0 + direction * 4.0, Color(1.0, 1.0, 1.0, 0.52 * life_ratio), 1.5, true)
+
+func _draw_offline_laser_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	else:
+		direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.18)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	var flash_alpha := (0.20 + pulse * 0.42) * life_ratio
+	draw_circle(pos, 4.0 + pulse * 8.0, Color(1.0, 0.97, 1.0, flash_alpha), true)
+	draw_arc(pos, 8.0 + pulse * 10.0, seed * TAU, seed * TAU + PI * 1.45, 14, Color(1.0, 0.20, 0.58, 0.72 * life_ratio), 2.0, true)
+	draw_arc(pos, 11.0 + pulse * 8.0, seed * TAU + PI, seed * TAU + PI * 1.72, 12, Color(0.28, 0.92, 1.0, 0.62 * life_ratio), 1.5, true)
+	draw_line(pos - direction * 5.0, pos + direction * (11.0 + pulse * 5.0), Color(1.0, 0.98, 1.0, 0.80 * life_ratio), 2.0, true)
+	draw_line(pos - side * 7.0, pos + side * 7.0, Color(0.26, 0.94, 1.0, 0.48 * life_ratio), 1.25, true)
+	var fragment_count := 3 + int(floor(seed * 3.0))
+	for i in range(fragment_count):
+		var angle := seed * TAU + float(i) * TAU / float(fragment_count) + 0.18
+		var fragment_dir := Vector2(cos(angle), sin(angle))
+		var fragment_start := pos + fragment_dir * (7.0 + pulse * 2.0)
+		var fragment_end := pos + fragment_dir * (13.0 + pulse * 8.0 + float(i % 2) * 3.0)
+		var fragment_color := Color(0.22, 0.92, 1.0, 0.68 * life_ratio) if i % 2 == 0 else Color(1.0, 0.22, 0.62, 0.68 * life_ratio)
+		draw_line(fragment_start, fragment_end, fragment_color, 1.5, true)
+		var block_size := Vector2(2.6, 1.6)
+		draw_rect(Rect2(fragment_end - block_size * 0.5, block_size), Color(fragment_color.r, fragment_color.g, fragment_color.b, 0.58 * life_ratio), true)
+
+func _draw_offline_laser_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	else:
+		direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	draw_circle(pos, 4.0 + pulse * 6.0, Color(1.0, 0.98, 1.0, 0.28 * life_ratio), true)
+	draw_arc(pos, 9.0 + pulse * 8.0, seed * TAU, seed * TAU + PI * 1.30, 14, Color(1.0, 0.96, 1.0, 0.62 * life_ratio), 1.5, true)
+	# The central signal is shown as a short, visibly broken cyan scanline.
+	var scan_origin := pos - direction * (18.0 + progress * 6.0)
+	var scan_end := pos + direction * (18.0 + progress * 7.0)
+	draw_line(scan_origin, pos - direction * 4.0, Color(0.30, 0.96, 1.0, 0.82 * life_ratio), 2.0, true)
+	draw_line(pos + direction * 5.0, scan_end, Color(0.30, 0.96, 1.0, 0.68 * life_ratio), 1.7, true)
+	var fragment_count := 4 + int(floor(seed * 2.0))
+	for i in range(fragment_count):
+		var angle := direction.angle() + seed * 0.7 + (float(i) - float(fragment_count - 1) * 0.5) * 0.62
+		var fragment_dir := Vector2(cos(angle), sin(angle))
+		var center := pos + fragment_dir * (8.0 + progress * (13.0 + float(i % 3) * 4.0))
+		var length := 3.0 + float(i % 2) * 1.5
+		var fragment_color := Color(1.0, 0.18, 0.62, 0.78 * life_ratio) if i % 2 == 0 else Color(0.64, 0.20, 0.90, 0.72 * life_ratio)
+		draw_line(center - fragment_dir * length, center + fragment_dir * length, fragment_color, 1.8, true)
+	for i in range(3):
+		var t := -0.6 + float(i) * 0.58 + fposmod(seed * 0.31, 0.12)
+		var scan_center := pos + direction * (t * (10.0 + progress * 6.0))
+		draw_line(scan_center - side * (5.0 + pulse * 2.0), scan_center + side * (5.0 + pulse * 2.0), Color(1.0, 0.58, 0.82, 0.54 * life_ratio), 1.1, true)
+	draw_line(pos - side * 5.0 - direction * 3.0, pos + side * 5.0 + direction * 4.0, Color(1.0, 1.0, 1.0, 0.52 * life_ratio), 1.4, true)
+
+func _draw_pitch_police_note_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var radius := float(data.get("radius", 102.0))
+	var directions: Array = data.get("directions", []) as Array
+	var phase := clampi(int(data.get("phase", 1)), 1, 3)
+	var intensity := 1.0 + float(phase - 1) * 0.12
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.16)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	for index in range(directions.size()):
+		var dir := Vector2(directions[index])
+		if dir.length_squared() < 0.01:
+			continue
+		dir = dir.normalized()
+		var side := Vector2(-dir.y, dir.x)
+		var spawn_pos := pos + dir * (radius * 0.62 + 12.0)
+		var stamp_pos := spawn_pos + dir * (3.0 + progress * 12.0)
+		var check_a := stamp_pos - dir * 5.0 - side * 4.5
+		var check_b := stamp_pos - dir * 1.0 + side * 1.0
+		var check_c := stamp_pos + dir * 7.0 - side * 5.0
+		draw_line(check_a, check_b, Color(0.28, 0.01, 0.12, 0.76 * life_ratio), 6.0, true)
+		draw_line(check_b, check_c, Color(0.28, 0.01, 0.12, 0.76 * life_ratio), 6.0, true)
+		draw_line(check_a, check_b, Color(1.0, 0.08, 0.36, 0.95 * life_ratio * intensity), 3.2, true)
+		draw_line(check_b, check_c, Color(1.0, 0.18, 0.50, 0.95 * life_ratio * intensity), 3.2, true)
+		draw_line(spawn_pos - dir * 4.0, spawn_pos + dir * (14.0 + burst * 5.0), Color(1.0, 0.96, 0.99, 0.82 * life_ratio), 1.8 + burst, true)
+		for chip_index in range(3 + (1 if phase >= 3 else 0)):
+			var chip_side_sign := -1.0 if chip_index % 2 == 0 else 1.0
+			var chip_dir := (dir * (0.65 + float(chip_index) * 0.12) + side * chip_side_sign * (0.38 + float(chip_index % 2) * 0.16)).normalized()
+			var chip_pos := spawn_pos + chip_dir * (5.0 + progress * (12.0 + float(chip_index) * 3.0))
+			var chip_color := Color(0.48, 0.01, 0.16, 0.72 * life_ratio) if chip_index % 2 == 0 else Color(1.0, 0.20, 0.52, 0.72 * life_ratio)
+			draw_line(chip_pos - chip_dir * 2.0, chip_pos + chip_dir * 2.6, chip_color, 2.0 + float(chip_index % 2), true)
+		var note_head := spawn_pos - side * (8.0 + burst * 3.0)
+		draw_circle(note_head, 2.6 + burst * 0.6, Color(1.0, 0.36, 0.64, 0.74 * life_ratio * intensity))
+		draw_line(note_head + side * 1.4, note_head + side * 1.4 - dir * 7.0, Color(1.0, 0.82, 0.92, 0.72 * life_ratio), 1.8, true)
+
+func _draw_pitch_police_note_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var hit_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if hit_dir.length_squared() < 0.01:
+		hit_dir = Vector2.RIGHT
+	hit_dir = hit_dir.normalized()
+	var side := Vector2(-hit_dir.y, hit_dir.x)
+	var phase := clampi(int(data.get("phase", 1)), 1, 3)
+	var intensity := 1.0 + float(phase - 1) * 0.10
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(data.get("seed", 0.0))
+	draw_circle(pos, 4.0 + burst * 9.0, Color(1.0, 0.96, 0.99, 0.20 * life_ratio * intensity))
+	var stamp_size := 15.5 + burst * 8.0
+	var check_a := pos - hit_dir * stamp_size * 0.45 - side * stamp_size * 0.46
+	var check_b := pos - hit_dir * stamp_size * 0.10 + side * stamp_size * 0.10
+	var check_c := pos + hit_dir * stamp_size * 0.70 - side * stamp_size * 0.52
+	draw_line(check_a, check_b, Color(0.26, 0.01, 0.13, 0.84 * life_ratio), 9.0, true)
+	draw_line(check_b, check_c, Color(0.26, 0.01, 0.13, 0.84 * life_ratio), 9.0, true)
+	draw_line(check_a, check_b, Color(1.0, 0.06, 0.34, 0.96 * life_ratio * intensity), 5.0, true)
+	draw_line(check_b, check_c, Color(1.0, 0.22, 0.54, 0.96 * life_ratio * intensity), 5.0, true)
+	draw_line(check_b, check_c, Color(1.0, 0.94, 0.98, 0.74 * life_ratio), 1.4, true)
+	for wave_index in range(2):
+		var wave_radius := 12.0 + float(wave_index) * 8.0 + progress * (8.0 + float(wave_index) * 3.0)
+		var wave_color := Color(1.0, 0.16, 0.48, (0.56 - float(wave_index) * 0.14) * life_ratio)
+		draw_arc(pos, wave_radius, hit_dir.angle() - 1.0, hit_dir.angle() + 1.0, 14, wave_color, 2.2 - float(wave_index) * 0.4, true)
+	for note_index in range(3):
+		var angle := hit_dir.angle() + seed + (float(note_index) - 1.0) * 1.18
+		var shard_dir := Vector2.from_angle(angle)
+		var shard_side := Vector2(-shard_dir.y, shard_dir.x)
+		var head := pos + shard_dir * (9.0 + progress * (14.0 + float(note_index) * 4.0))
+		draw_circle(head, 3.0 - float(note_index) * 0.25, Color(1.0, 0.20 + float(note_index) * 0.10, 0.52, 0.82 * life_ratio))
+		draw_line(head + shard_side * 1.5, head + shard_side * 1.5 - shard_dir * (7.0 + float(note_index)), Color(0.39, 0.01, 0.18, 0.82 * life_ratio), 2.2, true)
+	for ink_index in range(5 + (1 if phase >= 3 else 0)):
+		var ink_angle := seed * 0.71 + float(ink_index) * TAU / float(5 + (1 if phase >= 3 else 0))
+		var ink_dir := Vector2.from_angle(ink_angle)
+		var ink_pos := pos + ink_dir * (7.0 + progress * (13.0 + float(ink_index % 3) * 4.0))
+		var ink_color := Color(0.42, 0.01, 0.17, 0.66 * life_ratio) if ink_index % 2 == 0 else Color(1.0, 0.16, 0.48, 0.62 * life_ratio)
+		draw_circle(ink_pos, 1.6 + float(ink_index % 3) * 0.45, ink_color)
+
+func _draw_red_pen_mark_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var hit_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if hit_dir.length_squared() < 0.01:
+		hit_dir = Vector2.RIGHT
+	hit_dir = hit_dir.normalized()
+	var side := Vector2(-hit_dir.y, hit_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(data.get("seed", 0.0))
+	var slash_center := pos + hit_dir * (progress - 0.34) * 5.0
+	var slash_a := slash_center - hit_dir * (12.0 + burst * 2.0) - side * (10.0 + burst * 2.0)
+	var slash_b := slash_center + hit_dir * (13.0 + burst * 2.0) + side * (9.0 + burst * 2.0)
+	var fade := life_ratio
+	# Compact correction circle, capped well below review_line's scale.
+	draw_circle(pos, 7.5 + burst * 3.0, Color(0.35, 0.005, 0.10, 0.46 * fade), false, 2.0, true)
+	draw_circle(pos - hit_dir * 1.0, 4.0 + burst * 1.8, Color(1.0, 0.08, 0.26, 0.52 * fade))
+	draw_circle(pos + hit_dir * 2.0, 4.0 + burst * 4.0, Color(1.0, 0.96, 0.98, (0.22 + burst * 0.18) * fade))
+	# One short slash is the correction motif; no check mark or text.
+	draw_line(slash_a, slash_b, Color(0.28, 0.005, 0.08, 0.90 * fade), 7.0 + burst * 1.4, true)
+	draw_line(slash_a, slash_b, Color(1.0, 0.08, 0.28, 0.92 * fade), 4.3 + burst * 0.9, true)
+	draw_line(slash_a.lerp(slash_b, 0.20), slash_a.lerp(slash_b, 0.58), Color(1.0, 0.86, 0.92, 0.70 * fade), 1.25, true)
+	var ink_count := 3 + posmod(int(data.get("shotIndex", 0)), 3)
+	for ink_index in range(ink_count):
+		var angle := seed + float(ink_index) * TAU / float(ink_count) + 0.22
+		var ink_dir := Vector2(cos(angle), sin(angle))
+		var ink_pos := pos + ink_dir * (10.0 + progress * (7.0 + float(ink_index % 2) * 3.0))
+		draw_circle(ink_pos, 1.5 + float(ink_index % 2) * 0.55, Color(0.69, 0.005, 0.11, (0.70 - float(ink_index) * 0.06) * fade))
+		if ink_index < 3:
+			draw_line(ink_pos - ink_dir * 1.4, ink_pos + ink_dir * (3.0 + burst * 2.0), Color(1.0, 0.26, 0.42, 0.40 * fade), 1.15, true)
+	for fragment_index in range(3):
+		var fragment_angle := seed * 0.61 + float(fragment_index) * 2.05
+		var fragment_dir := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_start := pos + fragment_dir * (8.0 + float(fragment_index) * 2.0)
+		var fragment_end := fragment_start + fragment_dir * (5.0 + progress * 6.0)
+		draw_line(fragment_start, fragment_end, Color(1.0, 0.20, 0.38, 0.56 * fade), 1.7, true)
+
+func _draw_red_pen_summon_spawn_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var seed := float(data.get("visualSeed", data.get("seed", 0.0)))
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.24)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var fade := life_ratio
+	var index := int(data.get("redPenSummonIndex", 0))
+	var count := maxi(1, int(data.get("redPenSummonCount", 1)))
+	var ring_radius := lerpf(27.0, 18.0, smoothstep(0.0, 1.0, progress)) + burst * 2.0
+	# A compact, broken red-pencil mark at the actual spawn origin.
+	draw_arc(pos, ring_radius, seed + 0.16, seed + 1.45, 18, Color(0.32, 0.003, 0.10, 0.68 * fade), 3.1, true)
+	draw_arc(pos, ring_radius, seed + 2.05, seed + 3.18, 16, Color(0.84, 0.01, 0.18, 0.78 * fade), 1.9, true)
+	draw_arc(pos, ring_radius - 4.0, seed + 4.05, seed + 4.82, 12, Color(1.0, 0.44, 0.60, 0.58 * fade), 1.0, true)
+	var mark_dir := Vector2.from_angle(seed + float(index) * 0.42)
+	var mark_side := Vector2(-mark_dir.y, mark_dir.x)
+	var mark_center := pos + mark_side * 2.0
+	draw_line(mark_center - mark_dir * 13.0, mark_center + mark_dir * 10.0, Color(0.30, 0.003, 0.09, 0.80 * fade), 4.0, true)
+	draw_line(mark_center - mark_dir * 8.0, mark_center + mark_dir * 5.0, Color(1.0, 0.16, 0.32, 0.86 * fade), 1.6, true)
+	draw_line(pos - mark_side * 10.0 - mark_dir * 5.0, pos - mark_side * 10.0 + mark_dir * 7.0, Color(1.0, 0.74, 0.84, 0.66 * fade), 1.3, true)
+	for ink_index in range(3):
+		var ink_angle := seed + float(ink_index) * 2.04 + float(count - 1) * 0.11
+		var ink_dir := Vector2.from_angle(ink_angle)
+		var ink_pos := pos + ink_dir * (11.0 + progress * (13.0 + float(ink_index) * 2.0))
+		draw_circle(ink_pos, 2.2 - float(ink_index % 2) * 0.4, Color(0.60, 0.004, 0.12, (0.78 - float(ink_index) * 0.08) * fade))
+		if ink_index < 2:
+			draw_line(ink_pos - ink_dir * 2.0, ink_pos + ink_dir * 4.0, Color(1.0, 0.32, 0.48, 0.50 * fade), 1.2, true)
+	for paper_index in range(2):
+		var paper_angle := seed + float(paper_index) * PI + 0.7
+		var paper_dir := Vector2.from_angle(paper_angle)
+		var paper_pos := pos + paper_dir * (16.0 + progress * 8.0)
+		draw_line(paper_pos - mark_side * 3.0, paper_pos + mark_side * 3.0, Color(1.0, 0.94, 0.96, 0.68 * fade), 1.5, true)
+	draw_circle(pos - mark_dir * 2.0, 3.0 + burst * 2.0, Color(1.0, 0.96, 0.98, 0.32 * fade))
+
+func _draw_red_pen_review_line_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var hit_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if hit_dir.length_squared() < 0.01:
+		hit_dir = Vector2.RIGHT
+	hit_dir = hit_dir.normalized()
+	var seed := float(data.get("visualSeed", data.get("seed", 0.0)))
+	var tilt := 0.17 if _red_pen_visual_hash(seed, 0) >= 0.5 else -0.17
+	var slash_dir := hit_dir.rotated(tilt).normalized()
+	var slash_side := Vector2(-slash_dir.y, slash_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var fade := life_ratio
+	var slash_center := pos + slash_dir * (progress - 0.42) * 5.0
+	var slash_a := slash_center - slash_dir * (28.0 + burst * 2.0) - slash_side * (4.0 + burst * 1.5)
+	var slash_b := slash_center + slash_dir * (29.0 + burst * 2.0) + slash_side * (4.0 + burst * 1.5)
+	# One long directional scratch distinguishes a line hit from the small
+	# correction-circle projectile hit FX.
+	draw_line(slash_a, slash_b, Color(0.24, 0.002, 0.08, 0.92 * fade), 11.5, true)
+	draw_line(slash_a, slash_b, Color(0.92, 0.015, 0.16, 0.94 * fade), 8.6 + burst * 0.8, true)
+	draw_line(slash_a.lerp(slash_b, 0.16), slash_a.lerp(slash_b, 0.58), Color(1.0, 0.88, 0.93, 0.72 * fade), 1.7, true)
+	var scratch_center := pos + slash_side * (11.0 + burst * 2.0) - slash_dir * 2.0
+	var scratch_a := scratch_center - slash_dir * (17.0 + burst * 1.5)
+	var scratch_b := scratch_center + slash_dir * (19.0 + burst * 1.5)
+	draw_line(scratch_a, scratch_b, Color(0.36, 0.004, 0.14, 0.78 * fade), 4.0, true)
+	draw_line(scratch_a + slash_side * 1.0, scratch_b - slash_side * 1.0, Color(1.0, 0.20, 0.38, 0.70 * fade), 2.2, true)
+	var flash_radius := 3.6 + burst * 3.0
+	draw_circle(pos - slash_dir * 1.5, flash_radius, Color(1.0, 0.96, 0.98, (0.36 + burst * 0.34) * fade), true)
+	var ink_count := 3 + posmod(int(absf(seed) * 1000.0), 3)
+	for ink_index in range(ink_count):
+		var ink_angle := seed * 0.71 + float(ink_index) * 1.47
+		var ink_dir := Vector2.from_angle(ink_angle)
+		var ink_pos := pos + ink_dir * (15.0 + progress * (10.0 + float(ink_index % 2) * 4.0))
+		draw_circle(ink_pos, 1.5 + float(ink_index % 2) * 0.7, Color(0.68, 0.004, 0.12, (0.70 - float(ink_index) * 0.07) * fade), true)
+		if ink_index < 3:
+			draw_line(ink_pos - ink_dir * 1.5, ink_pos + ink_dir * (4.0 + burst * 2.0), Color(1.0, 0.26, 0.42, 0.44 * fade), 1.2, true)
+	for fragment_index in range(2):
+		var fragment_dir := slash_dir.rotated(-0.34 if fragment_index == 0 else 0.29)
+		var fragment_start := pos + slash_side * (-7.0 if fragment_index == 0 else 7.0) + fragment_dir * (8.0 + float(fragment_index) * 3.0)
+		draw_line(fragment_start, fragment_start + fragment_dir * (8.0 + progress * 5.0), Color(0.46, 0.01, 0.18, 0.64 * fade), 1.8, true)
+
+func _draw_collab_crusher_vs_line_damage_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var line_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if line_dir.length_squared() < 0.01:
+		line_dir = Vector2.RIGHT
+	line_dir = line_dir.normalized()
+	var side := Vector2(data.get("side", Vector2(-line_dir.y, line_dir.x)))
+	if side.length_squared() < 0.01:
+		side = Vector2(-line_dir.y, line_dir.x)
+	side = side.normalized()
+	var max_life := maxf(0.01, float(data.get("maxLife", COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var visual_scale := 1.0 if bool(data.get("damageApplied", true)) else 0.32
+	var seed := float(data.get("visualSeed", 0.0))
+	var shock_radius := 9.0 + progress * 24.0 + burst * 3.0
+	draw_arc(pos, shock_radius, seed, seed + TAU * 0.82, 26, Color(1.0, 0.96, 1.0, 0.68 * life_ratio * visual_scale), 2.4, true)
+	draw_arc(pos + side * 2.0, shock_radius * 0.76, seed + PI * 0.66, seed + PI * 1.48, 16, Color(0.92, 0.12, 0.56, 0.70 * life_ratio * visual_scale), 2.0, true)
+	draw_circle(pos, 3.0 + burst * 2.2, Color(1.0, 0.98, 1.0, (0.36 + burst * 0.26) * life_ratio * visual_scale), true)
+	var crack_span := 15.0 + burst * 8.0
+	var crack_a := pos - line_dir * crack_span - side * 5.0
+	var crack_b := pos - side * 1.5
+	var crack_c := pos + line_dir * crack_span + side * 5.0
+	draw_polyline(PackedVector2Array([crack_a, crack_b, crack_c]), Color(0.38, 0.015, 0.30, 0.84 * life_ratio * visual_scale), 3.4, true)
+	draw_line(crack_a.lerp(crack_b, 0.12), crack_a.lerp(crack_b, 0.70), Color(1.0, 0.82, 0.96, 0.68 * life_ratio * visual_scale), 1.2, true)
+	for fragment_index in range(4):
+		var fragment_ratio := float(fragment_index) / 3.0
+		var fragment_dir := side.rotated((fragment_ratio - 0.5) * 0.72)
+		var fragment_pos := pos + fragment_dir * (10.0 + progress * (9.0 + fragment_ratio * 5.0))
+		var fragment_length := 8.0 + burst * 4.0 + fragment_ratio * 3.0
+		var fragment_color := Color(0.22, 0.82, 1.0, 0.72 * life_ratio * visual_scale) if fragment_index % 2 == 0 else Color(1.0, 0.18, 0.58, 0.72 * life_ratio * visual_scale)
+		draw_line(fragment_pos - fragment_dir * fragment_length * 0.30, fragment_pos + fragment_dir * fragment_length * 0.70, fragment_color, 2.0, true)
+
+func _draw_collab_crusher_vs_line_knockback_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var knockback_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if knockback_dir.length_squared() < 0.01:
+		knockback_dir = Vector2.RIGHT
+	knockback_dir = knockback_dir.normalized()
+	var tangent := Vector2(-knockback_dir.y, knockback_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	for line_index in range(4):
+		var offset := (float(line_index) - 1.5) * 7.0
+		var start_distance := 8.0 + float(line_index % 2) * 4.0
+		var length := 18.0 + burst * 9.0 + float(line_index % 3) * 4.0
+		var line_start := pos - knockback_dir * start_distance + tangent * offset
+		var line_end := line_start + knockback_dir * length
+		var line_color := Color(0.22, 0.84, 1.0, 0.58 * life_ratio) if line_index % 2 == 0 else Color(1.0, 0.18, 0.58, 0.62 * life_ratio)
+		draw_line(line_start, line_end, line_color, 2.2 + burst * 0.8, true)
+		if line_index < 3:
+			draw_line(line_start + tangent * 1.6, line_start + knockback_dir * (length * 0.44) + tangent * 1.6, Color(1.0, 0.94, 0.99, 0.46 * life_ratio), 1.0, true)
+	var fragment_origin := pos + knockback_dir * (10.0 + progress * 11.0)
+	var fragment_points := PackedVector2Array([
+		fragment_origin - knockback_dir * 7.0 - tangent * 5.0,
+		fragment_origin + knockback_dir * 1.0 + tangent * 2.5,
+		fragment_origin + knockback_dir * 8.0 - tangent * 4.0
+	])
+	draw_polyline(fragment_points, Color(0.84, 0.02, 0.44, 0.74 * life_ratio), 2.4, true)
+	var dot_pos := pos + knockback_dir * (21.0 + progress * 8.0) + tangent * sin(seed + progress * 4.0) * 5.0
+	draw_circle(dot_pos, 2.0 + burst * 1.2, Color(1.0, 0.94, 0.98, 0.58 * life_ratio), true)
+
+func _draw_pitch_wave_cast_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var radius := float(data.get("radius", 102.0))
+	var band_count := maxi(1, int(data.get("bandCount", 1)))
+	var seed := float(data.get("visualSeed", 0.0))
+	var max_life := maxf(0.01, float(data.get("maxLife", SONG_PITCH_WAVE_CAST_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var ring_radius := radius * (0.48 + progress * 0.12)
+	var split := Vector2(3.5 + burst * 2.0, -2.0)
+	draw_arc(pos, ring_radius, seed + progress * 0.45, seed + progress * 0.45 + TAU, 42, Color(1.0, 0.96, 1.0, 0.64 * life_ratio), 2.8, true)
+	draw_arc(pos + split, ring_radius + 3.0, seed + 0.18, seed + PI * 1.18, 28, Color(0.20, 0.92, 1.0, 0.58 * life_ratio), 2.2, true)
+	draw_arc(pos - split, ring_radius - 3.0, seed + PI, seed + PI * 2.12, 28, Color(1.0, 0.20, 0.72, 0.58 * life_ratio), 2.2, true)
+	var glyph_alpha := (0.70 + float(band_count - 1) * 0.10) * life_ratio
+	_draw_outlined_text(pos + Vector2(-ring_radius * 0.68, -ring_radius * 0.34), "♭", 30, 25, Color(0.30, 0.92, 1.0, glyph_alpha), Color(0.16, 0.03, 0.24, 0.72 * life_ratio), HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_outlined_text(pos + Vector2(ring_radius * 0.38, ring_radius * 0.46), "♯", 30, 23, Color(1.0, 0.34, 0.74, glyph_alpha), Color(0.16, 0.03, 0.24, 0.72 * life_ratio), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_crusher_comment_divide_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var push_dir := Vector2(data.get("pushDir", Vector2.RIGHT))
+	if push_dir.length_squared() < 0.01:
+		push_dir = Vector2.RIGHT
+	push_dir = push_dir.normalized()
+	var tangent := Vector2(-push_dir.y, push_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var damage_scale := 1.0 if bool(data.get("damageApplied", true)) else 0.42
+	var seed := float(data.get("visualSeed", data.get("visual_seed", 0.0)))
+	var shock_radius := 13.0 + progress * 27.0 + burst * 3.0
+	draw_arc(pos, shock_radius, seed, seed + TAU * 0.82, 28, Color(1.0, 0.96, 1.0, 0.62 * life_ratio * damage_scale), 2.5, true)
+	draw_arc(pos + tangent * 2.0, shock_radius * 0.74, seed + 1.0, seed + 2.5, 18, Color(0.92, 0.12, 0.56, 0.68 * life_ratio * damage_scale), 2.0, true)
+	draw_circle(pos, 3.0 + burst * 2.0, Color(1.0, 0.98, 1.0, 0.54 * life_ratio * damage_scale), true)
+	for fragment_index in range(4):
+		var fragment_ratio := float(fragment_index) / 3.0
+		var fragment_dir := tangent.rotated((fragment_ratio - 0.5) * 0.85)
+		var fragment_pos := pos + fragment_dir * (10.0 + progress * 10.0)
+		_draw_collab_comment_divide_bubble_piece(fragment_pos, fragment_dir, Vector2(-fragment_dir.y, fragment_dir.x), (0.44 + burst * 0.28) * life_ratio * damage_scale, 0.75 + fragment_ratio * 0.20)
+	var short_span := 15.0 + burst * 8.0
+	for line_index in range(3):
+		var offset := (float(line_index) - 1.0) * 5.0
+		var line_start := pos + tangent * offset + push_dir * 7.0
+		var line_end := line_start + push_dir * short_span
+		draw_line(line_start, line_end, Color(1.0, 0.28, 0.64, 0.52 * life_ratio * damage_scale), 1.8, true)
+
+func _draw_collab_crusher_comment_divide_push_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var push_dir := Vector2(data.get("pushDir", Vector2.RIGHT))
+	if push_dir.length_squared() < 0.01:
+		push_dir = Vector2.RIGHT
+	push_dir = push_dir.normalized()
+	var tangent := Vector2(-push_dir.y, push_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(data.get("visualSeed", data.get("visual_seed", 0.0)))
+	var push_magnitude := maxf(0.0, float(data.get("pushMagnitude", 400.0)))
+	var magnitude_scale := clampf(push_magnitude / 400.0, 0.75, 1.15)
+	for line_index in range(4):
+		var offset := (float(line_index) - 1.5) * 6.0
+		var start_distance := 7.0 + float(line_index % 2) * 4.0
+		var line_length := (18.0 + burst * 8.0 + float(line_index % 3) * 4.0) * magnitude_scale
+		var line_start := pos + push_dir * start_distance + tangent * offset
+		var line_end := line_start + push_dir * line_length
+		var color := Color(1.0, 0.22, 0.60, 0.70 * life_ratio) if line_index % 2 == 0 else Color(0.32, 0.82, 0.96, 0.64 * life_ratio)
+		draw_line(line_start, line_end, color, 2.1 + burst * 0.8, true)
+		if line_index < 3:
+			draw_line(line_start + tangent * 1.4, line_start + push_dir * line_length * 0.48 + tangent * 1.4, Color(1.0, 0.94, 0.99, 0.42 * life_ratio), 1.0, true)
+	var arrow_pos := pos + push_dir * (27.0 + progress * 6.0)
+	var arrow_side := tangent * 4.5
+	draw_line(arrow_pos, arrow_pos - push_dir * 7.0 + arrow_side, Color(0.78, 0.04, 0.40, 0.72 * life_ratio), 2.2, true)
+	draw_line(arrow_pos, arrow_pos - push_dir * 7.0 - arrow_side, Color(0.78, 0.04, 0.40, 0.72 * life_ratio), 2.2, true)
+	var fragment_pos := pos + push_dir * (11.0 + progress * 10.0) + tangent * sin(seed + progress * 4.0) * 5.0
+	_draw_collab_comment_divide_bubble_piece(fragment_pos, push_dir, tangent, 0.58 * life_ratio, 0.84)
+
+func _draw_pitch_wave_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var horizontal := bool(data.get("horizontal", true))
+	var axis := Vector2.RIGHT if horizontal else Vector2.DOWN
+	var normal := Vector2.DOWN if horizontal else Vector2.RIGHT
+	var seed := float(data.get("visualSeed", 0.0))
+	var variant := posmod(int(data.get("visualVariant", 0)), 2)
+	var max_life := maxf(0.01, float(data.get("maxLife", SONG_PITCH_WAVE_HIT_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var vibration := sin(progress * TAU * 3.0 + seed) * 3.0 * life_ratio
+	var center := pos + axis * vibration
+	var ring_radius := 10.0 + progress * 34.0
+	var split_amount := 3.0 + burst * 3.0
+	draw_arc(center, ring_radius, 0.0, TAU, 34, Color(1.0, 0.98, 1.0, 0.82 * life_ratio), 3.0, true)
+	draw_arc(center + normal * split_amount, ring_radius + 2.0, seed, seed + PI * 1.46, 24, Color(0.18, 0.92, 1.0, 0.72 * life_ratio), 2.4, true)
+	draw_arc(center - normal * split_amount, ring_radius - 2.0, seed + PI, seed + PI * 2.42, 24, Color(1.0, 0.16, 0.72, 0.72 * life_ratio), 2.4, true)
+	for fragment_index in range(3):
+		var fragment_normal := (float(fragment_index) - 1.0) * 10.0 + (3.0 if variant == 1 else -3.0)
+		var fragment_center := center + axis * ((float(fragment_index) - 1.0) * 8.0 + progress * (10.0 + float(fragment_index) * 3.0))
+		var fragment_points := _pitch_wave_fx_fragment_points(fragment_center, axis, normal, 42.0 + float(fragment_index) * 7.0, fragment_normal, 4.0 + burst * 2.0, seed + float(fragment_index) * 0.83)
+		var fragment_color := Color(1.0, 0.92, 0.98, 0.72 * life_ratio)
+		if fragment_index == 0:
+			fragment_color = Color(0.20, 0.92, 1.0, 0.68 * life_ratio)
+		elif fragment_index == 2:
+			fragment_color = Color(1.0, 0.18, 0.72, 0.68 * life_ratio)
+		draw_polyline(fragment_points, fragment_color, 2.3, true)
+	var glyph_distance := 17.0 + progress * 20.0
+	var flat_pos := center - axis * glyph_distance + normal * (10.0 + burst * 4.0)
+	var sharp_pos := center + axis * glyph_distance - normal * (9.0 + burst * 3.0)
+	_draw_outlined_text(flat_pos + Vector2(-12.0, 9.0), "♭", 24, 22, Color(0.26, 0.94, 1.0, 0.82 * life_ratio), Color(0.18, 0.02, 0.24, 0.78 * life_ratio), HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_outlined_text(sharp_pos + Vector2(-12.0, 9.0), "♯", 24, 20, Color(1.0, 0.30, 0.76, 0.82 * life_ratio), Color(0.18, 0.02, 0.24, 0.78 * life_ratio), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_megaphone_wave_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var knockback_dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if knockback_dir.length_squared() <= 0.01:
+		knockback_dir = Vector2.RIGHT
+	knockback_dir = knockback_dir.normalized()
+	var side := Vector2(-knockback_dir.y, knockback_dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", SONG_MEGAPHONE_WAVE_HIT_FX_DURATION)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	var ring_radius := 9.0 + progress * 31.0
+	var ring_center := pos + knockback_dir * (2.0 + progress * 5.0)
+	var pink_ring := _megaphone_ellipse_arc_points(ring_center - knockback_dir * 2.5, knockback_dir, side, ring_radius * 0.72, ring_radius * 1.04, 0.0, TAU, 32)
+	var white_ring := _megaphone_ellipse_arc_points(ring_center, knockback_dir, side, ring_radius * 0.62, ring_radius * 0.92, 0.0, TAU, 32)
+	draw_polyline(pink_ring, Color(1.0, 0.10, 0.43, 0.84 * life_ratio), 4.8, true)
+	draw_polyline(white_ring, Color(1.0, 0.97, 0.99, 0.88 * life_ratio), 2.1, true)
+	draw_circle(pos, 5.0 + burst * 7.0, Color(1.0, 0.98, 1.0, 0.24 * life_ratio))
+	for arc_index in range(3):
+		var arc_center := pos + knockback_dir * (7.0 + progress * (8.0 + float(arc_index) * 4.0)) + side * (float(arc_index) - 1.0) * 5.0
+		var arc_radius := 12.0 + float(arc_index) * 6.0 + progress * 5.0
+		var arc_points := _megaphone_ellipse_arc_points(arc_center, knockback_dir, side, arc_radius * 0.58, arc_radius, -1.05, 1.05, 14)
+		var arc_color := Color(1.0, 0.90, 0.96, (0.70 - float(arc_index) * 0.12) * life_ratio) if arc_index == 0 else Color(1.0, 0.18, 0.50, (0.66 - float(arc_index) * 0.12) * life_ratio)
+		draw_polyline(arc_points, arc_color, 2.4 - float(arc_index) * 0.3, true)
+	for streak_index in range(4):
+		var lateral := (float(streak_index) - 1.5) * 6.5 + (_megaphone_wave_hash01(seed, streak_index + 31) - 0.5) * 3.0
+		var streak_length := 18.0 + float(streak_index % 3) * 6.0
+		var streak_head := pos - knockback_dir * (5.0 + float(streak_index % 2) * 3.0) + side * lateral
+		var streak_tail := streak_head - knockback_dir * streak_length
+		draw_line(streak_tail, streak_head, Color(1.0, 0.16, 0.47, (0.58 - float(streak_index) * 0.06) * life_ratio), 2.6 - float(streak_index % 2) * 0.5, true)
+		draw_line(streak_tail + knockback_dir * 4.0, streak_head, Color(1.0, 0.96, 0.99, 0.46 * life_ratio), 1.0, true)
+	for fragment_index in range(2):
+		var fragment_points := PackedVector2Array()
+		var fragment_center := pos - knockback_dir * (10.0 + progress * (12.0 + float(fragment_index) * 5.0)) + side * (-13.0 if fragment_index == 0 else 14.0)
+		for point_index in range(7):
+			var ratio := float(point_index) / 6.0
+			fragment_points.append(fragment_center + knockback_dir * ((ratio - 0.5) * 20.0) + side * sin(ratio * TAU * 1.4 + seed + float(fragment_index)) * 3.4)
+		draw_polyline(fragment_points, Color(1.0, 0.54, 0.72, 0.64 * life_ratio), 1.8, true)
+	var chip_travel := 8.0 + progress * 18.0
+	var chip_a := pos + side * 9.0 - knockback_dir * chip_travel
+	var chip_b := pos - side * 11.0 - knockback_dir * (chip_travel * 0.72)
+	draw_line(chip_a - side * 3.0, chip_a + side * 3.0, Color(1.0, 0.96, 0.99, 0.68 * life_ratio), 2.0, true)
+	draw_line(chip_a - side * 3.0, chip_a - side * 3.0 + knockback_dir * 4.0, Color(1.0, 0.18, 0.48, 0.72 * life_ratio), 2.0, true)
+	draw_line(chip_b - knockback_dir * 3.0, chip_b + knockback_dir * 3.0, Color(1.0, 0.76, 0.26, 0.60 * life_ratio), 1.8, true)
+
+func _megaphone_ellipse_arc_points(center: Vector2, axis: Vector2, normal: Vector2, axis_radius: float, normal_radius: float, start_angle: float, end_angle: float, steps: int) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	var safe_steps := maxi(2, steps)
+	for point_index in range(safe_steps + 1):
+		var ratio := float(point_index) / float(safe_steps)
+		var angle := lerpf(start_angle, end_angle, ratio)
+		points.append(center + axis * cos(angle) * axis_radius + normal * sin(angle) * normal_radius)
+	return points
+
+func _pitch_wave_fx_fragment_points(center: Vector2, axis: Vector2, normal: Vector2, length: float, normal_offset: float, amplitude: float, phase: float) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for point_index in range(9):
+		var ratio := float(point_index) / 8.0
+		var along := (ratio - 0.5) * length
+		var wave_offset := sin(ratio * TAU * 1.65 + phase) * amplitude
+		points.append(center + axis * along + normal * (normal_offset + wave_offset))
+	return points
+
+func _draw_bug_guide_cast_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if dir.length_squared() < 0.01:
+		dir = Vector2.RIGHT
+	dir = dir.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	var radius := float(data.get("radius", 96.0))
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.22)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var phase := float(data.get("phase", 0.0))
+	var ring_radius := radius * (0.43 + progress * 0.08)
+	draw_arc(pos, ring_radius, phase + progress * 1.4, phase + progress * 1.4 + PI * 0.66, 16, Color(0.08, 0.94, 1.0, 0.70 * life_ratio), 2.1, true)
+	draw_arc(pos, ring_radius, phase + PI, phase + PI * 1.58, 14, Color(1.0, 0.18, 0.52, 0.58 * life_ratio), 1.8, true)
+	for i in range(4):
+		var node_dir := Vector2.from_angle(phase + float(i) * TAU / 4.0)
+		var node_pos := pos + node_dir * ring_radius
+		var node_color := Color(0.10, 0.95, 1.0, 0.82 * life_ratio) if i % 2 == 0 else Color(1.0, 0.26, 0.60, 0.74 * life_ratio)
+		draw_circle(node_pos, 3.2 + burst * 1.1, node_color, false, 1.6, true)
+		var cursor_side := Vector2(-node_dir.y, node_dir.x)
+		draw_line(node_pos - cursor_side * 5.5, node_pos + cursor_side * 5.5, Color(node_color.r, node_color.g, node_color.b, node_color.a * 0.52), 1.2, true)
+	var route_from := pos + dir * radius * 0.20
+	var route_to := pos + dir * (radius * 0.55 + progress * 20.0)
+	draw_line(route_from, route_to, Color(0.16, 0.00, 0.12, 0.46 * life_ratio), 5.2, true)
+	draw_line(route_from, route_to, Color(1.0, 0.08, 0.42, 0.82 * life_ratio), 2.2, true)
+	var chevron_tip := route_to + dir * 5.0
+	var chevron_back := route_to - dir * 5.0
+	draw_line(chevron_back + side * 4.0, chevron_tip, Color(0.88, 0.98, 1.0, 0.78 * life_ratio), 1.6, true)
+	draw_line(chevron_back - side * 4.0, chevron_tip, Color(0.88, 0.98, 1.0, 0.78 * life_ratio), 1.6, true)
+	for i in range(3):
+		var glitch_center := pos + dir * (radius * (0.18 + float(i) * 0.13)) + side * (8.0 if i % 2 == 0 else -10.0)
+		var glitch_size := Vector2(8.0 + float(i) * 2.0, 2.0 + float(i % 2))
+		var glitch_color := Color(0.08, 0.94, 1.0, 0.56 * life_ratio) if i % 2 == 0 else Color(1.0, 0.20, 0.58, 0.50 * life_ratio)
+		draw_rect(Rect2(glitch_center - glitch_size * 0.5, glitch_size), glitch_color, true)
+
+func _draw_bug_guide_player_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var dir := Vector2(data.get("dir", Vector2.RIGHT))
+	if dir.length_squared() < 0.01:
+		dir = Vector2.RIGHT
+	dir = dir.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.14)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var seed := float(data.get("seed", 0.0))
+	var intensity := 1.08 if int(data.get("simultaneousCount", 1)) >= 2 else 1.0
+	var cross_size := (13.0 + burst * 8.0) * intensity
+	var diagonal_a := (dir + side).normalized()
+	var diagonal_b := (dir - side).normalized()
+	draw_line(pos - diagonal_a * cross_size, pos + diagonal_a * cross_size, Color(0.20, 0.00, 0.14, 0.72 * life_ratio), 5.0, true)
+	draw_line(pos - diagonal_b * cross_size, pos + diagonal_b * cross_size, Color(0.20, 0.00, 0.14, 0.72 * life_ratio), 5.0, true)
+	draw_line(pos - diagonal_a * cross_size, pos + diagonal_a * cross_size, Color(1.0, 0.05, 0.42, 0.92 * life_ratio), 2.4, true)
+	draw_line(pos - diagonal_b * cross_size, pos + diagonal_b * cross_size, Color(1.0, 0.30, 0.64, 0.88 * life_ratio), 2.4, true)
+	var cyan_offset := side * (3.0 + burst * 2.5)
+	draw_line(pos + cyan_offset - diagonal_a * cross_size * 0.72, pos + cyan_offset + diagonal_a * cross_size * 0.72, Color(0.05, 0.94, 1.0, 0.76 * life_ratio), 1.7, true)
+	for i in range(3):
+		var scan_center := pos + dir * (float(i - 1) * 7.0 + progress * 3.0)
+		var scan_half := 10.0 + float(i) * 3.0
+		var scan_color := Color(1.0, 0.52, 0.74, 0.56 * life_ratio) if i != 1 else Color(0.12, 0.94, 1.0, 0.68 * life_ratio)
+		draw_line(scan_center - side * scan_half, scan_center + side * scan_half, scan_color, 1.3 + float(i % 2) * 0.5, true)
+	for i in range(4):
+		var angle := seed + float(i) * 1.57
+		var glitch_dir := Vector2.from_angle(angle)
+		var center := pos + glitch_dir * (10.0 + progress * (8.0 + float(i % 2) * 4.0))
+		var glitch_size := Vector2(5.0 + float(i % 3) * 2.0, 2.2 + float(i % 2))
+		var glitch_color := Color(0.06, 0.94, 1.0, 0.66 * life_ratio) if i % 2 == 0 else Color(1.0, 0.16, 0.54, 0.72 * life_ratio)
+		draw_rect(Rect2(center - glitch_size * 0.5, glitch_size), glitch_color, true)
 
 func _hit_fx_loaded_visual_roles(data: Dictionary, image_layer: String) -> Dictionary:
 	var roles: Dictionary = {}
@@ -13221,8 +16691,9 @@ func _current_instruction_risk_v25() -> int:
 	var comment: Dictionary = _find_comment_data(last_comment_id)
 	if comment.is_empty():
 		return 0
-	var has_heart: bool = current_comment.ends_with("♡")
-	var view: Dictionary = CommentSystemScript.comment_view(comment, has_heart)
+	var view: Dictionary = _active_instruction_comment_view(last_comment_id)
+	if view.is_empty():
+		view = CommentSystemScript.comment_view(comment, _instruction_comment_heart_active(last_comment_id))
 	return int(view.get("riskLevel", 0))
 
 func _draw_top_status_v25() -> void:
@@ -13347,7 +16818,7 @@ func _draw_instruction_countdown_v25() -> void:
 	_draw_ranking_panel(Rect2(bar_back.position, Vector2(bar_back.size.x * ratio, bar_back.size.y)), Color(accent.r, accent.g, accent.b, 0.72), Color(1, 1, 1, 0), 6, 0, false)
 
 func _fit_texture_rect(container: Rect2, tex_size: Vector2) -> Rect2:
-	if tex_size.x <= 0.0 or tex_size.y <= 0.0:
+	if container.size.x <= 0.0 or container.size.y <= 0.0 or tex_size.x <= 0.0 or tex_size.y <= 0.0:
 		return Rect2(container.position, Vector2.ZERO)
 	var scale: float = minf(container.size.x / tex_size.x, container.size.y / tex_size.y)
 	var size: Vector2 = tex_size * scale
@@ -13678,6 +17149,49 @@ func _draw_bad_light_weapon_stop_badge() -> void:
 		"fontWeight": "bold"
 	}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
+func _equipment_level_badge_rect(slot_rect: Rect2, base_badge_size: Vector2, offset_scale: float = 1.0) -> Rect2:
+	var badge_size := base_badge_size * EQUIPMENT_LEVEL_BADGE_SCALE
+	var badge_offset := EQUIPMENT_LEVEL_BADGE_OFFSET * offset_scale
+	return Rect2(slot_rect.end + badge_offset - badge_size, badge_size)
+
+func _equipment_level_badge_font_size(text: String, badge_width: float, base_font_size: int) -> int:
+	var font := GameFontSystemScript.black_font()
+	var font_size := maxi(EQUIPMENT_LEVEL_BADGE_MIN_FONT_SIZE, roundi(float(base_font_size) * EQUIPMENT_LEVEL_BADGE_SCALE))
+	var available_width := maxf(1.0, floorf(badge_width) - EQUIPMENT_LEVEL_BADGE_HORIZONTAL_PADDING)
+	while font_size > EQUIPMENT_LEVEL_BADGE_MIN_FONT_SIZE and font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, font_size).x > available_width:
+		font_size -= 1
+	return font_size
+
+func _equipment_level_badge_text_baseline(badge_rect: Rect2, font_size: int) -> float:
+	var font := GameFontSystemScript.black_font()
+	return (badge_rect.size.y - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)
+
+func _draw_equipment_level_badge(slot_rect: Rect2, base_badge_size: Vector2, offset_scale: float, text: String, fill: Color, text_color: Color, border: Color, base_font_size: int, base_radius: int, shadow_alpha: float = 0.0) -> Rect2:
+	var badge_rect := _equipment_level_badge_rect(slot_rect, base_badge_size, offset_scale)
+	var radius := maxi(2, roundi(float(base_radius) * EQUIPMENT_LEVEL_BADGE_SCALE))
+	_draw_ranking_panel(badge_rect, fill, border, radius, 1, false)
+	var fitted_font_size := _equipment_level_badge_font_size(text, badge_rect.size.x, base_font_size)
+	var baseline := _equipment_level_badge_text_baseline(badge_rect, fitted_font_size)
+	var text_width := maxi(1, floori(badge_rect.size.x))
+	if shadow_alpha > 0.0:
+		_draw_text_item({
+			"pos": badge_rect.position + Vector2(1.0, baseline + 1.0),
+			"text": text,
+			"width": text_width,
+			"size": fitted_font_size,
+			"color": Color(0, 0, 0, shadow_alpha),
+			"fontWeight": "black"
+		}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({
+		"pos": badge_rect.position + Vector2(0.0, baseline),
+		"text": text,
+		"width": text_width,
+		"size": fitted_font_size,
+		"color": text_color,
+		"fontWeight": "black"
+	}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	return badge_rect
+
 func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, is_weapon: bool) -> void:
 	var slot_size := Vector2(38, 38)
 	var step := 41.0
@@ -13719,26 +17233,9 @@ func _draw_equipment_icon_row(items: Array, source_data: Array, start: Vector2, 
 		var evolved_level := EquipmentSystem.is_evolved_entry(entry)
 		var level_text: String = "進" if evolved_level else str(EquipmentSystem.entry_level(entry))
 		var badge_width := 23.0 if level_text.length() >= 2 else 18.0
-		var badge_rect := Rect2(slot_rect.end - Vector2(badge_width, 15.0), Vector2(badge_width, 15.0))
 		var badge_fill := Color("#ffd15a") if evolved_level else Color("#ff4f92")
 		var badge_text_color := Color("#6a3a00") if evolved_level else Color.WHITE
-		_draw_ranking_panel(badge_rect, Color(badge_fill.r, badge_fill.g, badge_fill.b, 0.92), Color(1, 1, 1, 0.86), 5, 1, false)
-		_draw_text_item({
-			"pos": badge_rect.position + Vector2(1, 13),
-			"text": level_text,
-			"width": int(badge_rect.size.x),
-			"size": 12,
-			"color": Color(0, 0, 0, 0.24),
-			"fontWeight": "black"
-		}, "", HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_text_item({
-			"pos": badge_rect.position + Vector2(0, 12),
-			"text": level_text,
-			"width": int(badge_rect.size.x),
-			"size": 12,
-			"color": badge_text_color,
-			"fontWeight": "black"
-		}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_equipment_level_badge(slot_rect, Vector2(badge_width, 15.0), 1.0, level_text, Color(badge_fill.r, badge_fill.g, badge_fill.b, 0.92), badge_text_color, Color(1, 1, 1, 0.86), 12, 5, 0.24)
 
 func _find_equipment_icon_data(source_data: Array, id: String) -> Dictionary:
 	for item in source_data:
@@ -14169,10 +17666,10 @@ func _draw_title_codex_new_badge(owner_rect: Rect2) -> void:
 	var badge_rect := _title_codex_new_badge_rect(owner_rect, badge_text)
 	_draw_title_menu_badge(
 		badge_rect,
-		Color("#fff8fc"),
-		Color("#ef8abc"),
+		CommonLightUiStyle.NEW_BADGE_FILL,
+		CommonLightUiStyle.NEW_BADGE_BORDER,
 		badge_text,
-		Color("#d65a99")
+		CommonLightUiStyle.NEW_BADGE_TEXT
 	)
 
 func _title_codex_new_badge_rect(owner_rect: Rect2, badge_text: String = "") -> Rect2:
@@ -14303,10 +17800,46 @@ func _draw_ranking_background() -> void:
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 0.92, 0.98, 0.56), true)
 	draw_rect(TITLE_SCREEN_RECT, Color(1.0, 1.0, 1.0, 0.34), true)
 
+func _ranking_difficulty_palette(value: Variant) -> Dictionary:
+	return CommonLightUiStyle.difficulty_palette(value)
+
+func _ranking_stage_accent(stage_id: Variant) -> Color:
+	match String(stage_id).strip_edges().to_lower():
+		"talk":
+			return Color("#e88ab4")
+		"game":
+			return Color("#6faed2")
+		"singing":
+			return Color("#a989d8")
+		"drawing":
+			return Color("#6dbfaf")
+		"collab":
+			return Color("#e2a05f")
+		"relay":
+			return Color("#9a7ac8")
+		_:
+			return Color("#9a7ac8")
+
+func _ranking_font_width(text: String, text_size: int) -> float:
+	return GameFontSystemScript.black_font().get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, text_size).x
+
 func _draw_ranking_header(view: Dictionary) -> void:
 	var rect := Rect2(76, 16, 1448, 68)
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 22, 2, true)
-	_draw_ranking_text(String(view.get("title", "ランキング")), rect.position + Vector2(96, 44), 34, Color("#4f3149"), 720)
+	var difficulty_id := String(view.get("difficultyId", "normal"))
+	var palette := _ranking_difficulty_palette(difficulty_id)
+	var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
+	var stage_label := String(view.get("stageLabel", RankingSystemScript.stage_label(view.get("stageId", "talk"))))
+	var difficulty_label := String(view.get("difficultyLabel", difficulty_id.to_upper()))
+	var prefix := "%s・" % stage_label
+	var suffix := "ランキング"
+	var text_pos := rect.position + Vector2(96, 44)
+	var prefix_width := _ranking_font_width(prefix, 34)
+	var difficulty_width := _ranking_font_width(difficulty_label, 34)
+	var segment_gap := 5.0
+	_draw_ranking_text(prefix, text_pos, 34, Color("#4f3149"), prefix_width + segment_gap + 2.0)
+	_draw_ranking_text(difficulty_label, text_pos + Vector2(prefix_width + segment_gap, 0), 34, difficulty_accent, difficulty_width + segment_gap + 2.0)
+	_draw_ranking_text(suffix, text_pos + Vector2(prefix_width + difficulty_width + segment_gap * 2.0, 0), 34, Color("#4f3149"), 260)
 	draw_circle(rect.position + Vector2(48, 34), 22, Color("#fff4fb"))
 	var icon: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, RANKING_PODIUM_ICON)
 	if icon != null:
@@ -14347,7 +17880,8 @@ func _draw_ranking_rank_icon(rect: Rect2, rank: int) -> void:
 	if icon == null:
 		_draw_ranking_text(str(safe_rank), rect.position + Vector2(0, rect.size.y * 0.68), 46, _ranking_rank_text_color(safe_rank), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		return
-	draw_texture_rect(icon, _fit_texture_rect(rect, icon.get_size()), false, Color(1, 1, 1, 0.98))
+	var rank_alpha := 0.98 if safe_rank <= 3 else 0.54
+	draw_texture_rect(icon, _fit_texture_rect(rect, icon.get_size()), false, Color(1, 1, 1, rank_alpha))
 	var rank_label := str(safe_rank)
 	var font_size := 32
 	if rank_label.length() >= 2:
@@ -14359,8 +17893,9 @@ func _draw_ranking_rank_icon(rect: Rect2, rank: int) -> void:
 	if safe_rank <= 3:
 		text_y = rect.position.y + rect.size.y * 0.67
 		text_x = rect.position.x + 1.0
-	_draw_ranking_text(rank_label, Vector2(text_x + 1.0, text_y + 1.0), font_size, Color(1, 1, 1, 0.82), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text(rank_label, Vector2(text_x, text_y), font_size, _ranking_rank_text_color(safe_rank), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var rank_text_alpha := 0.84 if safe_rank <= 3 else 0.56
+	_draw_ranking_text(rank_label, Vector2(text_x + 1.0, text_y + 1.0), font_size, Color(1, 1, 1, rank_text_alpha), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(rank_label, Vector2(text_x, text_y), font_size, Color(_ranking_rank_text_color(safe_rank), rank_text_alpha), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _ranking_end_icon_path(end_type: String) -> String:
 	if end_type == "mental_breakdown":
@@ -14381,20 +17916,21 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 		var selected: bool = bool(tab.get("selected", false))
 		var focused: bool = selected and (ranking_focus_area == RANKING_FOCUS_TABS or ranking_focus_area == RANKING_FOCUS_DIFFICULTY)
 		var locked: bool = bool(tab.get("locked", false))
+		var palette := _ranking_difficulty_palette(String(tab.get("id", "normal")))
+		var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
+		var difficulty_tint: Color = palette.get("tint", Color("#FFF2FA")) as Color
 		var fill := Color(1, 1, 1, 0.93)
 		var border := Color("#e7d7e5")
 		var text_color := Color("#5d3b56")
-		if focused:
-			fill = Color("#ff93cd")
-			border = Color("#ff62b5")
-			text_color = Color.WHITE
-		elif selected:
-			fill = Color("#fff3fb")
-			border = Color("#ff9acb")
-			text_color = Color("#d64e98")
-		elif locked:
+		if locked:
 			fill = Color("#f2eef2")
 			text_color = Color("#9a8f98")
+		elif selected:
+			fill = Color(difficulty_tint, 0.92)
+			border = difficulty_accent
+			text_color = difficulty_accent
+		if focused and not locked:
+			_draw_ranking_panel(rect.grow(3.0), Color(1, 1, 1, 0), Color(difficulty_accent, 0.38), 21, 2, false)
 		_draw_ranking_panel(rect, fill, border, 18, 3 if focused else 2, false)
 		var label: String = String(tab.get("label", ""))
 		var display_label: String = label.replace(" 未開放", "")
@@ -14410,7 +17946,7 @@ func _draw_ranking_tabs(tabs: Array) -> void:
 			var p1 := rect.position + Vector2(rect.size.x * 0.5 - 12.0, rect.size.y + 2.0)
 			var p2 := rect.position + Vector2(rect.size.x * 0.5 + 12.0, rect.size.y + 2.0)
 			var p3 := rect.position + Vector2(rect.size.x * 0.5, rect.size.y + 22.0)
-			draw_colored_polygon(PackedVector2Array([p1, p2, p3]), Color("#ff62b5") if focused else Color("#ffb9dc"))
+			draw_colored_polygon(PackedVector2Array([p1, p2, p3]), Color(difficulty_accent, 0.96) if focused else Color(difficulty_accent, 0.62))
 
 
 func _draw_ranking_stage_tabs(tabs: Array) -> void:
@@ -14424,9 +17960,12 @@ func _draw_ranking_stage_tabs(tabs: Array) -> void:
 		var selected := bool(tab.get("selected", false))
 		var locked := bool(tab.get("locked", false))
 		var focused := selected and ranking_focus_area == RANKING_FOCUS_STAGE and not locked
-		var fill := Color("#f2eef2") if locked else (Color("#ff9acb") if focused else (Color("#fff3fb") if selected else Color(1, 1, 1, 0.90)))
-		var border := Color("#d8cfd7") if locked else (Color("#ff62b5") if selected else Color("#e7d7e5"))
-		var text_color := Color("#9a8f98") if locked else (Color.WHITE if focused else Color("#6d4562"))
+		var stage_accent := _ranking_stage_accent(String(tab.get("id", "talk")))
+		var fill := Color("#f2eef2") if locked else (Color(stage_accent, 0.13) if selected else Color(1, 1, 1, 0.90))
+		var border := Color("#d8cfd7") if locked else (Color(stage_accent, 0.92) if selected else Color("#e7d7e5"))
+		var text_color := Color("#9a8f98") if locked else (stage_accent if selected else Color("#6d4562"))
+		if focused:
+			_draw_ranking_panel(rect.grow(2.0), Color(1, 1, 1, 0), Color(stage_accent, 0.34), 16, 2, false)
 		_draw_ranking_panel(rect, fill, border, 14, 3 if focused else 2, false)
 		var text_width := rect.size.x - (30.0 if locked else 0.0)
 		_draw_ranking_text(String(tab.get("label", "配信枠")), rect.position + Vector2(0, 31), 15, text_color, text_width, HORIZONTAL_ALIGNMENT_CENTER)
@@ -14435,10 +17974,11 @@ func _draw_ranking_stage_tabs(tabs: Array) -> void:
 
 func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 	var empty_or_locked := bool(view.get("locked", false)) or bool(view.get("empty", false))
-	var panel_focused := ranking_focus_area == RANKING_FOCUS_ENTRIES and empty_or_locked
-	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ff67b8") if panel_focused else Color("#ead7e9"), 24, 4 if panel_focused else 2, true)
+	var palette := _ranking_difficulty_palette(String(view.get("difficultyId", "normal")))
+	var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
+	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color(difficulty_accent, 0.48) if ranking_focus_area == RANKING_FOCUS_ENTRIES and empty_or_locked else Color("#ead7e9"), 24, 3 if ranking_focus_area == RANKING_FOCUS_ENTRIES and empty_or_locked else 2, true)
 	var title: String = String(view.get("subtitle", "最大同時視聴者数ランキング"))
-	_draw_ranking_text(title, panel.position + Vector2(30, 42), 28, Color("#7a3fb0"), panel.size.x - 60)
+	_draw_ranking_text(title, panel.position + Vector2(30, 42), 26, difficulty_accent, panel.size.x - 60)
 	var rows: Array = view.get("rows", []) as Array
 	if empty_or_locked:
 		_draw_ranking_message(panel, view.get("messageLines", []) as Array)
@@ -14463,26 +18003,42 @@ func _draw_ranking_list_panel(panel: Rect2, view: Dictionary) -> void:
 		var thumb_h: float = maxf(44.0, bar_rect.size.y * ratio)
 		var denom: int = maxi(1, rows.size() - visible_count)
 		var thumb_y: float = bar_rect.position.y + (bar_rect.size.y - thumb_h) * float(start) / float(denom)
-		draw_rect(Rect2(bar_rect.position.x, thumb_y, bar_rect.size.x, thumb_h), Color("#ff7dbc"), true)
+		draw_rect(Rect2(bar_rect.position.x, thumb_y, bar_rect.size.x, thumb_h), Color(difficulty_accent, 0.52), true)
 
 func _draw_ranking_row(rect: Rect2, row: Dictionary, selection_active: bool = true) -> void:
-	var selected: bool = selection_active and bool(row.get("selected", false))
-	var accent: Color = row.get("accent", Color("#8d6be8")) as Color
+	var selected: bool = bool(row.get("selected", false))
+	var focused: bool = selected and selection_active
+	var difficulty_id := String(_ranking_view().get("difficultyId", "normal"))
+	var palette := _ranking_difficulty_palette(difficulty_id)
+	var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
+	var difficulty_tint: Color = palette.get("tint", Color("#FFF2FA")) as Color
 	_draw_ranking_panel(
 		rect,
-		Color(1, 1, 1, 0.98),
-		Color("#ff67b8") if selected else Color("#ead7e9"),
+		Color(difficulty_tint, 0.72) if selected else Color(1, 1, 1, 0.98),
+		difficulty_accent if selected else Color("#ead7e9"),
 		18,
-		4 if selected else 2,
+		4 if focused else (3 if selected else 2),
 		false
 	)
+	if focused:
+		var marker_y := rect.position.y + rect.size.y * 0.5
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(rect.position.x - 12, marker_y - 9),
+			Vector2(rect.position.x - 12, marker_y + 9),
+			Vector2(rect.position.x - 3, marker_y)
+		]), Color(difficulty_accent, 0.88))
+		draw_colored_polygon(PackedVector2Array([
+			Vector2(rect.end.x + 12, marker_y - 9),
+			Vector2(rect.end.x + 12, marker_y + 9),
+			Vector2(rect.end.x + 3, marker_y)
+		]), Color(difficulty_accent, 0.88))
 	_draw_ranking_rank_icon(Rect2(rect.position + Vector2(16, 14), Vector2(78, 78)), int(row.get("rank", 0)))
 	var avatar_pos := rect.position + Vector2(132, 54)
-	_draw_ranking_character_avatar(avatar_pos, 36.0, row, accent)
-	_draw_ranking_text(_short_pause_text(_ranking_formal_character_name(row), 13), rect.position + Vector2(188, 36), 25, accent, 190)
-	_draw_ranking_text(_short_pause_text(String(row.get("scoreLabel", "最大同時視聴者数")), 12), rect.position + Vector2(188, 56), 12, Color("#8a6b82"), 190)
-	_draw_ranking_text(_short_pause_text(String(row.get("scoreText", "")), 18), rect.position + Vector2(188, 84), 22, Color("#ff4d9f"), 190)
-	_draw_ranking_row_build_icons(Rect2(rect.position + Vector2(370, 28), Vector2(238, 72)), row.get("weapons", []) as Array, row.get("accessories", []) as Array)
+	_draw_ranking_character_avatar(avatar_pos, 32.0, row, difficulty_accent)
+	_draw_ranking_text(_short_pause_text(_ranking_formal_character_name(row), 15), rect.position + Vector2(188, 34), 20, Color("#4f3149"), 172)
+	_draw_ranking_text(_short_pause_text(String(row.get("scoreLabel", "最大同時視聴者数")), 12), rect.position + Vector2(188, 56), 12, Color("#8a6b82"), 172)
+	_draw_ranking_text(_short_pause_text(String(row.get("scoreText", "")), 16), rect.position + Vector2(188, 85), 26, difficulty_accent, 172)
+	_draw_ranking_row_build_icons(Rect2(rect.position + Vector2(370, 28), Vector2(232, 72)), row.get("weapons", []) as Array, row.get("accessories", []) as Array)
 	_draw_ranking_end_type_badge(Rect2(rect.end - Vector2(126, 82), Vector2(108, 64)), String(row.get("endTypeLabel", "")), String(row.get("endType", "")))
 
 func _ranking_formal_character_name(row: Dictionary) -> String:
@@ -14554,8 +18110,9 @@ func _draw_ranking_end_type_badge(rect: Rect2, label: String, end_type: String) 
 			end_type = "mental_breakdown"
 		elif label == "完走":
 			end_type = "completed"
-		elif label == "中断":
+		elif label == "中断" or label == "GAME OVER":
 			end_type = "relay_failed"
+	var display_label := "完走" if end_type == "completed" else "GAME OVER"
 	var fill := Color("#fff1a9")
 	var border := Color("#f6bf3f")
 	var text_color := Color("#9b6b18")
@@ -14568,9 +18125,9 @@ func _draw_ranking_end_type_badge(rect: Rect2, label: String, end_type: String) 
 		border = Color("#ffcf72")
 		text_color = Color("#d58119")
 	elif end_type == "relay_failed" or end_type == "quit" or end_type == "debug":
-		fill = Color("#edf1f6")
-		border = Color("#b8c2d1")
-		text_color = Color("#697487")
+		fill = Color("#fff0f5")
+		border = Color("#d99ab3")
+		text_color = Color("#a14e70")
 	_draw_ranking_panel(rect, fill, border, 14, 2, false)
 	var icon_path := _ranking_end_icon_path(end_type)
 	if rect.size.y >= 48.0:
@@ -14583,9 +18140,12 @@ func _draw_ranking_end_type_badge(rect: Rect2, label: String, end_type: String) 
 					Vector2(vertical_icon_size, vertical_icon_size)
 				)
 				draw_texture_rect(vertical_icon, _fit_texture_rect(vertical_icon_rect, vertical_icon.get_size()), false, Color(1, 1, 1, 0.98))
-		_draw_ranking_text(label, rect.position + Vector2(0, rect.size.y - 8.0), 14, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var label_size := 12 if display_label.length() >= 6 else 14
+		_draw_ranking_text(display_label, rect.position + Vector2(0, rect.size.y - 8.0), label_size, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		return
 	var text_size := 16 if rect.size.y >= 36.0 else 14
+	if display_label.length() >= 6:
+		text_size = 12
 	var text_pos := rect.position + Vector2(0, rect.size.y * 0.67)
 	var text_width := rect.size.x
 	if icon_path != "":
@@ -14596,7 +18156,7 @@ func _draw_ranking_end_type_badge(rect: Rect2, label: String, end_type: String) 
 			draw_texture_rect(icon, _fit_texture_rect(icon_rect, icon.get_size()), false, Color(1, 1, 1, 0.98))
 			text_pos.x += icon_size + 12.0
 			text_width -= icon_size + 14.0
-	_draw_ranking_text(label, text_pos, text_size, text_color, text_width, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(display_label, text_pos, text_size, text_color, text_width, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_ranking_character_avatar(center: Vector2, radius: float, row: Dictionary, accent: Color) -> void:
 	draw_circle(center, radius, Color("#fff4fb"))
@@ -14697,41 +18257,57 @@ func _clamp_rect_to_rect(rect: Rect2, bounds: Rect2) -> Rect2:
 func _draw_ranking_detail_panel(panel: Rect2, view: Dictionary) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
 	var detail: Dictionary = view.get("detail", {}) as Dictionary
-	var title: String = String(detail.get("title", "記録詳細"))
-	_draw_ranking_text(title, panel.position + Vector2(30, 42), 28, Color("#ff5aa5"), panel.size.x - 60)
-	if bool(view.get("locked", false)) or bool(view.get("empty", false)):
+	var difficulty_id := String(view.get("difficultyId", detail.get("difficultyId", "normal")))
+	var palette := _ranking_difficulty_palette(difficulty_id)
+	var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
+	var title: String = String(detail.get("title", view.get("detailTitle", "記録詳細")))
+	_draw_ranking_text(title, panel.position + Vector2(30, 42), 28, difficulty_accent, panel.size.x - 60)
+	if bool(view.get("locked", false)):
 		_draw_ranking_message(panel, view.get("messageLines", []) as Array)
+		return
+	if bool(view.get("empty", false)):
+		_draw_ranking_message(panel, view.get("emptyDetailLines", ["記録を残すと、ここで配信を振り返れます"]) as Array)
 		return
 	if detail.is_empty():
 		_draw_ranking_message(panel, ["記録詳細を表示できません。"])
 		return
-	_draw_ranking_detail_summary(Rect2(panel.position + Vector2(20, 70), Vector2(panel.size.x - 40, 112)), detail)
-	_draw_ranking_detail_stats(Rect2(panel.position + Vector2(20, 196), Vector2(292, 176)), detail.get("stats", []) as Array)
+	_draw_ranking_detail_summary(Rect2(panel.position + Vector2(20, 70), Vector2(panel.size.x - 40, 112)), detail, difficulty_id)
+	_draw_ranking_detail_stats(Rect2(panel.position + Vector2(20, 196), Vector2(292, 176)), detail.get("stats", []) as Array, difficulty_id)
 	_draw_ranking_detail_build_slots(Rect2(panel.position + Vector2(330, 196), Vector2(panel.size.x - 350, 176)), detail.get("weapons", []) as Array, detail.get("accessories", []) as Array)
-	_draw_ranking_detail_instruction(Rect2(panel.position + Vector2(20, 386), Vector2(panel.size.x - 40, 160)), detail)
-	_draw_ranking_detail_played_at_line(Rect2(panel.position + Vector2(20, 562), Vector2(panel.size.x - 40, 34)), detail)
+	var instruction_lines: Array = detail.get("instructionLines", []) as Array
+	var compact_instruction := instruction_lines.size() <= 1 or (instruction_lines.size() == 2 and String(instruction_lines[0]) == "なし" and String(instruction_lines[1]) == "")
+	var instruction_height := 96.0 if compact_instruction else 160.0
+	var instruction_rect := Rect2(panel.position + Vector2(20, 386), Vector2(panel.size.x - 40, instruction_height))
+	_draw_ranking_detail_instruction(instruction_rect, detail)
+	_draw_ranking_detail_played_at_line(Rect2(panel.position + Vector2(20, panel.size.y - 34.0), Vector2(panel.size.x - 40, 34)), detail)
 
-func _draw_ranking_detail_summary(rect: Rect2, detail: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#ffd1e5"), 16, 2, false)
+func _draw_ranking_detail_summary(rect: Rect2, detail: Dictionary, difficulty_id: String = "normal") -> void:
+	var palette := _ranking_difficulty_palette(difficulty_id)
+	var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
+	var difficulty_tint: Color = palette.get("tint", Color("#FFF2FA")) as Color
+	_draw_ranking_panel(rect, Color(difficulty_tint, 0.42), Color(difficulty_accent, 0.58), 16, 2, false)
 	_draw_ranking_text(String(detail.get("rankLabel", "記録")), rect.position + Vector2(18, 28), 20, Color("#b1509c"), 180)
 	var end_badge_rect := Rect2(Vector2(rect.end.x - 132.0, rect.position.y + (rect.size.y - 68.0) * 0.5), Vector2(112, 68))
 	_draw_ranking_end_type_badge(end_badge_rect, String(detail.get("endTypeLabel", "")), String(detail.get("endType", "")))
 	var lines: Array = detail.get("summaryLines", []) as Array
 	for index in range(mini(lines.size(), 3)):
-		var size := 21 if index == 1 else 17
-		var color := Color("#ff4d9f") if index == 1 else Color("#5d4658")
+		var size := 20 if index == 1 else 16
+		var color := difficulty_accent if index == 1 else Color("#5d4658")
 		_draw_ranking_text(_short_pause_text(String(lines[index]), 34), rect.position + Vector2(18, 58 + float(index) * 24.0), size, color, rect.size.x - 152)
 
-func _draw_ranking_detail_stats(rect: Rect2, stats: Array) -> void:
+func _draw_ranking_detail_stats(rect: Rect2, stats: Array, difficulty_id: String = "normal") -> void:
+	var palette := _ranking_difficulty_palette(difficulty_id)
+	var difficulty_accent: Color = palette.get("accent", Color("#E954A5")) as Color
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#efd5e7"), 14, 2, false)
-	_draw_ranking_text("統計情報", rect.position + Vector2(18, 31), 19, Color("#b1509c"), rect.size.x - 36)
+	_draw_ranking_text("統計情報", rect.position + Vector2(18, 31), 19, difficulty_accent, rect.size.x - 36)
 	for index in range(mini(stats.size(), 6)):
 		if not (stats[index] is Dictionary):
 			continue
 		var item: Dictionary = stats[index] as Dictionary
 		var y: float = rect.position.y + 60.0 + float(index) * 18.5
 		_draw_ranking_text(_short_pause_text(String(item.get("label", "")), 10), Vector2(rect.position.x + 18, y), 14, Color("#7a6d79"), 118)
-		_draw_ranking_text(_short_pause_text(String(item.get("value", "")), 14), Vector2(rect.position.x + 132, y), 15, Color("#ff4d9f"), rect.size.x - 150, HORIZONTAL_ALIGNMENT_RIGHT)
+		var value_color := difficulty_accent if index == 0 else Color("#5d4658")
+		_draw_ranking_text(_short_pause_text(String(item.get("value", "")), 14), Vector2(rect.position.x + 132, y), 15, value_color, rect.size.x - 150, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_ranking_detail_build_slots(rect: Rect2, weapons: Array, accessories: Array) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#d7c8ff"), 14, 2, false)
@@ -14748,15 +18324,20 @@ func _draw_ranking_detail_build_slots(rect: Rect2, weapons: Array, accessories: 
 		_draw_ranking_equipment_icon_slot(Rect2(x, accessory_y, slot, slot), _ranking_item_at(accessories, index), Color("#55cfe0"), false)
 
 func _draw_ranking_detail_instruction(rect: Rect2, detail: Dictionary) -> void:
-	_draw_ranking_panel(rect, Color(1, 1, 1, 0.96), Color("#ffbfdc"), 14, 2, false)
-	_draw_ranking_text(String(detail.get("instructionTitle", "指示コメ")), rect.position + Vector2(18, 31), 19, Color("#ff5aa5"), rect.size.x - 36)
+	var completed := String(detail.get("endType", "")) == "completed"
+	var fill := Color("#fffaf0") if completed else Color("#fff4f8")
+	var border := Color("#f2c96e") if completed else Color("#e2b2ca")
+	var title_color := Color("#b7771f") if completed else Color("#a14e70")
+	_draw_ranking_panel(rect, fill, border, 14, 2, false)
+	_draw_ranking_text(String(detail.get("instructionTitle", "指示コメ")), rect.position + Vector2(18, 31), 19, title_color, rect.size.x - 36)
 	var lines: Array = detail.get("instructionLines", []) as Array
 	for index in range(mini(lines.size(), 3)):
-		var color := Color("#5d4658") if index > 0 else Color("#b1509c")
-		_draw_ranking_text(_short_pause_text(String(lines[index]), 44), rect.position + Vector2(18, 61 + float(index) * 23.0), 16, color, rect.size.x - 36)
+		var color := Color("#5d4658") if index > 0 else (Color("#b7771f") if completed else Color("#a14e70"))
+		_draw_ranking_text(_short_pause_text(String(lines[index]), 44), rect.position + Vector2(18, 61 + float(index) * 23.0), 15, color, rect.size.x - 36)
 	var boss_text: String = String(detail.get("bossText", "なし"))
 	var boss_label: String = String(detail.get("bossLabel", "ボス"))
-	_draw_ranking_text("%s：%s" % [boss_label, _short_pause_text(boss_text, 28)], rect.position + Vector2(18, rect.size.y - 18), 14, Color("#7a6d79"), rect.size.x - 36)
+	if boss_text != "" and boss_text != "なし":
+		_draw_ranking_text("%s：%s" % [boss_label, _short_pause_text(boss_text, 28)], rect.position + Vector2(18, rect.size.y - 18), 13, Color("#7a6d79"), rect.size.x - 36)
 
 func _draw_ranking_detail_meta(rect: Rect2, detail: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color("#fffaf0"), Color("#f2c96e"), 14, 2, false)
@@ -14789,9 +18370,10 @@ func _draw_ranking_footer(_page_view: Dictionary) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.94), Color("#ead7e9"), 18, 2, true)
 	var guide_left := back_rect.end.x - rect.position.x + 18.0
 	var guide_width := rect.size.x - guide_left - 18.0
-	_draw_ranking_text("←→：枠/難易度　↑↓：記録　A/D：ページ　Esc：戻る　R：リセット", rect.position + Vector2(guide_left, 29), 16, Color("#6b4a63"), guide_width, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_panel(back_rect, Color("#ff93cd") if back_selected else Color("#eef9ff"), Color("#ff62b5") if back_selected else Color("#9ed9f4"), 14, 3 if back_selected else 2, false)
-	_draw_ranking_text("戻る", back_rect.position + Vector2(0, 23), 16, Color.WHITE if back_selected else Color("#2587b8"), back_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("Q/E・LB/RB：難易度　←→：配信枠　↑↓：記録　A/D：ページ　Esc：戻る　R：リセット", rect.position + Vector2(guide_left, 29), 16, Color("#6b4a63"), guide_width, HORIZONTAL_ALIGNMENT_CENTER)
+	var back_fill := CommonLightUiStyle.BACK_BUTTON_SELECTED_FILL if back_selected else CommonLightUiStyle.BACK_BUTTON_FILL
+	_draw_ranking_panel(back_rect, back_fill, CommonLightUiStyle.BACK_BUTTON_BORDER, 14, 3 if back_selected else 2, false)
+	_draw_ranking_text("戻る", back_rect.position + Vector2(0, 23), 16, Color("#2587b8"), back_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_ranking_reset_confirm() -> void:
 	if not ranking_reset_confirm_visible:
@@ -14816,7 +18398,9 @@ func _draw_ranking_reset_confirm() -> void:
 func _draw_ranking_message(panel: Rect2, lines: Array) -> void:
 	var y: float = panel.position.y + panel.size.y * 0.48
 	for index in range(lines.size()):
-		_draw_ranking_text(String(lines[index]), Vector2(panel.position.x + 30, y + float(index) * 34.0), 22, Color("#6b4a63"), panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
+		var text_size := 22 if index == 0 else 16
+		var text_color := Color("#6b4a63") if index == 0 else Color("#8a6b82")
+		_draw_ranking_text(String(lines[index]), Vector2(panel.position.x + 30, y + float(index) * 30.0), text_size, text_color, panel.size.x - 60, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_ranking_panel(rect: Rect2, fill: Color, border: Color, radius: int, border_width: int = 2, shadow: bool = false) -> void:
 	if shadow:
@@ -14842,37 +18426,31 @@ func _draw_ranking_text(text: String, pos: Vector2, size: int, color: Color, wid
 	}, "", alignment)
 
 func _options_panel_rect() -> Rect2:
-	return Rect2(Vector2(230, 46), Vector2(1140, 812))
+	return OptionsUiSystemScript.panel_rect()
 
 func _option_card_rect(index: int) -> Rect2:
-	var panel := _options_panel_rect()
-	return Rect2(
-		Vector2(panel.position.x + 52.0, panel.position.y + 136.0 + float(index) * 74.0),
-		Vector2(panel.size.x - 104.0, 64.0)
-	)
+	return OptionsUiSystemScript.card_rect(index)
 
 func _option_control_rect(index: int) -> Rect2:
 	return _option_control_rect_for_card(_option_card_rect(index))
 
 func _option_control_rect_for_card(card_rect: Rect2) -> Rect2:
-	return Rect2(card_rect.position + Vector2(card_rect.size.x - 330.0, 12.0), Vector2(298.0, 40.0))
+	return OptionsUiSystemScript.control_rect_for_card(card_rect)
 
 func _option_slider_rect(index: int) -> Rect2:
-	return Rect2(_option_control_rect(index).position + Vector2(0, 11), Vector2(202, 18))
+	return OptionsUiSystemScript.slider_rect(index)
 
 func _option_toggle_rect(index: int) -> Rect2:
-	return Rect2(_option_control_rect(index).position + Vector2(106, 2), Vector2(136, 36))
+	return OptionsUiSystemScript.toggle_rect(index)
 
 func _option_selector_rect(index: int) -> Rect2:
-	return Rect2(_option_control_rect(index).position + Vector2(0, 2), Vector2(242, 36))
+	return OptionsUiSystemScript.selector_rect(index)
 
 func _options_reset_rect() -> Rect2:
-	var panel := _options_panel_rect()
-	return Rect2(panel.position + Vector2(panel.size.x - 52.0 - 430.0, 724), Vector2(250, 54))
+	return OptionsUiSystemScript.reset_rect()
 
 func _options_back_rect() -> Rect2:
-	var panel := _options_panel_rect()
-	return Rect2(panel.position + Vector2(panel.size.x - 52.0 - 160.0, 724), Vector2(160, 54))
+	return OptionsUiSystemScript.back_rect()
 
 func _draw_options_overlay() -> void:
 	var background: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, TITLE_BACK_IMAGE)
@@ -14892,22 +18470,20 @@ func _draw_options_overlay() -> void:
 	else:
 		_draw_ranking_text("オプション", panel.position + Vector2(54, 64), 42, CommonLightUiStyle.OPTION_HEADER, 390)
 	_draw_ranking_text("ゲームの表示や演出を設定できます", panel.position + Vector2(58, 102), 20, CommonLightUiStyle.OPTION_TEXT, 560)
-	_draw_ranking_panel(Rect2(panel.position + Vector2(846, 36), Vector2(244, 70)), CommonLightUiStyle.MAIN_PANEL, CommonLightUiStyle.OPTION_CARD_BORDER, 22, 2, false)
-	_draw_ranking_text("↑↓ 選択", panel.position + Vector2(876, 66), 18, CommonLightUiStyle.OPTION_TEXT, 94, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_ranking_text("←→ 変更", panel.position + Vector2(976, 66), 18, CommonLightUiStyle.OPTION_TEXT, 94, HORIZONTAL_ALIGNMENT_CENTER)
 	var items: Array = _option_items()
 	var reset_index := items.size()
 	var back_index := items.size() + 1
 	for index in range(items.size()):
-		_draw_option_card(_option_card_rect(index), items[index] as Dictionary, option_menu_index == index)
-	var guide_rect := Rect2(panel.position + Vector2(52, 670), Vector2(panel.size.x - 104, 42))
+		_draw_option_card(_option_card_rect(index), items[index] as Dictionary, option_menu_index == index, option_hover_index == index)
+	var guide_rect := OptionsUiSystemScript.guide_rect()
 	_draw_ranking_panel(guide_rect, CommonLightUiStyle.MAIN_PANEL, CommonLightUiStyle.OPTION_CARD_BORDER, 18, 2, false)
-	var back_label: String = "ポーズへ戻る" if options_return_state == "pause" else "戻る"
-	_draw_ranking_text("↑↓：選択　←→：変更 / 下段移動　Enter：決定　Esc：%s" % back_label, guide_rect.position + Vector2(0, 28), 18, CommonLightUiStyle.OPTION_TEXT, guide_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var back_label: String = OptionsUiSystemScript.return_label(options_return_state)
+	_draw_ranking_text(OptionsUiSystemScript.footer_guide_text(back_label), guide_rect.position + Vector2(0, 28), 16, CommonLightUiStyle.OPTION_TEXT, guide_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var reset_rect := _options_reset_rect()
 	var back_rect := _options_back_rect()
-	_draw_options_button(reset_rect, "設定を初期化", option_menu_index == reset_index, CommonLightUiStyle.RESET_BUTTON_FILL, CommonLightUiStyle.RESET_BUTTON_BORDER)
-	_draw_options_button(back_rect, "戻る", option_menu_index == back_index, CommonLightUiStyle.BACK_BUTTON_FILL, CommonLightUiStyle.BACK_BUTTON_BORDER)
+	_draw_options_button(reset_rect, "設定を初期化", option_menu_index == reset_index, option_hover_index == reset_index, CommonLightUiStyle.RESET_BUTTON_FILL, CommonLightUiStyle.RESET_BUTTON_BORDER)
+	_draw_options_button(back_rect, "戻る", option_menu_index == back_index, option_hover_index == back_index, CommonLightUiStyle.BACK_BUTTON_FILL, CommonLightUiStyle.BACK_BUTTON_BORDER)
+	_draw_options_reset_confirm()
 
 func _option_items() -> Array:
 	return [
@@ -14967,12 +18543,14 @@ func _option_items() -> Array:
 		}
 	]
 
-func _draw_option_card(rect: Rect2, item: Dictionary, selected: bool) -> void:
+func _draw_option_card(rect: Rect2, item: Dictionary, selected: bool, hovered: bool = false) -> void:
 	var accent: Color = item.get("accent", CommonLightUiStyle.OPTION_ACCENT_PINK) as Color
 	if selected:
-		_draw_ranking_panel(rect.grow(5.0), Color(accent.r, accent.g, accent.b, 0.14), Color(1, 1, 1, 0), 22, 0, false)
+		_draw_ranking_panel(rect.grow(5.0), Color(CommonLightUiStyle.OPTION_ACCENT_PINK, 0.13), Color(1, 1, 1, 0), 22, 0, false)
+	elif hovered:
+		_draw_ranking_panel(rect.grow(2.0), Color(CommonLightUiStyle.OPTION_ACCENT_PINK, 0.06), Color(1, 1, 1, 0), 21, 0, false)
 	var fill := CommonLightUiStyle.OPTION_CARD_FILL if selected else Color(1, 1, 1, 0.88)
-	var border := accent if selected else CommonLightUiStyle.OPTION_CARD_BORDER
+	var border := CommonLightUiStyle.OPTION_ACCENT_PINK if selected else (Color(CommonLightUiStyle.OPTION_ACCENT_PINK, 0.52) if hovered else CommonLightUiStyle.OPTION_CARD_BORDER)
 	_draw_ranking_panel(rect, fill, border, 20, 4 if selected else 2, false)
 	var icon_rect := Rect2(rect.position + Vector2(15, 9), Vector2(46, 46))
 	_draw_ranking_panel(icon_rect, Color(accent.r, accent.g, accent.b, 0.13), Color(accent.r, accent.g, accent.b, 0.55), 16, 2, false)
@@ -14992,7 +18570,7 @@ func _draw_option_control(rect: Rect2, item: Dictionary, accent: Color) -> void:
 	var control_type := String(item.get("type", "select"))
 	if control_type == "slider":
 		_draw_option_slider(Rect2(rect.position + Vector2(0, 11), Vector2(202, 18)), int(item.get("value", 0)), accent)
-		_draw_ranking_text("%d%%" % int(item.get("value", 0)), rect.position + Vector2(214, 28), 20, accent, 76, HORIZONTAL_ALIGNMENT_RIGHT)
+		_draw_ranking_text(OptionsUiSystemScript.slider_label(int(item.get("value", 0))), rect.position + Vector2(214, 28), 20, accent, 76, HORIZONTAL_ALIGNMENT_RIGHT)
 	elif control_type == "toggle":
 		_draw_option_toggle(Rect2(rect.position + Vector2(106, 2), Vector2(136, 36)), bool(item.get("on", false)), accent)
 	else:
@@ -15011,48 +18589,162 @@ func _draw_option_toggle(rect: Rect2, enabled: bool, accent: Color) -> void:
 	var fill := Color(accent.r, accent.g, accent.b, 0.74) if enabled else CommonLightUiStyle.LILAC
 	var border := accent if enabled else CommonLightUiStyle.LILAC_BORDER
 	_draw_ranking_panel(rect, fill, border, 18, 2, false)
-	_draw_ranking_text("ON" if enabled else "OFF", rect.position + Vector2(0, 25), 18, Color(1, 1, 1, 0.96), rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var text_color := Color(1, 1, 1, 0.96) if enabled else Color("#6B5F78")
+	_draw_ranking_text(OptionsUiSystemScript.toggle_label(enabled), rect.position + Vector2(0, 25), 18, text_color, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var knob_x := rect.position.x + rect.size.x - 20.0 if enabled else rect.position.x + 20.0
 	draw_circle(Vector2(knob_x, rect.position.y + rect.size.y * 0.5), 13, Color(1, 1, 1, 0.96))
 
 func _draw_option_selector(rect: Rect2, value: String, accent: Color) -> void:
 	_draw_ranking_panel(rect, CommonLightUiStyle.MAIN_PANEL, Color(accent.r, accent.g, accent.b, 0.58), 18, 2, false)
-	_draw_ranking_text("< %s >" % value, rect.position + Vector2(0, 25), 20, accent, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text(OptionsUiSystemScript.selector_label(value), rect.position + Vector2(0, 25), 20, accent, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
-func _draw_options_button(rect: Rect2, label: String, selected: bool, fill: Color, accent: Color) -> void:
+func _draw_options_button(rect: Rect2, label: String, selected: bool, hovered: bool, fill: Color, accent: Color) -> void:
 	if selected:
-		_draw_ranking_panel(rect.grow(5.0), Color(accent.r, accent.g, accent.b, 0.14), Color(1, 1, 1, 0), 22, 0, false)
-	_draw_ranking_panel(rect, fill if not selected else Color(1, 1, 1, 0.96), accent, 20, 4 if selected else 2, false)
+		_draw_ranking_panel(rect.grow(5.0), Color(CommonLightUiStyle.OPTION_ACCENT_PINK, 0.12), Color(1, 1, 1, 0), 22, 0, false)
+	elif hovered:
+		_draw_ranking_panel(rect.grow(2.0), Color(CommonLightUiStyle.OPTION_ACCENT_PINK, 0.06), Color(1, 1, 1, 0), 21, 0, false)
+	_draw_ranking_panel(rect, fill, accent, 20, 3 if selected else 2, false)
 	_draw_ranking_text(label, rect.position + Vector2(0, 35), 22, accent, rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
+func _draw_options_reset_confirm() -> void:
+	if not option_reset_confirm_visible:
+		return
+	draw_rect(TITLE_SCREEN_RECT, Color(0.05, 0.02, 0.08, 0.42), true)
+	var rect := OptionsUiSystemScript.modal_rect()
+	_draw_ranking_panel(rect, Color(1.0, 0.985, 0.995, 0.98), Color("#e93681"), 24, 3, true)
+	_draw_ranking_text("設定を初期状態に戻しますか？", rect.position + Vector2(34, 58), 26, CommonLightUiStyle.OPTION_HEADER, rect.size.x - 68, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("BGM・SE音量、表示設定などが初期値に戻ります。", rect.position + Vector2(34, 104), 16, CommonLightUiStyle.OPTION_TEXT, rect.size.x - 68, HORIZONTAL_ALIGNMENT_CENTER)
+	var labels := ["キャンセル", "初期化"]
+	var fills := [CommonLightUiStyle.BACK_BUTTON_FILL, CommonLightUiStyle.RESET_BUTTON_FILL]
+	var accents := [CommonLightUiStyle.BACK_BUTTON_BORDER, CommonLightUiStyle.RESET_BUTTON_BORDER]
+	for index in range(2):
+		var button_rect := OptionsUiSystemScript.modal_button_rect(index)
+		var hovered := option_reset_confirm_hover_index == index
+		_draw_options_button(button_rect, labels[index], option_reset_confirm_index == index, hovered, fills[index], accents[index])
+
 func _options_mouse_index_at(pos: Vector2) -> int:
-	var items := _option_items()
-	if _options_reset_rect().has_point(pos):
-		return items.size()
-	if _options_back_rect().has_point(pos):
-		return items.size() + 1
-	for index in range(items.size()):
-		if _option_card_rect(index).has_point(pos):
-			return index
-	return -1
+	return OptionsUiSystemScript.option_index_at(pos)
+
+func _open_options_reset_confirm() -> void:
+	option_reset_confirm_visible = true
+	option_reset_confirm_index = 0
+	option_reset_confirm_hover_index = -1
+	option_hover_index = -1
+	queue_redraw()
+
+func _close_options_reset_confirm() -> void:
+	option_reset_confirm_visible = false
+	option_reset_confirm_index = 0
+	option_reset_confirm_hover_index = -1
+	queue_redraw()
+
+func _execute_options_reset() -> void:
+	SettingsSystemScript.apply_title_action_for_target(self, "reset_options")
+	_close_options_reset_confirm()
+	_sync_title_bgm()
+	_apply_bgm_volumes()
+	_refresh_options_screen()
+	_update_ui()
+	queue_redraw()
+
+func _handle_options_reset_confirm_action(action: String) -> bool:
+	if not option_reset_confirm_visible:
+		return false
+	var modal_action := OptionsUiSystemScript.reset_confirmation_action(option_reset_confirm_index, action)
+	if modal_action == "toggle":
+		option_reset_confirm_index = 1 - option_reset_confirm_index
+		_play_cursor_move_se()
+		queue_redraw()
+		return true
+	if modal_action == "reset":
+		_play_confirm_se()
+		_execute_options_reset()
+		return true
+	if modal_action == "cancel":
+		_play_back_transition_se()
+		_close_options_reset_confirm()
+		return true
+	return true
+
+func _options_state_snapshot() -> Dictionary:
+	return {
+		"index": option_menu_index,
+		"bgm": bgm_volume,
+		"se": se_volume,
+		"fullscreen": fullscreen_enabled,
+		"window": window_size_index,
+		"shake": screen_shake_enabled,
+		"tutorial": tutorial_seen
+	}
+
+func _options_state_changed(before: Dictionary) -> bool:
+	return before != _options_state_snapshot()
+
+func _apply_options_input_action(action: String) -> void:
+	option_hover_index = -1
+	if option_reset_confirm_visible:
+		_handle_options_reset_confirm_action(action)
+		return
+	if action == "option_select" and option_menu_index == OptionsUiSystemScript.RESET_INDEX:
+		_play_confirm_se()
+		_open_options_reset_confirm()
+		return
+	if action == "option_select" and option_menu_index == OptionsUiSystemScript.BACK_INDEX:
+		_play_back_transition_se()
+		_back_from_front_screen()
+		return
+	if action == "back_to_title":
+		_play_back_transition_se()
+		_back_from_front_screen()
+		return
+	var before := _options_state_snapshot()
+	if action == "option_select":
+		_play_confirm_se()
+	var result: Dictionary = StateFlowSystemScript.apply_options_action_for_target(self, action)
+	if action in ["option_up", "option_down", "option_left", "option_right"] and _options_state_changed(before):
+		_play_cursor_move_se()
+	if bool(result.get("backToTitle", false)):
+		_play_back_transition_se()
+		_back_from_front_screen()
+		return
+	_sync_title_bgm()
+	_apply_bgm_volumes()
+	_refresh_options_screen()
+	_update_ui()
+	queue_redraw()
 
 func _update_options_mouse_selection(pos: Vector2) -> void:
-	var index := _options_mouse_index_at(pos)
-	if index < 0 or index == option_menu_index:
+	if option_reset_confirm_visible:
+		var modal_index := OptionsUiSystemScript.modal_choice_at(pos)
+		if option_reset_confirm_hover_index == modal_index:
+			return
+		option_reset_confirm_hover_index = modal_index
+		queue_redraw()
 		return
-	option_menu_index = index
-	_play_cursor_move_se()
+	var index := _options_mouse_index_at(pos)
+	if index == option_hover_index:
+		return
+	option_hover_index = index
 	queue_redraw()
 
 func _activate_options_mouse(pos: Vector2) -> bool:
+	if option_reset_confirm_visible:
+		var modal_index := OptionsUiSystemScript.modal_choice_at(pos)
+		if modal_index < 0:
+			return false
+		option_reset_confirm_index = modal_index
+		option_reset_confirm_hover_index = modal_index
+		_handle_options_reset_confirm_action("option_select")
+		return true
 	var items := _option_items()
 	var index := _options_mouse_index_at(pos)
 	if index < 0:
 		return false
 	var selection_changed := option_menu_index != index
 	option_menu_index = index
+	option_hover_index = index
 	if index >= items.size():
-		_apply_options_mouse_action("option_select", selection_changed)
+		_apply_options_input_action("option_select")
 		return true
 	var item: Dictionary = items[index] as Dictionary
 	var control_type := String(item.get("type", "select"))
@@ -15079,9 +18771,7 @@ func _activate_options_mouse(pos: Vector2) -> bool:
 func _set_options_slider_value(index: int, mouse_x: float) -> void:
 	if index != 0 and index != 1:
 		return
-	var slider_rect := _option_slider_rect(index)
-	var ratio := clampf((mouse_x - slider_rect.position.x) / slider_rect.size.x, 0.0, 1.0)
-	var next_value := clampi(roundi(ratio * 10.0) * 10, 0, 100)
+	var next_value := OptionsUiSystemScript.slider_value_from_position(index, mouse_x)
 	var current_value := bgm_volume if index == 0 else se_volume
 	if current_value == next_value:
 		queue_redraw()
@@ -15098,25 +18788,8 @@ func _set_options_slider_value(index: int, mouse_x: float) -> void:
 	_update_ui()
 	queue_redraw()
 
-func _apply_options_mouse_action(action: String, selection_changed: bool = false) -> void:
-	var items := _option_items()
-	var is_back := action == "option_select" and option_menu_index == items.size() + 1
-	if is_back:
-		_play_back_transition_se()
-		_back_from_front_screen()
-		return
-	if action == "option_select":
-		_play_confirm_se()
-	elif action == "option_left" or action == "option_right" or not selection_changed:
-		_play_cursor_move_se()
-	var result: Dictionary = StateFlowSystemScript.apply_options_action_for_target(self, action)
-	if bool(result.get("backToTitle", false)):
-		_play_back_transition_se()
-		_back_from_front_screen()
-		return
-	_refresh_options_screen()
-	_update_ui()
-	queue_redraw()
+func _apply_options_mouse_action(action: String, _selection_changed: bool = false) -> void:
+	_apply_options_input_action(action)
 
 func _ranking_avatar_text(name: String) -> String:
 	if name.contains("ばん"):
@@ -15373,7 +19046,13 @@ func _result_pp_font_size(value: Variant, base_size: int = 31) -> int:
 
 func _completed_evaluation_style(rank: String, defeat: bool = false) -> Dictionary:
 	if defeat:
-		return {"fill": Color("#f7dce9"), "secondary": Color("#e8def3"), "border": Color("#d79ab9"), "rank": Color("#c75f8c"), "star": Color("#d9b7c9"), "gold": false}
+		var defeat_rank_color := Color("#c75f8c")
+		match rank.strip_edges().to_upper():
+			"S": defeat_rank_color = Color("#c28a36")
+			"A": defeat_rank_color = Color("#d84f91")
+			"B": defeat_rank_color = Color("#5baec7")
+			"C": defeat_rank_color = Color("#8a76a8")
+		return {"fill": Color("#f7dce9"), "secondary": Color("#e8def3"), "border": Color("#d79ab9"), "rank": defeat_rank_color, "star": Color("#d9b7c9"), "gold": false}
 	match rank.strip_edges().to_upper():
 		"S":
 			return {"fill": Color("#ffd0e4"), "secondary": Color("#e5d2ff"), "border": Color("#f08cbb"), "rank": Color("#e84f93"), "star": Color("#ffd15a"), "gold": true}
@@ -15384,12 +19063,40 @@ func _completed_evaluation_style(rank: String, defeat: bool = false) -> Dictiona
 		_:
 			return {"fill": Color("#eee8f7"), "secondary": Color("#ded6ea"), "border": Color("#c5b9d7"), "rank": Color("#8a76a8"), "star": Color("#b8aacb"), "gold": false}
 
+func _completed_evaluation_metric_view(data: Dictionary) -> Dictionary:
+	var evaluation_rank := String(data.get("evaluationRank", data.get("kamiRank", "D"))).strip_edges().to_upper()
+	var evaluation_score := clampi(int(data.get("evaluationScore", data.get("kamiPoint", 0))), 0, 100)
+	return {
+		"label": _result_evaluation_label(),
+		"rank": evaluation_rank,
+		"score": "%d / 100" % evaluation_score
+	}
+
+func _completed_evaluation_metric_layout(rect: Rect2) -> Dictionary:
+	var label_rect := Rect2(rect.position + Vector2(8.0, 4.0), Vector2(maxf(0.0, rect.size.x - 16.0), 18.0))
+	var rank_center := rect.position + Vector2(rect.size.x * 0.32, 55.0)
+	var rank_rect := Rect2(rect.position + Vector2(rect.size.x * 0.11, 28.0), Vector2(rect.size.x * 0.42, 50.0))
+	var score_rect := Rect2(rect.position + Vector2(rect.size.x * 0.55, 34.0), Vector2(rect.size.x * 0.43, 36.0))
+	return {
+		"labelRect": label_rect,
+		"labelFontSize": 15,
+		"labelBaseline": label_rect.position.y + 14.0,
+		"rankCenter": rank_center,
+		"rankRadius": 26.0,
+		"rankRect": rank_rect,
+		"rankFontSize": 52,
+		"scoreRect": score_rect,
+		"scoreFontSize": 22
+	}
+
 func _draw_completed_evaluation_metric(rect: Rect2, data: Dictionary, reveal: Dictionary) -> void:
 	var alpha := clampf(float(reveal.get("evaluationPanelAlpha", 1.0)), 0.0, 1.0)
 	if alpha <= 0.0:
 		return
 	var defeat := String(data.get("endType", "")) == "mental_breakdown"
-	var style: Dictionary = _completed_evaluation_style(String(data.get("kamiRank", "D")), defeat)
+	var metric_view := _completed_evaluation_metric_view(data)
+	var evaluation_rank := String(metric_view["rank"])
+	var style: Dictionary = _completed_evaluation_style(evaluation_rank, defeat)
 	var offset_y := float(reveal.get("evaluationYOffset", 0.0))
 	var card_rect := Rect2(rect.position + Vector2(0.0, offset_y), rect.size)
 	var fill: Color = style["fill"] as Color
@@ -15399,19 +19106,25 @@ func _draw_completed_evaluation_metric(rect: Rect2, data: Dictionary, reveal: Di
 	var accent_rect := Rect2(card_rect.position + Vector2(card_rect.size.x * 0.52, card_rect.size.y * 0.54), Vector2(card_rect.size.x * 0.45, card_rect.size.y * 0.36))
 	draw_rect(accent_rect, Color(secondary.r, secondary.g, secondary.b, 0.34 * alpha), true)
 	draw_line(card_rect.position + Vector2(14.0, card_rect.size.y - 10.0), card_rect.position + Vector2(card_rect.size.x - 14.0, card_rect.size.y - 10.0), Color(1, 1, 1, 0.42 * alpha), 1.0, true)
-	_draw_ranking_text(_result_evaluation_label(), card_rect.position + Vector2(8.0, 22.0), 15, Color(0.29, 0.16, 0.35, alpha), card_rect.size.x - 16.0, HORIZONTAL_ALIGNMENT_CENTER)
+	var metric_layout := _completed_evaluation_metric_layout(card_rect)
+	var label_rect: Rect2 = metric_layout["labelRect"] as Rect2
+	_draw_ranking_text(String(metric_view["label"]), Vector2(label_rect.position.x, float(metric_layout["labelBaseline"])), int(metric_layout["labelFontSize"]), Color(0.29, 0.16, 0.35, alpha), label_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	var sparkle_positions := [Vector2(22.0, 17.0), Vector2(card_rect.size.x - 22.0, 17.0), Vector2(20.0, card_rect.size.y - 17.0), Vector2(card_rect.size.x - 20.0, card_rect.size.y - 17.0)]
 	var sparkle_color: Color = style["star"] as Color
 	for index in range(sparkle_positions.size()):
 		var sparkle_pos: Vector2 = sparkle_positions[index]
 		_draw_stream_start_sparkle(card_rect.position + sparkle_pos, 3.0 + float(index % 2), Color(sparkle_color.r, sparkle_color.g, sparkle_color.b, 0.72 * alpha))
 	var rank_scale := maxf(0.01, float(reveal.get("rankScale", 1.0)))
-	var rank_center := card_rect.position + Vector2(card_rect.size.x * 0.5, 54.0)
-	draw_circle(rank_center, 22.0 * rank_scale, Color(sparkle_color.r, sparkle_color.g, sparkle_color.b, 0.12 * alpha))
-	draw_arc(rank_center, 23.0 * rank_scale, 0.0, TAU, 32, Color(sparkle_color.r, sparkle_color.g, sparkle_color.b, 0.44 * alpha), 1.5, true)
-	var rank_font_size := maxi(1, roundi(42.0 * rank_scale))
+	var rank_center: Vector2 = metric_layout["rankCenter"] as Vector2
+	var rank_radius := float(metric_layout["rankRadius"])
+	draw_circle(rank_center, rank_radius * rank_scale, Color(sparkle_color.r, sparkle_color.g, sparkle_color.b, 0.12 * alpha))
+	draw_arc(rank_center, (rank_radius + 1.0) * rank_scale, 0.0, TAU, 32, Color(sparkle_color.r, sparkle_color.g, sparkle_color.b, 0.44 * alpha), 1.5, true)
+	var rank_font_size := maxi(1, roundi(float(metric_layout["rankFontSize"]) * rank_scale))
 	var rank_color: Color = style["rank"] as Color
-	_draw_ranking_text(String(data.get("kamiRank", "D")), Vector2(rank_center.x - 54.0, rank_center.y + float(rank_font_size) * 0.36), rank_font_size, Color(rank_color.r, rank_color.g, rank_color.b, alpha), 108.0, HORIZONTAL_ALIGNMENT_CENTER)
+	var rank_rect: Rect2 = metric_layout["rankRect"] as Rect2
+	_draw_ranking_text(evaluation_rank, Vector2(rank_rect.position.x, rank_center.y + float(rank_font_size) * 0.36), rank_font_size, Color(rank_color.r, rank_color.g, rank_color.b, alpha), rank_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var score_rect: Rect2 = metric_layout["scoreRect"] as Rect2
+	_draw_ranking_text(String(metric_view["score"]), Vector2(score_rect.position.x, score_rect.position.y + 25.0), int(metric_layout["scoreFontSize"]), Color(0.34, 0.24, 0.39, alpha), score_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 	if bool(style.get("gold", false)):
 		draw_arc(rank_center, 28.0 * rank_scale, -0.78, 0.08, 12, Color(1.0, 0.78, 0.16, 0.78 * alpha), 2.0, true)
 		_draw_stream_start_sparkle(rank_center + Vector2(36.0, -19.0), 4.0, Color(1.0, 0.78, 0.16, 0.88 * alpha))
@@ -15939,7 +19652,7 @@ func _completed_visible_reward_rows(point_view: Dictionary) -> Array:
 	var reward_values: Array = point_view.get("rewardRows", []) as Array
 	for reward_value in reward_values:
 		var reward_row: Dictionary = reward_value as Dictionary
-		if int(reward_row.get("amount", 0)) > 0:
+		if int(reward_row.get("amount", 0)) != 0:
 			visible_rows.append(reward_row)
 	return visible_rows
 
@@ -16057,7 +19770,7 @@ func _draw_result_gift_card(rect: Rect2, data: Dictionary) -> void:
 			var gift_name := String(names[index])
 			var icon := _result_gift_icon_for_name(gift_name)
 			if icon != null:
-				draw_texture_rect(icon, slot.grow(-4), false)
+				draw_texture_rect(icon, _fit_texture_rect(slot.grow(-4), icon.get_size()), false)
 			else:
 				_draw_result_present_icon(slot.grow(-7))
 		return
@@ -16070,7 +19783,7 @@ func _draw_result_gift_card(rect: Rect2, data: Dictionary) -> void:
 		var gift_name := String(names[index])
 		var icon := _result_gift_icon_for_name(gift_name)
 		if icon != null:
-			draw_texture_rect(icon, slot.grow(-5), false)
+			draw_texture_rect(icon, _fit_texture_rect(slot.grow(-5), icon.get_size()), false)
 		else:
 			_draw_result_present_icon(slot.grow(-8))
 		if rect.size.y >= 120.0:
@@ -16193,18 +19906,16 @@ func _draw_result_equipment_slots(items_value: Variant, source_data: Array, star
 		_draw_ranking_panel(slot, Color("#fff9ec") if evolved else (Color("#f0fbff") if high_level else Color("#fbfbff")), Color("#ffd15a") if evolved else (Color("#82dff2") if high_level else Color("#d8cdf7")), 6, 3 if evolved else (2 if high_level else 1), false)
 		var icon: Texture2D = _load_equipment_icon(_equipment_icon_path_for_item(item, source_data))
 		if icon != null:
-			draw_texture_rect(icon, slot.grow(-3), false)
+			draw_texture_rect(icon, _fit_texture_rect(slot.grow(-3), icon.get_size()), false)
 		else:
 			_draw_ranking_text(_short_pause_text(String(item.get("displayName", item.get("id", ""))), 2), slot.position + Vector2(0, slot.size.y * 0.66), 12, Color("#7a56c8"), slot.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		var level_label := _result_equipment_level_label(item, data, evolved, high_level)
 		var label_width := minf(slot.size.x, 34.0 if level_label.length() >= 4 else 28.0)
 		var level_badge_height := 15.0 if level_font_size >= 10 else 13.0
-		var level_baseline := 11.0 if level_font_size >= 10 else 10.0
-		var label_rect := Rect2(slot.end - Vector2(label_width + 1.0, level_badge_height), Vector2(label_width, level_badge_height))
 		var label_fill := Color("#ffd15a") if evolved else (Color("#49c7e8") if high_level else Color("#ff6fa8"))
 		var label_text_color := Color("#6a3a00") if evolved else Color.WHITE
-		_draw_ranking_panel(label_rect, label_fill, Color(1, 1, 1, 0.74), 4, 1, false)
-		_draw_ranking_text(level_label, label_rect.position + Vector2(0, level_baseline), level_font_size, label_text_color, label_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		var badge_offset_scale := maxf(EQUIPMENT_LEVEL_BADGE_MIN_OFFSET_SCALE, slot.size.x / 39.0)
+		_draw_equipment_level_badge(slot, Vector2(label_width, level_badge_height), badge_offset_scale, level_label, label_fill, label_text_color, Color(1, 1, 1, 0.74), level_font_size, 4)
 
 func _result_equipment_level_label(item: Dictionary, data: Dictionary, evolved: bool, high_level: bool) -> String:
 	if evolved:
@@ -16481,13 +20192,13 @@ func _draw_result_broken_heart(center: Vector2, size: float, alpha: float = 1.0)
 
 func _result_rank_color(rank: String) -> Color:
 	if rank == "S":
-		return Color("#ff68b3")
+		return Color("#d9982f")
 	if rank == "A":
-		return Color("#f3a43b")
+		return Color("#e84f93")
 	if rank == "B":
-		return Color("#a875e8")
+		return Color("#5baec7")
 	if rank == "C":
-		return Color("#438ee8")
+		return Color("#8a76a8")
 	return Color("#7f7480")
 
 func _result_number(value: int) -> String:
@@ -16530,7 +20241,7 @@ func _character_select_card_rect(local_index: int) -> Rect2:
 	return Rect2(panel.position + relative_rect.position, relative_rect.size)
 
 func _character_select_status_badge_rect(card_rect: Rect2) -> Rect2:
-	return Rect2(card_rect.position + Vector2(card_rect.size.x - 108.0, 12.0), Vector2(96.0, 20.0))
+	return Rect2(card_rect.position + Vector2(card_rect.size.x - 96.0, 12.0), Vector2(84.0, 20.0))
 
 func _character_select_detail_status_badge_rect(panel: Rect2) -> Rect2:
 	return Rect2(panel.position + Vector2(panel.size.x - 124.0, 20.0), Vector2(96.0, 20.0))
@@ -16558,6 +20269,12 @@ func _draw_character_select_header(rect: Rect2, _page_count: int) -> void:
 func _draw_character_select_list_panel(panel: Rect2, page: int) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
 	_draw_ranking_text("配信者一覧", panel.position + Vector2(30, 46), 28, Color("#7a3fb0"), 360)
+	var group_heading_rects: Array = CharacterSystemScript.selection_group_heading_rects()
+	var group_heading_labels: Array[String] = CharacterSystemScript.selection_group_heading_labels()
+	for heading_index in range(mini(group_heading_rects.size(), group_heading_labels.size())):
+		var local_heading: Rect2 = group_heading_rects[heading_index] as Rect2
+		var heading: Rect2 = Rect2(panel.position + local_heading.position, local_heading.size)
+		_draw_ranking_text(group_heading_labels[heading_index], heading.position + Vector2(0.0, 16.0), 14, Color("#8b6a98"), heading.size.x)
 	var start: int = page * CharacterSystemScript.SELECT_PAGE_SIZE
 	var visible_count: int = CharacterSystemScript.selection_visible_count(characters.size())
 	for local_index in range(CharacterSystemScript.SELECT_PAGE_SIZE):
@@ -16585,9 +20302,9 @@ func _draw_character_select_card(rect: Rect2, index: int) -> void:
 	var focus_feedback: Dictionary = _pre_run_selection_focus_feedback(rect, selected, _pre_run_selection_marker_phase(), pressed)
 	var draw_rect: Rect2 = focus_feedback.get("visualRect", rect) as Rect2
 	_draw_pre_run_selection_focus_back(focus_feedback, accent)
-	var border: Color = accent if selectable else Color("#c9c0d3")
+	var border: Color = accent if selectable else CharacterSystemScript.SELECT_LOCKED_ACCENT
 	if selected and not selectable:
-		border = Color("#9b7ac8")
+		border = CharacterSystemScript.SELECT_LOCKED_ACCENT
 	var fill: Color = Color(1.0, 1.0, 1.0, 0.98)
 	if selectable and selected:
 		fill = Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.96)
@@ -16597,35 +20314,83 @@ func _draw_character_select_card(rect: Rect2, index: int) -> void:
 
 	var content: Dictionary = CharacterSystemScript.selection_card_content_rects(draw_rect)
 	var status_text: String = CharacterSystemScript.selection_status_badge_text(status_id, selectable, selected)
+	var status_rect: Rect2 = _character_select_status_badge_rect(draw_rect)
 	if status_text != "":
-		var status_rect: Rect2 = _character_select_status_badge_rect(draw_rect)
-		var status_fill := Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.92) if selectable else Color("#eee8f3")
-		var status_border := accent if selectable else Color("#9b7ac8")
+		var status_fill := Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.92) if selectable else CharacterSystemScript.SELECT_LOCKED_SOFT_FILL
+		var status_border := accent if selectable else CharacterSystemScript.SELECT_LOCKED_ACCENT
 		_draw_character_select_status_badge(status_rect, status_text, status_fill, status_border, selected and selectable)
 
 	var number_color: Color = accent if selectable else Color("#8f8793")
 	_draw_ranking_text("[%d]" % (index + 1), draw_rect.position + Vector2(16.0, 31.0), 16, number_color, 42.0)
 	var name_pos := draw_rect.position + Vector2(58.0, 34.0)
-	var name_width: float = maxf(118.0, draw_rect.position.x + draw_rect.size.x - 112.0 - name_pos.x)
-	_draw_ranking_text(_short_pause_text(String(view.get("displayName", "配信者")), 14), name_pos, 21, Color("#4f3149") if selectable else Color("#756b7b"), name_width)
+	var name_width: float = maxf(1.0, status_rect.position.x - name_pos.x - 8.0)
+	var fitted_name: Dictionary = _character_select_fit_text(String(view.get("displayName", "配信者")), 19, name_width)
+	_draw_ranking_text(String(fitted_name["text"]), name_pos, int(fitted_name["size"]), Color("#4f3149") if selectable else Color("#756b7b"), name_width)
 
 	var portrait_rect: Rect2 = content["portrait"] as Rect2
-	var texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
-	if texture != null:
-		var portrait_modulate := Color(0.38, 0.38, 0.46, 0.72) if status_id == "locked" else Color.WHITE
-		var card_portrait_view: Dictionary = view.duplicate()
-		card_portrait_view["selectSpriteScale"] = float(view.get("cardSelectSpriteScale", 1.0))
-		card_portrait_view["selectSpriteOffset"] = view.get("cardSelectSpriteOffset", {"x": 0, "y": 0}) as Dictionary
-		_draw_character_select_card_portrait(texture, portrait_rect, card_portrait_view, portrait_modulate)
-	else:
-		draw_circle(portrait_rect.get_center() + Vector2(0.0, -4.0), 42.0, Color("#dfd8e3"))
-		_draw_ranking_text("?", portrait_rect.position + Vector2(0.0, 78.0), 24, Color("#8f8793"), portrait_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var avatar_mode := CharacterSystemScript.selection_card_avatar_mode(status_id, selectable, selected)
+	var walk_texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("walkSpritePath", "")))
+	var avatar_modulate := Color.WHITE
+	var avatar_drawn := false
+	if avatar_mode == "walk" and walk_texture != null:
+		var walk_columns := maxi(1, int(view.get("walkSpriteCols", 10)))
+		var walk_rows := maxi(1, int(view.get("walkSpriteRows", 1)))
+		var walk_path := String(view.get("walkSpritePath", ""))
+		var walk_bounds := _character_select_avatar_opaque_bounds(walk_texture, walk_path, walk_columns, walk_rows, "walk")
+		var animate_walk := CharacterSystemScript.selection_card_walk_should_animate(status_id, selectable, selected)
+		var walk_frame := CharacterSystemScript.selection_card_walk_frame_index(character_select_walk_time, animate_walk, true, walk_columns, float(view.get("walkSpriteFps", CharacterSystemScript.SELECT_CARD_WALK_FPS)))
+		var walk_offset_data: Dictionary = view.get("cardWalkSpriteOffset", {"x": 0, "y": 0}) as Dictionary
+		var walk_offset := Vector2(float(walk_offset_data.get("x", 0.0)), float(walk_offset_data.get("y", 0.0)))
+		avatar_drawn = _draw_character_select_card_avatar(portrait_rect, walk_texture, walk_columns, walk_rows, walk_frame, walk_bounds, avatar_modulate, float(view.get("cardWalkSpriteScaleAdjust", 1.0)), walk_offset)
+
+	var stationary_texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("staticSpritePath", "")))
+	if not avatar_drawn and stationary_texture != null:
+		var stationary_columns := maxi(1, int(view.get("staticSpriteCols", 1)))
+		var stationary_rows := maxi(1, int(view.get("staticSpriteRows", 1)))
+		var stationary_path := String(view.get("staticSpritePath", ""))
+		var stationary_bounds := _character_select_avatar_opaque_bounds(stationary_texture, stationary_path, stationary_columns, stationary_rows, "static")
+		var stationary_draw_texture: Texture2D = stationary_texture
+		if status_id == "locked":
+			stationary_draw_texture = _character_select_silhouette_texture(stationary_texture, stationary_path)
+			if stationary_draw_texture == null:
+				_draw_character_select_generic_silhouette(portrait_rect)
+				avatar_drawn = true
+		if not avatar_drawn and stationary_draw_texture != null:
+			avatar_drawn = _draw_character_select_card_avatar(portrait_rect, stationary_draw_texture, stationary_columns, stationary_rows, int(view.get("staticSpriteFrame", 0)), stationary_bounds, avatar_modulate, float(view.get("cardAvatarScaleAdjust", 1.0)), Vector2.ZERO)
+
+	if not avatar_drawn and walk_texture != null:
+		var fallback_columns := maxi(1, int(view.get("walkSpriteCols", 10)))
+		var fallback_rows := maxi(1, int(view.get("walkSpriteRows", 1)))
+		var fallback_path := String(view.get("walkSpritePath", ""))
+		var fallback_bounds := _character_select_avatar_opaque_bounds(walk_texture, fallback_path, fallback_columns, fallback_rows, "walk")
+		var fallback_draw_texture: Texture2D = walk_texture
+		if status_id == "locked":
+			fallback_draw_texture = _character_select_silhouette_texture(walk_texture, fallback_path)
+			if fallback_draw_texture == null:
+				_draw_character_select_generic_silhouette(portrait_rect)
+				avatar_drawn = true
+		if not avatar_drawn and fallback_draw_texture != null:
+			avatar_drawn = _draw_character_select_card_avatar(portrait_rect, fallback_draw_texture, fallback_columns, fallback_rows, int(view.get("walkSpriteStaticFrame", 0)), fallback_bounds, avatar_modulate, float(view.get("cardWalkSpriteScaleAdjust", 1.0)), Vector2.ZERO)
+
+	if not avatar_drawn:
+		var texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
+		if status_id == "locked" and texture != null:
+			texture = _character_select_silhouette_texture(texture, String(view.get("spritePath", "")))
+		if texture != null:
+			var card_portrait_view: Dictionary = view.duplicate()
+			card_portrait_view["selectSpriteScale"] = float(view.get("cardSelectSpriteScale", 1.0))
+			card_portrait_view["selectSpriteOffset"] = view.get("cardSelectSpriteOffset", {"x": 0, "y": 0}) as Dictionary
+			_draw_character_select_card_portrait(texture, portrait_rect, card_portrait_view, avatar_modulate)
+		elif status_id == "locked":
+			_draw_character_select_generic_silhouette(portrait_rect)
+		else:
+			draw_circle(portrait_rect.get_center() + Vector2(0.0, -4.0), 42.0, Color("#dfd8e3"))
+			_draw_ranking_text("?", portrait_rect.position + Vector2(0.0, 78.0), 24, Color("#8f8793"), portrait_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 
 	if status_id == "locked":
 		_draw_character_select_lock_condition(content["weapon"] as Rect2, String(view.get("unlockConditionText", "未開放")), accent)
 	else:
 		_draw_character_select_weapon_block(content["weapon"] as Rect2, view, accent, soft_fill, false)
-		_draw_character_select_tag_row(content["tags"] as Rect2, view.get("cardTags", []) as Array, accent, 2, 12)
 	_draw_pre_run_selection_focus_front(focus_feedback, accent)
 
 func _draw_character_select_card_portrait(texture: Texture2D, container: Rect2, view: Dictionary, modulate: Color = Color.WHITE) -> void:
@@ -16647,6 +20412,62 @@ func _draw_character_select_card_portrait(texture: Texture2D, container: Rect2, 
 	)
 	draw_texture_rect_region(texture, visible_rect, source_rect, modulate)
 
+func _character_select_avatar_opaque_bounds(texture: Texture2D, path: String, columns: int, rows: int, mode: String) -> Rect2:
+	if texture == null or path == "":
+		return Rect2()
+	var key := "%s|%d|%d|%s" % [path, columns, rows, mode]
+	if character_select_avatar_opaque_bounds_cache.has(key):
+		return character_select_avatar_opaque_bounds_cache[key] as Rect2
+	var image := texture.get_image()
+	var bounds := CharacterSystemScript.selection_card_avatar_opaque_bounds(image, columns, rows, mode == "walk")
+	character_select_avatar_opaque_bounds_cache[key] = bounds
+	return bounds
+
+func _character_select_silhouette_texture(texture: Texture2D, path: String) -> Texture2D:
+	if texture == null or path == "":
+		return null
+	var silhouette_color: Color = CharacterSystemScript.SELECT_LOCKED_SILHOUETTE_COLOR
+	var key := "%s|%s" % [path, silhouette_color]
+	if character_select_silhouette_cache.has(key):
+		var cached: Variant = character_select_silhouette_cache[key]
+		if cached is Texture2D:
+			return cached as Texture2D
+		return null
+	var source_image := texture.get_image()
+	if source_image == null or source_image.get_width() <= 0 or source_image.get_height() <= 0:
+		character_select_silhouette_cache[key] = null
+		return null
+	var silhouette_image: Image = CharacterSystemScript.selection_locked_silhouette_image(source_image, silhouette_color)
+	if silhouette_image == null:
+		character_select_silhouette_cache[key] = null
+		return null
+	var silhouette_texture := ImageTexture.create_from_image(silhouette_image)
+	character_select_silhouette_cache[key] = silhouette_texture
+	return silhouette_texture
+
+func _draw_character_select_generic_silhouette(container: Rect2) -> void:
+	var silhouette_color: Color = CharacterSystemScript.SELECT_LOCKED_SILHOUETTE_COLOR
+	var center := container.get_center() + Vector2(0.0, -12.0)
+	draw_circle(center + Vector2(0.0, -42.0), 15.0, silhouette_color)
+	draw_circle(center + Vector2(0.0, -8.0), 26.0, silhouette_color)
+	draw_rect(Rect2(center + Vector2(-28.0, 12.0), Vector2(56.0, 50.0)), silhouette_color, true)
+
+func _draw_character_select_card_avatar(container: Rect2, texture: Texture2D, columns: int, rows: int, frame_index: int, opaque_bounds: Rect2, modulate: Color, scale_adjust: float = 1.0, offset: Vector2 = Vector2.ZERO) -> bool:
+	if texture == null or opaque_bounds.size.x <= 0.0 or opaque_bounds.size.y <= 0.0:
+		return false
+	var texture_size := texture.get_size()
+	var source_rect := CharacterSystemScript.selection_card_walk_source_rect(texture_size, columns, rows, frame_index)
+	var destination := CharacterSystemScript.selection_card_avatar_destination_rect(container, source_rect.size, opaque_bounds, CharacterSystemScript.SELECT_CARD_AVATAR_VISUAL_HEIGHT, CharacterSystemScript.SELECT_CARD_AVATAR_FOOT_INSET, scale_adjust, offset)
+	var visible_rect := CharacterSystemScript.selection_card_walk_visible_rect(container, destination)
+	if visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0 or destination.size.x <= 0.0 or destination.size.y <= 0.0:
+		return false
+	var source_visible := Rect2(
+		source_rect.position + (visible_rect.position - destination.position) / destination.size * source_rect.size,
+		visible_rect.size / destination.size * source_rect.size
+	)
+	draw_texture_rect_region(texture, visible_rect, source_visible, modulate)
+	return true
+
 func _character_select_placeholder_status(index: int) -> String:
 	var local_index := index % CharacterSystemScript.SELECT_PAGE_SIZE
 	if local_index < CharacterSystemScript.SELECT_PAGE_SIZE - 1:
@@ -16661,18 +20482,20 @@ func _character_select_placeholder_unlock_text(index: int) -> String:
 	return "今後のアップデートで追加予定"
 
 func _draw_character_select_locked_card(rect: Rect2, index: int, selected: bool) -> void:
-	var accent := Color("#8f70c8")
+	var accent: Color = CharacterSystemScript.SELECT_LOCKED_ACCENT
 	var focus_feedback: Dictionary = _pre_run_selection_focus_feedback(rect, selected, _pre_run_selection_marker_phase())
 	var draw_rect: Rect2 = focus_feedback.get("visualRect", rect) as Rect2
 	_draw_pre_run_selection_focus_back(focus_feedback, accent)
-	_draw_ranking_panel(draw_rect, Color("#f5f1f7") if not selected else Color("#f1ebf7"), Color("#9b7ac8") if selected else Color("#d8d0dc"), int(CharacterSystemScript.SELECT_CARD_CORNER_RADIUS), 5 if selected else 2, false)
+	_draw_ranking_panel(draw_rect, CharacterSystemScript.SELECT_LOCKED_SOFT_FILL if selected else Color("#f5f1f7"), accent if selected else Color("#d8d0dc"), int(CharacterSystemScript.SELECT_CARD_CORNER_RADIUS), 5 if selected else 2, false)
 	var content: Dictionary = CharacterSystemScript.selection_card_content_rects(draw_rect)
 	_draw_ranking_text("[%d]" % (index + 1), draw_rect.position + Vector2(16.0, 31.0), 16, Color("#8f8793"), 42.0)
-	_draw_ranking_text("LOCKED", draw_rect.position + Vector2(58.0, 34.0), 21, Color("#756b7b"), 220.0)
-	_draw_character_select_status_badge(_character_select_status_badge_rect(draw_rect), "LOCKED", Color("#eee8f3"), accent, selected)
+	var status_rect: Rect2 = _character_select_status_badge_rect(draw_rect)
+	var name_width: float = maxf(1.0, status_rect.position.x - (draw_rect.position.x + 58.0) - 8.0)
+	var fitted_name: Dictionary = _character_select_fit_text("？？？", 19, name_width)
+	_draw_ranking_text(String(fitted_name["text"]), draw_rect.position + Vector2(58.0, 34.0), int(fitted_name["size"]), Color("#756b7b"), name_width)
+	_draw_character_select_status_badge(status_rect, "LOCKED", Color("#eee8f3"), accent, selected)
 	var portrait_rect: Rect2 = content["portrait"] as Rect2
-	draw_circle(portrait_rect.get_center() + Vector2(0.0, -4.0), 42.0, Color("#e5dfea"))
-	_draw_ranking_text("?", portrait_rect.position + Vector2(0.0, 78.0), 24, Color("#8f8793"), portrait_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_character_select_generic_silhouette(portrait_rect)
 	_draw_character_select_lock_condition(content["weapon"] as Rect2, _character_select_placeholder_unlock_text(index), accent)
 	_draw_pre_run_selection_focus_front(focus_feedback, accent)
 
@@ -16684,8 +20507,11 @@ func _draw_character_select_coming_card(rect: Rect2, index: int, selected: bool)
 	_draw_ranking_panel(draw_rect, Color("#fbf7fc") if not selected else Color("#f7eefb"), Color("#c08adb") if selected else Color("#e0d7e2"), int(CharacterSystemScript.SELECT_CARD_CORNER_RADIUS), 5 if selected else 2, false)
 	var content: Dictionary = CharacterSystemScript.selection_card_content_rects(draw_rect)
 	_draw_ranking_text("[%d]" % (index + 1), draw_rect.position + Vector2(16.0, 31.0), 16, Color("#a294a3"), 42.0)
-	_draw_ranking_text("準備中", draw_rect.position + Vector2(58.0, 34.0), 21, Color("#756b7b"), 220.0)
-	_draw_character_select_status_badge(_character_select_status_badge_rect(draw_rect), "準備中", Color("#f6eefa"), accent, selected)
+	var status_rect: Rect2 = _character_select_status_badge_rect(draw_rect)
+	var name_width: float = maxf(1.0, status_rect.position.x - (draw_rect.position.x + 58.0) - 8.0)
+	var fitted_name: Dictionary = _character_select_fit_text("準備中", 19, name_width)
+	_draw_ranking_text(String(fitted_name["text"]), draw_rect.position + Vector2(58.0, 34.0), int(fitted_name["size"]), Color("#756b7b"), name_width)
+	_draw_character_select_status_badge(status_rect, "準備中", Color("#f6eefa"), accent, selected)
 	var portrait_rect: Rect2 = content["portrait"] as Rect2
 	draw_circle(portrait_rect.get_center() + Vector2(0.0, -4.0), 42.0, Color("#f1eaf2"))
 	draw_circle(portrait_rect.get_center() + Vector2(0.0, -4.0), 42.0, Color("#ddd2e0"), false, 2.0)
@@ -16715,6 +20541,9 @@ func _draw_character_select_detail_panel(panel: Rect2) -> void:
 	var accent2: Color = view.get("accent2", Color("#7a56c8")) as Color
 	var soft_fill: Color = view.get("softFill", Color("#fff2fa")) as Color
 	var detail_status: String = CharacterSystemScript.selection_detail_status_text(character)
+	if status_id == "locked":
+		_draw_character_select_locked_detail_view(panel, view)
+		return
 	if detail_status != "":
 		_draw_character_select_status_badge(_character_select_detail_status_badge_rect(panel), detail_status, Color("#eee8f3"), Color("#9b7ac8"), false)
 	_draw_ranking_text(String(view.get("displayName", "配信者")), panel.position + Vector2(30.0, 88.0), 34, accent if selectable else Color("#756b7b"), panel.size.x - 60.0, HORIZONTAL_ALIGNMENT_CENTER)
@@ -16728,11 +20557,6 @@ func _draw_character_select_detail_panel(panel: Rect2) -> void:
 		draw_texture_rect(texture, _fit_texture_rect(image_inner, texture.get_size()), false, image_modulate)
 	else:
 		draw_circle(image_inner.get_center(), 68.0, Color("#dfd8e3"))
-	if status_id == "locked":
-		_draw_ranking_text("LOCKED", image_rect.position + Vector2(0.0, 178.0), 24, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-		_draw_character_select_lock_condition(content["weapon"] as Rect2, String(view.get("unlockConditionText", "未開放")), Color("#8f70c8"))
-		return
-
 	_draw_character_select_weapon_block(content["weapon"] as Rect2, view, accent, soft_fill, true)
 	_draw_character_select_tag_row(content["tags"] as Rect2, view.get("detailTags", []) as Array, accent, 4, 12)
 	var trait_text := "%s：%s" % [String(view.get("passiveName", "なし")), String(view.get("passiveDescription", ""))]
@@ -16752,18 +20576,37 @@ func _draw_character_select_preparing_detail(panel: Rect2, content: Dictionary =
 	_draw_character_select_detail_block(content_rects["trait"] as Rect2, "状態", "準備中", Color("#a46fc3"), Color("#fff8fc"), 13)
 	_draw_character_select_detail_block(content_rects["intro"] as Rect2, "案内", "今後のアップデートで追加予定です。", Color("#a46fc3"), Color(1, 1, 1, 0.98), 13)
 
-func _draw_character_select_locked_detail(panel: Rect2, index: int, content: Dictionary = {}) -> void:
-	var content_rects: Dictionary = content if not content.is_empty() else CharacterSystemScript.selection_detail_content_rects(panel)
-	_draw_character_select_status_badge(_character_select_detail_status_badge_rect(panel), "LOCKED", Color("#eee8f3"), Color("#8f70c8"), false)
-	_draw_ranking_text("LOCKED", panel.position + Vector2(30.0, 88.0), 34, Color("#756b7b"), panel.size.x - 60.0, HORIZONTAL_ALIGNMENT_CENTER)
+func _draw_character_select_locked_detail_view(panel: Rect2, view: Dictionary) -> void:
+	var content_rects: Dictionary = CharacterSystemScript.selection_detail_locked_content_rects(panel)
+	var accent: Color = view.get("accent", CharacterSystemScript.SELECT_LOCKED_ACCENT) as Color
+	_draw_character_select_status_badge(_character_select_detail_status_badge_rect(panel), "LOCKED", CharacterSystemScript.SELECT_LOCKED_SOFT_FILL, accent, false)
+	_draw_ranking_text("？？？", panel.position + Vector2(30.0, 88.0), 34, Color("#756b7b"), panel.size.x - 60.0, HORIZONTAL_ALIGNMENT_CENTER)
 	var image_rect: Rect2 = content_rects["image"] as Rect2
-	_draw_ranking_panel(image_rect, Color("#f5f1f7"), Color("#d8d0dc"), 24, 2, false)
-	draw_circle(image_rect.get_center() + Vector2(0.0, -20.0), 58.0, Color("#eee7f1"))
-	draw_circle(image_rect.get_center() + Vector2(0.0, -20.0), 58.0, Color("#d8d0dc"), false, 3.0)
-	_draw_ranking_text("LOCKED", image_rect.position + Vector2(0.0, 190.0), 26, Color("#8f8793"), image_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	_draw_character_select_lock_condition(content_rects["weapon"] as Rect2, _character_select_placeholder_unlock_text(index), Color("#8f70c8"))
-	_draw_character_select_detail_block(content_rects["trait"] as Rect2, "状態", "この配信者はまだ開放されていません。", Color("#8f70c8"), Color("#fff8fc"), 13)
-	_draw_character_select_detail_block(content_rects["intro"] as Rect2, "解放条件", _character_select_placeholder_unlock_text(index), Color("#8f70c8"), Color(1, 1, 1, 0.98), 13)
+	_draw_ranking_panel(image_rect, Color("#f5f1f7"), Color(accent.r, accent.g, accent.b, 0.30), 24, 2, false)
+	var image_inner: Rect2 = image_rect.grow(-10.0)
+	var source_path := String(view.get("spritePath", ""))
+	var source_texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, source_path)
+	var silhouette_texture := _character_select_silhouette_texture(source_texture, source_path)
+	if silhouette_texture != null:
+		draw_texture_rect(silhouette_texture, _fit_texture_rect(image_inner, silhouette_texture.get_size()), false, Color.WHITE)
+	else:
+		_draw_character_select_generic_silhouette(image_inner)
+	_draw_character_select_locked_detail_condition(content_rects["condition"] as Rect2, String(view.get("unlockConditionText", "？？？")), accent)
+
+func _draw_character_select_locked_detail_condition(rect: Rect2, condition: String, accent: Color) -> void:
+	_draw_ranking_panel(rect, Color("#f5f1f7"), Color(accent.r, accent.g, accent.b, 0.34), 16, 2, false)
+	_draw_ranking_text("解禁条件", rect.position + Vector2(18.0, 24.0), 13, accent, rect.size.x - 36.0)
+	draw_line(rect.position + Vector2(18.0, 32.0), Vector2(rect.end.x - 18.0, rect.position.y + 32.0), Color(accent.r, accent.g, accent.b, 0.22), 1.0, true)
+	var fitted: Dictionary = _character_select_fit_text(condition, 15, rect.size.x - 36.0, 10)
+	_draw_ranking_text(String(fitted["text"]), rect.position + Vector2(18.0, 58.0), int(fitted["size"]), Color("#5d5265"), rect.size.x - 36.0)
+
+func _draw_character_select_locked_detail(panel: Rect2, index: int, content: Dictionary = {}) -> void:
+	var view := {
+		"spritePath": "",
+		"unlockConditionText": _character_select_placeholder_unlock_text(index),
+		"accent": CharacterSystemScript.SELECT_LOCKED_ACCENT
+	}
+	_draw_character_select_locked_detail_view(panel, view)
 
 func _draw_character_select_footer(layout: Dictionary, _page: int = 0, _page_count: int = 1) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
@@ -16800,6 +20643,19 @@ func _draw_character_select_status_badge(rect: Rect2, text: String, fill: Color,
 
 func _draw_character_select_lock_condition(rect: Rect2, condition: String, accent: Color) -> void:
 	_draw_ranking_panel(rect, Color("#f4eff7"), Color(accent.r, accent.g, accent.b, 0.36), 14, 1, false)
+	if rect.size.x <= 180.0:
+		var compact_rects: Dictionary = CharacterSystemScript.selection_card_compact_weapon_text_rects(rect)
+		_draw_ranking_text("解禁条件", rect.position + Vector2(10.0, 17.0), 11, accent, rect.size.x - 20.0)
+		var condition_rect: Rect2 = compact_rects["condition"] as Rect2
+		var condition_layout: Dictionary = _character_select_compact_text_layout(condition, condition_rect.size.x, 11, 10, 2)
+		var condition_lines: Array[String] = []
+		var condition_line_values: Array = condition_layout.get("lines", []) as Array
+		for value in condition_line_values:
+			condition_lines.append(String(value))
+		var condition_size: int = int(condition_layout["size"])
+		for line_index in range(condition_lines.size()):
+			_draw_ranking_text(condition_lines[line_index], condition_rect.position + Vector2(0.0, 14.0 + line_index * 17.0), condition_size, Color("#756b7b"), condition_rect.size.x)
+		return
 	_draw_ranking_text("解禁条件", rect.position + Vector2(10.0, 17.0), 11, accent, rect.size.x - 20.0)
 	var fitted_condition: Dictionary = _character_select_fit_text(condition, 12, rect.size.x - 20.0)
 	_draw_ranking_text(String(fitted_condition["text"]), rect.position + Vector2(10.0, 40.0), int(fitted_condition["size"]), Color("#756b7b"), rect.size.x - 20.0)
@@ -16807,9 +20663,9 @@ func _draw_character_select_lock_condition(rect: Rect2, condition: String, accen
 func _character_select_text_width(text: String, text_size: int) -> float:
 	return GameFontSystemScript.regular_font().get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, text_size).x
 
-func _character_select_fit_text(text: String, desired_size: int, available_width: float) -> Dictionary:
-	var fitted_size: int = maxi(12, desired_size)
-	while fitted_size > 12 and _character_select_text_width(text, fitted_size) > available_width:
+func _character_select_fit_text(text: String, desired_size: int, available_width: float, minimum_size: int = 12) -> Dictionary:
+	var fitted_size: int = maxi(minimum_size, desired_size)
+	while fitted_size > minimum_size and _character_select_text_width(text, fitted_size) > available_width:
 		fitted_size -= 1
 	var fitted_text := text
 	while _character_select_text_width(fitted_text, fitted_size) > available_width and fitted_text.length() > 1:
@@ -16818,20 +20674,109 @@ func _character_select_fit_text(text: String, desired_size: int, available_width
 		fitted_text = "…"
 	return {"text": fitted_text, "size": fitted_size}
 
+func _character_select_wrap_text(text: String, text_size: int, available_width: float, max_lines: int) -> Array[String]:
+	var lines: Array[String] = []
+	var current := ""
+	for index in range(text.length()):
+		var candidate := current + text.substr(index, 1)
+		if current != "" and _character_select_text_width(candidate, text_size) > available_width:
+			lines.append(current)
+			current = text.substr(index, 1)
+		else:
+			current = candidate
+	if current != "":
+		lines.append(current)
+	if lines.size() <= max_lines:
+		return lines
+	var result: Array[String] = []
+	for line_index in range(maxi(0, max_lines - 1)):
+		result.append(lines[line_index])
+	var remainder := ""
+	for line_index in range(maxi(0, max_lines - 1), lines.size()):
+		remainder += lines[line_index]
+	var fitted: Dictionary = _character_select_fit_text(remainder, text_size, available_width, text_size)
+	result.append(String(fitted["text"]))
+	return result
+
+func _character_select_wrap_text_full(text: String, text_size: int, available_width: float) -> Array[String]:
+	var lines: Array[String] = []
+	var current := ""
+	for index in range(text.length()):
+		var candidate := current + text.substr(index, 1)
+		if current != "" and _character_select_text_width(candidate, text_size) > available_width:
+			lines.append(current)
+			current = text.substr(index, 1)
+		else:
+			current = candidate
+	if current != "":
+		lines.append(current)
+	return lines if not lines.is_empty() else [""]
+
+func _character_select_compact_preferred_lines(text: String) -> Array[String]:
+	var lines: Array[String] = []
+	match text:
+		"モデレーターシールド":
+			lines.append("モデレーター")
+			lines.append("シールド")
+		"ノーマルの配信リレーをクリアすると解禁":
+			lines.append("ノーマルの配信リレーを")
+			lines.append("クリアすると解禁")
+	return lines
+
+func _character_select_compact_text_layout(text: String, available_width: float, desired_size: int, minimum_size: int, max_lines: int) -> Dictionary:
+	for text_size in range(desired_size, minimum_size - 1, -1):
+		if _character_select_text_width(text, text_size) <= available_width:
+			return {"lines": [text], "size": text_size}
+	var preferred_lines: Array[String] = _character_select_compact_preferred_lines(text)
+	if preferred_lines.size() <= max_lines and not preferred_lines.is_empty():
+		for text_size in range(desired_size, minimum_size - 1, -1):
+			var preferred_fits := true
+			for line in preferred_lines:
+				if _character_select_text_width(line, text_size) > available_width:
+					preferred_fits = false
+					break
+			if preferred_fits:
+				return {"lines": preferred_lines, "size": text_size}
+	var wrapped_lines := _character_select_wrap_text_full(text, minimum_size, available_width)
+	if wrapped_lines.size() <= max_lines:
+		return {"lines": wrapped_lines, "size": minimum_size}
+	return {"lines": _character_select_wrap_text_full(text, minimum_size, available_width), "size": minimum_size}
+
 func _draw_character_select_weapon_block(rect: Rect2, view: Dictionary, accent: Color, soft_fill: Color, detail: bool = false) -> void:
 	var fill := Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.92)
 	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.34), 14, 1, false)
 	var icon: Texture2D = _load_equipment_icon(String(view.get("weaponIconPath", "")))
-	var icon_size: float = minf(30.0, maxf(22.0, rect.size.y - 16.0))
+	var weapon_name := String(view.get("weaponName", "未設定"))
+	if not detail:
+		var compact_rects: Dictionary = CharacterSystemScript.selection_card_compact_weapon_text_rects(rect)
+		if icon != null:
+			var compact_icon_rect: Rect2 = compact_rects["icon"] as Rect2
+			draw_texture_rect(icon, _fit_texture_rect(compact_icon_rect, icon.get_size()), false)
+		var label_rect: Rect2 = compact_rects["label"] as Rect2
+		var label_color := CharacterSystemScript.selection_card_compact_weapon_label_color(accent)
+		_draw_ranking_text("初期武器", label_rect.position + Vector2(0.0, CharacterSystemScript.SELECT_CARD_COMPACT_WEAPON_LABEL_BASELINE), CharacterSystemScript.SELECT_CARD_COMPACT_WEAPON_LABEL_FONT_SIZE, label_color, label_rect.size.x)
+		var name_rect: Rect2 = compact_rects["name"] as Rect2
+		var name_layout: Dictionary = _character_select_compact_text_layout(weapon_name, name_rect.size.x, 16, 14, 2)
+		var name_lines: Array[String] = []
+		var name_line_values: Array = name_layout.get("lines", []) as Array
+		for value in name_line_values:
+			name_lines.append(String(value))
+		var name_size: int = int(name_layout["size"])
+		var line_height: float = float(name_size + 3)
+		var first_baseline: float = name_rect.position.y + (name_rect.size.y - line_height * float(name_lines.size())) * 0.5 + float(name_size)
+		var weapon_name_color: Color = accent.darkened(0.22)
+		for line_index in range(name_lines.size()):
+			_draw_ranking_text(name_lines[line_index], Vector2(name_rect.position.x, first_baseline + line_height * float(line_index)), name_size, weapon_name_color, name_rect.size.x)
+		return
+	var icon_size: float = minf(30.0, maxf(22.0, rect.size.y - 16.0)) if detail else minf(24.0, maxf(20.0, rect.size.y - 32.0))
 	var text_x: float = rect.position.x + 10.0
 	if icon != null:
 		var icon_rect := Rect2(Vector2(text_x, rect.position.y + (rect.size.y - icon_size) * 0.5), Vector2(icon_size, icon_size))
-		draw_texture_rect(icon, icon_rect, false)
+		draw_texture_rect(icon, _fit_texture_rect(icon_rect, icon.get_size()), false)
 		text_x += icon_size + 8.0
-	var label_size: int = 11 if not detail else 12
+	var label_size: int = 10 if not detail else 12
 	var weapon_size: int = 14 if not detail else 18
 	_draw_ranking_text("初期武器", Vector2(text_x, rect.position.y + 17.0), label_size, Color(accent.r, accent.g, accent.b, 0.78), rect.end.x - text_x - 10.0)
-	var weapon_name := String(view.get("weaponName", "未設定"))
 	var available_width: float = maxf(1.0, rect.end.x - text_x - 10.0)
 	var fitted: Dictionary = _character_select_fit_text(weapon_name, weapon_size, available_width)
 	_draw_ranking_text(String(fitted["text"]), Vector2(text_x, rect.position.y + (39.0 if not detail else 38.0)), int(fitted["size"]), accent, available_width)
@@ -16843,8 +20788,11 @@ func _draw_character_select_detail_block(rect: Rect2, title: String, text: Strin
 	_draw_multiline_text_item({"pos": rect.position + Vector2(18.0, 47.0), "text": text, "width": int(rect.size.x - 36.0), "size": text_size, "color": Color("#5d4658")})
 
 func _draw_character_select_tag_row(rect: Rect2, tags: Array, accent: Color, max_count: int, text_size: int = 14, opaque: bool = false) -> void:
-	var x := rect.position.x
+	var start_x := rect.position.x
+	var x := start_x
 	var y := rect.position.y
+	var row_height: float = 28.0 if rect.size.y > 36.0 else rect.size.y
+	var row_gap: float = 6.0 if rect.size.y > 36.0 else 0.0
 	var shown := 0
 	for item in tags:
 		if shown >= max_count:
@@ -16852,17 +20800,22 @@ func _draw_character_select_tag_row(rect: Rect2, tags: Array, accent: Color, max
 		var tag := String(item)
 		if tag.strip_edges() == "":
 			continue
-		var measured_width: float = _character_select_text_width(tag, text_size)
+		var fitted_tag: Dictionary = _character_select_fit_text(tag, text_size, maxf(1.0, rect.size.x - 20.0))
+		var fitted_text := String(fitted_tag["text"])
+		var fitted_size := int(fitted_tag["size"])
+		var measured_width: float = _character_select_text_width(fitted_text, fitted_size)
 		var desired_width: float = maxf(72.0, ceilf(measured_width + 20.0))
-		var remaining_width: float = rect.end.x - x
-		if remaining_width < desired_width:
+		var width: float = minf(desired_width, rect.size.x)
+		if x > start_x and x + width > rect.end.x:
+			x = start_x
+			y += row_height + row_gap
+		if y + row_height > rect.end.y + 0.01:
 			break
-		var width: float = minf(desired_width, remaining_width)
-		var tag_rect := Rect2(Vector2(x, y), Vector2(width, rect.size.y))
+		var tag_rect := Rect2(Vector2(x, y), Vector2(width, row_height))
 		var tag_fill := Color(1.0, 1.0, 1.0, 1.0) if opaque else Color(accent.r, accent.g, accent.b, 0.10)
 		var tag_border := Color(accent.r, accent.g, accent.b, 0.56 if opaque else 0.34)
-		_draw_ranking_panel(tag_rect, tag_fill, tag_border, int(rect.size.y * 0.5), 1, false)
-		_draw_ranking_text(tag, tag_rect.position + Vector2(0, rect.size.y * 0.68), text_size, Color(accent.r * 0.75, accent.g * 0.75, accent.b * 0.75, 1.0), tag_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_ranking_panel(tag_rect, tag_fill, tag_border, int(row_height * 0.5), 1, false)
+		_draw_ranking_text(fitted_text, tag_rect.position + Vector2(0, row_height * 0.68), fitted_size, Color(accent.r * 0.75, accent.g * 0.75, accent.b * 0.75, 1.0), tag_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
 		x += width + 8.0
 		shown += 1
 
@@ -16883,7 +20836,7 @@ func _draw_character_select_weapon_line(rect: Rect2, view: Dictionary, name_key:
 	if icon != null:
 		var icon_size: float = minf(rect.size.y, 30.0)
 		var icon_rect := Rect2(rect.position, Vector2(icon_size, icon_size))
-		draw_texture_rect(icon, icon_rect, false)
+		draw_texture_rect(icon, _fit_texture_rect(icon_rect, icon.get_size()), false)
 		text_x += icon_size + 8.0
 	_draw_ranking_text(_short_pause_text("%s%s" % [prefix, String(view.get(name_key, "未設定"))], 22), Vector2(text_x, rect.position.y + 23), 16, accent, rect.end.x - text_x)
 
@@ -18098,6 +22051,7 @@ func _draw_gift_choice_card_contents() -> void:
 		var gift_level: int = 0 if is_pp else GiftSystemScript.gift_level_for_target(self, String(gift["id"]))
 		var category: String = GiftSystemScript.gift_category_tag(gift)
 		var display_name: String = String(gift.get("displayName", "パワーアップポイント")) if is_pp else EquipmentSystem.display_name_for_card(gift, gift_level)
+		display_name = GiftSystemScript.gift_card_display_name(gift, display_name)
 		var quality_label: String = GiftSystemScript.gift_quality_label(gift)
 		var quality: String = GiftSystemScript.gift_quality(gift)
 		var quality_color: Color = GiftSystemScript.gift_quality_color(gift)
@@ -18117,7 +22071,8 @@ func _draw_gift_choice_card_contents() -> void:
 				draw_circle(Vector2(center_x, rect.position.y + 110.0), 31.0, Color("#fff4fb"))
 				_draw_centered_card_text("PP", center_x, rect.position.y + 118.0, 58.0, 25, Color("#df3e8f"))
 		elif texture != null:
-			draw_texture_rect(texture, Rect2(Vector2(center_x - 34.0, rect.position.y + 76.0), Vector2(68.0, 68.0)), false)
+			var icon_area := Rect2(Vector2(center_x - 34.0, rect.position.y + 76.0), Vector2(68.0, 68.0))
+			draw_texture_rect(texture, _fit_texture_rect(icon_area, texture.get_size()), false)
 		elif not EquipmentSystem.is_instant(gift):
 			var fallback_icon: String = DrawDataSystemScript.equipment_icon(String(gift.get("id", "")), EquipmentSystem.is_weapon(gift))
 			_draw_centered_card_text(fallback_icon, center_x, rect.position.y + 110.0, rect.size.x - 28.0, 34, Color("#e73763"))
@@ -18298,11 +22253,11 @@ func _draw_comment_choice_card_contents() -> void:
 	for i in range(mini(offered_comments.size(), 3)):
 		var comment: Dictionary = offered_comments[i] as Dictionary
 		var rect: Rect2 = _comment_choice_card_rect(i)
-		if String(comment.get("category", "")) == "boss_support":
-			_draw_relay_boss_support_comment_card(rect, comment, i)
-			continue
 		var has_heart: bool = i < heart_cards.size() and bool(heart_cards[i])
 		var view: Dictionary = CommentSystemScript.comment_view(comment, has_heart)
+		if String(comment.get("category", "")) == "boss_support":
+			_draw_relay_boss_support_comment_card(rect, view, i)
+			continue
 		var risk: int = int(view["riskLevel"]) if view.has("riskLevel") else 1
 		if i == selected_card:
 			_draw_comment_choice_cursor(rect, risk)
@@ -18326,18 +22281,21 @@ func _draw_comment_choice_card_contents() -> void:
 		var relay_boss_comment := comment_id.begins_with("relay_boss_")
 		var title_char_limit := 11 if relay_boss_comment else (12 if comment_id == "drawing_palette_shuffle" else 8)
 		var title_font_size := 21 if relay_boss_comment else (22 if comment_id == "drawing_palette_shuffle" else 27)
-		var title_lines: Array[String] = _split_card_text(String(view["displayName"]) if view.has("displayName") else "", title_char_limit)
+		var title_lines: Array[String] = _instruction_comment_title_lines(comment_id, String(view.get("displayName", "")), title_char_limit)
 		var title_y: float = rect.position.y + 66.0
 		for line in title_lines.slice(0, 2):
 			_draw_centered_card_text(String(line), center_x, title_y, rect.size.x - 34.0, title_font_size, title_color)
 			title_y += 32.0
+		if bool(view.get("isHeartVariant", false)):
+			_draw_instruction_comment_heart_marker(rect)
 		var description_char_limit := 12 if relay_boss_comment or comment_id == "drawing_palette_shuffle" else 9
 		var desc_lines: Array[String] = _split_card_text(String(view["description"]) if view.has("description") else "", description_char_limit)
 		if icon != null:
 			_draw_instruction_comment_icon(icon, icon_rect, comment_id)
+			_draw_instruction_comment_description_backplate(rect)
 			var icon_desc_y: float = rect.position.y + 220.0
 			for line in desc_lines.slice(0, 2):
-				_draw_centered_card_text(String(line), center_x, icon_desc_y, rect.size.x - 42.0, 18, sub_color)
+				_draw_centered_card_text_with_outline(String(line), center_x, icon_desc_y, rect.size.x - 42.0, 18, sub_color, Color(0.05, 0.01, 0.06, 0.88))
 				icon_desc_y += 21.0
 		else:
 			var desc_y: float = rect.position.y + 158.0
@@ -18369,6 +22327,38 @@ func _draw_do_everything_special_card(rect: Rect2, view: Dictionary) -> void:
 	_draw_text_item({"pos": rect.position + Vector2(188.0, 44.0), "text": name, "width": 230, "size": 31, "color": Color("#e73763")})
 	_draw_text_item({"pos": rect.position + Vector2(422.0, 40.0), "text": "上の3つを全部発動", "width": 210, "size": 22, "color": Color("#5b2a4c")})
 	_draw_text_item({"pos": rect.position + Vector2(638.0, 40.0), "text": "x%.1f / +%d" % [float(view.get("multiplier", 5.0)), int(view.get("giftHypeOnSelect", 70))], "width": 150, "size": 24, "color": Color("#ff8a36")})
+	if bool(view.get("isHeartVariant", false)):
+		_draw_instruction_comment_heart_marker(rect, true)
+
+func _draw_instruction_comment_heart_marker(rect: Rect2, special_card: bool = false) -> void:
+	var center := rect.position + (Vector2(rect.size.x - 20.0, 19.0) if special_card else Vector2(rect.size.x - 28.0, 27.0))
+	draw_circle(center, 16.0, Color(0.15, 0.02, 0.10, 0.76))
+	var texture := TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, INSTRUCTION_COMMENT_HEART_MARKER_IMAGE)
+	if texture != null:
+		draw_texture_rect(texture, Rect2(center - Vector2(15.0, 15.0), Vector2(30.0, 30.0)), false)
+	else:
+		draw_circle(center, 13.0, Color("#ff5ca8"))
+
+func _instruction_comment_title_lines(comment_id: String, title: String, default_limit: int) -> Array[String]:
+	var natural_split_indices := {
+		"hide_hp": 7,
+		"genre_change": 4,
+		"force_race": 5,
+		"hard_pressure_wave": 6,
+		"game_genre_mix": 4,
+		"relay_boss_small_arena": 9
+	}
+	if not title.contains("\n") and natural_split_indices.has(comment_id):
+		var split_index := clampi(int(natural_split_indices[comment_id]), 1, maxi(1, title.length() - 1))
+		return [title.substr(0, split_index), title.substr(split_index)]
+	return _split_card_text(title, default_limit)
+
+func _draw_instruction_comment_description_backplate(rect: Rect2) -> void:
+	var band := Rect2(rect.position + Vector2(20.0, 204.0), Vector2(rect.size.x - 40.0, 49.0))
+	draw_rect(Rect2(band.position - Vector2(0.0, 8.0), Vector2(band.size.x, 8.0)), Color(0.04, 0.01, 0.05, 0.13))
+	draw_rect(Rect2(band.position - Vector2(0.0, 3.0), Vector2(band.size.x, 8.0)), Color(0.04, 0.01, 0.05, 0.26))
+	draw_rect(band, Color(0.04, 0.01, 0.05, 0.48))
+	draw_line(Vector2(band.position.x + 9.0, band.end.y), Vector2(band.end.x - 9.0, band.end.y), Color(1.0, 0.78, 0.92, 0.18), 1.0)
 
 func _draw_relay_boss_support_comment_card(rect: Rect2, comment: Dictionary, index: int) -> void:
 	var selected := index == selected_card
@@ -18394,6 +22384,8 @@ func _draw_relay_boss_support_comment_card(rect: Rect2, comment: Dictionary, ind
 	_draw_centered_card_text(line_one, rect.get_center().x, rect.position.y + 234.0, rect.size.x - 36.0, 19, Color("#5b4660"))
 	_draw_centered_card_text(line_two, rect.get_center().x, rect.position.y + 258.0, rect.size.x - 36.0, 19, Color("#5b4660"))
 	_draw_centered_card_text("15秒", rect.get_center().x, rect.position.y + 292.0, rect.size.x - 36.0, 17, Color("#b47b20"))
+	if bool(comment.get("isHeartVariant", false)):
+		_draw_instruction_comment_heart_marker(rect)
 	if selected:
 		_draw_comment_choice_cursor(rect, 4)
 
@@ -18496,19 +22488,36 @@ func _draw_comment_choice_footer() -> void:
 	_draw_centered_card_text("自動選択まで %.1fs　　1 / 2 / 3 で選択" % [remain], footer_rect.position.x + footer_rect.size.x * 0.5, footer_rect.position.y + 21.0, footer_rect.size.x - 18.0, 19, text_color)
 
 func _draw_gift_card_name(display_name: String, center_x: float, y: float, width: float, color: Color) -> void:
+	var name_lines: Array[String] = []
+	for raw_line in display_name.split("\n", false):
+		name_lines.append(String(raw_line))
 	var text_length: int = display_name.length()
-	if text_length <= 12:
+	var font := GameFontSystemScript.regular_font()
+	if name_lines.size() <= 1:
 		var font_size: int = 20
 		if text_length >= 9:
 			font_size = 18
 		if text_length >= 11:
 			font_size = 17
-		_draw_centered_card_text(display_name, center_x, y, width, font_size, color)
-		return
-	var name_lines: Array[String] = _split_card_text(display_name, 9)
+		var rendered_width := font.get_string_size(display_name, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		if rendered_width <= maxf(1.0, width - 2.0):
+			_draw_centered_card_text(display_name, center_x, y, width, font_size, color)
+			return
+		var split_index := int(ceil(float(text_length) * 0.5))
+		name_lines = [display_name.substr(0, split_index), display_name.substr(split_index)]
+	var line_font_size := 18
+	while line_font_size > 15:
+		var all_lines_fit := true
+		for line in name_lines.slice(0, 2):
+			if font.get_string_size(String(line), HORIZONTAL_ALIGNMENT_LEFT, -1, line_font_size).x > width - 2.0:
+				all_lines_fit = false
+				break
+		if all_lines_fit:
+			break
+		line_font_size -= 1
 	var line_y: float = y - 9.0
 	for line in name_lines.slice(0, 2):
-		_draw_centered_card_text(String(line), center_x, line_y, width, 18, color)
+		_draw_centered_card_text(String(line), center_x, line_y, width, line_font_size, color)
 		line_y += 20.0
 
 func _draw_centered_card_text(text: String, center_x: float, y: float, width: float, size: int, color: Color) -> void:
@@ -18568,7 +22577,7 @@ func _draw_comment_storm() -> void:
 	_reset_world_transform()
 	var samples: Array[String] = _comment_storm_samples_from_chat_lines()
 	var slot_samples: Array[String] = _comment_storm_slot_samples(samples)
-	for item in DrawDataSystemScript.comment_storm_draw_data(FIELD_VIEW, elapsed, comment_barrage_setting, kuso_chat_timer > 0.0, slot_samples):
+	for item in DrawDataSystemScript.comment_storm_draw_data(FIELD_VIEW, elapsed, comment_barrage_setting, kuso_chat_timer > 0.0, slot_samples, _comment_storm_amount_override()):
 		var data: Dictionary = item as Dictionary
 		var shadow: Dictionary = data.duplicate()
 		var color: Color = data["color"] as Color
@@ -18599,7 +22608,7 @@ func _comment_storm_samples_from_chat_lines() -> Array[String]:
 	return samples
 
 func _comment_storm_slot_samples(candidates: Array[String]) -> Array[String]:
-	var style: Dictionary = DrawDataSystemScript.comment_storm_style(comment_barrage_setting, kuso_chat_timer > 0.0)
+	var style: Dictionary = DrawDataSystemScript.comment_storm_style(comment_barrage_setting, kuso_chat_timer > 0.0, _comment_storm_amount_override())
 	var amount := int(style["amount"])
 	if comment_storm_slot_texts.size() > amount:
 		comment_storm_slot_texts.resize(amount)
@@ -18614,6 +22623,23 @@ func _comment_storm_slot_samples(candidates: Array[String]) -> Array[String]:
 			comment_storm_slot_cycles[i] = cycle
 			comment_storm_slot_texts[i] = _next_comment_storm_sample(candidates)
 	return comment_storm_slot_texts
+
+func _comment_storm_amount_override() -> int:
+	var runtime: Dictionary = HardModeSystemScript.runtime_for_target(self)
+	if runtime.is_empty():
+		return -1
+	var value: Variant = HardModeSystemScript.active_comment_value_for_id(runtime, "comment_barrage", "barrageCountBySetting", null)
+	var rate := HardModeSystemScript.active_comment_param_for_id(runtime, "comment_barrage", "barrageCountRate", 1.0)
+	if value is Array:
+		var counts: Array = value as Array
+		var index := clampi(comment_barrage_setting, 0, counts.size() - 1)
+		if counts.is_empty():
+			return -1
+		return maxi(1, roundi(float(counts[index]) * rate))
+	if is_equal_approx(rate, 1.0):
+		return -1
+	var base_counts: Array[int] = [13, 24, 38]
+	return maxi(1, roundi(float(base_counts[clampi(comment_barrage_setting, 0, 2)]) * rate))
 
 func _comment_storm_cycle_for_slot(index: int) -> int:
 	var travel_width := FIELD_VIEW.size.x + 520.0
@@ -18727,12 +22753,22 @@ func _draw_genre_event_timer() -> void:
 	var accent := _genre_event_timer_accent_color(active_genre_event)
 	var urgent := genre_event_timer <= 3.0
 	var pulse := (0.5 + 0.5 * sin(elapsed * 9.0)) if urgent else 0.0
+	var boss_genre_hud := boss_genre_visual_active and genre_event_source == "boss"
+	if boss_genre_hud:
+		pulse = maxf(pulse, 0.5 + 0.5 * sin(elapsed * 12.0 + boss_genre_visual_seed))
 	var alpha := 0.92 + pulse * 0.08
 	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(20.0, 10.0), 0.16 * alpha)
 	draw_rect(rect.grow(3.0), Color(1.0, 0.78, 0.90, 0.16 * alpha), true)
 	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.88 * alpha), true)
 	draw_rect(rect, Color(accent.r, accent.g, accent.b, (0.76 + pulse * 0.18) * alpha), false, 3)
 	draw_rect(rect.grow(-5.0), Color(1.0, 0.75, 0.92, 0.18 * alpha), false, 1)
+	if boss_genre_hud:
+		draw_rect(Rect2(rect.position + Vector2(-2.0, 1.0), rect.size), Color(0.10, 0.92, 1.0, 0.22 + pulse * 0.08), false, 1)
+		draw_rect(Rect2(rect.position + Vector2(2.0, -1.0), rect.size), Color(1.0, 0.08, 0.66, 0.18 + pulse * 0.08), false, 1)
+		for i in range(3):
+			var y := rect.position.y + 10.0 + float(i) * 16.0
+			var x := rect.position.x + 8.0 + float((int(elapsed * 16.0) + i * 37) % 150)
+			draw_rect(Rect2(Vector2(x, y), Vector2(12.0 + float(i) * 4.0, 2.0)), Color(0.20, 0.88, 1.0, 0.24), true)
 	_draw_text_item(
 		{
 			"pos": rect.position + Vector2(14.0, 24.0),
@@ -18889,7 +22925,7 @@ func _song_live_heat_move_speed_multiplier() -> float:
 		value *= SONG_LIVE_HEAT_LV1_MOVE_RATE
 	if song_live_heat_level >= 5:
 		value *= SONG_LIVE_HEAT_LV5_MOVE_RATE
-	value *= _song_instruction_multiplier("song_tempo_up", 1.08)
+	value *= _song_instruction_multiplier("song_tempo_up", _comment_runtime_param("song_tempo_up", "playerMoveSpeedMultiplier", 1.0))
 	return value
 
 func _song_dash_cooldown_recovery_multiplier() -> float:
@@ -18898,7 +22934,7 @@ func _song_dash_cooldown_recovery_multiplier() -> float:
 func _song_enemy_move_speed_multiplier() -> float:
 	if not _is_song_frame():
 		return 1.0
-	return _song_instruction_multiplier("song_tempo_up", 1.22)
+	return _song_instruction_multiplier("song_tempo_up", _comment_runtime_param("song_tempo_up", "enemyMoveSpeedMultiplier", 1.0))
 
 func _song_live_heat_pickup_range_multiplier() -> float:
 	if not _is_song_frame():
@@ -18993,8 +23029,8 @@ func _song_instruction_enemy_spawn_multiplier() -> float:
 	if not _is_song_frame():
 		return 1.0
 	var value := 1.0
-	value *= _song_instruction_multiplier("song_tempo_up", 1.15)
-	value *= _song_instruction_multiplier("song_force_chorus", 1.35)
+	value *= _song_instruction_multiplier("song_tempo_up", _comment_runtime_param("song_tempo_up", "enemySpawnMultiplier", 1.0))
+	value *= _song_instruction_multiplier("song_force_chorus", _comment_runtime_param("song_force_chorus", "forcedChorusEnemySpawnMultiplier", 1.0))
 	return value
 
 func _song_comment_enemy_spawn_bias() -> float:
@@ -19003,7 +23039,7 @@ func _song_comment_enemy_spawn_bias() -> float:
 func _song_note_lifetime_multiplier() -> float:
 	if not _is_song_frame():
 		return 1.0
-	return _song_instruction_multiplier("song_tempo_up", 0.80)
+	return _song_instruction_multiplier("song_tempo_up", _comment_runtime_param("song_tempo_up", "noteLifetimeMultiplier", 1.0))
 
 func _song_note_live_heat_gain_multiplier() -> float:
 	if relay_mode and current_stream_frame_id == "singing":
@@ -19015,6 +23051,30 @@ func _song_instruction_power(comment_id: String) -> float:
 	if not _is_song_frame():
 		return 0.0
 	return clampf(ModifierSystemScript.effect_rate_for_target(self, comment_id), 0.0, 1.0)
+
+func _comment_runtime_param(comment_id: String, key: String, fallback: float = 1.0) -> float:
+	return HardModeSystemScript.active_comment_param_for_id(HardModeSystemScript.runtime_for_target(self), comment_id, key, fallback)
+
+func _active_instruction_comment_view(comment_id: String = "") -> Dictionary:
+	var runtime := HardModeSystemScript.runtime_for_target(self)
+	if runtime.is_empty():
+		return {}
+	var views: Dictionary = runtime.get("activeCommentViews", {}) as Dictionary
+	if comment_id != "" and views.get(comment_id) is Dictionary:
+		return (views.get(comment_id, {}) as Dictionary).duplicate(true)
+	var active: Dictionary = runtime.get("activeCommentView", runtime.get("activeComment", {})) as Dictionary
+	if comment_id == "" or String(active.get("id", "")) == comment_id:
+		return active.duplicate(true)
+	return {}
+
+func _instruction_comment_heart_active(comment_id: String = "") -> bool:
+	var view := _active_instruction_comment_view(comment_id)
+	if not view.is_empty():
+		return bool(view.get("isHeartVariant", false))
+	if comment_id == "":
+		return false
+	var power := ModifierSystemScript.effect_rate_for_target(self, comment_id)
+	return power > 0.0 and power < 0.95
 
 func _song_instruction_multiplier(comment_id: String, active_value: float) -> float:
 	var power := _song_instruction_power(comment_id)
@@ -19291,6 +23351,13 @@ func _reset_song_chorus_state() -> void:
 	song_boss_chorus_judge_notice_title = ""
 	song_boss_chorus_judge_notice_subtitle = ""
 	song_boss_chorus_judge_notice_success = false
+	song_boss_chorus_judge_visual_phase = ""
+	song_boss_chorus_judge_visual_timer = 0.0
+	song_boss_chorus_judge_visual_duration = 0.0
+	song_boss_chorus_judge_start_pulse_timer = 0.0
+	song_boss_chorus_judge_collect_pulse_timer = 0.0
+	song_boss_chorus_judge_completion_timer = 0.0
+	song_boss_chorus_judge_pip_pulse_timers = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	song_boss_megaphone_waves.clear()
 	song_encore_timer = 0.0
 	song_encore_triggered = false
@@ -19316,6 +23383,21 @@ func _update_song_chorus_overlay_timers(delta: float) -> void:
 		song_octave_bonus_notice_timer = maxf(0.0, song_octave_bonus_notice_timer - delta)
 	if song_boss_chorus_judge_notice_timer > 0.0:
 		song_boss_chorus_judge_notice_timer = maxf(0.0, song_boss_chorus_judge_notice_timer - delta)
+	var chorus_result_visual_running := song_boss_chorus_judge_visual_phase in ["success", "fail"]
+	if song_boss_chorus_judge_visual_timer > 0.0 and (not chorus_result_visual_running or state == "playing"):
+		song_boss_chorus_judge_visual_timer = maxf(0.0, song_boss_chorus_judge_visual_timer - delta)
+		if song_boss_chorus_judge_visual_timer <= 0.0 and song_boss_chorus_judge_visual_phase in ["success", "fail"]:
+			song_boss_chorus_judge_visual_phase = ""
+	if song_boss_chorus_judge_start_pulse_timer > 0.0:
+		song_boss_chorus_judge_start_pulse_timer = maxf(0.0, song_boss_chorus_judge_start_pulse_timer - delta)
+	if song_boss_chorus_judge_collect_pulse_timer > 0.0:
+		song_boss_chorus_judge_collect_pulse_timer = maxf(0.0, song_boss_chorus_judge_collect_pulse_timer - delta)
+	if song_boss_chorus_judge_completion_timer > 0.0:
+		song_boss_chorus_judge_completion_timer = maxf(0.0, song_boss_chorus_judge_completion_timer - delta)
+	for pip_index in range(song_boss_chorus_judge_pip_pulse_timers.size()):
+		var pip_timer := float(song_boss_chorus_judge_pip_pulse_timers[pip_index])
+		if pip_timer > 0.0:
+			song_boss_chorus_judge_pip_pulse_timers[pip_index] = maxf(0.0, pip_timer - delta)
 	if song_max_octave_audience_call_wave_cooldown > 0.0:
 		song_max_octave_audience_call_wave_cooldown = maxf(0.0, song_max_octave_audience_call_wave_cooldown - delta)
 	_update_song_live_heat_level_notice(delta)
@@ -19561,37 +23643,34 @@ func _drawing_instruction_variant_value(comment_id: String, inactive_value: floa
 	return heart_value
 
 func _drawing_fast_dry_lifetime_multiplier() -> float:
-	var hard_lifetime := HardModeSystemScript.active_comment_param(difficulty_runtime, "trailLifetime", -1.0)
+	var hard_lifetime := _comment_runtime_param("drawing_fast_dry", "trailLifetime", -1.0)
 	if HardModeSystemScript.is_high_difficulty_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_fast_dry") and hard_lifetime > 0.0:
 		return hard_lifetime / maxf(0.01, DRAWING_TRAIL_LIFETIME)
 	return _drawing_instruction_variant_value("drawing_fast_dry", 1.0, 0.5, 8.0 / 12.0)
 
 func _drawing_too_much_paint_width_multiplier() -> float:
-	return _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.4, 1.25)
+	var configured := _comment_runtime_param("drawing_too_much_paint", "trailWidthMultiplier", -1.0)
+	return configured if configured > 0.0 and _drawing_instruction_power("drawing_too_much_paint") > 0.0 else _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.4, 1.25)
 
 func _drawing_too_much_paint_cost_multiplier() -> float:
-	var hard_cost := HardModeSystemScript.active_comment_param(difficulty_runtime, "paintCostMultiplier", -1.0)
+	var hard_cost := _comment_runtime_param("drawing_too_much_paint", "paintCostMultiplier", -1.0)
 	if HardModeSystemScript.is_high_difficulty_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_too_much_paint") and hard_cost > 0.0:
 		return hard_cost
 	return _drawing_instruction_variant_value("drawing_too_much_paint", 1.0, 1.6, 1.3)
 
 func _drawing_palette_gray_paint_rate() -> float:
-	return _drawing_instruction_variant_value("drawing_palette_shuffle", 0.0, 1.0, DRAWING_PALETTE_SHUFFLE_WEAK_GRAY_RATE)
+	if _drawing_instruction_power("drawing_palette_shuffle") <= 0.0:
+		return 0.0
+	return clampf(_comment_runtime_param("drawing_palette_shuffle", "grayPaintRate", 0.0), 0.0, 1.0)
 
 func _drawing_more_corrections_burst_count() -> int:
-	var hard_burst := HardModeSystemScript.active_comment_param(difficulty_runtime, "correctionBurst", -1.0)
-	if HardModeSystemScript.is_high_difficulty_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_more_corrections") and hard_burst >= 0.0:
-		return int(round(hard_burst))
-	return int(round(_drawing_instruction_variant_value("drawing_more_corrections", 0.0, 2.0, 1.0)))
+	return maxi(0, roundi(_comment_runtime_param("drawing_more_corrections", "correctionBurst", 0.0)))
 
 func _drawing_more_corrections_reward_multiplier() -> float:
-	var hard_reward := HardModeSystemScript.active_comment_param(difficulty_runtime, "correctionRewardMultiplier", -1.0)
-	if HardModeSystemScript.is_high_difficulty_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_more_corrections") and hard_reward > 0.0:
-		return hard_reward
-	return _drawing_instruction_variant_value("drawing_more_corrections", 1.0, 1.3, 1.15)
+	return maxf(0.0, _comment_runtime_param("drawing_more_corrections", "correctionRewardMultiplier", 1.0))
 
 func _drawing_spilled_bucket_count() -> int:
-	var hard_spill := HardModeSystemScript.active_comment_param(difficulty_runtime, "spillCount", -1.0)
+	var hard_spill := _comment_runtime_param("drawing_spilled_bucket", "spillCount", -1.0)
 	if HardModeSystemScript.is_high_difficulty_runtime(difficulty_runtime) and ModifierSystemScript.has_effect_for_target(self, "drawing_spilled_bucket") and hard_spill >= 0.0:
 		return int(round(hard_spill))
 	return int(round(_drawing_instruction_variant_value("drawing_spilled_bucket", 0.0, 6.0, 3.0)))
@@ -19779,7 +23858,10 @@ func _song_note_orb_texture(orb_index: int, locked: bool) -> Texture2D:
 func _start_song_mic_howling(arena: Rect2) -> void:
 	song_howling_emitters.clear()
 	song_howling_waves.clear()
-	for i in range(SONG_HOWLING_EMITTER_COUNT):
+	var emitter_count := SONG_HOWLING_EMITTER_COUNT
+	var configured_count := _comment_runtime_param("song_mic_howling", "emitterCount", float(SONG_HOWLING_EMITTER_COUNT))
+	emitter_count = maxi(1, roundi(configured_count))
+	for i in range(emitter_count):
 		song_howling_emitters.append({
 			"pos": _song_instruction_position(arena, 40.0, 260.0, 520.0),
 			"timer": 0.28 + float(i) * 0.72,
@@ -19798,17 +23880,23 @@ func _update_song_howling_instruction(delta: float, arena: Rect2) -> void:
 		emitter["timer"] = float(emitter.get("timer", 0.0)) - delta
 		if float(emitter["timer"]) <= 0.0:
 			_spawn_song_howling_wave(Vector2(emitter.get("pos", player_pos)))
-			emitter["timer"] = SONG_HOWLING_WAVE_INTERVAL + rng.randf_range(-0.18, 0.22)
+			var wave_interval := SONG_HOWLING_WAVE_INTERVAL * _comment_runtime_param("song_mic_howling", "waveIntervalRate", 1.0)
+			wave_interval = _comment_runtime_param("song_mic_howling", "waveInterval", wave_interval)
+			emitter["timer"] = wave_interval + rng.randf_range(-0.18, 0.22)
 		song_howling_emitters[i] = emitter
 	for i in range(song_howling_waves.size() - 1, -1, -1):
 		var wave: Dictionary = song_howling_waves[i] as Dictionary
 		wave["age"] = float(wave.get("age", 0.0)) + delta
 		var age := float(wave.get("age", 0.0))
-		var life := SONG_HOWLING_TELEGRAPH_DURATION + SONG_HOWLING_WAVE_EXPAND_DURATION
-		var active := age >= SONG_HOWLING_TELEGRAPH_DURATION
+		var telegraph_duration := maxf(0.01, float(wave.get("telegraphDuration", 0.01)))
+		var expand_duration := maxf(0.01, float(wave.get("expandDuration", 0.01)))
+		var start_radius := maxf(0.0, float(wave.get("startRadius", 0.0)))
+		var end_radius := maxf(start_radius, float(wave.get("endRadius", start_radius)))
+		var life := telegraph_duration + expand_duration
+		var active := age >= telegraph_duration
 		if active and not bool(wave.get("hitPlayer", false)):
-			var progress := clampf((age - SONG_HOWLING_TELEGRAPH_DURATION) / maxf(0.01, SONG_HOWLING_WAVE_EXPAND_DURATION), 0.0, 1.0)
-			var radius := lerpf(SONG_HOWLING_WAVE_START_RADIUS, SONG_HOWLING_WAVE_END_RADIUS, progress)
+			var progress := clampf((age - telegraph_duration) / expand_duration, 0.0, 1.0)
+			var radius := lerpf(start_radius, end_radius, progress)
 			var origin := Vector2(wave.get("pos", player_pos))
 			var dist := player_pos.distance_to(origin)
 			if absf(dist - radius) <= SONG_HOWLING_WAVE_THICKNESS:
@@ -19816,7 +23904,7 @@ func _update_song_howling_instruction(delta: float, arena: Rect2) -> void:
 				var push_dir := player_pos - origin
 				if push_dir.length_squared() > 0.01:
 					player_vel += push_dir.normalized() * SONG_HOWLING_PLAYER_KNOCKBACK
-				_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "song_howling_wave", "damage": SONG_HOWLING_DAMAGE}]))
+				_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "song_howling_wave", "damage": float(wave.get("damage", 0.0))}]))
 		if age >= life:
 			song_howling_waves.remove_at(i)
 		else:
@@ -19827,14 +23915,19 @@ func _spawn_song_howling_wave(pos: Vector2) -> void:
 		"pos": pos,
 		"age": 0.0,
 		"hitPlayer": false,
-		"phase": rng.randf_range(0.0, TAU)
+		"phase": rng.randf_range(0.0, TAU),
+		"telegraphDuration": maxf(0.01, _comment_runtime_param("song_mic_howling", "telegraphDuration", 0.01)),
+		"expandDuration": maxf(0.01, _comment_runtime_param("song_mic_howling", "waveExpandDuration", 0.01)),
+		"startRadius": maxf(0.0, _comment_runtime_param("song_mic_howling", "waveStartRadius", 0.0)),
+		"endRadius": maxf(0.0, _comment_runtime_param("song_mic_howling", "waveEndRadius", 0.0)),
+		"damage": maxf(0.0, _comment_runtime_param("song_mic_howling", "damage", 0.0))
 	})
 
 func _start_song_lighting_mistake(arena: Rect2) -> void:
 	song_bad_lights.clear()
 	song_bad_light_respawn_timer = 0.0
 	song_bad_light_inside = false
-	_spawn_song_bad_lights(SONG_BAD_LIGHT_COUNT, arena)
+	_spawn_song_bad_lights(maxi(1, roundi(_comment_runtime_param("song_lighting_mistake", "badLightCount", SONG_BAD_LIGHT_COUNT))), arena)
 
 func _update_song_bad_lights(delta: float, arena: Rect2) -> void:
 	if not _song_lighting_mistake_active():
@@ -19849,16 +23942,20 @@ func _update_song_bad_lights(delta: float, arena: Rect2) -> void:
 		if float(light.get("time", 0.0)) <= 0.0:
 			song_bad_lights.remove_at(i)
 		else:
+			var light_phase := float(light.get("phase", 0.0)) + float(light.get("time", 0.0)) * 0.35
+			var move_rate := _comment_runtime_param("song_lighting_mistake", "badLightMoveSpeedRate", 1.0)
+			light["pos"] = Vector2(light.get("pos", Vector2.ZERO)) + Vector2(cos(light_phase), sin(light_phase * 1.13)) * 18.0 * move_rate * delta
 			song_bad_lights[i] = light
-	if song_bad_lights.size() < SONG_BAD_LIGHT_COUNT:
+	var bad_light_count := maxi(1, roundi(_comment_runtime_param("song_lighting_mistake", "badLightCount", SONG_BAD_LIGHT_COUNT)))
+	if song_bad_lights.size() < bad_light_count:
 		song_bad_light_respawn_timer = maxf(0.0, song_bad_light_respawn_timer - delta)
 		if song_bad_light_respawn_timer <= 0.0:
 			_spawn_song_bad_lights(1, arena)
-			song_bad_light_respawn_timer = SONG_BAD_LIGHT_RESPAWN_DELAY
+			song_bad_light_respawn_timer = maxf(0.05, _comment_runtime_param("song_lighting_mistake", "badLightRespawnDelay", 0.05))
 	song_bad_light_inside = false
 	for item in song_bad_lights:
 		var light2: Dictionary = item as Dictionary
-		var radius := float(light2.get("radius", SONG_BAD_LIGHT_RADIUS))
+		var radius := float(light2.get("radius", 1.0))
 		if player_pos.distance_squared_to(Vector2(light2.get("pos", Vector2.ZERO))) <= radius * radius:
 			song_bad_light_inside = true
 			break
@@ -19877,12 +23974,13 @@ func _show_song_bad_light_attack_stop_notice() -> void:
 	})
 
 func _spawn_song_bad_lights(count: int, arena: Rect2) -> void:
+	var radius := maxf(1.0, _comment_runtime_param("song_lighting_mistake", "badLightRadius", 1.0))
 	for i in range(maxi(0, count)):
 		song_bad_lights.append({
-			"pos": _song_instruction_position(arena, SONG_BAD_LIGHT_RADIUS, 180.0, 520.0),
-			"radius": SONG_BAD_LIGHT_RADIUS,
-			"time": SONG_BAD_LIGHT_LIFETIME,
-			"maxTime": SONG_BAD_LIGHT_LIFETIME,
+			"pos": _song_instruction_position(arena, radius, 180.0, 520.0),
+			"radius": radius,
+			"time": _comment_runtime_param("song_lighting_mistake", "badLightLifetime", SONG_BAD_LIGHT_LIFETIME),
+			"maxTime": _comment_runtime_param("song_lighting_mistake", "badLightLifetime", SONG_BAD_LIGHT_LIFETIME),
 			"phase": rng.randf_range(0.0, TAU)
 		})
 
@@ -19893,7 +23991,8 @@ func _start_song_lyrics_lost(arena: Rect2) -> void:
 	_spawn_song_lyrics_card(arena)
 
 func _spawn_song_lyrics_card(arena: Rect2) -> void:
-	var card_lifetime := maxf(SONG_LYRICS_CARD_LIFETIME, float(effect_timer))
+	var configured_lifetime := _comment_runtime_param("song_lyrics_lost", "lyricsCardLifetime", SONG_LYRICS_CARD_LIFETIME)
+	var card_lifetime := minf(configured_lifetime, maxf(0.1, float(effect_timer)))
 	if not song_lyrics_card_has_locked_pos:
 		song_lyrics_card_locked_pos = _song_lyrics_card_position(arena)
 		song_lyrics_card_has_locked_pos = true
@@ -19953,8 +24052,8 @@ func _start_song_chorus_telegraph() -> void:
 func _start_song_chorus(arena: Rect2, forced: bool = false) -> void:
 	song_chorus_count += 1
 	song_forced_chorus_active = forced
-	song_chorus_current_duration = 8.0 if forced else SONG_CHORUS_DURATION
-	song_chorus_reward_multiplier = 0.5 if forced else 1.0
+	song_chorus_current_duration = _comment_runtime_param("song_force_chorus", "forcedChorusDuration", 8.0) if forced else SONG_CHORUS_DURATION
+	song_chorus_reward_multiplier = _comment_runtime_param("song_force_chorus", "forcedChorusResultRewardMultiplier", 1.0) if forced else 1.0
 	song_chorus_timer = song_chorus_current_duration
 	song_chorus_banner_timer = SONG_CHORUS_BANNER_DURATION
 	song_chorus_notes_collected = 0
@@ -19968,11 +24067,13 @@ func _start_song_chorus(arena: Rect2, forced: bool = false) -> void:
 	if song_encore_timer > 0.0:
 		note_count = int(round(float(note_count) * 1.8))
 	if forced:
-		note_count = maxi(4, int(round(float(note_count) * 0.85)))
+		var forced_note_rate := _comment_runtime_param("song_force_chorus", "forcedChorusNoteCountMultiplier", 1.0)
+		note_count = maxi(4, int(round(float(note_count) * forced_note_rate)))
 	_spawn_song_notes(note_count, arena)
 	var spotlight_max := mini(_song_max_spotlights(), SONG_SPOTLIGHT_COUNT_MAX + (1 if song_encore_timer > 0.0 else 0))
 	if forced:
-		spotlight_max = mini(spotlight_max, 1)
+		var forced_spotlight_max := maxi(1, roundi(_comment_runtime_param("song_force_chorus", "forcedChorusSpotlightMax", 1.0)))
+		spotlight_max = mini(spotlight_max, forced_spotlight_max)
 	var spotlight_min := mini(SONG_SPOTLIGHT_COUNT_MIN, spotlight_max)
 	_spawn_song_spotlights(rng.randi_range(spotlight_min, spotlight_max), arena)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["* サビタイム！", "+ 音符集めろ！", "+ スポットライト入ろう"]}, chat_box)
@@ -20109,7 +24210,8 @@ func _song_lyrics_card_position(arena: Rect2) -> Vector2:
 	var rect := _song_lyrics_card_visible_rect(arena).grow(-radius)
 	if not rect.has_area():
 		rect = arena.grow(-(radius + 36.0))
-	var min_sq := SONG_LYRICS_CARD_MIN_DISTANCE * SONG_LYRICS_CARD_MIN_DISTANCE
+	var min_distance := SONG_LYRICS_CARD_MIN_DISTANCE * _comment_runtime_param("song_lyrics_lost", "minimumSpawnDistanceRate", 1.0)
+	var min_sq := min_distance * min_distance
 	var max_sq := SONG_LYRICS_CARD_MAX_DISTANCE * SONG_LYRICS_CARD_MAX_DISTANCE
 	var best_pos := Vector2.ZERO
 	var best_dist_sq := -1.0
@@ -20205,6 +24307,9 @@ func _update_song_notes(delta: float) -> void:
 	var lyrics_locked := _song_notes_locked_by_lyrics_lost()
 	for i in range(song_notes.size() - 1, -1, -1):
 		var note: Dictionary = song_notes[i] as Dictionary
+		if String(note.get("noteTag", "")) == "chorus_judge_note":
+			note["judgeVisualAge"] = float(note.get("judgeVisualAge", 0.0)) + delta
+			song_notes[i] = note
 		if not lyrics_locked and not bool(note.get("chorus", true)) and note.has("time"):
 			note["time"] = float(note.get("time", 0.0)) - delta
 			if float(note["time"]) <= 0.0:
@@ -20224,11 +24329,19 @@ func _collect_song_note(index: int) -> void:
 	var chorus_note := bool(note.get("chorus", song_chorus_timer > 0.0))
 	if chorus_note:
 		song_chorus_notes_collected += 1
+	var judge_collected_before := song_boss_chorus_judge_collected
 	if song_boss_chorus_judge_active:
 		if song_boss_chorus_judge_required > 0:
 			song_boss_chorus_judge_collected = mini(song_boss_chorus_judge_required, song_boss_chorus_judge_collected + 1)
 		else:
 			song_boss_chorus_judge_collected += 1
+		if song_boss_chorus_judge_collected > judge_collected_before:
+			var collected_pip := clampi(song_boss_chorus_judge_collected - 1, 0, 5)
+			if collected_pip < song_boss_chorus_judge_pip_pulse_timers.size():
+				song_boss_chorus_judge_pip_pulse_timers[collected_pip] = SONG_CHORUS_JUDGE_PIP_PULSE_DURATION
+			song_boss_chorus_judge_collect_pulse_timer = SONG_CHORUS_JUDGE_PIP_PULSE_DURATION
+			if song_boss_chorus_judge_required > 0 and song_boss_chorus_judge_collected >= song_boss_chorus_judge_required:
+				song_boss_chorus_judge_completion_timer = SONG_CHORUS_JUDGE_COMPLETION_DURATION
 	song_total_notes_collected += 1
 	_handle_song_note_scale_combo()
 	var heat_gain := SONG_LIVE_HEAT_CHORUS_NOTE_GAIN if chorus_note else SONG_LIVE_HEAT_NOTE_GAIN
@@ -20365,7 +24478,10 @@ func _update_song_pitch_waves(delta: float) -> void:
 		var wave_rect: Rect2 = wave.get("rect", Rect2()) as Rect2
 		if active and not bool(wave.get("hit", false)) and wave_rect.has_point(player_pos):
 			wave["hit"] = true
-			_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "pitch_wave", "damage": int(wave.get("damage", SONG_PITCH_WAVE_DAMAGE))}]))
+			var damage_feedback := DamageSystemScript.apply_damage_events_for_target(self, [{"source": "pitch_wave", "damage": int(wave.get("damage", SONG_PITCH_WAVE_DAMAGE))}])
+			if bool(damage_feedback.get("damaged", false)):
+				_append_pitch_wave_hit_fx(wave, player_pos)
+			_apply_damage_feedback(damage_feedback)
 		if float(wave.get("time", 0.0)) <= 0.0:
 			song_pitch_waves.remove_at(i)
 		else:
@@ -20373,7 +24489,7 @@ func _update_song_pitch_waves(delta: float) -> void:
 	if song_pitch_wave_cooldown > 0.0:
 		song_pitch_wave_cooldown = maxf(0.0, song_pitch_wave_cooldown - delta)
 
-func _spawn_song_pitch_wave(arena: Rect2, boss_attack: bool = false) -> void:
+func _spawn_song_pitch_wave(arena: Rect2, boss_attack: bool = false, visual_index: int = -1, visual_count: int = 1) -> void:
 	var horizontal := rng.randf() < 0.55
 	var rect: Rect2
 	if horizontal:
@@ -20382,16 +24498,57 @@ func _spawn_song_pitch_wave(arena: Rect2, boss_attack: bool = false) -> void:
 	else:
 		var x := clampf(player_pos.x + rng.randf_range(-180.0, 180.0), arena.position.x + SONG_PITCH_WAVE_WIDTH, arena.end.x - SONG_PITCH_WAVE_WIDTH)
 		rect = Rect2(Vector2(x - SONG_PITCH_WAVE_WIDTH * 0.5, arena.position.y), Vector2(SONG_PITCH_WAVE_WIDTH, arena.size.y))
+	var resolved_visual_index := maxi(0, visual_index if visual_index >= 0 else song_pitch_waves.size())
+	var visual_variant := posmod(resolved_visual_index, 2)
+	var axis_seed := 0.731 if horizontal else 1.947
+	var visual_seed := fposmod(rect.position.x * 0.013 + rect.position.y * 0.017 + axis_seed + float(resolved_visual_index) * 1.618, TAU)
+	var visual_phase := fposmod(visual_seed + float(visual_variant) * 0.37, TAU)
 	song_pitch_waves.append({
 		"rect": rect,
 		"time": SONG_PITCH_WAVE_TELEGRAPH_DURATION + SONG_PITCH_WAVE_ACTIVE_DURATION,
 		"maxTime": SONG_PITCH_WAVE_TELEGRAPH_DURATION + SONG_PITCH_WAVE_ACTIVE_DURATION,
 		"horizontal": horizontal,
 		"damage": HardModeSystemScript.regular_boss_damage_for_target(self, SONG_PITCH_WAVE_DAMAGE) if boss_attack else SONG_PITCH_WAVE_DAMAGE,
+		"bossAttack": boss_attack,
+		"visualIndex": resolved_visual_index,
+		"visualCount": maxi(1, visual_count),
+		"visualVariant": visual_variant,
+		"visualSeed": visual_seed,
+		"visualPhase": visual_phase,
 		"hit": false
 	})
 	song_pitch_wave_cooldown = _song_pitch_wave_interval()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["! 音程ズレ波注意", "> 赤紫のライン避けて"]}, chat_box)
+
+func _clear_song_boss_pitch_waves() -> void:
+	var remaining: Array = []
+	for item in song_pitch_waves:
+		var wave: Dictionary = item as Dictionary
+		if not bool(wave.get("bossAttack", false)):
+			remaining.append(wave)
+	song_pitch_waves = remaining
+
+func _append_pitch_wave_cast_fx(pos: Vector2, radius: float, band_count: int) -> void:
+	hit_fx.append({
+		"kind": "pitch_wave_cast",
+		"pos": pos,
+		"radius": radius,
+		"bandCount": maxi(1, band_count),
+		"visualSeed": fposmod(pos.x * 0.013 + pos.y * 0.017 + float(band_count) * 1.31, TAU),
+		"life": SONG_PITCH_WAVE_CAST_FX_DURATION,
+		"maxLife": SONG_PITCH_WAVE_CAST_FX_DURATION
+	})
+
+func _append_pitch_wave_hit_fx(wave: Dictionary, pos: Vector2) -> void:
+	hit_fx.append({
+		"kind": "pitch_wave_hit",
+		"pos": pos,
+		"horizontal": bool(wave.get("horizontal", true)),
+		"visualSeed": float(wave.get("visualSeed", 0.0)),
+		"visualVariant": int(wave.get("visualVariant", 0)),
+		"life": SONG_PITCH_WAVE_HIT_FX_DURATION,
+		"maxLife": SONG_PITCH_WAVE_HIT_FX_DURATION
+	})
 
 func _show_song_boss_chorus_judge_notice(title: String, subtitle: String, success: bool = false, duration: float = 1.25) -> void:
 	song_boss_chorus_judge_notice_title = title
@@ -20407,6 +24564,13 @@ func _prepare_song_boss_chorus_judge(required: int, duration: float) -> void:
 	song_boss_chorus_judge_collected = 0
 	song_boss_chorus_judge_timer = duration
 	song_boss_chorus_judge_duration = duration
+	song_boss_chorus_judge_visual_phase = "telegraph"
+	song_boss_chorus_judge_visual_duration = SONG_CHORUS_JUDGE_TELEGRAPH_DURATION
+	song_boss_chorus_judge_visual_timer = SONG_CHORUS_JUDGE_TELEGRAPH_DURATION
+	song_boss_chorus_judge_start_pulse_timer = 0.20
+	song_boss_chorus_judge_collect_pulse_timer = 0.0
+	song_boss_chorus_judge_completion_timer = 0.0
+	song_boss_chorus_judge_pip_pulse_timers = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	_remove_song_boss_chorus_judge_notes()
 	song_chorus_telegraph_timer = 0.0
 	song_chorus_banner_timer = 0.0
@@ -20421,18 +24585,43 @@ func _start_song_boss_chorus_judge(required: int, duration: float) -> void:
 	song_boss_chorus_judge_collected = 0
 	song_boss_chorus_judge_timer = duration
 	song_boss_chorus_judge_duration = duration
+	song_boss_chorus_judge_visual_phase = "active"
+	song_boss_chorus_judge_visual_duration = duration
+	song_boss_chorus_judge_visual_timer = duration
+	song_boss_chorus_judge_start_pulse_timer = 0.22
+	song_boss_chorus_judge_collect_pulse_timer = 0.0
+	song_boss_chorus_judge_completion_timer = 0.0
+	song_boss_chorus_judge_pip_pulse_timers = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	_remove_song_boss_chorus_judge_notes()
 	_show_song_boss_chorus_judge_notice("サビジャッジ中！", "音符を%d個集めろ！" % required, false, 1.0)
 
 func _spawn_song_boss_chorus_judge_notes(count: int, arena: Rect2) -> void:
+	var first_note_index := song_notes.size()
 	_spawn_song_notes(count, arena, true, 0.0, "chorus_judge_note")
+	for note_index in range(first_note_index, song_notes.size()):
+		var note: Dictionary = song_notes[note_index] as Dictionary
+		var visual_index := note_index - first_note_index
+		note["judgeVisualIndex"] = visual_index
+		note["judgeVisualAge"] = 0.0
+		note["judgeVisualDelay"] = float(visual_index % 5) * 0.022
+		note["judgeVisualSeed"] = fposmod(Vector2(note.get("pos", Vector2.ZERO)).x * 0.013 + Vector2(note.get("pos", Vector2.ZERO)).y * 0.019 + float(visual_index) * 1.618, TAU)
+		song_notes[note_index] = note
 
 func _finish_song_boss_chorus_judge(success: bool) -> void:
 	song_boss_chorus_judge_active = false
 	song_boss_chorus_judge_busy = false
+	song_boss_chorus_judge_visual_phase = "success" if success else "fail"
+	song_boss_chorus_judge_visual_duration = SONG_CHORUS_JUDGE_SUCCESS_VISUAL_DURATION if success else SONG_CHORUS_JUDGE_FAIL_VISUAL_DURATION
+	song_boss_chorus_judge_visual_timer = song_boss_chorus_judge_visual_duration
+	song_boss_chorus_judge_start_pulse_timer = 0.0
+	song_boss_chorus_judge_collect_pulse_timer = 0.0
+	if success:
+		song_boss_chorus_judge_completion_timer = maxf(song_boss_chorus_judge_completion_timer, SONG_CHORUS_JUDGE_COMPLETION_DURATION)
+	else:
+		song_boss_chorus_judge_completion_timer = 0.0
 	var title := "サビジャッジ成功！" if success else "サビジャッジ未達"
 	var subtitle := "ボス停止・与ダメージUP" if success else "短時間だけ停止"
-	_show_song_boss_chorus_judge_notice(title, subtitle, success, 1.45)
+	_show_song_boss_chorus_judge_notice(title, subtitle, success, 1.45 if success else SONG_CHORUS_JUDGE_FAIL_NOTICE_DURATION)
 	_remove_song_boss_chorus_judge_notes()
 
 func _clear_song_boss_chorus_judge() -> void:
@@ -20447,8 +24636,16 @@ func _clear_song_boss_chorus_judge() -> void:
 	song_boss_chorus_judge_notice_title = ""
 	song_boss_chorus_judge_notice_subtitle = ""
 	song_boss_chorus_judge_notice_success = false
+	song_boss_chorus_judge_visual_phase = ""
+	song_boss_chorus_judge_visual_timer = 0.0
+	song_boss_chorus_judge_visual_duration = 0.0
+	song_boss_chorus_judge_start_pulse_timer = 0.0
+	song_boss_chorus_judge_collect_pulse_timer = 0.0
+	song_boss_chorus_judge_completion_timer = 0.0
+	song_boss_chorus_judge_pip_pulse_timers = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	_remove_song_boss_chorus_judge_notes()
 	song_boss_megaphone_waves.clear()
+	_clear_song_boss_megaphone_fx()
 
 func _remove_song_boss_chorus_judge_notes() -> void:
 	for i in range(song_notes.size() - 1, -1, -1):
@@ -20465,6 +24662,7 @@ func _spawn_song_boss_megaphone_wave(origin: Vector2, dir: Vector2, wave_range: 
 	var wave_dir := dir.normalized()
 	if wave_dir.length_squared() <= 0.01:
 		wave_dir = Vector2.RIGHT
+	var visual_seed := fposmod(origin.x * 0.013 + origin.y * 0.017 + wave_dir.angle() * 1.91 + wave_range * 0.001, TAU)
 	song_boss_megaphone_waves.append({
 		"origin": origin,
 		"dir": wave_dir,
@@ -20476,15 +24674,23 @@ func _spawn_song_boss_megaphone_wave(origin: Vector2, dir: Vector2, wave_range: 
 		"maxTime": telegraph + active_duration,
 		"damage": damage,
 		"knockback": knockback,
+		"bossAttackId": "megaphone_wave",
+		"visualSeed": visual_seed,
+		"launchFxPlayed": false,
+		"launchFxTimer": 0.0,
 		"hit": false
 	})
 
 func _update_song_boss_megaphone_waves(delta: float) -> void:
 	for i in range(song_boss_megaphone_waves.size() - 1, -1, -1):
 		var wave: Dictionary = song_boss_megaphone_waves[i] as Dictionary
+		wave["launchFxTimer"] = maxf(0.0, float(wave.get("launchFxTimer", 0.0)) - delta)
 		wave["time"] = float(wave.get("time", 0.0)) - delta
 		var age := float(wave.get("maxTime", 1.0)) - float(wave.get("time", 0.0))
 		var active := age >= float(wave.get("telegraph", 0.7))
+		if active and not bool(wave.get("launchFxPlayed", false)):
+			wave["launchFxPlayed"] = true
+			wave["launchFxTimer"] = SONG_MEGAPHONE_WAVE_LAUNCH_FX_DURATION
 		if active and not bool(wave.get("hit", false)):
 			var origin := Vector2(wave.get("origin", Vector2.ZERO))
 			var wave_dir := Vector2(wave.get("dir", Vector2.RIGHT)).normalized()
@@ -20494,12 +24700,32 @@ func _update_song_boss_megaphone_waves(delta: float) -> void:
 				var angle_diff := absf(wrapf(to_player.angle() - wave_dir.angle(), -PI, PI))
 				if angle_diff <= float(wave.get("angle", PI / 3.0)) * 0.5:
 					wave["hit"] = true
-					player_vel += to_player.normalized() * float(wave.get("knockback", 0.7)) * 260.0
+					var knockback_dir := to_player.normalized()
+					wave["knockbackDir"] = knockback_dir
+					player_vel += knockback_dir * float(wave.get("knockback", 0.7)) * 260.0
+					_append_megaphone_wave_hit_fx(wave, player_pos, knockback_dir)
 					_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "boss_attack", "damage": int(wave.get("damage", 28))}]))
 		if float(wave.get("time", 0.0)) <= 0.0:
 			song_boss_megaphone_waves.remove_at(i)
 		else:
 			song_boss_megaphone_waves[i] = wave
+
+func _append_megaphone_wave_hit_fx(wave: Dictionary, pos: Vector2, knockback_dir: Vector2) -> void:
+	hit_fx.append({
+		"kind": "megaphone_wave_hit",
+		"bossAttackId": "megaphone_wave",
+		"pos": pos,
+		"dir": knockback_dir,
+		"visualSeed": float(wave.get("visualSeed", 0.0)),
+		"life": SONG_MEGAPHONE_WAVE_HIT_FX_DURATION,
+		"maxLife": SONG_MEGAPHONE_WAVE_HIT_FX_DURATION
+	})
+
+func _clear_song_boss_megaphone_fx() -> void:
+	for fx_index in range(hit_fx.size() - 1, -1, -1):
+		var fx: Dictionary = hit_fx[fx_index] as Dictionary
+		if String(fx.get("bossAttackId", "")) == "megaphone_wave":
+			hit_fx.remove_at(fx_index)
 
 func _update_song_encore(delta: float, arena: Rect2) -> void:
 	if song_encore_timer > 0.0:
@@ -20809,6 +25035,13 @@ func _is_collab_frame() -> bool:
 	return current_stream_frame_id == "collab"
 
 func _reset_collab_stage_state() -> void:
+	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_noise_summon_visuals_for_target(self, true, "direct_stage_reset")
+	_clear_collab_crusher_comparison_spam_visuals()
+	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
+	_clear_collab_crusher_vs_line_visuals()
+	_clear_collab_crusher_comment_divide_visuals()
+	_clear_collab_crusher_division_noise_visuals(true)
 	collab_partner_pos = Vector2.ZERO
 	collab_partner_velocity = Vector2.ZERO
 	collab_partner_facing_x = 1.0
@@ -20835,9 +25068,14 @@ func _reset_collab_stage_state() -> void:
 	collab_hazard_fields.clear()
 	collab_messenger_trails.clear()
 	collab_boss_attacks.clear()
+	collab_comment_divide_cast_uid = 1
+	collab_comparison_spam_cast_uid = 1
+	collab_crusher_division_spawn_serial = 1
 	collab_boss_partner_muted = false
 	collab_boss_mute_timer = 0.0
 	collab_boss_mute_core_uid = -1
+	collab_boss_mute_cast_serial = 1
+	collab_boss_mute_core_last_hp = -1.0
 	collab_boss_star_supply_timer = 0.0
 	collab_partner_support_blocked = false
 	collab_distance_grace_timer = 0.0
@@ -20869,13 +25107,19 @@ func _collab_crusher_boss_active() -> bool:
 func _on_collab_crusher_boss_started(boss: Dictionary, arena: Rect2) -> void:
 	if not _is_collab_frame():
 		return
+	_clear_relay_offline_laser_visuals()
+	_clear_collab_crusher_comparison_spam_visuals()
+	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
 	if collab_pass_target_uid >= 0:
 		_clear_collab_pass(false)
 	collab_pass_spawn_timer = minf(collab_pass_spawn_timer, 1.0)
+	_clear_collab_crusher_vs_line_visuals()
+	_clear_collab_crusher_comment_divide_visuals()
 	collab_boss_attacks.clear()
 	collab_boss_partner_muted = false
 	collab_boss_mute_timer = 0.0
 	collab_boss_mute_core_uid = -1
+	collab_boss_mute_core_last_hp = -1.0
 	collab_boss_star_supply_timer = 0.0
 	boss["collabCrusherPhase"] = 1
 	boss["collabCrusherVsModeTriggered"] = false
@@ -20887,15 +25131,17 @@ func _on_collab_crusher_boss_started(boss: Dictionary, arena: Rect2) -> void:
 	boss["collabCrusherTransitionTimer"] = 0.0
 	boss["baseSpeed"] = float(boss.get("speed", 48.0))
 	boss["ignoreMovementWalls"] = true
-	_spawn_collab_division_noise(2, arena)
-	collab_effects.append({"kind": "shockwave", "pos": Vector2(boss.get("pos", arena.get_center())), "radius": 180.0, "life": 0.68, "maxLife": 0.68, "color": Color("#b04cff"), "label": "VS"})
+	_spawn_collab_division_noise(2, arena, "initial")
 	_emit_collab_chat(["コラボクラッシャーだ！", "PASSを回して倒せ！", "二人の連携を見せろ！"])
 
 func _clear_collab_crusher_boss_state(remove_spawned_enemies: bool = false) -> void:
+	_clear_relay_offline_laser_visuals()
+	_clear_collab_crusher_comparison_spam_visuals()
+	_clear_collab_crusher_partner_mute_state(remove_spawned_enemies, "forced_cleanup", false)
+	_clear_collab_crusher_vs_line_visuals()
+	_clear_collab_crusher_comment_divide_visuals()
+	_clear_collab_crusher_division_noise_visuals(false)
 	collab_boss_attacks.clear()
-	collab_boss_partner_muted = false
-	collab_boss_mute_timer = 0.0
-	collab_boss_mute_core_uid = -1
 	collab_boss_star_supply_timer = 0.0
 	if not remove_spawned_enemies:
 		return
@@ -20908,6 +25154,199 @@ func _clear_collab_crusher_boss_state(remove_spawned_enemies: bool = false) -> v
 		kept.append(enemy)
 	enemies = kept
 
+func _clear_relay_offline_laser_visuals() -> void:
+	# Offline laser is owned by the relay-boss runtime, so game-over cleanup
+	# must remove only this attack's hazard/snapshot/FX and leave every other
+	# relay attack, projectile, and collab effect untouched.
+	var runtime: Dictionary = relay_boss_runtime
+	if not runtime.is_empty():
+		var kept_hazards: Array = []
+		for hazard_item in runtime.get("hazards", []) as Array:
+			var hazard: Dictionary = hazard_item as Dictionary
+			var hazard_kind := String(hazard.get("kind", ""))
+			var hazard_source := String(hazard.get("source", ""))
+			var hazard_attack_id := String(hazard.get("attackId", ""))
+			if hazard_kind == "offline_laser" or hazard_source == "relay_boss_offline_laser" or hazard_attack_id == "offline_laser":
+				continue
+			kept_hazards.append(hazard)
+		runtime["hazards"] = kept_hazards
+		var active: Dictionary = runtime.get("active_attack", {}) as Dictionary
+		if String(active.get("id", "")) == "offline_laser":
+			var cleared_active := active.duplicate(true)
+			cleared_active["id"] = ""
+			cleared_active["state"] = RelayBossAttackSystemScript.STATE_IDLE
+			cleared_active["timer"] = 0.0
+			cleared_active["elapsed"] = 0.0
+			cleared_active["payload"] = {}
+			cleared_active.erase("offlineLaserSnapshotValid")
+			cleared_active.erase("offlineLaserOrigin")
+			cleared_active.erase("offlineLaserDir")
+			cleared_active.erase("offlineLaserEndpoint")
+			cleared_active.erase("offlineLaserAimPoint")
+			cleared_active.erase("offlineLaserVisualSeed")
+			runtime["active_attack"] = cleared_active
+			relay_boss_active_attack = cleared_active.duplicate(true)
+		relay_boss_runtime = runtime
+	if String(relay_boss_active_attack.get("id", "")) == "offline_laser":
+		relay_boss_active_attack = {}
+
+	var kept_collab_effects: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		var effect_kind := String(effect.get("kind", ""))
+		var effect_attack_id := String(effect.get("bossAttackId", ""))
+		if effect_attack_id == "offline_laser" or effect_kind in ["offline_laser", "offline_laser_launch", "offline_laser_hit", "offline_laser_foreground"]:
+			continue
+		kept_collab_effects.append(effect)
+	collab_effects = kept_collab_effects
+
+	var kept_hit_fx: Array = []
+	for hit_item in hit_fx:
+		var hit: Dictionary = hit_item as Dictionary
+		var hit_kind := String(hit.get("kind", ""))
+		if String(hit.get("bossAttackId", "")) == "offline_laser" or hit_kind in ["offline_laser_launch", "offline_laser_hit"]:
+			continue
+		kept_hit_fx.append(hit)
+	hit_fx = kept_hit_fx
+
+func _clear_collab_crusher_vs_line_visuals() -> void:
+	var kept_attacks: Array = []
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		if String(attack.get("kind", "")) == "vs_line":
+			continue
+		kept_attacks.append(attack)
+	collab_boss_attacks = kept_attacks
+
+	var kept_effects: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		if String(effect.get("kind", "")) == "vs_line_post_fade":
+			continue
+		kept_effects.append(effect)
+	collab_effects = kept_effects
+
+	var kept_hit_fx: Array = []
+	for hit_item in hit_fx:
+		var hit: Dictionary = hit_item as Dictionary
+		var kind := String(hit.get("kind", ""))
+		if kind == "collab_crusher_vs_line_damage_hit" or kind == "collab_crusher_vs_line_knockback":
+			continue
+		kept_hit_fx.append(hit)
+	hit_fx = kept_hit_fx
+
+func _clear_collab_crusher_comment_divide_visuals() -> void:
+	var kept_attacks: Array = []
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		if String(attack.get("kind", "")) == "comment_divide":
+			continue
+		kept_attacks.append(attack)
+	collab_boss_attacks = kept_attacks
+
+	var kept_effects: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		if String(effect.get("kind", "")) == "comment_divide_echo":
+			continue
+		kept_effects.append(effect)
+	collab_effects = kept_effects
+
+	var kept_hit_fx: Array = []
+	for hit_item in hit_fx:
+		var hit: Dictionary = hit_item as Dictionary
+		var kind := String(hit.get("kind", ""))
+		if kind == "comment_divide_hit" or kind == "comment_divide_push":
+			continue
+		kept_hit_fx.append(hit)
+	hit_fx = kept_hit_fx
+
+func _clear_collab_crusher_comparison_spam_visuals() -> void:
+	var kept_attacks: Array = []
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		var attack_kind := String(attack.get("kind", ""))
+		if attack_kind.begins_with("comparison_spam"):
+			continue
+		kept_attacks.append(attack)
+	collab_boss_attacks = kept_attacks
+
+	var kept_effects: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		var effect_kind := String(effect.get("kind", ""))
+		var legacy_compare := effect_kind == "shockwave" and String(effect.get("label", "")) == "COMPARE"
+		if effect_kind.begins_with("comparison_spam") or legacy_compare:
+			continue
+		kept_effects.append(effect)
+	collab_effects = kept_effects
+
+	var kept_hit_fx: Array = []
+	for hit_item in hit_fx:
+		var hit: Dictionary = hit_item as Dictionary
+		if String(hit.get("kind", "")).begins_with("comparison_spam"):
+			continue
+		kept_hit_fx.append(hit)
+	hit_fx = kept_hit_fx
+
+	# The child remains a normal enemy after the boss leaves.  Only the
+	# temporary visual provenance/pop-in fields are removed here.
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if not enemy.has("comparisonSpamCastUid") and not bool(enemy.get("comparisonSpamSpawn", false)):
+			continue
+		enemy.erase("comparisonSpamSpawn")
+		enemy.erase("comparisonSpamCastUid")
+		enemy.erase("comparisonSpamRequestIndex")
+		enemy.erase("comparisonSpamActualIndex")
+		enemy.erase("comparisonSpamVisualSeed")
+		enemy.erase("comparisonSpamFinalPhase")
+		enemy.erase("comparisonSpamPopInTimer")
+		enemy.erase("comparisonSpamPopInDuration")
+
+func _clear_collab_crusher_division_noise_visuals(remove_spawned_enemies: bool = false) -> void:
+	var boss := _collab_crusher_boss()
+	if not boss.is_empty():
+		_clear_collab_crusher_division_noise_warning(boss)
+
+	var kept_effects: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		var effect_kind := String(effect.get("kind", ""))
+		var is_division_effect := effect_kind.begins_with("division_noise_")
+		if not is_division_effect and String(effect.get("bossAttackId", "")) == "division_noise":
+			is_division_effect = true
+		if is_division_effect:
+			continue
+		kept_effects.append(effect)
+	collab_effects = kept_effects
+
+	var kept_hit_fx: Array = []
+	for hit_item in hit_fx:
+		var hit: Dictionary = hit_item as Dictionary
+		var hit_kind := String(hit.get("kind", ""))
+		if hit_kind.begins_with("division_noise_") or String(hit.get("bossAttackId", "")) == "division_noise":
+			continue
+		kept_hit_fx.append(hit)
+	hit_fx = kept_hit_fx
+
+	var kept_enemies: Array = []
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		var is_division_child := String(enemy.get("kind", "")) == COLLAB_DIVISION_NOISE_KIND or bool(enemy.get("divisionNoiseVisual", false))
+		if is_division_child and remove_spawned_enemies:
+			continue
+		if is_division_child:
+			enemy.erase("divisionNoiseVisual")
+			enemy.erase("divisionNoiseSpawnSerial")
+			enemy.erase("divisionNoiseSpawnIndex")
+			enemy.erase("divisionNoiseVisualSeed")
+			enemy.erase("divisionNoiseSpawnSource")
+			enemy.erase("divisionNoisePopInTimer")
+			enemy.erase("divisionNoisePopInDuration")
+		kept_enemies.append(enemy)
+	enemies = kept_enemies
+
 func _update_collab_crusher_boss(boss: Dictionary, delta: float, arena: Rect2) -> void:
 	if not _is_collab_frame() or _song_enemy_inactive(boss):
 		return
@@ -20918,15 +25357,20 @@ func _update_collab_crusher_boss(boss: Dictionary, delta: float, arena: Rect2) -
 	_update_collab_boss_mute(delta)
 	var max_hp := maxf(1.0, float(boss.get("max_hp", boss.get("hp", 1.0))))
 	var hp_ratio := clampf(float(boss.get("hp", max_hp)) / max_hp, 0.0, 1.0)
+	var final_transitioned_this_frame := false
 	if hp_ratio <= COLLAB_CRUSHER_PHASE2_THRESHOLD and not bool(boss.get("collabCrusherVsModeTriggered", false)):
 		_start_collab_crusher_vs_mode(boss)
 	if hp_ratio <= COLLAB_CRUSHER_FINAL_THRESHOLD and not bool(boss.get("collabCrusherFinalTriggered", false)):
 		_start_collab_crusher_final_phase(boss, arena)
+		final_transitioned_this_frame = true
 	var phase := int(boss.get("collabCrusherPhase", 1))
 	var division_interval_rate := 0.65 if phase >= 2 else 1.0
-	var division_timer := float(boss.get("collabCrusherDivisionTimer", COLLAB_CRUSHER_DIVISION_INTERVAL)) - action_delta
+	var division_timer_before := float(boss.get("collabCrusherDivisionTimer", COLLAB_CRUSHER_DIVISION_INTERVAL))
+	var division_timer := division_timer_before - action_delta
+	_update_collab_crusher_division_noise_warning(boss, 2, division_timer_before, action_delta, delta, "periodic", not final_transitioned_this_frame)
 	if division_timer <= 0.0:
-		_spawn_collab_division_noise(2, arena)
+		_clear_collab_crusher_division_noise_warning(boss)
+		_spawn_collab_division_noise(2, arena, "periodic")
 		division_timer = COLLAB_CRUSHER_DIVISION_INTERVAL * division_interval_rate
 	boss["collabCrusherDivisionTimer"] = division_timer
 	_update_collab_boss_star_supply(delta, arena)
@@ -20964,6 +25408,8 @@ func _choose_collab_crusher_attack(boss: Dictionary) -> String:
 		var attack_id := String(item.get("id", ""))
 		if attack_id == "partner_mute" and collab_boss_partner_muted:
 			continue
+		if attack_id == "partner_mute" and _has_collab_partner_mute_pending():
+			continue
 		if attack_id == "comparison_spam" and _active_collab_enemy_count() >= 16:
 			continue
 		if attack_id == last_attack and repeat_count >= 2:
@@ -20999,34 +25445,65 @@ func _perform_collab_crusher_attack(attack_id: String, boss: Dictionary, arena: 
 			_spawn_collab_crusher_comparison_spam(boss, arena, COLLAB_CRUSHER_COMPARISON_SUMMON_COUNT)
 
 func _start_collab_crusher_vs_line(boss: Dictionary) -> void:
+	# The line endpoints are a gameplay snapshot.  Keep this calculation at
+	# cast start so movement during the warning cannot change the hit geometry.
+	# A close partner is represented by a short synthetic endpoint; it must not
+	# masquerade as an actual partner position or use a world-fixed direction.
 	var start := player_pos
-	var end := collab_partner_pos
-	if start.distance_squared_to(end) < 64.0 * 64.0:
-		end += Vector2(180.0, 0.0)
+	var raw_partner_endpoint := collab_partner_pos
+	var raw_partner_distance := start.distance_to(raw_partner_endpoint)
+	var endpoint_is_actual_partner := raw_partner_distance >= COLLAB_CRUSHER_VS_LINE_CLOSE_THRESHOLD
+	var endpoint_is_synthetic := not endpoint_is_actual_partner
+	var end := raw_partner_endpoint
+	var endpoint_direction := raw_partner_endpoint - start
+	if endpoint_is_actual_partner:
+		endpoint_direction = endpoint_direction.normalized()
+	else:
+		if raw_partner_distance > 0.0:
+			endpoint_direction = endpoint_direction.normalized()
+		else:
+			endpoint_direction = Vector2.RIGHT if player_facing_x >= 0.0 else Vector2.LEFT
+		end = start + endpoint_direction * COLLAB_CRUSHER_VS_LINE_SYNTHETIC_LENGTH
 	collab_boss_attacks.append({
 		"kind": "vs_line",
 		"from": start,
 		"to": end,
+		"player_snapshot": start,
+		"partner_snapshot": raw_partner_endpoint,
+		"endpoint_is_actual_partner": endpoint_is_actual_partner,
+		"endpoint_is_synthetic": endpoint_is_synthetic,
+		"endpoint_raw_distance": raw_partner_distance,
 		"warning": COLLAB_CRUSHER_VS_LINE_WARNING,
 		"active": COLLAB_CRUSHER_VS_LINE_ACTIVE,
 		"hit": false,
 		"phase": rng.randf_range(0.0, TAU)
 	})
 	boss["speechText"] = "二人を分断"
-	collab_effects.append({"kind": "popup", "pos": Vector2(boss.get("pos", start)) + Vector2(-62.0, -92.0), "text": "VS LINE", "life": 0.78, "maxLife": 0.78, "color": Color("#ff6f91")})
 
 func _start_collab_crusher_comment_divide(boss: Dictionary, arena: Rect2) -> void:
+	var cast_uid := collab_comment_divide_cast_uid
 	var base_angle := rng.randf_range(0.0, TAU)
 	for i in range(2):
 		var angle := base_angle + float(i) * PI + rng.randf_range(-0.28, 0.28)
 		var pos := player_pos + Vector2(cos(angle), sin(angle)) * rng.randf_range(150.0, 215.0)
 		pos.x = clampf(pos.x, arena.position.x + 72.0, arena.end.x - 72.0)
 		pos.y = clampf(pos.y, arena.position.y + 72.0, arena.end.y - 72.0)
-		collab_boss_attacks.append({"kind": "comment_divide", "pos": pos, "warning": COLLAB_CRUSHER_COMMENT_WARNING, "phase": rng.randf_range(0.0, TAU)})
+		var phase := rng.randf_range(0.0, TAU)
+		collab_boss_attacks.append({
+			"kind": "comment_divide",
+			"bossAttackId": "comment_divide",
+			"pos": pos,
+			"warning": COLLAB_CRUSHER_COMMENT_WARNING,
+			"phase": phase,
+			"cast_uid": cast_uid,
+			"center_index": i,
+			"visual_seed": _collab_comment_divide_visual_seed(pos, phase, cast_uid, i)
+		})
+	collab_comment_divide_cast_uid += 1
 	boss["speechText"] = "コメ欄分断"
 
 func _start_collab_crusher_partner_mute(boss: Dictionary, arena: Rect2) -> void:
-	if collab_boss_partner_muted:
+	if collab_boss_partner_muted or _has_collab_partner_mute_pending():
 		return
 	var boss_pos := Vector2(boss.get("pos", arena.get_center()))
 	var away := (collab_partner_pos - boss_pos).normalized()
@@ -21035,25 +25512,111 @@ func _start_collab_crusher_partner_mute(boss: Dictionary, arena: Rect2) -> void:
 	var core_pos := collab_partner_pos + away * 86.0
 	core_pos.x = clampf(core_pos.x, arena.position.x + 46.0, arena.end.x - 46.0)
 	core_pos.y = clampf(core_pos.y, arena.position.y + 46.0, arena.end.y - 46.0)
-	var core_uid := EnemySystemScript.spawn_enemy_for_target(self, COLLAB_MUTE_CORE_KIND, arena, rng, core_pos, "", "", "", "boss_summon")
-	if core_uid < 0:
+	var prepared_spawn := EnemySystemScript.prepare_enemy_spawn_for_target(self, COLLAB_MUTE_CORE_KIND, arena, rng, core_pos, "", "", "", "boss_summon")
+	if prepared_spawn.is_empty() or String(prepared_spawn.get("resolvedKind", "")) != COLLAB_MUTE_CORE_KIND:
 		return
+	var cast_serial := collab_boss_mute_cast_serial
+	collab_boss_mute_cast_serial += 1
+	var visual_seed := _collab_partner_mute_visual_seed(core_pos, cast_serial)
+	collab_boss_attacks.append({
+		"kind": "partner_mute_warning",
+		"bossAttackId": "partner_mute",
+		"bossUid": int(boss.get("uid", -1)),
+		"muteCastSerial": cast_serial,
+		"bossSnapshot": boss_pos,
+		"partnerSnapshot": collab_partner_pos,
+		"corePosition": core_pos,
+		"preparedSpawn": prepared_spawn.duplicate(true),
+		"arena": arena,
+		"warning": COLLAB_CRUSHER_MUTE_WARNING,
+		"maxWarning": COLLAB_CRUSHER_MUTE_WARNING,
+		"visualSeed": visual_seed,
+		"resolvedKind": String(prepared_spawn.get("resolvedKind", ""))
+	})
+	boss["speechText"] = "ミュートコア予告"
+	_emit_collab_chat(["相方の音声が途切れそう！", "ミュートコアを壊して！", "支援停止に注意！"])
+
+func _has_collab_partner_mute_pending() -> bool:
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		if String(attack.get("kind", "")) == "partner_mute_warning":
+			return true
+	return false
+
+func _collab_partner_mute_visual_seed(core_pos: Vector2, cast_serial: int) -> float:
+	return float(cast_serial) * 1.731 + core_pos.x * 0.017 + core_pos.y * 0.023
+
+func _commit_collab_partner_mute_warning(attack: Dictionary) -> bool:
+	var prepared_spawn: Dictionary = attack.get("preparedSpawn", {}) as Dictionary
+	var core_pos := Vector2(attack.get("corePosition", Vector2.ZERO))
+	var spawn_arena: Rect2 = attack.get("arena", _current_arena()) as Rect2
+	if prepared_spawn.is_empty() or String(prepared_spawn.get("resolvedKind", "")) != COLLAB_MUTE_CORE_KIND:
+		return false
+	var core_uid := EnemySystemScript.spawn_enemy_for_target(
+		self,
+		COLLAB_MUTE_CORE_KIND,
+		spawn_arena,
+		rng,
+		core_pos,
+		"",
+		"",
+		"",
+		"boss_summon",
+		prepared_spawn
+	)
+	if core_uid < 0:
+		return false
+	var core := _collab_enemy_by_uid(core_uid)
+	if core.is_empty():
+		return false
+	var cast_serial := int(attack.get("muteCastSerial", 0))
+	var visual_seed := float(attack.get("visualSeed", _collab_partner_mute_visual_seed(core_pos, cast_serial)))
+	core["collabMuteCore"] = true
+	core["collabMuteCastSerial"] = cast_serial
+	core["collabMuteVisualSeed"] = visual_seed
+	core["collabMuteSpawnOrigin"] = core_pos
+	core["collabMutePopInTimer"] = COLLAB_CRUSHER_MUTE_POP_IN_DURATION
+	core["collabMutePopInDuration"] = COLLAB_CRUSHER_MUTE_POP_IN_DURATION
+	core["hitFlashDuration"] = maxf(float(core.get("hitFlashDuration", 0.10)), COLLAB_CRUSHER_MUTE_HIT_FX_DURATION)
 	collab_boss_partner_muted = true
 	collab_boss_mute_timer = COLLAB_CRUSHER_MUTE_DURATION
 	collab_boss_mute_core_uid = core_uid
-	boss["speechText"] = "相方ミュート"
-	collab_effects.append({"kind": "star_line", "from": boss_pos, "to": collab_partner_pos, "life": 0.62, "maxLife": 0.62, "color": Color("#d86cff")})
-	collab_effects.append({"kind": "popup", "pos": collab_partner_pos + Vector2(-48.0, -78.0), "text": "MUTE", "life": 0.92, "maxLife": 0.92, "color": Color("#d86cff")})
-	_emit_collab_chat(["相方がミュートされた！", "コアを壊して！", "支援停止中！"])
+	collab_boss_mute_core_last_hp = float(core.get("hp", 0.0))
+	collab_effects.append({
+		"kind": "partner_mute_spawn_fx",
+		"bossAttackId": "partner_mute",
+		"coreUid": core_uid,
+		"pos": core_pos,
+		"visualSeed": visual_seed,
+		"life": COLLAB_CRUSHER_MUTE_SPAWN_FX_DURATION,
+		"maxLife": COLLAB_CRUSHER_MUTE_SPAWN_FX_DURATION
+	})
+	_request_screen_shake(0.12, 0.10)
+	return true
 
 func _update_collab_boss_mute(delta: float) -> void:
 	if not collab_boss_partner_muted:
 		return
 	collab_boss_mute_timer = maxf(0.0, collab_boss_mute_timer - delta)
 	if collab_boss_mute_timer <= 0.0:
-		_end_collab_boss_partner_mute(true)
+		_clear_collab_crusher_partner_mute_state(true, "timeout", true)
 
-func _end_collab_boss_partner_mute(remove_core: bool) -> void:
+func _end_collab_boss_partner_mute(remove_core: bool, reason: String = "destroy") -> void:
+	_clear_collab_crusher_partner_mute_state(remove_core, reason, true)
+
+func _clear_collab_crusher_partner_mute_state(remove_core: bool = true, reason: String = "forced_cleanup", emit_fx: bool = false) -> void:
+	var pending_kept: Array = []
+	for attack_item in collab_boss_attacks:
+		var attack: Dictionary = attack_item as Dictionary
+		if String(attack.get("kind", "")) == "partner_mute_warning":
+			continue
+		pending_kept.append(attack)
+	collab_boss_attacks = pending_kept
+	var release_pos := collab_partner_pos
+	if collab_boss_mute_core_uid >= 0:
+		var tracked_core := _collab_enemy_by_uid(collab_boss_mute_core_uid)
+		if not tracked_core.is_empty():
+			release_pos = Vector2(tracked_core.get("pos", release_pos))
 	if remove_core and collab_boss_mute_core_uid >= 0:
 		var kept: Array = []
 		for enemy_item in enemies:
@@ -21066,18 +25629,42 @@ func _end_collab_boss_partner_mute(remove_core: bool) -> void:
 	collab_boss_partner_muted = false
 	collab_boss_mute_timer = 0.0
 	collab_boss_mute_core_uid = -1
-	if was_muted:
-		collab_effects.append({"kind": "shockwave", "pos": collab_partner_pos, "radius": 96.0, "life": 0.42, "maxLife": 0.42, "color": Color("#8ff3ff"), "label": "UNMUTE"})
+	collab_boss_mute_core_last_hp = -1.0
+	var kept_effects: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		if String(effect.get("bossAttackId", "")) == "partner_mute":
+			continue
+		kept_effects.append(effect)
+	collab_effects = kept_effects
+	var kept_hit_fx: Array = []
+	for hit_item in hit_fx:
+		var hit: Dictionary = hit_item as Dictionary
+		if String(hit.get("bossAttackId", "")) == "partner_mute":
+			continue
+		kept_hit_fx.append(hit)
+	hit_fx = kept_hit_fx
+	if not was_muted or not emit_fx:
+		return
+	if reason == "destroy":
+		collab_effects.append({"kind": "partner_mute_destroy_fx", "bossAttackId": "partner_mute", "pos": release_pos, "life": COLLAB_CRUSHER_MUTE_DESTROY_FX_DURATION, "maxLife": COLLAB_CRUSHER_MUTE_DESTROY_FX_DURATION, "visualSeed": _collab_partner_mute_visual_seed(release_pos, 1)})
+		collab_effects.append({"kind": "partner_mute_restore_fx", "bossAttackId": "partner_mute", "pos": collab_partner_pos, "life": COLLAB_CRUSHER_MUTE_RESTORE_FX_DURATION, "maxLife": COLLAB_CRUSHER_MUTE_RESTORE_FX_DURATION})
+		_emit_collab_chat(["相方の支援が戻った！", "ミュート解除！", "連携再開！"])
+	elif reason == "timeout":
+		collab_effects.append({"kind": "partner_mute_timeout_fx", "bossAttackId": "partner_mute", "pos": release_pos, "life": COLLAB_CRUSHER_MUTE_TIMEOUT_FX_DURATION, "maxLife": COLLAB_CRUSHER_MUTE_TIMEOUT_FX_DURATION})
+		collab_effects.append({"kind": "partner_mute_restore_fx", "bossAttackId": "partner_mute", "pos": collab_partner_pos, "life": COLLAB_CRUSHER_MUTE_RESTORE_FX_DURATION, "maxLife": COLLAB_CRUSHER_MUTE_RESTORE_FX_DURATION})
 		_emit_collab_chat(["相方の支援が戻った！", "ミュート解除！", "連携再開！"])
 
 func _on_enemy_defeated_for_collab_boss(enemy: Dictionary) -> void:
 	if not _is_collab_frame():
 		return
-	if String(enemy.get("kind", "")) == COLLAB_MUTE_CORE_KIND or int(enemy.get("uid", -1)) == collab_boss_mute_core_uid:
-		_end_collab_boss_partner_mute(false)
+	if int(enemy.get("uid", -1)) == collab_boss_mute_core_uid:
+		_end_collab_boss_partner_mute(false, "destroy")
 
-func _spawn_collab_crusher_comparison_spam(boss: Dictionary, arena: Rect2, count: int) -> void:
+func _spawn_collab_crusher_comparison_spam(boss: Dictionary, arena: Rect2, count: int, is_final_phase: bool = false) -> void:
 	var boss_pos := Vector2(boss.get("pos", arena.get_center()))
+	var cast_uid := collab_comparison_spam_cast_uid
+	collab_comparison_spam_cast_uid += 1
 	var spawned := 0
 	count = HardModeSystemScript.regular_boss_summon_count_for_target(self, count)
 	for i in range(maxi(0, count)):
@@ -21092,12 +25679,59 @@ func _spawn_collab_crusher_comparison_spam(boss: Dictionary, arena: Rect2, count
 		if pos.distance_squared_to(player_pos) < 120.0 * 120.0:
 			pos = pos.lerp(arena.get_center(), 0.55)
 		var kind := "collab_comparison_troll" if rng.randf() < 0.5 else "collab_discord_troll"
-		if EnemySystemScript.spawn_enemy_for_target(self, kind, arena, rng, pos, "", "", "", "boss_summon") >= 0:
+		var spawned_uid := EnemySystemScript.spawn_enemy_for_target(self, kind, arena, rng, pos, "", "", "", "boss_summon")
+		if spawned_uid >= 0:
+			var actual_index := spawned
 			spawned += 1
+			var spawned_enemy: Dictionary = {}
+			for enemy_item in enemies:
+				var candidate: Dictionary = enemy_item as Dictionary
+				if int(candidate.get("uid", -1)) == spawned_uid:
+					spawned_enemy = candidate
+					break
+			if not spawned_enemy.is_empty():
+				var actual_pos := Vector2(spawned_enemy.get("pos", pos))
+				var visual_seed := _comparison_spam_visual_seed(cast_uid, i, spawned_uid, actual_pos)
+				spawned_enemy["comparisonSpamSpawn"] = true
+				spawned_enemy["comparisonSpamCastUid"] = cast_uid
+				spawned_enemy["comparisonSpamRequestIndex"] = i
+				spawned_enemy["comparisonSpamActualIndex"] = actual_index
+				spawned_enemy["comparisonSpamVisualSeed"] = visual_seed
+				spawned_enemy["comparisonSpamFinalPhase"] = is_final_phase
+				spawned_enemy["comparisonSpamPopInTimer"] = 0.20
+				spawned_enemy["comparisonSpamPopInDuration"] = 0.20
+				collab_effects.append({
+					"kind": "comparison_spam_spawn",
+					"bossAttackId": "comparison_spam",
+					"castUid": cast_uid,
+					"requestIndex": i,
+					"actualIndex": actual_index,
+					"actualKind": String(spawned_enemy.get("kind", kind)),
+					"pos": actual_pos,
+					"visualSeed": visual_seed,
+					"finalPhase": is_final_phase,
+					"life": 0.22,
+					"maxLife": 0.22
+				})
 	if spawned > 0:
 		boss["speechText"] = "比較連投"
-		collab_effects.append({"kind": "shockwave", "pos": boss_pos, "radius": 150.0, "life": 0.50, "maxLife": 0.50, "color": Color("#e24d98"), "label": "COMPARE"})
+		var cue_duration := 0.24 if is_final_phase else 0.30
+		collab_effects.append({
+			"kind": "comparison_spam_boss_cue",
+			"bossAttackId": "comparison_spam",
+			"castUid": cast_uid,
+			"pos": boss_pos,
+			"visualSeed": _comparison_spam_visual_seed(cast_uid, -1, int(boss.get("uid", -1)), boss_pos),
+			"finalPhase": is_final_phase,
+			"pipCount": 3,
+			"life": cue_duration,
+			"maxLife": cue_duration
+		})
 		_emit_collab_chat(["比較コメント連投！", "不仲煽りが増えた！", "まとめてコンビ技でBAN！"])
+
+func _comparison_spam_visual_seed(cast_uid: int, request_index: int, enemy_uid: int, pos: Vector2) -> float:
+	var basis := float(cast_uid * 131 + request_index * 17 + enemy_uid * 37) + pos.x * 0.013 + pos.y * 0.017
+	return absf(sin(basis * 12.9898 + 78.233))
 
 func _collab_crusher_edge_spawn_position(arena: Rect2, index: int) -> Vector2:
 	match index % 4:
@@ -21120,7 +25754,54 @@ func _active_collab_enemy_count(kind_filter: String = "") -> int:
 		count += 1
 	return count
 
-func _spawn_collab_division_noise(count: int, arena: Rect2) -> void:
+func _collab_division_noise_visual_hash(seed: float, salt: int) -> float:
+	return fposmod(sin(seed * 12.9898 + float(salt) * 78.233) * 43758.5453, 1.0)
+
+func _collab_division_noise_visual_seed(spawn_serial: int, request_index: int, enemy_uid: int, pos: Vector2) -> float:
+	var basis := float(spawn_serial * 131 + request_index * 17 + enemy_uid * 37) + pos.x * 0.013 + pos.y * 0.017
+	return fposmod(sin(basis * 12.9898 + 78.233) * 43758.5453, TAU)
+
+func _collab_division_noise_warning_seed(boss_uid: int, source: String) -> float:
+	var source_salt := 2.0 if source == "supply" else 1.0
+	return fposmod(float(boss_uid) * 0.731 + source_salt * 1.913, TAU)
+
+func _collab_division_noise_visual_spawn_count(base_count: int) -> int:
+	var active := _active_collab_enemy_count(COLLAB_DIVISION_NOISE_KIND)
+	var requested_count := HardModeSystemScript.regular_boss_summon_count_for_target(self, base_count)
+	return maxi(0, mini(requested_count, COLLAB_CRUSHER_DIVISION_MAX_ACTIVE - active))
+
+func _clear_collab_crusher_division_noise_warning(boss: Dictionary) -> void:
+	if boss.is_empty():
+		return
+	boss["collabDivisionNoiseWarningActive"] = false
+	boss["collabDivisionNoiseWarningRealLeft"] = 0.0
+	boss["collabDivisionNoiseWarningDuration"] = COLLAB_CRUSHER_DIVISION_WARNING_DURATION
+	boss["collabDivisionNoiseWarningCount"] = 0
+	boss["collabDivisionNoiseWarningSource"] = ""
+	boss["collabDivisionNoiseWarningSeed"] = 0.0
+
+func _update_collab_crusher_division_noise_warning(boss: Dictionary, base_count: int, timer_value: float, action_delta: float, delta: float, source: String, enabled: bool = true) -> void:
+	if boss.is_empty() or not enabled:
+		if not boss.is_empty() and String(boss.get("collabDivisionNoiseWarningSource", "")) == source:
+			_clear_collab_crusher_division_noise_warning(boss)
+		return
+	var action_scale := 1.0
+	if delta > 0.000001:
+		action_scale = maxf(0.0001, action_delta / delta)
+	var real_left := maxf(0.0, timer_value) / action_scale
+	if real_left <= 0.000001 or real_left > COLLAB_CRUSHER_DIVISION_WARNING_DURATION + 0.000001:
+		if bool(boss.get("collabDivisionNoiseWarningActive", false)) and String(boss.get("collabDivisionNoiseWarningSource", "")) == source:
+			_clear_collab_crusher_division_noise_warning(boss)
+		return
+	if not bool(boss.get("collabDivisionNoiseWarningActive", false)) or String(boss.get("collabDivisionNoiseWarningSource", "")) != source:
+		boss["collabDivisionNoiseWarningActive"] = true
+		boss["collabDivisionNoiseWarningDuration"] = COLLAB_CRUSHER_DIVISION_WARNING_DURATION
+		boss["collabDivisionNoiseWarningSource"] = source
+		boss["collabDivisionNoiseWarningSeed"] = _collab_division_noise_warning_seed(int(boss.get("uid", -1)), source)
+	boss["collabDivisionNoiseWarningRealLeft"] = minf(COLLAB_CRUSHER_DIVISION_WARNING_DURATION, real_left)
+	boss["collabDivisionNoiseWarningCount"] = _collab_division_noise_visual_spawn_count(base_count)
+
+func _spawn_collab_division_noise(count: int, arena: Rect2, visual_source: String = "") -> void:
 	var active := _active_collab_enemy_count(COLLAB_DIVISION_NOISE_KIND)
 	var requested_count := HardModeSystemScript.regular_boss_summon_count_for_target(self, count)
 	var spawn_count := mini(requested_count, COLLAB_CRUSHER_DIVISION_MAX_ACTIVE - active)
@@ -21128,6 +25809,9 @@ func _spawn_collab_division_noise(count: int, arena: Rect2) -> void:
 		return
 	var boss := _collab_crusher_boss()
 	var center := Vector2(boss.get("pos", arena.get_center()))
+	var spawn_serial := collab_crusher_division_spawn_serial
+	collab_crusher_division_spawn_serial += 1
+	var spawned_count := 0
 	for i in range(spawn_count):
 		var angle := rng.randf_range(0.0, TAU) + float(i) * TAU / float(maxi(1, spawn_count))
 		var pos := center + Vector2(cos(angle), sin(angle)) * rng.randf_range(135.0, 205.0)
@@ -21135,7 +25819,59 @@ func _spawn_collab_division_noise(count: int, arena: Rect2) -> void:
 		pos.y = clampf(pos.y, arena.position.y + 42.0, arena.end.y - 42.0)
 		var uid := EnemySystemScript.spawn_enemy_for_target(self, COLLAB_DIVISION_NOISE_KIND, arena, rng, pos, "", "", "", "boss_summon")
 		if uid >= 0:
-			collab_effects.append({"kind": "shockwave", "pos": pos, "radius": 62.0, "life": 0.36, "maxLife": 0.36, "color": Color("#a963ff"), "label": "VS"})
+			spawned_count += 1
+			var spawned_enemy: Dictionary = {}
+			for enemy_item in enemies:
+				var candidate: Dictionary = enemy_item as Dictionary
+				if int(candidate.get("uid", -1)) == uid:
+					spawned_enemy = candidate
+					break
+			if not spawned_enemy.is_empty():
+				var actual_pos := Vector2(spawned_enemy.get("pos", pos))
+				var visual_seed := _collab_division_noise_visual_seed(spawn_serial, i, uid, actual_pos)
+				spawned_enemy["divisionNoiseVisual"] = true
+				spawned_enemy["divisionNoiseSpawnSerial"] = spawn_serial
+				spawned_enemy["divisionNoiseSpawnIndex"] = i
+				spawned_enemy["divisionNoiseVisualSeed"] = visual_seed
+				spawned_enemy["divisionNoiseSpawnSource"] = visual_source
+				spawned_enemy["divisionNoisePopInTimer"] = COLLAB_CRUSHER_DIVISION_POP_IN_DURATION
+				spawned_enemy["divisionNoisePopInDuration"] = COLLAB_CRUSHER_DIVISION_POP_IN_DURATION
+				collab_effects.append({
+					"kind": "division_noise_spawn",
+					"bossAttackId": "division_noise",
+					"spawnSource": visual_source,
+					"spawnSerial": spawn_serial,
+					"spawnIndex": i,
+					"actualKind": String(spawned_enemy.get("kind", COLLAB_DIVISION_NOISE_KIND)),
+					"pos": actual_pos,
+					"visualSeed": visual_seed,
+					"life": COLLAB_CRUSHER_DIVISION_SPAWN_FX_DURATION,
+					"maxLife": COLLAB_CRUSHER_DIVISION_SPAWN_FX_DURATION
+				})
+	if spawned_count <= 0:
+		return
+	var cue_seed := _collab_division_noise_visual_seed(spawn_serial, -1, int(boss.get("uid", -1)), center)
+	if visual_source == "periodic":
+		collab_effects.append({
+			"kind": "division_noise_completion",
+			"bossAttackId": "division_noise",
+			"pos": center,
+			"visualSeed": cue_seed,
+			"life": 0.18,
+			"maxLife": 0.18
+		})
+	else:
+		var cue_duration := 0.22 if visual_source == "final" else 0.24
+		collab_effects.append({
+			"kind": "division_noise_boss_cue",
+			"bossAttackId": "division_noise",
+			"spawnSource": visual_source,
+			"pos": center,
+			"visualSeed": cue_seed,
+			"finalPhase": visual_source == "final",
+			"life": cue_duration,
+			"maxLife": cue_duration
+		})
 
 func _start_collab_crusher_vs_mode(boss: Dictionary) -> void:
 	boss["collabCrusherVsModeTriggered"] = true
@@ -21158,8 +25894,9 @@ func _start_collab_crusher_final_phase(boss: Dictionary, arena: Rect2) -> void:
 	boss["collabCrusherAttackTimer"] = maxf(float(boss.get("collabCrusherAttackTimer", 0.0)), 0.9)
 	collab_pass_spawn_timer = minf(collab_pass_spawn_timer, 1.0)
 	collab_partner_support_timer = minf(collab_partner_support_timer, 0.65)
-	_spawn_collab_division_noise(COLLAB_CRUSHER_DIVISION_MAX_ACTIVE, arena)
-	_spawn_collab_crusher_comparison_spam(boss, arena, 4)
+	_clear_collab_crusher_division_noise_warning(boss)
+	_spawn_collab_division_noise(COLLAB_CRUSHER_DIVISION_MAX_ACTIVE, arena, "final")
+	_spawn_collab_crusher_comparison_spam(boss, arena, 4, true)
 	var pos := Vector2(boss.get("pos", arena.get_center()))
 	collab_effects.append({"kind": "shockwave", "pos": pos, "radius": 330.0, "life": 0.94, "maxLife": 0.94, "color": Color("#ff315d"), "label": "FINAL VS"})
 	_push_time_toast("最終フェーズ：最後のコンビ攻撃へ！", 1.45)
@@ -21169,14 +25906,20 @@ func _start_collab_crusher_final_phase(boss: Dictionary, arena: Rect2) -> void:
 func _update_collab_boss_star_supply(delta: float, arena: Rect2) -> void:
 	var has_field_star := not collab_sync_star_pickups.is_empty() or not collab_sync_star_transfers.is_empty()
 	var has_pass_opportunity := collab_pass_target_uid >= 0 or not _collab_pick_pass_target().is_empty()
+	var boss := _collab_crusher_boss()
 	if has_field_star or has_pass_opportunity:
+		if not boss.is_empty() and String(boss.get("collabDivisionNoiseWarningSource", "")) == "supply":
+			_clear_collab_crusher_division_noise_warning(boss)
 		collab_boss_star_supply_timer = 0.0
 		return
+	var supply_time_left := COLLAB_CRUSHER_STAR_SUPPLY_TIMEOUT - collab_boss_star_supply_timer
+	_update_collab_crusher_division_noise_warning(boss, 1, supply_time_left, delta, delta, "supply")
 	collab_boss_star_supply_timer += delta
 	if collab_boss_star_supply_timer < COLLAB_CRUSHER_STAR_SUPPLY_TIMEOUT:
 		return
 	collab_boss_star_supply_timer = 0.0
-	_spawn_collab_division_noise(1, arena)
+	_clear_collab_crusher_division_noise_warning(boss)
+	_spawn_collab_division_noise(1, arena, "supply")
 	collab_effects.append({"kind": "popup", "pos": arena.get_center() + Vector2(-70.0, -120.0), "text": "PASS CHANCE", "life": 0.86, "maxLife": 0.86, "color": Color("#ffe16a")})
 
 func _update_collab_boss_attack_objects(delta: float) -> void:
@@ -21186,11 +25929,14 @@ func _update_collab_boss_attack_objects(delta: float) -> void:
 		var kind := String(attack.get("kind", ""))
 		var warning := float(attack.get("warning", 0.0))
 		if warning > 0.0:
-			warning = maxf(0.0, warning - delta)
+			warning = 0.0 if kind == "partner_mute_warning" and warning <= delta + 0.000001 else maxf(0.0, warning - delta)
 			attack["warning"] = warning
 			if warning <= 0.0:
 				if kind == "comment_divide":
-					_trigger_collab_crusher_comment_pulse(Vector2(attack.get("pos", player_pos)))
+					_trigger_collab_crusher_comment_pulse(attack)
+					continue
+				if kind == "partner_mute_warning":
+					_commit_collab_partner_mute_warning(attack)
 					continue
 				_request_screen_shake(0.20, 0.14)
 			kept.append(attack)
@@ -21203,12 +25949,24 @@ func _update_collab_boss_attack_objects(delta: float) -> void:
 				var to_pos := Vector2(attack.get("to", from_pos))
 				if _collab_point_segment_distance_sq(player_pos, from_pos, to_pos) <= pow(COLLAB_CRUSHER_VS_LINE_WIDTH * 0.5 + 13.0, 2.0):
 					attack["hit"] = true
-					_apply_collab_crusher_line_hit(from_pos, to_pos)
+					_apply_collab_crusher_line_hit(from_pos, to_pos, float(attack.get("phase", 0.0)))
 			if active > 0.0:
 				kept.append(attack)
+			else:
+				collab_effects.append({
+					"kind": "vs_line_post_fade",
+					"from": Vector2(attack.get("from", Vector2.ZERO)),
+					"to": Vector2(attack.get("to", Vector2.ZERO)),
+					"phase": float(attack.get("phase", 0.0)),
+					"life": COLLAB_CRUSHER_VS_LINE_POST_FADE_DURATION,
+					"maxLife": COLLAB_CRUSHER_VS_LINE_POST_FADE_DURATION
+				})
 	collab_boss_attacks = kept
 
-func _apply_collab_crusher_line_hit(from_pos: Vector2, to_pos: Vector2) -> void:
+func _collab_vs_line_visual_seed(from_pos: Vector2, to_pos: Vector2, phase: float) -> float:
+	return phase + from_pos.x * 0.013 + from_pos.y * 0.017 + to_pos.x * 0.019 + to_pos.y * 0.023
+
+func _apply_collab_crusher_line_hit(from_pos: Vector2, to_pos: Vector2, visual_phase: float = 0.0) -> void:
 	var segment := to_pos - from_pos
 	var side := Vector2(-segment.y, segment.x).normalized()
 	if side.length_squared() < 0.01:
@@ -21216,18 +25974,102 @@ func _apply_collab_crusher_line_hit(from_pos: Vector2, to_pos: Vector2) -> void:
 	var midpoint := (from_pos + to_pos) * 0.5
 	if (player_pos - midpoint).dot(side) < 0.0:
 		side = -side
+	var line_direction := segment.normalized()
+	if line_direction.length_squared() < 0.01:
+		line_direction = Vector2.RIGHT
+	var visual_seed := _collab_vs_line_visual_seed(from_pos, to_pos, visual_phase)
+	var damage_available := float(invincible) <= 0.0 and not debug_invincible
+	hit_fx.append({
+		"kind": "collab_crusher_vs_line_damage_hit",
+		"pos": player_pos,
+		"dir": line_direction,
+		"side": side,
+		"visualSeed": visual_seed,
+		"damageApplied": damage_available,
+		"life": COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION,
+		"maxLife": COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION
+	})
+	hit_fx.append({
+		"kind": "collab_crusher_vs_line_knockback",
+		"pos": player_pos,
+		"dir": side,
+		"visualSeed": visual_seed + 0.71,
+		"life": COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION,
+		"maxLife": COLLAB_CRUSHER_VS_LINE_HIT_FX_DURATION
+	})
 	player_vel += side * 440.0
 	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher vs line", "damage": HardModeSystemScript.regular_boss_damage_for_target(self, COLLAB_CRUSHER_VS_LINE_DAMAGE)}]))
 
-func _trigger_collab_crusher_comment_pulse(center: Vector2) -> void:
-	collab_effects.append({"kind": "shockwave", "pos": center, "radius": COLLAB_CRUSHER_COMMENT_RADIUS, "life": 0.56, "maxLife": 0.56, "color": Color("#d94f9c"), "label": "VS!"})
+func _trigger_collab_crusher_comment_pulse(attack: Dictionary) -> void:
+	var center := Vector2(attack.get("pos", player_pos))
+	var cast_uid := int(attack.get("cast_uid", -1))
+	var center_index := int(attack.get("center_index", 0))
+	var visual_seed := float(attack.get("visual_seed", attack.get("phase", 0.0)))
+	var shared_impact_used := false
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		if String(effect.get("kind", "")) == "comment_divide_echo" and int(effect.get("cast_uid", -2)) == cast_uid:
+			shared_impact_used = true
+			break
+	collab_effects.append({
+		"kind": "comment_divide_echo",
+		"bossAttackId": "comment_divide",
+		"pos": center,
+		"cast_uid": cast_uid,
+		"center_index": center_index,
+		"visual_seed": visual_seed,
+		"impact_flash": not shared_impact_used,
+		"life": COLLAB_CRUSHER_COMMENT_ECHO_DURATION,
+		"maxLife": COLLAB_CRUSHER_COMMENT_ECHO_DURATION
+	})
 	if player_pos.distance_squared_to(center) > COLLAB_CRUSHER_COMMENT_RADIUS * COLLAB_CRUSHER_COMMENT_RADIUS:
 		return
 	var push := (player_pos - center).normalized()
 	if push.length_squared() < 0.01:
 		push = Vector2.RIGHT
+	var shared_hit_fx: Dictionary = {}
+	var shared_hit_exists := false
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) == "comment_divide_hit" and int(fx.get("cast_uid", -2)) == cast_uid:
+			shared_hit_exists = true
+			break
+	if not shared_hit_exists:
+		shared_hit_fx = {
+			"kind": "comment_divide_hit",
+			"bossAttackId": "comment_divide",
+			"pos": player_pos,
+			"cast_uid": cast_uid,
+			"center_index": center_index,
+			"sourceCenter": center,
+			"pushDir": push,
+			"pushMagnitude": 400.0,
+			"visualSeed": visual_seed,
+			"damageApplied": false,
+			"life": COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION,
+			"maxLife": COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION
+		}
+		hit_fx.append(shared_hit_fx)
+	hit_fx.append({
+		"kind": "comment_divide_push",
+		"bossAttackId": "comment_divide",
+		"pos": player_pos,
+		"cast_uid": cast_uid,
+		"center_index": center_index,
+		"sourceCenter": center,
+		"pushDir": push,
+		"pushMagnitude": 400.0,
+		"visualSeed": visual_seed,
+		"life": COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION,
+		"maxLife": COLLAB_CRUSHER_COMMENT_HIT_FX_DURATION
+	})
 	player_vel += push * 400.0
-	_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher comment divide", "damage": HardModeSystemScript.regular_boss_damage_for_target(self, COLLAB_CRUSHER_COMMENT_DAMAGE)}]))
+	var damage_feedback := DamageSystemScript.apply_damage_events_for_target(self, [{"source": "collab crusher comment divide", "damage": HardModeSystemScript.regular_boss_damage_for_target(self, COLLAB_CRUSHER_COMMENT_DAMAGE)}])
+	if not shared_hit_fx.is_empty():
+		shared_hit_fx["damageApplied"] = bool(damage_feedback.get("damaged", false))
+	_apply_damage_feedback(damage_feedback)
+	if state != "playing":
+		_clear_collab_crusher_comment_divide_visuals()
 
 func _update_collab_stage(delta: float, arena: Rect2) -> void:
 	if not _is_collab_frame():
@@ -21364,70 +26206,66 @@ func _update_collab_challenge(delta: float, arena: Rect2) -> void:
 	if collab_challenge_status == "active" and collab_challenge_time_left <= 0.0:
 		_fail_collab_challenge()
 
-func _collab_challenge_hard() -> bool:
-	return bool(collab_challenge_data.get("hardChallenge", false))
+func _collab_challenge_profile() -> String:
+	return CollabChallengeSystemScript.normalize_profile(collab_challenge_data.get("profile", CollabChallengeSystemScript.PROFILE_STANDARD))
 
-func _start_collab_challenge(arena: Rect2, hard_challenge: bool = false) -> void:
+func _start_collab_challenge(arena: Rect2, profile: String = CollabChallengeSystemScript.PROFILE_STANDARD) -> void:
 	var challenge_type := _select_collab_challenge_type()
 	if challenge_type == "":
 		collab_challenge_next_timer = 1.0
 		return
+	profile = CollabChallengeSystemScript.normalize_profile(profile)
 	collab_challenge_type = challenge_type
 	collab_challenge_id = "%s_%d" % [challenge_type, int(elapsed * 1000.0)]
 	collab_challenge_status = "starting"
-	match challenge_type:
-		"collab_chain":
-			collab_challenge_duration = COLLAB_CHALLENGE_CHAIN_DURATION
-		"comment_catch":
-			collab_challenge_duration = 8.0 if hard_challenge else COLLAB_CHALLENGE_COMMENT_DURATION
-		"dash_sync":
-			collab_challenge_duration = COLLAB_CHALLENGE_DASH_DURATION
-		"thumbnail_time":
-			collab_challenge_duration = COLLAB_CHALLENGE_THUMBNAIL_DURATION
-		"troll_focus":
-			collab_challenge_duration = 8.0 if hard_challenge else COLLAB_CHALLENGE_TROLL_FOCUS_DURATION
-		"line_defense":
-			collab_challenge_duration = COLLAB_CHALLENGE_LINE_DEFENSE_DURATION
-		_:
-			collab_challenge_duration = COLLAB_CHALLENGE_DEFAULT_DURATION
+	var profile_params := CollabChallengeSystemScript.challenge_parameters(challenge_type, profile)
+	collab_challenge_duration = float(profile_params.get("duration", COLLAB_CHALLENGE_DEFAULT_DURATION))
 	collab_challenge_time_left = collab_challenge_duration
 	collab_challenge_start_timer = COLLAB_CHALLENGE_START_BANNER_DURATION
 	collab_challenge_progress = 0
-	match challenge_type:
-		"collab_chain":
-			collab_challenge_required_progress = COLLAB_CHALLENGE_CHAIN_REQUIRED_COUNT
-		"comment_catch":
-			collab_challenge_required_progress = 6 if hard_challenge else COLLAB_CHALLENGE_COMMENT_REQUIRED_COUNT
-		"dash_sync":
-			collab_challenge_required_progress = 3 if hard_challenge else COLLAB_CHALLENGE_DASH_REQUIRED_COUNT
-		"thumbnail_time":
-			collab_challenge_required_progress = 3 if hard_challenge else COLLAB_CHALLENGE_THUMBNAIL_REQUIRED_COUNT
-		_:
-			collab_challenge_required_progress = 1
+	collab_challenge_required_progress = int(profile_params.get("required", 1))
 	collab_challenge_objects.clear()
 	collab_challenge_result_timer = 0.0
 	collab_challenge_result_text = ""
 	collab_challenge_data.clear()
-	collab_challenge_data["hardChallenge"] = hard_challenge
+	collab_challenge_data["profile"] = profile
+	collab_challenge_data["required"] = collab_challenge_required_progress
+	collab_challenge_data["pickupRadius"] = float(profile_params.get("pickupRadius", COLLAB_CHALLENGE_COMMENT_PICKUP_RADIUS))
+	collab_challenge_data["inputWindow"] = float(profile_params.get("inputWindow", COLLAB_CHALLENGE_DASH_GO_DURATION))
+	collab_challenge_data["maxSpeed"] = float(profile_params.get("maxSpeed", COLLAB_CHALLENGE_THUMBNAIL_MAX_SPEED))
+	collab_challenge_data["maxDistance"] = float(profile_params.get("maxDistance", COLLAB_CHALLENGE_THUMBNAIL_MAX_DISTANCE))
+	collab_challenge_data["targetHp"] = float(profile_params.get("hp", COLLAB_CHALLENGE_FOCUS_TARGET_HP))
+	collab_challenge_data["targetSpeed"] = float(profile_params.get("speed", COLLAB_CHALLENGE_FOCUS_TARGET_SPEED))
+	collab_challenge_data["targetContactDamage"] = int(profile_params.get("contactDamage", 5))
+	collab_challenge_data["terminalHp"] = float(profile_params.get("terminalHp", COLLAB_CHALLENGE_DEFENSE_TERMINAL_HP))
+	collab_challenge_data["terminalMaxHp"] = float(profile_params.get("terminalHp", COLLAB_CHALLENGE_DEFENSE_TERMINAL_HP))
+	collab_challenge_data["terminalSuccessHp"] = float(profile_params.get("successTerminalHp", COLLAB_CHALLENGE_DEFENSE_SUCCESS_HP))
+	collab_challenge_data["defenseInitialEnemies"] = int(profile_params.get("initialEnemies", COLLAB_CHALLENGE_DEFENSE_INITIAL_ENEMIES))
+	collab_challenge_data["defenseMaxEnemies"] = int(profile_params.get("maxEnemies", COLLAB_CHALLENGE_DEFENSE_MAX_ENEMIES))
+	collab_challenge_data["defenseReplenishInterval"] = float(profile_params.get("replenishInterval", COLLAB_CHALLENGE_DEFENSE_SPAWN_INTERVAL))
+	collab_challenge_data["defenseEnemyHp"] = float(profile_params.get("enemyHp", 18.0))
+	collab_challenge_data["defenseEnemySpeed"] = float(profile_params.get("enemySpeed", COLLAB_CHALLENGE_DEFENSE_ENEMY_SPEED))
+	collab_challenge_data["terminalDamageInterval"] = float(profile_params.get("terminalDamageInterval", COLLAB_CHALLENGE_DEFENSE_DAMAGE_INTERVAL))
+	collab_challenge_data["terminalDamage"] = float(profile_params.get("terminalDamage", COLLAB_CHALLENGE_DEFENSE_DAMAGE))
 	collab_challenge_used_types.append(challenge_type)
 	while collab_challenge_used_types.size() > 2:
 		collab_challenge_used_types.pop_front()
 	collab_challenge_start_pass_grace_timer = COLLAB_CHALLENGE_GRACE_DURATION
 	match challenge_type:
 		"dash_sync":
-			_start_collab_dash_sync()
+			_start_collab_dash_sync(profile)
 		"thumbnail_time":
-			_start_collab_thumbnail_time()
+			_start_collab_thumbnail_time(profile)
 		"troll_focus":
-			_start_collab_troll_focus(arena)
+			_start_collab_troll_focus(arena, profile)
 		"line_defense":
-			_start_collab_line_defense(arena)
+			_start_collab_line_defense(arena, profile)
 		"collab_chain":
 			collab_challenge_data["lastPoint"] = Vector2.ZERO
 			_spawn_collab_chain_point(arena, 1)
 		"comment_catch":
 			collab_challenge_data["usedComments"] = []
-			for i in range(COLLAB_CHALLENGE_COMMENT_SPAWN_COUNT):
+			for i in range(int(profile_params.get("spawn", COLLAB_CHALLENGE_COMMENT_SPAWN_COUNT))):
 				var pos := _collab_challenge_spawn_position(arena, COLLAB_CHALLENGE_COMMENT_MIN_DISTANCE, COLLAB_CHALLENGE_COMMENT_MAX_DISTANCE, 34.0)
 				for _attempt in range(18):
 					var too_close := false
@@ -21442,17 +26280,19 @@ func _start_collab_challenge(arena: Rect2, hard_challenge: bool = false) -> void
 				collab_challenge_objects.append({
 					"kind": "comment",
 					"pos": pos,
-					"pickupRadius": COLLAB_CHALLENGE_COMMENT_PICKUP_RADIUS,
+					"pickupRadius": float(profile_params.get("pickupRadius", COLLAB_CHALLENGE_COMMENT_PICKUP_RADIUS)),
 					"phase": rng.randf_range(0.0, TAU),
 					"collected": false
 				})
 	_push_collab_challenge_start_chat()
 
-func _start_collab_dash_sync() -> void:
+func _start_collab_dash_sync(profile: String) -> void:
 	_clear_collab_partner_support_effects()
-	var hard_challenge := _collab_challenge_hard()
+	var params := CollabChallengeSystemScript.challenge_parameters("dash_sync", profile)
 	collab_challenge_data = {
-		"hardChallenge": hard_challenge,
+		"profile": CollabChallengeSystemScript.normalize_profile(profile),
+		"required": int(params.get("required", 3)),
+		"inputWindow": float(params.get("inputWindow", COLLAB_CHALLENGE_DASH_GO_DURATION)),
 		"phase": "countdown",
 		"phaseTimer": COLLAB_CHALLENGE_DASH_COUNTDOWN_STEP_DURATION,
 		"countdownValue": 3,
@@ -21503,7 +26343,7 @@ func _update_collab_dash_sync(delta: float) -> void:
 			_record_collab_dash_sync_early_press(data)
 		if phase_timer <= 0.0:
 			data["phase"] = "go"
-			data["phaseTimer"] = 0.40 if _collab_challenge_hard() else COLLAB_CHALLENGE_DASH_GO_DURATION
+			data["phaseTimer"] = float(data.get("inputWindow", COLLAB_CHALLENGE_DASH_GO_DURATION))
 			data["goBurstTimer"] = 0.28
 			dash_cd = 0.0
 		return
@@ -21598,11 +26438,14 @@ func _collab_dash_sync_failure_direction() -> Vector2:
 		return toward_player.normalized()
 	return Vector2.RIGHT
 
-func _start_collab_thumbnail_time() -> void:
+func _start_collab_thumbnail_time(profile: String) -> void:
 	collab_thumbnail_photos.clear()
-	var hard_challenge := _collab_challenge_hard()
+	var params := CollabChallengeSystemScript.challenge_parameters("thumbnail_time", profile)
 	collab_challenge_data = {
-		"hardChallenge": hard_challenge,
+		"profile": CollabChallengeSystemScript.normalize_profile(profile),
+		"required": int(params.get("required", 3)),
+		"maxSpeed": float(params.get("maxSpeed", COLLAB_CHALLENGE_THUMBNAIL_MAX_SPEED)),
+		"maxDistance": float(params.get("maxDistance", COLLAB_CHALLENGE_THUMBNAIL_MAX_DISTANCE)),
 		"phase": "countdown",
 		"phaseTimer": COLLAB_CHALLENGE_THUMBNAIL_COUNTDOWN_STEP_DURATION,
 		"countdownValue": 3,
@@ -21641,7 +26484,7 @@ func _update_collab_thumbnail_time(delta: float) -> void:
 				_play_confirm_se()
 		return
 	if phase == "focus_lock" and phase_timer <= 0.0:
-		var still := player_vel.length() <= COLLAB_CHALLENGE_THUMBNAIL_MAX_SPEED and player_pos.distance_to(Vector2(data.get("shutterPos", player_pos))) <= COLLAB_CHALLENGE_THUMBNAIL_MAX_DISTANCE
+		var still := player_vel.length() <= float(data.get("maxSpeed", COLLAB_CHALLENGE_THUMBNAIL_MAX_SPEED)) and player_pos.distance_to(Vector2(data.get("shutterPos", player_pos))) <= float(data.get("maxDistance", COLLAB_CHALLENGE_THUMBNAIL_MAX_DISTANCE))
 		data["resultSuccess"] = still
 		data["successCount"] = int(data.get("successCount", 0)) + (1 if still else 0)
 		data["phase"] = "capture"
@@ -21762,19 +26605,20 @@ func _spawn_collab_challenge_enemy(kind: String, pos: Vector2, challenge_role: S
 	collab_challenge_data["enemyUids"] = uids
 	return uid
 
-func _start_collab_troll_focus(arena: Rect2) -> void:
+func _start_collab_troll_focus(arena: Rect2, profile: String) -> void:
 	var pos := _collab_challenge_spawn_position(arena, 250.0, 430.0, COLLAB_CHALLENGE_FOCUS_TARGET_RADIUS)
 	var uid := _spawn_collab_challenge_enemy("collab_comparison_troll", pos, "focus_target")
 	var target := _collab_challenge_enemy_by_uid(uid)
 	if target.is_empty():
 		_fail_collab_challenge()
 		return
-	var target_hp := COLLAB_CHALLENGE_FOCUS_TARGET_HP * (1.25 if _collab_challenge_hard() else 1.0)
+	var params := CollabChallengeSystemScript.challenge_parameters("troll_focus", profile)
+	var target_hp := float(params.get("hp", COLLAB_CHALLENGE_FOCUS_TARGET_HP))
 	target["hp"] = target_hp
 	target["max_hp"] = target_hp
 	target["radius"] = COLLAB_CHALLENGE_FOCUS_TARGET_RADIUS
-	target["speed"] = COLLAB_CHALLENGE_FOCUS_TARGET_SPEED
-	target["contactDamage"] = 5
+	target["speed"] = float(params.get("speed", COLLAB_CHALLENGE_FOCUS_TARGET_SPEED))
+	target["contactDamage"] = int(params.get("contactDamage", 5))
 	target["behavior"] = "stationary_obstacle"
 	target["lifeTimer"] = 9999.0
 	target["partnerTargetPriority"] = 25.0
@@ -21788,21 +26632,21 @@ func _update_collab_troll_focus(delta: float, _arena: Rect2) -> void:
 		return
 	var to_player := player_pos - Vector2(target.get("pos", player_pos))
 	if to_player.length() > 0.1:
-		target["pos"] = EnemySystemScript.clamp_enemy_pos_to_arena(Vector2(target.get("pos", player_pos)) + to_player.normalized() * COLLAB_CHALLENGE_FOCUS_TARGET_SPEED * delta, _current_arena())
+		target["pos"] = EnemySystemScript.clamp_enemy_pos_to_arena(Vector2(target.get("pos", player_pos)) + to_player.normalized() * float(collab_challenge_data.get("targetSpeed", COLLAB_CHALLENGE_FOCUS_TARGET_SPEED)) * delta, _current_arena())
 	if collab_challenge_time_left <= 0.0:
 		_fail_collab_challenge()
 
-func _start_collab_line_defense(arena: Rect2) -> void:
+func _start_collab_line_defense(arena: Rect2, profile: String) -> void:
+	var params := CollabChallengeSystemScript.challenge_parameters("line_defense", profile)
 	var terminal_area := arena.grow(-110.0)
 	var terminal_pos := player_pos + Vector2(0.0, 150.0)
 	terminal_pos.x = clampf(terminal_pos.x, terminal_area.position.x, terminal_area.end.x)
 	terminal_pos.y = clampf(terminal_pos.y, terminal_area.position.y, terminal_area.end.y)
 	collab_challenge_data["terminalPos"] = terminal_pos
-	collab_challenge_data["terminalHp"] = COLLAB_CHALLENGE_DEFENSE_TERMINAL_HP
-	collab_challenge_data["terminalMaxHp"] = COLLAB_CHALLENGE_DEFENSE_TERMINAL_HP
+	collab_challenge_data["terminalHp"] = float(params.get("terminalHp", COLLAB_CHALLENGE_DEFENSE_TERMINAL_HP))
+	collab_challenge_data["terminalMaxHp"] = float(params.get("terminalHp", COLLAB_CHALLENGE_DEFENSE_TERMINAL_HP))
 	collab_challenge_data["defenseSpawnTimer"] = 0.0
-	collab_challenge_data["terminalDamageTimer"] = 0.0
-	for i in range(COLLAB_CHALLENGE_DEFENSE_INITIAL_ENEMIES):
+	for i in range(int(params.get("initialEnemies", COLLAB_CHALLENGE_DEFENSE_INITIAL_ENEMIES))):
 		_spawn_collab_defense_enemy(arena, i)
 
 func _spawn_collab_defense_enemy(arena: Rect2, index: int) -> void:
@@ -21815,9 +26659,9 @@ func _spawn_collab_defense_enemy(arena: Rect2, index: int) -> void:
 	var enemy := _collab_challenge_enemy_by_uid(uid)
 	if enemy.is_empty():
 		return
-	enemy["hp"] = 18.0
-	enemy["max_hp"] = 18.0
-	enemy["speed"] = COLLAB_CHALLENGE_DEFENSE_ENEMY_SPEED
+	enemy["hp"] = float(collab_challenge_data.get("defenseEnemyHp", 18.0))
+	enemy["max_hp"] = float(collab_challenge_data.get("defenseEnemyHp", 18.0))
+	enemy["speed"] = float(collab_challenge_data.get("defenseEnemySpeed", COLLAB_CHALLENGE_DEFENSE_ENEMY_SPEED))
 	enemy["radius"] = 22.0
 	enemy["contactDamage"] = 0
 	enemy["behavior"] = "stationary_obstacle"
@@ -21839,9 +26683,11 @@ func _update_collab_line_defense(delta: float, arena: Rect2) -> void:
 			var enemy: Dictionary = enemy_item as Dictionary
 			if String(enemy.get("challengeRole", "")) == "defense_enemy" and not _song_enemy_inactive(enemy):
 				active_count += 1
-		if active_count < COLLAB_CHALLENGE_DEFENSE_MAX_ENEMIES:
+		var max_enemies := int(collab_challenge_data.get("defenseMaxEnemies", COLLAB_CHALLENGE_DEFENSE_MAX_ENEMIES))
+		var replenished_count := CollabChallengeSystemScript.line_defense_replenish_count(active_count, max_enemies)
+		if replenished_count > active_count:
 			_spawn_collab_defense_enemy(arena, active_count)
-		spawn_timer = COLLAB_CHALLENGE_DEFENSE_SPAWN_INTERVAL * (0.75 if _collab_challenge_hard() else 1.0)
+		spawn_timer = float(collab_challenge_data.get("defenseReplenishInterval", COLLAB_CHALLENGE_DEFENSE_SPAWN_INTERVAL))
 	collab_challenge_data["defenseSpawnTimer"] = spawn_timer
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
@@ -21854,16 +26700,17 @@ func _update_collab_line_defense(delta: float, arena: Rect2) -> void:
 			enemy["challengeAtTerminal"] = true
 			enemy["challengeTerminalDamageTimer"] = float(enemy.get("challengeTerminalDamageTimer", 0.0)) - delta
 			if float(enemy.get("challengeTerminalDamageTimer", 0.0)) <= 0.0:
-				terminal_hp -= COLLAB_CHALLENGE_DEFENSE_DAMAGE
-				enemy["challengeTerminalDamageTimer"] = COLLAB_CHALLENGE_DEFENSE_DAMAGE_INTERVAL
-				collab_effects.append({"kind": "popup", "pos": terminal_pos + Vector2(0.0, -54.0), "text": "CONNECTION -10", "life": 0.55, "maxLife": 0.55, "color": Color("#ff839f")})
+				var terminal_damage := float(collab_challenge_data.get("terminalDamage", COLLAB_CHALLENGE_DEFENSE_DAMAGE))
+				terminal_hp -= terminal_damage
+				enemy["challengeTerminalDamageTimer"] = float(collab_challenge_data.get("terminalDamageInterval", COLLAB_CHALLENGE_DEFENSE_DAMAGE_INTERVAL))
+				collab_effects.append({"kind": "popup", "pos": terminal_pos + Vector2(0.0, -54.0), "text": "CONNECTION -%d" % roundi(terminal_damage), "life": 0.55, "maxLife": 0.55, "color": Color("#ff839f")})
 		else:
 			enemy["challengeAtTerminal"] = false
 			if to_terminal.length() > 0.1:
-				enemy["pos"] = EnemySystemScript.clamp_enemy_pos_to_arena(enemy_pos + to_terminal.normalized() * COLLAB_CHALLENGE_DEFENSE_ENEMY_SPEED * delta, arena)
+				enemy["pos"] = EnemySystemScript.clamp_enemy_pos_to_arena(enemy_pos + to_terminal.normalized() * float(collab_challenge_data.get("defenseEnemySpeed", COLLAB_CHALLENGE_DEFENSE_ENEMY_SPEED)) * delta, arena)
 	collab_challenge_data["terminalHp"] = terminal_hp
 	if collab_challenge_time_left <= 0.0:
-		var success_hp := 70.0 if _collab_challenge_hard() else COLLAB_CHALLENGE_DEFENSE_SUCCESS_HP
+		var success_hp := float(collab_challenge_data.get("terminalSuccessHp", COLLAB_CHALLENGE_DEFENSE_SUCCESS_HP))
 		if terminal_hp >= success_hp:
 			_complete_collab_challenge("CONNECTION STABLE!", Color("#7fdcff"))
 		else:
@@ -21997,7 +26844,7 @@ func _collect_collab_challenge_object(object: Dictionary) -> void:
 		"chain":
 			collab_challenge_progress += 1
 			var index := int(object.get("index", collab_challenge_progress))
-			if index < COLLAB_CHALLENGE_CHAIN_REQUIRED_COUNT:
+			if index < collab_challenge_required_progress:
 				_spawn_collab_chain_point(_current_arena(), index + 1)
 				collab_effects.append({"kind": "star_line", "from": player_pos, "to": collab_partner_pos, "life": 0.32, "maxLife": 0.32, "color": Color("#ff9fca")})
 			else:
@@ -22005,7 +26852,7 @@ func _collect_collab_challenge_object(object: Dictionary) -> void:
 		"comment":
 			collab_challenge_progress += 1
 			_emit_collab_challenge_comment()
-			if collab_challenge_progress >= COLLAB_CHALLENGE_COMMENT_REQUIRED_COUNT:
+			if collab_challenge_progress >= collab_challenge_required_progress:
 				_complete_collab_challenge("NICE COLLAB!", Color("#7fdcff"))
 
 func _complete_collab_challenge(result_text: String, result_color: Color) -> void:
@@ -22287,17 +27134,18 @@ func _fire_collab_ban_support() -> void:
 		"hits": hits
 	})
 	if interference_enabled:
+		var warning_duration := maxf(0.0, _comment_runtime_param("out_of_sync", "warningDuration", 0.0))
 		collab_effects.append({
 			"kind": "partner_interference",
 			"pos": center,
 			"radius": 118.0,
-			"triggerDelay": _collab_instruction_variant_value("out_of_sync", 0.4, COLLAB_INSTRUCTION_OUT_OF_SYNC_WARNING_DURATION, 0.3),
+			"triggerDelay": warning_duration * _comment_runtime_param("out_of_sync", "interferenceIntervalRate", 1.0),
 			"age": 0.0,
 			"life": 0.56,
 			"maxLife": 0.56,
 			"interferenceApplied": false
 		})
-		collab_effects.append({"kind": "popup", "pos": center + Vector2(-12.0, -78.0), "text": "!", "life": COLLAB_INSTRUCTION_OUT_OF_SYNC_WARNING_DURATION, "maxLife": COLLAB_INSTRUCTION_OUT_OF_SYNC_WARNING_DURATION, "color": Color("#ff607f")})
+		collab_effects.append({"kind": "popup", "pos": center + Vector2(-12.0, -78.0), "text": "!", "life": warning_duration, "maxLife": warning_duration, "color": Color("#ff607f")})
 
 func _fire_collab_spana_support() -> void:
 	var targets := _collab_nearest_enemies(collab_partner_pos, 560.0, 3)
@@ -22315,7 +27163,7 @@ func _fire_collab_spana_support() -> void:
 			"maxLife": 0.34,
 			"color": Color("#ffe16a"),
 			"playerInterference": _collab_instruction_power("out_of_sync") > 0.0,
-			"interferenceGrace": _collab_instruction_variant_value("out_of_sync", 0.2, COLLAB_INSTRUCTION_OUT_OF_SYNC_PROJECTILE_GRACE, 0.3),
+			"interferenceGrace": maxf(0.0, _comment_runtime_param("out_of_sync", "projectileGraceDuration", 0.0)),
 			"interferenceRadius": 28.0,
 			"interferenceApplied": false,
 			"age": 0.0
@@ -22339,7 +27187,7 @@ func _fire_collab_maro_support() -> void:
 		"maxLife": 0.72,
 		"color": Color("#9ee8d8"),
 		"playerInterference": _collab_instruction_power("out_of_sync") > 0.0,
-		"interferenceGrace": _collab_instruction_variant_value("out_of_sync", 0.2, COLLAB_INSTRUCTION_OUT_OF_SYNC_PROJECTILE_GRACE, 0.3),
+		"interferenceGrace": maxf(0.0, _comment_runtime_param("out_of_sync", "projectileGraceDuration", 0.0)),
 		"interferenceRadius": 26.0,
 		"interferenceApplied": false,
 		"age": 0.0
@@ -22400,6 +27248,26 @@ func _record_collab_partner_hit(enemy: Dictionary, damage: float) -> void:
 	enemy["collabPartnerLastHitTime"] = elapsed
 	enemy["collabPartnerHitCount"] = int(enemy.get("collabPartnerHitCount", 0)) + 1
 	enemy["collabPartnerTotalDamage"] = float(enemy.get("collabPartnerTotalDamage", 0.0)) + maxf(0.0, damage)
+
+func _update_collab_partner_mute_hit_visuals() -> void:
+	if not collab_boss_partner_muted or collab_boss_mute_core_uid < 0:
+		return
+	var core := _collab_enemy_by_uid(collab_boss_mute_core_uid)
+	if core.is_empty():
+		return
+	var current_hp := float(core.get("hp", 0.0))
+	if collab_boss_mute_core_last_hp >= 0.0 and current_hp < collab_boss_mute_core_last_hp - 0.0001:
+		hit_fx.append({
+			"kind": "partner_mute_hit",
+			"bossAttackId": "partner_mute",
+			"coreUid": collab_boss_mute_core_uid,
+			"pos": Vector2(core.get("pos", collab_partner_pos)),
+			"dir": Vector2(core.get("knockbackVelocity", Vector2.RIGHT)).normalized() if Vector2(core.get("knockbackVelocity", Vector2.ZERO)).length_squared() > 0.01 else Vector2.RIGHT,
+			"visualSeed": float(core.get("collabMuteVisualSeed", 0.0)) + current_hp,
+			"life": COLLAB_CRUSHER_MUTE_HIT_FX_DURATION,
+			"maxLife": COLLAB_CRUSHER_MUTE_HIT_FX_DURATION
+		})
+	collab_boss_mute_core_last_hp = current_hp
 
 func _update_collab_effects(delta: float) -> void:
 	var kept: Array = []
@@ -22482,7 +27350,7 @@ func _apply_collab_partner_interference(pos: Vector2, radius: float) -> bool:
 	if push_dir.length_squared() < 0.01:
 		push_dir = Vector2.UP
 	player_vel += push_dir.normalized() * 88.0
-	collab_partner_interference_slow_timer = maxf(collab_partner_interference_slow_timer, _collab_instruction_variant_value("out_of_sync", 0.5, COLLAB_INSTRUCTION_OUT_OF_SYNC_SLOW_DURATION, 0.35))
+	collab_partner_interference_slow_timer = maxf(collab_partner_interference_slow_timer, maxf(0.0, _comment_runtime_param("out_of_sync", "slowDuration", 0.0)))
 	hit_fx.append({"kind": "pickup_text", "pos": player_pos + Vector2(-28.0, -58.0), "vel": Vector2(0.0, -42.0), "life": 0.42, "maxLife": 0.42, "text": "SYNC!?", "color": Color("#ff789d")})
 	return true
 
@@ -22818,7 +27686,11 @@ func _apply_collab_instruction_comment(comment_id: String) -> void:
 			_push_time_toast("相方に任せろ！", 1.15)
 		"dont_fail_collab":
 			if _collab_challenge_can_start():
-				_start_collab_challenge(_current_arena(), true)
+				var runtime := HardModeSystemScript.runtime_for_target(self)
+				var fallback_profile := CollabChallengeSystemScript.PROFILE_HEART_HIGH if _instruction_comment_heart_active(comment_id) else CollabChallengeSystemScript.PROFILE_HIGH
+				var profile_value: Variant = HardModeSystemScript.active_comment_value_for_id(runtime, comment_id, "challengeProfile", fallback_profile)
+				var challenge_profile := CollabChallengeSystemScript.profile_for_comment(comment_id, {"challengeProfile": String(profile_value)})
+				_start_collab_challenge(_current_arena(), challenge_profile)
 				_push_time_toast("高難度コラボチャレンジ開始！", 1.15)
 		"keep_sync":
 			collab_keep_sync_star_loss_cooldown = 0.0
@@ -22826,10 +27698,11 @@ func _apply_collab_instruction_comment(comment_id: String) -> void:
 		"out_of_sync":
 			_push_time_toast("相方の攻撃に注意！", 1.15)
 		"fast_collab_pass":
-			if collab_pass_target_uid >= 0 and collab_pass_time_left > COLLAB_INSTRUCTION_FAST_PASS_DURATION:
-				collab_pass_time_left = COLLAB_INSTRUCTION_FAST_PASS_DURATION
-				collab_pass_duration_total = minf(collab_pass_duration_total, COLLAB_INSTRUCTION_FAST_PASS_DURATION)
-			_push_time_toast("パス制限3秒！", 1.15)
+			var pass_duration := _collab_pass_duration()
+			if collab_pass_target_uid >= 0 and collab_pass_time_left > pass_duration:
+				collab_pass_time_left = pass_duration
+				collab_pass_duration_total = minf(collab_pass_duration_total, pass_duration)
+			_push_time_toast("パス制限%d秒！" % maxi(1, roundi(pass_duration)), 1.15)
 		"collab_stay_close":
 			collab_distance_grace_timer = _collab_stay_close_grace_time()
 			_push_time_toast("相方のそばで連携しよう！", 1.15)
@@ -22856,7 +27729,7 @@ func _collab_instruction_variant_value(comment_id: String, inactive_value: float
 
 func _collab_pass_duration() -> float:
 	if _collab_instruction_power("fast_collab_pass") > 0.0:
-		return COLLAB_INSTRUCTION_FAST_PASS_DURATION
+		return _comment_runtime_param("fast_collab_pass", "passDuration", COLLAB_INSTRUCTION_FAST_PASS_DURATION)
 	return _collab_instruction_variant_value("collab_quick_pass", COLLAB_PASS_BASE_DURATION, 6.0, 8.0)
 
 func _collab_pass_interval_multiplier() -> float:
@@ -22874,11 +27747,11 @@ func _collab_required_sync_stars() -> int:
 	return int(round(_collab_instruction_variant_value("collab_no_sync", 3.0, 4.0, 3.0)))
 
 func _collab_partner_damage_multiplier() -> float:
-	var multiplier := _collab_instruction_variant_value("partner_take_over", 1.0, COLLAB_INSTRUCTION_PARTNER_DAMAGE_MULTIPLIER, 1.60)
+	var multiplier := _comment_runtime_param("partner_take_over", "partnerDamageMultiplier", 1.0)
 	return multiplier * _collab_instruction_variant_value("collab_partner_spotlight", 1.0, 1.50, 1.25)
 
 func _collab_partner_support_interval_multiplier() -> float:
-	var multiplier := _collab_instruction_variant_value("partner_take_over", 1.0, COLLAB_INSTRUCTION_PARTNER_INTERVAL_MULTIPLIER, 0.82)
+	var multiplier := _comment_runtime_param("partner_take_over", "partnerAttackIntervalMultiplier", 1.0)
 	multiplier *= _collab_instruction_variant_value("collab_partner_spotlight", 1.0, 0.85, 0.92)
 	var boss := _collab_crusher_boss()
 	if not boss.is_empty():
@@ -22890,7 +27763,7 @@ func _collab_partner_support_interval_multiplier() -> float:
 	return multiplier
 
 func _collab_player_damage_multiplier() -> float:
-	var multiplier := _collab_instruction_variant_value("partner_take_over", 1.0, COLLAB_INSTRUCTION_PLAYER_DAMAGE_MULTIPLIER, 0.70)
+	var multiplier := _comment_runtime_param("partner_take_over", "playerWeaponDamageMultiplier", 1.0)
 	multiplier *= _collab_instruction_variant_value("collab_partner_spotlight", 1.0, 0.80, 0.90)
 	if _collab_comparison_debuff_active():
 		return multiplier * 0.88
@@ -22933,7 +27806,7 @@ func _collab_player_move_speed_multiplier() -> float:
 		if collab_distance_grace_timer <= 0.0 and collab_partner_pos.distance_squared_to(player_pos) > pow(_collab_stay_close_distance(), 2.0):
 			multiplier = minf(multiplier, _collab_stay_close_move_multiplier())
 	if collab_partner_interference_slow_timer > 0.0 and _collab_instruction_power("out_of_sync") > 0.0:
-		multiplier = minf(multiplier, _collab_instruction_variant_value("out_of_sync", 1.0, COLLAB_INSTRUCTION_OUT_OF_SYNC_MOVE_MULTIPLIER, 0.80))
+		multiplier = minf(multiplier, clampf(_comment_runtime_param("out_of_sync", "moveSpeedMultiplier", 1.0), 0.0, 1.0))
 	return multiplier
 
 func _collab_attack_cooldown_multiplier() -> float:
@@ -23132,6 +28005,7 @@ func _collab_pick_pass_target() -> Dictionary:
 	var active_area := _visible_world_rect_for_spawning().grow(-28.0)
 	var active_center := active_area.get_center()
 	var active_radius := maxf(1.0, active_area.size.length() * 0.5)
+	var spawn_distance_rate := _comment_runtime_param("fast_collab_pass", "spawnDistanceRate", 1.0)
 	for enemy_item in enemies:
 		var enemy: Dictionary = enemy_item as Dictionary
 		if _song_enemy_inactive(enemy):
@@ -23162,7 +28036,7 @@ func _collab_pick_pass_target() -> Dictionary:
 			score_value += minf(24.0, float(enemy.get("collabPartnerHitCount", 0)) * 8.0)
 		var hp_distance := absf(hp_ratio - COLLAB_PASS_HP_RATIO_IDEAL)
 		score_value += maxf(0.0, 50.0 - hp_distance * 100.0)
-		score_value += maxf(0.0, 40.0 - pos.distance_to(player_pos) / 15.0)
+		score_value += maxf(0.0, 40.0 - pos.distance_to(player_pos) / maxf(1.0, 15.0 * spawn_distance_rate))
 		score_value += 15.0 * (1.0 - clampf(pos.distance_to(active_center) / active_radius, 0.0, 1.0))
 		score_value *= maxf(1.0, float(enemy.get("collabPassTargetPriority", 1.0)))
 		var group := 2 if recently_hit_by_partner else 1
@@ -23275,6 +28149,8 @@ func _execute_collab_pair_skill() -> void:
 	collab_pair_skill_count += 1
 	if relay_boss_active:
 		enemy_bullets.clear()
+		_clear_collab_crusher_vs_line_visuals()
+		_clear_collab_crusher_comment_divide_visuals()
 		collab_boss_attacks.clear()
 		collab_effects.clear()
 		collab_hazard_fields.clear()
@@ -23400,7 +28276,7 @@ func _clear_collab_support_projectiles(area: Rect2, limit: int) -> int:
 	return cleared
 
 func _collab_support_projectile_is_clearable(bullet: Dictionary) -> bool:
-	if not bool(bullet.get("clearableByPlayerWeapon", false)):
+	if bool(bullet.get("redPenTelegraphPending", false)) or not bool(bullet.get("clearableByPlayerWeapon", false)):
 		return false
 	var visual := String(bullet.get("visualKind", "")).to_lower()
 	var source_kind := String(bullet.get("sourceKind", bullet.get("source", ""))).to_lower()
@@ -23498,7 +28374,7 @@ func _queue_collab_combo_instant_kill(enemy: Dictionary, source: String, full_ef
 	})
 
 func _collab_combo_projectile_is_clearable(bullet: Dictionary) -> bool:
-	if bool(bullet.get("unerasable", false)) or bool(bullet.get("bossProjectile", false)):
+	if bool(bullet.get("redPenTelegraphPending", false)) or bool(bullet.get("unerasable", false)) or bool(bullet.get("bossProjectile", false)):
 		return false
 	if String(bullet.get("source", "")) == "boss_bullet":
 		return false
@@ -25200,6 +30076,8 @@ func _update_drawing_pink_paint_bullet_cancel(delta: float, arena: Rect2) -> voi
 		_append_drawing_pink_paint_cancel_fx(bullet_pos)
 
 func _enemy_bullet_erasable_by_pink_paint(bullet: Dictionary) -> bool:
+	if bool(bullet.get("redPenTelegraphPending", false)):
+		return false
 	if bool(bullet.get("unerasable", false)):
 		return false
 	if bullet.has("erasableByPinkPaint"):
@@ -25207,7 +30085,7 @@ func _enemy_bullet_erasable_by_pink_paint(bullet: Dictionary) -> bool:
 	var visual_kind := String(bullet.get("visualKind", ""))
 	if visual_kind == "red_pen_mark":
 		return float(bullet.get("hitRadius", 18.0)) <= 18.5
-	if ["armchair_comment", "dot_invader_bullet", "wiki_comment", "drone_bullet"].has(visual_kind):
+	if ["armchair_comment", "dot_invader_bullet", "wiki_comment", "bug_spoiler", "drone_bullet"].has(visual_kind):
 		return true
 	if ["paint_splatter", "paint_splash", "small_paint_splash"].has(visual_kind):
 		return true
@@ -25647,6 +30525,8 @@ func _erase_enemy_bullets_near(pos: Vector2, radius: float) -> int:
 	var radius_sq := radius * radius
 	for i in range(enemy_bullets.size() - 1, -1, -1):
 		var bullet: Dictionary = enemy_bullets[i] as Dictionary
+		if bool(bullet.get("redPenTelegraphPending", false)):
+			continue
 		var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
 		if bullet_pos.distance_squared_to(pos) <= radius_sq:
 			_append_drawing_erase_clean_fx(bullet_pos)
@@ -27208,6 +32088,7 @@ func _draw_song_chorus_objects(visible_rect: Rect2) -> void:
 	_draw_song_live_heat_player_aura()
 	_draw_song_pitch_waves()
 	_draw_song_boss_megaphone_waves()
+	_draw_song_boss_chorus_judge_back()
 	_draw_song_bad_lights()
 	_draw_song_bad_light_player_glare()
 	_draw_song_howling_effects()
@@ -27483,11 +32364,15 @@ func _draw_song_howling_effects() -> void:
 		var wave: Dictionary = item as Dictionary
 		var pos2 := Vector2(wave.get("pos", Vector2.ZERO))
 		var age := float(wave.get("age", 0.0))
-		var active := age >= SONG_HOWLING_TELEGRAPH_DURATION
+		var telegraph_duration := maxf(0.01, float(wave.get("telegraphDuration", 0.01)))
+		var expand_duration := maxf(0.01, float(wave.get("expandDuration", 0.01)))
+		var start_radius := maxf(0.0, float(wave.get("startRadius", 0.0)))
+		var end_radius := maxf(start_radius, float(wave.get("endRadius", start_radius)))
+		var active := age >= telegraph_duration
 		var phase2 := float(wave.get("phase", 0.0))
 		if not active:
-			var telegraph_ratio := clampf(age / maxf(0.01, SONG_HOWLING_TELEGRAPH_DURATION), 0.0, 1.0)
-			var warn_radius := lerpf(SONG_HOWLING_WAVE_START_RADIUS, SONG_HOWLING_WAVE_END_RADIUS, telegraph_ratio)
+			var telegraph_ratio := clampf(age / telegraph_duration, 0.0, 1.0)
+			var warn_radius := lerpf(start_radius, end_radius, telegraph_ratio)
 			draw_circle(pos2, warn_radius, Color(1.0, 0.10, 0.82, 0.08 + telegraph_ratio * 0.12), false, 4.0)
 			draw_circle(pos2, warn_radius + 7.0, Color(1.0, 1.0, 1.0, 0.20 + telegraph_ratio * 0.20), false, 2.5)
 			for i in range(10):
@@ -27495,8 +32380,8 @@ func _draw_song_howling_effects() -> void:
 				var spark := pos2 + Vector2(cos(angle), sin(angle)) * warn_radius
 				draw_circle(spark, 3.0 + telegraph_ratio * 2.0, Color(1.0, 0.60, 0.94, 0.54))
 			continue
-		var progress := clampf((age - SONG_HOWLING_TELEGRAPH_DURATION) / maxf(0.01, SONG_HOWLING_WAVE_EXPAND_DURATION), 0.0, 1.0)
-		var radius := lerpf(SONG_HOWLING_WAVE_START_RADIUS, SONG_HOWLING_WAVE_END_RADIUS, progress)
+		var progress := clampf((age - telegraph_duration) / expand_duration, 0.0, 1.0)
+		var radius := lerpf(start_radius, end_radius, progress)
 		var alpha := 1.0 - progress
 		draw_circle(pos2, radius + 12.0, Color(0.94, 0.04, 0.74, 0.13 * alpha))
 		draw_circle(pos2, radius, Color(1.0, 1.0, 1.0, 0.60 * alpha), false, 7.0)
@@ -27513,7 +32398,7 @@ func _draw_song_bad_lights() -> void:
 	for item in song_bad_lights:
 		var light: Dictionary = item as Dictionary
 		var pos := Vector2(light.get("pos", Vector2.ZERO))
-		var radius := float(light.get("radius", SONG_BAD_LIGHT_RADIUS))
+		var radius := float(light.get("radius", 1.0))
 		var time_left := float(light.get("time", 0.0))
 		var max_time := maxf(0.01, float(light.get("maxTime", SONG_BAD_LIGHT_LIFETIME)))
 		var age := max_time - time_left
@@ -27606,74 +32491,448 @@ func _draw_song_boss_megaphone_waves() -> void:
 		var age := max_time - time_left
 		var telegraph := float(wave.get("telegraph", 0.7))
 		var active := age >= telegraph
-		var phase := clampf(age / maxf(0.01, max_time), 0.0, 1.0)
-		var alpha := (0.45 if active else 0.28) * (1.0 - smoothstep(max_time - 0.16, max_time, age))
-		if alpha <= 0.0:
+		var active_duration := maxf(0.01, float(wave.get("activeDuration", 0.5)))
+		var active_progress := clampf((age - telegraph) / active_duration, 0.0, 1.0)
+		var warning_remaining := maxf(0.0, telegraph - age)
+		var fade := 1.0 - smoothstep(max_time - 0.10, max_time, age)
+		if fade <= 0.0:
 			continue
 		var base_angle := wave_dir.angle()
+		var half_angle := wave_angle * 0.5
+		var warning_mid := not active and warning_remaining <= 0.32
+		var warning_final := not active and warning_remaining <= SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION
+		var fill_alpha := 0.065
+		if warning_mid:
+			fill_alpha = 0.085
+		if warning_final:
+			fill_alpha = 0.115
+		if active:
+			fill_alpha = 0.19
 		var points := PackedVector2Array()
 		points.append(origin)
-		var steps := 18
+		var steps := 40
 		for i in range(steps + 1):
-			var a := base_angle - wave_angle * 0.5 + wave_angle * float(i) / float(steps)
+			var a := base_angle - half_angle + wave_angle * float(i) / float(steps)
 			points.append(origin + Vector2(cos(a), sin(a)) * wave_range)
-		draw_colored_polygon(points, Color(1.0, 0.12, 0.42, 0.11 + alpha * 0.16))
-		_draw_polyline(points, Color(1.0, 1.0, 1.0, 0.50 + alpha * 0.35), 4.0 if active else 2.5)
-		_draw_polyline(points, Color(1.0, 0.12, 0.38, 0.62 + alpha * 0.18), 2.2 if active else 1.6)
-		var core_len := wave_range * (0.72 + phase * 0.10)
-		for j in range(5):
-			var offset_rate := -0.42 + float(j) * 0.21
-			var a2 := base_angle + wave_angle * offset_rate + sin(elapsed * 10.0 + float(j)) * 0.015
-			var to_pos := origin + Vector2(cos(a2), sin(a2)) * core_len
-			draw_line(origin + wave_dir * 18.0, to_pos, Color(1.0, 1.0, 1.0, 0.22 + alpha * 0.22), 10.0 if active else 6.0, true)
-			draw_line(origin + wave_dir * 18.0, to_pos, Color(1.0, 0.12, 0.38, 0.46 + alpha * 0.22), 5.0 if active else 3.2, true)
-		var label_pos := origin + wave_dir * minf(150.0, wave_range * 0.42) + Vector2(-46.0, 14.0)
-		_draw_outlined_text(label_pos, "CHECK!", 92, 18, Color(1.0, 0.92, 0.98, 0.82 + alpha * 0.12), Color(0.22, 0.02, 0.10, 0.72), HORIZONTAL_ALIGNMENT_CENTER)
-		for spark_index in range(8):
-			var spark_t := fmod(phase * 1.4 + float(spark_index) / 8.0, 1.0)
-			var spread := -wave_angle * 0.42 + wave_angle * 0.84 * fmod(float(spark_index) * 0.37, 1.0)
-			var spark_pos := origin + Vector2(cos(base_angle + spread), sin(base_angle + spread)) * (wave_range * spark_t)
-			DrawPrimitiveSystemScript.draw_spark(self, spark_pos, 4.5, Color(1.0, 0.62, 0.86, 0.48 + alpha * 0.18))
+		draw_colored_polygon(points, Color(1.0, 0.08, 0.36, fill_alpha * fade))
+		var left_dir := Vector2.from_angle(base_angle - half_angle)
+		var right_dir := Vector2.from_angle(base_angle + half_angle)
+		var boundary_glow := Color(1.0, 0.08, 0.38, (0.16 if active else 0.10) * fade)
+		var boundary_pink := Color(1.0, 0.10, 0.40, (0.92 if active else (0.72 if warning_final else 0.56)) * fade)
+		var boundary_white := Color(1.0, 0.96, 0.99, (0.88 if active else (0.68 if warning_final else 0.42)) * fade)
+		draw_line(origin, origin + left_dir * wave_range, boundary_glow, 8.0 if active else 5.0, true)
+		draw_line(origin, origin + right_dir * wave_range, boundary_glow, 8.0 if active else 5.0, true)
+		draw_line(origin, origin + left_dir * wave_range, boundary_pink, 3.4 if active else 2.2, true)
+		draw_line(origin, origin + right_dir * wave_range, boundary_pink, 3.4 if active else 2.2, true)
+		draw_line(origin, origin + left_dir * wave_range, boundary_white, 1.2, true)
+		draw_line(origin, origin + right_dir * wave_range, boundary_white, 1.2, true)
+		draw_arc(origin, wave_range, base_angle - half_angle, base_angle + half_angle, 44, boundary_glow, 9.0 if active else 6.0, true)
+		draw_arc(origin, wave_range, base_angle - half_angle, base_angle + half_angle, 44, boundary_pink, 4.2 if active else 2.8, true)
+		draw_arc(origin, wave_range, base_angle - half_angle, base_angle + half_angle, 44, boundary_white, 1.4 if active else 1.1, true)
+		var ray_alpha := 0.12
+		if warning_mid:
+			ray_alpha = 0.20
+		if warning_final:
+			ray_alpha = 0.27
+		if active:
+			ray_alpha = 0.25
+		for ray_index in range(5):
+			var ray_offset := -0.40 + float(ray_index) * 0.20
+			var ray_dir := Vector2.from_angle(base_angle + wave_angle * ray_offset)
+			var ray_length := minf(wave_range - 24.0, 286.0 + float((ray_index * 37) % 66))
+			var ray_color := Color(1.0, 0.30, 0.55, ray_alpha * (0.72 + float(ray_index % 3) * 0.12) * fade)
+			draw_line(origin + wave_dir * 24.0, origin + ray_dir * ray_length, ray_color, 1.1 + float(ray_index % 2) * 0.45, true)
+		var visual_seed := float(wave.get("visualSeed", 0.0))
+		if active:
+			for arc_index in range(4):
+				var arc_radius := 56.0 + fposmod(active_progress * 310.0 + float(arc_index) * 78.0 + visual_seed * 3.0, 310.0)
+				var edge_fade := smoothstep(56.0, 76.0, arc_radius) * (1.0 - smoothstep(346.0, 366.0, arc_radius))
+				var arc_alpha := (0.48 + float(arc_index % 2) * 0.10) * edge_fade * fade
+				_draw_megaphone_pressure_arc(origin, base_angle, half_angle, arc_radius, arc_alpha, true, arc_index % 3 == 0)
+		else:
+			var warning_radii: Array[float] = [132.0, 266.0]
+			if warning_mid:
+				warning_radii = [92.0, 208.0, 324.0]
+			if warning_final:
+				var final_progress := clampf((SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION - warning_remaining) / SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION, 0.0, 1.0)
+				warning_radii = [lerpf(58.0, 116.0, final_progress), lerpf(82.0, 236.0, final_progress), lerpf(108.0, 350.0, final_progress)]
+			for warning_arc_index in range(warning_radii.size()):
+				var warning_radius := warning_radii[warning_arc_index]
+				var warning_alpha := (0.16 + (0.12 if warning_mid else 0.0) + (0.18 if warning_final else 0.0)) * fade
+				_draw_megaphone_pressure_arc(origin, base_angle, half_angle, warning_radius, warning_alpha, false, false)
+		var source_strength := 0.22
+		if warning_mid:
+			source_strength = 0.34
+		if warning_final:
+			source_strength = 0.56
+		if active:
+			source_strength = 0.46
+		draw_circle(origin + wave_dir * 9.0, 16.0 if active else 12.0, Color(1.0, 0.10, 0.42, source_strength * 0.24 * fade))
+		draw_circle(origin + wave_dir * 9.0, 5.0 if active else 3.5, Color(1.0, 0.98, 1.0, source_strength * fade))
+		var spark_count := 6 if active else (3 if warning_final else 0)
+		for spark_index in range(spark_count):
+			var spark_angle_ratio := _megaphone_wave_hash01(visual_seed, spark_index + 5)
+			var spark_distance := 72.0 + _megaphone_wave_hash01(visual_seed, spark_index + 17) * 270.0
+			var spark_angle := base_angle - half_angle * 0.82 + half_angle * 1.64 * spark_angle_ratio
+			var spark_pos := origin + Vector2.from_angle(spark_angle) * spark_distance
+			var spark_color := Color(1.0, 0.72, 0.22, 0.48 * fade) if spark_index % 3 == 0 else Color(1.0, 0.54, 0.72, 0.38 * fade)
+			DrawPrimitiveSystemScript.draw_spark(self, spark_pos, 3.4 + float(spark_index % 2), spark_color)
+
+func _draw_megaphone_pressure_arc(origin: Vector2, base_angle: float, half_angle: float, radius: float, alpha: float, active: bool, gold_accent: bool) -> void:
+	if alpha <= 0.0:
+		return
+	var outer_width := 4.8 if active else 3.0
+	var core_width := 2.0 if active else 1.2
+	draw_arc(origin, radius, base_angle - half_angle * 0.92, base_angle + half_angle * 0.92, 36, Color(1.0, 0.08, 0.40, alpha), outer_width, true)
+	draw_arc(origin, radius, base_angle - half_angle * 0.90, base_angle + half_angle * 0.90, 36, Color(1.0, 0.97, 0.99, alpha * (0.88 if active else 0.66)), core_width, true)
+	if gold_accent:
+		draw_arc(origin, radius + 2.0, base_angle - half_angle * 0.35, base_angle + half_angle * 0.10, 14, Color(1.0, 0.72, 0.18, alpha * 0.54), 1.4, true)
+
+func _draw_song_boss_megaphone_foreground() -> void:
+	for item in song_boss_megaphone_waves:
+		var wave: Dictionary = item as Dictionary
+		var origin := Vector2(wave.get("origin", Vector2.ZERO))
+		var wave_dir := Vector2(wave.get("dir", Vector2.RIGHT)).normalized()
+		if wave_dir.length_squared() <= 0.01:
+			wave_dir = Vector2.RIGHT
+		var normal := Vector2(-wave_dir.y, wave_dir.x)
+		var max_time := maxf(0.01, float(wave.get("maxTime", 1.2)))
+		var age := max_time - float(wave.get("time", 0.0))
+		var telegraph := float(wave.get("telegraph", 0.7))
+		var active := age >= telegraph
+		var warning_remaining := maxf(0.0, telegraph - age)
+		var fade := 1.0 - smoothstep(max_time - 0.10, max_time, age)
+		var visual_seed := float(wave.get("visualSeed", 0.0))
+		if active or warning_remaining <= 0.32:
+			var side_sign := -1.0 if _megaphone_wave_hash01(visual_seed, 2) < 0.5 else 1.0
+			var label_center := origin + wave_dir * 158.0 + normal * side_sign * 20.0
+			var label_alpha := (0.98 if active else (0.94 if warning_remaining <= SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION else 0.78)) * fade
+			_draw_outlined_text(label_center + Vector2(-48.0, 7.0), "CHECK!", 96, 19, Color(1.0, 0.96, 0.99, label_alpha), Color(0.46, 0.01, 0.17, 0.96 * label_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+			draw_line(label_center + Vector2(-28.0, 12.0), label_center + Vector2(28.0, 12.0), Color(1.0, 0.16, 0.46, 0.66 * label_alpha), 2.0, true)
+		if not active and warning_remaining <= SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION:
+			var final_progress := clampf((SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION - warning_remaining) / SONG_MEGAPHONE_WAVE_FINAL_WARNING_DURATION, 0.0, 1.0)
+			draw_arc(origin, 12.0 + final_progress * 5.0, wave_dir.angle() - 1.0, wave_dir.angle() + 1.0, 16, Color(1.0, 0.20, 0.48, 0.76 * fade), 2.2, true)
+			draw_line(origin + wave_dir * 5.0, origin + wave_dir * (22.0 + final_progress * 7.0), Color(1.0, 0.98, 1.0, 0.74 * fade), 2.2, true)
+		if float(wave.get("launchFxTimer", 0.0)) > 0.0:
+			_draw_song_boss_megaphone_launch_fx(wave)
+
+func _draw_song_boss_megaphone_launch_fx(wave: Dictionary) -> void:
+	var origin := Vector2(wave.get("origin", Vector2.ZERO))
+	var wave_dir := Vector2(wave.get("dir", Vector2.RIGHT)).normalized()
+	if wave_dir.length_squared() <= 0.01:
+		wave_dir = Vector2.RIGHT
+	var side := Vector2(-wave_dir.y, wave_dir.x)
+	var life_ratio := clampf(float(wave.get("launchFxTimer", 0.0)) / SONG_MEGAPHONE_WAVE_LAUNCH_FX_DURATION, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var burst := sin(progress * PI)
+	var ring_radius := 8.0 + progress * 27.0
+	draw_circle(origin + wave_dir * 7.0, 5.0 + burst * 7.0, Color(1.0, 0.98, 1.0, 0.42 * life_ratio))
+	draw_arc(origin + wave_dir * 7.0, ring_radius, wave_dir.angle() - 1.2, wave_dir.angle() + 1.2, 22, Color(1.0, 0.10, 0.42, 0.86 * life_ratio), 4.0, true)
+	draw_arc(origin + wave_dir * 7.0, ring_radius, wave_dir.angle() - 1.12, wave_dir.angle() + 1.12, 22, Color(1.0, 0.98, 1.0, 0.82 * life_ratio), 1.7, true)
+	for ray_index in range(5):
+		var ray_side := (float(ray_index) - 2.0) * 0.13
+		var ray_dir := (wave_dir + side * ray_side).normalized()
+		var ray_start := origin + ray_dir * 12.0
+		var ray_end := origin + ray_dir * (28.0 + progress * (14.0 + float(ray_index % 2) * 5.0))
+		var ray_color := Color(1.0, 0.72, 0.20, 0.70 * life_ratio) if ray_index == 0 or ray_index == 4 else Color(1.0, 0.24, 0.50, 0.72 * life_ratio)
+		draw_line(ray_start, ray_end, ray_color, 1.8, true)
+	var pulse_center := origin + wave_dir * (48.0 + progress * 10.0)
+	_draw_outlined_text(pulse_center + Vector2(-26.0, 6.0), "CHECK", 52, 12, Color(1.0, 0.96, 0.99, 0.74 * life_ratio), Color(0.52, 0.01, 0.18, 0.84 * life_ratio), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _megaphone_wave_hash01(seed: float, index: int) -> float:
+	return fposmod(sin(seed * 12.9898 + float(index) * 78.233) * 43758.5453, 1.0)
+
+func _song_boss_chorus_judge_boss() -> Dictionary:
+	var boss := BossSystemScript.active_boss_for_target(self)
+	if boss.is_empty() or String(boss.get("bossId", boss.get("kind", ""))) != "pitch_police_chief":
+		return {}
+	return boss
+
+func _song_boss_chorus_judge_visual_alpha() -> float:
+	if song_boss_chorus_judge_visual_phase == "telegraph":
+		var telegraph_age := SONG_CHORUS_JUDGE_TELEGRAPH_DURATION - song_boss_chorus_judge_visual_timer
+		return smoothstep(0.0, 0.20, telegraph_age)
+	if song_boss_chorus_judge_visual_phase == "success":
+		return clampf(song_boss_chorus_judge_visual_timer / 0.15, 0.0, 1.0)
+	if song_boss_chorus_judge_visual_phase == "fail":
+		return clampf(song_boss_chorus_judge_visual_timer / 0.12, 0.0, 1.0)
+	return 1.0
+
+func _draw_song_boss_chorus_judge_back() -> void:
+	if state != "playing" or song_boss_chorus_judge_visual_phase == "":
+		return
+	var boss := _song_boss_chorus_judge_boss()
+	if boss.is_empty():
+		return
+	var center := Vector2(boss.get("pos", Vector2.ZERO))
+	var radius := float(boss.get("radius", 102.0)) + 15.0
+	var alpha := _song_boss_chorus_judge_visual_alpha()
+	if alpha <= 0.0:
+		return
+	var required := maxi(1, song_boss_chorus_judge_required)
+	var collected := clampi(song_boss_chorus_judge_collected, 0, required)
+	var progress := clampf(float(collected) / float(required), 0.0, 1.0)
+	var success := song_boss_chorus_judge_visual_phase == "success"
+	var failed := song_boss_chorus_judge_visual_phase == "fail"
+	var pulse := 0.5 + 0.5 * sin(elapsed * 3.2)
+	var telegraph := song_boss_chorus_judge_visual_phase == "telegraph"
+	var staff_color := Color(1.0, 0.88, 0.48, ((0.10 if telegraph else 0.075) + progress * 0.035) * alpha)
+	if failed:
+		staff_color = Color(0.52, 0.42, 0.68, 0.12 * alpha)
+	for staff_index in range(5):
+		var staff_y := center.y - 22.0 + float(staff_index) * 11.0
+		var stagger := 5.0 if failed and staff_index % 2 == 1 else 0.0
+		draw_line(Vector2(center.x - 92.0, staff_y - stagger), Vector2(center.x - 43.0, staff_y), staff_color, 1.0, true)
+		draw_line(Vector2(center.x + 43.0, staff_y), Vector2(center.x + 92.0, staff_y + stagger), staff_color, 1.0, true)
+	var inner_color := Color(0.36, 0.92, 1.0, ((0.19 if telegraph else 0.12) + progress * 0.08) * alpha)
+	if failed:
+		inner_color = Color(0.38, 0.32, 0.58, 0.18 * alpha)
+	draw_circle(center, radius - 9.0, inner_color, false, 1.2, true)
+	if collected >= 2 and not failed:
+		var resonance_count := 1 if collected <= 3 else 3
+		for resonance_index in range(resonance_count):
+			var resonance_radius := radius - 20.0 - float(resonance_index) * 8.0
+			var resonance_start := elapsed * 0.18 + float(resonance_index) * 1.72
+			var resonance_span := PI * (0.48 + progress * 0.14)
+			draw_arc(center, resonance_radius, resonance_start, resonance_start + resonance_span, 18, Color(1.0, 0.87, 0.42, (0.10 + progress * 0.12) * alpha), 1.2, true)
+			draw_arc(center, resonance_radius, resonance_start + PI, resonance_start + PI + resonance_span * 0.72, 16, Color(0.36, 0.92, 1.0, (0.08 + progress * 0.09) * alpha), 1.0, true)
+	if success:
+		var success_ratio := clampf(song_boss_chorus_judge_visual_timer / SONG_CHORUS_JUDGE_SUCCESS_VISUAL_DURATION, 0.0, 1.0)
+		var weak_radius := radius + lerpf(-3.0, 8.0, success_ratio)
+		draw_circle(center, weak_radius + pulse * 1.5, Color(1.0, 0.84, 0.36, 0.13 * alpha), false, 5.0, true)
+		draw_circle(center, radius - 18.0, Color(0.34, 0.92, 1.0, 0.13 * alpha), false, 2.0, true)
+	elif failed:
+		for broken_index in range(4):
+			var broken_start := -PI * 0.82 + float(broken_index) * 1.28
+			draw_arc(center, radius - 13.0, broken_start, broken_start + 0.54, 8, Color(0.48, 0.36, 0.62, 0.24 * alpha), 2.0, true)
+		var dissonance := PackedVector2Array()
+		for point_index in range(7):
+			var x := center.x - 42.0 + float(point_index) * 14.0
+			var y := center.y + 48.0 + (6.0 if point_index % 2 == 0 else -5.0)
+			dissonance.append(Vector2(x, y))
+		draw_polyline(dissonance, Color(0.58, 0.32, 0.62, 0.25 * alpha), 1.4, true)
+	if song_boss_chorus_judge_start_pulse_timer > 0.0:
+		var start_progress := 1.0 - song_boss_chorus_judge_start_pulse_timer / 0.22
+		var start_radius := radius - 12.0 + start_progress * 28.0
+		draw_circle(center, start_radius, Color(1.0, 0.91, 0.52, (1.0 - start_progress) * 0.42 * alpha), false, 2.2, true)
+	if song_boss_chorus_judge_collect_pulse_timer > 0.0:
+		var collect_progress := 1.0 - song_boss_chorus_judge_collect_pulse_timer / SONG_CHORUS_JUDGE_PIP_PULSE_DURATION
+		draw_circle(center, radius - 17.0 + collect_progress * 18.0, Color(1.0, 0.92, 0.54, (1.0 - collect_progress) * 0.38 * alpha), false, 1.8, true)
+	_draw_song_boss_chorus_completion_back(center, radius, alpha)
+
+func _draw_song_boss_chorus_completion_back(center: Vector2, radius: float, alpha: float) -> void:
+	if song_boss_chorus_judge_completion_timer <= 0.0:
+		return
+	var progress := 1.0 - clampf(song_boss_chorus_judge_completion_timer / SONG_CHORUS_JUDGE_COMPLETION_DURATION, 0.0, 1.0)
+	var burst_alpha := (1.0 - smoothstep(0.64, 1.0, progress)) * alpha
+	draw_circle(center, radius + 4.0 + progress * 38.0, Color(1.0, 0.91, 0.46, 0.68 * burst_alpha), false, 3.0, true)
+	draw_circle(center, radius - 18.0 + progress * 18.0, Color(0.36, 0.94, 1.0, 0.46 * burst_alpha), false, 2.0, true)
+	draw_circle(center, radius * 0.62, Color(1.0, 1.0, 0.96, 0.055 * burst_alpha))
+	for staff_index in range(5):
+		var staff_y := center.y - 16.0 + float(staff_index) * 8.0
+		draw_line(Vector2(center.x - 82.0, staff_y), Vector2(center.x + 82.0, staff_y), Color(1.0, 0.92, 0.58, 0.22 * burst_alpha), 1.2, true)
+
+func _draw_song_boss_chorus_judge_foreground() -> void:
+	if state != "playing" or song_boss_chorus_judge_visual_phase == "":
+		return
+	var boss := _song_boss_chorus_judge_boss()
+	if boss.is_empty():
+		return
+	var center := Vector2(boss.get("pos", Vector2.ZERO))
+	var radius := float(boss.get("radius", 102.0)) + 15.0
+	var alpha := _song_boss_chorus_judge_visual_alpha()
+	if alpha <= 0.0:
+		return
+	var required := maxi(1, song_boss_chorus_judge_required)
+	var collected := clampi(song_boss_chorus_judge_collected, 0, required)
+	var success := song_boss_chorus_judge_visual_phase == "success"
+	var failed := song_boss_chorus_judge_visual_phase == "fail"
+	var telegraph := song_boss_chorus_judge_visual_phase == "telegraph"
+	var active_or_result := song_boss_chorus_judge_visual_phase in ["active", "success", "fail"]
+	var segment_gap := 0.13
+	for segment_index in range(6):
+		var segment_start := -PI * 0.5 + float(segment_index) * TAU / 6.0 + segment_gap
+		var segment_end := -PI * 0.5 + float(segment_index + 1) * TAU / 6.0 - segment_gap
+		var lit := active_or_result and segment_index < collected
+		if success:
+			lit = true
+		var pulse_timer := float(song_boss_chorus_judge_pip_pulse_timers[segment_index]) if segment_index < song_boss_chorus_judge_pip_pulse_timers.size() else 0.0
+		var segment_pulse := clampf(pulse_timer / SONG_CHORUS_JUDGE_PIP_PULSE_DURATION, 0.0, 1.0)
+		var segment_color := Color(0.94, 0.84, 0.54, (0.42 if telegraph else 0.20) * alpha)
+		var segment_width := 1.9 if telegraph else 1.5
+		if lit:
+			segment_color = Color(1.0, 0.87, 0.38, (0.80 + segment_pulse * 0.18) * alpha)
+			segment_width = 2.8 + segment_pulse * 1.5
+		if failed:
+			segment_color = Color(0.52, 0.42, 0.66, (0.50 if lit else 0.12) * alpha)
+			segment_width = 2.2 if lit else 1.1
+		draw_arc(center, radius, segment_start, segment_end, 12, Color(segment_color.r, segment_color.g, segment_color.b, segment_color.a * 0.22), segment_width + 5.0, true)
+		draw_arc(center, radius, segment_start, segment_end, 12, segment_color, segment_width, true)
+		if lit and not failed:
+			draw_arc(center, radius - 4.0, segment_start + 0.03, segment_end - 0.03, 10, Color(0.42, 0.94, 1.0, (0.40 + segment_pulse * 0.28) * alpha), 1.1, true)
+		var pip_angle := (segment_start + segment_end) * 0.5
+		var pip_pos := center + Vector2.from_angle(pip_angle) * radius
+		var pip_radius := (3.2 if lit else (2.7 if telegraph else 2.1)) + segment_pulse * 2.2
+		var pip_color := Color(1.0, 0.96, 0.72, 0.92 * alpha) if lit and not failed else (Color(0.88, 0.82, 0.62, 0.62 * alpha) if telegraph else Color(0.58, 0.50, 0.70, 0.44 * alpha))
+		draw_circle(pip_pos, pip_radius, pip_color)
+	if success:
+		var success_ratio := clampf(song_boss_chorus_judge_visual_timer / SONG_CHORUS_JUDGE_SUCCESS_VISUAL_DURATION, 0.0, 1.0)
+		var time_start := -PI * 0.5
+		var time_end := time_start + TAU * success_ratio
+		draw_arc(center, radius + 8.0, time_start, time_end, maxi(4, int(40.0 * success_ratio)), Color(0.40, 0.94, 1.0, 0.58 * alpha), 2.0, true)
+		_draw_outlined_text(center + Vector2(-88.0, radius + 26.0), "DAMAGE x1.20", 176, 17, Color(1.0, 0.94, 0.60, 0.96 * alpha), Color(0.16, 0.10, 0.24, 0.88 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	if song_boss_chorus_judge_completion_timer > 0.0:
+		var completion_progress := 1.0 - clampf(song_boss_chorus_judge_completion_timer / SONG_CHORUS_JUDGE_COMPLETION_DURATION, 0.0, 1.0)
+		var completion_alpha := (1.0 - smoothstep(0.62, 1.0, completion_progress)) * alpha
+		for fragment_index in range(6):
+			var fragment_angle := -PI * 0.5 + float(fragment_index) * TAU / 6.0
+			var fragment_dir := Vector2.from_angle(fragment_angle)
+			var fragment_pos := center + fragment_dir * (radius + 18.0 + completion_progress * 24.0)
+			var side := Vector2(-fragment_dir.y, fragment_dir.x)
+			draw_circle(fragment_pos, 2.7, Color(1.0, 0.92, 0.50, 0.82 * completion_alpha))
+			draw_line(fragment_pos + side * 1.7, fragment_pos + side * 1.7 - fragment_dir * 9.0, Color(0.42, 0.94, 1.0, 0.72 * completion_alpha), 1.6, true)
 
 func _draw_song_pitch_waves() -> void:
 	for item in song_pitch_waves:
 		var wave: Dictionary = item as Dictionary
 		var rect: Rect2 = wave.get("rect", Rect2()) as Rect2
+		if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+			continue
 		var age := float(wave.get("maxTime", 1.0)) - float(wave.get("time", 0.0))
 		var active := age >= SONG_PITCH_WAVE_TELEGRAPH_DURATION
-		var alpha := 0.50 if active else 0.32
-		var core_color := Color(0.95, 0.08, 0.78, alpha)
-		var edge_color := Color(1.0, 1.0, 1.0, 0.78 if active else 0.52)
-		var warn_color := Color(1.0, 0.62, 0.94, 0.88 if active else 0.58)
-		var fill_color := Color(0.82, 0.04, 0.68, 0.16 if active else 0.10)
+		var warning_progress := clampf(age / SONG_PITCH_WAVE_TELEGRAPH_DURATION, 0.0, 1.0)
+		var active_progress := clampf((age - SONG_PITCH_WAVE_TELEGRAPH_DURATION) / SONG_PITCH_WAVE_ACTIVE_DURATION, 0.0, 1.0) if active else 0.0
+		var final_warning_start := SONG_PITCH_WAVE_TELEGRAPH_DURATION - SONG_PITCH_WAVE_FINAL_WARNING_DURATION
+		var final_warning := clampf((age - final_warning_start) / SONG_PITCH_WAVE_FINAL_WARNING_DURATION, 0.0, 1.0) if not active else 1.0
+		var horizontal := bool(wave.get("horizontal", true))
+		var axis := Vector2.RIGHT if horizontal else Vector2.DOWN
+		var normal := Vector2.DOWN if horizontal else Vector2.RIGHT
+		var center_start := Vector2(rect.position.x, rect.get_center().y) if horizontal else Vector2(rect.get_center().x, rect.position.y)
+		var length := rect.size.x if horizontal else rect.size.y
+		var half_width := SONG_PITCH_WAVE_WIDTH * 0.5
+		var variant := posmod(int(wave.get("visualVariant", 0)), 2)
+		var visual_seed := float(wave.get("visualSeed", 0.0))
+		var visual_phase := float(wave.get("visualPhase", visual_seed))
+		var pulse_phase := elapsed * (2.4 if active else 1.7) + visual_phase + float(variant) * 0.83
+		var pulse := 0.5 + 0.5 * sin(pulse_phase)
+		var fill_alpha := 0.075 + pulse * 0.018 if active else 0.032 + warning_progress * 0.020 + final_warning * 0.012
+		var fill_color := Color(0.76, 0.04, 0.60, fill_alpha) if variant == 0 else Color(0.64, 0.05, 0.72, fill_alpha)
 		draw_rect(rect, fill_color, true)
-		draw_rect(rect, Color(1.0, 1.0, 1.0, 0.22 if active else 0.14), false, 3.0)
-		if bool(wave.get("horizontal", true)):
-			var y := rect.get_center().y
-			for offset in [-34.0, 0.0, 34.0]:
-				draw_line(Vector2(rect.position.x, y + offset), Vector2(rect.end.x, y + offset + sin(elapsed * 9.0 + offset) * 6.0), Color(1.0, 1.0, 1.0, 0.34 if active else 0.22), 9.0 if active else 6.0, true)
-				draw_line(Vector2(rect.position.x, y + offset), Vector2(rect.end.x, y + offset + sin(elapsed * 9.0 + offset) * 6.0), core_color, 5.5 if active else 4.0, true)
-			draw_line(Vector2(rect.position.x, y), Vector2(rect.end.x, y), edge_color, 3.2)
-			for j in range(7):
-				var x := rect.position.x + 90.0 + float(j) * 270.0
-				var noise_y := y + sin(elapsed * 10.0 + float(j)) * 38.0
-				draw_line(Vector2(x - 22.0, noise_y - 12.0), Vector2(x + 24.0, noise_y + 10.0), Color(1.0, 1.0, 1.0, 0.42 if active else 0.28), 5.0, true)
-				draw_line(Vector2(x - 22.0, noise_y - 12.0), Vector2(x + 24.0, noise_y + 10.0), warn_color, 2.6, true)
-				if j % 2 == 0:
-					_draw_outlined_text(Vector2(x - 18.0, y + 15.0), "♭", 36, 25, Color("#ff47ca"), Color(0.20, 0.02, 0.24, 0.78), HORIZONTAL_ALIGNMENT_CENTER)
-		else:
-			var x := rect.get_center().x
-			for offset in [-34.0, 0.0, 34.0]:
-				draw_line(Vector2(x + offset, rect.position.y), Vector2(x + offset + sin(elapsed * 9.0 + offset) * 6.0, rect.end.y), Color(1.0, 1.0, 1.0, 0.34 if active else 0.22), 9.0 if active else 6.0, true)
-				draw_line(Vector2(x + offset, rect.position.y), Vector2(x + offset + sin(elapsed * 9.0 + offset) * 6.0, rect.end.y), core_color, 5.5 if active else 4.0, true)
-			draw_line(Vector2(x, rect.position.y), Vector2(x, rect.end.y), edge_color, 3.2)
-			for j in range(6):
-				var y2 := rect.position.y + 100.0 + float(j) * 240.0
-				var noise_x := x + sin(elapsed * 10.0 + float(j)) * 38.0
-				draw_line(Vector2(noise_x - 12.0, y2 - 22.0), Vector2(noise_x + 10.0, y2 + 24.0), Color(1.0, 1.0, 1.0, 0.42 if active else 0.28), 5.0, true)
-				draw_line(Vector2(noise_x - 12.0, y2 - 22.0), Vector2(noise_x + 10.0, y2 + 24.0), warn_color, 2.6, true)
-				if j % 2 == 0:
-					_draw_outlined_text(Vector2(x - 18.0, y2 + 10.0), "♭", 36, 25, Color("#ff47ca"), Color(0.20, 0.02, 0.24, 0.78), HORIZONTAL_ALIGNMENT_CENTER)
+		var boundary_strength := 0.42 + warning_progress * 0.22 + final_warning * 0.18
+		if active:
+			boundary_strength = 0.86 + pulse * 0.10
+		_draw_pitch_wave_boundaries(center_start, axis, normal, length, half_width, boundary_strength, active, variant)
+		var split_amount := lerpf(3.0, 5.2, warning_progress) + final_warning * 0.5
+		var main_amplitude := lerpf(10.0, 14.0, warning_progress) + final_warning * 1.5
+		var main_width := lerpf(2.2, 3.0, warning_progress) + final_warning * 0.5
+		var sub_width := lerpf(1.4, 2.1, warning_progress) + final_warning * 0.3
+		if active:
+			split_amount = 6.2 + pulse * 0.8
+			main_amplitude = 18.0 + pulse * 2.0
+			main_width = 4.8 + pulse * 0.8
+			sub_width = 2.7 + pulse * 0.4
+		var phase_speed := 0.42 if not active else 0.68
+		var phase := visual_phase + elapsed * phase_speed
+		var cycles := maxf(5.5, length / 245.0) + float(variant) * 0.42
+		var main_points := _pitch_wave_polyline(center_start, axis, normal, length, main_amplitude, 0.0, phase, cycles)
+		var cyan_points := _pitch_wave_polyline(center_start, axis, normal, length, main_amplitude * 0.82, split_amount, phase + 0.58 + float(variant) * 0.12, cycles + 0.34)
+		var pink_points := _pitch_wave_polyline(center_start, axis, normal, length, main_amplitude * 0.88, -split_amount, phase - 0.47 - float(variant) * 0.10, cycles - 0.28)
+		var wave_alpha := 0.48 + warning_progress * 0.18 + final_warning * 0.14
+		if active:
+			wave_alpha = 0.90
+		var cyan_alpha := wave_alpha * (0.92 if variant == 0 else 0.72)
+		var pink_alpha := wave_alpha * (0.72 if variant == 0 else 0.94)
+		draw_polyline(cyan_points, Color(0.14, 0.90, 1.0, 0.12 * wave_alpha), sub_width + 5.0, true)
+		draw_polyline(pink_points, Color(1.0, 0.12, 0.72, 0.12 * wave_alpha), sub_width + 5.0, true)
+		draw_polyline(main_points, Color(1.0, 0.72, 0.92, 0.13 * wave_alpha), main_width + 6.0, true)
+		draw_polyline(cyan_points, Color(0.18, 0.92, 1.0, cyan_alpha), sub_width, true)
+		draw_polyline(pink_points, Color(1.0, 0.16, 0.72, pink_alpha), sub_width, true)
+		draw_polyline(main_points, Color(1.0, 0.96, 0.99, wave_alpha), main_width, true)
+		_draw_pitch_wave_noise(center_start, axis, normal, length, half_width, visual_seed, variant, warning_progress, active, final_warning)
+		_draw_pitch_wave_glyphs(center_start, axis, normal, length, visual_seed, variant, warning_progress, active)
+		if active:
+			_draw_pitch_wave_active_accents(center_start, axis, normal, length, visual_seed, variant, active_progress, pulse)
+
+func _draw_pitch_wave_boundaries(center_start: Vector2, axis: Vector2, normal: Vector2, length: float, half_width: float, strength: float, active: bool, variant: int) -> void:
+	for side_sign_value in [-1.0, 1.0]:
+		var side_sign := float(side_sign_value)
+		var from_pos: Vector2 = center_start + normal * half_width * side_sign
+		var to_pos: Vector2 = from_pos + axis * length
+		var split_color := Color(0.18, 0.90, 1.0, 0.10 * strength) if ((side_sign > 0.0) != (variant == 1)) else Color(1.0, 0.18, 0.70, 0.10 * strength)
+		draw_line(from_pos, to_pos, split_color, 9.0 if active else 7.0, true)
+		draw_line(from_pos, to_pos, Color(0.28, 0.02, 0.34, 0.42 * strength), 4.4 if active else 3.4, true)
+		draw_line(from_pos, to_pos, Color(1.0, 0.88, 0.97, strength), 2.2 if active else 1.7, true)
+
+func _pitch_wave_polyline(center_start: Vector2, axis: Vector2, normal: Vector2, length: float, amplitude: float, normal_offset: float, phase: float, cycles: float) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	var sample_count := maxi(18, int(ceil(length / 48.0)) + 1)
+	for point_index in range(sample_count):
+		var ratio := float(point_index) / float(sample_count - 1)
+		var envelope := 0.76 + sin(ratio * PI) * 0.24
+		var primary := sin(ratio * TAU * cycles + phase) * amplitude * envelope
+		var discord := sin(ratio * TAU * (cycles * 0.47 + 1.0) + phase * 1.37) * amplitude * 0.22
+		points.append(center_start + axis * (length * ratio) + normal * (normal_offset + primary + discord))
+	return points
+
+func _pitch_wave_hash01(seed: float, salt: int) -> float:
+	return fposmod(sin(seed * 12.9898 + float(salt) * 78.233) * 43758.5453, 1.0)
+
+func _draw_pitch_wave_noise(center_start: Vector2, axis: Vector2, normal: Vector2, length: float, half_width: float, seed: float, variant: int, warning_progress: float, active: bool, final_warning: float) -> void:
+	var fragment_count := 7 if active else 2 + int(floor(warning_progress * 2.0)) + int(final_warning > 0.0)
+	var alpha := 0.68 if active else 0.24 + warning_progress * 0.20 + final_warning * 0.16
+	for fragment_index in range(fragment_count):
+		var along_ratio := 0.07 + _pitch_wave_hash01(seed + float(variant) * 0.71, fragment_index * 3 + 1) * 0.86
+		var normal_ratio := _pitch_wave_hash01(seed, fragment_index * 3 + 2) * 2.0 - 1.0
+		var fragment_pos := center_start + axis * (length * along_ratio) + normal * (normal_ratio * (half_width - 14.0))
+		var fragment_length := 8.0 + _pitch_wave_hash01(seed, fragment_index * 3 + 3) * 15.0
+		var skew := (_pitch_wave_hash01(seed, fragment_index * 3 + 4) * 2.0 - 1.0) * 7.0
+		var fragment_color := Color(0.20, 0.92, 1.0, alpha) if (fragment_index + variant) % 2 == 0 else Color(1.0, 0.20, 0.72, alpha)
+		draw_line(fragment_pos - axis * fragment_length * 0.5 - normal * skew * 0.5, fragment_pos + axis * fragment_length * 0.5 + normal * skew * 0.5, fragment_color, 1.5 if not active else 2.1, true)
+
+func _draw_pitch_wave_glyphs(center_start: Vector2, axis: Vector2, normal: Vector2, length: float, seed: float, variant: int, warning_progress: float, active: bool) -> void:
+	var flat_count := 1
+	var sharp_count := 0
+	if active or warning_progress >= 0.82:
+		flat_count = 3 if variant == 0 else 2
+		sharp_count = 1 if variant == 0 else 2
+	elif warning_progress >= 0.46:
+		flat_count = 2
+		sharp_count = 1
+	var total_count := flat_count + sharp_count
+	var glyph_alpha := 0.34 + warning_progress * 0.38
+	if active:
+		glyph_alpha = 0.90
+	for glyph_index in range(total_count):
+		var symbol := "♭" if glyph_index < flat_count else "♯"
+		var along_ratio := 0.14 + (float(glyph_index) + 0.5) / float(total_count) * 0.72
+		along_ratio += (_pitch_wave_hash01(seed + float(variant), glyph_index + 31) - 0.5) * 0.055
+		var normal_base := (_pitch_wave_hash01(seed, glyph_index + 47) * 2.0 - 1.0) * 44.0
+		var wobble := sin(elapsed * 1.8 + seed + float(glyph_index) * 1.31) * (2.0 if not active else 4.0)
+		var glyph_center := center_start + axis * (length * clampf(along_ratio, 0.08, 0.92)) + normal * (normal_base + wobble)
+		var glyph_color := Color(0.28, 0.94, 1.0, glyph_alpha) if symbol == "♭" else Color(1.0, 0.30, 0.76, glyph_alpha)
+		if (glyph_index + variant) % 3 == 2:
+			glyph_color = Color(1.0, 0.94, 0.99, glyph_alpha)
+		var glyph_size := 25 if symbol == "♭" else 22
+		_draw_outlined_text(glyph_center + Vector2(-14.0, 9.0), symbol, 28, glyph_size, glyph_color, Color(0.16, 0.02, 0.24, 0.76 * glyph_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_pitch_wave_active_accents(center_start: Vector2, axis: Vector2, normal: Vector2, length: float, seed: float, variant: int, active_progress: float, pulse: float) -> void:
+	var accent_alpha := 0.48 + pulse * 0.28
+	for ring_index in range(3):
+		var along_ratio := 0.20 + float(ring_index) * 0.29 + (_pitch_wave_hash01(seed, ring_index + 71) - 0.5) * 0.07
+		var normal_offset := (_pitch_wave_hash01(seed + float(variant), ring_index + 79) * 2.0 - 1.0) * 48.0
+		var ring_center := center_start + axis * (length * along_ratio) + normal * normal_offset
+		var radius := 7.0 + float(ring_index) * 2.0 + pulse * 2.0
+		var start_angle := seed + float(ring_index) * 1.7 + active_progress * 0.8
+		var ring_color := Color(0.24, 0.92, 1.0, accent_alpha) if (ring_index + variant) % 2 == 0 else Color(1.0, 0.26, 0.74, accent_alpha)
+		draw_arc(ring_center, radius, start_angle, start_angle + PI * 0.82, 10, ring_color, 1.8, true)
+	for spark_index in range(5):
+		var along_ratio := 0.10 + _pitch_wave_hash01(seed, spark_index + 91) * 0.80
+		var normal_offset := (_pitch_wave_hash01(seed + 0.43, spark_index + 97) * 2.0 - 1.0) * 54.0
+		var spark_center := center_start + axis * (length * along_ratio) + normal * normal_offset
+		var spark_size := 3.0 + _pitch_wave_hash01(seed, spark_index + 103) * 3.0
+		var spark_color := Color(1.0, 0.94, 0.99, 0.58 + pulse * 0.22)
+		draw_line(spark_center - axis * spark_size, spark_center + axis * spark_size, spark_color, 1.5, true)
+		draw_line(spark_center - normal * spark_size * 0.65, spark_center + normal * spark_size * 0.65, spark_color, 1.2, true)
 
 func _draw_song_note(note: Dictionary) -> void:
 	var pos := Vector2(note.get("pos", Vector2.ZERO))
@@ -27682,28 +32941,70 @@ func _draw_song_note(note: Dictionary) -> void:
 	var draw_pos := pos + Vector2(0.0, bob)
 	var orb_index := clampi(int(note.get("orbIndex", 0)), 0, SONG_NOTE_ORB_IMAGES.size() - 1)
 	var lyrics_locked := _song_notes_locked_by_lyrics_lost()
+	var judge_note := String(note.get("noteTag", "")) == "chorus_judge_note"
+	var pop_scale := 1.0
+	var pop_alpha := 1.0
+	if judge_note:
+		var pop_age := maxf(0.0, float(note.get("judgeVisualAge", SONG_CHORUS_JUDGE_NOTE_POP_DURATION)) - float(note.get("judgeVisualDelay", 0.0)))
+		var pop_progress := clampf(pop_age / SONG_CHORUS_JUDGE_NOTE_POP_DURATION, 0.0, 1.0)
+		if pop_progress < 0.68:
+			pop_scale = lerpf(0.72, 1.06, smoothstep(0.0, 0.68, pop_progress))
+		else:
+			pop_scale = lerpf(1.06, 1.0, smoothstep(0.68, 1.0, pop_progress))
+		pop_alpha = lerpf(0.45, 1.0, smoothstep(0.0, 0.72, pop_progress))
+	if song_boss_chorus_judge_active:
+		_draw_song_chorus_note_objective_fx(note, pos, draw_pos, judge_note, lyrics_locked, pop_scale, pop_alpha)
 	var texture: Texture2D = _song_note_orb_texture(orb_index, lyrics_locked)
 	if texture != null:
 		var pulse := 1.0 + sin(elapsed * 5.2 + phase) * 0.035
-		var size := Vector2(66.0, 66.0) * pulse
-		DrawPrimitiveSystemScript.draw_shadow(self, draw_pos + Vector2(0.0, 13.0), Vector2(36.0, 10.0), 0.08 if lyrics_locked else 0.12)
+		var size := Vector2(66.0, 66.0) * pulse * pop_scale
+		DrawPrimitiveSystemScript.draw_shadow(self, draw_pos + Vector2(0.0, 13.0), Vector2(36.0, 10.0) * pop_scale, (0.08 if lyrics_locked else 0.12) * pop_alpha)
 		if lyrics_locked:
-			draw_circle(draw_pos, 30.0 * pulse, Color(0.18, 0.17, 0.22, 0.20))
-			draw_texture_rect(texture, Rect2(draw_pos - size * 0.5, size), false, Color(0.80, 0.82, 0.88, 0.84))
-			draw_circle(draw_pos, 31.0 * pulse, Color(0.10, 0.09, 0.13, 0.24))
-			draw_circle(draw_pos, 32.0 * pulse, Color(1.0, 1.0, 1.0, 0.36), false, 2.2)
-			_draw_outlined_text(draw_pos + Vector2(-13.0, 14.0), "×", 31, 26, Color(0.92, 0.94, 1.0, 0.90), Color(0.10, 0.08, 0.14, 0.88), HORIZONTAL_ALIGNMENT_CENTER)
+			draw_circle(draw_pos, 30.0 * pulse * pop_scale, Color(0.18, 0.17, 0.22, 0.20 * pop_alpha))
+			draw_texture_rect(texture, Rect2(draw_pos - size * 0.5, size), false, Color(0.80, 0.82, 0.88, 0.84 * pop_alpha))
+			draw_circle(draw_pos, 31.0 * pulse * pop_scale, Color(0.10, 0.09, 0.13, 0.24 * pop_alpha))
+			draw_circle(draw_pos, 32.0 * pulse * pop_scale, Color(1.0, 1.0, 1.0, 0.36 * pop_alpha), false, 2.2)
+			_draw_outlined_text(draw_pos + Vector2(-13.0, 14.0), "×", 31, 26, Color(0.92, 0.94, 1.0, 0.90 * pop_alpha), Color(0.10, 0.08, 0.14, 0.88 * pop_alpha), HORIZONTAL_ALIGNMENT_CENTER)
 		else:
-			draw_circle(draw_pos, 28.0 * pulse, Color(1.0, 0.78, 0.96, 0.10))
-			draw_texture_rect(texture, Rect2(draw_pos - size * 0.5, size), false)
+			draw_circle(draw_pos, 28.0 * pulse * pop_scale, Color(1.0, 0.78, 0.96, 0.10 * pop_alpha))
+			draw_texture_rect(texture, Rect2(draw_pos - size * 0.5, size), false, Color(1.0, 1.0, 1.0, pop_alpha))
 		return
 	var color: Color = note.get("color", Color("#ff8fc8")) as Color
 	if lyrics_locked:
 		color = Color(0.58, 0.60, 0.68, 0.82)
-	draw_circle(draw_pos, 28.0, Color(color.r, color.g, color.b, 0.16))
-	draw_circle(draw_pos, 19.0, Color(1.0, 1.0, 1.0, 0.86))
-	draw_circle(draw_pos, 18.0, Color(color.r, color.g, color.b, 0.78), false, 3)
-	_draw_outlined_text(draw_pos + Vector2(-17.0, 15.0), String(note.get("symbol", "♪")), 34, 26, color, Color(0.26, 0.12, 0.34, 0.55), HORIZONTAL_ALIGNMENT_CENTER)
+	draw_circle(draw_pos, 28.0 * pop_scale, Color(color.r, color.g, color.b, 0.16 * pop_alpha))
+	draw_circle(draw_pos, 19.0 * pop_scale, Color(1.0, 1.0, 1.0, 0.86 * pop_alpha))
+	draw_circle(draw_pos, 18.0 * pop_scale, Color(color.r, color.g, color.b, 0.78 * pop_alpha), false, 3)
+	color.a *= pop_alpha
+	_draw_outlined_text(draw_pos + Vector2(-17.0, 15.0), String(note.get("symbol", "♪")), 34, 26, color, Color(0.26, 0.12, 0.34, 0.55 * pop_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_song_chorus_note_objective_fx(note: Dictionary, pickup_pos: Vector2, draw_pos: Vector2, judge_note: bool, lyrics_locked: bool, pop_scale: float, pop_alpha: float) -> void:
+	var seed := float(note.get("judgeVisualSeed", float(note.get("phase", 0.0))))
+	var lock_alpha := 0.34 if lyrics_locked else 1.0
+	var objective_alpha := pop_alpha * lock_alpha
+	var arc_count := 4 if judge_note else 2
+	for arc_index in range(arc_count):
+		var start_angle := seed + elapsed * (0.22 if judge_note else 0.12) + float(arc_index) * TAU / float(arc_count)
+		var arc_span := 0.42 if judge_note else 0.30
+		var arc_color := Color(0.98, 0.82, 0.38, (0.25 if judge_note else 0.13) * objective_alpha)
+		if judge_note and arc_index % 2 == 1:
+			arc_color = Color(0.35, 0.91, 1.0, 0.22 * objective_alpha)
+		draw_arc(pickup_pos, 48.0, start_angle, start_angle + arc_span, 8, arc_color, 1.6 if judge_note else 1.1, true)
+	if not judge_note:
+		return
+	var staff_alpha := 0.11 * objective_alpha
+	var staff_half_width := 38.0 * pop_scale
+	for staff_index in range(5):
+		var staff_y := draw_pos.y - 12.0 + float(staff_index) * 6.0
+		var shorten := float(abs(staff_index - 2)) * 3.5
+		draw_line(Vector2(draw_pos.x - staff_half_width + shorten, staff_y), Vector2(draw_pos.x + staff_half_width - shorten, staff_y), Color(1.0, 0.91, 0.52, staff_alpha), 1.0, true)
+	draw_circle(draw_pos, 36.0 * pop_scale, Color(1.0, 0.88, 0.46, 0.12 * objective_alpha), false, 2.0, true)
+	draw_arc(draw_pos, 39.0 * pop_scale, seed, seed + PI * 1.22, 20, Color(0.35, 0.92, 1.0, 0.24 * objective_alpha), 1.35, true)
+	var pop_age := maxf(0.0, float(note.get("judgeVisualAge", SONG_CHORUS_JUDGE_NOTE_POP_DURATION)) - float(note.get("judgeVisualDelay", 0.0)))
+	if pop_age < SONG_CHORUS_JUDGE_NOTE_POP_DURATION:
+		var pop_progress := clampf(pop_age / SONG_CHORUS_JUDGE_NOTE_POP_DURATION, 0.0, 1.0)
+		var ring_radius := lerpf(24.0, 44.0, pop_progress)
+		draw_circle(draw_pos, ring_radius, Color(1.0, 0.94, 0.64, (1.0 - pop_progress) * 0.34 * lock_alpha), false, 1.8, true)
 
 func _draw_song_spotlight(light: Dictionary) -> void:
 	var pos := Vector2(light.get("pos", Vector2.ZERO))
@@ -27935,32 +33236,68 @@ func _draw_song_boss_chorus_judge_notice() -> void:
 	var center := Vector2(FIELD_VIEW.get_center().x, _song_notice_stack_center_y(base_size.y, lane))
 	center.y += lerpf(-9.0, 0.0, appear) - (1.0 - fade) * 9.0
 	var rect := Rect2(center - base_size * 0.5, base_size)
-	var accent := Color("#ff3f82")
-	var sub_accent := Color("#8eeaff") if song_boss_chorus_judge_notice_success else Color("#caa7ff")
+	var failed_result := song_boss_chorus_judge_visual_phase == "fail"
+	var urgent := song_boss_chorus_judge_active and song_boss_chorus_judge_timer <= 3.0
+	var urgency_pulse := 0.5 + 0.5 * sin(elapsed * TAU * 1.75)
+	var accent := Color("#e9b83f")
+	var sub_accent := Color("#70dff2")
+	if urgent:
+		accent = Color("#f09b35").lerp(Color("#ff783d"), urgency_pulse * 0.42)
+	elif failed_result:
+		accent = Color("#756587")
+		sub_accent = Color("#766b9a")
+	elif song_boss_chorus_judge_notice_success:
+		accent = Color("#e9bd46")
+		sub_accent = Color("#6fe8f5")
 	var title := song_boss_chorus_judge_notice_title
 	var subtitle := song_boss_chorus_judge_notice_subtitle
 	if song_boss_chorus_judge_active:
-		title = "サビジャッジ中！"
-		var remain := int(ceil(song_boss_chorus_judge_timer))
-		subtitle = "音符 %d / %d　残り%02d秒" % [song_boss_chorus_judge_collected, song_boss_chorus_judge_required, remain]
+		var remaining_notes := maxi(0, song_boss_chorus_judge_required - song_boss_chorus_judge_collected)
+		title = "あと %d 音" % remaining_notes
+		subtitle = "残り %.1f秒" % maxf(0.0, song_boss_chorus_judge_timer)
 	DrawPrimitiveSystemScript.draw_shadow(self, rect.get_center() + Vector2(0.0, 7.0), rect.size + Vector2(24.0, 12.0), 0.15 * alpha)
-	draw_rect(rect.grow(7.0), Color(accent.r, accent.g, accent.b, 0.13 * alpha), true)
-	_draw_song_notice_soft_rect(rect, Color(1.0, 0.985, 1.0, 0.94 * alpha), Color(accent.r, accent.g, accent.b, 0.88 * alpha), 3.0, 20.0)
+	var border_pulse := urgency_pulse if urgent else 0.0
+	draw_rect(rect.grow(7.0), Color(accent.r, accent.g, accent.b, (0.13 + border_pulse * 0.06) * alpha), true)
+	var panel_fill := Color(0.99, 0.985, 0.94, 0.95 * alpha) if not failed_result else Color(0.90, 0.88, 0.94, 0.94 * alpha)
+	_draw_song_notice_soft_rect(rect, panel_fill, Color(accent.r, accent.g, accent.b, (0.84 + border_pulse * 0.13) * alpha), 3.0 + border_pulse * 1.0, 20.0)
 	draw_rect(Rect2(rect.position + Vector2(0.0, 7.0), Vector2(rect.size.x, 6.0)), Color(sub_accent.r, sub_accent.g, sub_accent.b, 0.26 * alpha), true)
 	var icon_pos := rect.position + Vector2(54.0, rect.size.y * 0.5)
-	draw_circle(icon_pos, 28.0, Color(accent.r, accent.g, accent.b, 0.24 * alpha))
+	draw_circle(icon_pos, 28.0, Color(accent.r, accent.g, accent.b, 0.18 * alpha))
 	draw_circle(icon_pos, 20.0, Color(1.0, 1.0, 1.0, 0.94 * alpha))
-	draw_circle(icon_pos, 20.0, Color(accent.r, accent.g, accent.b, 0.78 * alpha), false, 3.0)
-	_draw_outlined_text(icon_pos + Vector2(-15.0, 10.0), "♪!", 32, 22, Color(accent.r, accent.g, accent.b, alpha), Color(0.20, 0.04, 0.18, 0.52 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
+	for icon_segment in range(6):
+		var icon_start := -PI * 0.5 + float(icon_segment) * TAU / 6.0 + 0.14
+		var icon_end := -PI * 0.5 + float(icon_segment + 1) * TAU / 6.0 - 0.14
+		draw_arc(icon_pos, 21.0, icon_start, icon_end, 7, Color(accent.r, accent.g, accent.b, 0.82 * alpha), 2.3, true)
+	_draw_outlined_text(icon_pos + Vector2(-14.0, 10.0), "♪", 28, 22, Color(accent.r, accent.g, accent.b, alpha), Color(1.0, 1.0, 1.0, 0.72 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
 	var text_x := rect.position.x + 94.0
-	var text_width := int(rect.size.x - 116.0)
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 28.0), "text": title, "width": text_width, "size": 21, "fontWeight": "black", "color": Color(0.54, 0.18, 0.40, 0.95 * alpha)})
-	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 59.0), "text": subtitle, "width": text_width, "size": 17, "fontWeight": "bold", "color": Color(0.28, 0.46, 0.68, 0.92 * alpha)})
-	if song_boss_chorus_judge_active and song_boss_chorus_judge_required > 0:
-		var bar_rect := Rect2(rect.position + Vector2(95.0, rect.size.y - 16.0), Vector2(rect.size.x - 122.0, 6.0))
-		var rate := clampf(float(song_boss_chorus_judge_collected) / float(song_boss_chorus_judge_required), 0.0, 1.0)
-		draw_rect(bar_rect, Color(0.98, 0.82, 0.92, 0.72 * alpha), true)
-		draw_rect(Rect2(bar_rect.position, Vector2(bar_rect.size.x * rate, bar_rect.size.y)), Color(accent.r, accent.g, accent.b, 0.86 * alpha), true)
+	var main_width := 206 if song_boss_chorus_judge_visual_phase in ["telegraph", "active", "success", "fail"] else int(rect.size.x - 116.0)
+	var title_color := Color(0.43, 0.30, 0.18, 0.96 * alpha) if not failed_result else Color(0.32, 0.27, 0.40, 0.96 * alpha)
+	var subtitle_color := Color(0.22, 0.47, 0.56, 0.94 * alpha) if not urgent else Color(0.72, 0.24, 0.14, (0.90 + urgency_pulse * 0.08) * alpha)
+	if failed_result:
+		subtitle_color = Color(0.40, 0.34, 0.52, 0.92 * alpha)
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 31.0), "text": title, "width": main_width, "size": 23 if song_boss_chorus_judge_active else 19, "fontWeight": "black", "color": title_color})
+	_draw_text_item({"pos": Vector2(text_x, rect.position.y + 62.0), "text": subtitle, "width": main_width, "size": 18 if urgent else (16 if song_boss_chorus_judge_active else 15), "fontWeight": "bold", "color": subtitle_color})
+	var show_pips := song_boss_chorus_judge_active or song_boss_chorus_judge_visual_phase in ["telegraph", "success", "fail"]
+	if show_pips:
+		var pip_collected := song_boss_chorus_judge_collected
+		if song_boss_chorus_judge_visual_phase == "success":
+			pip_collected = 6
+		var pip_start := rect.position + Vector2(310.0, 53.0)
+		for pip_index in range(6):
+			var pip_pos := pip_start + Vector2(float(pip_index) * 19.0, 0.0)
+			var lit := pip_index < pip_collected
+			var pip_timer := float(song_boss_chorus_judge_pip_pulse_timers[pip_index]) if pip_index < song_boss_chorus_judge_pip_pulse_timers.size() else 0.0
+			var pip_pulse := clampf(pip_timer / SONG_CHORUS_JUDGE_PIP_PULSE_DURATION, 0.0, 1.0)
+			var unfinished_blink := (0.58 + urgency_pulse * 0.34) if urgent and not lit else 1.0
+			var pip_radius := (6.1 if lit else 5.2) + pip_pulse * 2.8
+			var pip_color := Color(1.0, 0.88, 0.40, (0.90 + pip_pulse * 0.08) * alpha) if lit and not failed_result else Color(0.50, 0.45, 0.58, 0.32 * unfinished_blink * alpha)
+			draw_circle(pip_pos, pip_radius + 2.5, Color(sub_accent.r, sub_accent.g, sub_accent.b, (0.16 + pip_pulse * 0.20) * alpha))
+			if lit:
+				draw_circle(pip_pos, pip_radius, pip_color)
+			else:
+				draw_circle(pip_pos, pip_radius, pip_color, false, 1.4, true)
+			if lit:
+				draw_circle(pip_pos, 1.7 + pip_pulse, Color(1.0, 1.0, 0.94, 0.96 * alpha))
 
 func _draw_song_notice_soft_rect(rect: Rect2, fill: Color, border: Color, border_width: float, radius: float) -> void:
 	var r := minf(radius, minf(rect.size.x, rect.size.y) * 0.5)

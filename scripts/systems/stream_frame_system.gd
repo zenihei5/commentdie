@@ -557,11 +557,11 @@ static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionar
 	# projection is intentionally updated only by NORMAL single-stage results so
 	# a hard clear cannot silently unlock the normal sequence.
 	if DifficultyProgressSystemScript.normalize_difficulty_id(stats.get("difficultyId", "normal")) != DifficultyProgressSystemScript.DIFFICULTY_NORMAL:
-		return {"changed": false, "message": ""}
+		return {"changed": false, "message": "", "saved": true}
 	if bool(stats.get("isRankingEligible", false)) == false:
-		return {"changed": false, "message": ""}
+		return {"changed": false, "message": "", "saved": true}
 	if bool(stats.get("cleared", false)) == false:
-		return {"changed": false, "message": ""}
+		return {"changed": false, "message": "", "saved": true}
 	var frames: Array = target.get("stream_frames") as Array
 	var current_id: String = String(target.get("current_stream_frame_id"))
 	var current_frame: Dictionary = find_frame(frames, current_id)
@@ -598,11 +598,11 @@ static func clear_frame_for_target(target: Node, stats: Dictionary) -> Dictionar
 		progress["relayModeUnlocked"] = true
 		message = "全配信枠が解放されました！\n新モード解放：配信リレー"
 		changed = true
-	save_progress(progress)
+	var saved := DifficultyProgressSystemScript.save_progress(progress)
 	target.set("stream_frame_progress", progress)
 	target.set("relay_mode_unlocked", bool(progress.get("relayModeUnlocked", false)))
 	target.set("stream_frames", frames_with_progress(frames, progress))
-	return {"changed": changed, "message": message}
+	return {"changed": changed, "message": message, "saved": saved}
 
 static func _all_frames_cleared(frames: Array, frame_progress: Dictionary) -> bool:
 	for item in frames:

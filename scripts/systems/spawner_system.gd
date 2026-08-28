@@ -34,6 +34,7 @@ static func spawn_step(context: Dictionary) -> Dictionary:
 
 	var count: int = 2 if (more_spawns or (god_reservation and god_power >= 0.95)) else 1
 	count += int(context.get("additionalSpawnCount", 0))
+	count = maxi(1, roundi(float(count) * maxf(0.1, float(context.get("commentSpawnCountRate", 1.0)))))
 	return {"spawnTimer": interval, "spawnCount": count, "requestedCount": count}
 
 static func spawn_kinds(context: Dictionary) -> Dictionary:
@@ -59,7 +60,8 @@ static func spawn_kinds(context: Dictionary) -> Dictionary:
 		"currentSpawnAmountMultiplier": context.get("currentSpawnAmountMultiplier", 1.0),
 		"stageFlavorIntervalRate": context.get("stageFlavorIntervalRate", 1.0),
 		"hardSpawnRate": context.get("hardSpawnRate", 1.0),
-		"additionalSpawnCount": context.get("additionalSpawnCount", 0)
+		"additionalSpawnCount": context.get("additionalSpawnCount", 0),
+		"commentSpawnCountRate": context.get("commentSpawnCountRate", 1.0)
 	})
 	var rng: RandomNumberGenerator = context["rng"] as RandomNumberGenerator
 	var kinds: Array = []
@@ -147,6 +149,7 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 			# legacy relaySpawnCurves value out of both the interval and debug view.
 			spawn_multiplier = current_spawn_amount_multiplier
 	var hard_runtime := HardModeSystemScript.runtime_for_target(target)
+	var comment_spawn_count_rate := HardModeSystemScript.active_comment_param_for_id(hard_runtime, "enemy_spawn_up", "enemySpawnCountRate", 1.0)
 	var stage_flavor_interval_rate := HardModeSystemScript.stage_profile_spawn_interval_rate(hard_runtime)
 	var collab_event_active := bool(target.get("relay_mode")) and String(target.get("current_stream_frame_id")) == "collab" and String(target.get("collab_challenge_status")) in ["starting", "active"]
 	var hard_breakdown := HardModeSystemScript.spawn_rate_breakdown(hard_runtime, float(target.get("elapsed")), bool(target.get("boss_active")), collab_event_active)
@@ -205,7 +208,8 @@ static func spawn_context_for_target(target: Node, delta: float, rng: RandomNumb
 		"hardCommonExpertRate": float(hard_breakdown.get("commonExpert", 1.0)),
 		"hardSectionRate": float(hard_breakdown.get("section", 1.0)),
 		"hardStageFlavorRate": float(hard_breakdown.get("stageFlavor", 1.0)),
-		"difficultyRuntime": hard_runtime
+		"difficultyRuntime": hard_runtime,
+		"commentSpawnCountRate": comment_spawn_count_rate
 	}
 
 static func update_for_target(target: Node, delta: float, arena: Rect2, rng: RandomNumberGenerator) -> Dictionary:

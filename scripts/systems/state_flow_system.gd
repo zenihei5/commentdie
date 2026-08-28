@@ -1,6 +1,8 @@
 class_name StateFlowSystem
 extends RefCounted
 
+const OptionsUiSystemScript := preload("res://scripts/systems/options_ui_system.gd")
+
 const OPTION_ITEM_COUNT := 8
 const OPTION_RESET_INDEX := 6
 const OPTION_BACK_INDEX := 7
@@ -112,18 +114,10 @@ static func option_action_for_index(index: int, direction: int) -> String:
 	return ""
 
 static func option_button_navigation_index(index: int, direction: int) -> int:
-	var normalized := posmod(index, OPTION_ITEM_COUNT)
-	if normalized == OPTION_RESET_INDEX and direction != 0:
-		return OPTION_BACK_INDEX
-	if normalized == OPTION_BACK_INDEX and direction != 0:
-		return OPTION_RESET_INDEX
-	return normalized
+	return OptionsUiSystemScript.button_navigation_index(index, direction)
 
 static func option_vertical_navigation_index(index: int, direction: int) -> int:
-	var normalized := posmod(index, OPTION_ITEM_COUNT)
-	if normalized == OPTION_RESET_INDEX or normalized == OPTION_BACK_INDEX:
-		return 5 if direction < 0 else 0
-	return posmod(normalized + direction, OPTION_ITEM_COUNT)
+	return OptionsUiSystemScript.vertical_navigation_index(index, direction)
 
 static func apply_options_action_for_target(target: Node, action: String) -> Dictionary:
 	if action == "option_up":

@@ -70,9 +70,7 @@ static func menu_selection_action(latch: Dictionary, current: int, count: int, m
 		return {"kind": "select", "index": current}
 	return {"kind": "", "index": current}
 
-static func character_grid_selection_action(latch: Dictionary, current: int, count: int, page_size: int, columns: int, max_number_key: int) -> Dictionary:
-	if _pressed(latch, KEY_ESCAPE):
-		return {"kind": "escape", "index": current}
+static func character_grid_selection_action_for_direction(current: int, count: int, page_size: int, columns: int, direction: String) -> Dictionary:
 	if count <= 0:
 		return {"kind": "", "index": 0}
 	var safe_page_size: int = maxi(1, page_size)
@@ -82,42 +80,69 @@ static func character_grid_selection_action(latch: Dictionary, current: int, cou
 	var page_count: int = int(ceil(float(count) / float(safe_page_size)))
 	var local: int = safe_current - page * safe_page_size
 	var col: int = local % safe_columns
+	match direction:
+		"page_previous":
+			if page > 0:
+				return {"kind": "move", "index": _page_target(page - 1, local, count, safe_page_size)}
+		"page_next":
+			if page + 1 < page_count:
+				return {"kind": "move", "index": _page_target(page + 1, local, count, safe_page_size)}
+		"left":
+			if col > 0:
+				return {"kind": "move", "index": safe_current - 1}
+			if page > 0:
+				return {"kind": "move", "index": _page_target(page - 1, safe_columns - 1, count, safe_page_size)}
+		"right":
+			if col < safe_columns - 1 and safe_current + 1 < count and safe_current + 1 < (page + 1) * safe_page_size:
+				return {"kind": "move", "index": safe_current + 1}
+			if page + 1 < page_count:
+				return {"kind": "move", "index": _page_target(page + 1, 0, count, safe_page_size)}
+		"up":
+			if local >= safe_columns:
+				return {"kind": "move", "index": safe_current - safe_columns}
+			if page > 0:
+				return {"kind": "move", "index": _page_target(page - 1, safe_columns + col, count, safe_page_size)}
+		"down":
+			if local + safe_columns < safe_page_size and safe_current + safe_columns < count:
+				return {"kind": "move", "index": safe_current + safe_columns}
+			if page + 1 < page_count:
+				return {"kind": "move", "index": _page_target(page + 1, col, count, safe_page_size)}
+	return {"kind": "", "index": safe_current}
+
+static func character_grid_selection_action_for_number(index: int, count: int, max_number_key: int) -> Dictionary:
+	var safe_count: int = maxi(0, count)
+	var safe_max_key: int = mini(maxi(0, max_number_key), 6)
+	if index >= 0 and index < safe_max_key:
+		return {"kind": "select", "index": index if index < safe_count else -1}
+	return {"kind": "", "index": -1}
+
+static func character_grid_selection_action_for_number_key(keycode: Key, count: int, max_number_key: int) -> Dictionary:
+	var keys: Array[Key] = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6]
+	var index: int = keys.find(keycode)
+	return character_grid_selection_action_for_number(index, count, max_number_key)
+
+static func character_grid_selection_action(latch: Dictionary, current: int, count: int, page_size: int, columns: int, max_number_key: int) -> Dictionary:
+	if _pressed(latch, KEY_ESCAPE):
+		return {"kind": "escape", "index": current}
+	if count <= 0:
+		return {"kind": "", "index": 0}
+	var safe_current: int = clampi(current, 0, count - 1)
 	if _pressed(latch, KEY_A) or _pressed(latch, KEY_Q):
-		if page > 0:
-			return {"kind": "move", "index": _page_target(page - 1, local, count, safe_page_size)}
-		return {"kind": "", "index": safe_current}
+		return character_grid_selection_action_for_direction(current, count, page_size, columns, "page_previous")
 	if _pressed(latch, KEY_D) or _pressed(latch, KEY_E):
-		if page + 1 < page_count:
-			return {"kind": "move", "index": _page_target(page + 1, local, count, safe_page_size)}
-		return {"kind": "", "index": safe_current}
+		return character_grid_selection_action_for_direction(current, count, page_size, columns, "page_next")
 	if _pressed(latch, KEY_LEFT):
-		if col > 0:
-			return {"kind": "move", "index": safe_current - 1}
-		if page > 0:
-			return {"kind": "move", "index": _page_target(page - 1, safe_columns - 1, count, safe_page_size)}
-		return {"kind": "", "index": safe_current}
+		return character_grid_selection_action_for_direction(current, count, page_size, columns, "left")
 	if _pressed(latch, KEY_RIGHT):
-		if col < safe_columns - 1 and safe_current + 1 < count and safe_current + 1 < (page + 1) * safe_page_size:
-			return {"kind": "move", "index": safe_current + 1}
-		if page + 1 < page_count:
-			return {"kind": "move", "index": _page_target(page + 1, 0, count, safe_page_size)}
-		return {"kind": "", "index": safe_current}
+		return character_grid_selection_action_for_direction(current, count, page_size, columns, "right")
 	if _pressed(latch, KEY_UP) or _pressed(latch, KEY_W):
-		if local >= safe_columns:
-			return {"kind": "move", "index": safe_current - safe_columns}
-		if page > 0:
-			return {"kind": "move", "index": _page_target(page - 1, safe_columns + col, count, safe_page_size)}
-		return {"kind": "", "index": safe_current}
+		return character_grid_selection_action_for_direction(current, count, page_size, columns, "up")
 	if _pressed(latch, KEY_DOWN) or _pressed(latch, KEY_S):
-		if local + safe_columns < safe_page_size and safe_current + safe_columns < count:
-			return {"kind": "move", "index": safe_current + safe_columns}
-		if page + 1 < page_count:
-			return {"kind": "move", "index": _page_target(page + 1, col, count, safe_page_size)}
-		return {"kind": "", "index": safe_current}
+		return character_grid_selection_action_for_direction(current, count, page_size, columns, "down")
 	var keys: Array = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6]
 	for i in range(mini(max_number_key, keys.size())):
 		if _pressed(latch, keys[i]):
-			return {"kind": "select", "index": i if i < count else -1}
+			return character_grid_selection_action_for_number_key(keys[i], count, max_number_key)
 	if _pressed(latch, KEY_ENTER) or _pressed(latch, KEY_SPACE):
 		return {"kind": "select", "index": safe_current}
 	return {"kind": "", "index": safe_current}
@@ -169,6 +194,7 @@ static func gift_card(index: int, gift: Dictionary, gift_level: int, guide_conte
 	var quality_label: String = GiftSystem.gift_quality_label(gift).replace("\n", " ")
 	var category: String = GiftSystem.gift_category_tag(gift)
 	var display_name: String = String(gift.get("displayName", "パワーアップポイント")) if is_pp else EquipmentSystem.display_name_for_card(gift, gift_level)
+	display_name = GiftSystem.gift_card_display_name(gift, display_name)
 	var stamp_line: String = "%s\n" % quality_label if quality_label != "" else ""
 	var level_text: String = GiftSystem.gift_level_change_text(gift, gift_level)
 	var summary: String = GiftSystem.gift_card_summary(gift)
