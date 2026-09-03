@@ -130,7 +130,10 @@ static func start_prepared_for_target(target: Node, arena: Rect2, rng: RandomNum
 	target.set("relay_boss_support_heal_amount", 0)
 	target.set("relay_boss_no_dash_owned", false)
 	_clear_support_modifiers_for_target(target)
-	target.set("collab_boss_partner_muted", false)
+	if target.has_method("_clear_all_collab_partner_mute_sources"):
+		target.call("_clear_all_collab_partner_mute_sources")
+	else:
+		target.set("collab_boss_partner_muted", false)
 	(target.get("collab_boss_attacks") as Array).clear()
 	RelayBossMovementSystemScript.reset_for_target(target, arena)
 	RelayBossAttackSystemScript.reset_for_target(target)
@@ -596,7 +599,10 @@ static func clear_active_instruction_for_target(target: Node) -> void:
 	target.set("relay_boss_attack_interval_multiplier", 1.0)
 	target.set("relay_boss_projectile_count_multiplier", 1.0)
 	target.set("relay_boss_projectile_speed_multiplier", 1.0)
-	target.set("collab_boss_partner_muted", false)
+	if target.has_method("_clear_collab_partner_mute_source"):
+		target.call("_clear_collab_partner_mute_source", "relay_boss_partner_mute")
+	else:
+		target.set("collab_boss_partner_muted", false)
 	target.set("relay_boss_arena_timer", 0.0)
 	target.set("relay_boss_no_heal_timer", 0.0)
 	if bool(target.get("relay_boss_no_dash_owned")):
@@ -622,7 +628,7 @@ static func _apply_instruction_state(target: Node, id: String) -> int:
 			if not active.has("no_dash"):
 				active.append("no_dash")
 			target.set("relay_boss_no_dash_owned", true)
-		"relay_boss_partner_mute": target.set("collab_boss_partner_muted", true)
+		"relay_boss_partner_mute": target.call("_set_collab_partner_mute_source", "relay_boss_partner_mute", true) if target.has_method("_set_collab_partner_mute_source") else target.set("collab_boss_partner_muted", true)
 		"relay_boss_small_arena": target.set("relay_boss_arena_timer", 16.0)
 		"relay_boss_no_heal": target.set("relay_boss_no_heal_timer", 15.0)
 		"boss_support_dont_lose":
@@ -660,6 +666,7 @@ static func mark_defeated(target: Node) -> void:
 	target.set("boss_last_result", "defeated")
 	(target.get("enemy_bullets") as Array).clear()
 	RelayBossAttackSystemScript.interrupt_for_target(target, "defeat")
+	RelayBossAttackSystemScript.clear_fake_gift_traps_for_target(target, "boss_defeat")
 	RelayBossMovementSystemScript.interrupt_for_target(target, RelayBossMovementSystemScript.STATE_DEAD)
 	_clear_phase_hazards(target)
 	RelayBossDefenseSystemScript.force_clear(target, RelayBossDefenseSystemScript.STATE_DEAD)
@@ -682,6 +689,7 @@ static func begin_pending_phase_transition_for_target(target: Node) -> bool:
 	if not RelayBossMovementSystemScript.begin_phase_transition(target, target.call("_current_arena")):
 		return false
 	RelayBossAttackSystemScript.clear_runtime_objects_for_target(target)
+	RelayBossAttackSystemScript.clear_fake_gift_traps_for_target(target, "phase_transition")
 	_clear_phase_hazards(target)
 	if not RelayBossDefenseSystemScript.begin_phase_transition(target, pending):
 		RelayBossMovementSystemScript.force_resume_for_target(target, target.call("_current_arena"))

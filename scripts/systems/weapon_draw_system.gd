@@ -16,10 +16,27 @@ const COMMENT_SHOTGUN_PROJECTILE_TEXTURE := "res://assets/generated/boss_attack_
 const COMMENT_SHOTGUN_PROJECTILE_TEXTURE_RESOURCE: Texture2D = preload("res://assets/generated/boss_attack_fx_v1/comment_shotgun_projectile.png")
 const COMMENT_SHOTGUN_PROJECTILE_DRAW_SIZE := 40.0
 const COMMENT_SHOTGUN_PROJECTILE_TRAIL_LENGTH := 21.0
+const TRAVEL_COMMENT_PROJECTILE_DRAW_SIZE := 40.0
+const TRAVEL_COMMENT_PROJECTILE_TRAIL_LENGTH := 18.0
+const TRAVEL_COMMENT_PROJECTILE_HIT_RADIUS := 22.0
+const TRAVEL_COMMENT_PROJECTILE_FOREGROUND_DURATION := 0.40
+const TRAVEL_NOISE_SHOT_DRAW_SIZE := 40.0
+const TRAVEL_NOISE_SHOT_TRAIL_LENGTH := 16.0
+const TRAVEL_NOISE_SHOT_HIT_RADIUS := 22.0
+const TRAVEL_NOISE_SHOT_FOREGROUND_DURATION := 1.60
+const GAME_OVER_BARRAGE_HIT_RADIUS := 22.0
+const GAME_OVER_BARRAGE_TRAIL_LENGTH := 18.0
 
 static func draw_bullets(target: CanvasItem, bullets: Array, from_player: bool, rotated_texture_drawer: Callable = Callable(), texture_loader: Callable = Callable(), visible_rect: Rect2 = Rect2(), visual_kind_filter: String = "") -> void:
 	var use_culling := visible_rect.size != Vector2.ZERO
-	for bullet_item in bullets:
+	var game_over_density: Dictionary = {}
+	if not from_player:
+		for bullet_index in range(bullets.size()):
+			var density_bullet: Dictionary = bullets[bullet_index] as Dictionary
+			if String(density_bullet.get("visualKind", "")) == "game_over_barrage" and bool(density_bullet.get("relayBossProjectile", false)):
+				game_over_density[bullet_index] = _game_over_barrage_density_for_index(bullets, bullet_index)
+	for bullet_index in range(bullets.size()):
+		var bullet_item: Variant = bullets[bullet_index]
 		var bullet: Dictionary = bullet_item as Dictionary
 		if bool(bullet.get("redPenTelegraphPending", false)):
 			continue
@@ -52,12 +69,159 @@ static func draw_bullets(target: CanvasItem, bullets: Array, from_player: bool, 
 		if not from_player and visual_kind == "comment_shotgun" and bool(bullet.get("relayBossProjectile", false)):
 			draw_comment_shotgun_projectile(target, bullet, rotated_texture_drawer, texture_loader)
 			continue
+		if not from_player and visual_kind == "travel_comment_salvo" and bool(bullet.get("relayBossProjectile", false)):
+			draw_travel_comment_projectile(target, bullet, rotated_texture_drawer, texture_loader)
+			continue
+		if not from_player and visual_kind == "travel_noise_shot" and bool(bullet.get("relayBossProjectile", false)):
+			draw_travel_noise_shot_projectile(target, bullet)
+			continue
+		if not from_player and visual_kind == "game_over_barrage" and bool(bullet.get("relayBossProjectile", false)):
+			draw_game_over_barrage_projectile(target, bullet, float(game_over_density.get(bullet_index, 1.0)))
+			continue
 		if from_player and (visual_kind == "starlight_superchat" or visual_kind == "high_superchat"):
 			var bullet_data_items: Array = DrawDataSystemScript.bullet_draw_data([bullet], from_player)
 			if not bullet_data_items.is_empty():
 				draw_bullet_item(target, bullet_data_items[0] as Dictionary, rotated_texture_drawer, texture_loader)
 			continue
 		draw_simple_bullet_item(target, bullet, from_player)
+
+static func _game_over_barrage_density_for_index(bullets: Array, bullet_index: int) -> float:
+	var bullet: Dictionary = bullets[bullet_index] as Dictionary
+	var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+	var nearby := 0
+	for other_index in range(bullets.size()):
+		if other_index == bullet_index:
+			continue
+		var other: Dictionary = bullets[other_index] as Dictionary
+		if String(other.get("visualKind", "")) != "game_over_barrage" or not bool(other.get("relayBossProjectile", false)):
+			continue
+		if pos.distance_squared_to(Vector2(other.get("pos", Vector2.ZERO))) <= 64.0 * 64.0:
+			nearby += 1
+	if nearby <= 0:
+		return 1.0
+	if nearby == 1:
+		return 0.78
+	if nearby == 2:
+		return 0.58
+	return 0.42
+
+static func _game_over_barrage_body_points(pos: Vector2, direction: Vector2, side: Vector2) -> PackedVector2Array:
+	return PackedVector2Array([
+		pos + direction * 10.5 + side * 3.8,
+		pos + direction * 7.0 + side * 8.0,
+		pos - direction * 7.8 + side * 7.4,
+		pos - direction * 10.5 + side * 2.6,
+		pos - direction * 9.4 - side * 5.4,
+		pos + direction * 6.8 - side * 8.0,
+		pos + direction * 10.5 - side * 3.0,
+		pos + direction * 10.5 + side * 3.8
+	])
+
+static func _draw_game_over_barrage_bracket(target: CanvasItem, pos: Vector2, direction: Vector2, alpha: float, density_factor: float = 1.0) -> void:
+	var bracket_alpha := maxf(0.26, alpha * clampf(density_factor, 0.42, 1.0))
+	var angle := direction.angle()
+	var bracket_color := Color(0.86, 0.10, 0.28, bracket_alpha)
+	for offset in [0.0, PI * 0.5, PI, PI * 1.5]:
+		target.draw_arc(pos, GAME_OVER_BARRAGE_HIT_RADIUS - 0.7, angle + offset - 0.22, angle + offset + 0.22, 5, bracket_color, 1.35, true)
+
+static func _draw_game_over_barrage_symbol(target: CanvasItem, pos: Vector2, direction: Vector2, side: Vector2, pellet_index: int, alpha: float) -> void:
+	var symbol_color := Color(1.0, 0.92, 0.94, clampf(alpha, 0.0, 1.0))
+	var dark_color := Color(0.13, 0.01, 0.12, clampf(alpha * 0.86, 0.0, 1.0))
+	match posmod(pellet_index, 6):
+		0:
+			target.draw_line(pos - direction * 4.7 - side * 4.6, pos + direction * 4.7 + side * 4.6, symbol_color, 1.8, true)
+			target.draw_line(pos - direction * 4.7 + side * 4.6, pos + direction * 4.7 - side * 4.6, symbol_color, 1.8, true)
+		1:
+			target.draw_line(pos - side * 4.8, pos + side * 2.6, symbol_color, 2.0, true)
+			target.draw_circle(pos + side * 5.0, 1.45, symbol_color)
+		2:
+			target.draw_line(pos + direction * 5.8 + side * 5.0, pos - direction * 5.0 + side * 5.0, symbol_color, 1.7, true)
+			target.draw_line(pos - direction * 5.0 + side * 5.0, pos - direction * 5.0 + side * 1.2, symbol_color, 1.7, true)
+			target.draw_line(pos + direction * 4.0 - side * 5.0, pos + direction * 4.0 - side * 1.4, dark_color, 1.5, true)
+		3:
+			target.draw_line(pos - direction * 5.0, pos + direction * 5.0, symbol_color, 1.7, true)
+			target.draw_line(pos - side * 4.5, pos + side * 4.5, symbol_color, 1.7, true)
+			target.draw_circle(pos, 1.7, dark_color)
+		4:
+			target.draw_rect(Rect2(pos + Vector2(-4.5, -3.5), Vector2(9.0, 7.0)), symbol_color, false, 1.6, true)
+			target.draw_rect(Rect2(pos + Vector2(-1.4, -1.3), Vector2(3.0, 2.6)), dark_color, true)
+		5:
+			target.draw_line(pos - direction * 4.8 - side * 4.8, pos - direction * 1.0 - side * 4.8, symbol_color, 1.7, true)
+			target.draw_line(pos - direction * 4.8 - side * 4.8, pos - direction * 4.8 + side * 0.8, symbol_color, 1.7, true)
+			target.draw_line(pos + direction * 1.0 + side * 4.5, pos + direction * 5.0 + side * 1.2, Color(1.0, 0.34, 0.54, alpha * 0.90), 1.5, true)
+
+static func draw_game_over_barrage_projectile(target: CanvasItem, bullet: Dictionary, density_factor: float = 1.0) -> void:
+	var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+	var raw_vel := Vector2(bullet.get("vel", Vector2.RIGHT))
+	var direction := raw_vel.normalized() if raw_vel.length_squared() > 0.01 else Vector2.RIGHT
+	var side := Vector2(-direction.y, direction.x)
+	var pellet_index := int(bullet.get("gameOverBarragePelletIndex", 0))
+	var visual_seed := float(bullet.get("gameOverBarrageVisualSeed", 0.0))
+	var age := maxf(0.0, float(bullet.get("gameOverBarrageAge", 0.0)))
+	var pulse := 0.92 + 0.08 * sin(age * 16.0 + visual_seed * TAU)
+	var density := clampf(density_factor, 0.42, 1.0)
+	var trail_start := pos - direction * GAME_OVER_BARRAGE_TRAIL_LENGTH
+	target.draw_line(trail_start, pos - direction * 7.0, Color(0.16, 0.01, 0.13, 0.28 * density), 2.6, true)
+	target.draw_line(pos - direction * 16.0, pos - direction * 7.0, Color(0.86, 0.05, 0.22, 0.52 * density), 1.15, true)
+	for fragment_index in range(2):
+		var fragment_t := 0.30 + float(fragment_index) * 0.34
+		var fragment_pos := pos - direction * GAME_OVER_BARRAGE_TRAIL_LENGTH * fragment_t + side * (sin(visual_seed * TAU + float(fragment_index) * 2.1) * 2.0)
+		var fragment_size := 2.0 if fragment_index == 0 else 1.5
+		target.draw_rect(Rect2(fragment_pos - Vector2(fragment_size, fragment_size * 0.5), Vector2(fragment_size * 2.0, fragment_size)), Color(0.64, 0.03, 0.24, 0.38 * density), true)
+	var body_points := _game_over_barrage_body_points(pos, direction, side)
+	target.draw_colored_polygon(body_points, Color(0.08, 0.012, 0.12, 0.94))
+	target.draw_polyline(body_points, Color(0.72, 0.04, 0.24, 0.96), 1.55, true)
+	var inner_points := PackedVector2Array([
+		pos + direction * 7.8 + side * 2.4,
+		pos + direction * 5.0 + side * 5.8,
+		pos - direction * 5.8 + side * 5.2,
+		pos - direction * 7.8 + side * 1.8,
+		pos - direction * 7.0 - side * 3.7,
+		pos + direction * 5.0 - side * 5.8,
+		pos + direction * 7.8 - side * 2.1,
+		pos + direction * 7.8 + side * 2.4
+	])
+	target.draw_colored_polygon(inner_points, Color(0.48, 0.018, 0.17, 0.78 * pulse))
+	_draw_game_over_barrage_symbol(target, pos, direction, side, pellet_index, 0.96)
+	_draw_game_over_barrage_bracket(target, pos, direction, 0.48, density)
+
+static func _draw_game_over_barrage_edge(target: CanvasItem, bullet: Dictionary, alpha: float = 0.90) -> void:
+	var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+	var raw_vel := Vector2(bullet.get("vel", Vector2.RIGHT))
+	var direction := raw_vel.normalized() if raw_vel.length_squared() > 0.01 else Vector2.RIGHT
+	var side := Vector2(-direction.y, direction.x)
+	var points := _game_over_barrage_body_points(pos, direction, side)
+	target.draw_polyline(points, Color(1.0, 0.18, 0.38, clampf(alpha, 0.0, 1.0)), 1.9, true)
+	_draw_game_over_barrage_symbol(target, pos, direction, side, int(bullet.get("gameOverBarragePelletIndex", 0)), alpha)
+	_draw_game_over_barrage_bracket(target, pos, direction, alpha * 0.72, 1.0)
+
+static func draw_game_over_barrage_launch_foreground(target: CanvasItem, bullets: Array, visible_rect: Rect2 = Rect2()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if String(bullet.get("visualKind", "")) != "game_over_barrage" or not bool(bullet.get("relayBossProjectile", false)):
+			continue
+		if float(bullet.get("gameOverBarrageAge", 0.0)) > 0.15:
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if use_culling and not visible_rect.grow(36.0).has_point(pos):
+			continue
+		_draw_game_over_barrage_edge(target, bullet, 0.92)
+
+static func draw_game_over_barrage_player_near_rims(target: CanvasItem, bullets: Array, player_pos: Vector2, visible_rect: Rect2 = Rect2()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if String(bullet.get("visualKind", "")) != "game_over_barrage" or not bool(bullet.get("relayBossProjectile", false)):
+			continue
+		if float(bullet.get("gameOverBarrageAge", 0.0)) <= 0.15:
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) > 90.0 * 90.0:
+			continue
+		if use_culling and not visible_rect.grow(36.0).has_point(pos):
+			continue
+		_draw_game_over_barrage_edge(target, bullet, 0.86)
 
 static func draw_simple_bullet_item(target: CanvasItem, bullet: Dictionary, from_player: bool) -> void:
 	var pos: Vector2 = Vector2(bullet["pos"])
@@ -261,6 +425,254 @@ static func draw_red_pen_player_near_rims(target: CanvasItem, bullets: Array, pl
 		target.draw_arc(head, 7.3, direction.angle() - 1.22, direction.angle() + 1.10, 12, Color(0.28, 0.0, 0.08, 0.94), 2.7, true)
 		target.draw_circle(head, 5.1, Color(0.70, 0.01, 0.10, 0.88), false, 1.7, true)
 		target.draw_line(head - direction * 3.8 - side * 1.2, head + direction * 2.4 - side * 0.6, Color(1.0, 0.90, 0.94, 0.82), 1.5, true)
+
+static func travel_comment_visual_rotation(bullet: Dictionary) -> float:
+	var seed := float(bullet.get("travelCommentSalvoVisualSeed", 0.0))
+	var index := int(bullet.get("travelCommentSalvoIndex", 0))
+	var age := maxf(0.0, float(bullet.get("travelCommentSalvoVisualAge", 0.0)))
+	var tilt := lerpf(-deg_to_rad(6.0), deg_to_rad(6.0), seed)
+	var sway := sin(age * (7.0 + float(index) * 0.45) + seed * TAU) * deg_to_rad(2.5)
+	return clampf(tilt + sway, -deg_to_rad(9.0), deg_to_rad(9.0))
+
+static func draw_travel_comment_projectile(target: CanvasItem, bullet: Dictionary, rotated_texture_drawer: Callable = Callable(), texture_loader: Callable = Callable(), alpha: float = 1.0, include_launch_pop: bool = true) -> void:
+	var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+	var raw_vel := Vector2(bullet.get("vel", Vector2.RIGHT))
+	var direction := raw_vel.normalized() if raw_vel.length_squared() > 0.01 else Vector2.RIGHT
+	var side := Vector2(-direction.y, direction.x)
+	var seed := float(bullet.get("travelCommentSalvoVisualSeed", 0.0))
+	var draw_size := clampf(float(bullet.get("travelCommentSalvoDrawSize", TRAVEL_COMMENT_PROJECTILE_DRAW_SIZE)), 38.0, 42.0)
+	var trail_length := clampf(float(bullet.get("travelCommentSalvoTrailLength", TRAVEL_COMMENT_PROJECTILE_TRAIL_LENGTH)), 16.0, 20.0)
+	var fade := clampf(alpha, 0.0, 1.0)
+	# The envelope is the formal 22px gameplay radius, kept deliberately faint
+	# so it communicates danger without becoming a second large effect.
+	target.draw_arc(pos, TRAVEL_COMMENT_PROJECTILE_HIT_RADIUS, seed * TAU, seed * TAU + PI * 1.72, 18, Color(1.0, 0.86, 0.95, 0.10 * fade), 1.0, true)
+	target.draw_line(pos - direction * trail_length, pos - direction * 5.0, Color(0.34, 0.16, 0.42, 0.22 * fade), 3.0, true)
+	target.draw_line(pos - direction * (trail_length - 1.5), pos - direction * 6.0, Color(1.0, 0.54, 0.78, 0.30 * fade), 1.25, true)
+	var cyan_pos := pos - direction * (trail_length * 0.66) + side * (1.0 + seed * 1.5)
+	var magenta_pos := pos - direction * (trail_length * 0.34) - side * (1.0 + seed)
+	target.draw_line(cyan_pos - direction * 3.0, cyan_pos + direction * 3.0, Color(0.04, 0.86, 1.0, 0.52 * fade), 1.15, true)
+	target.draw_line(magenta_pos - side * 2.5, magenta_pos + side * 2.5, Color(1.0, 0.20, 0.64, 0.46 * fade), 1.0, true)
+	if include_launch_pop:
+		var launch_duration := maxf(0.01, float(bullet.get("travelCommentSalvoLaunchVisualDuration", 0.16)))
+		var launch_left := maxf(0.0, float(bullet.get("travelCommentSalvoLaunchVisualTimer", 0.0)))
+		if launch_left > 0.0:
+			var launch_ratio := clampf(launch_left / launch_duration, 0.0, 1.0)
+			var pop := 1.0 - launch_ratio
+			target.draw_arc(pos, 8.0 + pop * 5.0, seed * TAU, seed * TAU + PI * 1.45, 12, Color(1.0, 0.96, 0.99, 0.28 * launch_ratio * fade), 1.2, true)
+			target.draw_circle(pos + side * 5.0 - direction * 2.0, 1.3, Color(0.04, 0.86, 1.0, 0.60 * launch_ratio * fade))
+			target.draw_circle(pos - side * 5.0, 1.2, Color(1.0, 0.24, 0.66, 0.55 * launch_ratio * fade))
+	var texture: Texture2D = COMMENT_SHOTGUN_PROJECTILE_TEXTURE_RESOURCE
+	if texture_loader.is_valid():
+		var cached_texture := texture_loader.call(COMMENT_SHOTGUN_PROJECTILE_TEXTURE) as Texture2D
+		if cached_texture != null:
+			texture = cached_texture
+	if texture == null:
+		texture = ResourceLoader.load(COMMENT_SHOTGUN_PROJECTILE_TEXTURE) as Texture2D
+	if texture != null and rotated_texture_drawer.is_valid():
+		rotated_texture_drawer.call(texture, pos, Vector2(draw_size, draw_size), travel_comment_visual_rotation(bullet), fade)
+
+static func draw_travel_comment_salvo_launch_foreground(target: CanvasItem, bullets: Array, visible_rect: Rect2 = Rect2(), player_pos: Vector2 = Vector2(INF, INF), rotated_texture_drawer: Callable = Callable(), texture_loader: Callable = Callable()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if String(bullet.get("visualKind", "")) != "travel_comment_salvo" or not bool(bullet.get("relayBossProjectile", false)):
+			continue
+		if float(bullet.get("travelCommentSalvoVisualAge", 0.0)) > float(bullet.get("travelCommentSalvoForegroundDuration", TRAVEL_COMMENT_PROJECTILE_FOREGROUND_DURATION)):
+			continue
+		if float(bullet.get("travelCommentSalvoLaunchVisualTimer", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) <= 96.0 * 96.0:
+			continue
+		if use_culling and not visible_rect.grow(28.0).has_point(pos):
+			continue
+		draw_travel_comment_projectile(target, bullet, rotated_texture_drawer, texture_loader, 0.96, false)
+
+static func draw_travel_comment_player_near_rims(target: CanvasItem, bullets: Array, player_pos: Vector2, visible_rect: Rect2 = Rect2()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if String(bullet.get("visualKind", "")) != "travel_comment_salvo" or not bool(bullet.get("relayBossProjectile", false)):
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) > 96.0 * 96.0:
+			continue
+		if use_culling and not visible_rect.grow(28.0).has_point(pos):
+			continue
+		var raw_vel := Vector2(bullet.get("vel", Vector2.RIGHT))
+		var direction := raw_vel.normalized() if raw_vel.length_squared() > 0.01 else Vector2.RIGHT
+		var side := Vector2(-direction.y, direction.x)
+		var seed := float(bullet.get("travelCommentSalvoVisualSeed", 0.0))
+		# Near the player, preserve only the silhouette fringe and glitch offsets;
+		# the full bubble remains suppressed to keep the player readable.
+		target.draw_arc(pos, TRAVEL_COMMENT_PROJECTILE_HIT_RADIUS, direction.angle() - 2.25, direction.angle() - 0.56, 10, Color(0.27, 0.02, 0.25, 0.72), 1.8, true)
+		target.draw_arc(pos, TRAVEL_COMMENT_PROJECTILE_HIT_RADIUS - 2.0, direction.angle() + 0.62, direction.angle() + 1.55, 6, Color(1.0, 0.82, 0.92, 0.46), 1.0, true)
+		var cyan_center := pos - direction * 4.0 + side * (6.0 + seed * 2.0)
+		var magenta_center := pos + direction * 2.0 - side * (5.0 + seed)
+		target.draw_line(cyan_center - direction * 4.0, cyan_center + direction * 3.0, Color(0.04, 0.88, 1.0, 0.76), 1.8, true)
+		target.draw_line(magenta_center - side * 3.0, magenta_center + side * 3.0, Color(1.0, 0.20, 0.64, 0.70), 1.5, true)
+
+static func _is_travel_noise_shot_bullet(bullet: Dictionary) -> bool:
+	return String(bullet.get("sourceKind", "")) == "travel_noise_shot" \
+		or String(bullet.get("visualKind", "")) == "travel_noise_shot"
+
+static func _travel_noise_shot_point(pos: Vector2, direction: Vector2, side: Vector2, forward: float, lateral: float, scale: float) -> Vector2:
+	return pos + direction * forward * scale + side * lateral * scale
+
+static func _travel_noise_shot_body_points(pos: Vector2, direction: Vector2, side: Vector2, scale: float, seed: float) -> PackedVector2Array:
+	var skew := (seed - 0.5) * 2.0
+	return PackedVector2Array([
+		_travel_noise_shot_point(pos, direction, side, 18.0 + skew * 0.8, 0.0, scale),
+		_travel_noise_shot_point(pos, direction, side, 11.0, 10.2 + skew * 0.8, scale),
+		_travel_noise_shot_point(pos, direction, side, 1.2, 16.8, scale),
+		_travel_noise_shot_point(pos, direction, side, -8.8, 12.0 - skew * 0.7, scale),
+		_travel_noise_shot_point(pos, direction, side, -18.0, 2.8, scale),
+		_travel_noise_shot_point(pos, direction, side, -13.0, -11.2, scale),
+		_travel_noise_shot_point(pos, direction, side, -1.0, -16.2, scale),
+		_travel_noise_shot_point(pos, direction, side, 11.8, -9.2 - skew * 0.6, scale),
+		_travel_noise_shot_point(pos, direction, side, 18.0 + skew * 0.8, 0.0, scale)
+	])
+
+static func _travel_noise_shot_inner_points(pos: Vector2, direction: Vector2, side: Vector2, scale: float, seed: float) -> PackedVector2Array:
+	var skew := (seed - 0.5) * 1.4
+	return PackedVector2Array([
+		_travel_noise_shot_point(pos, direction, side, 13.2 + skew, 0.0, scale),
+		_travel_noise_shot_point(pos, direction, side, 8.5, 7.2 + skew, scale),
+		_travel_noise_shot_point(pos, direction, side, 1.0, 11.5, scale),
+		_travel_noise_shot_point(pos, direction, side, -7.0, 8.5, scale),
+		_travel_noise_shot_point(pos, direction, side, -13.0, 2.0, scale),
+		_travel_noise_shot_point(pos, direction, side, -9.2, -7.6, scale),
+		_travel_noise_shot_point(pos, direction, side, 0.0, -11.0, scale),
+		_travel_noise_shot_point(pos, direction, side, 8.8, -6.8, scale),
+		_travel_noise_shot_point(pos, direction, side, 13.2 + skew, 0.0, scale)
+	])
+
+static func _draw_travel_noise_shot_static_block(target: CanvasItem, center: Vector2, direction: Vector2, side: Vector2, width: float, height: float, color: Color) -> void:
+	var half_width := width * 0.5
+	var half_height := height * 0.5
+	target.draw_colored_polygon(PackedVector2Array([
+		center - direction * half_width - side * half_height,
+		center + direction * half_width - side * half_height,
+		center + direction * half_width + side * half_height,
+		center - direction * half_width + side * half_height
+	]), color)
+
+static func draw_travel_noise_shot_projectile(target: CanvasItem, bullet: Dictionary, alpha: float = 1.0, trail_length_override: float = -1.0, include_trail: bool = true) -> void:
+	var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+	var raw_vel := Vector2(bullet.get("vel", Vector2.RIGHT))
+	var direction := raw_vel.normalized() if raw_vel.length_squared() > 0.01 else Vector2.RIGHT
+	var side := Vector2(-direction.y, direction.x)
+	var seed := fposmod(float(bullet.get("travelNoiseShotVisualSeed", 0.0)), 1.0)
+	var age := maxf(0.0, float(bullet.get("travelNoiseShotVisualAge", 0.0)))
+	var draw_size := clampf(float(bullet.get("travelNoiseShotDrawSize", TRAVEL_NOISE_SHOT_DRAW_SIZE)), 38.0, 42.0)
+	var scale := draw_size / TRAVEL_NOISE_SHOT_DRAW_SIZE
+	var fade := clampf(alpha, 0.0, 1.0)
+	var pulse := 0.93 + 0.07 * sin(age * 13.0 + seed * TAU)
+	var direction_angle := direction.angle()
+	if include_trail:
+		var trail_length := TRAVEL_NOISE_SHOT_TRAIL_LENGTH if trail_length_override < 0.0 else trail_length_override
+		trail_length = clampf(trail_length, 3.0, 18.0) * scale
+		var trail_end := minf(5.0 * scale, trail_length * 0.58)
+		target.draw_line(pos - direction * trail_length, pos - direction * trail_end, Color(0.10, 0.015, 0.16, 0.32 * fade), 3.0 * scale, true)
+		target.draw_line(pos - direction * (trail_length - 1.0 * scale) + side * 1.1 * scale, pos - direction * (trail_end + 0.8 * scale) + side * 0.7 * scale, Color(0.05, 0.82, 1.0, 0.56 * fade), 1.15 * scale, true)
+		target.draw_line(pos - direction * (trail_length * 0.78) - side * 1.4 * scale, pos - direction * (trail_length * 0.28) - side * 0.6 * scale, Color(1.0, 0.20, 0.64, 0.48 * fade), 1.0 * scale, true)
+		target.draw_line(pos - direction * (trail_length * 0.74) + side * 0.3 * scale, pos - direction * (trail_length * 0.42) + side * 0.8 * scale, Color(0.78, 0.82, 0.86, 0.58 * fade), 0.8 * scale, true)
+		for trail_index in range(3):
+			var trail_t := 0.24 + float(trail_index) * 0.29
+			var block_center := pos - direction * trail_length * trail_t + side * sin(seed * TAU + float(trail_index) * 2.17) * 2.0 * scale
+			var block_color := Color(0.04, 0.84, 1.0, (0.62 - float(trail_index) * 0.10) * fade) if trail_index % 2 == 0 else Color(1.0, 0.20, 0.64, (0.56 - float(trail_index) * 0.08) * fade)
+			_draw_travel_noise_shot_static_block(target, block_center, direction, side, (3.2 - float(trail_index) * 0.45) * scale, (1.8 - float(trail_index) * 0.20) * scale, block_color)
+	# The ring is intentionally incomplete: this reads as broken broadcast
+	# hardware rather than a clean circle or the round noise-summon enemy.
+	target.draw_arc(pos, 19.0 * scale, direction_angle - 2.22 + seed * 0.18, direction_angle - 0.72 + seed * 0.18, 9, Color(0.04, 0.84, 1.0, 0.70 * fade), 1.7 * scale, true)
+	target.draw_arc(pos, 19.0 * scale, direction_angle + 0.18 + seed * 0.14, direction_angle + 1.42 + seed * 0.14, 8, Color(1.0, 0.20, 0.64, 0.72 * fade), 1.6 * scale, true)
+	target.draw_arc(pos, 19.0 * scale, direction_angle + 2.20, direction_angle + 2.78, 5, Color(0.18, 0.05, 0.24, 0.86 * fade), 1.8 * scale, true)
+	var outer_points := _travel_noise_shot_body_points(pos, direction, side, scale, seed)
+	target.draw_colored_polygon(outer_points, Color(0.12, 0.015, 0.18, 0.98 * fade))
+	target.draw_polyline(outer_points, Color(0.30, 0.08, 0.36, 0.96 * fade), 1.7 * scale, true)
+	var inner_points := _travel_noise_shot_inner_points(pos, direction, side, scale, seed)
+	target.draw_colored_polygon(inner_points, Color(0.82, 0.84, 0.84, 0.97 * fade))
+	target.draw_polyline(inner_points, Color(1.0, 0.96, 0.94, 0.82 * fade), 1.05 * scale, true)
+	# A missing dark-plum chunk breaks the otherwise pale core.
+	target.draw_colored_polygon(PackedVector2Array([
+		_travel_noise_shot_point(pos, direction, side, 2.0, 7.2, scale),
+		_travel_noise_shot_point(pos, direction, side, 12.0, 8.0, scale),
+		_travel_noise_shot_point(pos, direction, side, 7.0, 13.5, scale),
+		_travel_noise_shot_point(pos, direction, side, -0.5, 10.0, scale)
+	]), Color(0.12, 0.015, 0.18, 0.96 * fade))
+	# Chromatic split is a physical seam in the icon, not a long projectile beam.
+	target.draw_line(_travel_noise_shot_point(pos, direction, side, -8.0, -2.0, scale), _travel_noise_shot_point(pos, direction, side, 2.0, -2.0, scale), Color(0.04, 0.86, 1.0, 0.88 * fade), 1.8 * scale, true)
+	target.draw_line(_travel_noise_shot_point(pos, direction, side, 2.0, 2.2, scale), _travel_noise_shot_point(pos, direction, side, 11.0, 3.0, scale), Color(1.0, 0.22, 0.66, 0.86 * fade), 1.7 * scale, true)
+	target.draw_circle(pos - direction * 2.0 * scale - side * 1.4 * scale, 4.5 * scale, Color(1.0, 0.98, 0.91, 0.92 * fade))
+	target.draw_line(pos - direction * 5.0 * scale - side * 3.0 * scale, pos + direction * 5.0 * scale + side * 3.0 * scale, Color(1.0, 1.0, 0.96, 0.46 * fade), 0.9 * scale, true)
+	var notch_centers := [
+		_travel_noise_shot_point(pos, direction, side, -8.5, 10.8, scale),
+		_travel_noise_shot_point(pos, direction, side, 10.8, -9.8, scale),
+		_travel_noise_shot_point(pos, direction, side, -1.0, -15.2, scale)
+	]
+	for notch_index in range(notch_centers.size()):
+		var notch_color := Color(0.04, 0.84, 1.0, 0.86 * fade) if notch_index == 0 else (Color(1.0, 0.20, 0.64, 0.82 * fade) if notch_index == 1 else Color(0.12, 0.015, 0.18, 0.94 * fade))
+		_draw_travel_noise_shot_static_block(target, notch_centers[notch_index], direction, side, (3.8 if notch_index < 2 else 3.0) * scale, (2.2 if notch_index < 2 else 1.8) * scale, notch_color)
+
+static func _travel_noise_shot_overlaps_boss_opaque(pos: Vector2, boss: Dictionary) -> bool:
+	var boss_center := Vector2(boss.get("pos", Vector2.ZERO)) + Vector2(boss.get("visualOffset", Vector2.ZERO))
+	var opaque_size := Vector2(boss.get("visualOpaqueSize", Vector2(500.0, 450.0)))
+	var scale_vector := Vector2(boss.get("visualScaleVector", Vector2.ONE))
+	var half_size := Vector2(absf(opaque_size.x * scale_vector.x), absf(opaque_size.y * scale_vector.y)) * 0.5
+	if half_size.x <= 1.0 or half_size.y <= 1.0:
+		return false
+	var local := (pos - boss_center).rotated(-float(boss.get("visualRotation", 0.0)))
+	var nearest := Vector2(clampf(local.x, -half_size.x, half_size.x), clampf(local.y, -half_size.y, half_size.y))
+	var projectile_radius := clampf(float(boss.get("travelNoiseShotOcclusionRadius", 20.0)), 16.0, 22.0)
+	return local.distance_squared_to(nearest) <= projectile_radius * projectile_radius
+
+static func draw_travel_noise_shot_boss_foreground(target: CanvasItem, bullets: Array, boss: Dictionary, visible_rect: Rect2 = Rect2()) -> void:
+	if boss.is_empty():
+		return
+	var use_culling := visible_rect.size != Vector2.ZERO
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if not _is_travel_noise_shot_bullet(bullet):
+			continue
+		if float(bullet.get("life", 0.0)) <= 0.0:
+			continue
+		var age := maxf(0.0, float(bullet.get("travelNoiseShotVisualAge", 0.0)))
+		if age > float(bullet.get("travelNoiseShotForegroundDuration", TRAVEL_NOISE_SHOT_FOREGROUND_DURATION)):
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if not _travel_noise_shot_overlaps_boss_opaque(pos, boss):
+			continue
+		if use_culling and not visible_rect.grow(28.0).has_point(pos):
+			continue
+		# Only the body/fringe and a tiny trail root are redrawn over the boss.
+		draw_travel_noise_shot_projectile(target, bullet, 0.98, 4.5, true)
+
+static func draw_travel_noise_shot_player_near_rims(target: CanvasItem, bullets: Array, player_pos: Vector2, visible_rect: Rect2 = Rect2()) -> void:
+	var use_culling := visible_rect.size != Vector2.ZERO
+	for bullet_item in bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		if not _is_travel_noise_shot_bullet(bullet) or float(bullet.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if pos.distance_squared_to(player_pos) > 96.0 * 96.0:
+			continue
+		if use_culling and not visible_rect.grow(28.0).has_point(pos):
+			continue
+		var raw_vel := Vector2(bullet.get("vel", Vector2.RIGHT))
+		var direction := raw_vel.normalized() if raw_vel.length_squared() > 0.01 else Vector2.RIGHT
+		var seed := fposmod(float(bullet.get("travelNoiseShotVisualSeed", 0.0)), 1.0)
+		var radius := clampf(float(bullet.get("hitRadius", TRAVEL_NOISE_SHOT_HIT_RADIUS)), 18.0, 22.0)
+		var angle := direction.angle()
+		# Near the player, retain only a formal split rim and a few notches.  The
+		# full 40px icon and its trail remain behind the player silhouette.
+		target.draw_arc(pos, radius, angle - 2.34 + seed * 0.12, angle - 0.82 + seed * 0.12, 9, Color(0.10, 0.02, 0.20, 0.86), 1.9, true)
+		target.draw_arc(pos, radius - 1.5, angle + 0.14, angle + 1.26, 7, Color(0.04, 0.86, 1.0, 0.86), 1.45, true)
+		target.draw_arc(pos, radius - 0.5, angle + 1.42, angle + 2.30, 6, Color(1.0, 0.20, 0.64, 0.82), 1.35, true)
+		var side := Vector2(-direction.y, direction.x)
+		target.draw_line(pos - direction * 2.0 - side * 8.0, pos + direction * 2.0 - side * 3.0, Color(0.04, 0.86, 1.0, 0.74), 1.25, true)
+		target.draw_line(pos - direction * 1.0 + side * 3.0, pos + direction * 3.0 + side * 8.0, Color(1.0, 0.20, 0.64, 0.72), 1.15, true)
+		var notch_center := pos + direction * (radius * 0.72) + side * (4.0 + seed * 2.0)
+		_draw_travel_noise_shot_static_block(target, notch_center, direction, side, 3.8, 2.0, Color(0.12, 0.015, 0.18, 0.90))
 
 static func comment_shotgun_visual_rotation(bullet: Dictionary) -> float:
 	var seed := float(bullet.get("commentShotgunVisualSeed", 0.0))

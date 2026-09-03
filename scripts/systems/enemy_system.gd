@@ -21,6 +21,7 @@ const DOT_INVADER_BULLET_LIFE := 2.8
 const WIKI_FIRE_INTERVAL_MIN := 3.65
 const WIKI_FIRE_INTERVAL_MAX := 4.45
 const WIKI_BULLET_LIFE := 2.9
+const TRAVEL_PROJECTILE_STRICT_COMPARE_STEP := 0.0001
 const DRONE_FIRE_INTERVAL_MIN := 2.55
 const DRONE_FIRE_INTERVAL_MAX := 3.25
 const DRONE_BULLET_LIFE := 2.9
@@ -1499,7 +1500,7 @@ static func append_relay_noise_visual_effect_for_target(target: Node, enemy: Dic
 		return
 	var runtime: Dictionary = runtime_value as Dictionary
 	var effects: Array = runtime.get("noise_summon_visual_effects", []) as Array
-	effects.append({
+	var effect := {
 		"kind": effect_kind,
 		"bossAttackId": "noise_summon",
 		"spawnSource": String(enemy.get("relayBossSummonSource", enemy.get("relayNoiseSource", "main_attack"))),
@@ -1509,7 +1510,14 @@ static func append_relay_noise_visual_effect_for_target(target: Node, enemy: Dic
 		"strength": 1.0,
 		"life": duration,
 		"maxLife": duration
-	})
+	}
+	if bool(enemy.get("travelNoiseSummonChild", false)):
+		effect["sourceKind"] = String(enemy.get("sourceKind", "travel_noise_summon"))
+		effect["attackId"] = String(enemy.get("attackId", "travel_noise_summon"))
+		effect["ownerAttackId"] = String(enemy.get("ownerAttackId", "travel_noise_summon"))
+		effect["travelAttackSerial"] = int(enemy.get("travelAttackSerial", 0))
+		effect["travelNoiseSummonSerial"] = int(enemy.get("travelNoiseSummonSerial", 0))
+	effects.append(effect)
 	runtime["noise_summon_visual_effects"] = effects
 	target.set("relay_boss_runtime", runtime)
 
@@ -1524,6 +1532,10 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 			CodexManager.record_enemy_defeat(codex_id, difficulty_id)
 	if bool(enemy.get("relayBossNoiseSummon", false)) and String(enemy.get("kind", "")) == "noise_ghost_comment":
 		append_relay_noise_visual_effect_for_target(target, enemy, "relay_noise_summon_defeat", 0.18)
+	if bool(enemy.get("divisionNoiseChild", false)) and String(enemy.get("kind", "")) == "noise_ghost_comment" and target.has_method("_on_relay_boss_division_noise_child_defeated"):
+		target.call("_on_relay_boss_division_noise_child_defeated", enemy)
+	if bool(enemy.get("collabBreakCore", false)) and target.has_method("_on_enemy_defeated_for_collab_boss"):
+		target.call("_on_enemy_defeated_for_collab_boss", enemy)
 	if bool(enemy.get("noRewards", false)) and not bool(enemy.get("relayBoss", false)):
 		return {"enemyDefeated": true, "noRewards": true}
 	if target.has_method("get") and String(enemy.get("spawnSource", "")) == "normal_wave":
@@ -2257,9 +2269,23 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			enemy["relayNoisePopInTimer"] = maxf(0.0, float(enemy.get("relayNoisePopInTimer", 0.0)) - delta)
 		if enemy.has("relayNoiseContactFxTimer"):
 			enemy["relayNoiseContactFxTimer"] = maxf(0.0, float(enemy.get("relayNoiseContactFxTimer", 0.0)) - delta)
+		if enemy.has("collabBreakCorePopInTimer"):
+			enemy["collabBreakCorePopInTimer"] = maxf(0.0, float(enemy.get("collabBreakCorePopInTimer", 0.0)) - delta)
+		if enemy.has("divisionNoiseContactFxTimer"):
+			enemy["divisionNoiseContactFxTimer"] = maxf(0.0, float(enemy.get("divisionNoiseContactFxTimer", 0.0)) - delta)
 		if enemy.has("unreadMaroSpeechDelayTimer"):
 			enemy["unreadMaroSpeechDelayTimer"] = maxf(0.0, float(enemy.get("unreadMaroSpeechDelayTimer", 0.0)) - delta)
 		enemy["syncStarCarrierRevealTimer"] = maxf(0.0, float(enemy.get("syncStarCarrierRevealTimer", 0.0)) - delta)
+		if bool(enemy.get("collabBreakCore", false)):
+			var core_lifetime := float(enemy.get("collabBreakCoreLifetime", enemy.get("lifeTimer", 0.0))) - delta
+			enemy["collabBreakCoreLifetime"] = core_lifetime
+			enemy["lifeTimer"] = core_lifetime
+			if core_lifetime <= 0.0:
+				enemy["removeReason"] = "natural_despawn"
+				enemy["defeatResolved"] = true
+				if target != null and target.has_method("_on_relay_boss_collab_break_core_expired"):
+					target.call("_on_relay_boss_collab_break_core_expired", enemy)
+				continue
 		if bool(enemy.get("relayBossNoiseSummon", false)):
 			var summon_lifetime := float(enemy.get("relayBossSummonLifetime", enemy.get("lifeTimer", 0.0))) - delta
 			enemy["relayBossSummonLifetime"] = summon_lifetime
@@ -2267,6 +2293,19 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			if summon_lifetime <= 0.0:
 				enemy["removeReason"] = "natural_despawn"
 				enemy["defeatResolved"] = true
+				if bool(enemy.get("travelNoiseSummonChild", false)) and not bool(enemy.get("travelNoiseSummonExpiryFxEmitted", false)) and target != null:
+					enemy["travelNoiseSummonExpiryFxEmitted"] = true
+					append_relay_noise_visual_effect_for_target(target as Node, enemy, "relay_noise_summon_expiry", 0.18)
+				continue
+		if bool(enemy.get("divisionNoiseChild", false)) and String(enemy.get("kind", "")) == "noise_ghost_comment":
+			var division_lifetime := float(enemy.get("divisionNoiseLifetime", enemy.get("lifeTimer", 0.0))) - delta
+			enemy["divisionNoiseLifetime"] = division_lifetime
+			enemy["lifeTimer"] = division_lifetime
+			if division_lifetime <= 0.0:
+				enemy["removeReason"] = "natural_despawn"
+				enemy["defeatResolved"] = true
+				if target != null and target.has_method("_on_relay_boss_division_noise_child_expired"):
+					target.call("_on_relay_boss_division_noise_child_expired", enemy)
 				continue
 		if bool(enemy.get("defeatPending", false)):
 			enemy_pos = apply_knockback_motion(enemy, enemy_pos, previous_enemy_pos, delta, arena, effect_walls, stream_frame_id)
@@ -2672,7 +2711,7 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 		enemy["pos"] = enemy_pos
 		var is_last_offline_body := (bool(enemy.get("relayBoss", false)) or String(enemy.get("bossId", "")) == "last_offline" or String(enemy.get("kind", "")) == "last_offline") and not bool(enemy.get("relayBossSummon", false))
 		var contact_radius: float = float(enemy["radius"]) + 22.0
-		var summon_spawn_grace := bool(enemy.get("relayBossNoiseSummon", false)) and float(enemy.get("spawnGraceTimer", 0.0)) > 0.0
+		var summon_spawn_grace := (bool(enemy.get("relayBossNoiseSummon", false)) or bool(enemy.get("divisionNoiseChild", false))) and float(enemy.get("spawnGraceTimer", 0.0)) > 0.0
 		var shield_contact_blocked := float(enemy.get("shieldContactSuppressTimer", 0.0)) > 0.0
 		if target != null and target.has_method("_enemy_contact_blocked_by_shield"):
 			shield_contact_blocked = bool(target.call("_enemy_contact_blocked_by_shield", enemy)) or shield_contact_blocked
@@ -2680,11 +2719,27 @@ static func update_enemies(context: Dictionary) -> Dictionary:
 			var contact_source: String = String(enemy["kind"]) + " contact"
 			var contact_damage: int = int(enemy.get("contactDamage", contact_damage_for_kind(String(enemy["kind"]), bool(enemy.get("isBoss", false)))))
 			damage_events.append({"source": contact_source, "damage": contact_damage, "enemyId": String(enemy.get("kind", "")), "runtimeVariant": String(enemy.get("runtimeVariant", "")), "attackType": "contact"})
-			if target != null and String(enemy.get("kind", "")) == "noise_ghost_comment" and bool(enemy.get("relayBossNoiseSummon", false)) and float(enemy.get("relayNoiseContactFxTimer", 0.0)) <= 0.0:
-				append_relay_noise_visual_effect_for_target(target as Node, enemy, "relay_noise_summon_contact", 0.16)
-				enemy["relayNoiseContactFxTimer"] = 0.16
+			if target != null and String(enemy.get("kind", "")) == "noise_ghost_comment":
+				if bool(enemy.get("relayBossNoiseSummon", false)) and float(enemy.get("relayNoiseContactFxTimer", 0.0)) <= 0.0:
+					append_relay_noise_visual_effect_for_target(target as Node, enemy, "relay_noise_summon_contact", 0.16)
+					enemy["relayNoiseContactFxTimer"] = 0.16
+				elif bool(enemy.get("divisionNoiseChild", false)) and float(enemy.get("divisionNoiseContactFxTimer", 0.0)) <= 0.0:
+					if target.has_method("_on_relay_boss_division_noise_child_contact"):
+						target.call("_on_relay_boss_division_noise_child_contact", enemy)
+					enemy["divisionNoiseContactFxTimer"] = 0.16
 	result["bullets"] = bullets
 	return result
+
+static func _point_to_segment_distance(point: Vector2, from_pos: Vector2, to_pos: Vector2) -> float:
+	var segment := to_pos - from_pos
+	var length_sq := segment.length_squared()
+	if length_sq <= 0.001:
+		return point.distance_to(from_pos)
+	var ratio := clampf((point - from_pos).dot(segment) / length_sq, 0.0, 1.0)
+	return point.distance_to(from_pos + segment * ratio)
+
+static func _strict_travel_projectile_hit(hit_distance: float, hit_radius: float) -> bool:
+	return snappedf(hit_distance, TRAVEL_PROJECTILE_STRICT_COMPARE_STEP) < snappedf(hit_radius, TRAVEL_PROJECTILE_STRICT_COMPARE_STEP)
 
 static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 	var result: Dictionary = {
@@ -2707,17 +2762,30 @@ static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 			continue
 		if float(bullet.get("life", 0.0)) <= 0.0:
 			continue
+		var previous_pos := Vector2(bullet.get("pos", Vector2.ZERO))
 		bullet["pos"] = Vector2(bullet["pos"]) + Vector2(bullet["vel"]) * delta
 		bullet["life"] = float(bullet["life"]) - delta
+		if bullet.has("gameOverBarrageAge"):
+			bullet["gameOverBarrageAge"] = float(bullet.get("gameOverBarrageAge", 0.0)) + delta
 		if String(bullet.get("visualKind", "")) == "kuso_maro":
 			var visual_rotation := float(bullet.get("visualRotation", 0.0))
 			var visual_spin_speed := float(bullet.get("visualSpinSpeed", 0.0))
 			bullet["visualRotation"] = fposmod(visual_rotation + visual_spin_speed * delta, TAU)
 		if bullet.has("commentShotgunLaunchVisualTimer"):
 			bullet["commentShotgunLaunchVisualTimer"] = maxf(0.0, float(bullet.get("commentShotgunLaunchVisualTimer", 0.0)) - delta)
+		if bullet.has("travelCommentSalvoVisualAge"):
+			bullet["travelCommentSalvoVisualAge"] = maxf(0.0, float(bullet.get("travelCommentSalvoVisualAge", 0.0)) + delta)
+		if bullet.has("travelNoiseShotVisualAge"):
+			bullet["travelNoiseShotVisualAge"] = maxf(0.0, float(bullet.get("travelNoiseShotVisualAge", 0.0)) + delta)
+		if bullet.has("travelNoiseShotLaunchVisualTimer"):
+			bullet["travelNoiseShotLaunchVisualTimer"] = maxf(0.0, float(bullet.get("travelNoiseShotLaunchVisualTimer", 0.0)) - delta)
 		var hit_radius: float = float(bullet.get("hitRadius", 22.0)) * bullet_hit_rate
 		var bullet_pos: Vector2 = Vector2(bullet["pos"])
-		if bullet_pos.distance_squared_to(player_pos) < hit_radius * hit_radius:
+		var is_travel_comment_salvo := String(bullet.get("sourceKind", "")) == "travel_comment_salvo" or String(bullet.get("visualKind", "")) == "travel_comment_salvo"
+		var is_travel_noise_shot := String(bullet.get("sourceKind", "")) == "travel_noise_shot" or String(bullet.get("visualKind", "")) == "travel_noise_shot"
+		var is_travel_swept := is_travel_comment_salvo or is_travel_noise_shot
+		var hit_distance := _point_to_segment_distance(player_pos, previous_pos, bullet_pos) if is_travel_swept else bullet_pos.distance_to(player_pos)
+		if (is_travel_swept and _strict_travel_projectile_hit(hit_distance, hit_radius)) or (not is_travel_swept and hit_distance < hit_radius):
 			bullet["life"] = -1.0
 			damage_events.append({"source": String(bullet.get("source", "enemy bullet")), "damage": int(bullet.get("damage", DamageSystem.ENEMY_BULLET_DAMAGE)), "enemyId": String(bullet.get("sourceKind", "")), "runtimeVariant": String(bullet.get("runtimeVariant", "")), "attackType": String(bullet.get("attackType", "projectile"))})
 			var visual_kind := String(bullet.get("visualKind", ""))
@@ -2795,6 +2863,58 @@ static func update_enemy_bullets(context: Dictionary) -> Dictionary:
 					"visualSeed": float(bullet.get("commentShotgunVisualSeed", fposmod(bullet_pos.x * 0.013 + bullet_pos.y * 0.017, TAU))),
 					"life": 0.20,
 					"maxLife": 0.20
+				})
+			elif is_travel_comment_salvo:
+				var travel_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if travel_impact_dir.length_squared() <= 0.01:
+					travel_impact_dir = Vector2.RIGHT
+					hit_fx.append({
+						"kind": "travel_comment_hit",
+						"bossAttackId": "travel_comment_salvo",
+					"source": "relay_boss_travel_comment",
+					"sourceKind": "travel_comment_salvo",
+					"pos": bullet_pos,
+					"dir": travel_impact_dir.normalized(),
+					"travelCommentSalvoSerial": int(bullet.get("travelCommentSalvoSerial", 0)),
+					"travelCommentSalvoIndex": int(bullet.get("travelCommentSalvoIndex", 0)),
+					"visualSeed": float(bullet.get("travelCommentSalvoVisualSeed", fposmod(bullet_pos.x * 0.011 + bullet_pos.y * 0.017, 1.0))),
+						"life": 0.20,
+						"maxLife": 0.20
+					})
+			elif is_travel_noise_shot:
+				var noise_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if noise_impact_dir.length_squared() <= 0.01:
+					noise_impact_dir = Vector2.RIGHT
+				hit_fx.append({
+					"kind": "travel_noise_hit",
+					"bossAttackId": "travel_noise_shot",
+					"attackId": "travel_noise_shot",
+					"source": "relay_boss_travel_noise",
+					"sourceKind": "travel_noise_shot",
+					"visualKind": "travel_noise_shot",
+					"pos": bullet_pos,
+					"dir": noise_impact_dir.normalized(),
+					"travelNoiseShotSerial": int(bullet.get("travelNoiseShotSerial", 0)),
+					"travelNoiseShotIndex": int(bullet.get("travelNoiseShotIndex", 0)),
+					"visualSeed": float(bullet.get("travelNoiseShotVisualSeed", fposmod(bullet_pos.x * 0.0121 + bullet_pos.y * 0.0187, 1.0))),
+					"life": 0.18,
+					"maxLife": 0.18
+				})
+			elif visual_kind == "game_over_barrage" and bool(bullet.get("relayBossProjectile", false)):
+				var game_over_impact_dir := Vector2(bullet.get("vel", Vector2.RIGHT))
+				if game_over_impact_dir.length_squared() <= 0.01:
+					game_over_impact_dir = Vector2.RIGHT
+				hit_fx.append({
+					"kind": "game_over_barrage_hit",
+					"bossAttackId": "game_over_barrage",
+					"source": "relay_boss_game_over_barrage",
+					"pos": bullet_pos,
+					"dir": game_over_impact_dir.normalized(),
+					"pelletIndex": int(bullet.get("gameOverBarragePelletIndex", 0)),
+					"waveSerial": int(bullet.get("gameOverBarrageWaveSerial", 0)),
+					"visualSeed": float(bullet.get("gameOverBarrageVisualSeed", 0.0)),
+					"life": 0.19,
+					"maxLife": 0.19
 				})
 	var bullet_keep_area: Rect2 = arena.grow(80.0)
 	var kept_bullets: Array = []

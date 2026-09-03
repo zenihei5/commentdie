@@ -3,6 +3,14 @@ extends RefCounted
 
 const MapBackgroundSystemScript := preload("res://scripts/systems/map_background_system.gd")
 
+const COLLAB_MUTE_CORE_RENDER_SIZE := 88.0
+const COLLAB_MUTE_CORE_GAMEPLAY_RADIUS := 27.0
+const TROLL_SPRITE_ASPECT := 1388.0 / 1133.0
+# The supplied 1254px PNG has an alpha>0 bbox whose largest half-extent is
+# 564px.  Keep this measured envelope here so the procedural rings sit just
+# outside the actual silhouette rather than around the old gameplay circle.
+const COLLAB_MUTE_CORE_VISIBLE_RADIUS := 39.6
+
 static func title_center() -> Vector2:
 	return Vector2(600, 390)
 
@@ -1295,6 +1303,8 @@ static func enemy_color(kind: String) -> Color:
 		return Color("#8a4fd4")
 	if kind == "collab_mute_core":
 		return Color("#503b66")
+	if kind == "collab_break_core":
+		return Color("#4a285c")
 	if kind == "collab_crusher":
 		return Color("#6d315f")
 	if kind == "enemy_spoiler_comment":
@@ -1383,6 +1393,8 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/collab_exclusive_listener.png"
 	if kind == "collab_division_noise":
 		return "res://assets/generated/enemy_sprites_v1/collab_division_noise.png"
+	if kind == "collab_mute_core":
+		return "res://assets/generated/enemy_sprites_v1/collab_mute_core.png"
 	if kind == "enemy_spoiler_comment":
 		return "res://assets/generated/enemy_sprites_v1/gameplay_spoiler_comment.png"
 	if kind == "enemy_backseat_controller":
@@ -1439,15 +1451,26 @@ static func enemy_sprite_path(kind: String) -> String:
 		return "res://assets/generated/enemy_sprites_v1/collab_crusher.png"
 	return ""
 
+static func collab_mute_core_display_size(radius: float) -> Vector2:
+	var scale := maxf(0.01, radius / COLLAB_MUTE_CORE_GAMEPLAY_RADIUS)
+	return Vector2.ONE * COLLAB_MUTE_CORE_RENDER_SIZE * scale
+
+static func collab_mute_core_visible_radius(radius: float) -> float:
+	var scale := maxf(0.01, radius / COLLAB_MUTE_CORE_GAMEPLAY_RADIUS)
+	return COLLAB_MUTE_CORE_VISIBLE_RADIUS * scale
+
 static func enemy_body_data(kind: String, pos: Vector2, radius: float, color: Color, flash_color: Color = Color.TRANSPARENT, flash_strength: float = 0.0) -> Dictionary:
 	var body_color: Color = color.lerp(flash_color, clampf(flash_strength, 0.0, 1.0))
 	var sprite_path: String = enemy_sprite_path(kind)
 	if sprite_path != "":
-		var size: Vector2 = Vector2(radius * 4.35, radius * 4.35)
+		var size: Vector2 = collab_mute_core_display_size(radius) if kind == "collab_mute_core" else Vector2(radius * 4.35, radius * 4.35)
+		if kind == "troll":
+			size.y = size.x / TROLL_SPRITE_ASPECT
+		var offset := Vector2.ZERO if kind == "collab_mute_core" else Vector2(0, -radius * 0.08)
 		return {
 			"kind": "sprite",
 			"texturePath": sprite_path,
-			"rect": Rect2(pos - size * 0.5 + Vector2(0, -radius * 0.08), size),
+			"rect": Rect2(pos - size * 0.5 + offset, size),
 			"modulate": Color.WHITE.lerp(flash_color, clampf(flash_strength * 0.72, 0.0, 0.72))
 		}
 	if kind == "long_comment_guy":
@@ -1830,7 +1853,7 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 		var pop_scale := lerpf(0.80, 1.06, smoothstep(0.0, 0.68, comparison_spam_pop_progress)) if comparison_spam_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, comparison_spam_pop_progress))
 		visual_scale *= pop_scale
 		cutin_alpha *= lerpf(0.90, 1.0, smoothstep(0.0, 0.46, comparison_spam_pop_progress))
-	var division_noise_pop_in := kind == "collab_division_noise" and bool(enemy.get("divisionNoiseVisual", false)) and enemy.has("divisionNoisePopInTimer")
+	var division_noise_pop_in := enemy.has("divisionNoisePopInTimer") and (kind == "collab_division_noise" and bool(enemy.get("divisionNoiseVisual", false)) or bool(enemy.get("divisionNoiseChild", false)))
 	var division_noise_pop_timer := maxf(0.0, float(enemy.get("divisionNoisePopInTimer", 0.0)))
 	var division_noise_pop_progress := 1.0
 	if division_noise_pop_in:
@@ -1848,13 +1871,22 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 		var relay_noise_pop_scale := lerpf(0.84, 1.06, smoothstep(0.0, 0.68, relay_noise_summon_pop_progress)) if relay_noise_summon_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, relay_noise_summon_pop_progress))
 		visual_scale *= relay_noise_pop_scale
 		cutin_alpha *= lerpf(0.92, 1.0, smoothstep(0.0, 0.46, relay_noise_summon_pop_progress))
+	var collab_break_core_pop_in := kind == "collab_break_core" and bool(enemy.get("collabBreakCore", false)) and enemy.has("collabBreakCorePopInTimer")
+	var collab_break_core_pop_timer := maxf(0.0, float(enemy.get("collabBreakCorePopInTimer", 0.0)))
+	var collab_break_core_pop_progress := 1.0
+	if collab_break_core_pop_in:
+		var core_pop_duration := maxf(0.01, float(enemy.get("collabBreakCorePopInDuration", 0.20)))
+		collab_break_core_pop_progress = clampf(1.0 - collab_break_core_pop_timer / core_pop_duration, 0.0, 1.0)
+		var core_pop_scale := lerpf(0.78, 1.06, smoothstep(0.0, 0.68, collab_break_core_pop_progress)) if collab_break_core_pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, collab_break_core_pop_progress))
+		visual_scale *= core_pop_scale
+		cutin_alpha *= lerpf(0.88, 1.0, smoothstep(0.0, 0.42, collab_break_core_pop_progress))
 	if is_boss:
 		visual_scale *= maxf(0.01, float(enemy.get("cutinVisualScale", 1.0)))
 		visual_offset += Vector2(enemy.get("cutinVisualOffset", Vector2.ZERO))
 	var visual_rotation := float(enemy.get("visualRotation", 0.0)) if is_boss else 0.0
 	var shadow_scale := float(enemy.get("shadowScale", 1.0)) if is_boss else 1.0
 	pos += visual_offset
-	radius *= maxf(0.01 if unread_pop_in or red_pen_summon_pop_in or collab_mute_pop_in or comparison_spam_pop_in or division_noise_pop_in or relay_noise_summon_pop_in else 0.8, visual_scale)
+	radius *= maxf(0.01 if unread_pop_in or red_pen_summon_pop_in or collab_mute_pop_in or comparison_spam_pop_in or division_noise_pop_in or relay_noise_summon_pop_in or collab_break_core_pop_in else 0.8, visual_scale)
 	if bool(enemy.get("defeatPending", false)) and is_boss:
 		var max_delay: float = maxf(0.01, float(enemy.get("defeatDelayMax", 0.55)))
 		var left: float = clampf(float(enemy.get("defeatDelay", 0.0)), 0.0, max_delay)
@@ -1903,8 +1935,8 @@ static func enemy_draw_data(enemy: Dictionary) -> Dictionary:
 	body["modulate"] = body_modulate
 	if not shadow.is_empty():
 		shadow["alpha"] = float(shadow.get("alpha", 0.22)) * cutin_alpha
-	var ui_radius := float(enemy["radius"]) if (red_pen_summon_pop_in or comparison_spam_pop_in or division_noise_pop_in or relay_noise_summon_pop_in) and not is_boss else radius
-	var bar: Dictionary = {} if (is_last_offline and not bool(enemy.get("showWorldHpBar", false))) or kind == "collab_mute_core" else enemy_hp_bar_data(pos, ui_radius, float(enemy["hp"]), float(enemy["max_hp"]))
+	var ui_radius := float(enemy["radius"]) if (red_pen_summon_pop_in or comparison_spam_pop_in or division_noise_pop_in or relay_noise_summon_pop_in or collab_break_core_pop_in) and not is_boss else radius
+	var bar: Dictionary = {} if (is_last_offline and not bool(enemy.get("showWorldHpBar", false))) or kind == "collab_mute_core" or kind == "collab_break_core" else enemy_hp_bar_data(pos, ui_radius, float(enemy["hp"]), float(enemy["max_hp"]))
 	if bool(enemy.get("cutinIntroLocked", false)) or unread_pop_timer > 0.0:
 		bar = {}
 	var speech_offset_y := -ui_radius - 54.0 + float(enemy.get("unreadMaroSpeechOffsetY", 0.0))
@@ -5470,7 +5502,7 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 			continue
 		if use_culling and fx_item.has("pos") and not visible_rect.has_point(Vector2(fx_item.get("pos", Vector2.ZERO))):
 			continue
-		if String(fx_item.get("kind", "")) in ["kuso_maro_launch", "kuso_maro_hit", "bug_spoiler_launch", "bug_spoiler_hit", "bug_guide_cast", "bug_guide_player_hit", "pitch_police_note_launch", "pitch_police_note_hit", "comment_shotgun_launch", "comment_shotgun_hit", "offline_laser_launch", "offline_laser_hit", "red_pen_launch", "red_pen_summon_spawn", "red_pen_mark_hit", "red_pen_review_line_hit", "collab_crusher_vs_line_damage_hit", "collab_crusher_vs_line_knockback", "comment_divide_hit", "comment_divide_push", "pitch_wave_cast", "pitch_wave_hit", "megaphone_wave_hit"]:
+		if String(fx_item.get("kind", "")) in ["kuso_maro_launch", "kuso_maro_hit", "bug_spoiler_launch", "bug_spoiler_hit", "bug_guide_cast", "bug_guide_player_hit", "pitch_police_note_launch", "pitch_police_note_hit", "comment_shotgun_launch", "comment_shotgun_hit", "travel_comment_launch", "travel_comment_hit", "offline_laser_launch", "offline_laser_hit", "red_pen_launch", "red_pen_summon_spawn", "red_pen_mark_hit", "red_pen_review_line_hit", "collab_crusher_vs_line_damage_hit", "collab_crusher_vs_line_knockback", "comment_divide_hit", "comment_divide_push", "pitch_wave_cast", "pitch_wave_hit", "megaphone_wave_hit"]:
 			items.append(fx_item.duplicate(true))
 			continue
 		if String(fx_item.get("kind", "")) == "hard_comment_avalanche_row":

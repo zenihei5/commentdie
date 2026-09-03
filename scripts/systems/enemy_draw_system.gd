@@ -32,6 +32,7 @@ static func draw_enemies(target: CanvasItem, enemy_list: Array, visible_rect: Re
 		draw_relay_noise_summon_fx(target, enemy_data)
 		draw_unread_maro_summon_telegraph(target, enemy_data)
 		draw_bug_spoiler_telegraph(target, enemy_data)
+		draw_division_noise_child_fx(target, enemy_data, enemy_list)
 		if bool(enemy_data.get("syncStarCarrier", false)) and not bool(enemy_data.get("defeatResolved", false)):
 			draw_sync_star_carrier(target, enemy_data)
 
@@ -249,6 +250,89 @@ static func draw_relay_noise_summon_fx(target: CanvasItem, enemy: Dictionary) ->
 	var signal_end := pos + Vector2(-radius * 0.18, radius * 0.05)
 	target.draw_line(signal_start, signal_end, Color(0.30, 0.92, 1.0, 0.17 * alpha), 1.4, true)
 	target.draw_line(signal_end + Vector2(3.0, -2.0), signal_end + Vector2(7.0, 2.0), Color(1.0, 0.28, 0.70, (0.16 + pulse * 0.04) * alpha), 1.3, true)
+
+static func draw_relay_noise_summon_foreground(target: CanvasItem, enemy_list: Array, visible_rect: Rect2, player_pos: Vector2, boss_overlap_only: bool) -> void:
+	# Travel summons receive only a local assist above the boss/player layers.
+	# The normal enemy sprite remains in the ordinary enemy pass, and common,
+	# division, sidecar, and other noise children never enter this pass.
+	var boss_rect := Rect2()
+	for item in enemy_list:
+		var boss: Dictionary = item as Dictionary
+		if not bool(boss.get("relayBoss", false)) and String(boss.get("bossId", "")) != "last_offline" and String(boss.get("kind", "")) != "last_offline":
+			continue
+		var opaque_size := Vector2(boss.get("visualOpaqueSize", Vector2(500.0, 450.0)))
+		var scale_vector := Vector2(boss.get("visualScaleVector", Vector2.ONE))
+		var center := Vector2(boss.get("pos", Vector2.ZERO)) + Vector2(boss.get("visualOffset", Vector2.ZERO))
+		boss_rect = Rect2(center - opaque_size * scale_vector * 0.5, opaque_size * scale_vector)
+		break
+	for item in enemy_list:
+		var enemy: Dictionary = item as Dictionary
+		if String(enemy.get("kind", "")) != "noise_ghost_comment" or not bool(enemy.get("travelNoiseSummonChild", false)):
+			continue
+		if bool(enemy.get("defeatResolved", false)) or bool(enemy.get("defeatPending", false)):
+			continue
+		var pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		if not visible_rect.grow(24.0).has_point(pos):
+			continue
+		var boss_overlap := boss_rect.size != Vector2.ZERO and boss_rect.grow(10.0).has_point(pos)
+		var player_near := pos.distance_squared_to(player_pos) <= 84.0 * 84.0
+		if boss_overlap_only and not boss_overlap:
+			continue
+		if not boss_overlap_only and not player_near:
+			continue
+		var radius := maxf(12.0, float(enemy.get("radius", 22.0)))
+		var seed := fposmod(float(enemy.get("travelNoiseVisualSeed", enemy.get("relayNoiseVisualSeed", 0.0))), 1.0) * TAU
+		var alpha := 0.76 if boss_overlap else 0.58
+		target.draw_arc(pos, radius + 3.0, seed + 0.14, seed + 1.04, 8, Color(0.18, 0.92, 1.0, alpha), 1.5, true)
+		target.draw_arc(pos, radius + 3.0, seed + 2.05, seed + 2.86, 8, Color(1.0, 0.22, 0.68, alpha * 0.92), 1.4, true)
+		for i in range(2):
+			var block_pos := pos + Vector2.from_angle(seed + 1.25 + float(i) * 2.2) * (radius + 4.0)
+			target.draw_rect(Rect2(block_pos - Vector2(4.0, 1.4), Vector2(8.0, 2.8)), Color(0.08, 0.02, 0.16, alpha * 0.78), true)
+
+static func draw_division_noise_child_fx(target: CanvasItem, enemy: Dictionary, enemy_list: Array) -> void:
+	if String(enemy.get("kind", "")) != "noise_ghost_comment" or not bool(enemy.get("divisionNoiseChild", false)):
+		return
+	if bool(enemy.get("defeatResolved", false)):
+		return
+	var pos := Vector2(enemy.get("pos", Vector2.ZERO))
+	var radius := maxf(12.0, float(enemy.get("radius", 22.0)))
+	var seed := float(enemy.get("divisionNoiseVisualSeed", 0.0))
+	var nearby_count := 1
+	for item in enemy_list:
+		var other: Dictionary = item as Dictionary
+		if String(other.get("kind", "")) != "noise_ghost_comment" or not bool(other.get("divisionNoiseChild", false)):
+			continue
+		if bool(other.get("defeatResolved", false)) or bool(other.get("defeatPending", false)):
+			continue
+		if Vector2(other.get("pos", pos)).distance_squared_to(pos) <= 108.0 * 108.0:
+			nearby_count += 1
+	var density_alpha := 1.0 if nearby_count <= 3 else (0.78 if nearby_count <= 5 else 0.62)
+	var pop_timer := maxf(0.0, float(enemy.get("divisionNoisePopInTimer", 0.0)))
+	var pop_duration := maxf(0.01, float(enemy.get("divisionNoisePopInDuration", 0.20)))
+	var pop_progress := clampf(1.0 - pop_timer / pop_duration, 0.0, 1.0)
+	var pop_fade := 1.0 - smoothstep(0.42, 1.0, pop_progress) if pop_timer > 0.0 else 0.0
+	var alpha := density_alpha * (0.20 + pop_fade * 0.28)
+	var variant := int(floor(_division_noise_visual_hash(seed, 3.0) * 3.0)) % 3
+	var gap := 0.24 + float(variant) * 0.08
+	target.draw_arc(pos, radius + 3.0, seed + 0.10, seed + 1.12 - gap, 8, Color(0.18, 0.90, 1.0, 0.24 * alpha), 1.4, true)
+	target.draw_arc(pos, radius + 3.0, seed + 1.40 + gap, seed + 2.62, 8, Color(1.0, 0.24, 0.68, 0.22 * alpha), 1.3, true)
+	target.draw_line(pos + Vector2(-radius * 0.75, -radius * 0.20), pos + Vector2(radius * 0.30, -radius * 0.20), Color(0.82, 0.95, 1.0, 0.17 * alpha), 1.0, true)
+	target.draw_line(pos + Vector2(-radius * 0.20, radius * 0.26), pos + Vector2(radius * 0.72, radius * 0.26), Color(1.0, 0.30, 0.72, 0.13 * alpha), 1.0, true)
+	for i in range(3):
+		var block_pos := pos + Vector2(
+			(_division_noise_visual_hash(seed, 10.0 + float(i)) - 0.5) * radius * 1.5,
+			(_division_noise_visual_hash(seed, 20.0 + float(i)) - 0.5) * radius * 1.4
+		)
+		var block_size := Vector2(3.0 + float((i + variant) % 2) * 2.0, 1.5 + float(i % 2))
+		var block_color := Color(0.08, 0.02, 0.16, 0.20 * alpha) if i % 2 == 0 else Color(0.96, 0.20, 0.66, 0.16 * alpha)
+		target.draw_rect(Rect2(block_pos - block_size * 0.5, block_size), block_color, true)
+	if pop_timer > 0.0:
+		var burst := sin(clampf(pop_progress * PI, 0.0, PI))
+		target.draw_line(pos + Vector2(-radius - 5.0, 0.0), pos + Vector2(-radius - 5.0 - burst * 9.0, 0.0), Color(0.90, 0.97, 1.0, 0.46 * pop_fade), 1.2, true)
+		target.draw_line(pos + Vector2(radius + 4.0, 0.0), pos + Vector2(radius + 4.0 + burst * 7.0, 0.0), Color(1.0, 0.25, 0.70, 0.38 * pop_fade), 1.2, true)
+
+static func _division_noise_visual_hash(seed: float, salt: float) -> float:
+	return fposmod(sin(seed * 12.9898 + salt * 78.233) * 43758.5453, 1.0)
 
 static func draw_red_pen_summon_pop_in(target: CanvasItem, enemy: Dictionary) -> void:
 	if String(enemy.get("kind", "")) != "drawing_fix_note" or not bool(enemy.get("redPenSummonVisual", false)):

@@ -58,6 +58,7 @@ static func empty_runtime() -> Dictionary:
 		"travel_next_attack_timer": 0.0,
 		"travel_attack_count": 0,
 		"travel_attacks_emitted": 0,
+		"travel_attack_serial": 0,
 		"travel_last_attack": "",
 		"repositionWarningPulse": false,
 		"visual_offset": Vector2.ZERO,
@@ -169,6 +170,12 @@ static func on_attack_started(target: Node, attack_id: String, origin: Vector2) 
 		runtime["state"] = STATE_HOVER
 	target.set("relay_boss_movement", runtime)
 
+static func _roll_resume_delay(target: Node, movement_config: Dictionary) -> float:
+	var minimum := float(movement_config.get("resumeDelayMin", 0.6))
+	var maximum := float(movement_config.get("resumeDelayMax", 1.2))
+	var rng: RandomNumberGenerator = target.get("rng") as RandomNumberGenerator
+	return rng.randf_range(minimum, maximum) if rng != null else minimum
+
 static func on_attack_finished(target: Node) -> void:
 	var runtime := ensure_for_target(target)
 	if String(runtime.get("state", STATE_HOVER)) == STATE_ATTACK_LOCK:
@@ -177,7 +184,7 @@ static func on_attack_finished(target: Node) -> void:
 		runtime["state"] = STATE_CRUISING
 	runtime["cruise_timer"] = 0.0
 	runtime["cruise_target"] = Vector2.ZERO
-	runtime["resume_timer"] = randf_range(float(_movement_config(target).get("resumeDelayMin", 0.6)), float(_movement_config(target).get("resumeDelayMax", 1.2)))
+	runtime["resume_timer"] = _roll_resume_delay(target, _movement_config(target))
 	runtime["telegraph_timer"] = 0.0
 	target.set("relay_boss_movement", runtime)
 
@@ -188,6 +195,31 @@ static func interrupt_for_target(target: Node, state: String = STATE_STUNNED) ->
 	runtime["telegraph_timer"] = 0.0
 	runtime["reposition_warning_timer"] = 0.0
 	runtime["travel_timer"] = 0.0
+	target.set("relay_boss_reposition_warning", false)
+	target.set("relay_boss_movement", runtime)
+
+static func clear_travel_support_for_target(target: Node, _reason: String = "forced_cleanup") -> void:
+	# Ending/reset paths must stop only the transient travel-support state.  Do
+	# not roll a new delay or consume RNG here; natural arrival remains the one
+	# path that deliberately preserves already-emitted projectiles.
+	var runtime := ensure_for_target(target)
+	var state := String(runtime.get("state", STATE_HOVER))
+	var was_travel_state := state == STATE_REPOSITION_WARNING or state == STATE_REPOSITION
+	if was_travel_state:
+		runtime["state"] = STATE_HOVER
+		var boss := _active_boss(target)
+		if not boss.is_empty():
+			runtime["target"] = Vector2(boss.get("pos", runtime.get("target", Vector2.ZERO)))
+		runtime["pending_anchor_request"] = ""
+	runtime["target_anchor_id"] = String(runtime.get("anchor_id", "center"))
+	runtime["reposition_warning_timer"] = 0.0
+	runtime["reposition_warning_duration"] = 0.0
+	runtime["travel_timer"] = 0.0
+	runtime["travel_next_attack_timer"] = 0.0
+	runtime["travel_attack_count"] = 0
+	runtime["travel_attacks_emitted"] = 0
+	runtime["travel_last_attack"] = ""
+	runtime["repositionWarningPulse"] = false
 	target.set("relay_boss_reposition_warning", false)
 	target.set("relay_boss_movement", runtime)
 
@@ -275,13 +307,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, freeze_g
 	elif state == STATE_REPOSITION:
 		var position := Vector2(boss.get("pos", arena.get_center()))
 		var destination := Vector2(runtime.get("target", position))
-		var phase := clampi(int(target.get("relay_boss_phase")), 0, 4)
-		var speeds: Array = movement_config.get("repositionSpeeds", [220.0, 240.0, 260.0, 280.0, 320.0]) as Array
-		var speed := float(speeds[mini(phase, speeds.size() - 1)]) if not speeds.is_empty() else 220.0
-		if HardModeSystemScript.is_high_difficulty_target(target):
-			speed *= float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("moveSpeedRate", 1.08))
-		if _movement_up_instruction_active(target):
-			speed *= 1.35
+		var speed := reposition_speed_for_target(target)
 		boss["pos"] = position.move_toward(destination, speed * delta)
 		runtime["travel_timer"] = float(runtime.get("travel_timer", 0.0)) + delta
 		if Vector2(boss.get("pos", position)).distance_to(destination) <= arrival_distance(target):
@@ -292,7 +318,7 @@ static func update_for_target(target: Node, delta: float, arena: Rect2, freeze_g
 			if target.has_method("_relay_boss_contact_reposition_finished"):
 				target.call("_relay_boss_contact_reposition_finished")
 			runtime["reposition_warning_timer"] = 0.0
-			runtime["resume_timer"] = randf_range(float(movement_config.get("resumeDelayMin", 0.6)), float(movement_config.get("resumeDelayMax", 1.2)))
+			runtime["resume_timer"] = _roll_resume_delay(target, movement_config)
 			runtime["time_since_reposition"] = 0.0
 			runtime["attacks_since_reposition"] = 0
 			runtime["attack_limit"] = _roll_attack_limit(target)
@@ -521,6 +547,36 @@ static func reposition_warning_seconds(target: Node) -> float:
 static func arrival_distance(target: Node) -> float:
 	return maxf(2.0, float(_movement_config(target).get("arrivalDistance", 10.0)))
 
+static func reposition_speed_for_target(target: Node) -> float:
+	var movement_config := _movement_config(target)
+	var speeds: Array = movement_config.get("repositionSpeeds", [220.0, 240.0, 260.0, 280.0, 320.0]) as Array
+	var phase := clampi(int(target.get("relay_boss_phase")), 0, maxi(0, speeds.size() - 1))
+	var speed := float(speeds[phase]) if not speeds.is_empty() else 220.0
+	if HardModeSystemScript.is_high_difficulty_target(target):
+		speed *= float(HardModeSystemScript.final_boss_rates(HardModeSystemScript.runtime_for_target(target)).get("moveSpeedRate", 1.08))
+	if _movement_up_instruction_active(target):
+		speed *= 1.35
+	return maxf(0.01, speed)
+
+static func remaining_reposition_time_for_target(target: Node, _arena: Rect2) -> float:
+	# Read-only feasibility preview for travel support. It mirrors the live
+	# REPOSITIONING movement step and its arrival distance, but deliberately
+	# avoids ensure/set calls and never touches the encounter RNG.
+	var movement_value: Variant = target.get("relay_boss_movement")
+	if not movement_value is Dictionary:
+		return 0.0
+	var movement: Dictionary = movement_value as Dictionary
+	var boss := _active_boss(target)
+	if boss.is_empty():
+		return 0.0
+	var current := Vector2(boss.get("pos", Vector2.ZERO))
+	var destination := Vector2(movement.get("target", current))
+	var distance := current.distance_to(destination)
+	var arrival := arrival_distance(target)
+	if distance <= arrival:
+		return 0.0
+	return maxf(0.0, distance - arrival) / reposition_speed_for_target(target)
+
 static func minimum_player_distance(target: Node) -> float:
 	var movement_distance := float(_movement_config(target).get("minimumPlayerDistance", 220.0))
 	var config: Dictionary = target.get("relay_mode_config") as Dictionary
@@ -545,8 +601,13 @@ static func _update_travel_attacks(target: Node, runtime: Dictionary, arena: Rec
 	if timer < float(runtime.get("travel_next_attack_timer", 0.5)):
 		return
 	var attack_id := _pick_travel_attack(target, runtime)
+	var travel_attack_serial := int(runtime.get("travel_attack_serial", 0)) + 1
+	runtime["travel_attack_serial"] = travel_attack_serial
 	if target.has_method("_relay_boss_emit_travel_attack"):
-		target.call("_relay_boss_emit_travel_attack", attack_id, arena, {"travelDirection": travel_vector.normalized()})
+		target.call("_relay_boss_emit_travel_attack", attack_id, arena, {
+			"travelDirection": travel_vector.normalized(),
+			"travelAttackSerial": travel_attack_serial
+		})
 	runtime["travel_last_attack"] = attack_id
 	runtime["travel_attacks_emitted"] = emitted + 1
 	var config := _movement_config(target)

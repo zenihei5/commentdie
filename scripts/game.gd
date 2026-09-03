@@ -283,6 +283,7 @@ const COLLAB_PASS_MARKER_APPEAR_DURATION := 0.18
 const COLLAB_CRUSHER_BOSS_ID := "collab_crusher"
 const COLLAB_DIVISION_NOISE_KIND := "collab_division_noise"
 const COLLAB_MUTE_CORE_KIND := "collab_mute_core"
+const COLLAB_BREAK_CORE_KIND := "collab_break_core"
 const COLLAB_CRUSHER_DIVISION_MAX_ACTIVE := 3
 const COLLAB_CRUSHER_DIVISION_INTERVAL := 8.0
 const COLLAB_CRUSHER_DIVISION_WARNING_DURATION := 0.48
@@ -949,6 +950,8 @@ var collab_comment_divide_cast_uid := 1
 var collab_comparison_spam_cast_uid := 1
 var collab_crusher_division_spawn_serial := 1
 var collab_boss_partner_muted := false
+var collab_partner_mute_sources: Dictionary = {}
+var collab_pass_suppression_sources: Dictionary = {}
 var collab_boss_mute_timer := 0.0
 var collab_boss_mute_core_uid := -1
 var collab_boss_mute_cast_serial := 1
@@ -4331,11 +4334,28 @@ func _clear_boss_genre_visuals_for_game_over() -> void:
 func _start_ending_cutin(reason: String, end_type: String) -> void:
 	if state == "result" or state == "game_over_intro":
 		return
+	RelayBossAttackSystemScript.clear_all_genre_rush_for_target(self, "ending_cutin")
 	if end_type == "mental_breakdown":
 		_clear_boss_genre_visuals_for_game_over()
 	_clear_relay_offline_laser_visuals()
+	RelayBossAttackSystemScript.clear_game_over_barrage_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_travel_comment_salvo_for_target(self, "ending_cutin")
+	RelayBossAttackSystemScript.clear_travel_noise_shot_for_target(self, "ending_cutin")
+	RelayBossMovementSystemScript.clear_travel_support_for_target(self, "ending_cutin")
 	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "forced_cleanup")
 	RelayBossAttackSystemScript.clear_noise_summon_visuals_for_target(self, true, "forced_cleanup")
+	RelayBossAttackSystemScript.reset_noise_runtime_for_run_end(self, "ending_cutin")
+	RelayBossAttackSystemScript.clear_long_comment_line_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_race_lane_charge_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_pitch_wave_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_rhythm_explosion_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_dirty_paint_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_eraser_sweep_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_paint_warning_visuals_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_division_noise_visuals_for_target(self, true, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_fake_gift_traps_for_target(self, "forced_cleanup")
+	RelayBossAttackSystemScript.clear_collab_break_visuals_for_target(self, true, "ending_cutin")
 	if HardModeSystemScript.is_high_difficulty_target(self):
 		HardModeSystemScript.clear_dangers_for_target(self)
 		HardModeSystemScript.clear_hard_comment_events_for_target(self, "ending_cutin")
@@ -6092,7 +6112,9 @@ func _draw_world_layer() -> void:
 	_draw_collab_stage_effects(visible_world_rect)
 	_draw_collab_dash_sync_world_effects(visible_world_rect)
 	_draw_enemies(visible_world_rect)
+	_draw_game_over_barrage_launch_fx_foreground(visible_world_rect)
 	_draw_red_pen_bullet_telegraph()
+	WeaponDrawSystemScript.draw_game_over_barrage_launch_foreground(self, enemy_bullets, visible_world_rect)
 	WeaponDrawSystemScript.draw_red_pen_foreground(self, enemy_bullets, visible_world_rect)
 	_draw_red_pen_launch_fx_foreground(visible_world_rect)
 	WeaponDrawSystemScript.draw_comment_shotgun_launch_foreground(self, enemy_bullets, visible_world_rect, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"))
@@ -6107,20 +6129,57 @@ func _draw_world_layer() -> void:
 	_draw_song_boss_chorus_judge_foreground()
 	if relay_boss_active:
 		RelayBossDrawSystemScript.draw_front_for_target(self, _current_arena())
+		var noise_occlusion_boss := RelayBossSystemScript.active_boss(self)
+		WeaponDrawSystemScript.draw_travel_noise_shot_boss_foreground(self, enemy_bullets, noise_occlusion_boss, visible_world_rect)
+		EnemyDrawSystemScript.draw_relay_noise_summon_foreground(self, enemies, visible_world_rect, player_pos, true)
+	_draw_travel_noise_launch_fx_foreground(visible_world_rect)
+	_draw_travel_comment_launch_fx_foreground(visible_world_rect)
+	WeaponDrawSystemScript.draw_travel_comment_salvo_launch_foreground(
+		self,
+		enemy_bullets,
+		visible_world_rect,
+		player_pos,
+		Callable(self, "_draw_rotated_texture"),
+		Callable(self, "_load_raw_png_texture")
+	)
 	_draw_collab_boss_enemy_overlays(visible_world_rect)
 	_draw_collab_challenge_enemy_markers(visible_world_rect)
 	_draw_boomerang()
 	_draw_player()
 	_draw_collab_partner()
+	if relay_boss_active:
+		EnemyDrawSystemScript.draw_relay_noise_summon_foreground(self, enemies, visible_world_rect, player_pos, false)
+	_draw_game_over_barrage_hit_fx_foreground(visible_world_rect)
+	if relay_boss_active:
+		RelayBossDrawSystemScript.draw_long_comment_line_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_race_lane_charge_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_howling_ring_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_pitch_wave_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_rhythm_explosion_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_dirty_paint_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_eraser_sweep_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_paint_warning_player_foreground_for_target(self, _current_arena())
+		RelayBossDrawSystemScript.draw_division_noise_player_foreground_for_target(self, _current_arena())
 	_draw_collab_boss_attack_foreground(visible_world_rect)
 	WeaponDrawSystemScript.draw_red_pen_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
 	WeaponDrawSystemScript.draw_comment_shotgun_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
+	WeaponDrawSystemScript.draw_travel_comment_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
+	WeaponDrawSystemScript.draw_travel_noise_shot_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
+	WeaponDrawSystemScript.draw_game_over_barrage_player_near_rims(self, enemy_bullets, player_pos, visible_world_rect)
 	_draw_sticky_maro_player_fx()
 	_draw_boss_guide_lines_foreground()
 	_draw_kuso_maro_bullet_rims(visible_world_rect)
 	_draw_pitch_police_note_bullet_rims(visible_world_rect)
 	_draw_song_spotlight_labels(visible_world_rect)
 	_draw_hit_fx(false, hit_fx_draw_items, "front")
+	if relay_boss_active:
+		RelayBossDrawSystemScript.draw_long_comment_line_hit_fx_for_target(self)
+		RelayBossDrawSystemScript.draw_race_lane_charge_hit_fx_for_target(self)
+		RelayBossDrawSystemScript.draw_pitch_wave_hit_fx_for_target(self)
+		RelayBossDrawSystemScript.draw_rhythm_explosion_hit_fx_for_target(self)
+		RelayBossDrawSystemScript.draw_eraser_sweep_hit_fx_for_target(self)
+		RelayBossDrawSystemScript.draw_paint_warning_hit_fx_for_target(self)
+		RelayBossDrawSystemScript.draw_division_noise_hit_fx_for_target(self)
 	_draw_map_foreground()
 	_draw_red_pen_review_tips_foreground()
 	world_draw_active = false
@@ -6737,7 +6796,10 @@ func _update_boss(delta: float, arena: Rect2) -> void:
 		var spawn_grace_active := relay_boss_spawn_grace_timer > 0.0
 		relay_boss_spawn_grace_timer = maxf(0.0, relay_boss_spawn_grace_timer - delta)
 		var relay_feedback: Dictionary = RelayBossSystemScript.update_for_target(self, delta, arena, rng, _collab_combo_sequence_active() or spawn_grace_active)
-		_apply_damage_feedback(DamageSystemScript.apply_damage_events_for_target(self, relay_feedback.get("damageEvents", []) as Array))
+		var relay_damage_events: Array = relay_feedback.get("damageEvents", []) as Array
+		var relay_damage_feedback: Dictionary = DamageSystemScript.apply_damage_events_for_target(self, relay_damage_events)
+		RelayBossAttackSystemScript.confirm_paint_warning_hits_for_target(self, relay_damage_events, relay_damage_feedback)
+		_apply_damage_feedback(relay_damage_feedback)
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, relay_feedback, chat_box)
 		_clamp_relay_boss_actors_to_arena()
 		return
@@ -7758,8 +7820,24 @@ func _prepare_back_to_title(play_title_intro: bool) -> void:
 		if not quick_test_mode and not difficulty_progress.is_empty():
 			DifficultyProgressSystemScript.save_progress(difficulty_progress)
 		CodexManager.abandon_run()
+	RelayBossAttackSystemScript.clear_all_genre_rush_for_target(self, "title_transition")
 	_clear_relay_offline_laser_visuals()
+	RelayBossAttackSystemScript.clear_game_over_barrage_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_travel_comment_salvo_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_travel_noise_shot_for_target(self, "title_transition")
+	RelayBossMovementSystemScript.clear_travel_support_for_target(self, "title_transition")
 	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_long_comment_line_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_race_lane_charge_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_pitch_wave_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_rhythm_explosion_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_dirty_paint_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_eraser_sweep_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_paint_warning_visuals_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_division_noise_visuals_for_target(self, true, "title_transition")
+	RelayBossAttackSystemScript.clear_fake_gift_traps_for_target(self, "title_transition")
+	RelayBossAttackSystemScript.clear_collab_break_visuals_for_target(self, true, "title_transition")
 	if relay_mode:
 		_prepare_relay_start()
 	relay_mode = false
@@ -9396,9 +9474,25 @@ func _result_retry_difficulty_id() -> String:
 	return DifficultyProgressSystemScript.normalize_difficulty_id(run_difficulty_id)
 
 func _prepare_relay_start() -> void:
+	RelayBossAttackSystemScript.clear_all_genre_rush_for_target(self, "direct_stage_reset")
 	_clear_relay_offline_laser_visuals()
+	RelayBossAttackSystemScript.clear_game_over_barrage_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_travel_comment_salvo_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_travel_noise_shot_for_target(self, "direct_stage_reset")
+	RelayBossMovementSystemScript.clear_travel_support_for_target(self, "direct_stage_reset")
 	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "direct_stage_reset")
 	RelayBossAttackSystemScript.clear_noise_summon_visuals_for_target(self, true, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_long_comment_line_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_race_lane_charge_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_pitch_wave_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_rhythm_explosion_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_dirty_paint_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_eraser_sweep_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_paint_warning_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_division_noise_visuals_for_target(self, true, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_fake_gift_traps_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_collab_break_visuals_for_target(self, true, "direct_stage_reset")
 	RelayBossDefenseSystemScript.force_clear(self, RelayBossDefenseSystemScript.STATE_NORMAL)
 	quick_test_mode = false
 	relay_completed_frame_ids.clear()
@@ -10212,6 +10306,10 @@ func _complete_relay_boss() -> void:
 	if relay_boss_score_awarded:
 		return
 	relay_boss_score_awarded = true
+	RelayBossAttackSystemScript.clear_all_genre_rush_for_target(self, "boss_defeat")
+	RelayBossAttackSystemScript.clear_travel_comment_salvo_for_target(self, "boss_defeat")
+	RelayBossAttackSystemScript.clear_travel_noise_shot_for_target(self, "boss_defeat")
+	RelayBossMovementSystemScript.clear_travel_support_for_target(self, "boss_defeat")
 	RelayBossAttackSystemScript.clear_runtime_objects_for_target(self)
 	collab_effects.clear()
 	collab_hazard_fields.clear()
@@ -12212,6 +12310,9 @@ func _draw_collab_partner_blocked_marker() -> void:
 	if not collab_partner_support_blocked and not collab_boss_partner_muted:
 		return
 	var pos := collab_partner_pos + Vector2(0.0, -70.0)
+	if _relay_boss_collab_break_active():
+		_draw_collab_break_partner_marker(pos)
+		return
 	var label := "MUTE" if collab_boss_partner_muted else "独占中"
 	var pulse := 0.84 + 0.16 * sin(elapsed * 8.0)
 	if collab_boss_partner_muted:
@@ -12297,6 +12398,9 @@ func _draw_collab_mute_warning_marker(pos: Vector2, alpha: float, seed: float, i
 func _draw_collab_partner_mute_active_tether(visible_rect: Rect2) -> void:
 	if not collab_boss_partner_muted:
 		return
+	if _relay_boss_collab_break_active():
+		_draw_collab_break_partner_tether(visible_rect)
+		return
 	var core := _collab_enemy_by_uid(collab_boss_mute_core_uid)
 	if core.is_empty():
 		return
@@ -12316,6 +12420,51 @@ func _draw_collab_partner_mute_active_tether(visible_rect: Rect2) -> void:
 		var wave_pos := from_pos.lerp(to_pos, t)
 		var wave_size := 3.0 + float(i % 2) * 1.5
 		draw_line(wave_pos - side * wave_size, wave_pos + side * wave_size, Color(0.74, 0.60, 0.84, 0.50), 1.3, true)
+
+func _collab_break_core_enemy() -> Dictionary:
+	var runtime := RelayBossAttackSystemScript.ensure_for_target(self)
+	var active: Dictionary = runtime.get("active_attack", {}) as Dictionary
+	var uid := int(active.get("collabBreakCoreUid", runtime.get("collab_break_uid", -1)))
+	return _collab_enemy_by_uid(uid)
+
+func _draw_collab_break_partner_marker(pos: Vector2) -> void:
+	var pulse := 0.86 + 0.14 * sin(elapsed * 8.0)
+	draw_arc(pos, 17.0 * pulse, -2.80, -0.35, 14, Color(0.92, 0.38, 0.78, 0.86), 2.0, true)
+	draw_arc(pos, 17.0 * pulse, 0.35, 2.35, 14, Color(0.36, 0.84, 1.0, 0.78), 2.0, true)
+	draw_line(pos + Vector2(-9.0, -8.0), pos + Vector2(9.0, 8.0), Color(0.18, 0.08, 0.25, 0.92), 2.3, true)
+	draw_line(pos + Vector2(-9.0, 8.0), pos + Vector2(-2.0, 2.0), Color(0.96, 0.78, 1.0, 0.78), 1.4, true)
+	_draw_outlined_text(pos + Vector2(-31.0, -24.0), "BREAK", 62, 10, Color(0.98, 0.88, 1.0, 0.92), Color(0.20, 0.06, 0.28, 0.92), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_break_partner_tether(visible_rect: Rect2) -> void:
+	var core := _collab_break_core_enemy()
+	if core.is_empty():
+		return
+	var from_pos := collab_partner_pos + Vector2(0.0, -5.0)
+	var to_pos := Vector2(core.get("pos", from_pos))
+	if not visible_rect.grow(60.0).has_point(from_pos) and not visible_rect.grow(60.0).has_point(to_pos):
+		return
+	var segment := to_pos - from_pos
+	if segment.length_squared() < 0.01:
+		return
+	var dir := segment.normalized()
+	var side := Vector2(-dir.y, dir.x)
+	var seed := float(core.get("collabBreakCoreVisualSeed", 0.0))
+	# Keep the status readable without turning the partner/core relationship into
+	# a second long laser.  Only short, broken endpoint-local links are shown;
+	# the middle of the arena remains unobscured and other collab attacks keep
+	# their own visual vocabulary.
+	var endpoint_specs := [
+		[from_pos + dir * 4.0, from_pos + dir * 29.0],
+		[to_pos - dir * 29.0, to_pos - dir * 4.0]
+	]
+	for endpoint_index in range(endpoint_specs.size()):
+		var endpoint_start: Vector2 = endpoint_specs[endpoint_index][0]
+		var endpoint_end: Vector2 = endpoint_specs[endpoint_index][1]
+		var midpoint := endpoint_start.lerp(endpoint_end, 0.52)
+		var gap := 4.0 + fposmod(seed * 17.0 + float(endpoint_index) * 3.0, 3.0)
+		draw_line(endpoint_start, midpoint - dir * 3.0, Color(0.16, 0.05, 0.24, 0.42), 1.5, true)
+		draw_line(midpoint + dir * 4.0, endpoint_end, Color(0.72, 0.36, 0.84, 0.58), 1.25, true)
+		draw_line(midpoint - side * gap, midpoint + side * gap, Color(0.94, 0.70, 1.0, 0.54), 1.1, true)
 
 func _draw_collab_partner_mute_effect(effect: Dictionary, visible_rect: Rect2) -> void:
 	var pos := Vector2(effect.get("pos", collab_partner_pos))
@@ -12337,6 +12486,12 @@ func _draw_collab_partner_mute_effect(effect: Dictionary, visible_rect: Rect2) -
 			draw_circle(particle_pos, 2.0 + float(i % 2), Color(0.84, 0.68, 0.92, 0.72 * fade), true)
 		_draw_collab_partner_mute_icon(pos, 0.74 * fade)
 	elif kind == "partner_mute_destroy_fx":
+		# The active enemy is removed at destroy time; keep the supplied body in
+		# the existing transition so the MUTE symbol reads before fracture and
+		# disappearance.  This is visual-only and does not add a gameplay event.
+		var destroy_scale := lerpf(1.0, 1.18, smoothstep(0.0, 1.0, progress))
+		_draw_collab_mute_core_transition_texture(pos, destroy_scale, Color(0.92, 0.86, 1.0, 0.78 * fade))
+		_draw_collab_mute_core_transition_fracture(pos, seed, progress, fade)
 		draw_arc(pos, 27.0 + progress * 18.0, seed, seed + PI * 1.32, 20, Color(0.70, 0.46, 0.80, 0.76 * fade), 2.8, true)
 		draw_arc(pos, 38.0 + progress * 19.0, seed + PI, seed + PI * 1.34, 16, Color(0.92, 0.98, 1.0, 0.64 * fade), 1.8, true)
 		for i in range(6):
@@ -12344,6 +12499,10 @@ func _draw_collab_partner_mute_effect(effect: Dictionary, visible_rect: Rect2) -
 			var particle_pos := pos + Vector2(cos(angle), sin(angle)) * (14.0 + progress * 46.0)
 			draw_line(particle_pos, particle_pos + Vector2(cos(angle), sin(angle)) * 8.0, Color(0.66, 0.46, 0.78, 0.70 * fade), 2.0, true)
 	elif kind == "partner_mute_timeout_fx":
+		# Timeout is deliberately quieter than destroy: a dim, cool-tinted body
+		# fades away without fracture, time-ring progress, or pulse animation.
+		var timeout_scale := lerpf(1.0, 0.92, smoothstep(0.0, 1.0, progress))
+		_draw_collab_mute_core_transition_texture(pos, timeout_scale, Color(0.72, 0.76, 0.82, 0.34 * fade))
 		var radius := lerpf(36.0, 27.0, progress)
 		draw_arc(pos, radius, seed, seed + PI * 1.45, 22, Color(0.60, 0.44, 0.70, 0.44 * fade), 1.8, true)
 		for i in range(3):
@@ -13191,7 +13350,7 @@ func _draw_collab_boss_enemy_overlays(visible_rect: Rect2) -> void:
 		if _song_enemy_inactive(enemy):
 			continue
 		var kind := String(enemy.get("kind", ""))
-		if kind != COLLAB_CRUSHER_BOSS_ID and kind != COLLAB_DIVISION_NOISE_KIND and kind != COLLAB_MUTE_CORE_KIND:
+		if kind != COLLAB_CRUSHER_BOSS_ID and kind != COLLAB_DIVISION_NOISE_KIND and kind != COLLAB_MUTE_CORE_KIND and kind != COLLAB_BREAK_CORE_KIND:
 			continue
 		var pos := Vector2(enemy.get("pos", Vector2.ZERO))
 		if not visible_rect.has_point(pos):
@@ -13200,8 +13359,11 @@ func _draw_collab_boss_enemy_overlays(visible_rect: Rect2) -> void:
 			_draw_collab_crusher_body_overlay(enemy, pos)
 		elif kind == COLLAB_DIVISION_NOISE_KIND:
 			_draw_collab_division_noise_overlay(enemy, pos)
+		elif kind == COLLAB_BREAK_CORE_KIND:
+			_draw_collab_break_core_overlay(enemy, pos)
 		else:
 			_draw_collab_mute_core_overlay(enemy, pos)
+	RelayBossDrawSystemScript.draw_collab_break_warning_foreground_for_target(self, _current_arena())
 	_draw_collab_division_noise_warning(visible_rect)
 
 func _draw_collab_crusher_body_overlay(boss: Dictionary, pos: Vector2) -> void:
@@ -13298,41 +13460,118 @@ func _draw_collab_mute_core_overlay(enemy: Dictionary, pos: Vector2) -> void:
 	var radius := float(enemy.get("radius", 27.0))
 	var max_hp := maxf(1.0, float(enemy.get("max_hp", 1.0)))
 	var hp_ratio := clampf(float(enemy.get("hp", max_hp)) / max_hp, 0.0, 1.0)
-	var pulse := 0.92 + 0.08 * sin(elapsed * 9.0 + float(enemy.get("collabMuteVisualSeed", 0.0)))
+	var pop_scale := _collab_mute_core_pop_scale(enemy)
 	var pop_timer := maxf(0.0, float(enemy.get("collabMutePopInTimer", 0.0)))
 	var pop_duration := maxf(0.01, float(enemy.get("collabMutePopInDuration", COLLAB_CRUSHER_MUTE_POP_IN_DURATION)))
-	if pop_timer > 0.0:
-		var pop_progress := clampf(1.0 - pop_timer / pop_duration, 0.0, 1.0)
-		var pop_scale := lerpf(0.78, 1.06, smoothstep(0.0, 0.68, pop_progress)) if pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, pop_progress))
-		radius *= pop_scale
-	var pop_alpha := lerpf(0.85, 1.0, smoothstep(0.0, 0.42, 1.0 - pop_timer / pop_duration)) if pop_timer > 0.0 else 1.0
-	draw_circle(pos, radius * 1.18 * pulse, Color(0.35, 0.16, 0.48, 0.10 * pop_alpha), true)
-	draw_arc(pos, radius * 1.22, -PI * 0.72, PI * 0.92, 28, Color(0.49, 0.31, 0.60, 0.72 * pop_alpha), 2.2, true)
-	draw_arc(pos, radius * 1.34, -PI * 0.5, -PI * 0.5 + TAU * clampf(collab_boss_mute_timer / COLLAB_CRUSHER_MUTE_DURATION, 0.0, 1.0), 36, Color(0.38, 0.24, 0.50, 0.52 * pop_alpha), 1.4, true)
-	# The radial ring is the core's only HP readout; generic bars are suppressed
-	# for this kind in DrawDataSystemScript.enemy_draw_data().
-	draw_arc(pos, radius * 1.42, -PI * 0.5, PI * 1.5, 36, Color(0.15, 0.07, 0.21, 0.76 * pop_alpha), 2.6, true)
+	var pop_progress := clampf(1.0 - pop_timer / pop_duration, 0.0, 1.0) if pop_timer > 0.0 else 1.0
+	var pop_alpha := lerpf(0.85, 1.0, smoothstep(0.0, 0.42, pop_progress))
+	var visible_radius := DrawDataSystemScript.collab_mute_core_visible_radius(radius * pop_scale)
+	var seed := float(enemy.get("collabMuteVisualSeed", 0.0))
+	var time_ratio := clampf(collab_boss_mute_timer / COLLAB_CRUSHER_MUTE_DURATION, 0.0, 1.0)
+	# PNG body -> HP -> time -> low-alpha intermittent pulse.  All three
+	# rings use the measured PNG alpha envelope, not the gameplay hurtbox.
+	var hp_ring_radius := visible_radius + 14.0
+	draw_arc(pos, hp_ring_radius, -PI * 0.5, PI * 1.5, 48, Color(0.15, 0.07, 0.21, 0.76 * pop_alpha), 2.6, true)
 	if hp_ratio > 0.0:
-		draw_arc(pos, radius * 1.42, -PI * 0.5, -PI * 0.5 + TAU * hp_ratio, 36, Color(0.90, 0.82, 0.98, 0.90 * pop_alpha), 3.2, true)
+		draw_arc(pos, hp_ring_radius, -PI * 0.5, -PI * 0.5 + TAU * hp_ratio, 48, Color(0.90, 0.82, 0.98, 0.90 * pop_alpha), 3.2, true)
+	var time_ring_radius := visible_radius + 9.0
+	draw_arc(pos, time_ring_radius, -PI * 0.5, PI * 1.5, 44, Color(0.13, 0.06, 0.19, 0.68 * pop_alpha), 2.0, true)
+	if time_ratio > 0.0:
+		draw_arc(pos, time_ring_radius, -PI * 0.5, -PI * 0.5 + TAU * time_ratio, 44, Color(0.51, 0.36, 0.68, 0.76 * pop_alpha), 2.1, true)
+	var pulse_wave := 0.5 + 0.5 * sin(elapsed * 9.0 + seed)
+	var pulse_ring_radius := visible_radius + 4.0
+	var pulse_alpha := (0.10 + pulse_wave * 0.09) * pop_alpha
+	var pulse_phase := seed + elapsed * 0.85
+	draw_arc(pos, pulse_ring_radius, pulse_phase, pulse_phase + 1.30, 18, Color(0.86, 0.67, 1.0, pulse_alpha), 1.8, true)
+	draw_arc(pos, pulse_ring_radius, pulse_phase + PI, pulse_phase + PI + 0.86, 14, Color(0.64, 0.43, 0.86, pulse_alpha * 0.78), 1.3, true)
 	var crack_stage := 0
-	if hp_ratio <= 0.25:
-		crack_stage = 4
+	if hp_ratio <= 0.10:
+		crack_stage = 8
+	elif hp_ratio <= 0.25:
+		crack_stage = 6
 	elif hp_ratio <= 0.50:
-		crack_stage = 3
+		crack_stage = 4
 	elif hp_ratio <= 0.75:
-		crack_stage = 1
+		crack_stage = 2
+	var crack_colors := [Color(1.0, 0.95, 1.0), Color(1.0, 0.25, 0.68), Color(0.24, 0.88, 1.0)]
 	for i in range(crack_stage):
-		var crack_angle := float(enemy.get("collabMuteVisualSeed", 0.0)) * 0.31 + float(i) * 1.47
+		var crack_angle := seed * 0.31 + float(i) * 1.47
 		var crack_dir := Vector2(cos(crack_angle), sin(crack_angle))
 		var crack_side := Vector2(-crack_dir.y, crack_dir.x)
-		var crack_start := pos + crack_dir * radius * 0.22 + crack_side * 3.0
-		var crack_mid := pos + crack_dir * radius * 0.58 - crack_side * 2.0
-		var crack_end := pos + crack_dir * radius * 0.92 + crack_side * 4.0
-		draw_polyline(PackedVector2Array([crack_start, crack_mid, crack_end]), Color(0.96, 0.84, 1.0, 0.62 * pop_alpha), 1.5 + float(i) * 0.25, true)
-	_draw_collab_partner_mute_icon(pos, 0.78 * pop_alpha)
+		# Start outside the central speaker/slash/MUTE artwork so damage reads
+		# as shell fracture rather than a second symbol over the PNG.
+		var crack_start := pos + crack_dir * visible_radius * 0.50 + crack_side * 2.0
+		var crack_mid := pos + crack_dir * visible_radius * 0.70 - crack_side * 2.5
+		var crack_end := pos + crack_dir * visible_radius * 0.94 + crack_side * 3.5
+		var crack_color: Color = crack_colors[i % crack_colors.size()]
+		draw_polyline(PackedVector2Array([crack_start, crack_mid, crack_end]), Color(0.14, 0.03, 0.24, 0.64 * pop_alpha), 3.2, true)
+		draw_polyline(PackedVector2Array([crack_start, crack_mid, crack_end]), Color(crack_color.r, crack_color.g, crack_color.b, 0.72 * pop_alpha), 1.35 + float(i % 3) * 0.22, true)
+	if hp_ratio <= 0.10:
+		var unstable := 0.55 + 0.45 * sin(elapsed * 18.0 + float(enemy.get("uid", 0)))
+		draw_arc(pos, visible_radius + 1.5, seed + elapsed * 1.8, seed + elapsed * 1.8 + 0.72, 12, Color(1.0, 0.25, 0.68, 0.48 * unstable * pop_alpha), 1.4, true)
+
+func _collab_mute_core_pop_scale(enemy: Dictionary) -> float:
+	var pop_timer := maxf(0.0, float(enemy.get("collabMutePopInTimer", 0.0)))
+	if pop_timer <= 0.0:
+		return 1.0
+	var pop_duration := maxf(0.01, float(enemy.get("collabMutePopInDuration", COLLAB_CRUSHER_MUTE_POP_IN_DURATION)))
+	var progress := clampf(1.0 - pop_timer / pop_duration, 0.0, 1.0)
+	return lerpf(0.78, 1.06, smoothstep(0.0, 0.68, progress)) if progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, progress))
+
+func _draw_collab_mute_core_transition_texture(pos: Vector2, scale_factor: float, tint: Color) -> void:
+	if tint.a <= 0.001:
+		return
+	var texture := TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, DrawDataSystemScript.enemy_sprite_path(COLLAB_MUTE_CORE_KIND))
+	if texture == null:
+		return
+	var size := DrawDataSystemScript.collab_mute_core_display_size(27.0) * maxf(0.01, scale_factor)
+	draw_texture_rect(texture, Rect2(pos - size * 0.5, size), false, tint)
+
+func _draw_collab_mute_core_transition_fracture(pos: Vector2, seed: float, progress: float, alpha: float) -> void:
+	var fracture_alpha := smoothstep(0.10, 0.62, progress) * alpha
+	if fracture_alpha <= 0.001:
+		return
+	var visible_radius := DrawDataSystemScript.collab_mute_core_visible_radius(27.0)
+	for i in range(5):
+		var angle := seed * 0.31 + float(i) * 1.47
+		var direction := Vector2(cos(angle), sin(angle))
+		var side := Vector2(-direction.y, direction.x)
+		var start := pos + direction * visible_radius * 0.44 + side * 1.5
+		var middle := pos + direction * visible_radius * 0.68 - side * 2.0
+		var end := pos + direction * (visible_radius * 0.86 + progress * 12.0) + side * 3.0
+		draw_polyline(PackedVector2Array([start, middle, end]), Color(1.0, 0.28, 0.70, 0.64 * fracture_alpha), 1.5, true)
+
+func _draw_collab_break_core_overlay(enemy: Dictionary, pos: Vector2) -> void:
+	var base_radius := float(enemy.get("radius", 27.0))
+	var max_hp := maxf(1.0, float(enemy.get("max_hp", 72.0)))
+	var hp_ratio := clampf(float(enemy.get("hp", max_hp)) / max_hp, 0.0, 1.0)
+	var seed := float(enemy.get("collabBreakCoreVisualSeed", 0.0))
+	var pop_timer := maxf(0.0, float(enemy.get("collabBreakCorePopInTimer", 0.0)))
+	var pop_duration := maxf(0.01, float(enemy.get("collabBreakCorePopInDuration", 0.20)))
+	var pop_progress := 1.0 - pop_timer / pop_duration if pop_timer > 0.0 else 1.0
+	var pop_scale := lerpf(0.78, 1.06, smoothstep(0.0, 0.68, pop_progress)) if pop_progress < 0.68 else lerpf(1.06, 1.0, smoothstep(0.68, 1.0, pop_progress))
+	var alpha := lerpf(0.88, 1.0, smoothstep(0.0, 0.42, clampf(pop_progress, 0.0, 1.0)))
+	var radius := base_radius * pop_scale
+	var active := RelayBossAttackSystemScript.active_attack_for_target(self)
+	var timeout_ratio := clampf(float(active.get("timer", enemy.get("lifeTimer", 10.0))) / 10.0, 0.0, 1.0) if String(active.get("id", "")) == "collab_break" else clampf(float(enemy.get("lifeTimer", 10.0)) / 10.0, 0.0, 1.0)
+	draw_circle(pos, 47.5, Color(0.20, 0.04, 0.28, 0.035 * alpha), true)
+	draw_arc(pos, 42.0, seed * TAU, seed * TAU + PI * 1.38, 28, Color(0.58, 0.24, 0.70, 0.62 * alpha), 1.8, true)
+	draw_arc(pos, 35.0, seed * TAU + PI, seed * TAU + PI * 1.55, 22, Color(0.94, 0.72, 1.0, 0.46 * alpha), 1.4, true)
+	draw_arc(pos, 33.0, -PI * 0.5, -PI * 0.5 + TAU * timeout_ratio, 28, Color(0.25, 0.10, 0.34, 0.72 * alpha), 1.2, true)
+	draw_arc(pos, 31.0, -PI * 0.5, -PI * 0.5 + TAU * hp_ratio, 28, Color(0.96, 0.84, 1.0, 0.94 * alpha), 2.4, true)
+	draw_line(pos + Vector2(-15.0, 0.0), pos + Vector2(-5.0, 7.0), Color(0.94, 0.56, 0.90, 0.82 * alpha), 1.8, true)
+	draw_line(pos + Vector2(-5.0, 7.0), pos + Vector2(5.0, -5.0), Color(0.42, 0.18, 0.55, 0.86 * alpha), 1.8, true)
+	draw_line(pos + Vector2(5.0, -5.0), pos + Vector2(14.0, 2.0), Color(0.94, 0.78, 1.0, 0.76 * alpha), 1.6, true)
+	draw_line(pos + Vector2(-7.0, -17.0), pos + Vector2(8.0, -17.0), Color(0.84, 0.56, 0.94, 0.62 * alpha), 1.4, true)
 	if hp_ratio <= 0.25:
-		var unstable := 0.58 + 0.42 * sin(elapsed * 18.0 + float(enemy.get("uid", 0)))
-		draw_line(pos + Vector2(-14.0, 13.0), pos + Vector2(14.0, 13.0), Color(0.97, 0.87, 1.0, 0.28 * unstable * pop_alpha), 1.4, true)
+		var unstable := 0.55 + 0.45 * sin(elapsed * 17.0 + float(enemy.get("uid", 0)))
+		draw_line(pos + Vector2(-13.0, 15.0), pos + Vector2(13.0, 15.0), Color(1.0, 0.70, 0.94, 0.42 * unstable * alpha), 1.3, true)
+	var hit_flash := clampf(float(enemy.get("hitFlashTimer", 0.0)) / maxf(0.01, float(enemy.get("hitFlashDuration", 0.10))), 0.0, 1.0)
+	if hit_flash > 0.0:
+		draw_arc(pos, radius + 5.0, -PI * 0.35, PI * 1.42, 24, Color(1.0, 0.92, 1.0, 0.82 * hit_flash * alpha), 2.2, true)
+		draw_line(pos + Vector2(-12.0, -9.0), pos + Vector2(12.0, 9.0), Color(0.98, 0.72, 1.0, 0.74 * hit_flash * alpha), 1.6, true)
+		draw_line(pos + Vector2(-9.0, 10.0), pos + Vector2(10.0, -11.0), Color(0.72, 0.42, 0.88, 0.68 * hit_flash * alpha), 1.4, true)
+	_draw_outlined_text(pos + Vector2(-30.0, 52.0), "BREAK CORE", 60, 9, Color(0.94, 0.82, 1.0, 0.80 * alpha), Color(0.18, 0.04, 0.26, 0.86 * alpha), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_collab_partner_mute_hit_fx(data: Dictionary) -> void:
 	var pos := Vector2(data.get("pos", collab_partner_pos))
@@ -14060,6 +14299,46 @@ func _draw_comment_shotgun_launch_overlay() -> void:
 		_apply_world_transform()
 	else:
 		_reset_world_transform()
+
+func _draw_travel_comment_launch_fx_foreground(visible_rect: Rect2) -> void:
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "travel_comment_launch" or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(fx.get("pos", Vector2.ZERO))
+		if visible_rect.size != Vector2.ZERO and not visible_rect.grow(48.0).has_point(pos):
+			continue
+		_draw_travel_comment_launch_fx(fx)
+
+func _draw_travel_noise_launch_fx_foreground(visible_rect: Rect2) -> void:
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "travel_noise_launch" or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(fx.get("pos", Vector2.ZERO))
+		if visible_rect.size != Vector2.ZERO and not visible_rect.grow(48.0).has_point(pos):
+			continue
+		_draw_travel_noise_launch_fx(fx)
+
+func _draw_game_over_barrage_launch_fx_foreground(visible_rect: Rect2) -> void:
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "game_over_barrage_launch" or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(fx.get("pos", Vector2.ZERO))
+		if visible_rect.size != Vector2.ZERO and not visible_rect.grow(72.0).has_point(pos):
+			continue
+		_draw_game_over_barrage_launch_fx(fx)
+
+func _draw_game_over_barrage_hit_fx_foreground(visible_rect: Rect2) -> void:
+	for fx_item in hit_fx:
+		var fx: Dictionary = fx_item as Dictionary
+		if String(fx.get("kind", "")) != "game_over_barrage_hit" or float(fx.get("life", 0.0)) <= 0.0:
+			continue
+		var pos := Vector2(fx.get("pos", Vector2.ZERO))
+		if visible_rect.size != Vector2.ZERO and not visible_rect.grow(72.0).has_point(pos):
+			continue
+		_draw_game_over_barrage_hit_fx(fx)
 
 func _red_pen_visual_hash(seed: float, index: int) -> float:
 	return fposmod(sin(seed * 12.9898 + float(index) * 78.233) * 43758.5453, 1.0)
@@ -15245,6 +15524,30 @@ func _draw_hit_fx_item(data: Dictionary, image_layer: String = "front") -> void:
 		if image_layer == "front":
 			_draw_comment_shotgun_hit_fx(data)
 		return
+	if effect_kind == "travel_comment_launch":
+		# The launch cue is drawn once in the boss/world foreground pass so it
+		# remains anchored to the actual ChatModule origin.
+		return
+	if effect_kind == "travel_comment_hit":
+		if image_layer == "front":
+			_draw_travel_comment_hit_fx(data)
+		return
+	if effect_kind == "travel_noise_launch":
+		# The launch cue is drawn once from the confirmed ChatModule origin in
+		# the boss/world foreground pass.
+		return
+	if effect_kind == "travel_noise_hit":
+		if image_layer == "front":
+			_draw_travel_noise_hit_fx(data)
+		return
+	if effect_kind == "game_over_barrage_launch":
+		# This wave cue is rendered in the dedicated world foreground pass so it
+		# remains visible at the boss origin without being drawn twice.
+		return
+	if effect_kind == "game_over_barrage_hit":
+		# Hit FX is rendered after the player so the small failure chip remains
+		# readable; it has no gameplay collision of its own.
+		return
 	if effect_kind == "offline_laser_launch":
 		if image_layer == "front":
 			_draw_offline_laser_launch_fx(data)
@@ -15556,6 +15859,204 @@ func _draw_comment_shotgun_hit_fx(data: Dictionary) -> void:
 	for i in range(2):
 		draw_circle(ellipsis_center + direction * float(i) * 5.0, 1.6, Color(1.0, 0.94, 0.98, 0.82 * life_ratio))
 	draw_line(burst_center - side * 4.0 - direction * 3.0, burst_center + side * 4.0 + direction * 4.0, Color(1.0, 1.0, 1.0, 0.52 * life_ratio), 1.5, true)
+
+func _draw_travel_comment_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.16)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	# Compact speech-bubble muzzle language: white pop, small tail, ellipsis,
+	# and two restrained chromatic offsets.  No radial explosion is implied.
+	draw_circle(pos, 5.0 + pulse * 4.0, Color(1.0, 0.97, 1.0, 0.24 * life_ratio), true)
+	draw_arc(pos, 9.0 + pulse * 5.0, seed * TAU, seed * TAU + PI * 1.55, 14, Color(1.0, 0.76, 0.90, 0.66 * life_ratio), 1.8, true)
+	draw_line(pos - direction * 5.0, pos + direction * (8.0 + pulse * 4.0), Color(1.0, 1.0, 1.0, 0.82 * life_ratio), 2.0, true)
+	draw_colored_polygon(PackedVector2Array([
+		pos - side * 3.0 + direction * 4.0,
+		pos + side * 3.0 + direction * 4.0,
+		pos + direction * 9.0
+	]), Color(1.0, 0.96, 0.99, 0.58 * life_ratio))
+	draw_string(GameFontSystemScript.black_font(), pos + Vector2(-10.0, 4.0), "…", HORIZONTAL_ALIGNMENT_CENTER, 20.0, 12, Color(1.0, 1.0, 1.0, 0.88 * life_ratio))
+	for i in range(3):
+		var fragment_angle := seed * TAU + float(i) * TAU / 3.0
+		var fragment_dir := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_start := pos + fragment_dir * 7.0
+		var fragment_end := pos + fragment_dir * (12.0 + pulse * 5.0 + float(i % 2) * 2.0)
+		var fragment_color := Color(0.04, 0.88, 1.0, 0.64 * life_ratio) if i % 2 == 0 else Color(1.0, 0.22, 0.66, 0.62 * life_ratio)
+		draw_line(fragment_start, fragment_end, fragment_color, 1.6, true)
+
+func _draw_travel_comment_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.20)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	var center := pos - direction * (2.0 + progress * 3.0)
+	# A small bubble rupture at the swept-contact point; its visible envelope is
+	# intentionally much smaller than any gameplay radius.
+	draw_circle(center, 3.0 + pulse * 4.0, Color(1.0, 0.97, 1.0, 0.34 * life_ratio), true)
+	draw_arc(center, 8.0 + pulse * 6.0, direction.angle() - 2.20, direction.angle() - 0.62, 10, Color(1.0, 0.68, 0.84, 0.78 * life_ratio), 1.8, true)
+	draw_arc(center, 10.0 + pulse * 4.0, direction.angle() + 0.68, direction.angle() + 1.74, 8, Color(0.44, 0.12, 0.58, 0.68 * life_ratio), 1.4, true)
+	for i in range(4):
+		var fragment_angle := direction.angle() + seed * TAU + (float(i) - 1.5) * 0.72
+		var fragment_dir := Vector2(cos(fragment_angle), sin(fragment_angle))
+		var fragment_center := center + fragment_dir * (7.0 + progress * (11.0 + float(i % 2) * 4.0))
+		var fragment_color := Color(0.04, 0.88, 1.0, 0.76 * life_ratio) if i % 2 == 0 else Color(1.0, 0.24, 0.66, 0.78 * life_ratio)
+		draw_line(fragment_center - fragment_dir * 3.2, fragment_center + fragment_dir * 3.2, fragment_color, 1.8, true)
+	var ellipsis_center := center + side * 4.5 - direction * 1.0
+	for i in range(3):
+		draw_circle(ellipsis_center + direction * float(i) * 4.0, 1.3, Color(1.0, 0.96, 0.99, 0.84 * life_ratio))
+	# A short tail/glitch offset closes the visual without adding knockback or a
+	# secondary area effect.
+	draw_line(center - side * 4.0 - direction * 2.0, center + side * 4.0 + direction * 3.0, Color(1.0, 1.0, 1.0, 0.54 * life_ratio), 1.3, true)
+	draw_line(center - direction * 6.0 + side * 5.0, center - direction * 1.0 + side * 5.0, Color(0.04, 0.88, 1.0, 0.62 * life_ratio), 1.3, true)
+
+func _draw_travel_noise_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var directions: Array = data.get("directions", []) as Array
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.16)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := fposmod(float(data.get("visualSeed", 0.0)), 1.0)
+	var bracket_angle := seed * TAU
+	var bracket_dir := Vector2(cos(bracket_angle), sin(bracket_angle))
+	var bracket_side := Vector2(-bracket_dir.y, bracket_dir.x)
+	# A compact static pop confirms the firing frame without becoming a radial
+	# explosion or a warning projected into the future.
+	draw_circle(pos, 3.0 + pulse * 3.0, Color(1.0, 0.99, 1.0, 0.72 * life_ratio), true)
+	draw_line(pos - bracket_dir * (5.0 + pulse * 2.0), pos - bracket_dir * 1.5, Color(1.0, 1.0, 1.0, 0.88 * life_ratio), 1.6, true)
+	draw_line(pos + bracket_side * 5.0, pos + bracket_side * 1.2, Color(0.04, 0.86, 1.0, 0.76 * life_ratio), 1.5, true)
+	draw_line(pos - bracket_side * 5.0, pos - bracket_side * 1.2, Color(1.0, 0.20, 0.64, 0.74 * life_ratio), 1.5, true)
+	draw_arc(pos, 8.0 + pulse * 2.0, bracket_angle - 1.02, bracket_angle - 0.32, 5, Color(0.04, 0.86, 1.0, 0.70 * life_ratio), 1.3, true)
+	draw_arc(pos, 8.0 + pulse * 2.0, bracket_angle + 0.40, bracket_angle + 1.10, 5, Color(1.0, 0.20, 0.64, 0.68 * life_ratio), 1.3, true)
+	for index in range(mini(2, directions.size())):
+		var direction := Vector2(directions[index])
+		if direction.length_squared() <= 0.01:
+			continue
+		direction = direction.normalized()
+		var side := Vector2(-direction.y, direction.x)
+		var start := pos + direction * 5.0
+		var finish := pos + direction * (13.0 + pulse * 5.0)
+		var cyan_offset := side * (1.2 + float(index) * 0.4)
+		var magenta_offset := -side * (1.1 + float(index) * 0.3)
+		draw_line(start + cyan_offset, finish - direction * 2.0 + cyan_offset, Color(0.04, 0.86, 1.0, 0.78 * life_ratio), 1.2, true)
+		draw_line(start + magenta_offset, start.lerp(finish, 0.62) + magenta_offset, Color(1.0, 0.20, 0.64, 0.72 * life_ratio), 1.05, true)
+		draw_line(start - side * 1.0, start + direction * 5.0 - side * 1.0, Color(0.84, 0.87, 0.90, 0.66 * life_ratio), 0.8, true)
+		var chip_center := finish + side * (2.0 if index == 0 else -2.0)
+		draw_rect(Rect2(chip_center - Vector2(1.5, 1.0), Vector2(3.0, 2.0)), Color(0.10, 0.015, 0.16, 0.78 * life_ratio), true)
+
+func _draw_travel_noise_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.18)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := fposmod(float(data.get("visualSeed", 0.0)), 1.0)
+	var center := pos - direction * (1.0 + progress * 2.0)
+	# Confirmed HP contact is a small signal fracture.  Shield blocks never enter
+	# this effect path because the shield consumes the bullet before collision.
+	draw_circle(center, 2.5 + pulse * 2.4, Color(1.0, 0.99, 1.0, 0.62 * life_ratio), true)
+	draw_line(center - direction * 6.0 - side * 5.0, center + direction * 5.0 + side * 4.0, Color(1.0, 1.0, 0.98, 0.82 * life_ratio), 1.5, true)
+	draw_line(center - direction * 4.5 + side * 5.0, center + direction * 5.0 - side * 4.0, Color(0.04, 0.86, 1.0, 0.78 * life_ratio), 1.25, true)
+	draw_arc(center, 7.0 + pulse * 3.0, direction.angle() - 2.14, direction.angle() - 0.78, 7, Color(1.0, 0.20, 0.64, 0.74 * life_ratio), 1.35, true)
+	# A dark plum chip and three deterministic static fragments complete the hit
+	# without any flame or secondary damage volume.
+	draw_colored_polygon(PackedVector2Array([
+		center + direction * 2.0 + side * 3.0,
+		center + direction * 6.0 + side * 2.0,
+		center + direction * 4.0 + side * 6.0,
+		center + direction * 0.5 + side * 5.0
+	]), Color(0.10, 0.015, 0.16, 0.88 * life_ratio))
+	for index in range(3):
+		var angle := direction.angle() + seed * TAU + (float(index) - 1.0) * 0.82
+		var fragment_dir := Vector2(cos(angle), sin(angle))
+		var fragment_center := center + fragment_dir * (6.0 + progress * (6.0 + float(index) * 2.5))
+		var fragment_end := fragment_center + fragment_dir * (3.0 + pulse * 1.8)
+		var fragment_color := Color(0.04, 0.86, 1.0, 0.72 * life_ratio) if index == 0 else (Color(1.0, 0.20, 0.64, 0.72 * life_ratio) if index == 1 else Color(0.10, 0.015, 0.16, 0.78 * life_ratio))
+		draw_line(fragment_center, fragment_end, fragment_color, 1.35, true)
+		if index < 2:
+			draw_rect(Rect2(fragment_end - Vector2(1.3, 0.9), Vector2(2.6, 1.8)), fragment_color, true)
+
+func _draw_game_over_barrage_launch_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var directions: Array = data.get("directions", []) as Array
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.15)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(progress * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	# A compact broken UI muzzle cue, shared by the wave rather than six large
+	# explosions.  The six short spokes reuse the already resolved velocities.
+	draw_circle(pos, 4.0 + pulse * 4.0, Color(1.0, 0.96, 0.98, 0.32 * life_ratio), true)
+	draw_line(pos + Vector2(-8.0, -6.0), pos + Vector2(-2.0, -6.0), Color(0.12, 0.01, 0.14, 0.84 * life_ratio), 2.0, true)
+	draw_line(pos + Vector2(-8.0, -6.0), pos + Vector2(-8.0, 0.0), Color(0.90, 0.08, 0.28, 0.82 * life_ratio), 1.8, true)
+	draw_line(pos + Vector2(8.0, 6.0), pos + Vector2(2.0, 6.0), Color(0.90, 0.08, 0.28, 0.72 * life_ratio), 1.8, true)
+	draw_line(pos + Vector2(8.0, 6.0), pos + Vector2(8.0, 1.0), Color(0.12, 0.01, 0.14, 0.84 * life_ratio), 2.0, true)
+	for i in range(directions.size()):
+		var direction := Vector2(directions[i])
+		if direction.length_squared() <= 0.01:
+			continue
+		direction = direction.normalized()
+		var side := Vector2(-direction.y, direction.x)
+		var start := pos + direction * 5.0
+		var finish := pos + direction * (11.0 + pulse * 8.0)
+		var spoke_color := Color(1.0, 0.94, 0.98, 0.66 * life_ratio) if i % 2 == 0 else Color(0.88, 0.07, 0.30, 0.68 * life_ratio)
+		draw_line(start, finish, spoke_color, 1.35, true)
+		var chip_center := finish + side * (2.0 if i % 2 == 0 else -2.0)
+		draw_rect(Rect2(chip_center - Vector2(1.5, 1.0), Vector2(3.0, 2.0)), Color(0.07, 0.01, 0.10, 0.70 * life_ratio), true)
+		if i == 0:
+			draw_line(pos - side * 5.0, pos + side * 5.0, Color(1.0, 1.0, 1.0, (0.30 + pulse * 0.26) * life_ratio), 1.2, true)
+	# Fixed seed changes only the small fracture orientation.
+	var fracture_dir := Vector2(cos(seed * TAU), sin(seed * TAU))
+	draw_line(pos - fracture_dir * 5.0, pos + fracture_dir * 5.0, Color(0.13, 0.01, 0.15, 0.74 * life_ratio), 1.2, true)
+
+func _draw_game_over_barrage_hit_fx(data: Dictionary) -> void:
+	var pos := Vector2(data.get("pos", Vector2.ZERO))
+	var direction := Vector2(data.get("dir", Vector2.RIGHT))
+	if direction.length_squared() <= 0.01:
+		direction = Vector2.RIGHT
+	direction = direction.normalized()
+	var side := Vector2(-direction.y, direction.x)
+	var max_life := maxf(0.01, float(data.get("maxLife", 0.19)))
+	var life_ratio := clampf(float(data.get("life", max_life)) / max_life, 0.0, 1.0)
+	var progress := 1.0 - life_ratio
+	var pulse := sin(minf(1.0, progress * 1.8) * PI)
+	var seed := float(data.get("visualSeed", 0.0))
+	# This is a short failure-chip rupture, not a death cutscene or a large
+	# damage circle.
+	draw_circle(pos, 3.0 + pulse * 5.0, Color(1.0, 0.96, 0.98, 0.38 * life_ratio), true)
+	draw_line(pos - direction * 6.0 - side * 6.0, pos + direction * 6.0 + side * 6.0, Color(0.94, 0.08, 0.30, 0.90 * life_ratio), 1.9, true)
+	draw_line(pos - direction * 6.0 + side * 6.0, pos + direction * 6.0 - side * 6.0, Color(0.16, 0.01, 0.15, 0.88 * life_ratio), 1.9, true)
+	draw_line(pos - side * 8.0 + direction * (progress * 8.0), pos + side * 8.0 + direction * (progress * 8.0), Color(1.0, 1.0, 1.0, (0.34 + pulse * 0.30) * life_ratio), 1.2, true)
+	for i in range(4):
+		var angle := seed * TAU + direction.angle() + (float(i) - 1.5) * 0.82
+		var fragment_dir := Vector2(cos(angle), sin(angle))
+		var fragment_start := pos + fragment_dir * 5.0
+		var fragment_end := pos + fragment_dir * (10.0 + progress * (13.0 + float(i % 2) * 4.0))
+		var fragment_color := Color(0.12, 0.01, 0.14, 0.82 * life_ratio) if i % 2 == 0 else Color(0.94, 0.08, 0.30, 0.78 * life_ratio)
+		draw_line(fragment_start, fragment_end, fragment_color, 1.7, true)
+		if i < 3:
+			var block_center := fragment_end + side * (1.5 if i % 2 == 0 else -1.5)
+			draw_rect(Rect2(block_center - Vector2(1.5, 1.1), Vector2(3.0, 2.2)), fragment_color, true)
+	draw_line(pos - direction * (10.0 + progress * 6.0) - side * 3.0, pos - direction * (1.0 + progress * 6.0) - side * 3.0, Color(0.24, 0.02, 0.22, 0.72 * life_ratio), 1.35, true)
 
 func _draw_offline_laser_launch_fx(data: Dictionary) -> void:
 	var pos := Vector2(data.get("pos", Vector2.ZERO))
@@ -25037,6 +25538,16 @@ func _is_collab_frame() -> bool:
 func _reset_collab_stage_state() -> void:
 	RelayBossAttackSystemScript.clear_kuso_maro_drop_visuals_for_target(self, "direct_stage_reset")
 	RelayBossAttackSystemScript.clear_noise_summon_visuals_for_target(self, true, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_long_comment_line_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_fake_gift_traps_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_pitch_wave_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_rhythm_explosion_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_dirty_paint_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_eraser_sweep_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_paint_warning_visuals_for_target(self, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_division_noise_visuals_for_target(self, true, "direct_stage_reset")
+	RelayBossAttackSystemScript.clear_collab_break_visuals_for_target(self, true, "direct_stage_reset")
 	_clear_collab_crusher_comparison_spam_visuals()
 	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
 	_clear_collab_crusher_vs_line_visuals()
@@ -25071,6 +25582,8 @@ func _reset_collab_stage_state() -> void:
 	collab_comment_divide_cast_uid = 1
 	collab_comparison_spam_cast_uid = 1
 	collab_crusher_division_spawn_serial = 1
+	collab_partner_mute_sources.clear()
+	collab_pass_suppression_sources.clear()
 	collab_boss_partner_muted = false
 	collab_boss_mute_timer = 0.0
 	collab_boss_mute_core_uid = -1
@@ -25110,12 +25623,19 @@ func _on_collab_crusher_boss_started(boss: Dictionary, arena: Rect2) -> void:
 	_clear_relay_offline_laser_visuals()
 	_clear_collab_crusher_comparison_spam_visuals()
 	_clear_collab_crusher_partner_mute_state(true, "forced_cleanup", false)
+	RelayBossAttackSystemScript.clear_collab_break_visuals_for_target(self, true, "boss_start")
+	RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "boss_start")
+	RelayBossAttackSystemScript.clear_pitch_wave_visuals_for_target(self, "boss_start")
+	RelayBossAttackSystemScript.clear_rhythm_explosion_visuals_for_target(self, "boss_start")
+	RelayBossAttackSystemScript.clear_dirty_paint_visuals_for_target(self, "boss_start")
 	if collab_pass_target_uid >= 0:
 		_clear_collab_pass(false)
 	collab_pass_spawn_timer = minf(collab_pass_spawn_timer, 1.0)
 	_clear_collab_crusher_vs_line_visuals()
 	_clear_collab_crusher_comment_divide_visuals()
 	collab_boss_attacks.clear()
+	collab_partner_mute_sources.clear()
+	collab_pass_suppression_sources.clear()
 	collab_boss_partner_muted = false
 	collab_boss_mute_timer = 0.0
 	collab_boss_mute_core_uid = -1
@@ -25138,8 +25658,13 @@ func _clear_collab_crusher_boss_state(remove_spawned_enemies: bool = false) -> v
 	_clear_relay_offline_laser_visuals()
 	_clear_collab_crusher_comparison_spam_visuals()
 	_clear_collab_crusher_partner_mute_state(remove_spawned_enemies, "forced_cleanup", false)
+	RelayBossAttackSystemScript.clear_collab_break_visuals_for_target(self, remove_spawned_enemies, "boss_state_clear")
 	_clear_collab_crusher_vs_line_visuals()
 	_clear_collab_crusher_comment_divide_visuals()
+	RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "boss_state_clear")
+	RelayBossAttackSystemScript.clear_pitch_wave_visuals_for_target(self, "boss_state_clear")
+	RelayBossAttackSystemScript.clear_rhythm_explosion_visuals_for_target(self, "boss_state_clear")
+	RelayBossAttackSystemScript.clear_dirty_paint_visuals_for_target(self, "boss_state_clear")
 	_clear_collab_crusher_division_noise_visuals(false)
 	collab_boss_attacks.clear()
 	collab_boss_star_supply_timer = 0.0
@@ -25406,7 +25931,7 @@ func _choose_collab_crusher_attack(boss: Dictionary) -> String:
 	for item_value in candidates:
 		var item: Dictionary = item_value as Dictionary
 		var attack_id := String(item.get("id", ""))
-		if attack_id == "partner_mute" and collab_boss_partner_muted:
+		if attack_id == "partner_mute" and _has_collab_partner_mute_source("partner_mute"):
 			continue
 		if attack_id == "partner_mute" and _has_collab_partner_mute_pending():
 			continue
@@ -25503,7 +26028,7 @@ func _start_collab_crusher_comment_divide(boss: Dictionary, arena: Rect2) -> voi
 	boss["speechText"] = "コメ欄分断"
 
 func _start_collab_crusher_partner_mute(boss: Dictionary, arena: Rect2) -> void:
-	if collab_boss_partner_muted or _has_collab_partner_mute_pending():
+	if _has_collab_partner_mute_source("partner_mute") or _has_collab_partner_mute_pending():
 		return
 	var boss_pos := Vector2(boss.get("pos", arena.get_center()))
 	var away := (collab_partner_pos - boss_pos).normalized()
@@ -25578,7 +26103,7 @@ func _commit_collab_partner_mute_warning(attack: Dictionary) -> bool:
 	core["collabMutePopInTimer"] = COLLAB_CRUSHER_MUTE_POP_IN_DURATION
 	core["collabMutePopInDuration"] = COLLAB_CRUSHER_MUTE_POP_IN_DURATION
 	core["hitFlashDuration"] = maxf(float(core.get("hitFlashDuration", 0.10)), COLLAB_CRUSHER_MUTE_HIT_FX_DURATION)
-	collab_boss_partner_muted = true
+	_set_collab_partner_mute_source("partner_mute", true)
 	collab_boss_mute_timer = COLLAB_CRUSHER_MUTE_DURATION
 	collab_boss_mute_core_uid = core_uid
 	collab_boss_mute_core_last_hp = float(core.get("hp", 0.0))
@@ -25595,7 +26120,7 @@ func _commit_collab_partner_mute_warning(attack: Dictionary) -> bool:
 	return true
 
 func _update_collab_boss_mute(delta: float) -> void:
-	if not collab_boss_partner_muted:
+	if not _has_collab_partner_mute_source("partner_mute"):
 		return
 	collab_boss_mute_timer = maxf(0.0, collab_boss_mute_timer - delta)
 	if collab_boss_mute_timer <= 0.0:
@@ -25625,8 +26150,8 @@ func _clear_collab_crusher_partner_mute_state(remove_core: bool = true, reason: 
 				continue
 			kept.append(enemy)
 		enemies = kept
-	var was_muted := collab_boss_partner_muted
-	collab_boss_partner_muted = false
+	var was_partner_mute_source := _has_collab_partner_mute_source("partner_mute")
+	_clear_collab_partner_mute_source("partner_mute")
 	collab_boss_mute_timer = 0.0
 	collab_boss_mute_core_uid = -1
 	collab_boss_mute_core_last_hp = -1.0
@@ -25644,7 +26169,7 @@ func _clear_collab_crusher_partner_mute_state(remove_core: bool = true, reason: 
 			continue
 		kept_hit_fx.append(hit)
 	hit_fx = kept_hit_fx
-	if not was_muted or not emit_fx:
+	if not was_partner_mute_source or not emit_fx:
 		return
 	if reason == "destroy":
 		collab_effects.append({"kind": "partner_mute_destroy_fx", "bossAttackId": "partner_mute", "pos": release_pos, "life": COLLAB_CRUSHER_MUTE_DESTROY_FX_DURATION, "maxLife": COLLAB_CRUSHER_MUTE_DESTROY_FX_DURATION, "visualSeed": _collab_partner_mute_visual_seed(release_pos, 1)})
@@ -25658,8 +26183,23 @@ func _clear_collab_crusher_partner_mute_state(remove_core: bool = true, reason: 
 func _on_enemy_defeated_for_collab_boss(enemy: Dictionary) -> void:
 	if not _is_collab_frame():
 		return
+	if bool(enemy.get("collabBreakCore", false)) or String(enemy.get("kind", "")) == COLLAB_BREAK_CORE_KIND:
+		if bool(enemy.get("collabBreakCoreDefeatNotified", false)):
+			return
+		enemy["collabBreakCoreDefeatNotified"] = true
+		enemy["defeatPending"] = false
+		enemy["defeatResolved"] = true
+		enemy["defeatDelay"] = 0.0
+		RelayBossAttackSystemScript.finish_collab_break_for_target(self, "destroy")
+		return
 	if int(enemy.get("uid", -1)) == collab_boss_mute_core_uid:
 		_end_collab_boss_partner_mute(false, "destroy")
+
+func _on_relay_boss_collab_break_core_expired(enemy: Dictionary) -> void:
+	if bool(enemy.get("collabBreakCoreExpiryNotified", false)):
+		return
+	enemy["collabBreakCoreExpiryNotified"] = true
+	RelayBossAttackSystemScript.finish_collab_break_for_target(self, "timeout")
 
 func _spawn_collab_crusher_comparison_spam(boss: Dictionary, arena: Rect2, count: int, is_final_phase: bool = false) -> void:
 	var boss_pos := Vector2(boss.get("pos", arena.get_center()))
@@ -27653,6 +28193,36 @@ func _collab_point_segment_distance_sq(point: Vector2, start: Vector2, end: Vect
 	var t := clampf((point - start).dot(segment) / length_sq, 0.0, 1.0)
 	return point.distance_squared_to(start + segment * t)
 
+func _set_collab_partner_mute_source(source_id: String, enabled: bool) -> void:
+	if enabled:
+		collab_partner_mute_sources[source_id] = true
+	else:
+		collab_partner_mute_sources.erase(source_id)
+	collab_boss_partner_muted = not collab_partner_mute_sources.is_empty()
+
+func _clear_collab_partner_mute_source(source_id: String) -> void:
+	collab_partner_mute_sources.erase(source_id)
+	collab_boss_partner_muted = not collab_partner_mute_sources.is_empty()
+
+func _clear_all_collab_partner_mute_sources() -> void:
+	collab_partner_mute_sources.clear()
+	collab_boss_partner_muted = false
+
+func _has_collab_partner_mute_source(source_id: String) -> bool:
+	return bool(collab_partner_mute_sources.get(source_id, false))
+
+func _set_collab_pass_source(source_id: String, enabled: bool) -> void:
+	if enabled:
+		collab_pass_suppression_sources[source_id] = true
+	else:
+		collab_pass_suppression_sources.erase(source_id)
+
+func _clear_collab_pass_source(source_id: String) -> void:
+	collab_pass_suppression_sources.erase(source_id)
+
+func _clear_all_collab_pass_sources() -> void:
+	collab_pass_suppression_sources.clear()
+
 func _collab_partner_is_blocked() -> bool:
 	if collab_challenge_type == "dash_sync" and collab_challenge_status in ["starting", "active"]:
 		return true
@@ -27948,26 +28518,224 @@ func _relay_boss_spawn_no_reward_summon(pos: Vector2, lifetime: float, kind: Str
 	next_enemy_uid += 1
 	return uid
 
-func _relay_boss_spawn_division_noise(count: int, arena: Rect2, rng: RandomNumberGenerator) -> void:
-	for i in range(maxi(0, count)):
-		var pos := arena.get_center() + Vector2(rng.randf_range(-180.0, 180.0), rng.randf_range(-120.0, 120.0))
-		_relay_boss_spawn_no_reward_summon(pos, 8.0, "noise_ghost_comment", "travel_support")
+func _relay_boss_division_noise_child_count() -> int:
+	var count := 0
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		if String(enemy.get("kind", "")) != "noise_ghost_comment" or not bool(enemy.get("divisionNoiseChild", false)):
+			continue
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		if float(enemy.get("divisionNoiseLifetime", enemy.get("lifeTimer", 0.0))) <= 0.0:
+			continue
+		count += 1
+	return count
 
-func _relay_boss_spawn_collab_break_core(pos: Vector2, _arena: Rect2, _rng: RandomNumberGenerator) -> int:
-	return _relay_boss_spawn_no_reward_summon(pos, 10.0, "noise_ghost_comment", "collab_break_sidecar")
+func _relay_boss_division_noise_boss_position(arena: Rect2) -> Vector2:
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		if bool(enemy.get("relayBoss", false)) or String(enemy.get("bossId", "")) == "last_offline" or String(enemy.get("kind", "")) == "last_offline":
+			return Vector2(enemy.get("pos", arena.get_center()))
+	return arena.get_center()
+
+func _relay_boss_division_noise_candidate_is_safe(candidate: Vector2, arena: Rect2, placed: Array, walls: Array, boss_pos: Vector2) -> bool:
+	var child_radius := 22.0
+	var safe_arena := arena.grow(-46.0)
+	if not safe_arena.has_point(candidate):
+		return false
+	if candidate.distance_to(Vector2(player_pos)) < 120.0:
+		return false
+	if candidate.distance_to(collab_partner_pos) < 100.0:
+		return false
+	if candidate.distance_to(boss_pos) < 110.0:
+		return false
+	if EnemySystemScript.spawn_position_blocked_by_walls(candidate, child_radius, walls):
+		return false
+	for item in enemies:
+		var enemy: Dictionary = item as Dictionary
+		if String(enemy.get("kind", "")) != "noise_ghost_comment" or not bool(enemy.get("divisionNoiseChild", false)):
+			continue
+		if bool(enemy.get("defeatPending", false)) or bool(enemy.get("defeatResolved", false)):
+			continue
+		if candidate.distance_to(Vector2(enemy.get("pos", Vector2.ZERO))) < 96.0:
+			return false
+	for item in placed:
+		if candidate.distance_to(Vector2(item)) < 96.0:
+			return false
+	for item in destructibles:
+		var destructible: Dictionary = item as Dictionary
+		if float(destructible.get("hp", 1.0)) <= 0.0:
+			continue
+		var destructible_radius := maxf(34.0, float(destructible.get("radius", 34.0)))
+		if candidate.distance_to(Vector2(destructible.get("pos", Vector2.ZERO))) < child_radius + destructible_radius + 24.0:
+			return false
+	return true
+
+func _relay_boss_division_noise_safe_position(raw_pos: Vector2, arena: Rect2, placed: Array, walls: Array, boss_pos: Vector2) -> Vector2:
+	var safe_arena := arena.grow(-46.0)
+	var raw_clamped := Vector2(
+		clampf(raw_pos.x, safe_arena.position.x, safe_arena.end.x),
+		clampf(raw_pos.y, safe_arena.position.y, safe_arena.end.y)
+	)
+	if _relay_boss_division_noise_candidate_is_safe(raw_clamped, arena, placed, walls, boss_pos):
+		return raw_clamped
+	var candidates: Array[Vector2] = []
+	var fixed_offsets := [
+		Vector2(-64.0, 0.0), Vector2(64.0, 0.0), Vector2(0.0, -64.0), Vector2(0.0, 64.0),
+		Vector2(-64.0, -64.0), Vector2(64.0, -64.0), Vector2(-64.0, 64.0), Vector2(64.0, 64.0),
+		Vector2(-128.0, 0.0), Vector2(128.0, 0.0), Vector2(0.0, -128.0), Vector2(0.0, 128.0),
+		Vector2(-128.0, -128.0), Vector2(128.0, -128.0), Vector2(-128.0, 128.0), Vector2(128.0, 128.0)
+	]
+	for offset in fixed_offsets:
+		candidates.append(Vector2(raw_clamped + offset))
+	var grid_step := 64.0
+	var grid_y := safe_arena.position.y
+	while grid_y <= safe_arena.end.y:
+		var grid_x := safe_arena.position.x
+		while grid_x <= safe_arena.end.x:
+			candidates.append(Vector2(grid_x, grid_y))
+			grid_x += grid_step
+		grid_y += grid_step
+	var best := Vector2(INF, INF)
+	var best_score := INF
+	for index in range(candidates.size()):
+		var candidate: Vector2 = candidates[index]
+		candidate = Vector2(
+			clampf(candidate.x, safe_arena.position.x, safe_arena.end.x),
+			clampf(candidate.y, safe_arena.position.y, safe_arena.end.y)
+		)
+		if not _relay_boss_division_noise_candidate_is_safe(candidate, arena, placed, walls, boss_pos):
+			continue
+		var score := candidate.distance_squared_to(raw_clamped) + float(index) * 0.0001
+		if score < best_score:
+			best = candidate
+			best_score = score
+	return best
+
+func _relay_boss_division_noise_visual_seed(cast_serial: int, child_index: int, child_uid: int, pos: Vector2) -> float:
+	var raw := sin(float(cast_serial) * 17.173 + float(child_index) * 31.719 + float(child_uid) * 47.913 + pos.x * 0.0137 + pos.y * 0.0193) * 43758.5453
+	return fposmod(raw, 1.0)
+
+func _relay_boss_spawn_division_noise(count: int, arena: Rect2, rng: RandomNumberGenerator, cast_serial: int = 0) -> void:
+	var placed: Array = []
+	var walls: Array = EnemySystemScript.spawn_walls_for_target(self)
+	var boss_pos := _relay_boss_division_noise_boss_position(arena)
+	for i in range(maxi(0, count)):
+		# Keep the original shared-RNG order and ranges: x then y for every slot,
+		# even when cap or deterministic safety later suppresses the append.
+		var raw_pos := arena.get_center() + Vector2(rng.randf_range(-180.0, 180.0), rng.randf_range(-120.0, 120.0))
+		if _relay_boss_division_noise_child_count() >= 4:
+			continue
+		var pos := _relay_boss_division_noise_safe_position(raw_pos, arena, placed, walls, boss_pos)
+		if pos.x == INF or pos.y == INF:
+			continue
+		var uid := _relay_boss_spawn_no_reward_summon(pos, 8.0, "noise_ghost_comment", "travel_support")
+		if uid < 0:
+			continue
+		var actual_child: Dictionary = {}
+		for item in enemies:
+			var enemy: Dictionary = item as Dictionary
+			if int(enemy.get("uid", -1)) == uid:
+				actual_child = enemy
+				break
+		if actual_child.is_empty() or String(actual_child.get("kind", "")) != "noise_ghost_comment":
+			continue
+		var actual_pos := Vector2(actual_child.get("pos", pos))
+		actual_child["divisionNoiseChild"] = true
+		actual_child["divisionNoiseSpawnSource"] = "main_attack"
+		actual_child["divisionNoiseOwnerAttackId"] = "division_noise"
+		actual_child["divisionNoiseCastSerial"] = cast_serial
+		actual_child["divisionNoiseChildIndex"] = i
+		actual_child["divisionNoiseVisualSeed"] = _relay_boss_division_noise_visual_seed(cast_serial, i, uid, actual_pos)
+		actual_child["divisionNoiseSpawnOrigin"] = actual_pos
+		actual_child["divisionNoiseLifetime"] = 8.0
+		actual_child["divisionNoisePopInTimer"] = 0.20
+		actual_child["divisionNoisePopInDuration"] = 0.20
+		actual_child["divisionNoiseContactFxTimer"] = 0.0
+		actual_child["divisionNoiseExpiryFxEmitted"] = false
+		actual_child["spawnGraceTimer"] = 0.45
+		placed.append(actual_pos)
+		var enemy_index := enemies.find(actual_child)
+		if enemy_index >= 0:
+			enemies[enemy_index] = actual_child
+		RelayBossAttackSystemScript.append_division_noise_child_visual_effect_for_target(self, actual_child, "relay_division_noise_child_spawn", 0.20)
+
+func _on_relay_boss_division_noise_child_contact(enemy: Dictionary) -> void:
+	RelayBossAttackSystemScript.append_division_noise_child_visual_effect_for_target(self, enemy, "relay_division_noise_child_contact", 0.16)
+
+func _on_relay_boss_division_noise_child_defeated(enemy: Dictionary) -> void:
+	RelayBossAttackSystemScript.append_division_noise_child_visual_effect_for_target(self, enemy, "relay_division_noise_child_defeat", 0.18)
+
+func _on_relay_boss_division_noise_child_expired(enemy: Dictionary) -> void:
+	if bool(enemy.get("divisionNoiseExpiryFxEmitted", false)):
+		return
+	enemy["divisionNoiseExpiryFxEmitted"] = true
+	RelayBossAttackSystemScript.append_division_noise_child_visual_effect_for_target(self, enemy, "relay_division_noise_child_expiry", 0.18)
+
+func _relay_boss_spawn_collab_break_core(pos: Vector2, _arena: Rect2, _rng: RandomNumberGenerator, core_hp: int = 72, cast_serial: int = 0) -> int:
+	if not relay_boss_active:
+		return -1
+	var uid := next_enemy_uid
+	var core := EnemySystemScript.build_enemy(COLLAB_MUTE_CORE_KIND, pos, uid, 999.0)
+	var visual_seed := fposmod(sin(float(cast_serial) * 17.173 + pos.x * 0.0137 + pos.y * 0.0193) * 43758.5453, 1.0)
+	core["kind"] = COLLAB_BREAK_CORE_KIND
+	core["displayName"] = "コラボブレイクコア"
+	core["behavior"] = "collab_mute_core"
+	core["speed"] = 0.0
+	core["radius"] = 27.0
+	core["hurtboxRadius"] = 27.0
+	core["hp"] = float(maxi(1, core_hp))
+	core["max_hp"] = float(maxi(1, core_hp))
+	core["contactDamage"] = 0
+	core["score"] = 0
+	core["exp"] = 0
+	core["expValue"] = 0
+	core["baseExp"] = 0
+	core["relayBossSummon"] = true
+	core["relayBossNoiseSummon"] = false
+	core["relayBossSummonSource"] = "collab_break"
+	core["spawnSource"] = "boss_summon"
+	core["source"] = "relay_collab_break_core"
+	core["sourceKind"] = "collab_break"
+	core["attackId"] = "collab_break"
+	core["bossAttackId"] = "collab_break"
+	core["ownerAttackId"] = "collab_break"
+	core["collabBreakCore"] = true
+	core["collabBreakCoreCastSerial"] = cast_serial
+	core["collabBreakCoreVisualSeed"] = visual_seed
+	core["collabBreakCorePopInTimer"] = 0.20
+	core["collabBreakCorePopInDuration"] = 0.20
+	core["collabBreakCoreLifetime"] = 10.0
+	core["relayBossSummonLifetime"] = 10.0
+	core["lifeTimer"] = 10.0
+	core["lifeTime"] = 10.0
+	core["spawnGraceTimer"] = 0.0
+	core["noRewards"] = true
+	core["occupancyManaged"] = false
+	core["canBePulled"] = false
+	core["canBeKnockedBack"] = false
+	core["knockbackResistance"] = 1.0
+	core["pullResistance"] = 1.0
+	core["fixedPosition"] = true
+	core["canBecomeCollabPassTarget"] = false
+	core["canBecomeLinkedTrollEnemy"] = false
+	core["defeatCoreNotified"] = false
+	core["defeatExpiredNotified"] = false
+	# This is a runtime-only break mechanic, not a data/Codex enemy entry.
+	core["_codex_spawn_processed"] = true
+	core["_codex_defeat_recorded"] = true
+	enemies.append(core)
+	next_enemy_uid += 1
+	return uid
 
 func _relay_boss_all_genre_rush_start(_arena: Rect2, _rng: RandomNumberGenerator) -> void:
-	if relay_boss_runtime.is_empty():
-		relay_boss_runtime = RelayBossAttackSystemScript.ensure_for_target(self)
-	relay_boss_runtime["gameplay_variant"] = "all_genre_rush"
+	# Kept as a compatibility hook for older callers. The authoritative
+	# composite scheduler now lives in RelayBossAttackSystem.
+	pass
 
-func _relay_boss_all_genre_rush_step(step: int, arena: Rect2, _rng: RandomNumberGenerator) -> void:
-	var runtime := RelayBossAttackSystemScript.ensure_for_target(self)
-	if step % 2 == 0:
-		var hazard := {"id": "genre_rush_%d" % step, "shape": "ring", "pos": arena.get_center(), "radius": 110.0 + float(step) * 12.0, "width": 20.0, "time": 0.8, "maxTime": 0.8, "damage": 10, "hitTimer": 0.0, "source": "relay_boss_all_genre_rush"}
-		var hazards: Array = runtime.get("hazards", []) as Array
-		hazards.append(hazard)
-		runtime["hazards"] = hazards
+func _relay_boss_all_genre_rush_step(_step: int, _arena: Rect2, _rng: RandomNumberGenerator) -> void:
+	# Compatibility hook; do not spawn legacy ring hazards here.
+	pass
 
 func _relay_boss_collab_break_active() -> bool:
 	var active := RelayBossAttackSystemScript.active_attack_for_target(self)
@@ -28151,6 +28919,7 @@ func _execute_collab_pair_skill() -> void:
 		enemy_bullets.clear()
 		_clear_collab_crusher_vs_line_visuals()
 		_clear_collab_crusher_comment_divide_visuals()
+		RelayBossAttackSystemScript.clear_howling_ring_visuals_for_target(self, "combo")
 		collab_boss_attacks.clear()
 		collab_effects.clear()
 		collab_hazard_fields.clear()
