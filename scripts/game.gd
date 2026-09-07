@@ -3,6 +3,7 @@ extends Node2D
 const CommentSystemScript := preload("res://scripts/systems/comment_system.gd")
 const GiftSystemScript := preload("res://scripts/systems/gift_system.gd")
 const WeaponSystemScript := preload("res://scripts/systems/weapon_system.gd")
+const WeaponActivationSePoolScript := preload("res://scripts/systems/weapon_activation_se_pool.gd")
 const EnemySystemScript := preload("res://scripts/systems/enemy_system.gd")
 const BossSystemScript := preload("res://scripts/systems/boss_system.gd")
 const BossCutinSystemScript := preload("res://scripts/systems/boss_cutin_system.gd")
@@ -16,6 +17,7 @@ const CollabChallengeSystemScript := preload("res://scripts/systems/collab_chall
 const DisplayTextSystemScript := preload("res://scripts/systems/display_text_system.gd")
 const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
 const CharacterSystemScript := preload("res://scripts/systems/character_system.gd")
+const CollabPartnerUiSystemScript := preload("res://scripts/systems/collab_partner_ui_system.gd")
 const CollabComboSystemScript := preload("res://scripts/systems/collab_combo_system.gd")
 const ResultSystemScript := preload("res://scripts/systems/result_system.gd")
 const StreamEvaluationSystemScript := preload("res://scripts/systems/stream_evaluation_system.gd")
@@ -61,11 +63,15 @@ const RelayBossDefenseSystemScript := preload("res://scripts/systems/relay_boss_
 const PauseReasonSystemScript := preload("res://scripts/systems/pause_reason_system.gd")
 const PowerUpEffectProviderScript := preload("res://scripts/systems/power_up_effect_provider.gd")
 const PowerUpShopManagerScript := preload("res://scripts/systems/power_up_shop_manager.gd")
+const CustomizationProviderScript := preload("res://scripts/systems/customization_provider.gd")
+const StreamMissionSystemScript := preload("res://scripts/systems/stream_mission_system.gd")
 const EvolutionRecipeGuideSystemScript := preload("res://scripts/systems/evolution_recipe_guide_system.gd")
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
+const StreamMissionRunTrackerScript := preload("res://scripts/systems/stream_mission_run_tracker.gd")
 const PermanentUpgradeSnapshotScript := preload("res://scripts/systems/permanent_upgrade_snapshot.gd")
 const PowerUpShopScreenScene := preload("res://scripts/ui/power_up_shop_screen.tscn")
 const CodexScreenScene := preload("res://scenes/ui/codex_screen.tscn")
+const CodexMilestoneNoticeScript := preload("res://scripts/ui/codex_milestone_notice.gd")
 const TITLE_BACK_IMAGE := "res://assets/title/title_back.png"
 const TITLE_LOGO_IMAGE := "res://assets/title/title_logo_alpha.png"
 const TITLE_BANCHAN_IMAGE := "res://assets/title/title_banchan_alpha.png"
@@ -97,6 +103,8 @@ const CHARACTER_SELECT_CARD_SIZE := CharacterSystemScript.SELECT_CARD_SIZE
 const CHARACTER_SELECT_CARD_GAP := CharacterSystemScript.SELECT_CARD_GAP
 const STREAM_FRAME_SELECT_HEADER_ICON := "res://assets/generated/stream_frame_select_icons_v1/stream_frame_select.png"
 const HARD_CLIMAX_BANNER_IMAGE := "res://assets/generated/instruction_comment_icons_v1/hard_climax_banner.png"
+const HARD_CLIMAX_BANNER_TITLE := "終盤ボーナス！"
+const HARD_CLIMAX_BANNER_DESCRIPTION := "通常敵の撃破スコアがさらに20％UP"
 const INSTRUCTION_COMMENT_HEART_MARKER_IMAGE := "res://assets/generated/field_pickup_icons_v1/icons/heart_drop.png"
 const OPTIONS_HEADER_ICON := "res://assets/generated/options_icons_v1/options_header.png"
 const OPTIONS_BGM_ICON := "res://assets/generated/options_icons_v1/option_bgm.png"
@@ -120,6 +128,7 @@ const RANKING_FOCUS_ENTRIES := "entries"
 const RANKING_FOCUS_BACK := "back"
 const PRE_RUN_SELECT_FOCUS_ITEMS := "items"
 const PRE_RUN_SELECT_FOCUS_BACK := "back"
+const PRE_RUN_SELECT_FOCUS_DETAIL := "detail"
 const GIFT_CHOICE_FOCUS_CARDS := "cards"
 const GIFT_CHOICE_FOCUS_REROLL := "reroll"
 const BUZZ_PROTECTION_ICON_PATH := "res://assets/generated/ranking_icons_v1/lock.png"
@@ -170,7 +179,10 @@ const SONG_LYRICS_CARD_PICKUP_SE_PATH := "res://assets/audio/song_lyrics_card_pi
 const KUSA_WAVE_SHOT_SE_PATH := "res://assets/audio/kusa_wave_shot.mp3"
 const COMMENT_PIN_THROW_SE_PATH := "res://assets/audio/comment_pin_throw.mp3"
 const COMMENT_BOOMERANG_SWING_SE_PATH := "res://assets/audio/comment_boomerang_swing.mp3"
+# Retain finisher/ring tails in a legal five-weapon mix without stealing voices.
+const WEAPON_ACTIVATION_SE_POOL_SIZE := 10
 const LISTENER_ATTACK_SE_PATH := "res://assets/audio/listener_attack.mp3"
+const LISTENER_ASSEMBLY_SE_MIN_INTERVAL := 0.40
 const MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/marshmallow_pickup.mp3"
 const KUSO_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/kuso_marshmallow_pickup.mp3"
 const GOD_MARSHMALLOW_PICKUP_SE_PATH := "res://assets/audio/god_marshmallow_pickup.mp3"
@@ -884,6 +896,8 @@ var difficulty_progress_recorded_run_id := ""
 var relay_mode_unlocked := false
 var power_up_shop_manager
 var power_up_run_tracker
+var stream_mission_run_tracker
+var stream_mission_system
 var permanent_upgrade_snapshot = PermanentUpgradeSnapshotScript.new()
 var run_id := ""
 var pending_power_up_reward
@@ -891,6 +905,7 @@ var shop_upgrades_enabled := true
 var power_up_shop_screen
 var power_up_shop_origin := "title"
 var codex_screen
+var codex_milestone_notice
 var codex_return_state := "title"
 var current_stream_frame: Dictionary = {}
 var current_character: Dictionary = {}
@@ -907,15 +922,18 @@ var player_idle_sprite: Texture2D
 var player_run_sprite: Texture2D
 var selected_character_index := 0
 var character_select_walk_time := 0.0
+var collab_partner_select_walk_time := 0.0
 var selected_stream_frame_index := 0
 var selected_collab_partner_index := 0
 var character_select_focus_area := PRE_RUN_SELECT_FOCUS_ITEMS
 var stream_frame_select_focus_area := PRE_RUN_SELECT_FOCUS_ITEMS
+var stream_frame_select_detail_tab := 0
 var stream_frame_difficulty_scroll_active := false
 var stream_frame_difficulty_scroll_elapsed := 0.0
 var stream_frame_difficulty_scroll_direction := 0
 var stream_frame_difficulty_scroll_from_frames: Array = []
 var stream_frame_difficulty_scroll_from_index := 0
+var stream_mission_formal_start_pending := false
 var collab_partner_select_focus_area := PRE_RUN_SELECT_FOCUS_ITEMS
 var collab_partner_candidates: Array = []
 var collab_partner_id := ""
@@ -1444,6 +1462,8 @@ var displayed_viewer_score_remainder := 0.0
 var viewer_score_countup_initialized := false
 var displayed_mental_ratio := 1.0
 var mental_gauge_display_initialized := false
+var mental_heal_hud_pulse_timer := 0.0
+var pending_relay_break_heal_feedback := 0
 var displayed_song_live_heat := 0.0
 var song_live_heat_gauge_display_initialized := false
 var kills := 0
@@ -1624,8 +1644,7 @@ var song_lyrics_card_pickup_se_player: AudioStreamPlayer
 var kusa_wave_se_player: AudioStreamPlayer
 var comment_pin_se_player: AudioStreamPlayer
 var comment_boomerang_se_player: AudioStreamPlayer
-var weapon_activation_se_player: AudioStreamPlayer
-var weapon_activation_se_active_path := ""
+var weapon_activation_se_pool: Node
 var listener_attack_se_player: AudioStreamPlayer
 var marshmallow_pickup_se_player: AudioStreamPlayer
 var kuso_marshmallow_pickup_se_player: AudioStreamPlayer
@@ -1668,6 +1687,7 @@ var song_scale_note_se_player: AudioStreamPlayer
 var song_scale_note_streams: Array = []
 var enemy_damage_se_played_frame := -1
 var listener_attack_se_played_frame := -1
+var listener_assembly_se_last_started_usec := -1
 var starlight_superchat_defeat_se_played_frame := -1
 var stream_start_intro_timer := 0.0
 var stream_start_intro_duration := STREAM_START_INTRO_DURATION
@@ -1769,6 +1789,7 @@ func _ready() -> void:
 	_setup_drawing_inking_stroke_attack_se()
 	_setup_song_scale_note_se()
 	power_up_shop_manager = PowerUpShopManagerScript.new()
+	stream_mission_system = StreamMissionSystemScript.load_default()
 	current_character_id = String(power_up_shop_manager.selected_character_id())
 	data_repo = RunStateSystemScript.load_boot_data_for_target(self, character_sprite_cache)
 	if CodexManager.is_legacy_import_pending():
@@ -1788,9 +1809,14 @@ func _ready() -> void:
 	_sync_boss_bgm(0.0)
 	_sync_result_bgm()
 
+func _exit_tree() -> void:
+	_stop_all_weapon_activation_se()
+
 func _process(delta: float) -> void:
 	if state == "character_select":
 		character_select_walk_time += delta
+	elif state == "collab_partner_select":
+		collab_partner_select_walk_time += delta
 	_update_boss_cutin_bgm_release(delta)
 	_update_window_resize_lock()
 	_update_world_zoom(delta)
@@ -1801,6 +1827,7 @@ func _process(delta: float) -> void:
 	buzz_glow_timer = maxf(0.0, buzz_glow_timer - delta)
 	buzz_max_fx_timer = maxf(0.0, buzz_max_fx_timer - delta)
 	buzz_protection_badge_pulse_timer = maxf(0.0, buzz_protection_badge_pulse_timer - delta)
+	mental_heal_hud_pulse_timer = maxf(0.0, mental_heal_hud_pulse_timer - delta)
 	gift_reroll_press_timer = maxf(0.0, gift_reroll_press_timer - delta)
 	_update_viewer_score_countup(delta)
 	_update_display_gauge_values(delta)
@@ -1858,6 +1885,10 @@ func _update_relay_boss_support_fx(delta: float) -> void:
 		if age >= duration and not bool(fx.get("arrived", false)):
 			fx["arrived"] = true
 			fx["arrivalAge"] = 0.0
+			var actual_heal: int = int(fx.get("mentalHealAmount", 0))
+			if actual_heal > 0 and not bool(fx.get("mentalHealShown", false)):
+				_append_mental_heal_fx(actual_heal, "boss_support")
+				fx["mentalHealShown"] = true
 		if bool(fx.get("arrived", false)):
 			fx["arrivalAge"] = float(fx.get("arrivalAge", 0.0)) + delta
 		if bool(fx.get("arrived", false)) and float(fx.get("arrivalAge", 0.0)) >= 0.42:
@@ -1877,7 +1908,9 @@ func _start_relay_boss_support_fx(support_id: String, heal_amount: int) -> void:
 		"duration": 0.55,
 		"arrived": false,
 		"arrivalAge": 0.0,
-		"healAmount": heal_amount
+		"healAmount": heal_amount,
+		"mentalHealAmount": heal_amount,
+		"mentalHealShown": false
 	})
 
 func _update_viewer_score_countup(delta: float) -> void:
@@ -2141,10 +2174,15 @@ func _setup_comment_boomerang_se() -> void:
 	add_child(comment_boomerang_se_player)
 
 func _setup_weapon_activation_se() -> void:
-	weapon_activation_se_player = AudioStreamPlayer.new()
-	weapon_activation_se_player.name = "WeaponActivationSePlayer"
-	weapon_activation_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume)
-	add_child(weapon_activation_se_player)
+	weapon_activation_se_pool = WeaponActivationSePoolScript.new()
+	weapon_activation_se_pool.name = "WeaponActivationSePlayer"
+	add_child(weapon_activation_se_pool)
+	weapon_activation_se_pool.call(
+		"configure",
+		WEAPON_ACTIVATION_SE_POOL_SIZE,
+		SettingsSystemScript.volume_db_from_percent(se_volume),
+		Callable(self, "_load_audio_stream")
+	)
 
 func _setup_listener_attack_se() -> void:
 	listener_attack_se_player = AudioStreamPlayer.new()
@@ -2848,32 +2886,74 @@ func _play_comment_boomerang_se() -> void:
 	comment_boomerang_se_player.play()
 
 func _play_weapon_activation_se(path: String, volume_db_offset: float = 0.0) -> void:
-	if weapon_activation_se_player == null or path == "":
+	if weapon_activation_se_pool == null or path == "":
 		return
-	if weapon_activation_se_player.stream == null or weapon_activation_se_active_path != path:
-		var stream := _load_audio_stream(path, false)
-		if stream == null:
-			return
-		weapon_activation_se_player.stream = stream
-		weapon_activation_se_active_path = path
-	weapon_activation_se_player.volume_db = SettingsSystemScript.volume_db_from_percent(se_volume) + volume_db_offset
-	if weapon_activation_se_player.playing:
-		weapon_activation_se_player.stop()
-	weapon_activation_se_player.play()
+	_sync_weapon_activation_se_volume()
+	weapon_activation_se_pool.call("request_play", path, volume_db_offset)
 
 func _stop_weapon_activation_se(path: String = "") -> void:
-	if weapon_activation_se_player == null or not weapon_activation_se_player.playing:
+	if weapon_activation_se_pool == null:
 		return
-	if path != "" and weapon_activation_se_active_path != path:
+	weapon_activation_se_pool.call("stop", path)
+
+func _stop_all_weapon_activation_se() -> void:
+	if weapon_activation_se_pool != null:
+		weapon_activation_se_pool.call("stop_all")
+
+func _sync_weapon_activation_se_volume() -> void:
+	if weapon_activation_se_pool != null:
+		weapon_activation_se_pool.call("set_base_volume_db", SettingsSystemScript.volume_db_from_percent(se_volume))
+
+func _cleanup_weapon_activation_se_for_weapon_ids(weapon_ids: Array, full_cleanup: bool, _reason: String = "") -> void:
+	if weapon_activation_se_pool == null:
 		return
-	weapon_activation_se_player.stop()
+	if full_cleanup:
+		_stop_all_weapon_activation_se()
+		return
+	var paths: Array[String] = []
+	for weapon_id_value in weapon_ids:
+		var weapon_id := String(weapon_id_value)
+		var weapon := WeaponSystemScript.find_weapon(weapons, weapon_id, {})
+		var activation_path := String(weapon.get("activationSePath", ""))
+		if activation_path != "" and not paths.has(activation_path):
+			paths.append(activation_path)
+		for config_key in ["castSe", "reelSe"]:
+			var config: Dictionary = weapon.get(config_key, {}) as Dictionary
+			var configured_path := String(config.get("path", ""))
+			if configured_path != "" and not paths.has(configured_path):
+				paths.append(configured_path)
+		for entry_value in weapon.get("comboAttackSe", []) as Array:
+			var entry: Dictionary = entry_value as Dictionary
+			var combo_path := String(entry.get("path", ""))
+			if combo_path != "" and not paths.has(combo_path):
+				paths.append(combo_path)
+	for path in paths:
+		_stop_weapon_activation_se(path)
 
 func _play_weapon_activation_se_from_result(result: Dictionary) -> void:
+	if bool(result.get("maroCommentRingOrbitSe", false)):
+		var ring := WeaponSystemScript.find_weapon(weapons, "maro_comment_ring", {})
+		_play_weapon_activation_se(String(ring.get("activationSePath", "")), float(ring.get("activationSeVolumeDb", 0.0)))
 	for item in (result.get("hitFx", []) as Array):
 		var fx: Dictionary = item as Dictionary
 		var path := String(fx.get("activationSePath", ""))
 		if path != "":
 			_play_weapon_activation_se(path, float(fx.get("activationSeVolumeDb", 0.0)))
+
+func _listener_assembly_se_time_usec() -> int:
+	return Time.get_ticks_usec()
+
+func _play_listener_assembly_attack_se() -> void:
+	# Group feedback only: never delay/skip summon attacks or throttle the base weapon.
+	if listener_attack_se_player == null or listener_attack_se_player.stream == null:
+		return
+	if listener_attack_se_played_frame == Engine.get_process_frames():
+		return
+	var now_usec := _listener_assembly_se_time_usec()
+	if listener_assembly_se_last_started_usec >= 0 and now_usec - listener_assembly_se_last_started_usec < roundi(LISTENER_ASSEMBLY_SE_MIN_INTERVAL * 1000000.0):
+		return
+	_play_listener_attack_se_once_per_frame()
+	listener_assembly_se_last_started_usec = now_usec
 
 func _play_listener_attack_se_once_per_frame() -> void:
 	if listener_attack_se_player == null or listener_attack_se_player.stream == null:
@@ -3330,7 +3410,10 @@ func _unhandled_input(event: InputEvent) -> void:
 				_change_selected_difficulty(1)
 				get_viewport().set_input_as_handled()
 			elif frame_joypad_button.pressed and frame_joypad_button.button_index == JOY_BUTTON_A:
-				_confirm_stream_frame_select()
+				if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_DETAIL:
+					queue_redraw()
+				else:
+					_confirm_stream_frame_select()
 				get_viewport().set_input_as_handled()
 			elif frame_joypad_button.pressed and frame_joypad_button.button_index == JOY_BUTTON_B:
 				_play_back_transition_se()
@@ -3926,6 +4009,13 @@ func _activate_stream_frame_select_mouse(pos: Vector2) -> bool:
 	if difficulty_index >= 0:
 		_change_selected_difficulty(_difficulty_tab_ids()[difficulty_index])
 		return true
+	for tab_index in range(2):
+		if _stream_frame_select_detail_tab_rect(tab_index).has_point(pos):
+			stream_frame_select_detail_tab = tab_index
+			stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_DETAIL
+			_play_cursor_move_se()
+			queue_redraw()
+			return true
 	if (layout["backButton"] as Rect2).has_point(pos):
 		_play_back_transition_se()
 		_start_character_select()
@@ -4034,9 +4124,11 @@ func _commit_stream_frame_select() -> void:
 		current_stream_frame = frame
 		current_stream_frame_id = String(selected["frameId"])
 	if current_stream_frame_id == "collab" and not relay_mode:
+		stream_mission_formal_start_pending = true
 		_start_collab_partner_select()
 		return
 	collab_partner_id = ""
+	stream_mission_formal_start_pending = true
 	_start_stream_start_intro()
 
 func _difficulty_gameplay_implemented(difficulty_id: String) -> bool:
@@ -4103,8 +4195,8 @@ func _update_hard_runtime(gameplay_delta: float) -> void:
 	difficulty_runtime["currentSpawnRate"] = float((difficulty_runtime["spawnBreakdown"] as Dictionary).get("final", 1.0))
 	if bool(result.get("climaxStarted", false)):
 		hard_climax_banner_timer = 1.8
-		hard_climax_banner_text = "ここからが本番！"
-		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["ここからが本番！"]}, chat_box)
+		hard_climax_banner_text = HARD_CLIMAX_BANNER_TITLE
+		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [HARD_CLIMAX_BANNER_TITLE]}, chat_box)
 		_play_confirm_se()
 	if bool(result.get("requestAutoBoss", false)):
 		var pending := HardModeSystemScript.consume_pending_spawn(self)
@@ -4158,6 +4250,7 @@ func _prepare_collab_partner_select() -> void:
 	_clear_collab_combo_runtime("partner_changed")
 	collab_combo_sequence_state = ""
 	collab_combo_sequence_timer = 0.0
+	collab_partner_select_walk_time = 0.0
 	StateFlowSystemScript.open_pre_run_select_for_target(self, "collab_partner_select", choice_box, result_panel)
 	collab_partner_candidates = _collab_partner_selection_items()
 	selected_collab_partner_index = clampi(selected_collab_partner_index, 0, maxi(0, collab_partner_candidates.size() - 1))
@@ -4826,6 +4919,7 @@ func _result_reward_ready_for_transition() -> bool:
 		toast_timer = 2.0
 		return false
 	last_result_data = (get("last_result_data") as Dictionary).duplicate(true)
+	_queue_stream_mission_result_notice(last_result_data)
 	return true
 
 func _result_unlock_queue_ready_for_transition() -> bool:
@@ -5746,35 +5840,85 @@ func _draw_boss_cutin_comments(view: Dictionary, theme: Color, accent: Color, al
 		_draw_rect_outline(rect, theme.lerp(accent, float(i % 3) * 0.36) * Color(1, 1, 1, burst_alpha), 2.0)
 		_draw_outlined_text(rect.position + Vector2(12.0, 32.0), text, int(rect.size.x - 24.0), 20, Color(1, 1, 1, burst_alpha), Color(0.10, 0.02, 0.12, burst_alpha), HORIZONTAL_ALIGNMENT_LEFT)
 
+func _instruction_countdown_rect_v25() -> Rect2:
+	return Rect2(Vector2(20.0, 108.0), Vector2(1200.0, 76.0))
+
+func _boss_hud_layout_v25(relay: bool = false) -> Dictionary:
+	var instruction_rect := _instruction_countdown_rect_v25()
+	var panel_top := instruction_rect.end.y + 10.0
+	if relay:
+		var panel_left := 350.0
+		var panel_right := FIELD_VIEW.end.x
+		var panel := Rect2(Vector2(panel_left, panel_top), Vector2(maxf(0.0, panel_right - panel_left), 78.0))
+		var bar := Rect2(panel.position + Vector2(18.0, 42.0), Vector2(maxf(0.0, panel.size.x - 36.0), 20.0))
+		var phase_width := 155.0
+		var phase_rect := Rect2(Vector2(bar.end.x - phase_width, panel.position.y + 12.0), Vector2(phase_width, 20.0))
+		return {
+			"variant": "relay",
+			"instructionRect": instruction_rect,
+			"panel": panel,
+			"namePosition": panel.position + Vector2(18.0, 29.0),
+			"nameWidth": 250,
+			"nameRect": Rect2(panel.position + Vector2(18.0, 6.0), Vector2(250.0, 30.0)),
+			"barRect": bar,
+			"hpTextPosition": bar.position + Vector2(0.0, 16.0),
+			"hpTextWidth": int(bar.size.x),
+			"hpTextRect": Rect2(bar.position, bar.size),
+			"phaseRect": phase_rect,
+			"phasePosition": phase_rect.position + Vector2(0.0, 16.0),
+			"phaseWidth": int(phase_rect.size.x),
+			"lockPosition": phase_rect.position + Vector2(-7.0, 8.0),
+			"transitionPosition": panel.position + Vector2(350.0, 38.0),
+			"transitionWidth": 210
+		}
+	var panel := Rect2(Vector2(388.0, panel_top), Vector2(640.0, 50.0))
+	var bar := Rect2(panel.position + Vector2(270.0, 25.0), Vector2(maxf(0.0, panel.size.x - 286.0), 14.0))
+	var hp_text_width := 108
+	var hp_text_position := Vector2(bar.end.x - float(hp_text_width), panel.position.y + 20.0)
+	return {
+		"variant": "normal",
+		"instructionRect": instruction_rect,
+		"panel": panel,
+		"namePosition": panel.position + Vector2(18.0, 34.0),
+		"nameWidth": 252,
+		"barRect": bar,
+		"hpTextPosition": hp_text_position,
+		"hpTextWidth": hp_text_width,
+		"nameRect": Rect2(panel.position + Vector2(18.0, 6.0), Vector2(252.0, 36.0)),
+		"hpTextRect": Rect2(hp_text_position - Vector2(0.0, 14.0), Vector2(hp_text_width, 20.0))
+	}
+
 func _draw_boss_cutin_hp_reveal(progress: float) -> void:
 	var p := clampf(progress, 0.0, 1.0)
 	if p <= 0.001:
 		return
 	if relay_boss_active:
-		var rect := Rect2(Vector2(350.0, 194.0), Vector2(900.0, 78.0))
+		var layout: Dictionary = _boss_hud_layout_v25(true)
+		var rect: Rect2 = layout["panel"] as Rect2
 		var reveal_rect := Rect2(Vector2(rect.get_center().x - rect.size.x * p * 0.5, rect.position.y), Vector2(rect.size.x * p, rect.size.y))
 		draw_rect(reveal_rect, Color(0.12, 0.03, 0.14, 0.94 * p), true)
 		_draw_rect_outline(reveal_rect, Color(1.0, 0.31, 0.57, p), 3.0)
 		if p > 0.35:
-			_draw_outlined_text(rect.position + Vector2(18.0, 29.0), "LAST OFFLINE", 250, 21, Color(1.0, 0.95, 0.65, p), Color(0.22, 0.04, 0.16, p), HORIZONTAL_ALIGNMENT_LEFT)
-			var bar := Rect2(rect.position + Vector2(18.0, 42.0), Vector2(864.0, 20.0))
+			_draw_outlined_text(layout["namePosition"] as Vector2, "LAST OFFLINE", int(layout["nameWidth"]), 21, Color(1.0, 0.95, 0.65, p), Color(0.22, 0.04, 0.16, p), HORIZONTAL_ALIGNMENT_LEFT)
+			var bar: Rect2 = layout["barRect"] as Rect2
 			draw_rect(bar, Color(0.20, 0.09, 0.18, p), true)
 			draw_rect(Rect2(bar.position, Vector2(bar.size.x * clampf(relay_boss_hp / maxf(1.0, relay_boss_max_hp), 0.0, 1.0), bar.size.y)), Color(1.0, 0.31, 0.57, p), true)
 		return
 	var boss := BossSystemScript.active_boss_for_target(self)
 	if boss.is_empty():
 		return
-	var rect := Rect2(Vector2(388, 112), Vector2(640, 50))
+	var layout: Dictionary = _boss_hud_layout_v25(false)
+	var rect: Rect2 = layout["panel"] as Rect2
 	var reveal_rect := Rect2(Vector2(rect.get_center().x - rect.size.x * p * 0.5, rect.position.y), Vector2(rect.size.x * p, rect.size.y))
 	draw_rect(reveal_rect, Color(1.0, 1.0, 1.0, 0.94 * p), true)
 	_draw_rect_outline(reveal_rect, Color(0.78, 0.72, 1.0, p), 3.0)
 	if p > 0.35:
 		var max_hp := maxf(1.0, float(boss.get("max_hp", 1.0)))
 		var ratio := clampf(float(boss.get("hp", max_hp)) / max_hp, 0.0, 1.0)
-		var bar := Rect2(rect.position + Vector2(142, 25), Vector2(482, 14))
+		var bar: Rect2 = layout["barRect"] as Rect2
 		draw_rect(bar, Color(0.14, 0.09, 0.19, p), true)
 		draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), Color(1.0, 0.31, 0.57, p), true)
-		_draw_text_item({"pos": rect.position + Vector2(18, 34), "text": String(boss.get("displayName", "BOSS")), "width": 132, "size": 20, "color": Color(0.20, 0.13, 0.33, p)})
+		_draw_text_item({"pos": layout["namePosition"] as Vector2, "text": String(boss.get("displayName", "BOSS")), "width": int(layout["nameWidth"]), "size": 20, "color": Color(0.20, 0.13, 0.33, p)})
 
 func _world_camera_offset() -> Vector2:
 	var desired: Vector2 = player_pos - FIELD_VIEW.get_center()
@@ -5879,9 +6023,13 @@ func _apply_hit_reaction_feedback(feedback: Dictionary) -> void:
 		_play_enemy_damage_se_once_per_frame()
 	if bool(feedback.get("listenerSummonAttacked", false)):
 		_play_listener_attack_se_once_per_frame()
+	if bool(feedback.get("listenerAssemblyAttacked", false)):
+		_play_listener_assembly_attack_se()
 	if bool(feedback.get("enemyDefeated", false)):
 		_play_enemy_defeat_se()
 	if bool(feedback.get("emoteMineExploded", false)):
+		_play_emote_mine_explosion_se()
+	for _burst in range(int(feedback.get("emoteFestivalMainBurstCount", 0))):
 		_play_emote_mine_explosion_se()
 	if bool(feedback.get("bossWarningStarted", false)):
 		_play_boss_warning_se()
@@ -6000,18 +6148,14 @@ func _draw_bug_genre_screen_fx() -> void:
 			draw_rect(Rect2(Vector2(side_x, y), Vector2(18.0, 4.0 + float(i % 2) * 4.0)), Color(0.37, 0.12, 0.56, 0.18), true)
 
 func _draw_hard_climax_banner() -> void:
-	if hard_climax_banner_timer <= 0.0 or hard_climax_banner_text == "":
+	if state != "playing" or hard_climax_banner_timer <= 0.0 or hard_climax_banner_text == "":
 		return
 	var viewport_size := get_viewport_rect().size
 	var alpha := clampf(hard_climax_banner_timer / 0.45, 0.0, 1.0)
-	var banner_texture := TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, HARD_CLIMAX_BANNER_IMAGE)
-	var text_y := 132.0
-	if banner_texture != null:
-		var image_rect := Rect2(Vector2(viewport_size.x * 0.5 - 54.0, 38.0), Vector2(108.0, 108.0))
-		var fitted_image := _fit_texture_rect(image_rect, banner_texture.get_size())
-		draw_texture_rect(banner_texture, fitted_image, false, Color(1.0, 1.0, 1.0, alpha * 0.88))
-		text_y = 166.0
-	_draw_text_item({"pos": Vector2(0.0, text_y), "text": hard_climax_banner_text, "width": int(viewport_size.x), "size": 30, "fontWeight": "black", "color": Color(1.0, 0.45, 0.72, alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	var notice_rect := Rect2(Vector2(viewport_size.x * 0.5 - 320.0, 116.0), Vector2(640.0, 68.0))
+	_draw_ranking_panel(notice_rect, Color(1.0, 0.98, 0.92, alpha), Color(0.96, 0.67, 0.25, 0.82 * alpha), 18, 2, false)
+	_draw_text_item({"pos": notice_rect.position + Vector2(0.0, 29.0), "text": hard_climax_banner_text, "width": int(notice_rect.size.x), "size": 30, "fontWeight": "black", "color": Color(0.86, 0.30, 0.25, alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({"pos": notice_rect.position + Vector2(0.0, 56.0), "text": HARD_CLIMAX_BANNER_DESCRIPTION, "width": int(notice_rect.size.x), "size": 18, "fontWeight": "bold", "color": Color(0.46, 0.25, 0.20, alpha)}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_hard_balance_debug_overlay() -> void:
 	if not hard_balance_debug_overlay_enabled or not OS.is_debug_build() or not HardModeSystemScript.is_high_difficulty_target(self):
@@ -6107,28 +6251,38 @@ func _draw_world_layer() -> void:
 	_draw_mallow(visible_world_rect)
 	_draw_drop_items(visible_world_rect)
 	_draw_destructibles(visible_world_rect)
-	_draw_enemy_bullets(visible_world_rect)
 	_draw_player_bullets(visible_world_rect)
 	_draw_collab_stage_effects(visible_world_rect)
 	_draw_collab_dash_sync_world_effects(visible_world_rect)
 	_draw_enemies(visible_world_rect)
+	_draw_bug_genre_boss_glitch()
+	_draw_bug_genre_race_start_glitch(visible_world_rect)
+	_draw_bug_genre_break()
+	if relay_boss_active:
+		RelayBossDrawSystemScript.draw_front_for_target(self, _current_arena())
+	_draw_collab_boss_enemy_overlays(visible_world_rect)
+	_draw_collab_challenge_enemy_markers(visible_world_rect)
+	_draw_boomerang()
+	# Weapon hit sparks, flashes, confetti, echoes, and damage numbers share this
+	# cosmetic foreground pass. Keep the pass visually strong, but draw it below
+	# the player and hostile-projectile safety layers so combat cues cannot be
+	# buried during legal multi-weapon peaks.
+	_draw_hit_fx(false, hit_fx_draw_items, "front")
+	# Hostile projectile bodies stay above weapon cosmetics. Large boss shots
+	# remain below the player as before; their dedicated near-player rims and all
+	# telegraphs are drawn after the player to preserve both silhouettes.
+	_draw_enemy_bullets(visible_world_rect)
 	_draw_game_over_barrage_launch_fx_foreground(visible_world_rect)
-	_draw_red_pen_bullet_telegraph()
 	WeaponDrawSystemScript.draw_game_over_barrage_launch_foreground(self, enemy_bullets, visible_world_rect)
 	WeaponDrawSystemScript.draw_red_pen_foreground(self, enemy_bullets, visible_world_rect)
 	_draw_red_pen_launch_fx_foreground(visible_world_rect)
 	WeaponDrawSystemScript.draw_comment_shotgun_launch_foreground(self, enemy_bullets, visible_world_rect, Callable(self, "_draw_rotated_texture"), Callable(self, "_load_raw_png_texture"))
-	_draw_bug_genre_boss_glitch()
-	_draw_bug_genre_race_start_glitch(visible_world_rect)
-	_draw_bug_genre_break()
-	_draw_pitch_chief_bullet_telegraph()
 	_draw_kuso_maro_bullets(visible_world_rect)
 	_draw_bug_spoiler_bullets(visible_world_rect)
 	_draw_pitch_police_note_bullets(visible_world_rect)
 	_draw_song_boss_megaphone_foreground()
 	_draw_song_boss_chorus_judge_foreground()
 	if relay_boss_active:
-		RelayBossDrawSystemScript.draw_front_for_target(self, _current_arena())
 		var noise_occlusion_boss := RelayBossSystemScript.active_boss(self)
 		WeaponDrawSystemScript.draw_travel_noise_shot_boss_foreground(self, enemy_bullets, noise_occlusion_boss, visible_world_rect)
 		EnemyDrawSystemScript.draw_relay_noise_summon_foreground(self, enemies, visible_world_rect, player_pos, true)
@@ -6142,11 +6296,13 @@ func _draw_world_layer() -> void:
 		Callable(self, "_draw_rotated_texture"),
 		Callable(self, "_load_raw_png_texture")
 	)
-	_draw_collab_boss_enemy_overlays(visible_world_rect)
-	_draw_collab_challenge_enemy_markers(visible_world_rect)
-	_draw_boomerang()
 	_draw_player()
 	_draw_collab_partner()
+	_draw_mental_heal_text_foreground(hit_fx_draw_items)
+	# Predictive danger cues intentionally sit above the player. They are sparse,
+	# while the player remains above the dense weapon-cosmetic pass.
+	_draw_red_pen_bullet_telegraph()
+	_draw_pitch_chief_bullet_telegraph()
 	if relay_boss_active:
 		EnemyDrawSystemScript.draw_relay_noise_summon_foreground(self, enemies, visible_world_rect, player_pos, false)
 	_draw_game_over_barrage_hit_fx_foreground(visible_world_rect)
@@ -6171,7 +6327,6 @@ func _draw_world_layer() -> void:
 	_draw_kuso_maro_bullet_rims(visible_world_rect)
 	_draw_pitch_police_note_bullet_rims(visible_world_rect)
 	_draw_song_spotlight_labels(visible_world_rect)
-	_draw_hit_fx(false, hit_fx_draw_items, "front")
 	if relay_boss_active:
 		RelayBossDrawSystemScript.draw_long_comment_line_hit_fx_for_target(self)
 		RelayBossDrawSystemScript.draw_race_lane_charge_hit_fx_for_target(self)
@@ -6433,10 +6588,12 @@ func _build_ui() -> void:
 	power_up_shop_screen = PowerUpShopScreenScene.instantiate()
 	(nodes["uiRoot"] as CanvasLayer).add_child(power_up_shop_screen)
 	power_up_shop_screen.bind_manager(power_up_shop_manager)
+	power_up_shop_screen.bind_codex_source(CodexManager)
 	power_up_shop_screen.closed.connect(_on_power_up_shop_closed)
 	power_up_shop_screen.close_requested.connect(_on_power_up_shop_close_requested)
 	codex_screen = CodexScreenScene.instantiate()
 	(nodes["uiRoot"] as CanvasLayer).add_child(codex_screen)
+	codex_screen.bind_reward_manager(power_up_shop_manager)
 	codex_screen.closed.connect(_on_codex_closed)
 	codex_screen.cursor_moved.connect(_on_codex_cursor_moved)
 	codex_screen.confirm_requested.connect(_on_codex_confirm_requested)
@@ -6444,6 +6601,14 @@ func _build_ui() -> void:
 	codex_screen.read_state_save_requested.connect(_on_codex_read_state_save_requested)
 	codex_screen.debug_save_requested.connect(_on_codex_debug_save_requested)
 	codex_screen.completion_notice_requested.connect(_on_codex_completion_notice)
+	codex_milestone_notice = CodexMilestoneNoticeScript.new()
+	(nodes["uiRoot"] as CanvasLayer).add_child(codex_milestone_notice)
+	if power_up_shop_manager != null and power_up_shop_manager.has_method("initialize_customization_notification_baseline"):
+		# Existing Codex history is the notification baseline.  Loading a save or
+		# opening the shop must never replay old customization unlock notices.
+		power_up_shop_manager.initialize_customization_notification_baseline(CodexManager)
+	if not CodexManager.entry_discovered.is_connected(_on_codex_entry_discovered):
+		CodexManager.entry_discovered.connect(_on_codex_entry_discovered)
 
 func _current_run_length() -> float:
 	if quick_test_mode:
@@ -6469,9 +6634,11 @@ func _update_world(delta: float) -> void:
 	if is_inf(run_length):
 		elapsed += delta
 		evaluation_sample_delta = maxf(0.0, elapsed - previous_elapsed)
+		_record_stream_mission_song_playing_time(evaluation_sample_delta)
 	else:
 		var previous_remaining := maxf(0.0, run_length - elapsed)
 		elapsed += delta
+		_record_stream_mission_song_playing_time(maxf(0.0, minf(elapsed, run_length) - previous_elapsed))
 		var remaining := maxf(0.0, run_length - elapsed)
 		_update_time_announcements(previous_remaining, run_length)
 		_update_stream_end_countdown_feedback(remaining)
@@ -6519,6 +6686,13 @@ func _update_world(delta: float) -> void:
 		_stop_relay_boss_support_audio()
 		_start_game_over_intro(current_death_text)
 	_update_ui()
+
+func _record_stream_mission_song_playing_time(seconds: float) -> void:
+	if seconds <= 0.0 or stream_mission_run_tracker == null or state != "playing":
+		return
+	if current_stream_frame_id != "singing" or relay_boss_active:
+		return
+	stream_mission_run_tracker.add_song_lv5_playing_seconds(seconds, song_live_heat_level)
 
 func _instruction_effect_clock_paused() -> bool:
 	return boss_requested or boss_active or _collab_combo_sequence_active()
@@ -6838,9 +7012,11 @@ func _update_accessory_effects(delta: float) -> void:
 	var actual_heal: int = mini(heal_amount, player_max_hp - player_hp)
 	if actual_heal <= 0:
 		return
+	var before_hp: int = player_hp
 	player_hp = mini(player_max_hp, player_hp + actual_heal)
-	_append_mental_heal_fx(actual_heal, "mini_humidifier")
-	_append_mini_humidifier_heal_fx(actual_heal)
+	var applied_heal: int = _record_actual_mental_heal(before_hp, "mini_humidifier")
+	if applied_heal > 0:
+		_append_mini_humidifier_heal_fx(applied_heal)
 
 func _notify_accessory_player_damaged() -> void:
 	if mini_humidifier_level <= 0:
@@ -6860,21 +7036,13 @@ func _append_mini_humidifier_heal_fx(amount: int) -> void:
 		"maxLife": 0.58,
 		"amount": amount
 	})
-	hit_fx.append({
-		"kind": "pickup_text",
-		"pos": pos + Vector2(-34.0, -20.0),
-		"vel": Vector2(0.0, -42.0),
-		"life": 0.72,
-		"maxLife": 0.72,
-		"text": "HP +%d" % amount,
-		"color": Color("#65e9ff")
-	})
 
 func _append_mental_heal_fx(actual_amount: int, source: String = "") -> void:
-	if actual_amount <= 0 or not _relay_heal_allowed():
+	if actual_amount <= 0:
 		return
 	var config: Dictionary = DrawDataSystemScript.mental_heal_fx_config()
-	var max_life := maxf(0.1, float(config.get("life", 0.68)))
+	var max_life := maxf(0.1, float(config.get("life", 0.95)))
+	mental_heal_hud_pulse_timer = maxf(mental_heal_hud_pulse_timer, 0.45)
 	for fx_item in hit_fx:
 		var fx: Dictionary = fx_item as Dictionary
 		if String(fx.get("kind", "")) != "mental_heal" or float(fx.get("life", 0.0)) <= 0.0:
@@ -6882,9 +7050,10 @@ func _append_mental_heal_fx(actual_amount: int, source: String = "") -> void:
 		# Reuse one active common heal effect so continuous healing cannot grow
 		# hit_fx without bound.  The lifetime is refreshed and the amount is
 		# accumulated for the same visual burst.
-		fx["amount"] = int(fx.get("amount", 0)) + actual_amount
+		fx["amount"] = DrawDataSystemScript.aggregate_mental_heal_amount(int(fx.get("amount", 0)), actual_amount)
 		fx["life"] = max_life
 		fx["maxLife"] = max_life
+		fx["pos"] = player_pos + Vector2(0.0, -18.0)
 		fx["source"] = source
 		return
 	hit_fx.append({
@@ -6896,6 +7065,19 @@ func _append_mental_heal_fx(actual_amount: int, source: String = "") -> void:
 		"source": source,
 		"followPlayer": true
 	})
+
+func _flush_pending_relay_break_heal_feedback() -> void:
+	if pending_relay_break_heal_feedback <= 0:
+		return
+	var actual_heal: int = pending_relay_break_heal_feedback
+	pending_relay_break_heal_feedback = 0
+	_append_mental_heal_fx(actual_heal, "relay_break_rest")
+
+func _record_actual_mental_heal(before_hp: int, source: String = "") -> int:
+	var actual_heal: int = DrawDataSystemScript.actual_mental_heal_amount(before_hp, player_hp)
+	if actual_heal > 0:
+		_append_mental_heal_fx(actual_heal, source)
+	return actual_heal
 
 func _update_genre_event(delta: float) -> void:
 	if relay_mode and current_stream_frame_id == "singing" and active_genre_event == "" and genre_event_count >= 1:
@@ -7052,7 +7234,7 @@ func _selection_latch_would_press(keycode: Key) -> bool:
 	return Input.is_key_pressed(keycode) and not bool(debug_key_latch.get(keycode, false))
 
 func _prime_choice_selection_latch() -> void:
-	for keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_W, KEY_A, KEY_S, KEY_D, KEY_Q, KEY_E, KEY_O, KEY_ENTER, KEY_SPACE, KEY_ESCAPE, KEY_BACKSPACE, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6]:
+	for keycode in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_W, KEY_A, KEY_S, KEY_D, KEY_Q, KEY_E, KEY_O, KEY_TAB, KEY_ENTER, KEY_SPACE, KEY_ESCAPE, KEY_BACKSPACE, KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6]:
 		debug_key_latch[keycode] = Input.is_key_pressed(keycode)
 
 func _character_select_can_move_down_to_footer() -> bool:
@@ -7121,6 +7303,7 @@ func _prepare_stream_frame_select() -> void:
 		run_difficulty_id = DifficultyProgressSystemScript.selected_difficulty(difficulty_progress)
 	var result: Dictionary = StreamFrameSystemScript.start_selection_for_target(self, choice_box, result_panel, stream_frames)
 	stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+	stream_frame_select_detail_tab = 0
 	if not difficulty_progress.is_empty():
 		var selection_items := _stream_frame_selection_items()
 		var last_stage := DifficultyProgressSystemScript.last_selected_stage(difficulty_progress, run_difficulty_id)
@@ -7234,12 +7417,51 @@ func _on_codex_completion_notice(_text: String) -> void:
 	# Reuse the existing confirmation sound and current se_volume setting.
 	_play_confirm_se()
 
+func _on_codex_entry_discovered(category: String, _item_id: String, previous_found: int, current_found: int, total: int) -> void:
+	if power_up_shop_manager == null:
+		return
+	# Custom unlock history is intentionally independent from PP milestone
+	# crossings.  PP may already be claimed while a new custom condition is
+	# reached by the same discovery event.
+	var custom_sync: Dictionary = {}
+	if power_up_shop_manager.has_method("sync_customization_unlocks"):
+		custom_sync = power_up_shop_manager.sync_customization_unlocks(CodexManager)
+	var crossed: Array[Dictionary] = []
+	if power_up_shop_manager.has_method("get_codex_milestone_crossings"):
+		crossed = power_up_shop_manager.get_codex_milestone_crossings(category, previous_found, current_found, total)
+	if codex_milestone_notice == null:
+		return
+	var category_labels := {
+		CodexManager.CATEGORY_CHARACTER: "キャラクター図鑑",
+		CodexManager.CATEGORY_WEAPON: "武器図鑑",
+		CodexManager.CATEGORY_ACCESSORY: "アクセサリー図鑑",
+		CodexManager.CATEGORY_ENEMY: "敵図鑑",
+		CodexManager.CATEGORY_COMMENT: "指示コメ図鑑"
+	}
+	if not crossed.is_empty():
+		codex_milestone_notice.show_milestones(String(category_labels.get(category, category)), crossed, power_up_shop_manager.is_unlocked())
+	var custom_ids: Array = custom_sync.get("newlyEligibleConditionIds", []) as Array
+	if bool(custom_sync.get("ok", false)) and not custom_ids.is_empty():
+		var new_item_count := 0
+		if power_up_shop_manager.customization_database != null and power_up_shop_manager.customization_database.is_valid:
+			for condition_id_value in custom_ids:
+				var condition_id := String(condition_id_value)
+				for item in power_up_shop_manager.customization_database.items:
+					if String((item as Dictionary).get("unlockConditionId", "")) == condition_id:
+						new_item_count += 1
+		if new_item_count > 0:
+			codex_milestone_notice.show_customization_unlocks(new_item_count)
+
 func _prepare_power_up_shop(origin: String) -> void:
 	power_up_shop_origin = origin
 	previous_state = state
 	state = "power_up_shop"
 	choice_box.visible = false
 	result_panel.visible = false
+	if power_up_shop_manager != null and power_up_shop_manager.has_method("sync_customization_unlocks"):
+		# Opening the shared shop is a safe synchronization point.  This write
+		# is silent; unlock notices are reserved for discovery events.
+		power_up_shop_manager.sync_customization_unlocks(CodexManager)
 	if power_up_shop_screen != null:
 		power_up_shop_screen.open_shop(origin, power_up_shop_manager)
 
@@ -7312,9 +7534,46 @@ func _update_stream_frame_select_back_focus() -> bool:
 		return true
 	return true
 
+func _update_stream_frame_select_detail_focus() -> bool:
+	if stream_frame_select_focus_area != PRE_RUN_SELECT_FOCUS_DETAIL:
+		return false
+	var difficulty_left := _selection_latch_pressed(KEY_Q)
+	var difficulty_right := _selection_latch_pressed(KEY_E)
+	if difficulty_left or difficulty_right:
+		_change_selected_difficulty(-1 if difficulty_left else 1)
+		return true
+	if _selection_latch_pressed(KEY_ESCAPE) or _selection_latch_pressed(KEY_BACKSPACE) or _selection_latch_pressed(KEY_TAB) or _selection_latch_pressed(KEY_UP):
+		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_ITEMS
+		_play_cursor_move_se()
+		return true
+	if _selection_latch_pressed(KEY_DOWN):
+		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_BACK
+		_play_cursor_move_se()
+		return true
+	if _selection_latch_pressed(KEY_LEFT):
+		stream_frame_select_detail_tab = 0
+		_play_cursor_move_se()
+		queue_redraw()
+		return true
+	if _selection_latch_pressed(KEY_RIGHT):
+		stream_frame_select_detail_tab = 1
+		_play_cursor_move_se()
+		queue_redraw()
+		return true
+	if _selection_latch_pressed(KEY_ENTER) or _selection_latch_pressed(KEY_SPACE):
+		queue_redraw()
+		return true
+	return true
+
 func _update_stream_frame_select() -> void:
 	if stream_frame_difficulty_scroll_active:
 		_prime_choice_selection_latch()
+		return
+	if _update_stream_frame_select_detail_focus():
+		return
+	if _selection_latch_pressed(KEY_TAB):
+		stream_frame_select_focus_area = PRE_RUN_SELECT_FOCUS_DETAIL
+		_play_cursor_move_se()
 		return
 	if _update_stream_frame_select_back_focus():
 		return
@@ -8275,14 +8534,16 @@ func _update_comment_choice(delta: float) -> void:
 
 func _choose_comment(index: int) -> void:
 	if relay_boss_active:
+		var before_boss_hp: int = player_hp
 		var boss_result: Dictionary = RelayBossSystemScript.choose_instruction_for_target(self, index, choice_box)
 		if bool(boss_result.get("selected", false)):
+			var actual_boss_heal: int = DrawDataSystemScript.actual_mental_heal_amount(before_boss_hp, player_hp)
 			_apply_buzz_feedback(boss_result)
 			hit_stop_timer = 0.0
 			_play_confirm_se()
 			_suppress_dash_button_after_ui_confirm()
 			if bool(relay_boss_support_selected):
-				_start_relay_boss_support_fx(relay_boss_support_selected_id, int(relay_boss_support_heal_amount))
+				_start_relay_boss_support_fx(relay_boss_support_selected_id, actual_boss_heal)
 			chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": [String(boss_result.get("chat", ""))]}, chat_box)
 			_refresh_choice_cards()
 			RelayBossSystemScript.begin_pending_phase_transition_for_target(self)
@@ -8290,6 +8551,7 @@ func _choose_comment(index: int) -> void:
 	var had_banana_floor := ModifierSystemScript.has_effect_for_target(self, "banana_floor")
 	var before_genre_event := String(active_genre_event)
 	var danger_comments_before := danger_comments_chosen
+	var applied_has_heart := index >= 0 and index < heart_cards.size() and bool(heart_cards[index])
 	var result: Dictionary = CommentSystemScript.choose_comment_with_feedback_for_target(self, index, rng, _current_arena(), COMMENT_INTERVAL, choice_box, genre_events)
 	if not bool(result["selected"]):
 		return
@@ -8301,6 +8563,9 @@ func _choose_comment(index: int) -> void:
 		_play_boss_warning_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 	var selected_comment_id := String(result.get("commentId", ""))
+	if stream_mission_run_tracker != null and selected_comment_id != "":
+		var applied_comment_view := CommentSystemScript.comment_view(_find_comment_data(selected_comment_id), applied_has_heart)
+		stream_mission_run_tracker.record_comment(int(applied_comment_view.get("riskLevel", 0)), applied_has_heart)
 	_apply_song_instruction_comment(selected_comment_id)
 	_apply_drawing_instruction_comment(selected_comment_id)
 	_apply_collab_instruction_comment(selected_comment_id)
@@ -8459,21 +8724,24 @@ func _update_gift_choice() -> void:
 func _choose_gift(index: int) -> void:
 	if gift_reroll_locked:
 		return
+	var before_hp: int = player_hp
 	var result: Dictionary = GiftSystemScript.choose_offer_index_with_feedback_for_target(self, index, choice_box, genre_events, rng)
 	if not bool(result["selected"]):
 		return
+	var actual_heal: int = DrawDataSystemScript.actual_mental_heal_amount(before_hp, player_hp)
 	var recipe_discovery: Dictionary = _record_evolution_recipe_discovery(result)
 	_play_confirm_se()
 	_suppress_dash_button_after_ui_confirm()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, result, chat_box)
 	_show_evolution_recipe_discovery_toast(recipe_discovery)
-	if gift_choice_return_state != "relay_break":
-		_append_mental_heal_fx(int(result.get("mentalHealAmount", 0)), "gift_rest")
 	if gift_choice_return_state == "relay_break":
 		gift_choice_return_state = "playing"
 		PauseReasonSystemScript.remove(self, "GiftSelection")
 		_after_relay_break_reward("GIFT")
+		pending_relay_break_heal_feedback = DrawDataSystemScript.aggregate_mental_heal_amount(pending_relay_break_heal_feedback, actual_heal)
 		return
+	if actual_heal > 0:
+		_append_mental_heal_fx(actual_heal, "gift_rest")
 	if pending_gift_choices > 0:
 		_start_gift_choice()
 
@@ -8547,6 +8815,7 @@ func _suppress_dash_button_after_ui_confirm() -> void:
 	dash_enter_down = Input.is_key_pressed(KEY_ENTER) or Input.is_key_pressed(KEY_SPACE)
 
 func _update_marshmallow(delta: float, arena: Rect2) -> void:
+	var before_hp: int = player_hp
 	var feedback: Dictionary = MarshmallowSystemScript.update_world_for_target(self, delta, arena, rng)
 	if bool(feedback.get("godPickupSe", false)):
 		_play_god_marshmallow_pickup_se()
@@ -8555,7 +8824,7 @@ func _update_marshmallow(delta: float, arena: Rect2) -> void:
 	elif bool(feedback.get("goodPickupSe", false)):
 		_play_marshmallow_pickup_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
-	_append_mental_heal_fx(int(feedback.get("mentalHealAmount", 0)), "marshmallow")
+	_record_actual_mental_heal(before_hp, "marshmallow")
 	if bool(feedback["levelUp"]):
 		for _level_up in range(int(feedback.get("levelUps", 1))):
 			_enqueue_gift_request("marshmallow", "normal", true, false, true)
@@ -8564,11 +8833,12 @@ func _update_marshmallow(delta: float, arena: Rect2) -> void:
 	MarshmallowSystemScript.update_effect_timers_for_target(self, delta)
 
 func _update_destructibles(delta: float, arena: Rect2) -> void:
+	var before_hp: int = player_hp
 	var feedback: Dictionary = DestructibleSystemScript.update_world_for_target(self, delta, arena, rng, effect_walls)
 	if bool(feedback.get("dropPickupSe", false)):
 		_play_gift_box_item_pickup_se()
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, feedback, chat_box)
-	_append_mental_heal_fx(int(feedback.get("mentalHealAmount", 0)), "heal_drink")
+	_record_actual_mental_heal(before_hp, "heal_drink")
 
 func _choose_index(index: int) -> void:
 	if state == "comment_choice":
@@ -8665,8 +8935,32 @@ func _finish_run(reason: String) -> void:
 	if pending_game_over_end_type == "mental_breakdown":
 		chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": _ending_cutin_reaction_lines("mental_breakdown")}, chat_box)
 	ResultSystemScript.open_result_ui_for_target(reason, self, quick_test_mode, choice_box, result_panel, result_label, heart_cards, chat_box)
+	_queue_stream_mission_result_notice(last_result_data)
 	if bool(last_result_data.get("seniorUnitUnlocked", false)):
 		CharacterSystemScript.apply_unlock_profile(characters, power_up_shop_manager.unlocked_character_ids())
+
+func _queue_stream_mission_result_notice(data: Dictionary) -> void:
+	if String(data.get("ppGrantState", "")) != "granted":
+		return
+	var mission_result: Dictionary = data.get("streamMissionResult", {}) as Dictionary
+	var mission_count := (data.get("newlyCompletedStreamMissions", []) as Array).size()
+	var set_count := (data.get("newlyCompletedStageMissionSets", []) as Array).size()
+	if mission_count <= 0 and set_count <= 0 and not bool(data.get("streamMissionAllComplete", false)):
+		return
+	var parts: Array[String] = []
+	if mission_count > 0:
+		parts.append("目標%d件" % mission_count)
+	if set_count > 0:
+		parts.append("セット%d件" % set_count)
+	if bool(data.get("streamMissionAllComplete", mission_result.get("allMissionsComplete", false))):
+		parts.append("称号「完璧な配信者」獲得")
+	var mission_pp := int(data.get("streamMissionPp", mission_result.get("missionPp", 0)))
+	var set_pp := int(data.get("streamMissionSetPp", mission_result.get("setPp", 0)))
+	if mission_pp + set_pp > 0:
+		parts.append("+%d PP" % (mission_pp + set_pp))
+	toast_text = "配信目標達成！  %s" % " / ".join(parts)
+	toast_timer = 4.0
+	queue_redraw()
 
 func _end_type_for_finish_reason(reason: String) -> String:
 	if reason.contains("成功") or reason.contains("完走") or player_hp > 0:
@@ -9383,7 +9677,13 @@ func _sample_stream_evaluation(sample_delta: float) -> void:
 	evaluation_voltage_integral = float(sampled.get("evaluationVoltageIntegral", evaluation_voltage_integral))
 
 func _restart() -> void:
+	_stop_all_weapon_activation_se()
+	listener_assembly_se_last_started_usec = -1
 	var retry_difficulty_id := _result_retry_difficulty_id()
+	var stream_formal_origin := stream_mission_formal_start_pending
+	var stream_run_stage_id := "relay" if relay_mode else current_stream_frame_id
+	var stream_run_quick_test := quick_test_mode
+	stream_mission_formal_start_pending = false
 	run_difficulty_id = retry_difficulty_id
 	if CodexManager.has_active_run():
 		if not quick_test_mode and not difficulty_progress.is_empty():
@@ -9405,6 +9705,14 @@ func _restart() -> void:
 		power_up_run_tracker.difficulty_id = retry_difficulty_id
 		run_id = power_up_run_tracker.run_id
 		permanent_upgrade_snapshot = PermanentUpgradeSnapshotScript.new()
+	stream_mission_run_tracker = StreamMissionRunTrackerScript.start(
+		stream_formal_origin,
+		stream_run_stage_id,
+		retry_difficulty_id,
+		relay_mode,
+		stream_run_quick_test
+	)
+	stream_mission_run_tracker.run_id = run_id
 	CodexManager.begin_run(run_id)
 	pending_power_up_reward = null
 	game_over_intro_timer = 0.0
@@ -9443,6 +9751,8 @@ func _restart() -> void:
 	gift_reroll_hovered = false
 	gift_reroll_press_timer = 0.0
 	buzz_protection_badge_pulse_timer = 0.0
+	mental_heal_hud_pulse_timer = 0.0
+	pending_relay_break_heal_feedback = 0
 	var restart_state: Dictionary = RunStateSystemScript.restart_run_for_target(
 		self,
 		characters,
@@ -9554,6 +9864,14 @@ func _advance_relay_frame() -> void:
 	relay_max_score = maxi(relay_max_score, score)
 	relay_max_multiplier = maxf(relay_max_multiplier, max_multiplier)
 	relay_max_burn_combo = maxi(relay_max_burn_combo, burn_combo_max)
+	if stream_mission_run_tracker != null:
+		stream_mission_run_tracker.record_relay_segment(current_stream_frame_id, {
+			"dangerousCommentCount": int(stream_mission_run_tracker.relay_segment_dangerous_comment_count),
+			"genreEventClearCount": int(stream_mission_run_tracker.relay_segment_genre_event_clear_count),
+			"maxLiveHeatLevel": song_max_live_heat_level,
+			"drawingColorBits": int(stream_mission_run_tracker.relay_segment_drawing_color_bits),
+			"challengeSuccessCount": int(stream_mission_run_tracker.relay_segment_collab_challenge_success_count)
+		})
 	relay_run_data = RelayRunDataScript.capture(self)
 	relay_break_count += 1
 	relay_flow_state = RelayFlowSystemScript.break_state_for_segment(current_stream_frame_id)
@@ -9629,13 +9947,16 @@ func _on_relay_break_heal_selected(_context: Dictionary) -> void:
 	if state != "relay_break" or relay_break_resolution_in_progress:
 		return
 	relay_break_resolution_in_progress = true
+	var before_hp: int = player_hp
 	var heal: Dictionary = RelayBreakSystemScript.heal_preview(self, relay_mode_config)
 	player_hp = int(heal.get("afterHp", player_hp))
+	var actual_heal: int = DrawDataSystemScript.actual_mental_heal_amount(before_hp, player_hp)
 	_play_marshmallow_pickup_se()
 	if relay_break_screen != null:
 		await relay_break_screen.play_heal_resolution(heal)
 		relay_break_screen.hide_screen()
 	relay_break_resolution_in_progress = false
+	pending_relay_break_heal_feedback = DrawDataSystemScript.aggregate_mental_heal_amount(pending_relay_break_heal_feedback, actual_heal)
 	_after_relay_break_reward("回復")
 
 func _on_relay_break_gift_selected(_context: Dictionary) -> void:
@@ -9672,6 +9993,8 @@ func _after_relay_break_reward(kind: String) -> void:
 	PauseReasonSystemScript.remove(self, "Break")
 	GiftSystemScript.reset_pending_gift_requests_for_target(self)
 	relay_run_data = RelayRunDataScript.capture(self)
+	if relay_break_count >= 5 and kind.strip_edges().to_upper() == "GIFT" and stream_mission_run_tracker != null:
+		stream_mission_run_tracker.capture_relay_final_preparation(relay_run_data)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["休憩：%s" % kind]}, chat_box)
 	if relay_break_count >= 5:
 		relay_flow_state = "BossIntro"
@@ -9698,6 +10021,7 @@ func _begin_relay_segment_from_intro() -> void:
 	StreamFrameSystemScript.apply_selected_frame_for_target(self, stream_frames, current_stream_frame_id)
 	relay_flow_state = RelayFlowSystemScript.playing_state_for_segment(current_stream_frame_id)
 	_start_next_relay_segment()
+	_flush_pending_relay_break_heal_feedback()
 	state = "playing"
 	previous_state = "playing"
 
@@ -10193,6 +10517,7 @@ func _activate_relay_boss_after_cutin() -> void:
 	relay_flow_state = "PlayingBoss"
 	state = "playing"
 	previous_state = "playing"
+	_flush_pending_relay_break_heal_feedback()
 	relay_boss_spawn_grace_timer = 0.30
 	RelayBossContactSystemScript.reset_for_target(self)
 	relay_boss_phase_lock_watchdog = 0.0
@@ -10284,11 +10609,18 @@ func _relay_boss_reserved_sync_stars() -> int:
 func _on_relay_boss_enemy_defeated(enemy: Dictionary) -> void:
 	if not relay_boss_active or relay_boss_score_awarded:
 		return
-	if String(enemy.get("defeatOwner", "")) == "player":
+	var owner := String(enemy.get("defeatOwner", ""))
+	if owner == "player":
 		_record_evaluation_relay_final_boss(true, true)
+	if stream_mission_run_tracker != null:
+		stream_mission_run_tracker.register_boss_defeat({
+			"bossId": "last_offline",
+			"ppRewardId": "last_offline",
+			"defeatReason": "player_side_damage" if owner == "player" else owner,
+			"rewardKey": "stream_boss:%s:last_offline" % run_id
+		})
 	if power_up_run_tracker != null:
 		power_up_run_tracker.mark_relay_final_defeated()
-		var owner := String(enemy.get("defeatOwner", ""))
 		power_up_run_tracker.register_boss_defeat({
 			"bossId": "last_offline",
 			"ppRewardId": "last_offline",
@@ -10470,6 +10802,8 @@ func _start_next_relay_segment() -> void:
 		collab_challenge_next_timer = float(collab_timeline.get("firstChallengeAt", 25.0))
 	if relay_mode and not relay_run_data.is_empty():
 		RelayRunDataScript.apply(self, relay_run_data)
+	if relay_mode and stream_mission_run_tracker != null:
+		stream_mission_run_tracker.begin_relay_segment(current_stream_frame_id)
 	if relay_mode:
 		_initialize_hard_runtime(false)
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["次の配信枠へ！ " + String(current_stream_frame.get("displayName", "配信枠"))]}, chat_box)
@@ -10482,6 +10816,8 @@ func _handle_debug_keys() -> void:
 		_apply_debug_action(action)
 
 func _apply_debug_action(action: String) -> void:
+	if stream_mission_run_tracker != null and CodexManager.has_active_run():
+		stream_mission_run_tracker.mark_debug_contaminated()
 	if action == DebugSystemScript.UNLOCK_PRESENTATION_PREVIEW_ACTION:
 		if OS.is_debug_build():
 			_debug_start_unlock_presentation_preview()
@@ -12548,6 +12884,18 @@ func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 				_draw_collab_partner_superchat_bullet_effect(effect, draw_rect_world)
 			"partner_kyasumi_wall", "partner_rizumu_fan_hit", "partner_miimu_gather":
 				_draw_collab_partner_weapon_effect(effect, draw_rect_world)
+			"collab_module_defense", "collab_module_gather", "collab_module_area", "collab_module_firepower", "collab_module_followup", "collab_module_finisher":
+				_draw_collab_combo_module_effect(effect, draw_rect_world)
+			"collab_composite_link":
+				_draw_collab_composite_link_effect(effect, draw_rect_world)
+			"collab_composite_finish":
+				_draw_collab_composite_finish_effect(effect, draw_rect_world)
+			"collab_senior_guard_live":
+				_draw_collab_senior_guard_live_effect(effect, draw_rect_world)
+			"collab_senior_moderate_finish":
+				_draw_collab_senior_moderate_finish_effect(effect, draw_rect_world)
+			"collab_senior_buzz_fishing":
+				_draw_collab_senior_buzz_fishing_effect(effect, draw_rect_world)
 			"star_line":
 				_draw_collab_star_line_effect(effect, draw_rect_world)
 			"boomerang":
@@ -12576,6 +12924,430 @@ func _draw_collab_stage_effects(visible_rect: Rect2) -> void:
 				_draw_collab_crusher_vs_line_post_fade(effect, draw_rect_world)
 			"partner_mute_spawn_fx", "partner_mute_destroy_fx", "partner_mute_timeout_fx", "partner_mute_restore_fx":
 				_draw_collab_partner_mute_effect(effect, draw_rect_world)
+
+func _collab_effect_progress(effect: Dictionary) -> float:
+	var max_life := maxf(0.01, float(effect.get("maxLife", 1.0)))
+	return 1.0 - clampf(float(effect.get("life", max_life)) / max_life, 0.0, 1.0)
+
+func _collab_effect_fade(effect: Dictionary) -> float:
+	return clampf(float(effect.get("life", 0.0)) / maxf(0.01, float(effect.get("maxLife", 1.0))), 0.0, 1.0)
+
+func _collab_effect_color(effect: Dictionary, key: String, fallback: Color, alpha: float = 1.0) -> Color:
+	var color: Color = effect.get(key, fallback) as Color
+	color.a = clampf(minf(color.a, alpha), 0.0, 1.0)
+	return color
+
+func _collab_hex_points(center: Vector2, radius: float, rotation: float = 0.0) -> PackedVector2Array:
+	var points := PackedVector2Array()
+	for index in range(7):
+		points.append(center + Vector2.RIGHT.rotated(rotation + TAU * float(index) / 6.0) * radius)
+	return points
+
+func _collab_draw_hex(center: Vector2, radius: float, rotation: float, fill: Color, edge: Color, edge_width: float = 2.0) -> void:
+	draw_colored_polygon(_collab_hex_points(center, radius, rotation), fill)
+	draw_polyline(_collab_hex_points(center, radius, rotation), edge, edge_width, true)
+
+func _collab_effect_visuals(effect: Dictionary, weapon_id: String) -> Dictionary:
+	var by_id: Dictionary = effect.get("visualsByWeaponId", {}) as Dictionary
+	return (by_id.get(weapon_id, {}) as Dictionary).duplicate(true)
+
+func _draw_collab_combo_image_layers(data: Dictionary, max_alpha: float = 0.78) -> void:
+	for layer_item in data.get("imageLayers", []) as Array:
+		var layer: Dictionary = (layer_item as Dictionary).duplicate(true)
+		layer["alpha"] = minf(float(layer.get("alpha", 1.0)), max_alpha)
+		_draw_hit_fx_image_layer(layer)
+
+func _draw_collab_combo_thumbnail_frame(center: Vector2, radius: float, color: Color, alpha: float, progress: float = 0.0) -> void:
+	var half := radius * (0.76 + 0.12 * progress)
+	var corner := radius * 0.34
+	var points := [
+		Vector2(-half, -half), Vector2(-half + corner, -half), Vector2(half - corner, -half), Vector2(half, -half),
+		Vector2(half, -half + corner), Vector2(half, half - corner), Vector2(half, half), Vector2(half - corner, half),
+		Vector2(-half + corner, half), Vector2(-half, half), Vector2(-half, half - corner), Vector2(-half, -half + corner)
+	]
+	var frame_color := color
+	frame_color.a = clampf(alpha, 0.0, 1.0)
+	draw_polyline(PackedVector2Array([center + points[0], center + points[1]]), frame_color, 3.0, true)
+	draw_polyline(PackedVector2Array([center + points[2], center + points[3], center + points[4]]), frame_color, 3.0, true)
+	draw_polyline(PackedVector2Array([center + points[5], center + points[6], center + points[7]]), frame_color, 3.0, true)
+	draw_polyline(PackedVector2Array([center + points[8], center + points[9], center + points[10]]), frame_color, 3.0, true)
+	draw_polyline(PackedVector2Array([center + points[11], center + points[0]]), frame_color, 3.0, true)
+
+func _draw_collab_combo_badge(center: Vector2, color: Color, scale: float, alpha: float) -> void:
+	var size := Vector2(24.0, 15.0) * scale
+	var bubble := Rect2(center - size * 0.5, size)
+	var fill := color
+	fill.a = minf(alpha, 0.16)
+	draw_rect(bubble, fill, true)
+	var edge := color
+	edge.a = minf(alpha, 0.76)
+	draw_rect(bubble, edge, false, 1.8)
+	var tail := PackedVector2Array([center + Vector2(-size.x * 0.16, size.y * 0.48), center + Vector2(size.x * 0.10, size.y * 0.48), center + Vector2(-size.x * 0.02, size.y * 0.78)])
+	draw_colored_polygon(tail, fill)
+	draw_polyline(PackedVector2Array([tail[0], tail[1], tail[2]]), edge, 1.2, true)
+	draw_circle(center + Vector2(-size.x * 0.18, 0.0), maxf(1.0, scale * 1.7), edge, true)
+	draw_circle(center, maxf(1.0, scale * 1.7), edge, true)
+	draw_circle(center + Vector2(size.x * 0.18, 0.0), maxf(1.0, scale * 1.7), edge, true)
+
+func _draw_collab_combo_confetti(center: Vector2, primary: Color, secondary: Color, count: int, radius: float, alpha: float, seed: float) -> void:
+	var safe_count := mini(12, maxi(0, count))
+	for index in range(safe_count):
+		var angle := seed + float(index) * TAU / float(maxi(1, safe_count))
+		var distance := radius * (0.72 + 0.10 * float(index % 3))
+		var pos := center + Vector2.from_angle(angle) * distance
+		var side := Vector2.from_angle(angle + PI * 0.5) * (4.0 + float(index % 2) * 2.0)
+		var color := primary if index % 2 == 0 else secondary
+		color.a = minf(alpha * (0.74 - float(index % 3) * 0.10), 0.82)
+		draw_line(pos - side, pos + side, color, 2.0, true)
+
+func _draw_collab_combo_rhythm_beat(center: Vector2, direction: Vector2, beat: int, progress: float, alpha: float, primary: Color, secondary: Color, visuals: Dictionary = {}) -> void:
+	var dir := direction.normalized()
+	if dir.length_squared() < 0.01:
+		dir = Vector2.RIGHT
+	var side := Vector2(-dir.y, dir.x)
+	var reach := lerpf(44.0, 126.0, clampf(progress, 0.0, 1.0))
+	var from_pos := center + dir * 18.0
+	var to_pos := center + dir * reach + side * (14.0 if beat == 0 else (-14.0 if beat == 1 else 0.0))
+	if beat == 2:
+		from_pos = center - side * 30.0
+		to_pos = center + side * 30.0
+	var outer := secondary
+	outer.a = minf(alpha, 0.30)
+	draw_line(from_pos - side * 7.0, to_pos - side * 7.0, outer, 8.0, true)
+	var core := primary
+	core.a = minf(alpha, 0.88)
+	draw_line(from_pos, to_pos, core, 3.0 if beat != 2 else 4.0, true)
+	var white := Color(1.0, 0.96, 1.0, minf(alpha, 0.74))
+	draw_line(from_pos + side * 3.0, to_pos + side * 3.0, white, 1.2, true)
+	if not visuals.is_empty():
+		var role := "swingRight" if beat == 0 else ("swingLeft" if beat == 1 else "xSlash")
+		var data := DrawDataSystemScript.fansa_baton_fx_data(center, dir, beat, lerpf(0.02, 0.18, progress), 0.18, 126.0, 52.0, visuals, role)
+		_draw_collab_combo_image_layers(data, 0.64)
+
+func _draw_collab_combo_module_effect(effect: Dictionary, visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	if not visible_rect.grow(float(effect.get("radius", 180.0)) + 40.0).has_point(center):
+		return
+	match String(effect.get("kind", effect.get("effectKind", ""))):
+		"collab_module_defense":
+			_draw_collab_combo_defense(effect, visible_rect)
+		"collab_module_gather":
+			_draw_collab_combo_gather(effect, visible_rect)
+		"collab_module_area":
+			_draw_collab_combo_area(effect, visible_rect)
+		"collab_module_firepower":
+			_draw_collab_combo_firepower(effect, visible_rect)
+		"collab_module_followup":
+			_draw_collab_combo_followup(effect, visible_rect)
+		"collab_module_finisher":
+			_draw_collab_combo_finisher(effect, visible_rect)
+
+func _draw_collab_combo_defense(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#76e5ff"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#3e90c8"), 0.90)
+	var offsets := [Vector2(-82.0, 10.0), Vector2(0.0, -44.0), Vector2(82.0, 10.0)]
+	for index in range(offsets.size()):
+		var panel_center: Vector2 = center + offsets[index] * lerpf(0.28, 1.0, smoothstep(0.0, 0.45, progress))
+		var radius := lerpf(28.0, 48.0, smoothstep(0.0, 0.42, progress))
+		var fill := primary
+		fill.a = minf(0.10 + 0.05 * fade, 0.16)
+		var edge := primary if index != 1 else secondary
+		edge.a = minf(0.78 * fade + 0.16, 0.92)
+		_collab_draw_hex(panel_center, radius, float(index) * 0.24 + float(effect.get("visualSeed", 0.0)) * 0.03, fill, edge, 2.4)
+	if progress > 0.48:
+		var scan_y := center.y + lerpf(-54.0, 54.0, (progress - 0.48) / 0.52)
+		draw_line(center + Vector2(-116.0, scan_y - center.y), center + Vector2(116.0, scan_y - center.y), Color(0.84, 1.0, 1.0, 0.58 * fade), 1.7, true)
+	for position_value in (effect.get("clearedProjectilePositions", []) as Array).slice(0, 6):
+		var projectile_pos := Vector2(position_value)
+		var break_color := secondary
+		break_color.a = minf(0.82 * fade, 0.88)
+		_collab_draw_hex(projectile_pos, 15.0 + progress * 8.0, 0.26, Color(0.50, 0.92, 1.0, 0.06 * fade), break_color, 1.8)
+		draw_line(projectile_pos + Vector2(-10.0, -7.0), projectile_pos + Vector2(6.0, 6.0), Color(1.0, 1.0, 1.0, 0.68 * fade), 1.4, true)
+		draw_line(projectile_pos + Vector2(5.0, -8.0), projectile_pos + Vector2(-4.0, 8.0), break_color, 1.2, true)
+	var fortress_visuals := _collab_effect_visuals(effect, "moderator_fortress")
+	if not fortress_visuals.is_empty():
+		var data := DrawDataSystemScript.moderator_shield_fx_data(center, Vector2.RIGHT, progress, float(effect.get("life", 0.0)), float(effect.get("maxLife", 0.48)), 150.0, 32.0, fortress_visuals)
+		_draw_collab_combo_image_layers(data, 0.42)
+
+func _draw_collab_combo_gather(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#c6a7ff"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#7c5bd8"), 0.90)
+	_draw_collab_combo_thumbnail_frame(center, 96.0, primary, 0.70 * fade, progress)
+	var targets: Array = effect.get("targetPositions", []) as Array
+	if targets.is_empty():
+		targets = [center + Vector2(-110.0, -70.0), center + Vector2(110.0, -46.0), center + Vector2(70.0, 82.0), center + Vector2(-74.0, 74.0)]
+	var anchor := center + Vector2(-120.0, 94.0)
+	for index in range(mini(5, targets.size())):
+		var target := Vector2(targets[index])
+		var lure := anchor.lerp(target, clampf(progress * 1.35 + float(index) * 0.04, 0.0, 1.0))
+		var line_color := secondary if index % 2 == 0 else primary
+		line_color.a = minf(0.68 * fade, 0.78)
+		draw_line(anchor, lure, line_color, 1.4, true)
+		draw_circle(lure, 4.0 + (1.0 - progress) * 3.0, Color(0.98, 0.94, 1.0, 0.64 * fade), false, 1.6)
+		_draw_collab_combo_badge(target, primary if index % 2 == 0 else secondary, 0.78, 0.84 * fade)
+	var rod_visuals := _collab_effect_visuals(effect, "buzz_thumbnail_rod")
+	if not rod_visuals.is_empty():
+		var data := DrawDataSystemScript.tsuri_rod_fx_data(anchor, "gathering", anchor, center, float(effect.get("life", 0.0)), float(effect.get("maxLife", 0.56)), 22.0, 105.0, rod_visuals, Vector2.RIGHT)
+		_draw_collab_combo_image_layers(data, 0.62)
+		var gather_data := DrawDataSystemScript.buzz_thumbnail_rod_gather_fx_data(center, 105.0, float(effect.get("life", 0.0)), float(effect.get("maxLife", 0.56)), rod_visuals)
+		_draw_collab_combo_image_layers(gather_data, 0.34)
+
+func _draw_collab_combo_area(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#8ee8ca"), 0.94)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ff9bc9"), 0.90)
+	var outer_radius := lerpf(44.0, 164.0, smoothstep(0.0, 1.0, progress))
+	draw_arc(center, outer_radius, float(effect.get("visualSeed", 0.0)), float(effect.get("visualSeed", 0.0)) + PI * 1.68, 32, Color(primary.r, primary.g, primary.b, 0.72 * fade), 3.0, true)
+	draw_arc(center, outer_radius - 12.0, float(effect.get("visualSeed", 0.0)) + PI, float(effect.get("visualSeed", 0.0)) + TAU * 0.84, 28, Color(secondary.r, secondary.g, secondary.b, 0.62 * fade), 2.0, true)
+	for index in range(12):
+		var angle := float(effect.get("visualSeed", 0.0)) + float(index) * TAU / 12.0
+		var badge_pos := center + Vector2.from_angle(angle) * (outer_radius * (0.76 + 0.08 * float(index % 2)))
+		_draw_collab_combo_badge(badge_pos, primary if index % 2 == 0 else secondary, 0.72 + float(index % 3) * 0.06, 0.82 * fade)
+		draw_line(badge_pos.lerp(center, 0.16), badge_pos.lerp(center, 0.52), Color(primary.r, primary.g, primary.b, 0.38 * fade), 1.1, true)
+
+func _draw_collab_combo_firepower(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#ffe16a"), 0.98)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ff9d4d"), 0.92)
+	var targets: Array = effect.get("targetPositions", []) as Array
+	if targets.is_empty():
+		targets = [center]
+	var target_count := mini(4, targets.size())
+	for index in range(8):
+		var target := Vector2(targets[index % target_count])
+		var angle := float(index) * TAU / 8.0 + float(effect.get("visualSeed", 0.0)) * 0.11
+		var direction := Vector2.from_angle(angle)
+		var start := target - direction * (52.0 + progress * 34.0)
+		var outer := secondary
+		outer.a = minf(0.62 * fade, 0.76)
+		draw_line(start, target, outer, 4.0, true)
+		var core := Color(1.0, 0.98, 0.82, minf(0.88 * fade, 0.92))
+		draw_line(start + direction.orthogonal() * 1.5, target, core, 1.4, true)
+	var impact := Vector2(targets[0])
+	var pentagon := PackedVector2Array()
+	for index in range(6):
+		pentagon.append(impact + Vector2.from_angle(float(index) * TAU / 5.0 - PI * 0.5) * (18.0 + progress * 12.0))
+	var pentagon_fill := primary
+	pentagon_fill.a = minf(0.12 * fade, 0.16)
+	draw_colored_polygon(pentagon, pentagon_fill)
+	draw_polyline(pentagon, Color(1.0, 0.98, 0.80, 0.84 * fade), 2.2, true)
+	_draw_collab_sync_star_shape(impact, 8.0 + progress * 6.0, float(effect.get("visualSeed", 0.0)), 0.82 * fade, true)
+
+func _draw_collab_combo_followup(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#ff9fca"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ffd36a"), 0.92)
+	var visuals := _collab_effect_visuals(effect, "fansa_climax")
+	for beat in range(3):
+		var beat_start := float(beat) / 3.0
+		if progress + 0.08 < beat_start:
+			continue
+		var beat_progress := clampf((progress - beat_start) / 0.34, 0.0, 1.0)
+		var beat_alpha := fade * (1.0 if beat_progress < 0.74 else (1.0 - (beat_progress - 0.74) / 0.26))
+		var direction := Vector2.RIGHT if beat == 0 else (Vector2.LEFT if beat == 1 else Vector2(1.0, -1.0))
+		_draw_collab_combo_rhythm_beat(center, direction, beat, beat_progress, beat_alpha, primary, secondary, visuals)
+	if progress > 0.66:
+		_draw_collab_combo_confetti(center, primary, secondary, 12, 108.0, fade, float(effect.get("visualSeed", 0.0)))
+
+func _draw_collab_combo_finisher(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#ff5f91"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ff315d"), 0.94)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var hammer_pos := center + Vector2(120.0, -128.0).lerp(Vector2.ZERO, smoothstep(0.0, 0.62, progress))
+	var hammer_angle := lerpf(-0.68, 0.34, smoothstep(0.0, 0.64, progress))
+	for index in range(3):
+		var ghost_pos := hammer_pos - Vector2(18.0, -12.0) * float(index + 1)
+		var ghost := primary
+		ghost.a = minf((0.22 - float(index) * 0.05) * fade, 0.24)
+		_draw_collab_combo_hammer_fallback(ghost_pos, hammer_angle, 0.86 - float(index) * 0.10, ghost)
+	_draw_collab_combo_hammer_fallback(hammer_pos, hammer_angle, 1.0, Color(1.0, 0.96, 1.0, 0.90 * fade), true)
+	var crack_color := secondary
+	crack_color.a = minf(0.88 * fade, 0.92)
+	for index in range(5):
+		var angle := seed + float(index - 2) * 0.30
+		var direction := Vector2.from_angle(angle)
+		draw_line(center + direction * 8.0, center + direction * (42.0 + float(index % 2) * 18.0), crack_color, 2.0, true)
+	if progress > 0.20 and progress < 0.68:
+		var text_alpha := minf(0.30 * fade, 0.32)
+		_draw_outlined_text(center + Vector2(-74.0, -54.0), "BAN", 148, 42, Color(1.0, 1.0, 1.0, text_alpha), Color(0.48, 0.02, 0.18, text_alpha), HORIZONTAL_ALIGNMENT_CENTER)
+
+func _draw_collab_combo_hammer_fallback(center: Vector2, angle: float, scale: float, color: Color, use_texture: bool = false) -> void:
+	if use_texture and ban_hammer_weapon_sprite != null:
+		_draw_rotated_texture(ban_hammer_weapon_sprite, center, Vector2(94.0, 70.0) * scale, angle, color.a)
+		return
+	var dir := Vector2.RIGHT.rotated(angle)
+	var side := Vector2(-dir.y, dir.x)
+	var handle_start := center - dir * 32.0
+	var handle_end := center + dir * 18.0
+	draw_line(handle_start, handle_end, Color(0.28, 0.10, 0.22, color.a), 7.0 * scale, true)
+	var head := PackedVector2Array([center + dir * 28.0 + side * 22.0, center + dir * 8.0 + side * 22.0, center + dir * 8.0 - side * 22.0, center + dir * 28.0 - side * 22.0])
+	var fill := color
+	fill.a = minf(color.a, 0.84)
+	draw_colored_polygon(head, fill)
+	draw_polyline(PackedVector2Array([head[0], head[1], head[2], head[3], head[0]]), Color(0.50, 0.04, 0.20, color.a), 2.0, true)
+
+func _draw_collab_composite_link_effect(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#76e5ff"), 0.94)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ffd36a"), 0.94)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var radius := lerpf(46.0, 152.0, smoothstep(0.0, 1.0, progress))
+	var left := center + Vector2(-radius, 0.0)
+	var right := center + Vector2(radius, 0.0)
+	draw_line(left, center, Color(primary.r, primary.g, primary.b, 0.42 * fade), 1.5, true)
+	draw_line(right, center, Color(secondary.r, secondary.g, secondary.b, 0.42 * fade), 1.5, true)
+	var helix_a := PackedVector2Array()
+	var helix_b := PackedVector2Array()
+	for index in range(17):
+		var t := float(index) / 16.0
+		var x := lerpf(-radius, radius, t)
+		var y := sin(t * TAU * 2.0 + seed) * (10.0 + 16.0 * progress)
+		helix_a.append(center + Vector2(x, y))
+		helix_b.append(center + Vector2(x, -y))
+	draw_polyline(helix_a, Color(primary.r, primary.g, primary.b, 0.68 * fade), 2.2, true)
+	draw_polyline(helix_b, Color(secondary.r, secondary.g, secondary.b, 0.68 * fade), 2.2, true)
+	match String(effect.get("linkStyle", "")):
+		"shield_anvil":
+			_collab_draw_hex(center, 34.0 + progress * 12.0, seed, Color(primary.r, primary.g, primary.b, 0.10 * fade), Color(primary.r, primary.g, primary.b, 0.80 * fade), 2.0)
+			draw_line(center + Vector2(14.0, -6.0), center + Vector2(48.0, -28.0), Color(secondary.r, secondary.g, secondary.b, 0.80 * fade), 3.0, true)
+		"rhythm_ban":
+			_draw_collab_combo_rhythm_beat(center, Vector2.RIGHT, 2, progress, 0.72 * fade, primary, secondary)
+		"thumbnail_smash", "viral_thumbnail", "comment_curation":
+			_draw_collab_combo_thumbnail_frame(center, 52.0 + progress * 12.0, primary, 0.78 * fade, progress)
+		"star_reflector", "star_stage":
+			_draw_collab_sync_star_shape(center, 14.0 + progress * 10.0, seed, 0.78 * fade, true)
+		"moderated_comments", "audience_ring":
+			draw_arc(center, 48.0 + progress * 14.0, seed, seed + TAU * 0.86, 26, Color(primary.r, primary.g, primary.b, 0.74 * fade), 2.4, true)
+			_draw_collab_combo_badge(center + Vector2(0.0, -50.0), secondary, 0.78, 0.78 * fade)
+
+func _draw_collab_composite_finish_effect(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#ffd36a"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color.WHITE, 0.96)
+	var seed := float(effect.get("visualSeed", 0.0))
+	var radius := lerpf(28.0, 148.0, smoothstep(0.0, 1.0, progress))
+	draw_arc(center, radius, seed, seed + PI * 1.36, 32, Color(primary.r, primary.g, primary.b, 0.68 * fade), 2.2, true)
+	draw_arc(center, radius * 0.82, seed + PI, seed + TAU * 0.80, 28, Color(secondary.r, secondary.g, secondary.b, 0.62 * fade), 1.6, true)
+	_draw_collab_sync_star_shape(center, 10.0 + progress * 18.0, seed, minf(0.86 * fade, 0.92), true)
+	for index in range(8):
+		var angle := seed + float(index) * TAU / 8.0
+		var direction := Vector2.from_angle(angle)
+		var start := center + direction * (18.0 + progress * 18.0)
+		var end := center + direction * (44.0 + progress * 108.0)
+		draw_line(start, end, Color(1.0, 1.0, 1.0, 0.62 * fade), 1.2, true)
+
+func _draw_collab_senior_guard_live_effect(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#76e5ff"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ff9fca"), 0.94)
+	var seed := float(effect.get("visualSeed", 0.0))
+	for index in range(3):
+		var side := -1.0 if index == 0 else (1.0 if index == 2 else 0.0)
+		var panel_pos := center + Vector2(side * (54.0 + progress * 56.0), -18.0 + float(index - 1) * 30.0)
+		_collab_draw_hex(panel_pos, 32.0 + progress * 10.0, seed + float(index) * 0.30, Color(primary.r, primary.g, primary.b, 0.10 * fade), Color(primary.r, primary.g, primary.b, 0.84 * fade), 2.3)
+	for beat in range(3):
+		var beat_progress := clampf((progress - float(beat) * 0.14) / 0.32, 0.0, 1.0)
+		if beat_progress <= 0.0:
+			continue
+		_draw_collab_combo_rhythm_beat(center, Vector2.RIGHT if beat != 1 else Vector2.LEFT, beat, beat_progress, fade, secondary, primary, _collab_effect_visuals(effect, "fansa_climax"))
+	if progress > 0.58:
+		var wave_radius := lerpf(38.0, 174.0, clampf((progress - 0.58) / 0.42, 0.0, 1.0))
+		draw_arc(center, wave_radius, seed, seed + PI * 0.82, 24, Color(primary.r, primary.g, primary.b, 0.72 * fade), 2.8, true)
+		draw_arc(center, wave_radius + 12.0, seed + PI, seed + TAU * 0.88, 24, Color(secondary.r, secondary.g, secondary.b, 0.58 * fade), 1.8, true)
+		_draw_collab_combo_confetti(center, primary, secondary, 10, wave_radius, fade, seed)
+
+func _draw_collab_senior_moderate_finish_effect(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#c6a7ff"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#76e5ff"), 0.94)
+	var seed := float(effect.get("visualSeed", 0.0))
+	_draw_collab_combo_thumbnail_frame(center, 72.0 + progress * 20.0, primary, 0.82 * fade, progress)
+	var targets: Array = effect.get("targetPositions", []) as Array
+	for index in range(mini(5, targets.size())):
+		var target := Vector2(targets[index])
+		var start := center + Vector2(-92.0, 72.0)
+		draw_line(start, start.lerp(target, clampf(progress * 1.7, 0.0, 1.0)), Color(primary.r, primary.g, primary.b, 0.56 * fade), 1.5, true)
+	if progress > 0.18:
+		for index in range(3):
+			var panel_pos := center + Vector2(float(index - 1) * 68.0, -12.0)
+			_collab_draw_hex(panel_pos, 30.0 + progress * 8.0, seed + float(index) * 0.24, Color(secondary.r, secondary.g, secondary.b, 0.08 * fade), Color(secondary.r, secondary.g, secondary.b, 0.78 * fade), 2.0)
+	if progress > 0.42:
+		var scan_progress := clampf((progress - 0.42) / 0.24, 0.0, 1.0)
+		var scan_y := lerpf(-72.0, 72.0, scan_progress)
+		draw_line(center + Vector2(-110.0, scan_y), center + Vector2(110.0, scan_y), Color(0.88, 1.0, 1.0, 0.62 * fade), 2.0, true)
+	if progress > 0.62:
+		var ring_progress := clampf((progress - 0.62) / 0.38, 0.0, 1.0)
+		var ring_radius := lerpf(136.0, 46.0, ring_progress)
+		draw_arc(center, ring_radius, seed, seed + TAU * 0.88, 34, Color(primary.r, primary.g, primary.b, 0.72 * fade), 3.0, true)
+		draw_arc(center, ring_radius - 12.0, seed + PI, seed + PI * 1.86, 30, Color(1.0, 1.0, 1.0, 0.56 * fade), 1.4, true)
+	var rod_visuals := _collab_effect_visuals(effect, "buzz_thumbnail_rod")
+	if not rod_visuals.is_empty():
+		var data := DrawDataSystemScript.tsuri_rod_fx_data(center + Vector2(-92.0, 72.0), "gathering", center + Vector2(-92.0, 72.0), center, float(effect.get("life", 0.0)), float(effect.get("maxLife", 1.20)), 22.0, 105.0, rod_visuals, Vector2.RIGHT)
+		_draw_collab_combo_image_layers(data, 0.58)
+	var fortress_visuals := _collab_effect_visuals(effect, "moderator_fortress")
+	if not fortress_visuals.is_empty():
+		var shield_data := DrawDataSystemScript.moderator_shield_fx_data(center, Vector2.RIGHT, progress, float(effect.get("life", 0.0)), float(effect.get("maxLife", 1.20)), 150.0, 32.0, fortress_visuals)
+		_draw_collab_combo_image_layers(shield_data, 0.36)
+
+func _draw_collab_senior_buzz_fishing_effect(effect: Dictionary, _visible_rect: Rect2) -> void:
+	var center := Vector2(effect.get("pos", player_pos))
+	var progress := _collab_effect_progress(effect)
+	var fade := _collab_effect_fade(effect)
+	var primary := _collab_effect_color(effect, "primaryColor", Color("#c6a7ff"), 0.96)
+	var secondary := _collab_effect_color(effect, "secondaryColor", Color("#ff9fca"), 0.94)
+	var seed := float(effect.get("visualSeed", 0.0))
+	_draw_collab_combo_thumbnail_frame(center, 64.0 + progress * 14.0, primary, 0.78 * fade, progress)
+	var lure := center + Vector2(0.0, -48.0).lerp(Vector2(0.0, 6.0), clampf(progress * 1.4, 0.0, 1.0))
+	draw_line(center + Vector2(-110.0, 88.0), lure, Color(primary.r, primary.g, primary.b, 0.60 * fade), 1.8, true)
+	draw_circle(lure, 7.0 + 3.0 * (1.0 - progress), Color(1.0, 0.90, 0.98, 0.72 * fade), false, 2.0)
+	var targets: Array = effect.get("targetPositions", []) as Array
+	for index in range(6):
+		var target := Vector2(targets[index % targets.size()]) if not targets.is_empty() else center + Vector2.from_angle(float(index) * TAU / 6.0) * 118.0
+		var direction := (target - center).normalized()
+		var start := center + direction * 34.0
+		var end := start.lerp(target, clampf(progress * 1.75, 0.0, 1.0))
+		draw_line(start, end, Color(secondary.r, secondary.g, secondary.b, 0.58 * fade), 1.4, true)
+	for beat in range(3):
+		var beat_progress := clampf((progress - 0.38 - float(beat) * 0.10) / 0.28, 0.0, 1.0)
+		if beat_progress > 0.0:
+			_draw_collab_combo_rhythm_beat(center, Vector2.RIGHT if beat != 1 else Vector2.LEFT, beat, beat_progress, fade, secondary, primary, _collab_effect_visuals(effect, "fansa_climax"))
+	if progress > 0.62:
+		var explosion_progress := clampf((progress - 0.62) / 0.38, 0.0, 1.0)
+		var explosion_radius := lerpf(20.0, 120.0, explosion_progress)
+		draw_arc(center, explosion_radius, seed, seed + TAU * 0.84, 30, Color(primary.r, primary.g, primary.b, 0.74 * fade), 3.0, true)
+		_draw_collab_sync_star_shape(center, 10.0 + explosion_progress * 9.0, seed, 0.76 * fade, true)
+		_draw_collab_combo_confetti(center, primary, secondary, 10, explosion_radius, fade, seed)
+		var explosion_visuals := _collab_effect_visuals(effect, "buzz_thumbnail_rod")
+		if not explosion_visuals.is_empty():
+			var explosion_data := DrawDataSystemScript.buzz_thumbnail_rod_explosion_fx_data(center, explosion_radius, lerpf(0.001, 0.38, explosion_progress), 0.38, explosion_visuals)
+			_draw_collab_combo_image_layers(explosion_data, 0.40)
+	var rod_visuals := _collab_effect_visuals(effect, "buzz_thumbnail_rod")
+	if not rod_visuals.is_empty():
+		var rod_data := DrawDataSystemScript.tsuri_rod_fx_data(center + Vector2(-110.0, 88.0), "gathering", center + Vector2(-110.0, 88.0), lure, float(effect.get("life", 0.0)), float(effect.get("maxLife", 1.24)), 22.0, 105.0, rod_visuals, Vector2.RIGHT)
+		_draw_collab_combo_image_layers(rod_data, 0.56)
 
 func _draw_collab_partner_weapon_effect(effect: Dictionary, visible_rect: Rect2) -> void:
 	var kind := String(effect.get("kind", ""))
@@ -13427,7 +14199,6 @@ func _draw_collab_division_noise_overlay(enemy: Dictionary, pos: Vector2) -> voi
 	var radius := float(enemy.get("radius", 25.0))
 	var uid := int(enemy.get("uid", 0))
 	var seed := float(enemy.get("divisionNoiseVisualSeed", enemy.get("divisionOrbitPhase", 0.0)))
-	var pulse := 0.94 + 0.06 * sin(elapsed * 7.0 + seed)
 	var nearby_count := 0
 	for other_item in enemies:
 		var other: Dictionary = other_item as Dictionary
@@ -13437,12 +14208,8 @@ func _draw_collab_division_noise_overlay(enemy: Dictionary, pos: Vector2) -> voi
 			nearby_count += 1
 	var crowd_alpha := 1.0 - minf(0.32, float(nearby_count) * 0.16)
 	var variant := posmod(uid, 3)
-	var cyan_strength := 0.76 if variant == 0 else 0.58
-	var pink_strength := 0.76 if variant == 1 else 0.58
 	var fracture_strength := 0.82 if variant == 2 else 0.64
-	var edge_radius := radius * 1.18 * pulse
-	draw_arc(pos, edge_radius, seed + 0.14, seed + PI * 0.72, 14, Color(0.30, 0.82, 1.0, cyan_strength * crowd_alpha), 2.2, true)
-	draw_arc(pos, edge_radius, seed + PI * 1.16, seed + PI * 1.84, 14, Color(1.0, 0.30, 0.66, pink_strength * crowd_alpha), 2.2, true)
+	# The PNG supplies the pink/cyan silhouette; do not overlay colored rim arcs.
 	var broken_radius := radius * 1.34
 	draw_arc(pos, broken_radius, seed + 2.15, seed + 2.86, 8, Color(0.12, 0.025, 0.18, 0.62 * crowd_alpha), 1.4, true)
 	_draw_collab_division_noise_fracture(pos, seed + elapsed * 0.35, fracture_strength * crowd_alpha, radius * 0.34)
@@ -15376,22 +16143,23 @@ func _draw_relay_boss_hud() -> void:
 	var ratio := clampf(relay_boss_hp / maxf(1.0, relay_boss_max_hp), 0.0, 1.0)
 	if defense_active:
 		ratio = clampf(float(defense.get("barrierStartRatio", ratio)), 0.0, 1.0)
-	var rect := Rect2(Vector2(350.0, 194.0), Vector2(900.0, 78.0))
+	var layout: Dictionary = _boss_hud_layout_v25(true)
+	var rect: Rect2 = layout["panel"] as Rect2
 	var dim := 0.72 if defense_active else 1.0
 	draw_rect(rect.grow(5.0), Color(0.20, 0.02, 0.12, 0.34 * dim), true)
 	draw_rect(rect, Color(0.12, 0.03, 0.14, 0.94 * dim), true)
 	_draw_rect_outline(rect, Color("#ff507f") if not defense_active else Color("#d9c7ff"), 3.0)
-	_draw_outlined_text(rect.position + Vector2(18.0, 29.0), "LAST OFFLINE", 250, 21, Color("#fff3a6"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_LEFT)
+	_draw_outlined_text(layout["namePosition"] as Vector2, "LAST OFFLINE", int(layout["nameWidth"]), 21, Color("#fff3a6"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_LEFT)
 	var phase_count := RelayBossSystemScript.phase_count_for_target(self)
-	_draw_outlined_text(rect.position + Vector2(716.0, 28.0), "PHASE %d / %d" % [mini(relay_boss_phase + 1, phase_count), phase_count], 155, 16, Color("#ffc1d4") if not defense_active else Color("#e8dcff"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_RIGHT)
-	var bar := Rect2(rect.position + Vector2(18.0, 42.0), Vector2(864.0, 20.0))
+	_draw_outlined_text(layout["phasePosition"] as Vector2, "PHASE %d / %d" % [mini(relay_boss_phase + 1, phase_count), phase_count], int(layout["phaseWidth"]), 16, Color("#ffc1d4") if not defense_active else Color("#e8dcff"), Color("#3a102d"), HORIZONTAL_ALIGNMENT_RIGHT)
+	var bar: Rect2 = layout["barRect"] as Rect2
 	draw_rect(bar, Color("#32172d"), true)
 	draw_rect(Rect2(bar.position, Vector2(bar.size.x * ratio, bar.size.y)), Color("#ff4f92") if not defense_active else Color("#9a76c7"), true)
 	_draw_rect_outline(bar, Color("#ffd0e0"), 2.0)
-	_draw_outlined_text(bar.position + Vector2(0.0, 16.0), "%d / %d" % [maxi(0, int(ceil(relay_boss_hp))), int(ceil(relay_boss_max_hp))], int(bar.size.x), 13, Color.WHITE, Color("#48102f"), HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_outlined_text(layout["hpTextPosition"] as Vector2, "%d / %d" % [maxi(0, int(ceil(relay_boss_hp))), int(ceil(relay_boss_max_hp))], int(layout["hpTextWidth"]), 13, Color.WHITE, Color("#48102f"), HORIZONTAL_ALIGNMENT_CENTER)
 	if defense_active:
-		_draw_relay_boss_lock_icon(rect.position + Vector2(690.0, 20.0))
-		_draw_outlined_text(rect.position + Vector2(350.0, 38.0), "フェーズ移行中", 210, 13, Color("#fff7ff"), Color("#3d205b"), HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_relay_boss_lock_icon(layout["lockPosition"] as Vector2)
+		_draw_outlined_text(layout["transitionPosition"] as Vector2, "フェーズ移行中", int(layout["transitionWidth"]), 13, Color("#fff7ff"), Color("#3d205b"), HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_relay_boss_support_fx() -> void:
 	for item in relay_boss_support_fx:
@@ -15403,8 +16171,8 @@ func _draw_relay_boss_support_fx() -> void:
 		if bool(fx.get("arrived", false)):
 			var arrival_alpha := clampf(1.0 - float(fx.get("arrivalAge", 0.0)) / 0.42, 0.0, 1.0)
 			draw_circle(to_pos, 34.0 + (1.0 - arrival_alpha) * 18.0, Color(0.72, 1.0, 0.91, 0.18 * arrival_alpha))
-			var arrival_text := ("HP +%d" % int(fx.get("healAmount", 0))) if String(fx.get("id", "")) == "boss_support_dont_lose" else "POWER UP"
-			_draw_outlined_text(to_pos + Vector2(-82.0, -38.0), arrival_text, 164, 18, Color("#fff9d2"), Color("#7d3d67"), HORIZONTAL_ALIGNMENT_CENTER)
+			if String(fx.get("id", "")) != "boss_support_dont_lose":
+				_draw_outlined_text(to_pos + Vector2(-82.0, -38.0), "POWER UP", 164, 18, Color("#fff9d2"), Color("#7d3d67"), HORIZONTAL_ALIGNMENT_CENTER)
 			for sparkle_index in range(4):
 				var sparkle_pos := to_pos + Vector2.from_angle(float(sparkle_index) * TAU / 4.0 + age * 2.0) * (20.0 + age * 16.0)
 				draw_line(sparkle_pos - Vector2(5.0, 0.0), sparkle_pos + Vector2(5.0, 0.0), Color(0.82, 1.0, 0.91, arrival_alpha), 2.0, true)
@@ -15453,12 +16221,13 @@ func _draw_boss_hp_overlay() -> void:
 		var delay_max := maxf(0.01, float(boss.get("defeatDelayMax", 0.55)))
 		defeat_progress = clampf(1.0 - float(boss.get("defeatDelay", 0.0)) / delay_max, 0.0, 1.0)
 		overlay_alpha = clampf(1.0 - maxf(0.0, defeat_progress - 0.35) / 0.65, 0.0, 1.0)
-	var rect := Rect2(Vector2(388, 112), Vector2(640, 50))
+	var layout: Dictionary = _boss_hud_layout_v25(false)
+	var rect: Rect2 = layout["panel"] as Rect2
 	draw_rect(rect, Color(1.0, 1.0, 1.0, 0.94 * overlay_alpha), true)
 	var border_color := Color("#c8b8ff")
 	border_color.a *= overlay_alpha
 	_draw_rect_outline(rect, border_color, 3)
-	var bar_rect := Rect2(rect.position + Vector2(142, 25), Vector2(482, 14))
+	var bar_rect: Rect2 = layout["barRect"] as Rect2
 	draw_rect(bar_rect, Color(0.14, 0.09, 0.19, overlay_alpha), true)
 	draw_rect(Rect2(bar_rect.position, Vector2(bar_rect.size.x * ratio, bar_rect.size.y)), Color(1.0, 0.31, 0.57, overlay_alpha), true)
 	var bar_border := Color("#6f55c8")
@@ -15474,8 +16243,8 @@ func _draw_boss_hp_overlay() -> void:
 		draw_line(bar_rect.position + Vector2(276, -8), bar_rect.position + Vector2(322, 17), crack_color, 2.0)
 	var name_color := Color("#332255")
 	name_color.a *= overlay_alpha
-	_draw_text_item({"pos": rect.position + Vector2(18, 34), "text": String(boss.get("displayName", "超長文ニキ")), "width": 132, "size": 20, "color": name_color})
-	_draw_text_item({"pos": rect.position + Vector2(516, 20), "text": "%d/%d" % [maxi(0, int(ceil(float(boss.get("hp", 0.0))))), int(ceil(max_hp))], "width": 108, "size": 14, "color": name_color})
+	_draw_text_item({"pos": layout["namePosition"] as Vector2, "text": String(boss.get("displayName", "超長文ニキ")), "width": int(layout["nameWidth"]), "size": 20, "color": name_color})
+	_draw_text_item({"pos": layout["hpTextPosition"] as Vector2, "text": "%d/%d" % [maxi(0, int(ceil(float(boss.get("hp", 0.0))))), int(ceil(max_hp))], "width": int(layout["hpTextWidth"]), "size": 14, "color": name_color})
 
 func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null, image_layer: String = "front") -> void:
 	var fx_draw_items: Array = []
@@ -15489,6 +16258,37 @@ func _draw_hit_fx(field_layer: bool = false, draw_items: Variant = null, image_l
 		if is_field_fx != field_layer:
 			continue
 		_draw_hit_fx_item(data, image_layer)
+
+func _draw_mental_heal_text_foreground(draw_items: Array) -> void:
+	for item in draw_items:
+		var data: Dictionary = item as Dictionary
+		if String(data.get("kind", "")) != "mental_heal":
+			continue
+		var label_text := String(data.get("labelText", ""))
+		if label_text == "":
+			continue
+		var label_pos := Vector2(data.get("labelPos", data.get("glowPos", Vector2.ZERO)))
+		var label_color: Color = data.get("labelColor", Color(0.76, 1.0, 0.84, 1.0)) as Color
+		var outline_color: Color = data.get("labelOutlineColor", Color(0.04, 0.24, 0.16, 0.96)) as Color
+		_draw_mental_heal_label(
+			label_pos,
+			label_text,
+			int(data.get("labelWidth", 190)),
+			int(data.get("labelSize", 23)),
+			label_color,
+			outline_color,
+			clampf(float(data.get("labelOutlineWidth", 2.5)), 2.0, 3.0)
+		)
+
+func _draw_mental_heal_label(pos: Vector2, text: String, width: int, size: int, color: Color, outline: Color, outline_width: float) -> void:
+	for offset in [
+		Vector2(-outline_width, 0.0), Vector2(outline_width, 0.0),
+		Vector2(0.0, -outline_width), Vector2(0.0, outline_width),
+		Vector2(-outline_width, -outline_width), Vector2(outline_width, -outline_width),
+		Vector2(-outline_width, outline_width), Vector2(outline_width, outline_width)
+	]:
+		_draw_text_item({"pos": pos + offset, "text": text, "width": width, "size": size, "fontWeight": "black", "color": outline}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_text_item({"pos": pos, "text": text, "width": width, "size": size, "fontWeight": "black", "color": color}, "", HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_hit_fx_item(data: Dictionary, image_layer: String = "front") -> void:
 	var effect_kind := String(data.get("kind", ""))
@@ -16760,6 +17560,14 @@ func _draw_hit_fx_image_layer(layer: Dictionary) -> bool:
 	_draw_rotated_texture(texture, center, size, angle, float(layer.get("alpha", 1.0)), flip_x)
 	return true
 
+func _load_hit_fx_texture_for_data(data: Dictionary) -> Texture2D:
+	var path: String = String(data.get("imagePath", ""))
+	if path == "":
+		return null
+	if bool(data.get("imageUseMipmaps", false)):
+		return TextureCacheSystemScript.load_small_ui_texture(equipment_icon_cache, path)
+	return TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+
 func _draw_hit_fx_texture(data: Dictionary, image_layer: String = "front") -> bool:
 	var drawn := false
 	var image_layers: Array = (data.get("imageLayers", []) as Array).duplicate()
@@ -16776,7 +17584,7 @@ func _draw_hit_fx_texture(data: Dictionary, image_layer: String = "front") -> bo
 	var path: String = String(data.get("imagePath", ""))
 	if path == "":
 		return drawn
-	var texture: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, path)
+	var texture: Texture2D = _load_hit_fx_texture_for_data(data)
 	if texture == null:
 		return drawn
 	var pos: Vector2 = Vector2(data.get("imagePos", data.get("pos", Vector2.ZERO)))
@@ -17284,7 +18092,7 @@ func _draw_instruction_countdown_v25() -> void:
 	var risk: int = _current_instruction_risk_v25()
 	var effect_left: float = maxf(0.0, relay_boss_instruction_timer if relay_boss_active else effect_timer)
 	var support_instruction_active := relay_boss_active and String(relay_boss_instruction.get("category", "")) == "boss_support" and relay_boss_instruction_timer > 0.0
-	var rect := Rect2(Vector2(20, 108), Vector2(1200, 76))
+	var rect := _instruction_countdown_rect_v25()
 	var accent: Color = Color("#8ce8d5") if support_instruction_active else (Color("#ff4f92") if risk >= 4 else Color("#ff73ad"))
 	if alert and not support_instruction_active:
 		accent = Color("#ff3f78")
@@ -17301,13 +18109,45 @@ func _draw_instruction_countdown_v25() -> void:
 		_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.0), border, 18, 2, false)
 	var current_text := _short_pause_text(_current_instruction_panel_text_v25(), 33)
 	var current_color := Color("#101420") if current_text != "なし" else Color("#817184")
+	var resolved_comment_view := _active_instruction_comment_view(last_comment_id)
+	if resolved_comment_view.is_empty() and not relay_boss_active and last_comment_id != "":
+		var comment_data := _find_comment_data(last_comment_id)
+		if not comment_data.is_empty():
+			resolved_comment_view = CommentSystemScript.comment_view(comment_data, _instruction_comment_heart_active(last_comment_id))
+	var multiplier_view: Dictionary = HudTextSystemScript.instruction_multiplier_view({
+		"active": current_text != "なし",
+		"effectTimer": effect_left,
+		"resolvedCommentView": resolved_comment_view,
+		"commentBoost": comment_boost,
+		"relayBossActive": relay_boss_active,
+		"relayBossInstruction": relay_boss_instruction
+	})
+	var multiplier_visible := bool(multiplier_view.get("visible", false))
+	var climax_view: Dictionary = HudTextSystemScript.hard_climax_view({
+		"state": state,
+		"difficultyId": run_difficulty_id,
+		"difficultyRuntime": difficulty_runtime,
+		"relayBossActive": relay_boss_active
+	})
+	var climax_visible := bool(climax_view.get("visible", false))
+	var countdown_layout: Dictionary = HudTextSystemScript.instruction_countdown_layout(rect, multiplier_visible, climax_visible)
+	var title_layout: Dictionary = HudTextSystemScript.instruction_title_layout(current_text, float(countdown_layout.get("titleWidth", 800.0)), 28, 16)
 	_draw_text_item({"pos": rect.position + Vector2(24, 25), "text": "現在の指示コメ", "width": 126, "size": 14, "color": Color("#e73783")})
-	_draw_text_item({"pos": rect.position + Vector2(156, 33), "text": current_text, "width": 800, "size": 28, "color": current_color, "fontWeight": "black"})
+	_draw_text_item({"pos": countdown_layout["titlePos"] as Vector2, "text": String(title_layout.get("text", current_text)), "width": int(countdown_layout.get("titleWidth", 800.0)), "size": int(title_layout.get("size", 28)), "color": current_color, "fontWeight": "black"})
 	if support_instruction_active:
 		_draw_text_item({"pos": rect.position + Vector2(24, 25), "text": "応援", "width": 126, "size": 14, "color": Color("#b47b20"), "fontWeight": "black"})
+	if multiplier_visible:
+		var multiplier_rect: Rect2 = countdown_layout["multiplierRect"] as Rect2
+		_draw_ranking_panel(multiplier_rect, Color("#f4efff"), Color("#b99be2"), 14, 1, false)
+		_draw_text_item({"pos": multiplier_rect.position + Vector2(0.0, 20.0), "text": String(multiplier_view.get("text", "")), "width": int(multiplier_rect.size.x), "size": 15, "color": Color("#7252aa"), "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
+	if climax_visible:
+		var climax_rect: Rect2 = countdown_layout["climaxRect"] as Rect2
+		_draw_ranking_panel(climax_rect, Color("#fff7e8"), Color("#f0b34f"), 12, 1, false)
+		_draw_text_item({"pos": climax_rect.position + Vector2(0.0, 16.0), "text": String(climax_view.get("title", "終盤ボーナス中")), "width": int(climax_rect.size.x), "size": 11, "color": Color("#9b5a10"), "fontWeight": "black"}, "", HORIZONTAL_ALIGNMENT_CENTER)
+		_draw_text_item({"pos": climax_rect.position + Vector2(0.0, 34.0), "text": String(climax_view.get("description", "通常敵の撃破スコア＋20％")), "width": int(climax_rect.size.x), "size": 11, "color": Color("#7f4d19"), "fontWeight": "bold"}, "", HORIZONTAL_ALIGNMENT_CENTER)
 	if current_text != "なし":
 		var remain_fill := Color("#fff3fa") if not urgent else Color("#ffe6f0")
-		var remain_rect := Rect2(rect.position + Vector2(rect.size.x - 152, 11), Vector2(124, 28))
+		var remain_rect: Rect2 = countdown_layout["remainingRect"] as Rect2
 		_draw_ranking_panel(remain_rect, remain_fill, Color(1.0, 0.45, 0.70, 0.35), 14, 1, false)
 		_draw_text_item({"pos": remain_rect.position + Vector2(0, 21), "text": "残り %02d秒" % maxi(0, int(ceil(effect_left))), "width": int(remain_rect.size.x), "size": 16, "color": Color("#e73763")}, "", HORIZONTAL_ALIGNMENT_CENTER)
 	if support_instruction_active:
@@ -17533,12 +18373,15 @@ func _mental_hud_fill_color(ratio: float) -> Color:
 func _draw_mental_hud_card_v25(rect: Rect2) -> void:
 	var ratio := _displayed_mental_hud_ratio()
 	var accent := _mental_hud_fill_color(ratio)
+	var heal_pulse := DrawDataSystemScript.mental_heal_hud_pulse_alpha(mental_heal_hud_pulse_timer)
 	var image_drawn := _draw_hud_ui_texture_v25(HUD_UI_METRIC_MENTAL_IMAGE, rect)
 	if not image_drawn:
 		_draw_ranking_panel(rect, Color(1.0, 1.0, 1.0, 0.94), Color("#ffc1da"), 6, 2, false)
 		draw_rect(Rect2(rect.position + Vector2(0, rect.size.y - 5), Vector2(rect.size.x, 5)), accent, true)
 	if not _draw_hud_metric_icon_v25(HUD_METRIC_ICON_MENTAL_IMAGE, Rect2(rect.position + Vector2(11, 10), Vector2(38, 38))):
 		_draw_text_item({"pos": rect.position + Vector2(18, 51), "text": "♡", "width": 28, "size": 26, "color": accent})
+	if heal_pulse > 0.0:
+		_draw_rect_outline(rect.grow(2.0 + heal_pulse * 2.0), Color(0.42, 1.0, 0.72, 0.18 + heal_pulse * 0.28), 2.0 + heal_pulse)
 	_draw_text_item({"pos": rect.position + Vector2(58, 32), "text": "メンタル", "width": 92, "size": 14, "color": Color("#101420")})
 	_draw_text_item({"pos": rect.position + Vector2(rect.size.x - 64, 32), "text": _mental_hud_text(), "width": 48, "size": 15, "color": Color("#101420")}, "", HORIZONTAL_ALIGNMENT_RIGHT)
 	var gauge := Rect2(rect.position + Vector2(58, 37), Vector2(rect.size.x - 74, 12))
@@ -17762,7 +18605,7 @@ func _equipment_icon_path_for_item(item: Dictionary, source_data: Array = []) ->
 	return ""
 
 func _load_equipment_icon(path: String) -> Texture2D:
-	return TextureCacheSystemScript.load_png_texture(equipment_icon_cache, path)
+	return TextureCacheSystemScript.load_small_ui_texture(equipment_icon_cache, path)
 
 func _draw_comment_countdown() -> void:
 	return
@@ -19144,6 +19987,7 @@ func _execute_options_reset() -> void:
 	_close_options_reset_confirm()
 	_sync_title_bgm()
 	_apply_bgm_volumes()
+	_sync_weapon_activation_se_volume()
 	_refresh_options_screen()
 	_update_ui()
 	queue_redraw()
@@ -19210,6 +20054,7 @@ func _apply_options_input_action(action: String) -> void:
 		return
 	_sync_title_bgm()
 	_apply_bgm_volumes()
+	_sync_weapon_activation_se_volume()
 	_refresh_options_screen()
 	_update_ui()
 	queue_redraw()
@@ -19284,6 +20129,7 @@ func _set_options_slider_value(index: int, mouse_x: float) -> void:
 	SettingsSystemScript.save_for_target(self)
 	_sync_title_bgm()
 	_apply_bgm_volumes()
+	_sync_weapon_activation_se_volume()
 	_play_cursor_move_se()
 	_refresh_options_screen()
 	_update_ui()
@@ -19324,6 +20170,7 @@ func _draw_result_overlay() -> void:
 	var panel_border := Color("#ffd46a") if completed else (Color("#d83b8f") if mental_breakdown else Color("#ffbad8"))
 	var panel_fill := Color(1.0, 0.995, 0.965, 0.97) if completed else (Color(1.0, 0.94, 0.978, 0.985) if mental_breakdown else Color(1.0, 0.985, 0.995, 0.97))
 	_draw_ranking_panel(panel, panel_fill, panel_border, 36, 4, true)
+	_draw_result_customization_band(panel)
 	if mental_breakdown:
 		_draw_result_accident_noise(panel)
 	elif completed:
@@ -19338,6 +20185,85 @@ func _draw_result_overlay() -> void:
 		_draw_result_stream_complete_character(layout["characterPanel"] as Rect2, data)
 	if _result_buttons_are_visible():
 		_draw_result_buttons(layout)
+
+func _draw_result_customization_band(panel: Rect2) -> void:
+	if power_up_shop_manager == null or not power_up_shop_manager.has_method("equipped_customizations"):
+		return
+	var equipped: Dictionary = power_up_shop_manager.equipped_customizations()
+	var title_id := String(equipped.get("title", ""))
+	var theme_id := String(equipped.get("theme", ""))
+	var stamp_id := String(equipped.get("resultStamp", ""))
+	var title_name: String = String(power_up_shop_manager.equipped_customization_display_name("title")) if title_id != "" else ""
+	var stamp_name: String = String(power_up_shop_manager.equipped_customization_display_name("result_stamp")) if stamp_id != "" else ""
+	var theme_name := ""
+	if theme_id != "":
+		var theme_item: Dictionary = power_up_shop_manager.get_customization_item(theme_id)
+		theme_name = String(theme_item.get("displayName", "")) if String(theme_item.get("category", "")) == "theme" else ""
+	if title_name == "" and stamp_name == "" and theme_name == "":
+		return
+	var theme := CustomizationProviderScript.theme_preset(theme_id)
+	var band_width := minf(panel.size.x - 72.0, 930.0)
+	var band_height := 46.0
+	var band_rect := Rect2(Vector2(panel.position.x + (panel.size.x - band_width) * 0.5, maxf(8.0, panel.position.y - band_height - 12.0)), Vector2(band_width, band_height))
+	var fill: Color = theme.get("decorativeFill", Color.WHITE) as Color
+	var border: Color = theme.get("decorativeBorder", Color("#ead7e9")) as Color
+	var accent: Color = theme.get("decorativeAccent", Color("#f05aa5")) as Color
+	var secondary: Color = theme.get("decorativeSecondary", Color("#8de7ff")) as Color
+	var tertiary: Color = theme.get("decorativeTertiary", Color("#a875e8")) as Color
+	_draw_ranking_panel(band_rect, Color(fill, 0.97), border, 18, 3, true)
+	draw_line(band_rect.position + Vector2(18.0, 7.0), Vector2(band_rect.end.x - 18.0, band_rect.position.y + 7.0), Color(accent, 0.86), 3.0, true)
+	draw_line(band_rect.position + Vector2(18.0, band_rect.size.y - 7.0), Vector2(band_rect.end.x - 18.0, band_rect.end.y - 7.0), Color(secondary, 0.72), 2.0, true)
+	draw_circle(band_rect.position + Vector2(band_rect.size.x - 22.0, 15.0), 6.0, Color(tertiary, 0.32))
+	var left_width := band_rect.size.x * 0.58
+	var left_text := ""
+	if title_name != "":
+		left_text = "肩書き：%s" % title_name
+	elif theme_name != "":
+		left_text = "テーマ：%s" % theme_name
+	if left_text != "":
+		var fitted_left := _character_select_fit_text(left_text, 17, left_width - 24.0, 12)
+		_draw_ranking_text(String(fitted_left.get("text", left_text)), band_rect.position + Vector2(18.0, 31.0), int(fitted_left.get("size", 17)), Color(theme.get("decorativeText", Color("#4f3149")) as Color), left_width - 24.0)
+	if stamp_name != "":
+		var stamp_preset := CustomizationProviderScript.stamp_preset(String(power_up_shop_manager.get_customization_item(stamp_id).get("presentationId", stamp_id)))
+		var stamp_accent: Color = stamp_preset.get("accent", accent) as Color
+		var stamp_secondary: Color = stamp_preset.get("secondary", secondary) as Color
+		var stamp_rect := Rect2(Vector2(band_rect.position.x + left_width + 8.0, band_rect.position.y + 10.0), Vector2(band_rect.size.x - left_width - 26.0, 26.0))
+		_draw_result_customization_stamp(stamp_rect, String(power_up_shop_manager.get_customization_item(stamp_id).get("presentationId", stamp_id)), stamp_accent, stamp_secondary)
+		var stamp_label_rect := Rect2(stamp_rect.position + Vector2(42.0, -1.0), Vector2(stamp_rect.size.x - 46.0, stamp_rect.size.y + 2.0))
+		var fitted_stamp := _character_select_fit_text(stamp_name, 14, stamp_label_rect.size.x, 10)
+		_draw_ranking_text(String(fitted_stamp.get("text", stamp_name)), stamp_label_rect.position + Vector2(0.0, 18.0), int(fitted_stamp.get("size", 14)), stamp_accent.darkened(0.22), stamp_label_rect.size.x)
+
+func _draw_result_customization_stamp(rect: Rect2, presentation_id: String, accent: Color, secondary: Color) -> void:
+	var preset := CustomizationProviderScript.stamp_preset(presentation_id)
+	var center := rect.get_center() + Vector2(-rect.size.x * 0.5 + 18.0, 0.0)
+	match String(preset.get("motif", "bubble_star")):
+		"end_placard":
+			_draw_ranking_panel(Rect2(rect.position + Vector2(1.0, 3.0), Vector2(32.0, rect.size.y - 6.0)), Color(secondary, 0.20), accent, 6, 2, false)
+			draw_line(rect.position + Vector2(8.0, rect.size.y * 0.5), rect.position + Vector2(26.0, rect.size.y * 0.5), accent, 2.0, true)
+		"save_card":
+			draw_rect(Rect2(rect.position + Vector2(3.0, 4.0), Vector2(30.0, rect.size.y - 8.0)), Color(secondary, 0.18), true)
+			var play_center := rect.position + Vector2(18.0, rect.size.y * 0.5)
+			draw_colored_polygon(PackedVector2Array([play_center + Vector2(-6.0, -8.0), play_center + Vector2(8.0, 0.0), play_center + Vector2(-6.0, 8.0)]), Color(accent, 0.90))
+		"upward_star":
+			draw_line(rect.position + Vector2(4.0, rect.size.y - 6.0), rect.position + Vector2(20.0, 7.0), accent, 3.0, true)
+			draw_line(rect.position + Vector2(20.0, 7.0), rect.position + Vector2(17.0, 14.0), accent, 3.0, true)
+			draw_line(rect.position + Vector2(20.0, 7.0), rect.position + Vector2(13.0, 9.0), accent, 3.0, true)
+			_draw_result_customization_star(rect.position + Vector2(29.0, 8.0), 6.0, secondary)
+		"comment_bubbles":
+			_draw_ranking_panel(Rect2(rect.position + Vector2(1.0, 10.0), Vector2(25.0, 13.0)), Color(accent, 0.16), accent, 5, 1, false)
+			draw_colored_polygon(PackedVector2Array([rect.position + Vector2(7.0, 23.0), rect.position + Vector2(13.0, 23.0), rect.position + Vector2(10.0, 27.0)]), Color(accent, 0.78))
+			_draw_ranking_panel(Rect2(rect.position + Vector2(13.0, 3.0), Vector2(25.0, 13.0)), Color(secondary, 0.16), secondary, 5, 1, false)
+		_:
+			_draw_ranking_panel(Rect2(rect.position + Vector2(1.0, 7.0), Vector2(29.0, 14.0)), Color(accent, 0.16), accent, 6, 1, false)
+			_draw_result_customization_star(rect.position + Vector2(35.0, 7.0), 6.0, secondary)
+
+func _draw_result_customization_star(center: Vector2, radius: float, color: Color) -> void:
+	var points := PackedVector2Array()
+	for index in range(10):
+		var angle := -PI * 0.5 + float(index) * PI / 5.0
+		var value := radius if index % 2 == 0 else radius * 0.42
+		points.append(center + Vector2(cos(angle), sin(angle)) * value)
+	draw_colored_polygon(points, Color(color, 0.88))
 
 func _result_buttons_are_visible() -> bool:
 	var end_type := String(last_result_data.get("endType", ""))
@@ -20123,10 +21049,13 @@ func _draw_result_trouble_card(rect: Rect2, data: Dictionary) -> void:
 			_draw_ranking_text(_short_pause_text(String(row.get("text", "")), 66), rect.position + Vector2(18, y), 14 if rows.size() >= 5 else 15, row.get("color", Color("#4f3149")) as Color, rect.size.x - 36)
 
 func _completed_reward_grid_layout(rect: Rect2, row_count: int) -> Dictionary:
-	var visible_rows := mini(maxi(row_count, 0), 6)
-	var columns := 1 if visible_rows <= 3 else 2
+	# The existing reward sources can occupy ten rows; V1 adds one aggregate
+	# 配信目標 row. Keep all eleven visible by switching to three columns only
+	# for that combined maximum instead of truncating the new row.
+	var visible_rows := mini(maxi(row_count, 0), 11)
+	var columns := 1 if visible_rows <= 3 else (3 if visible_rows > 10 else 2)
 	var rows_per_column := int(ceil(float(visible_rows) / float(columns))) if visible_rows > 0 else 0
-	var column_gap := 10.0 if columns == 2 else 0.0
+	var column_gap := 8.0 if columns == 3 else (10.0 if columns == 2 else 0.0)
 	var column_width := (rect.size.x - 32.0 - column_gap * float(columns - 1)) / float(columns)
 	return {
 		"visibleRows": visible_rows,
@@ -20134,14 +21063,15 @@ func _completed_reward_grid_layout(rect: Rect2, row_count: int) -> Dictionary:
 		"rowsPerColumn": rows_per_column,
 		"columnGap": column_gap,
 		"columnWidth": column_width,
-		"rowStep": 18.0,
-		"amountWidth": 64.0,
-		"badgeWidth": 32.0
+		"rowStep": 14.0 if visible_rows > 6 else 18.0,
+		"amountWidth": 58.0 if columns == 3 else 64.0,
+		"badgeWidth": 22.0 if columns == 3 else 32.0
 	}
 
-func _completed_reward_card_metrics(rect: Rect2) -> Dictionary:
-	var divider_y := minf(93.0, maxf(0.0, rect.size.y - 23.0))
-	var total_baseline := minf(109.0, maxf(divider_y + 15.0, rect.size.y - 7.0))
+func _completed_reward_card_metrics(rect: Rect2, row_count: int = 0) -> Dictionary:
+	var compact := row_count > 6
+	var divider_y := minf(99.0 if compact else 93.0, maxf(0.0, rect.size.y - 23.0))
+	var total_baseline := minf(111.0 if compact else 109.0, maxf(divider_y + 15.0, rect.size.y - 7.0))
 	return {
 		"dividerY": divider_y,
 		"totalBaseline": total_baseline,
@@ -20187,7 +21117,7 @@ func _draw_result_point_reward_card(rect: Rect2, data: Dictionary) -> void:
 	var row_step := float(reward_layout["rowStep"])
 	var amount_width := float(reward_layout["amountWidth"])
 	var badge_width := float(reward_layout["badgeWidth"])
-	var reward_metrics := _completed_reward_card_metrics(rect)
+	var reward_metrics := _completed_reward_card_metrics(rect, rows.size())
 	var divider_y := float(reward_metrics["dividerY"])
 	draw_line(rect.position + Vector2(16.0, divider_y), rect.position + Vector2(rect.size.x - 16.0, divider_y), Color("#ead9c4"), 1.0, true)
 	for index in range(max_rows):
@@ -20202,14 +21132,16 @@ func _draw_result_point_reward_card(rect: Rect2, data: Dictionary) -> void:
 		var column: int = int(index / rows_per_column)
 		var row_index: int = index % rows_per_column
 		var column_x: float = 16.0 + float(column) * (column_width + column_gap)
-		var y: float = 44.0 + float(row_index) * row_step
+		var y: float = (42.0 if max_rows > 6 else 44.0) + float(row_index) * row_step
 		var row_color := Color("#a87618") if bool(row.get("isOneTimeBonus", false)) else Color("#5f506b")
 		var label_width := column_width - amount_width - badge_width - 8.0
-		_draw_ranking_text(String(row.get("displayName", "")), rect.position + Vector2(column_x, y), 14, Color(row_color.r, row_color.g, row_color.b, alpha), label_width)
+		var row_font_size := 12 if max_rows > 6 else 14
+		_draw_ranking_text(String(row.get("displayName", "")), rect.position + Vector2(column_x, y), row_font_size, Color(row_color.r, row_color.g, row_color.b, alpha), label_width)
 		if bool(row.get("isOneTimeBonus", false)):
 			_draw_ranking_text("初回", rect.position + Vector2(column_x + label_width, y), 10, Color(0.82, 0.54, 0.09, alpha), badge_width, HORIZONTAL_ALIGNMENT_CENTER)
 		var amount_x := column_x + column_width - amount_width
-		_draw_ranking_text("%d PP" % int(row.get("amount", 0)), rect.position + Vector2(amount_x, y), 14, Color(0.82, 0.54, 0.09, alpha), amount_width, HORIZONTAL_ALIGNMENT_RIGHT)
+		var amount_text := "+%d PP" % int(row.get("amount", 0)) if bool(row.get("isStreamMission", false)) else "%d PP" % int(row.get("amount", 0))
+		_draw_ranking_text(amount_text, rect.position + Vector2(amount_x, y), row_font_size, Color(0.82, 0.54, 0.09, alpha), amount_width, HORIZONTAL_ALIGNMENT_RIGHT)
 	var total_text := "合計 +%d PP" % int(point_view.get("pointsEarned", 0))
 	if grant_state == "granted":
 		var total_progress := float(reveal.get("earnedProgress", 1.0))
@@ -20766,6 +21698,13 @@ func _draw_character_select_header(rect: Rect2, _page_count: int) -> void:
 		draw_circle(rect.position + Vector2(46, 36), 22, Color("#fff3fb"))
 		_draw_ranking_text("配", rect.position + Vector2(35, 47), 25, Color("#f05aa5"), 28, HORIZONTAL_ALIGNMENT_CENTER)
 	_draw_ranking_text("配信者を選択", rect.position + Vector2(88, 47), 34, Color("#4f3149"), 360)
+	if power_up_shop_manager != null and power_up_shop_manager.has_method("equipped_customization_display_name"):
+		var equipped_title: String = String(power_up_shop_manager.equipped_customization_display_name("title"))
+		if equipped_title != "":
+			var badge_rect := Rect2(rect.position + Vector2(720.0, 17.0), Vector2(rect.size.x - 748.0, 38.0))
+			_draw_ranking_panel(badge_rect, Color(1.0, 0.96, 0.99, 0.92), Color("#e6c9e4"), 18, 1, false)
+			var fitted_title := _character_select_fit_text("装備中の肩書き 《%s》" % equipped_title, 17, badge_rect.size.x - 24.0, 12)
+			_draw_ranking_text(String(fitted_title.get("text", "")), badge_rect.position + Vector2(12.0, 25.0), int(fitted_title.get("size", 17)), Color("#6f3d7d"), badge_rect.size.x - 24.0, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_character_select_list_panel(panel: Rect2, page: int) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ead7e9"), 24, 2, true)
@@ -20953,12 +21892,12 @@ func _draw_character_select_generic_silhouette(container: Rect2) -> void:
 	draw_circle(center + Vector2(0.0, -8.0), 26.0, silhouette_color)
 	draw_rect(Rect2(center + Vector2(-28.0, 12.0), Vector2(56.0, 50.0)), silhouette_color, true)
 
-func _draw_character_select_card_avatar(container: Rect2, texture: Texture2D, columns: int, rows: int, frame_index: int, opaque_bounds: Rect2, modulate: Color, scale_adjust: float = 1.0, offset: Vector2 = Vector2.ZERO) -> bool:
+func _draw_character_select_card_avatar(container: Rect2, texture: Texture2D, columns: int, rows: int, frame_index: int, opaque_bounds: Rect2, modulate: Color, scale_adjust: float = 1.0, offset: Vector2 = Vector2.ZERO, visual_height: float = 140.0) -> bool:
 	if texture == null or opaque_bounds.size.x <= 0.0 or opaque_bounds.size.y <= 0.0:
 		return false
 	var texture_size := texture.get_size()
 	var source_rect := CharacterSystemScript.selection_card_walk_source_rect(texture_size, columns, rows, frame_index)
-	var destination := CharacterSystemScript.selection_card_avatar_destination_rect(container, source_rect.size, opaque_bounds, CharacterSystemScript.SELECT_CARD_AVATAR_VISUAL_HEIGHT, CharacterSystemScript.SELECT_CARD_AVATAR_FOOT_INSET, scale_adjust, offset)
+	var destination := CharacterSystemScript.selection_card_avatar_destination_rect(container, source_rect.size, opaque_bounds, visual_height, CharacterSystemScript.SELECT_CARD_AVATAR_FOOT_INSET, scale_adjust, offset)
 	var visible_rect := CharacterSystemScript.selection_card_walk_visible_rect(container, destination)
 	if visible_rect.size.x <= 0.0 or visible_rect.size.y <= 0.0 or destination.size.x <= 0.0 or destination.size.y <= 0.0:
 		return false
@@ -21385,13 +22324,7 @@ func _collab_partner_select_layout() -> Dictionary:
 
 func _collab_partner_card_rect(index: int) -> Rect2:
 	var panel: Rect2 = (_collab_partner_select_layout()["listPanel"] as Rect2)
-	var card_w := 300.0
-	var card_h := 276.0
-	var gap_x := 16.0
-	var gap_y := 16.0
-	var col := index % 3
-	var row := index / 3
-	return Rect2(panel.position + Vector2(28.0 + float(col) * (card_w + gap_x), 78.0 + float(row) * (card_h + gap_y)), Vector2(card_w, card_h))
+	return CollabPartnerUiSystemScript.card_rect(panel, index)
 
 func _draw_collab_partner_select_header(rect: Rect2) -> void:
 	_draw_ranking_panel(rect, Color(1, 1, 1, 0.95), Color("#ffd19a"), 22, 2, true)
@@ -21400,17 +22333,22 @@ func _draw_collab_partner_select_header(rect: Rect2) -> void:
 
 func _draw_collab_partner_current_panel(panel: Rect2) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ffd19a"), 24, 2, true)
-	_draw_ranking_text("あなた", panel.position + Vector2(30, 48), 28, Color("#e96f42"), panel.size.x - 60)
+	var content: Dictionary = CollabPartnerUiSystemScript.current_content_rects(panel)
+	var label_rect: Rect2 = content["label"] as Rect2
+	_draw_ranking_text("あなた", label_rect.position + Vector2(0.0, 24.0), 28, Color("#e96f42"), label_rect.size.x)
 	var character: Dictionary = CharacterSystemScript.find_character(characters, current_character_id)
 	var view: Dictionary = CharacterSystemScript.selection_card_view(character, weapons)
 	var accent: Color = view.get("accent", Color("#ff4f92")) as Color
-	_draw_ranking_text(String(view.get("displayName", "配信者")), panel.position + Vector2(24, 94), 27, accent, panel.size.x - 48, HORIZONTAL_ALIGNMENT_CENTER)
-	var image_rect := Rect2(panel.position + Vector2(34, 128), Vector2(panel.size.x - 68, 318))
+	var name_rect: Rect2 = content["name"] as Rect2
+	var name_layout: Dictionary = CollabPartnerUiSystemScript.text_layout(String(view.get("displayName", "配信者")), name_rect.size.x, 27, 18, 1)
+	var name_line_values: Array = name_layout.get("lines", []) as Array
+	var current_name := String(name_line_values[0]) if not name_line_values.is_empty() else String(view.get("displayName", "配信者"))
+	_draw_ranking_text(current_name, name_rect.position + Vector2(0.0, 27.0), int(name_layout.get("size", 27)), accent, name_rect.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var image_rect: Rect2 = content["avatar"] as Rect2
 	_draw_ranking_panel(image_rect, Color(1.0, 0.96, 0.99, 0.82), Color(accent.r, accent.g, accent.b, 0.32), 22, 2, false)
-	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
-	if tex != null:
-		_draw_character_select_card_portrait(tex, image_rect.grow(-6.0), view)
-	_draw_character_select_detail_section(Rect2(panel.position + Vector2(30, 474), Vector2(panel.size.x - 60, 116)), "コラボ開始", "選んだ相方がステージ中に追従し、一定間隔で支援します。", Color("#e96f42"), Color("#fff8f2"), 17)
+	_draw_collab_partner_avatar(image_rect.grow(-6.0), view, false, false, CollabPartnerUiSystemScript.CURRENT_AVATAR_VISUAL_HEIGHT)
+	var intro_rect: Rect2 = content["intro"] as Rect2
+	_draw_character_select_detail_block(intro_rect, "コラボ開始", "選んだ相方がステージ中に追従し、一定間隔で支援します。", Color("#e96f42"), Color("#fff8f2"), 14)
 
 func _draw_collab_partner_list_panel(panel: Rect2) -> void:
 	_draw_ranking_panel(panel, Color(1, 1, 1, 0.93), Color("#ffd19a"), 24, 2, true)
@@ -21430,20 +22368,72 @@ func _draw_collab_partner_card(rect: Rect2, character: Dictionary, index: int) -
 		_draw_ranking_panel(rect.grow(8), Color(accent.r, accent.g, accent.b, 0.18), Color(1, 1, 1, 0), 24, 0, false)
 		_draw_ranking_panel(rect.grow(3), Color(1, 1, 1, 0), Color(accent.r, accent.g, accent.b, 0.50), 22, 3, false)
 	_draw_ranking_panel(rect, Color(soft_fill.r, soft_fill.g, soft_fill.b, 0.96), Color(accent.r, accent.g, accent.b, 0.44), 22, 3 if selected else 2, false)
-	_draw_ranking_text("[%d]" % (index + 1), rect.position + Vector2(18, 34), 19, accent, 46)
-	_draw_ranking_text(String(view.get("displayName", "相方")), rect.position + Vector2(64, 38), 29, Color("#4f3149"), rect.size.x - 128)
+	var content: Dictionary = CollabPartnerUiSystemScript.candidate_content_rects(rect)
+	var number_rect: Rect2 = content["number"] as Rect2
+	_draw_ranking_text("[%d]" % (index + 1), number_rect.position + Vector2(0.0, 20.0), 19, accent, number_rect.size.x)
+	var name_rect: Rect2 = content["name"] as Rect2
+	var name_layout: Dictionary = CollabPartnerUiSystemScript.candidate_name_layout(String(view.get("displayName", "相方")))
+	var name_lines: Array = name_layout.get("lines", []) as Array
+	var name_line := String(name_lines[0]) if not name_lines.is_empty() else "相方"
+	_draw_ranking_text(name_line, name_rect.position + Vector2(0.0, 22.0), int(name_layout.get("size", 29)), Color("#4f3149"), name_rect.size.x)
 	if selected:
-		var badge := Rect2(rect.position + Vector2(rect.size.x - 112, 16), Vector2(90, 30))
+		var badge: Rect2 = content["selectedBadge"] as Rect2
 		_draw_ranking_panel(badge, Color(accent.r, accent.g, accent.b, 0.88), accent, 14, 1, false)
-		_draw_ranking_text("選択中", badge.position + Vector2(0, 22), 16, Color.WHITE, badge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
-	var image_rect := Rect2(rect.position + Vector2(18, 54), Vector2(rect.size.x - 36, 116))
+		_draw_ranking_text("選択中", badge.position + Vector2(0.0, 20.0), 15, Color.WHITE, badge.size.x, HORIZONTAL_ALIGNMENT_CENTER)
+	var image_rect: Rect2 = content["avatar"] as Rect2
 	_draw_ranking_panel(image_rect, Color(1.0, 1.0, 1.0, 0.58), Color(accent.r, accent.g, accent.b, 0.28), 20, 2, false)
-	var tex: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, String(view.get("spritePath", "")))
-	if tex != null:
-		_draw_character_select_card_portrait(tex, image_rect.grow(-4.0), view)
 	var character_id := String(character.get("id", ""))
-	_draw_character_select_detail_section(Rect2(rect.position + Vector2(18, 180), Vector2(rect.size.x - 36, 42)), "支援", _collab_partner_support_text(character_id), accent, Color(1, 1, 1, 0.92), 13, -3.0)
-	_draw_character_select_detail_section(Rect2(rect.position + Vector2(18, 230), Vector2(rect.size.x - 36, 34)), "ペア技", _collab_partner_pair_text(current_character_id, character_id), Color("#e96f42"), Color("#fff8f2"), 12, -5.0)
+	_draw_collab_partner_avatar(image_rect.grow(-4.0), view, selected, true, CollabPartnerUiSystemScript.CANDIDATE_AVATAR_VISUAL_HEIGHT)
+	var support_rect: Rect2 = content["support"] as Rect2
+	_draw_collab_partner_compact_section(support_rect, "支援", _collab_partner_support_text(character_id), accent, Color(1, 1, 1, 0.92), 14, 11, 2)
+	var pair_rect: Rect2 = content["pair"] as Rect2
+	_draw_collab_partner_compact_section(pair_rect, "ペア技", _collab_partner_pair_text(current_character_id, character_id), Color("#e96f42"), Color("#fff8f2"), 13, 11, 1)
+
+func _draw_collab_partner_avatar(container: Rect2, view: Dictionary, selected: bool, allow_walk: bool, visual_height: float) -> bool:
+	var status_id := String(view.get("statusId", "playable"))
+	var selectable := bool(view.get("isSelectable", true))
+	var avatar_drawn := false
+	if allow_walk and CharacterSystemScript.selection_card_walk_should_animate(status_id, selectable, selected):
+		var walk_path := String(view.get("walkSpritePath", ""))
+		var walk_texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, walk_path)
+		if walk_texture != null:
+			var walk_columns := maxi(1, int(view.get("walkSpriteCols", 10)))
+			var walk_rows := maxi(1, int(view.get("walkSpriteRows", 1)))
+			var walk_bounds := _character_select_avatar_opaque_bounds(walk_texture, walk_path, walk_columns, walk_rows, "walk")
+			var walk_frame := CollabPartnerUiSystemScript.candidate_walk_frame(collab_partner_select_walk_time, status_id, selectable, selected, walk_columns, float(view.get("walkSpriteFps", CharacterSystemScript.SELECT_CARD_WALK_FPS)))
+			var walk_offset_data: Dictionary = view.get("cardWalkSpriteOffset", {"x": 0, "y": 0}) as Dictionary
+			var walk_offset := Vector2(float(walk_offset_data.get("x", 0.0)), float(walk_offset_data.get("y", 0.0)))
+			avatar_drawn = _draw_character_select_card_avatar(container, walk_texture, walk_columns, walk_rows, walk_frame, walk_bounds, Color.WHITE, float(view.get("cardWalkSpriteScaleAdjust", 1.0)), walk_offset, visual_height)
+	var stationary_path := String(view.get("staticSpritePath", ""))
+	var stationary_texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, stationary_path)
+	if not avatar_drawn and stationary_texture != null:
+		var stationary_columns := maxi(1, int(view.get("staticSpriteCols", 1)))
+		var stationary_rows := maxi(1, int(view.get("staticSpriteRows", 1)))
+		var stationary_bounds := _character_select_avatar_opaque_bounds(stationary_texture, stationary_path, stationary_columns, stationary_rows, "static")
+		avatar_drawn = _draw_character_select_card_avatar(container, stationary_texture, stationary_columns, stationary_rows, int(view.get("staticSpriteFrame", 0)), stationary_bounds, Color.WHITE, float(view.get("cardAvatarScaleAdjust", 1.0)), Vector2.ZERO, visual_height)
+	if not avatar_drawn:
+		var fallback_path := String(view.get("spritePath", ""))
+		var fallback_texture: Texture2D = CharacterSystemScript.texture_from_cache(character_sprite_cache, fallback_path)
+		if fallback_texture != null:
+			_draw_character_select_card_portrait(fallback_texture, container, view)
+			avatar_drawn = true
+	return avatar_drawn
+
+func _draw_collab_partner_compact_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int, minimum_size: int, max_lines: int) -> void:
+	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.28), 16, 2, false)
+	var layout: Dictionary = CollabPartnerUiSystemScript.candidate_section_text_layout(rect, text, text_size, minimum_size, max_lines)
+	var title_rect: Rect2 = layout["titleRect"] as Rect2
+	_draw_ranking_text(title, title_rect.position + Vector2(0.0, 15.0), 13, accent, title_rect.size.x)
+	var body_rect: Rect2 = layout["bodyRect"] as Rect2
+	var line_values: Array = layout.get("lines", []) as Array
+	var line_size: int = int(layout.get("size", minimum_size))
+	var first_baseline: float = float(layout.get("firstBaseline", rect.position.y + 34.0))
+	var line_height: float = float(layout.get("lineHeight", line_size + 2))
+	for line_index in range(line_values.size()):
+		var baseline := first_baseline + line_height * float(line_index)
+		if baseline - float(line_size) > body_rect.end.y + 0.01:
+			break
+		_draw_ranking_text(String(line_values[line_index]), Vector2(body_rect.position.x, baseline), line_size, Color("#5d4658"), body_rect.size.x)
 
 func _draw_collab_partner_select_footer(layout: Dictionary) -> void:
 	var rect: Rect2 = layout["footer"] as Rect2
@@ -21516,6 +22506,45 @@ func _stream_frame_select_card_rect(local_index: int) -> Rect2:
 	var gap_x := 16.0
 	var gap_y := 18.0
 	return Rect2(panel.position + Vector2(24.0 + float(col) * (card_w + gap_x), 82.0 + float(row) * (card_h + gap_y)), Vector2(card_w, card_h))
+
+func _stream_frame_select_detail_tab_rect(index: int) -> Rect2:
+	var panel: Rect2 = _stream_frame_select_layout()["detailPanel"] as Rect2
+	var gap := 8.0
+	var width := (panel.size.x - 56.0 - gap) * 0.5
+	return Rect2(panel.position + Vector2(28.0 + float(index) * (width + gap), 402.0), Vector2(width, 26.0))
+
+func _stream_mission_stage_progress(stage_id: String) -> Dictionary:
+	if stream_mission_system == null or power_up_shop_manager == null or not power_up_shop_manager.has_method("completed_stream_mission_ids"):
+		return {"stageId": stage_id, "completed": 0, "total": 3, "complete": false}
+	var progress_variant: Variant = stream_mission_system.call("stage_progress", stage_id, power_up_shop_manager.completed_stream_mission_ids())
+	return progress_variant as Dictionary if progress_variant is Dictionary else {"stageId": stage_id, "completed": 0, "total": 3, "complete": false}
+
+func _stream_mission_stage_badge_text(stage_id: String) -> String:
+	var progress := _stream_mission_stage_progress(stage_id)
+	var completed := int(progress.get("completed", 0))
+	return "配信目標 %d/3 COMPLETE" % completed if bool(progress.get("complete", false)) else "配信目標 %d/3" % completed
+
+func _stream_mission_stage_rows(stage_id: String) -> Array:
+	if stream_mission_system == null:
+		return []
+	var rows_variant: Variant = stream_mission_system.call("missions_for_stage", stage_id)
+	if not rows_variant is Array:
+		return []
+	var completed: Array = power_up_shop_manager.completed_stream_mission_ids() if power_up_shop_manager != null and power_up_shop_manager.has_method("completed_stream_mission_ids") else []
+	var rows: Array = []
+	for value in rows_variant as Array:
+		if not value is Dictionary:
+			continue
+		var mission := value as Dictionary
+		rows.append({
+			"done": completed.has(String(mission.get("id", ""))),
+			"id": String(mission.get("id", "")),
+			"name": String(mission.get("displayName", mission.get("id", "配信目標"))),
+			"description": String(mission.get("shortDescription", mission.get("description", ""))),
+			"rewardPp": int(mission.get("rewardPp", 50)),
+			"hardOnly": (mission.get("difficulty", []) as Array).size() == 2
+		})
+	return rows
 
 func _draw_stream_frame_select_background() -> void:
 	var background: Texture2D = TextureCacheSystemScript.load_png_texture(raw_png_texture_cache, TITLE_BACK_IMAGE)
@@ -22297,6 +23326,11 @@ func _draw_stream_frame_select_card(rect: Rect2, frame: Dictionary, index: int, 
 	var badge_rect := Rect2(draw_rect.position + Vector2(52, 207), Vector2(draw_rect.size.x - 104, 32))
 	_draw_character_select_tag(badge_rect, String(view.get("statusText", "解放済み")), status_fill, status_text_color)
 	_draw_rect_outline(badge_rect, status_border, 1)
+	var mission_badge_rect := Rect2(draw_rect.position + Vector2(16, 14), Vector2(146, 22))
+	var mission_badge_color := Color("#fff6d9") if selectable else Color("#f1edf3")
+	var mission_badge_text_color := Color("#a87618") if selectable else Color("#8f8793")
+	_draw_character_select_tag(mission_badge_rect, _stream_mission_stage_badge_text(String(frame.get("id", "zatsudan"))), mission_badge_color, mission_badge_text_color)
+	_draw_rect_outline(mission_badge_rect, Color(mission_badge_text_color.r, mission_badge_text_color.g, mission_badge_text_color.b, 0.35), 1)
 	_draw_ranking_text(_short_pause_text(String(view.get("featureText", "")), 20), draw_rect.position + Vector2(18, 260), 14, Color("#5d4658") if selectable else Color("#8f8793"), draw_rect.size.x - 36, HORIZONTAL_ALIGNMENT_CENTER)
 	if selected:
 		var selected_rect := Rect2(draw_rect.position + Vector2(draw_rect.size.x - 92, 14), Vector2(74, 26))
@@ -22330,18 +23364,56 @@ func _draw_stream_frame_select_detail_panel(panel: Rect2, frames: Array) -> void
 	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 272), Vector2(232, 52)), "枠難度", String(view.get("difficultyStars", "★")), Color("#fff2fa"), accent)
 	_draw_character_select_info_card(Rect2(panel.position + Vector2(282, 272), Vector2(232, 52)), "状態", String(view.get("statusText", "解放済み")), Color("#f3ecff"), accent2)
 	_draw_character_select_info_card(Rect2(panel.position + Vector2(28, 336), Vector2(panel.size.x - 56, 52)), "特徴", String(view.get("featureText", "")), Color("#e8f7ff"), Color("#4d8ab5"))
-	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 402), Vector2(panel.size.x - 56, 68)), "主なギミック", String(view.get("mainGimmickText", "")), accent, Color("#fff8fc"), 15)
-	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 482), Vector2(panel.size.x - 56, 116)), "説明", String(view.get("description", "")), accent, Color(1, 1, 1, 0.98), 16)
 	var note_title := "おすすめ" if selectable else "理由"
 	var note_text := String(view.get("recommendText", "")) if selectable else String(view.get("disabledReason", "この配信枠はまだ選択できません。"))
 	if not selectable and String(view.get("statusId", "")) == "locked":
 		note_title = "解放条件"
 		note_text = String(view.get("unlockConditionText", note_text))
-	_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 612), Vector2(panel.size.x - 56, 66)), note_title, note_text, accent2, Color("#fff8fc"), 15)
-	if bool(frame.get("difficultyLocked", false)) or bool(frame.get("relayLocked", false)):
-		var lock_title := "解禁条件"
-		var lock_text := String(frame.get("disabledReason", frame.get("unlockConditionText", "現在はロックされています。")))
-		_draw_stream_frame_detail_section(Rect2(panel.position + Vector2(28, 402), Vector2(panel.size.x - 56, 276)), lock_title, lock_text, accent2, Color("#fff8fc"), 17)
+	for tab_index in range(2):
+		var tab_rect := _stream_frame_select_detail_tab_rect(tab_index)
+		var tab_selected := stream_frame_select_detail_tab == tab_index
+		var tab_focused := stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_DETAIL and tab_index == stream_frame_select_detail_tab
+		var tab_fill := Color("#f4e7ff") if tab_selected else Color("#fffafd")
+		var tab_border := difficulty_accent if tab_focused else Color(accent2.r, accent2.g, accent2.b, 0.32)
+		_draw_ranking_panel(tab_rect, tab_fill, tab_border, 10, 2 if tab_focused else 1, false)
+		_draw_ranking_text("説明" if tab_index == 0 else "配信目標", tab_rect.position + Vector2(4, 18), 12, difficulty_accent if tab_selected else Color("#78647b"), tab_rect.size.x - 8, HORIZONTAL_ALIGNMENT_CENTER)
+	var detail_tab_content := Rect2(panel.position + Vector2(28, 438), Vector2(panel.size.x - 56, 246))
+	if stream_frame_select_detail_tab == 1:
+		# Keep mission progress visible even when the selected stage itself is
+		# locked; the card status above still communicates the stage lock.
+		_draw_stream_frame_mission_detail(detail_tab_content, String(frame.get("id", "zatsudan")), accent2)
+	else:
+		var detail_title := note_title
+		var detail_text := note_text
+		if bool(frame.get("difficultyLocked", false)) or bool(frame.get("relayLocked", false)):
+			detail_title = "解禁条件"
+			detail_text = String(frame.get("disabledReason", frame.get("unlockConditionText", "現在はロックされています。")))
+		else:
+			var gimmick := String(view.get("mainGimmickText", "")).strip_edges()
+			var description := String(view.get("description", "")).strip_edges()
+			if gimmick != "":
+				detail_text = "主なギミック：%s\n\n%s" % [gimmick, description]
+			elif description != "":
+				detail_text = description
+		_draw_stream_frame_detail_section(detail_tab_content, detail_title, detail_text, accent2, Color("#fff8fc"), 14)
+
+func _draw_stream_frame_mission_detail(rect: Rect2, stage_id: String, accent: Color) -> void:
+	var progress := _stream_mission_stage_progress(stage_id)
+	_draw_ranking_panel(rect, Color("#fff8e8"), Color(accent.r, accent.g, accent.b, 0.30), 16, 2, false)
+	_draw_ranking_text(_stream_mission_stage_badge_text(stage_id), rect.position + Vector2(16, 22), 14, accent, rect.size.x - 32)
+	var rows := _stream_mission_stage_rows(stage_id)
+	for row_index in range(rows.size()):
+		var row: Dictionary = rows[row_index] as Dictionary
+		var row_rect := Rect2(rect.position + Vector2(12, 30 + float(row_index) * 39.0), Vector2(rect.size.x - 24, 35))
+		var row_accent := accent if bool(row.get("done", false)) else Color("#b89eb7")
+		_draw_ranking_panel(row_rect, Color(1, 1, 1, 0.74), Color(row_accent.r, row_accent.g, row_accent.b, 0.35), 9, 1, false)
+		var prefix := "✓ " if bool(row.get("done", false)) else "• "
+		var suffix := " [HARD+]" if bool(row.get("hardOnly", false)) else ""
+		_draw_ranking_text(prefix + _short_pause_text(String(row.get("name", "配信目標")), 13) + suffix, row_rect.position + Vector2(10, 14), 11, row_accent, row_rect.size.x - 74)
+		_draw_ranking_text("%d PP" % int(row.get("rewardPp", 50)), row_rect.position + Vector2(row_rect.size.x - 66, 14), 10, Color("#9b7020"), 58, HORIZONTAL_ALIGNMENT_RIGHT)
+		_draw_ranking_text(_short_pause_text(String(row.get("description", "")), 34), row_rect.position + Vector2(10, 29), 9, Color("#6b5669"), row_rect.size.x - 20)
+	var set_bonus := "3/3 BONUS  +100 PP" if bool(progress.get("complete", false)) else "3/3 BONUS  100 PP"
+	_draw_ranking_text(set_bonus, rect.position + Vector2(16, 160), 11, Color("#9b7020"), rect.size.x - 32, HORIZONTAL_ALIGNMENT_RIGHT)
 
 func _draw_stream_frame_detail_section(rect: Rect2, title: String, text: String, accent: Color, fill: Color, text_size: int = 16) -> void:
 	_draw_ranking_panel(rect, fill, Color(accent.r, accent.g, accent.b, 0.28), 16, 2, false)
@@ -22354,7 +23426,7 @@ func _draw_stream_frame_select_footer(layout: Dictionary) -> void:
 	_draw_character_select_button(layout["backButton"] as Rect2, "戻る", Color("#ff93cd") if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#f8f2ff"), Color.WHITE if stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK else Color("#6b4a63"), true, stream_frame_select_focus_area == PRE_RUN_SELECT_FOCUS_BACK)
 	var guide_rect: Rect2 = layout["guide"] as Rect2
 	_draw_ranking_panel(guide_rect, Color("#fffafd"), Color("#ead7e9"), 12, 1, false)
-	_draw_ranking_text("方向キー 枠選択　Q/E・LB/RB 難易度　Enter 決定　Esc 戻る", guide_rect.position + Vector2(8, 23), 12, Color("#6b4a63"), guide_rect.size.x - 16, HORIZONTAL_ALIGNMENT_CENTER)
+	_draw_ranking_text("方向キー 枠選択　Q/E・LB/RB 難易度　Tab 詳細　Enter 決定　Esc 戻る", guide_rect.position + Vector2(8, 23), 12, Color("#6b4a63"), guide_rect.size.x - 16, HORIZONTAL_ALIGNMENT_CENTER)
 
 func _draw_stream_frame_select_icon(rect: Rect2, view: Dictionary, accent: Color, muted: bool, large: bool = false) -> void:
 	var center: Vector2 = rect.get_center()
@@ -23628,6 +24700,8 @@ func _add_song_live_heat(amount: float, _source: String = "") -> void:
 	song_live_heat_level = _song_live_heat_level_for(song_live_heat)
 	song_max_live_heat = maxf(song_max_live_heat, song_live_heat)
 	song_max_live_heat_level = maxi(song_max_live_heat_level, song_live_heat_level)
+	if stream_mission_run_tracker != null:
+		stream_mission_run_tracker.record_song_heat_level(song_live_heat_level)
 	if song_live_heat_level > previous_level:
 		song_live_heat_level_flash_timer = 1.0
 		screen_flash_timer = 0.10
@@ -25414,17 +26488,7 @@ func _song_live_heat_note_heal(amount: int) -> void:
 	amount = PowerUpEffectProviderScript.scaled_heal_amount(amount, permanent_upgrade_snapshot, "song_note_heal")
 	var before_hp := player_hp
 	player_hp = mini(player_max_hp, player_hp + amount)
-	var actual_heal := maxi(0, player_hp - before_hp)
-	_append_mental_heal_fx(actual_heal, "song_note")
-	hit_fx.append({
-		"kind": "pickup_text",
-		"pos": player_pos + Vector2(-24.0, -54.0),
-		"vel": Vector2(0.0, -48.0),
-		"life": 0.64,
-		"maxLife": 0.64,
-		"text": "+%d" % amount,
-		"color": Color("#ff5cad")
-	})
+	_record_actual_mental_heal(before_hp, "song_note")
 
 func _song_apply_area_damage(center: Vector2, radius: float, damage: float, knockback: float, source: String) -> int:
 	var hits := 0
@@ -25507,6 +26571,10 @@ func _song_apply_enemy_damage(enemy: Dictionary, damage: float, origin: Vector2,
 		_record_collab_partner_hit(enemy, applied_damage)
 	elif source.begins_with("collab_pair_"):
 		enemy["lastHitOwner"] = "collab_skill"
+	else:
+		# Stage-specific shots are still player-side damage.  Keep partner
+		# support and pair-skill ownership distinct for pass/boss accounting.
+		enemy["lastHitOwner"] = "player"
 	var flash_duration := maxf(0.08, float(enemy.get("hitFlashDuration", 0.10)))
 	enemy["hitFlashDuration"] = flash_duration
 	enemy["hitFlashTimer"] = flash_duration
@@ -25521,7 +26589,7 @@ func _song_apply_enemy_damage(enemy: Dictionary, damage: float, origin: Vector2,
 	var defeated := float(enemy.get("hp", 0.0)) <= 0.0
 	if defeated:
 		enemy["defeatSource"] = source
-		enemy["defeatOwner"] = "partner" if partner_support_hit else ("collab_skill" if source.begins_with("collab_pair_") else "")
+		enemy["defeatOwner"] = "partner" if partner_support_hit else ("collab_skill" if source.begins_with("collab_pair_") else "player")
 		enemy["removeReason"] = "collab_skill_clear" if source.begins_with("collab_pair_") else "combat_defeat"
 		EnemySystemScript.queue_defeat_for_enemy(enemy)
 	var knockback_offset := enemy_pos - origin
@@ -27402,6 +28470,8 @@ func _complete_collab_challenge(result_text: String, result_color: Color) -> voi
 	_apply_collab_challenge_reward(challenge_type)
 	_grant_collab_challenge_sync_star()
 	collab_challenge_success_count += 1
+	if stream_mission_run_tracker != null:
+		stream_mission_run_tracker.record_collab_challenge_success()
 	collab_challenge_status = "success"
 	collab_challenge_result_text = result_text
 	collab_challenge_result_color = result_color
@@ -27815,10 +28885,13 @@ func _update_collab_effects(delta: float) -> void:
 	for effect_item in collab_effects:
 		var effect: Dictionary = effect_item as Dictionary
 		var life := float(effect.get("life", 0.0)) - delta
+		var kind := String(effect.get("kind", ""))
+		if kind in CollabComboSystemScript.required_effect_kinds():
+			var max_life := maxf(0.01, float(effect.get("maxLife", effect.get("life", 0.0))))
+			_update_collab_combo_effect_se(effect, max_life - maxf(0.0, life))
 		if life <= 0.0:
 			continue
 		effect["life"] = life
-		var kind := String(effect.get("kind", ""))
 		if kind == "partner_rizumu_support":
 			effect["age"] = float(effect.get("age", 0.0)) + delta
 			var step := int(effect.get("step", 0))
@@ -27873,6 +28946,32 @@ func _update_collab_effects(delta: float) -> void:
 		kept.append(effect)
 	kept.append_array(appended_effects)
 	collab_effects = kept
+
+func _update_collab_combo_effect_se(effect: Dictionary, elapsed_time: float) -> void:
+	var events: Array = effect.get("seEvents", []) as Array
+	if events.is_empty():
+		return
+	var current_step := int(effect.get("seStep", 0))
+	var next_step := CollabComboSystemScript.se_step_after_elapsed(events, elapsed_time, current_step)
+	if next_step <= current_step:
+		return
+	var last_path := String(effect.get("lastSePath", ""))
+	var last_index := int(effect.get("seLastStep", -1))
+	for index in range(current_step, next_step):
+		var event: Dictionary = events[index] as Dictionary
+		var path := String(event.get("path", ""))
+		var event_time := float(event.get("at", 0.0))
+		var last_time := float(effect.get("lastSeElapsed", -1000.0))
+		if path == "" or bool(effect.get("seMuted", false)) or event_time - last_time < 0.08:
+			continue
+		_play_weapon_activation_se(path, float(event.get("volumeDb", 0.0)))
+		effect["lastSeElapsed"] = event_time
+		last_path = path
+		effect["sePlayCount"] = int(effect.get("sePlayCount", 0)) + 1
+		last_index = index
+	effect["lastSePath"] = last_path
+	effect["seLastStep"] = last_index
+	effect["seStep"] = next_step
 
 func _collab_partner_projectile_effect_pos(effect: Dictionary) -> Vector2:
 	var from_pos := Vector2(effect.get("from", Vector2.ZERO))
@@ -28873,14 +29972,6 @@ func _complete_collab_pass(enemy: Dictionary) -> void:
 	score += 40
 	var pos := Vector2(enemy.get("pos", player_pos))
 	_spawn_collab_sync_star_pickup(pos)
-	collab_effects.append({
-		"kind": "popup",
-		"pos": pos + Vector2(-44.0, -58.0),
-		"text": "星を拾って!",
-		"life": 0.86,
-		"maxLife": 0.86,
-		"color": Color("#ffe16a")
-	})
 	hit_fx.append({
 		"kind": "pickup_text",
 		"pos": pos + Vector2(-30.0, -38.0),
@@ -28956,20 +30047,166 @@ func _execute_collab_pair_skill() -> void:
 	_emit_collab_pair_skill_reaction(pair_key)
 	_emit_collab_chat(["うおおおお", "派手すぎｗ", "連携つよ！", "これ好き", "画面すごいｗ", "コラボ技きた！"])
 
+func _collab_combo_visual_seed(pair_key_value: String, generation: int) -> float:
+	var pair_hash: int = abs(int(pair_key_value.hash()) % 10000)
+	return float(pair_hash) * 0.0001 + float(generation % 97) * 0.071
+
+func _collab_combo_color(value: Variant, fallback: Color) -> Color:
+	var text := String(value)
+	return fallback if text == "" else Color(text)
+
+func _collab_combo_visual_weapon_ids(definition: Dictionary) -> Array:
+	var result: Array = []
+	for value in definition.get("visualWeaponIds", []) as Array:
+		var weapon_id := String(value)
+		if weapon_id != "" and not result.has(weapon_id):
+			result.append(weapon_id)
+	for module_item in definition.get("orderedModules", []) as Array:
+		var module: Dictionary = module_item as Dictionary
+		for value in module.get("visualWeaponIds", []) as Array:
+			var weapon_id := String(value)
+			if weapon_id != "" and not result.has(weapon_id):
+				result.append(weapon_id)
+	return result
+
+func _collab_visuals_by_weapon_ids(weapon_ids: Array) -> Dictionary:
+	var result: Dictionary = {}
+	for value in weapon_ids:
+		var weapon_id := String(value)
+		if weapon_id == "" or result.has(weapon_id):
+			continue
+		var weapon_data: Dictionary = WeaponSystemScript.find_weapon(weapons, weapon_id, {})
+		var visuals: Dictionary = weapon_data.get("visuals", {}) as Dictionary
+		var source_id := String(weapon_data.get("visualSourceWeaponId", weapon_data.get("baseWeaponId", "")))
+		var source_guard := 0
+		while visuals.is_empty() and source_id != "" and source_guard < 3:
+			var source_data: Dictionary = WeaponSystemScript.find_weapon(weapons, source_id, {})
+			visuals = source_data.get("visuals", {}) as Dictionary
+			source_id = String(source_data.get("visualSourceWeaponId", source_data.get("baseWeaponId", "")))
+			source_guard += 1
+		result[weapon_id] = visuals.duplicate(true)
+	return result
+
+func _collab_combo_activation_snapshot(area: Rect2) -> Dictionary:
+	var target_positions: Array = []
+	for enemy_item in enemies:
+		var enemy: Dictionary = enemy_item as Dictionary
+		if _song_enemy_inactive(enemy):
+			continue
+		var enemy_pos := Vector2(enemy.get("pos", Vector2.ZERO))
+		if not area.grow(maxf(12.0, float(enemy.get("radius", 22.0)))).has_point(enemy_pos):
+			continue
+		target_positions.append(enemy_pos)
+		if target_positions.size() >= 12:
+			break
+	var cleared_projectile_positions: Array = []
+	for bullet_item in enemy_bullets:
+		var bullet: Dictionary = bullet_item as Dictionary
+		var bullet_pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if not _collab_support_projectile_is_clearable(bullet) or not area.grow(float(bullet.get("hitRadius", 16.0))).has_point(bullet_pos):
+			continue
+		cleared_projectile_positions.append(bullet_pos)
+		if cleared_projectile_positions.size() >= 6:
+			break
+	return {"targetPositions": target_positions, "clearedProjectilePositions": cleared_projectile_positions}
+
+func _collab_combo_se_events(profile: String) -> Array:
+	return CollabComboSystemScript.se_profile_events(CollabComboSystemScript.registry(), profile)
+
+func _collab_combo_effect_base(module: Dictionary, runtime: Dictionary, area: Rect2, module_index: int) -> Dictionary:
+	var effect_kind := String(module.get("effectKind", ""))
+	if effect_kind == "":
+		effect_kind = "collab_module_%s" % String(module.get("kind", "support"))
+	var max_life := maxf(0.08, float(module.get("visualDuration", module.get("duration", 0.28))))
+	var pair_key_value := String(runtime.get("pairKey", collab_combo_pair_key))
+	var profile := String(module.get("seProfile", ""))
+	var snapshot: Dictionary = runtime.get("activationSnapshot", {}) as Dictionary
+	return {
+		"kind": effect_kind,
+		"effectKind": effect_kind,
+		"pairKey": pair_key_value,
+		"comboId": String(runtime.get("comboId", "cross_unit_combo")),
+		"moduleId": String(module.get("id", "")),
+		"linkStyle": String(runtime.get("linkStyle", "")),
+		"pos": area.get_center(),
+		"area": area,
+		"radius": area.size.length() * 0.50,
+		"life": max_life,
+		"maxLife": max_life,
+		"primaryColor": _collab_combo_color(module.get("primaryColor", ""), Color("#76e5ff")),
+		"secondaryColor": _collab_combo_color(module.get("secondaryColor", ""), Color("#ffffff")),
+		"visualSeed": float(runtime.get("visualSeed", 0.0)) + float(module_index) * 13.37,
+		"targetPositions": (snapshot.get("targetPositions", []) as Array).duplicate(true),
+		"clearedProjectilePositions": (snapshot.get("clearedProjectilePositions", []) as Array).duplicate(true),
+		"visualsByWeaponId": (runtime.get("visualsByWeaponId", {}) as Dictionary).duplicate(true),
+		"visualWeaponIds": (module.get("visualWeaponIds", []) as Array).duplicate(true),
+		"seProfile": profile,
+		"seEvents": _collab_combo_se_events(profile),
+		"seStep": 0
+	}
+
+func _collab_dedicated_visual_effect(definition: Dictionary, stats: Dictionary, fallback_kind: String) -> Dictionary:
+	var area: Rect2 = stats.get("area", _collab_combo_attack_rect()) as Rect2
+	var effect_kind := String(definition.get("effectKind", fallback_kind))
+	var max_life := maxf(0.08, float(definition.get("visualDuration", definition.get("duration", 1.0))))
+	var pair_key_value := String(definition.get("pairKey", collab_combo_pair_key))
+	var snapshot := _collab_combo_activation_snapshot(area)
+	var strong_targets: Array = stats.get("strongTargets", []) as Array
+	for enemy_item in strong_targets:
+		var enemy: Dictionary = enemy_item as Dictionary
+		var strong_pos := Vector2(enemy.get("pos", area.get_center()))
+		if not (snapshot.get("targetPositions", []) as Array).has(strong_pos):
+			(snapshot["targetPositions"] as Array).append(strong_pos)
+	return {
+		"kind": effect_kind,
+		"effectKind": effect_kind,
+		"pairKey": pair_key_value,
+		"comboId": String(definition.get("comboId", "")),
+		"linkStyle": String(definition.get("linkStyle", "")),
+		"pos": area.get_center(),
+		"area": area,
+		"radius": area.size.length() * 0.50,
+		"life": max_life,
+		"maxLife": max_life,
+		"primaryColor": _collab_combo_color(definition.get("primaryColor", ""), Color("#76e5ff")),
+		"secondaryColor": _collab_combo_color(definition.get("secondaryColor", ""), Color("#ffffff")),
+		"visualSeed": _collab_combo_visual_seed(pair_key_value, collab_pair_skill_count),
+		"targetPositions": (snapshot.get("targetPositions", []) as Array).duplicate(true),
+		"clearedProjectilePositions": (snapshot.get("clearedProjectilePositions", []) as Array).duplicate(true),
+		"visualsByWeaponId": _collab_visuals_by_weapon_ids(definition.get("visualWeaponIds", []) as Array),
+		"visualWeaponIds": (definition.get("visualWeaponIds", []) as Array).duplicate(true),
+		"seProfile": String(definition.get("seProfile", "")),
+		"seEvents": _collab_combo_se_events(String(definition.get("seProfile", ""))),
+		"seStep": 0
+	}
+
 func _start_collab_combo_runtime(definition: Dictionary) -> void:
 	var modules: Array = definition.get("orderedModules", []) as Array
 	if modules.is_empty():
 		_collab_pair_generic_skill()
 		return
+	var pair_key_value := String(definition.get("pairKey", collab_combo_pair_key))
+	var activation_area := _collab_combo_attack_rect()
+	var activation_snapshot := _collab_combo_activation_snapshot(activation_area)
+	var visual_weapon_ids := _collab_combo_visual_weapon_ids(definition)
+	var cross_style: Dictionary = definition.get("crossPairStyle", {}) as Dictionary
 	collab_combo_runtime = {
 		"active": true,
 		"generation": collab_pair_skill_count,
-		"pairKey": String(definition.get("pairKey", collab_combo_pair_key)),
+		"pairKey": pair_key_value,
 		"comboId": String(definition.get("comboId", "cross_unit_combo")),
 		"modules": modules.duplicate(true),
 		"moduleIndex": 0,
 		"timer": 0.01,
 		"hitSets": {},
+		"linkStyle": String(definition.get("linkStyle", "")),
+		"linkPrimaryColor": _collab_combo_color(cross_style.get("primaryColor", ""), Color("#76e5ff")),
+		"linkSecondaryColor": _collab_combo_color(cross_style.get("secondaryColor", ""), Color("#ffd36a")),
+		"visualSeed": _collab_combo_visual_seed(pair_key_value, collab_pair_skill_count),
+		"activationSnapshot": activation_snapshot,
+		"targetPositions": (activation_snapshot.get("targetPositions", []) as Array).duplicate(true),
+		"clearedProjectilePositions": (activation_snapshot.get("clearedProjectilePositions", []) as Array).duplicate(true),
+		"visualsByWeaponId": _collab_visuals_by_weapon_ids(visual_weapon_ids),
 		"cleanupReason": ""
 	}
 	collab_combo_sequence_state = "execute"
@@ -28991,7 +30228,7 @@ func _update_collab_combo_runtime(delta: float) -> void:
 		collab_combo_sequence_timer = COLLAB_COMBO_POST_DELAY
 		return
 	var module: Dictionary = modules[index] as Dictionary
-	_apply_collab_combo_module(module, index == modules.size() - 1)
+	_apply_collab_combo_module(module, index == modules.size() - 1, index)
 	collab_combo_runtime["moduleIndex"] = index + 1
 	collab_combo_runtime["timer"] = maxf(0.12, float(module.get("duration", 0.28)))
 
@@ -28999,36 +30236,101 @@ func _clear_collab_combo_runtime(reason: String) -> void:
 	if not collab_combo_runtime.is_empty():
 		collab_combo_runtime["active"] = false
 		collab_combo_runtime["cleanupReason"] = reason
+	if reason in ["stage_reset", "partner_changed", "boss_transition", "relay_segment", "reset"]:
+		_clear_collab_combo_visual_effects()
 	collab_combo_runtime.clear()
 
-func _apply_collab_combo_module(module: Dictionary, is_last: bool) -> void:
+func _clear_collab_combo_visual_effects() -> void:
+	var kept: Array = []
+	for effect_item in collab_effects:
+		var effect: Dictionary = effect_item as Dictionary
+		var kind := String(effect.get("kind", ""))
+		if kind in CollabComboSystemScript.required_effect_kinds():
+			continue
+		kept.append(effect)
+	collab_effects = kept
+
+func _apply_collab_combo_module(module: Dictionary, is_last: bool, module_index: int = 0) -> void:
 	var kind := String(module.get("kind", ""))
 	var source := "collab_module_%s" % String(module.get("id", "sync"))
 	var area := _collab_combo_attack_rect()
+	var runtime := collab_combo_runtime.duplicate(true)
+	var effect := _collab_combo_effect_base(module, runtime, area, module_index)
 	match kind:
 		"defense":
-			var cleared := _clear_collab_support_projectiles(area, 2)
-			collab_effects.append({"kind": "collab_module_defense", "pos": area.get_center(), "radius": 180.0, "cleared": cleared, "life": 0.46, "maxLife": 0.46, "color": Color("#76e5ff")})
+			var clear_result := _clear_collab_support_projectiles_with_positions(area, 2)
+			effect["cleared"] = int(clear_result.get("count", 0))
+			effect["clearedProjectilePositions"] = (clear_result.get("positions", []) as Array).duplicate(true)
+			runtime["clearedProjectilePositions"] = effect["clearedProjectilePositions"]
+			collab_combo_runtime["clearedProjectilePositions"] = effect["clearedProjectilePositions"]
+			effect["radius"] = 180.0
+			collab_effects.append(effect)
 		"gather":
-			_collab_gather_module_targets(area.get_center(), 5)
-			collab_effects.append({"kind": "collab_module_gather", "pos": area.get_center(), "radius": 105.0, "life": 0.62, "maxLife": 0.62, "color": Color("#c6a7ff")})
+			effect["targetPositions"] = _collab_gather_module_targets(area.get_center(), 5)
+			effect["radius"] = 105.0
+			collab_effects.append(effect)
 		"area":
 			_apply_collab_combo_screen_attack(source, 0.42, 0.035)
-			collab_effects.append({"kind": "shockwave", "pos": area.get_center(), "radius": area.size.length() * 0.36, "life": 0.36, "maxLife": 0.36, "color": Color("#8ee8d8"), "label": "AREA"})
+			effect["radius"] = area.size.length() * 0.36
+			collab_effects.append(effect)
 		"firepower":
-			_apply_collab_combo_screen_attack(source, 0.34, 0.03)
-			collab_effects.append({"kind": "star_line", "from": player_pos, "to": area.get_center(), "life": 0.30, "maxLife": 0.30, "color": Color("#ffe16a")})
+			var firepower_stats := _apply_collab_combo_screen_attack(source, 0.34, 0.03)
+			effect["targetPositions"] = _collab_combo_target_positions_from_stats(firepower_stats, area.get_center())
+			effect["radius"] = area.size.length() * 0.40
+			collab_effects.append(effect)
 		"followup":
 			_apply_collab_combo_screen_attack(source, 0.30, 0.025)
-			collab_effects.append({"kind": "collab_module_followup", "pos": area.get_center(), "life": 0.32, "maxLife": 0.32, "color": Color("#ff9fca")})
+			collab_effects.append(effect)
 		"finisher":
 			_apply_collab_combo_screen_attack(source, 0.78, 0.08)
-			_request_screen_shake(0.56, 0.30)
+			effect["radius"] = area.size.length() * 0.52
+			collab_effects.append(effect)
+			_request_screen_shake(0.12, 0.18)
 		"common_finisher":
 			_apply_collab_combo_screen_attack("collab_composite_finisher", 0.72, 0.07)
-			collab_effects.append({"kind": "shockwave", "pos": area.get_center(), "radius": area.size.length() * 0.55, "life": 0.64, "maxLife": 0.64, "color": Color("#ffd36a"), "label": "SYNC!"})
+			effect["kind"] = "collab_composite_finish"
+			effect["effectKind"] = "collab_composite_finish"
+			effect["radius"] = area.size.length() * 0.55
+			collab_effects.append(effect)
+			_request_screen_shake(0.35, 0.24)
+	if module_index == 1 and modules_have_common_finisher(runtime):
+		var link_life := 0.56
+		var link_effect := {
+			"kind": "collab_composite_link",
+			"effectKind": "collab_composite_link",
+			"pairKey": String(runtime.get("pairKey", collab_combo_pair_key)),
+			"comboId": String(runtime.get("comboId", "cross_unit_combo")),
+			"linkStyle": String(runtime.get("linkStyle", "")),
+			"pos": area.get_center(),
+			"area": area,
+			"radius": area.size.length() * 0.45,
+			"life": link_life,
+			"maxLife": link_life,
+			"primaryColor": runtime.get("linkPrimaryColor", _collab_combo_color(module.get("primaryColor", ""), Color("#76e5ff"))),
+			"secondaryColor": runtime.get("linkSecondaryColor", _collab_combo_color(module.get("secondaryColor", ""), Color("#ffd36a"))),
+			"visualSeed": float(runtime.get("visualSeed", 0.0)) + 29.0,
+			"targetPositions": (runtime.get("targetPositions", []) as Array).duplicate(true),
+			"clearedProjectilePositions": (runtime.get("clearedProjectilePositions", []) as Array).duplicate(true),
+			"visualsByWeaponId": (runtime.get("visualsByWeaponId", {}) as Dictionary).duplicate(true),
+			"seEvents": [],
+			"seStep": 0
+		}
+		collab_effects.append(link_effect)
 	if is_last:
-		_request_screen_flash(Color(1.0, 0.84, 0.38, 0.24), 0.20)
+		_request_screen_flash(Color(1.0, 0.84, 0.38, 0.16), 0.20)
+
+func modules_have_common_finisher(runtime: Dictionary) -> bool:
+	var modules: Array = runtime.get("modules", []) as Array
+	return modules.size() >= 3 and String((modules[modules.size() - 1] as Dictionary).get("kind", "")) == "common_finisher"
+
+func _collab_combo_target_positions_from_stats(stats: Dictionary, fallback: Vector2) -> Array:
+	var result: Array = []
+	for enemy_item in stats.get("strongTargets", []) as Array:
+		var enemy: Dictionary = enemy_item as Dictionary
+		result.append(Vector2(enemy.get("pos", fallback)))
+	if result.is_empty():
+		result.append(fallback)
+	return result
 
 func _clear_collab_support_projectiles(area: Rect2, limit: int) -> int:
 	var cleared := 0
@@ -29044,6 +30346,23 @@ func _clear_collab_support_projectiles(area: Rect2, limit: int) -> int:
 		cleared += 1
 	return cleared
 
+func _clear_collab_support_projectiles_with_positions(area: Rect2, limit: int) -> Dictionary:
+	var positions: Array = []
+	var cleared := 0
+	for i in range(enemy_bullets.size() - 1, -1, -1):
+		if cleared >= limit:
+			break
+		var bullet: Dictionary = enemy_bullets[i] as Dictionary
+		if not _collab_support_projectile_is_clearable(bullet):
+			continue
+		var pos := Vector2(bullet.get("pos", Vector2.ZERO))
+		if not area.grow(float(bullet.get("hitRadius", 16.0))).has_point(pos):
+			continue
+		enemy_bullets.remove_at(i)
+		positions.append(pos)
+		cleared += 1
+	return {"count": cleared, "positions": positions}
+
 func _collab_support_projectile_is_clearable(bullet: Dictionary) -> bool:
 	if bool(bullet.get("redPenTelegraphPending", false)) or not bool(bullet.get("clearableByPlayerWeapon", false)):
 		return false
@@ -29054,15 +30373,18 @@ func _collab_support_projectile_is_clearable(bullet: Dictionary) -> bool:
 		return false
 	return attack_type in ["projectile", "spreadprojectile", "spread_projectile"]
 
-func _collab_gather_module_targets(center: Vector2, limit: int) -> void:
+func _collab_gather_module_targets(center: Vector2, limit: int) -> Array:
 	var targets := _collab_nearest_enemies(center, 300.0, limit)
+	var target_positions: Array = []
 	for enemy in targets:
+		target_positions.append(Vector2(enemy.get("pos", center)))
 		if not _collab_enemy_pull_safe(enemy):
 			continue
 		var direction := (center - Vector2(enemy.get("pos", center))).normalized()
 		if direction.length_squared() < 0.01:
 			continue
 		EnemySystemScript.add_knockback_for_enemy(enemy, direction, 25.0 * clampf(1.0 - float(enemy.get("pullResistance", 0.0)), 0.0, 1.0))
+	return target_positions
 
 func _collab_enemy_pull_safe(enemy: Dictionary) -> bool:
 	if _collab_combo_enemy_is_boss(enemy) or _song_enemy_inactive(enemy):
@@ -29073,20 +30395,23 @@ func _collab_enemy_pull_safe(enemy: Dictionary) -> bool:
 
 func _collab_pair_kyasumi_rizumu_skill() -> void:
 	var stats := _apply_collab_combo_screen_attack("collab_pair_kyasumi_rizumu", 0.70, 0.06)
-	var area: Rect2 = stats["area"] as Rect2
-	collab_effects.append({"kind": "collab_senior_guard_live", "pos": area.get_center(), "radius": area.size.length() * 0.46, "life": 1.0, "maxLife": 1.0, "color": Color("#76e5ff")})
+	var effect := _collab_dedicated_visual_effect(collab_combo_definition, stats, "collab_senior_guard_live")
+	effect["radius"] = (stats["area"] as Rect2).size.length() * 0.46
+	collab_effects.append(effect)
 	_request_screen_flash(Color(0.35, 0.85, 1.0, 0.25), 0.24)
 
 func _collab_pair_kyasumi_miimu_skill() -> void:
 	var stats := _apply_collab_combo_screen_attack("collab_pair_kyasumi_miimu", 0.68, 0.06)
-	var area: Rect2 = stats["area"] as Rect2
-	collab_effects.append({"kind": "collab_senior_moderate_finish", "pos": area.get_center(), "radius": area.size.length() * 0.52, "life": 1.0, "maxLife": 1.0, "color": Color("#b9a0ff")})
+	var effect := _collab_dedicated_visual_effect(collab_combo_definition, stats, "collab_senior_moderate_finish")
+	effect["radius"] = (stats["area"] as Rect2).size.length() * 0.52
+	collab_effects.append(effect)
 	_request_screen_flash(Color(0.56, 0.40, 1.0, 0.24), 0.24)
 
 func _collab_pair_rizumu_miimu_skill() -> void:
 	var stats := _apply_collab_combo_screen_attack("collab_pair_rizumu_miimu", 0.70, 0.06)
-	var area: Rect2 = stats["area"] as Rect2
-	collab_effects.append({"kind": "collab_senior_buzz_fishing", "pos": area.get_center(), "radius": area.size.length() * 0.50, "life": 1.0, "maxLife": 1.0, "color": Color("#ff9fca")})
+	var effect := _collab_dedicated_visual_effect(collab_combo_definition, stats, "collab_senior_buzz_fishing")
+	effect["radius"] = (stats["area"] as Rect2).size.length() * 0.50
+	collab_effects.append(effect)
 	_request_screen_flash(Color(1.0, 0.45, 0.72, 0.24), 0.24)
 
 func _emit_collab_pair_skill_reaction(pair_key: String) -> void:
@@ -30234,6 +31559,8 @@ func _collect_drawing_paint_orb(orb: Dictionary) -> void:
 			"text": "COLOR!",
 			"color": _drawing_paint_color(drawing_active_paint_color)
 		})
+	if stream_mission_run_tracker != null:
+		stream_mission_run_tracker.record_drawing_color(actual_color)
 	_show_drawing_toast("%s絵の具GET！" % color_name, "移動すると線を描けます")
 	chat_lines = ChatSystemScript.apply_feedback_for_target(self, {"chats": ["+ %s絵の具を拾った！" % color_name]}, chat_box)
 	_play_exp_pickup_se()
@@ -30588,7 +31915,9 @@ func _create_drawing_region(cells: Array, color_id: String, arena: Rect2, bounda
 	_complete_drawing_corrections_in_region(filled_cell_keys)
 	var toast_subtitle := "%sエリア %dマス / 敵%d体に効果" % [_drawing_paint_name(color_id), fill_score, hits]
 	if color_id == "green":
-		toast_subtitle = "%sエリア %dマス / HP +%d" % [_drawing_paint_name(color_id), fill_score, heal_burst]
+		toast_subtitle = "%sエリア %dマス" % [_drawing_paint_name(color_id), fill_score]
+		if heal_burst > 0:
+			toast_subtitle += " / メンタル +%d" % heal_burst
 	elif color_id == "yellow":
 		toast_subtitle = "%sバリア %dマス / 敵をせき止める" % [_drawing_paint_name(color_id), fill_score]
 	var toast_title := "囲い塗り成功！"
@@ -30767,25 +32096,16 @@ func _update_drawing_green_paint_heal(delta: float, arena: Rect2) -> void:
 		if actual_heal <= 0:
 			break
 
-func _apply_drawing_green_heal(amount: int, fx_pos: Vector2) -> int:
+func _apply_drawing_green_heal(amount: int, _fx_pos: Vector2) -> int:
 	if not _relay_heal_allowed() or amount <= 0 or player_hp >= player_max_hp:
 		return 0
 	amount = PowerUpEffectProviderScript.scaled_heal_amount(amount, permanent_upgrade_snapshot, "drawing_green_heal")
 	var actual_heal := mini(amount, player_max_hp - player_hp)
 	if actual_heal <= 0:
 		return 0
+	var before_hp: int = player_hp
 	player_hp = mini(player_max_hp, player_hp + actual_heal)
-	_append_mental_heal_fx(actual_heal, "drawing_green")
-	hit_fx.append({
-		"kind": "pickup_text",
-		"pos": fx_pos,
-		"vel": Vector2(0.0, -42.0),
-		"life": 0.68,
-		"maxLife": 0.68,
-		"text": "HP +%d" % actual_heal,
-		"color": Color("#74f4bc")
-	})
-	return actual_heal
+	return _record_actual_mental_heal(before_hp, "drawing_green")
 
 func _apply_drawing_region_effect(region: Dictionary, arena: Rect2) -> int:
 	var hits := 0

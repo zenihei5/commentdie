@@ -1577,24 +1577,31 @@ static func apply_kill_for_target(target: Node, enemy: Dictionary, arena: Rect2,
 		if bool(enemy.get("isPpRewardTarget", false)) and defeat_owner == "player" and target.has_method("_record_evaluation_target_boss"):
 			target.call("_record_evaluation_target_boss", true, true)
 		var tracker_variant: Variant = target.get("power_up_run_tracker")
+		var pp_reward_id := String(enemy.get("ppRewardId", enemy.get("bossId", enemy.get("kind", ""))))
+		var hard_boss_role := String(enemy.get("hardBossRole", ""))
+		var run_key := String(tracker_variant.run_id) if tracker_variant != null else String(target.get("run_id"))
+		var reward_key := "boss:%s:%s" % [run_key, pp_reward_id]
+		if hard_boss_role != "":
+			reward_key += ":" + hard_boss_role
+		var defeat_data := {
+			"bossId": String(enemy.get("bossId", enemy.get("kind", ""))),
+			"ppRewardId": pp_reward_id,
+			"basePpReward": int(enemy.get("basePpReward", 0)),
+			"isPpRewardTarget": bool(enemy.get("isPpRewardTarget", false)),
+			"isFirstDefeatRewardTarget": bool(enemy.get("isFirstDefeatRewardTarget", false)),
+			"hardBossRole": hard_boss_role,
+			"ppRate": float(enemy.get("hardPpRate", 1.0)),
+			"defeatReason": "player_side_damage" if defeat_owner == "player" else defeat_owner,
+			"rewardKey": reward_key
+		}
 		if tracker_variant != null and tracker_variant.has_method("register_boss_defeat"):
-			var pp_reward_id := String(enemy.get("ppRewardId", enemy.get("bossId", enemy.get("kind", ""))))
-			var hard_boss_role := String(enemy.get("hardBossRole", ""))
-			var reward_key := "boss:%s:%s" % [String(tracker_variant.run_id), pp_reward_id]
-			if hard_boss_role != "":
-				reward_key += ":" + hard_boss_role
-			var defeat_data := {
-				"bossId": String(enemy.get("bossId", enemy.get("kind", ""))),
-				"ppRewardId": pp_reward_id,
-				"basePpReward": int(enemy.get("basePpReward", 0)),
-				"isPpRewardTarget": bool(enemy.get("isPpRewardTarget", false)),
-				"isFirstDefeatRewardTarget": bool(enemy.get("isFirstDefeatRewardTarget", false)),
-				"hardBossRole": hard_boss_role,
-				"ppRate": float(enemy.get("hardPpRate", 1.0)),
-				"defeatReason": "player_side_damage" if defeat_owner == "player" else defeat_owner,
-				"rewardKey": reward_key
-			}
 			tracker_variant.register_boss_defeat(defeat_data)
+		var stream_tracker_variant: Variant = target.get("stream_mission_run_tracker")
+		if stream_tracker_variant != null and stream_tracker_variant.has_method("register_boss_defeat"):
+			var stream_defeat_data := defeat_data.duplicate(true)
+			if String(target.get("current_stream_frame_id")) == "singing":
+				stream_defeat_data["heatLevel"] = int(target.get("song_live_heat_level"))
+			stream_tracker_variant.register_boss_defeat(stream_defeat_data)
 		var boss_result := BossSystemScript.apply_defeat_for_target(target, enemy)
 		if target.has_method("_on_regular_boss_defeated"):
 			target.call("_on_regular_boss_defeated", enemy)

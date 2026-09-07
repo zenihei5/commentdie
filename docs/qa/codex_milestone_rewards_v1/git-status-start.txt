@@ -1,0 +1,8 @@
+Codex milestone rewards V1 execution baseline
+Recorded before V1 additions: 2026-09-07 (Asia/Tokyo)
+Branch: main
+HEAD: 6437e03ad934a7e94806034f7aeb30aa01ff64d3
+Worktree was already dirty and was preserved.
+Pre-existing status summary: 78 tracked paths modified, 78 untracked paths.
+Pre-existing reward-related protection: scripts/systems/power_up_shop_manager.gd contained the prior grant_reward deep-copy transaction fix; it was retained.
+No git reset, checkout, or clean operation was used during this execution.

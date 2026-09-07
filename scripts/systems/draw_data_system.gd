@@ -5,6 +5,11 @@ const MapBackgroundSystemScript := preload("res://scripts/systems/map_background
 
 const COLLAB_MUTE_CORE_RENDER_SIZE := 88.0
 const COLLAB_MUTE_CORE_GAMEPLAY_RADIUS := 27.0
+const LISTENER_SUMMON_HD_IMAGE_PATH := "res://assets/generated/weapon_fx_v1/listener_summon_hd_final_1254.png"
+const EMOTE_MINE_HD_IMAGE_PATH := "res://assets/generated/equipment_icons_v1/icons/emote_mine.png"
+# Compensate the shared icon's transparent margins without changing its PNG
+# or the gameplay radius: its painted width stays close to the legacy mine.
+const EMOTE_MINE_FIELD_IMAGE_SCALE := 1.28
 const TROLL_SPRITE_ASPECT := 1388.0 / 1133.0
 # The supplied 1254px PNG has an alpha>0 bbox whose largest half-extent is
 # 564px.  Keep this measured envelope here so the procedural rings sit just
@@ -4151,33 +4156,40 @@ static func mini_humidifier_heal_fx_data(pos: Vector2, life: float, max_life: fl
 		"heartWidth": 24,
 		"heartSize": 20,
 		"heartColor": Color(0.52, 0.92, 1.0, 0.76 * alpha),
-		"labelText": "+%d" % amount,
-		"labelPos": pos + Vector2(2.0, -22.0 - drift * 0.45),
-		"labelWidth": 38,
-		"labelSize": 15,
-		"labelColor": Color(0.78, 1.0, 1.0, 0.66 * alpha)
 	}
 
 static func mental_heal_fx_config() -> Dictionary:
 	return {
-		"life": 0.68,
-		"baseRadius": 30.0,
+		"life": 0.95,
+		"baseRadius": 42.0,
 		"expandRadius": 38.0,
-		"coreRadius": 15.0,
-		"particleCount": 8,
-		"particleSpread": 42.0,
-		"particleRise": 24.0,
-		"particleSize": 2.6,
-		"particleWidth": 1.8,
-		"ringWidth": 3.0,
-		"innerRingWidth": 1.6,
-		"glowColor": Color(0.34, 1.0, 0.70, 0.18),
-		"ringColor": Color(0.48, 1.0, 0.78, 0.80),
-		"innerRingColor": Color(0.86, 1.0, 0.92, 0.74),
-		"coreColor": Color(0.74, 1.0, 0.84, 0.24),
-		"flashColor": Color(0.96, 1.0, 0.94, 0.78),
-		"particleColor": Color(0.64, 1.0, 0.78, 0.88)
+		"coreRadius": 18.0,
+		"particleCount": 10,
+		"particleSpread": 58.0,
+		"particleRise": 42.0,
+		"particleSize": 3.0,
+		"particleWidth": 2.1,
+		"ringWidth": 4.5,
+		"innerRingWidth": 2.5,
+		"glowColor": Color(0.34, 1.0, 0.70, 0.26),
+		"ringColor": Color(0.38, 1.0, 0.70, 0.94),
+		"innerRingColor": Color(0.86, 1.0, 0.92, 0.92),
+		"coreColor": Color(0.74, 1.0, 0.84, 0.45),
+		"flashColor": Color(0.96, 1.0, 0.94, 0.95),
+		"particleColor": Color(0.64, 1.0, 0.78, 0.98)
 	}
+
+static func actual_mental_heal_amount(before_hp: int, after_hp: int) -> int:
+	return maxi(0, after_hp - before_hp)
+
+static func aggregate_mental_heal_amount(current_amount: int, additional_amount: int) -> int:
+	return maxi(0, current_amount) + maxi(0, additional_amount)
+
+static func mental_heal_hud_pulse_alpha(remaining: float, duration: float = 0.45) -> float:
+	if remaining <= 0.0 or duration <= 0.0:
+		return 0.0
+	var progress := clampf(1.0 - remaining / duration, 0.0, 1.0)
+	return sin(progress * PI)
 
 static func mental_heal_fx_data(pos: Vector2, life: float, max_life: float, amount: int = 0) -> Dictionary:
 	var config := mental_heal_fx_config()
@@ -4193,7 +4205,7 @@ static func mental_heal_fx_data(pos: Vector2, life: float, max_life: float, amou
 		"glowRadius": base_radius + expand_radius * progress,
 		"glowColor": Color((config.get("glowColor", Color(0.34, 1.0, 0.70, 0.18)) as Color).r, (config.get("glowColor", Color(0.34, 1.0, 0.70, 0.18)) as Color).g, (config.get("glowColor", Color(0.34, 1.0, 0.70, 0.18)) as Color).b, 0.12 * alpha + 0.10 * pulse),
 		"ringPos": center,
-		"ringRadius": base_radius * 0.72 + expand_radius * progress,
+		"ringRadius": base_radius + expand_radius * progress,
 		"ringColor": Color((config.get("ringColor", Color(0.48, 1.0, 0.78, 0.80)) as Color).r, (config.get("ringColor", Color(0.48, 1.0, 0.78, 0.80)) as Color).g, (config.get("ringColor", Color(0.48, 1.0, 0.78, 0.80)) as Color).b, 0.70 * alpha),
 		"innerPos": center,
 		"innerRadius": float(config.get("coreRadius", 15.0)) + pulse * 4.0,
@@ -4214,7 +4226,8 @@ static func mental_heal_fx_data(pos: Vector2, life: float, max_life: float, amou
 	var particle_count := maxi(0, int(config.get("particleCount", 8)))
 	var spread := float(config.get("particleSpread", 42.0))
 	var rise := float(config.get("particleRise", 24.0))
-	var particle_size := float(config.get("particleSize", 2.6))
+	var particle_size := float(config.get("particleSize", 3.0))
+	var label_text := "" if amount <= 0 else "メンタル +%d" % amount
 	for i in range(particle_count):
 		var angle := -PI * 0.5 + TAU * float(i) / float(maxi(1, particle_count))
 		var direction := Vector2(cos(angle), sin(angle))
@@ -4227,6 +4240,13 @@ static func mental_heal_fx_data(pos: Vector2, life: float, max_life: float, amou
 		data[prefix + "BEnd"] = particle_pos + direction * particle_size
 		data[prefix + "Color"] = Color((data["particleColor"] as Color).r, (data["particleColor"] as Color).g, (data["particleColor"] as Color).b, (data["particleColor"] as Color).a * alpha)
 		data[prefix + "Width"] = float(config.get("particleWidth", 1.8))
+	data["labelText"] = label_text
+	data["labelPos"] = center + Vector2(-95.0, -56.0 - progress * 30.0)
+	data["labelWidth"] = 190
+	data["labelSize"] = 23
+	data["labelColor"] = Color(0.76, 1.0, 0.84, 0.98 * alpha)
+	data["labelOutlineColor"] = Color(0.04, 0.24, 0.16, 0.96 * alpha)
+	data["labelOutlineWidth"] = 2.5
 	return data
 
 static func banana_slip_fx_data(pos: Vector2, dir: Vector2, side: Vector2, life: float, max_life: float, seed: float) -> Dictionary:
@@ -4294,7 +4314,7 @@ static func pin_burst_fx_data(pos: Vector2, life: float, max_life: float) -> Dic
 static func emote_mine_fx_data(pos: Vector2, life: float, max_life: float, radius: float) -> Dictionary:
 	var pulse: float = 0.5 + 0.5 * sin(life * 8.0)
 	var alpha: float = clampf(life / maxf(0.01, max_life), 0.0, 1.0)
-	var image_size: float = 60.0 + pulse * 4.0
+	var image_size: float = (60.0 + pulse * 4.0) * EMOTE_MINE_FIELD_IMAGE_SCALE
 	return {
 		"kind": "emote_mine",
 		"shadowPos": pos + Vector2(0, 5),
@@ -4306,7 +4326,8 @@ static func emote_mine_fx_data(pos: Vector2, life: float, max_life: float, radiu
 		"innerPos": pos,
 		"innerRadius": 9.0 + pulse,
 		"innerColor": Color(1.0, 0.64, 0.88, 0.82 * alpha),
-		"imagePath": "res://assets/generated/weapon_fx_v1/emote_mine.png",
+		"imagePath": EMOTE_MINE_HD_IMAGE_PATH,
+		"imageUseMipmaps": true,
 		"imagePos": pos + Vector2(0, -2),
 		"imageSize": Vector2(image_size, image_size),
 		"imageAlpha": alpha,
@@ -4445,7 +4466,8 @@ static func listener_summon_fx_data(pos: Vector2, dir: Vector2, life: float, max
 		"shadowPos": pos + Vector2(0, 15),
 		"shadowSize": Vector2(34, 9) * visual_scale,
 		"shadowAlpha": 0.22 * alpha,
-		"imagePath": "res://assets/generated/weapon_fx_v1/listener_summon.png",
+		"imagePath": LISTENER_SUMMON_HD_IMAGE_PATH,
+		"imageUseMipmaps": true,
 		"imagePos": pos + Vector2(0, bob - 4),
 		"imageSize": Vector2(image_size, image_size),
 		"imageAlpha": alpha,
@@ -5331,6 +5353,37 @@ static func fansa_baton_fx_data(pos: Vector2, direction: Vector2, combo_step: in
 		"imageLayers": image_layers
 	}
 
+static func _fansa_climax_final_role_data(data: Dictionary, life: float, max_life: float) -> Dictionary:
+	# Draw-only hierarchy: X is the finisher, the fan is a brief accent, and
+	# the circular wave is a subdued field cue. Never change hit FX lifetimes,
+	# anchors, sizes, collision geometry, or the immediate X / SE timing here.
+	var kind := String(data.get("kind", ""))
+	var age := maxf(0.0, max_life - life)
+	if kind == "fansa_climax_hit" and String(data.get("attackVisualRole", "")) == "finisher":
+		# X owns the one visible arc; the main hit has the same attack geometry.
+		data["showFanArc"] = false
+		for layer in data.get("imageLayers", []) as Array:
+			match String(layer.get("role", "")):
+				"finisher":
+					layer["alpha"] *= 0.22 * clampf(1.0 - age / 0.12, 0.0, 1.0)
+				"finisherBg":
+					layer["alpha"] *= 0.18
+				"confetti":
+					layer["alpha"] *= 0.40
+	elif kind == "fansa_climax_x":
+		var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
+		data["fanArcColor"] = Color(1.0, 0.86, 0.34, 0.32 * alpha)
+		data["fanArcGlowColor"] = Color(1.0, 0.54, 0.08, 0.06 * alpha)
+		data["fanArcWidth"] = 2.0
+		data["fanArcGlowWidth"] = 6.0
+	elif kind == "fansa_climax_fan_wave":
+		# Use the existing field pass, including its image/fallback handling.
+		data["fieldLayer"] = true
+		for layer in data.get("imageLayers", []) as Array:
+			if String(layer.get("role", "")) == "wave":
+				layer["alpha"] *= 0.23
+	return data
+
 static func tsuri_rod_fx_data(pos: Vector2, _phase: String, player_pos: Vector2, _reel_destination: Vector2, life: float, max_life: float, _path_width: float, gather_radius: float, visuals: Dictionary = {}, direction_hint: Vector2 = Vector2.RIGHT) -> Dictionary:
 	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var direction := (pos - player_pos).normalized()
@@ -5456,7 +5509,7 @@ static func tsuri_rod_reel_hit_fx_data(pos: Vector2, direction: Vector2, life: f
 static func fansa_climax_fan_wave_fx_data(pos: Vector2, radius: float, life: float, max_life: float, visuals: Dictionary = {}) -> Dictionary:
 	var alpha := clampf(life / maxf(0.01, max_life), 0.0, 1.0)
 	var wave := _visual_config(visuals, "wave")
-	return {
+	var data := {
 		"kind": "fansa_climax_fan_wave",
 		"pos": pos,
 		"ringPos": pos,
@@ -5467,6 +5520,7 @@ static func fansa_climax_fan_wave_fx_data(pos: Vector2, radius: float, life: flo
 		"waveWidth": 8.0,
 		"imageLayers": [_visual_image_layer("wave", wave, pos, 0.0, _visual_alpha(wave, life, max_life))] if not wave.is_empty() else []
 	}
+	return _fansa_climax_final_role_data(data, life, max_life)
 
 static func fansa_climax_spark_fx_data(pos: Vector2, life: float, max_life: float, visuals: Dictionary = {}, spark_multiplier: float = 1.0) -> Dictionary:
 	var spark := _visual_config(visuals, "spark")
@@ -5717,7 +5771,7 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 			var climax_pos := Vector2(fx_item.get("pos", Vector2.ZERO))
 			var climax_data := fansa_baton_fx_data(climax_pos, Vector2(fx_item.get("dir", Vector2.RIGHT)), int(fx_item.get("comboStep", 0)), float(fx_item.get("life", 0.24)), float(fx_item.get("maxLife", 0.24)), float(fx_item.get("range", 180.0)), float(fx_item.get("arcAngle", 180.0)), fx_item.get("visuals", {}) as Dictionary, "", 1, Vector2(fx_item.get("attackOrigin", climax_pos)), float(fx_item.get("range", 180.0)), float(fx_item.get("arcAngle", 180.0)), fx_item.has("attackOrigin"))
 			climax_data["kind"] = "fansa_climax_hit"
-			items.append(climax_data)
+			items.append(_fansa_climax_final_role_data(climax_data, float(fx_item.get("life", 0.24)), float(fx_item.get("maxLife", 0.24))))
 			continue
 		if String(fx_item.get("kind", "")) == "fansa_climax_echo":
 			var echo_origin := Vector2(fx_item.get("origin", fx_item.get("pos", Vector2.ZERO)))
@@ -5729,7 +5783,7 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 			var climax_x_pos := Vector2(fx_item.get("pos", Vector2.ZERO))
 			var climax_x := fansa_baton_fx_data(climax_x_pos, Vector2(fx_item.get("dir", Vector2.RIGHT)), 2, float(fx_item.get("life", 0.30)), float(fx_item.get("maxLife", 0.30)), float(fx_item.get("range", 180.0)), float(fx_item.get("arcAngle", 180.0)), fx_item.get("visuals", {}) as Dictionary, "xSlash", 5, Vector2(fx_item.get("origin", climax_x_pos)), float(fx_item.get("range", 180.0)), float(fx_item.get("arcAngle", 180.0)), fx_item.has("origin"))
 			climax_x["kind"] = "fansa_climax_x"
-			items.append(climax_x)
+			items.append(_fansa_climax_final_role_data(climax_x, float(fx_item.get("life", 0.30)), float(fx_item.get("maxLife", 0.30))))
 			continue
 		if String(fx_item.get("kind", "")) == "fansa_climax_fan_wave":
 			items.append(fansa_climax_fan_wave_fx_data(Vector2(fx_item.get("pos", Vector2.ZERO)), float(fx_item.get("radius", 105.0)), float(fx_item.get("life", 0.28)), float(fx_item.get("maxLife", 0.28)), fx_item.get("visuals", {}) as Dictionary))
@@ -5884,7 +5938,7 @@ static func hit_fx_draw_data(hit_fx: Array, visible_rect: Rect2 = Rect2()) -> Ar
 			items.append(mini_humidifier_heal_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.58)), int(fx_item.get("amount", 0))))
 			continue
 		if String(fx_item.get("kind", "")) == "mental_heal":
-			items.append(mental_heal_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.68)), int(fx_item.get("amount", 0))))
+			items.append(mental_heal_fx_data(Vector2(fx_item["pos"]), float(fx_item["life"]), float(fx_item.get("maxLife", 0.95)), int(fx_item.get("amount", 0))))
 			continue
 		if String(fx_item.get("kind", "")) == "ban_judgement_defeat":
 			items.append(ban_judgement_defeat_fx_data(
@@ -6089,14 +6143,17 @@ static func hit_fx_parts(data: Dictionary) -> Array:
 		var baton_fallback_role := String(data.get("attackVisualRole", ""))
 		if baton_fallback_role == "":
 			baton_fallback_role = "xSlash" if String(data.get("kind", "")) in ["fansa_baton_cross_followup", "fansa_climax_x"] else ("swingRight" if int(data.get("comboStep", 0)) == 0 else ("swingLeft" if int(data.get("comboStep", 0)) == 1 else "finisher"))
-		return [
-			{"kind": "polyline", "pointsKey": "fanArcPoints", "colorKey": "fanArcGlowColor", "widthKey": "fanArcGlowWidth"},
-			{"kind": "polyline", "pointsKey": "fanArcPoints", "colorKey": "fanArcColor", "widthKey": "fanArcWidth"},
+		var baton_parts: Array = []
+		if bool(data.get("showFanArc", true)):
+			baton_parts.append({"kind": "polyline", "pointsKey": "fanArcPoints", "colorKey": "fanArcGlowColor", "widthKey": "fanArcGlowWidth"})
+			baton_parts.append({"kind": "polyline", "pointsKey": "fanArcPoints", "colorKey": "fanArcColor", "widthKey": "fanArcWidth"})
+		baton_parts.append_array([
 			{"kind": "polyline", "pointsKey": "trailPoints", "colorKey": "trailGlowColor", "widthKey": "trailGlowWidth", "fallbackRole": baton_fallback_role},
 			{"kind": "polyline", "pointsKey": "trailPoints", "colorKey": "trailColor", "widthKey": "trailWidth", "fallbackRole": baton_fallback_role},
 			{"kind": "polyline", "pointsKey": "cross1", "colorKey": "crossColor", "widthKey": "crossWidth", "fallbackRole": baton_fallback_role},
 			{"kind": "polyline", "pointsKey": "cross2", "colorKey": "crossColor", "widthKey": "crossWidth", "fallbackRole": baton_fallback_role}
-		]
+		])
+		return baton_parts
 	if String(data.get("kind", "")) == "fansa_climax_spark":
 		return [
 			{"kind": "circle", "prefix": "glow", "fallbackRole": "spark"},

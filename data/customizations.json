@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "conditions": {
+    "collection:25": {
+      "kind": "collection",
+      "percent": 25,
+      "displayName": "配信図鑑 COLLECTION 25%"
+    },
+    "collection:50": {
+      "kind": "collection",
+      "percent": 50,
+      "displayName": "配信図鑑 COLLECTION 50%"
+    },
+    "collection:75": {
+      "kind": "collection",
+      "percent": 75,
+      "displayName": "配信図鑑 COLLECTION 75%"
+    },
+    "collection:100": {
+      "kind": "collection",
+      "percent": 100,
+      "displayName": "配信図鑑 COLLECTION 100%"
+    },
+    "category:characters:100": {
+      "kind": "category",
+      "category": "characters",
+      "percent": 100,
+      "displayName": "キャラクター図鑑 100%"
+    },
+    "category:weapons:100": {
+      "kind": "category",
+      "category": "weapons",
+      "percent": 100,
+      "displayName": "武器図鑑 100%"
+    },
+    "category:accessories:100": {
+      "kind": "category",
+      "category": "accessories",
+      "percent": 100,
+      "displayName": "アクセサリー図鑑 100%"
+    },
+    "category:enemies:100": {
+      "kind": "category",
+      "category": "enemies",
+      "percent": 100,
+      "displayName": "敵図鑑 100%"
+    },
+    "category:comments:100": {
+      "kind": "category",
+      "category": "comments",
+      "percent": 100,
+      "displayName": "指示コメ図鑑 100%"
+    },
+    "stream_missions:all": {
+      "kind": "mission_reward",
+      "displayName": "配信目標 18 / 18 達成"
+    }
+  },
+  "items": [
+    {
+      "id": "title_comment_regular",
+      "category": "title",
+      "displayName": "コメント欄常駐",
+      "pricePp": 150,
+      "unlockConditionId": "collection:25",
+      "presentationId": "title_comment_regular",
+      "sortOrder": 10,
+      "description": "コメント欄にいつでもいる人の肩書き。"
+    },
+    {
+      "id": "title_went_viral",
+      "category": "title",
+      "displayName": "バズりました",
+      "pricePp": 200,
+      "unlockConditionId": "collection:25",
+      "presentationId": "title_went_viral",
+      "sortOrder": 20,
+      "description": "話題の波に乗った配信者の肩書き。"
+    },
+    {
+      "id": "title_limit_streamer",
+      "category": "title",
+      "displayName": "限界配信者",
+      "pricePp": 250,
+      "unlockConditionId": "collection:50",
+      "presentationId": "title_limit_streamer",
+      "sortOrder": 30,
+      "description": "限界まで配信を走り切る人の肩書き。"
+    },
+    {
+      "id": "title_viewer_monster",
+      "category": "title",
+      "displayName": "同接モンスター",
+      "pricePp": 300,
+      "unlockConditionId": "collection:75",
+      "presentationId": "title_viewer_monster",
+      "sortOrder": 40,
+      "description": "同時視聴者の熱狂を集める肩書き。"
+    },
+    {
+      "id": "title_codex_master",
+      "category": "title",
+      "displayName": "配信図鑑マスター",
+      "pricePp": 400,
+      "unlockConditionId": "collection:100",
+      "presentationId": "title_codex_master",
+      "sortOrder": 50,
+      "description": "配信図鑑を完成させた証。"
+    },
+    {
+      "id": "title_hako_oshi",
+      "category": "title",
+      "displayName": "箱推しです",
+      "pricePp": 250,
+      "unlockConditionId": "category:characters:100",
+      "presentationId": "title_hako_oshi",
+      "sortOrder": 60,
+      "description": "配信者全員を応援する人の肩書き。"
+    },
+    {
+      "id": "title_weapon_keeper",
+      "category": "title",
+      "displayName": "武器庫の主",
+      "pricePp": 300,
+      "unlockConditionId": "category:weapons:100",
+      "presentationId": "title_weapon_keeper",
+      "sortOrder": 70,
+      "description": "武器図鑑を極めた装備番。"
+    },
+    {
+      "id": "title_fully_prepared",
+      "category": "title",
+      "displayName": "準備万端",
+      "pricePp": 300,
+      "unlockConditionId": "category:accessories:100",
+      "presentationId": "title_fully_prepared",
+      "sortOrder": 80,
+      "description": "備えをすべて揃えた配信者の肩書き。"
+    },
+    {
+      "id": "title_troll_observer",
+      "category": "title",
+      "displayName": "荒らし観測員",
+      "pricePp": 350,
+      "unlockConditionId": "category:enemies:100",
+      "presentationId": "title_troll_observer",
+      "sortOrder": 90,
+      "description": "敵図鑑を観測し尽くした人の肩書き。"
+    },
+    {
+      "id": "title_comment_ruler",
+      "category": "title",
+      "displayName": "コメント欄の支配者",
+      "pricePp": 350,
+      "unlockConditionId": "category:comments:100",
+      "presentationId": "title_comment_ruler",
+      "sortOrder": 100,
+      "description": "指示コメ図鑑を制覇した人の肩書き。"
+    },
+    {
+      "id": "title_perfect_streamer",
+      "category": "title",
+      "displayName": "完璧な配信者",
+      "pricePp": 0,
+      "unlockConditionId": "stream_missions:all",
+      "presentationId": "title_perfect_streamer",
+      "sortOrder": 110,
+      "acquisitionType": "mission_reward",
+      "description": "配信目標18 / 18達成の証。"
+    },
+    {
+      "id": "theme_neon_pink",
+      "category": "theme",
+      "displayName": "ネオンピンク",
+      "pricePp": 350,
+      "unlockConditionId": "collection:25",
+      "presentationId": "theme_neon_pink",
+      "sortOrder": 10,
+      "description": "ショップとリザルトをネオンピンクの装飾で彩るテーマ。"
+    },
+    {
+      "id": "theme_cyan_light",
+      "category": "theme",
+      "displayName": "シアンライト",
+      "pricePp": 450,
+      "unlockConditionId": "collection:50",
+      "presentationId": "theme_cyan_light",
+      "sortOrder": 20,
+      "description": "ショップとリザルトを軽やかなシアンで彩るテーマ。"
+    },
+    {
+      "id": "theme_lavender_night",
+      "category": "theme",
+      "displayName": "ラベンダーナイト",
+      "pricePp": 550,
+      "unlockConditionId": "collection:75",
+      "presentationId": "theme_lavender_night",
+      "sortOrder": 30,
+      "description": "夜色のラベンダーで装飾を落ち着かせるテーマ。"
+    },
+    {
+      "id": "theme_live_gold",
+      "category": "theme",
+      "displayName": "LIVE GOLD",
+      "pricePp": 650,
+      "unlockConditionId": "collection:75",
+      "presentationId": "theme_live_gold",
+      "sortOrder": 40,
+      "description": "配信完走の余韻をゴールドの装飾で表現するテーマ。"
+    },
+    {
+      "id": "theme_complete_neon",
+      "category": "theme",
+      "displayName": "COMPLETE NEON",
+      "pricePp": 900,
+      "unlockConditionId": "collection:100",
+      "presentationId": "theme_complete_neon",
+      "sortOrder": 50,
+      "description": "図鑑コンプリートの記念にネオンを重ねるテーマ。"
+    },
+    {
+      "id": "stamp_otsu_stream",
+      "category": "result_stamp",
+      "displayName": "おつ配信！",
+      "pricePp": 200,
+      "unlockConditionId": "collection:25",
+      "presentationId": "stamp_otsu_stream",
+      "sortOrder": 10,
+      "description": "吹き出しと星で配信後のひとことを飾るスタンプ。"
+    },
+    {
+      "id": "stamp_stream_end",
+      "category": "result_stamp",
+      "displayName": "配信終了！",
+      "pricePp": 250,
+      "unlockConditionId": "collection:50",
+      "presentationId": "stamp_stream_end",
+      "sortOrder": 20,
+      "description": "終了 placard 風の小さな結果スタンプ。"
+    },
+    {
+      "id": "stamp_archive",
+      "category": "result_stamp",
+      "displayName": "アーカイブ残します",
+      "pricePp": 300,
+      "unlockConditionId": "collection:50",
+      "presentationId": "stamp_archive",
+      "sortOrder": 30,
+      "description": "再生と保存カードを組み合わせたスタンプ。"
+    },
+    {
+      "id": "stamp_viral",
+      "category": "result_stamp",
+      "displayName": "バズった！",
+      "pricePp": 350,
+      "unlockConditionId": "collection:75",
+      "presentationId": "stamp_viral",
+      "sortOrder": 40,
+      "description": "上向きの軌跡と星でバズを表すスタンプ。"
+    },
+    {
+      "id": "stamp_commentdie",
+      "category": "result_stamp",
+      "displayName": "ぜんぶコメントのせいだ",
+      "pricePp": 450,
+      "unlockConditionId": "collection:100",
+      "presentationId": "stamp_commentdie",
+      "sortOrder": 50,
+      "description": "複数のコメント吹き出しを重ねた記念スタンプ。"
+    }
+  ]
+}

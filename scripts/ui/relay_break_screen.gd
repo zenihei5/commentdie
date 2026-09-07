@@ -301,8 +301,8 @@ func _refresh_context_visuals() -> void:
 	var max_hp := int(context.get("maxHp", 0))
 	var heal_amount := int(context.get("healAmount", 0))
 	var after_hp := int(context.get("healPreviewHp", current_hp))
-	heal_preview_label.text = "HP %d / %d → %d / %d" % [current_hp, max_hp, after_hp, max_hp]
-	heal_full_label.text = "メンタルは満タンです" if current_hp >= max_hp else "+%d（最大HPの30%%）" % heal_amount
+	heal_preview_label.text = "メンタル %d / %d → %d / %d" % [current_hp, max_hp, after_hp, max_hp]
+	heal_full_label.text = "メンタルは満タンです" if current_hp >= max_hp else "メンタル +%d（最大メンタルの30%%）" % heal_amount
 
 func _character_texture(character_id: String) -> Texture2D:
 	return _load_texture(String(CHARACTER_TEXTURES.get(character_id, "")))

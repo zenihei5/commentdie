@@ -1,0 +1,8 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+SCRIPT ERROR: Parse Error: Expected statement, found "Indent" instead.
+   at: GDScript::reload (res://scripts/tests/test_codex_milestone_rewards_v1.gd:256)
+ERROR: Failed to load script "res://scripts/tests/test_codex_milestone_rewards_v1.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)

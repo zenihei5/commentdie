@@ -1,6 +1,7 @@
 class_name StreamPointRewardResult
 extends RefCounted
 
+const ResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
 var participation_pp := 0
 var progress_pp := 0
 var clear_pp := 0
@@ -32,6 +33,46 @@ var newly_defeated_boss_ids: Array[String] = []
 var grants_first_relay_clear := false
 var reward_keys: Array[String] = []
 var boss_reward_entries: Array[Dictionary] = []
+
+static func from_dictionary(data: Dictionary):
+	var result := ResultScript.new()
+	result.participation_pp = int(data.get("participationPp", 0))
+	result.progress_pp = int(data.get("progressPp", 0))
+	result.clear_pp = int(data.get("clearPp", 0))
+	result.boss_defeat_pp = int(data.get("bossDefeatPp", 0))
+	result.relay_stage_pp = int(data.get("relayStagePp", 0))
+	result.relay_final_reached_pp = int(data.get("relayFinalReachedPp", 0))
+	result.relay_final_clear_pp = int(data.get("relayFinalClearPp", 0))
+	result.first_stage_clear_pp = int(data.get("firstStageClearPp", 0))
+	result.first_boss_defeat_pp = int(data.get("firstBossDefeatPp", 0))
+	result.first_relay_clear_pp = int(data.get("firstRelayClearPp", 0))
+	result.difficulty_multiplier = float(data.get("difficultyMultiplier", 1.0))
+	result.repeat_reward_base = int(data.get("repeatRewardBase", 0))
+	result.difficulty_adjusted_reward = int(data.get("difficultyAdjustedReward", 0))
+	result.difficulty_adjustment = int(data.get("difficultyAdjustment", 0))
+	result.evaluation_version = int(data.get("evaluationVersion", 2))
+	result.evaluation_score = int(data.get("evaluationScore", 0))
+	result.evaluation_rank = String(data.get("evaluationRank", "D"))
+	result.evaluation_bonus_rate = float(data.get("evaluationBonusRate", 0.0))
+	result.evaluation_bonus_pp = int(data.get("evaluationBonusPp", 0))
+	result.repeatable_subtotal = int(data.get("repeatableSubtotal", 0))
+	result.one_time_subtotal = int(data.get("oneTimeSubtotal", 0))
+	result.field_gift_pp = int(data.get("fieldGiftPp", 0))
+	result.fallback_gift_pp = int(data.get("fallbackGiftPp", 0))
+	result.full_build_conversion_pp = int(data.get("fullBuildConversionPp", 0))
+	result.direct_pp_subtotal = int(data.get("directPpSubtotal", 0))
+	result.total_pp = int(data.get("totalPp", 0))
+	for value in data.get("newlyClearedStageIds", []) as Array:
+		result.newly_cleared_stage_ids.append(String(value))
+	for value in data.get("newlyDefeatedBossIds", []) as Array:
+		result.newly_defeated_boss_ids.append(String(value))
+	result.grants_first_relay_clear = bool(data.get("grantsFirstRelayClear", false))
+	for value in data.get("rewardKeys", []) as Array:
+		result.reward_keys.append(String(value))
+	for value in data.get("bossRewardEntries", []) as Array:
+		if value is Dictionary:
+			result.boss_reward_entries.append((value as Dictionary).duplicate(true))
+	return result
 
 func to_dictionary() -> Dictionary:
 	return {

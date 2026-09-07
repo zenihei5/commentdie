@@ -1,0 +1,16 @@
+{
+	"version": 1,
+	"categories": [
+		"characters",
+		"weapons",
+		"accessories",
+		"enemies",
+		"comments"
+	],
+	"milestones": [
+		{"percent": 25, "pp": 25},
+		{"percent": 50, "pp": 50},
+		{"percent": 75, "pp": 100},
+		{"percent": 100, "pp": 200}
+	]
+}

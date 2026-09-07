@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "titleId": "title_perfect_streamer",
+  "missions": [
+    {"id":"TALK-1","stageId":"zatsudan","displayName":"コメント拾います","description":"非♡状態で指示コメを5回以上選択","shortDescription":"非♡指示コメ 5回","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"non_heart_comments","params":{"count":5},"sortOrder":10},
+    {"id":"TALK-2","stageId":"zatsudan","displayName":"炎上上等！","description":"riskLevel 3以上の指示コメを5回以上適用","shortDescription":"危険指示コメ 5回","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"risk_comments","params":{"riskLevel":3,"count":5},"sortOrder":20},
+    {"id":"TALK-3","stageId":"zatsudan","displayName":"鋼のメンタル","description":"HARD以上で累積実ダメージを開始時メンタルの50%以内に抑える","shortDescription":"HARD+・累積被ダメ 50%以内","difficulty":["hard","expert"],"rewardPp":50,"conditionType":"cumulative_damage_ratio","params":{"maxRatio":0.5},"sortOrder":30},
+    {"id":"GAME-1","stageId":"gameplay","displayName":"ジャンル攻略！","description":"ジャンルイベントを無被弾で1回以上完了","shortDescription":"無被弾ジャンルイベント 1回","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"genre_no_hit","params":{"count":1},"sortOrder":40},
+    {"id":"GAME-2","stageId":"gameplay","displayName":"攻略ビルド完成","description":"正式終了時に異なる武器を3枠以上装備","shortDescription":"武器 3枠以上","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"weapon_slots","params":{"count":3},"sortOrder":50},
+    {"id":"GAME-3","stageId":"gameplay","displayName":"完璧な実況プレイ","description":"HARD以上で無被弾ジャンルイベントと評価A以上を達成","shortDescription":"HARD+・無被弾イベント＋評価A以上","difficulty":["hard","expert"],"rewardPp":50,"conditionType":"genre_no_hit_rank","params":{"count":1,"ranks":["A","S"]},"sortOrder":60},
+    {"id":"SONG-1","stageId":"singing","displayName":"最高潮！","description":"LIVE HEAT Lv5へ1回以上到達","shortDescription":"LIVE HEAT Lv5到達","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"song_heat_level","params":{"level":5},"sortOrder":70},
+    {"id":"SONG-2","stageId":"singing","displayName":"アンコール！","description":"LIVE HEAT Lv5以上でplayingした時間を累計20秒以上にする","shortDescription":"LIVE HEAT Lv5・playing 20秒","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"song_heat_playing_seconds","params":{"level":5,"seconds":20.0},"sortOrder":80},
+    {"id":"SONG-3","stageId":"singing","displayName":"完璧なステージ","description":"HARD以上でLIVE HEAT Lv5中にピッチポリス長官をプレイヤー側撃破","shortDescription":"HARD+・Lv5中ボス撃破","difficulty":["hard","expert"],"rewardPp":50,"conditionType":"song_heat_boss","params":{"level":5,"bossId":"pitch_police_chief"},"sortOrder":90},
+    {"id":"DRAW-1","stageId":"drawing","displayName":"色とりどり","description":"通常インクの異なる3色を各1回以上取得","shortDescription":"通常インク 3色","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"drawing_colors","params":{"count":3},"sortOrder":100},
+    {"id":"DRAW-2","stageId":"drawing","displayName":"ひと囲いの傑作","description":"囲い塗りを1回以上成立させる","shortDescription":"囲い塗り 1回","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"drawing_fill","params":{"count":1},"sortOrder":110},
+    {"id":"DRAW-3","stageId":"drawing","displayName":"神絵師配信","description":"HARD以上で通常インク3色と赤ペン添削ドラゴン撃破を達成","shortDescription":"HARD+・3色＋ボス撃破","difficulty":["hard","expert"],"rewardPp":50,"conditionType":"drawing_colors_boss","params":{"count":3,"bossId":"redpen_retake_dragon"},"sortOrder":120},
+    {"id":"COLLAB-1","stageId":"collab","displayName":"息ぴったり！","description":"コラボチャレンジを1回以上成功させる","shortDescription":"チャレンジ成功 1回","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"collab_challenge","params":{"count":1},"sortOrder":130},
+    {"id":"COLLAB-2","stageId":"collab","displayName":"ナイスパス！","description":"コラボパスを3回以上成功させる","shortDescription":"パス成功 3回","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"collab_pass","params":{"count":3},"sortOrder":140},
+    {"id":"COLLAB-3","stageId":"collab","displayName":"最強コンビ","description":"HARD以上で連携技を発動し、コラボクラッシャーをプレイヤー側撃破","shortDescription":"HARD+・連携技＋ボス撃破","difficulty":["hard","expert"],"rewardPp":50,"conditionType":"collab_pair_boss","params":{"count":1,"bossId":"collab_crusher"},"sortOrder":150},
+    {"id":"RELAY-1","stageId":"relay","displayName":"本番準備OK","description":"最終準備後にLv5以上の武器または進化武器を所持してリレー完走","shortDescription":"入口Lv5以上／進化武器","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"relay_final_preparation","params":{"weaponLevel":5},"sortOrder":160},
+    {"id":"RELAY-2","stageId":"relay","displayName":"全枠対応型","description":"5区間のミニ条件を3種類以上達成してリレー完走","shortDescription":"5ミニ中 3つ以上＋完走","difficulty":["normal","hard","expert"],"rewardPp":50,"conditionType":"relay_mini_conditions","params":{"count":3},"sortOrder":170},
+    {"id":"RELAY-3","stageId":"relay","displayName":"完走配信者","description":"HARD以上で最終ボスをプレイヤー側撃破し、評価A以上で完走","shortDescription":"HARD+・最終ボス＋評価A以上","difficulty":["hard","expert"],"rewardPp":50,"conditionType":"relay_final_boss_rank","params":{"bossId":"last_offline","ranks":["A","S"]},"sortOrder":180}
+  ],
+  "sets": [
+    {"id":"v1:talk","version":1,"stageId":"zatsudan","displayName":"雑談枠","missionIds":["TALK-1","TALK-2","TALK-3"],"rewardPp":100,"sortOrder":10},
+    {"id":"v1:game","version":1,"stageId":"gameplay","displayName":"ゲーム実況枠","missionIds":["GAME-1","GAME-2","GAME-3"],"rewardPp":100,"sortOrder":20},
+    {"id":"v1:song","version":1,"stageId":"singing","displayName":"歌枠","missionIds":["SONG-1","SONG-2","SONG-3"],"rewardPp":100,"sortOrder":30},
+    {"id":"v1:drawing","version":1,"stageId":"drawing","displayName":"お絵かき枠","missionIds":["DRAW-1","DRAW-2","DRAW-3"],"rewardPp":100,"sortOrder":40},
+    {"id":"v1:collab","version":1,"stageId":"collab","displayName":"コラボ枠","missionIds":["COLLAB-1","COLLAB-2","COLLAB-3"],"rewardPp":100,"sortOrder":50},
+    {"id":"v1:relay","version":1,"stageId":"relay","displayName":"配信リレー","missionIds":["RELAY-1","RELAY-2","RELAY-3"],"rewardPp":100,"sortOrder":60}
+  ]
+}

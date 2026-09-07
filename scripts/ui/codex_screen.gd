@@ -54,6 +54,15 @@ var _all_filter_button: Button
 var _new_filter_button: Button
 var _list_box: VBoxContainer
 var _list_scroll: ScrollContainer
+var _list_shell: VBoxContainer
+var _reward_panel: PanelContainer
+var _reward_status_label: Label
+var _reward_feedback_label: Label
+var _reward_button: Button
+var _category_reward_badges: Array[PanelContainer] = []
+var _reward_manager
+var _reward_feedback_category := ""
+var _reward_feedback_text := ""
 var _detail_scroll: ScrollContainer
 var _progress_label: Label
 var _collection_label: Label
@@ -174,6 +183,8 @@ func open_screen(origin: String = "title", difficulty_progress: Dictionary = {},
 	_origin = origin
 	_difficulty_progress = difficulty_progress.duplicate(true)
 	_open_options = options.duplicate(true)
+	_reward_feedback_category = ""
+	_reward_feedback_text = ""
 	_focus_area = FocusArea.LIST
 	_input_focus = InputFocus.LIST
 	_analog_x_latched = false
@@ -194,6 +205,12 @@ func bind_difficulty_progress(difficulty_progress: Dictionary) -> void:
 	_difficulty_progress = difficulty_progress.duplicate(true)
 	if visible:
 		_refresh()
+
+func bind_reward_manager(manager) -> void:
+	_reward_manager = manager
+	if visible:
+		_refresh_category_buttons()
+		_refresh_reward_panel()
 
 func close_screen() -> void:
 	if not visible:
@@ -329,6 +346,7 @@ func handle_input(event: InputEvent) -> bool:
 	var select := false
 	var back := false
 	var toggle_new := false
+	var claim_reward := false
 	if event is InputEventKey:
 		var key := event as InputEventKey
 		if not key.pressed or key.echo:
@@ -339,6 +357,7 @@ func handle_input(event: InputEvent) -> bool:
 		direction = -1 if key.keycode == KEY_UP else (1 if key.keycode == KEY_DOWN else 0)
 		page_direction = -1 if key.keycode == KEY_PAGEUP else (1 if key.keycode == KEY_PAGEDOWN else 0)
 		toggle_new = key.keycode == KEY_N
+		claim_reward = key.keycode == KEY_R
 		select = key.keycode == KEY_ENTER or key.keycode == KEY_SPACE or key.is_action_pressed("ui_accept")
 	elif event is InputEventJoypadButton:
 		var pad := event as InputEventJoypadButton
@@ -350,10 +369,14 @@ func handle_input(event: InputEvent) -> bool:
 		category_direction = -1 if pad.button_index in [JOY_BUTTON_LEFT_SHOULDER, JOY_BUTTON_DPAD_LEFT] else (1 if pad.button_index in [JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_DPAD_RIGHT] else 0)
 		direction = -1 if pad.button_index == JOY_BUTTON_DPAD_UP else (1 if pad.button_index == JOY_BUTTON_DPAD_DOWN else 0)
 		toggle_new = pad.button_index == JOY_BUTTON_Y
+		claim_reward = pad.button_index == JOY_BUTTON_X
 	else:
 		return false
 	if back:
 		_cancel_current_layer()
+		return true
+	if claim_reward:
+		_claim_current_category_rewards()
 		return true
 	if _input_focus == InputFocus.DETAIL:
 		if toggle_new:
@@ -551,6 +574,7 @@ func _build_ui() -> void:
 		button.pressed.connect(func() -> void: _select_category(category_index))
 		_category_buttons.append(button)
 		_category_row.add_child(button)
+		_category_reward_badges.append(_create_category_reward_badge(button))
 	_add_layout_spacer(6)
 
 	_stats_panel = PanelContainer.new()
@@ -661,15 +685,74 @@ func _build_ui() -> void:
 	list_margin.add_theme_constant_override("margin_right", 10)
 	list_margin.add_theme_constant_override("margin_bottom", 10)
 	_list_panel.add_child(list_margin)
+	_list_shell = VBoxContainer.new()
+	_list_shell.name = "EntryListShell"
+	_list_shell.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_list_shell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list_shell.add_theme_constant_override("separation", 7)
+	_list_shell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	list_margin.add_child(_list_shell)
 	_list_scroll = ScrollContainer.new()
 	_list_scroll.name = "EntryListScroll"
 	_list_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_list_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	list_margin.add_child(_list_scroll)
+	_list_shell.add_child(_list_scroll)
 	_list_box = VBoxContainer.new()
 	_list_box.add_theme_constant_override("separation", 4)
 	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list_scroll.add_child(_list_box)
+	_reward_panel = PanelContainer.new()
+	_reward_panel.name = "CodexRewardPanel"
+	_reward_panel.custom_minimum_size = Vector2(0, 128)
+	_reward_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_reward_panel.add_theme_stylebox_override("panel", _panel_style(Color(CommonLightUiStyleScript.PP_PALE, 0.90), CommonLightUiStyleScript.PP_GOLD))
+	_list_shell.add_child(_reward_panel)
+	var reward_margin := MarginContainer.new()
+	reward_margin.add_theme_constant_override("margin_left", 9)
+	reward_margin.add_theme_constant_override("margin_right", 9)
+	reward_margin.add_theme_constant_override("margin_top", 6)
+	reward_margin.add_theme_constant_override("margin_bottom", 6)
+	reward_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_reward_panel.add_child(reward_margin)
+	var reward_content := VBoxContainer.new()
+	reward_content.name = "CodexRewardContent"
+	reward_content.add_theme_constant_override("separation", 3)
+	reward_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reward_margin.add_child(reward_content)
+	var reward_heading := Label.new()
+	reward_heading.name = "CodexRewardHeading"
+	reward_heading.text = "図鑑報酬"
+	reward_heading.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	reward_heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	CommonLightUiStyleScript.apply_font(reward_heading, 14, true, CommonLightUiStyleScript.PP_TEXT)
+	reward_content.add_child(reward_heading)
+	var reward_row := HBoxContainer.new()
+	reward_row.name = "CodexRewardRow"
+	reward_row.add_theme_constant_override("separation", 5)
+	reward_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	reward_content.add_child(reward_row)
+	_reward_status_label = Label.new()
+	_reward_status_label.name = "CodexRewardStatus"
+	_reward_status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_reward_status_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_reward_status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reward_status_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	CommonLightUiStyleScript.apply_font(_reward_status_label, 13, false, CommonLightUiStyleScript.TEXT_PRIMARY)
+	reward_row.add_child(_reward_status_label)
+	_reward_button = Button.new()
+	_reward_button.name = "CodexRewardClaimButton"
+	_reward_button.custom_minimum_size = Vector2(122, 34)
+	_reward_button.focus_mode = Control.FOCUS_NONE
+	_reward_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_reward_button.pressed.connect(_claim_current_category_rewards)
+	CommonLightUiStyleScript.apply_font(_reward_button, 13, true, CommonLightUiStyleScript.TEXT_PRIMARY)
+	reward_row.add_child(_reward_button)
+	_reward_feedback_label = Label.new()
+	_reward_feedback_label.name = "CodexRewardFeedback"
+	_reward_feedback_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_reward_feedback_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	CommonLightUiStyleScript.apply_font(_reward_feedback_label, 12, true, CommonLightUiStyleScript.PP_TEXT)
+	reward_content.add_child(_reward_feedback_label)
 
 	_detail_panel = PanelContainer.new()
 	_detail_panel.name = "DetailPanel"
@@ -1450,6 +1533,10 @@ func _apply_layout_metrics() -> void:
 	_stats_panel.custom_minimum_size = Vector2(0, stats_height)
 	_filter_band.custom_minimum_size = Vector2(0, filter_height)
 	_footer_panel.custom_minimum_size = Vector2(0, footer_height)
+	if _reward_panel != null:
+		_reward_panel.custom_minimum_size = Vector2(0, 112 if _compact_layout else 128)
+	if _reward_button != null:
+		_reward_button.custom_minimum_size = Vector2(118 if _compact_layout else 122, 32 if _compact_layout else 34)
 	if _debug_overlay != null:
 		_debug_overlay.offset_left = 190.0 if _compact_layout else 212.0
 		_debug_overlay.offset_top = -58.0 if _compact_layout else -70.0
@@ -1471,6 +1558,10 @@ func _apply_layout_metrics() -> void:
 		CommonLightUiStyleScript.apply_font(_character_unit_badge_label, 12 if _compact_layout else 13, true, CommonLightUiStyleScript.TEXT_SECONDARY)
 	CommonLightUiStyleScript.apply_font(_footer_label, 14 if _compact_layout else 15, false, CommonLightUiStyleScript.TEXT_SECONDARY)
 	CommonLightUiStyleScript.apply_font(_detail_body, 15 if _compact_layout else 16, false, CommonLightUiStyleScript.TEXT_PRIMARY)
+	if _reward_status_label != null:
+		CommonLightUiStyleScript.apply_font(_reward_status_label, 12 if _compact_layout else 13, false, CommonLightUiStyleScript.TEXT_PRIMARY)
+	if _reward_feedback_label != null:
+		CommonLightUiStyleScript.apply_font(_reward_feedback_label, 11 if _compact_layout else 12, true, CommonLightUiStyleScript.PP_TEXT)
 	_apply_character_profile_layout()
 	_apply_item_profile_layout()
 	for spacer_index in range(_layout_spacers.size()):
@@ -1559,6 +1650,141 @@ func _apply_category_button_style(button: Button, index: int, active: bool) -> v
 	button.add_theme_stylebox_override("hover", active_style)
 	button.add_theme_stylebox_override("pressed", active_style)
 	button.add_theme_stylebox_override("focus", CommonLightUiStyleScript.create_outer_focus_ring_style(accent))
+
+func _create_category_reward_badge(button: Button) -> PanelContainer:
+	var badge := PanelContainer.new()
+	badge.name = "CodexRewardBadge"
+	badge.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	badge.offset_left = -28.0
+	badge.offset_top = 3.0
+	badge.offset_right = -5.0
+	badge.offset_bottom = 26.0
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	badge.z_index = 3
+	var badge_label := Label.new()
+	badge_label.name = "CodexRewardBadgeLabel"
+	badge_label.text = "!"
+	badge_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	badge_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	CommonLightUiStyleScript.apply_font(badge_label, 14, true, Color.WHITE)
+	badge.add_child(badge_label)
+	button.add_child(badge)
+	badge.visible = false
+	return badge
+
+func _codex_reward_status(category: String) -> Dictionary:
+	if _reward_manager == null or not _reward_manager.has_method("get_codex_category_reward_status"):
+		return {}
+	return _reward_manager.get_codex_category_reward_status(category, CodexManager)
+
+func _refresh_category_reward_badge(index: int) -> void:
+	if index < 0 or index >= _category_reward_badges.size():
+		return
+	var badge := _category_reward_badges[index]
+	if badge == null or not is_instance_valid(badge):
+		return
+	var category := CATEGORIES[index]
+	var status := _codex_reward_status(category)
+	var eligible_ids: Array = status.get("eligibleIds", []) as Array
+	var has_eligible := bool(status.get("ok", false)) and not eligible_ids.is_empty()
+	badge.visible = has_eligible
+	if not has_eligible:
+		badge.tooltip_text = ""
+		return
+	var unlocked := bool(status.get("shopUnlocked", false))
+	var fill := CommonLightUiStyleScript.PP_GOLD if unlocked else CommonLightUiStyleScript.LILAC
+	var border := CommonLightUiStyleScript.PP_GOLD.darkened(0.22) if unlocked else CommonLightUiStyleScript.LILAC_BORDER
+	badge.add_theme_stylebox_override("panel", CommonLightUiStyleScript.create_panel_style(fill, border, 1, 9, 0.0, 0.0))
+	badge.tooltip_text = "受取可能 %d件 / 合計%d PP" % [eligible_ids.size(), int(status.get("eligiblePp", 0))] if unlocked else "配信ポイント解禁後に受取可能"
+
+func _apply_reward_button_style(enabled: bool) -> void:
+	if _reward_button == null:
+		return
+	var accent := CommonLightUiStyleScript.PP_GOLD
+	var normal := CommonLightUiStyleScript.create_panel_style(Color(accent, 0.24) if enabled else Color(0.86, 0.84, 0.90, 0.70), accent if enabled else CommonLightUiStyleScript.LILAC_BORDER, 2 if enabled else 1, 10, 6.0, 4.0)
+	var hover := CommonLightUiStyleScript.create_panel_style(Color(accent, 0.38), accent, 2, 10, 6.0, 4.0)
+	_reward_button.add_theme_stylebox_override("normal", normal)
+	_reward_button.add_theme_stylebox_override("hover", hover)
+	_reward_button.add_theme_stylebox_override("pressed", hover)
+	_reward_button.add_theme_stylebox_override("disabled", normal)
+	_reward_button.add_theme_stylebox_override("focus", CommonLightUiStyleScript.create_outer_focus_ring_style(accent))
+	var button_text_color := CommonLightUiStyleScript.TEXT_PRIMARY if enabled else CommonLightUiStyleScript.TEXT_SECONDARY
+	_reward_button.add_theme_color_override("font_color", button_text_color)
+	_reward_button.add_theme_color_override("font_hover_color", CommonLightUiStyleScript.TEXT_PRIMARY)
+	_reward_button.add_theme_color_override("font_pressed_color", CommonLightUiStyleScript.TEXT_PRIMARY)
+	_reward_button.add_theme_color_override("font_focus_color", CommonLightUiStyleScript.TEXT_PRIMARY)
+	_reward_button.add_theme_color_override("font_disabled_color", button_text_color)
+
+func _refresh_reward_panel() -> void:
+	if _reward_panel == null or _reward_status_label == null or _reward_button == null:
+		return
+	var category := CATEGORIES[_category_index]
+	var status := _codex_reward_status(category)
+	var ok := bool(status.get("ok", false))
+	var claimable_ids: Array = status.get("claimableIds", []) as Array
+	var eligible_ids: Array = status.get("eligibleIds", []) as Array
+	var shop_unlocked := bool(status.get("shopUnlocked", false))
+	var text := ""
+	var button_text := ""
+	var tooltip := ""
+	var enabled := false
+	if not ok:
+		text = "報酬情報を読み込めません"
+		button_text = "受取不可"
+	elif not claimable_ids.is_empty():
+		var claimable_pp := int(status.get("claimablePp", 0))
+		text = "受取可能 %d PP" % claimable_pp if claimable_ids.size() == 1 else "受取可能 %d件・合計%d PP" % [claimable_ids.size(), claimable_pp]
+		button_text = "受け取る R/X" if claimable_ids.size() == 1 else "まとめて受取 R/X"
+		tooltip = "マウス / R / ゲームパッドXで受け取る"
+		enabled = bool(status.get("claimEnabled", false))
+	elif not eligible_ids.is_empty() and not shop_unlocked:
+		text = "達成済み 合計%d PP\n配信ポイント解禁後に受取可能" % int(status.get("eligiblePp", 0))
+		button_text = "解禁待ち"
+		tooltip = "配信ポイント解禁後に受取可能"
+	else:
+		var next_milestone: Dictionary = status.get("nextMilestone", {}) as Dictionary
+		if bool(status.get("currentComplete", false)) and bool(status.get("allClaimed", false)):
+			text = "COMPLETE\n全報酬受取済"
+		elif bool(status.get("allClaimed", false)):
+			text = "全報酬受取済\n現在 %d / %d (%d%%)" % [int(status.get("found", 0)), int(status.get("total", 0)), int(status.get("displayPercent", 0))]
+		elif not next_milestone.is_empty():
+			text = "次の報酬 %d%%  %d PP\n現在 %d / %d　あと%d" % [int(next_milestone.get("percent", 0)), int(next_milestone.get("pp", 0)), int(status.get("found", 0)), int(status.get("total", 0)), int(next_milestone.get("remainingCount", 0))]
+		else:
+			text = "次の報酬はありません"
+		button_text = "受取不可"
+	_reward_status_label.text = text
+	_reward_button.text = button_text
+	_reward_button.disabled = not enabled
+	_reward_button.tooltip_text = tooltip
+	_apply_reward_button_style(enabled)
+	if _reward_feedback_label != null:
+		var show_feedback := _reward_feedback_category == category and _reward_feedback_text != ""
+		_reward_feedback_label.text = _reward_feedback_text if show_feedback else ""
+		_reward_feedback_label.visible = show_feedback
+
+func _claim_current_category_rewards() -> void:
+	if not visible or _common_front_transition_locked or _reward_manager == null or not _reward_manager.has_method("grant_codex_milestone_rewards"):
+		return
+	var category := CATEGORIES[_category_index]
+	var result: Dictionary = _reward_manager.grant_codex_milestone_rewards(category, CodexManager)
+	var state := String(result.get("state", ""))
+	if state == "granted":
+		_reward_feedback_category = category
+		_reward_feedback_text = "受取完了 +%d PP　残高 %d" % [int(result.get("totalPp", 0)), int(result.get("balance", 0))]
+	elif state == "save_failed":
+		_reward_feedback_category = category
+		_reward_feedback_text = "保存に失敗しました。再度受け取ってください"
+	elif state == "shop_locked":
+		_reward_feedback_category = category
+		_reward_feedback_text = "配信ポイント解禁後に受取可能"
+	elif state == "busy":
+		return
+	else:
+		_reward_feedback_category = ""
+		_reward_feedback_text = ""
+	_refresh_reward_panel()
+	_refresh_category_buttons()
 
 func _apply_list_button_style(button: Button, category_index: int, selected: bool, weak_selected: bool = false) -> void:
 	var accent := _category_accent(category_index)
@@ -1929,6 +2155,7 @@ func _refresh(preserve_detail_scroll: bool = true, preserve_list_scroll: bool = 
 	_refresh_collection()
 	_refresh_new_filter_button()
 	_refresh_enemy_filter_buttons()
+	_refresh_reward_panel()
 	_refresh_list_and_detail(preserve_detail_scroll, preserve_list_scroll, reveal_selected)
 	_show_next_completion_notice()
 
@@ -1998,6 +2225,7 @@ func _refresh_category_buttons() -> void:
 		_category_buttons[index].text = "%s %d/%d" % [CATEGORY_LABELS[index], CodexManager.get_discovered_count(category), CodexManager.get_total_count(category)]
 		_apply_category_button_style(_category_buttons[index], index, index == _category_index)
 		_category_buttons[index].modulate = Color.WHITE
+		_refresh_category_reward_badge(index)
 
 func _refresh_collection() -> void:
 	if _collection_label == null or _comment_log_label == null:
@@ -2292,7 +2520,7 @@ func _render_full_detail(entries: Array, selected: int) -> void:
 				_render_item_lore_detail(item, category, weapon_lore, weapon_game_lines)
 				return
 			lines.append_array(weapon_game_lines)
-			image_path = CodexPresentationSystemScript.image_path_for(CodexManager.CATEGORY_WEAPON, item, true)
+			image_path = CodexPresentationSystemScript.codex_image_path_for(CodexManager.CATEGORY_WEAPON, item, true)
 		CodexManager.CATEGORY_ACCESSORY:
 			var accessory_game_lines := _accessory_game_data_lines(item)
 			var accessory_lore := CodexPresentationSystemScript.item_lore_model(item, category, true, CodexManager.get_master_entries(CodexManager.CATEGORY_WEAPON), CodexManager.get_master_entries(CodexManager.CATEGORY_CHARACTER))
@@ -2300,7 +2528,7 @@ func _render_full_detail(entries: Array, selected: int) -> void:
 				_render_item_lore_detail(item, category, accessory_lore, accessory_game_lines)
 				return
 			lines.append_array(accessory_game_lines)
-			image_path = CodexPresentationSystemScript.image_path_for(CodexManager.CATEGORY_ACCESSORY, item, true)
+			image_path = CodexPresentationSystemScript.codex_image_path_for(CodexManager.CATEGORY_ACCESSORY, item, true)
 		CodexManager.CATEGORY_ENEMY:
 			var enemy_model := CodexPresentationSystemScript.build_enemy_model(item, true, entry, _get_enemy_sources())
 			_detail_title.add_theme_font_size_override("font_size", 30 if String(enemy_model.get("kind", "")) != "normal" else 26)
@@ -2698,6 +2926,11 @@ func _set_image_in_holder(holder: Control, path: String, display_category: Strin
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	rect.clip_contents = true
+	var is_equipment_image := resolved_category == CodexManager.CATEGORY_WEAPON or resolved_category == CodexManager.CATEGORY_ACCESSORY
+	if is_equipment_image:
+		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		# Resolve inset against the real holder, not an unparented zero-size rect.
+		holder.add_child(rect)
 	rect.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	rect.offset_left = inset
 	rect.offset_top = inset
@@ -2717,8 +2950,11 @@ func _set_image_in_holder(holder: Control, path: String, display_category: Strin
 		rect.pivot_offset = holder.size * 0.5
 		rect.scale = Vector2(visual_scale, visual_scale)
 	if resolved_category != CodexManager.CATEGORY_COMMENT and is_finite(visual_offset_x) and is_finite(visual_offset_y):
-		rect.position += Vector2(visual_offset_x * holder.size.x, visual_offset_y * holder.size.y)
-	holder.add_child(rect)
+		# Avoid rewriting equipment anchors from a clamped zero-size rect before layout.
+		if not is_equipment_image or visual_offset_x != 0.0 or visual_offset_y != 0.0:
+			rect.position += Vector2(visual_offset_x * holder.size.x, visual_offset_y * holder.size.y)
+	if rect.get_parent() == null:
+		holder.add_child(rect)
 
 func _character_content_texture(path: String, source_texture: Texture2D) -> Texture2D:
 	if _character_content_cache.has(path):

@@ -354,8 +354,11 @@ static func canonical_enemy_display_name(master: Dictionary, sources: Dictionary
 
 static func build_enemy_model(master: Dictionary, discovered: bool, entry: Dictionary = {}, sources: Dictionary = {}) -> Dictionary:
 	var id := String(master.get("id", "")).strip_edges()
-	var types := spawn_types(master) if discovered else []
-	var stages := stage_ids_for_display(master, sources) if discovered else []
+	var types: Array[String] = []
+	var stages: Array[String] = []
+	if discovered:
+		types = spawn_types(master)
+		stages = stage_ids_for_display(master, sources)
 	var hint_lines: Array = enemy_hint_lines(master)
 	var conditions: Array = enemy_condition_lines(master, sources) if discovered else []
 	var kind := enemy_kind(master) if discovered else ""
@@ -827,6 +830,7 @@ static func item_lore_model(master: Dictionary, category: String, discovered: bo
 		"archiveTitle": "",
 		"archiveParagraphs": [],
 		"cards": [],
+		"codexVisual": {},
 		"imagePath": "",
 		"hasLore": false
 	}
@@ -835,11 +839,12 @@ static func item_lore_model(master: Dictionary, category: String, discovered: bo
 	var classification := _item_classification(master, category, weapons, characters)
 	result["classificationLabel"] = String(classification.get("label", ""))
 	result["classificationKey"] = String(classification.get("key", ""))
-	result["imagePath"] = image_path_for(category, master, true)
+	result["imagePath"] = codex_image_path_for(category, master, true)
 	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
 	if not lore_value is Dictionary:
 		return result
 	var lore := lore_value as Dictionary
+	result["codexVisual"] = _item_codex_visual(lore)
 	var cards: Array = []
 	var raw_cards: Variant = lore.get("cards", [])
 	if raw_cards is Array:
@@ -1348,7 +1353,7 @@ static func comment_lore_model(master: Dictionary, entry: Dictionary, discovered
 	result["effectSummary"] = String(record.get("description", "")).strip_edges()
 	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
 	var lore: Dictionary = lore_value as Dictionary if lore_value is Dictionary else {}
-	result["codexVisual"] = _comment_codex_visual(lore)
+	result["codexVisual"] = _codex_visual_transform(lore)
 	result["illustrationModel"] = {
 		"imagePath": result["imagePath"],
 		"codexVisual": (result["codexVisual"] as Dictionary).duplicate(true)
@@ -1389,7 +1394,18 @@ static func comment_lore_model(master: Dictionary, entry: Dictionary, discovered
 	result["hasLore"] = not cards.is_empty() or not paragraphs.is_empty()
 	return result
 
-static func _comment_codex_visual(lore: Dictionary) -> Dictionary:
+static func _item_codex_visual(lore: Dictionary) -> Dictionary:
+	var normalized := _codex_visual_transform(lore)
+	var visual_value: Variant = lore.get("codexVisual", lore.get("codex_visual", {}))
+	if not visual_value is Dictionary:
+		return normalized
+	var visual := visual_value as Dictionary
+	var override_path := safe_resource_path(String(visual.get("iconPath", visual.get("icon_path", ""))))
+	if override_path != "":
+		normalized["iconPath"] = override_path
+	return normalized
+
+static func _codex_visual_transform(lore: Dictionary) -> Dictionary:
 	var normalized := {"scale": 1.0, "offsetX": 0.0, "offsetY": 0.0}
 	var visual_value: Variant = lore.get("codexVisual", lore.get("codex_visual", {}))
 	if not visual_value is Dictionary:
@@ -1571,6 +1587,19 @@ static func image_path_for(category: String, master: Dictionary, discovered: boo
 				return safe_choice_icon_path
 			return safe_resource_path(String(master.get("imagePath", "")))
 	return ""
+
+## Resolves a detail-only item image without changing the production iconPath
+## used by HUD, pause, choices, results, and other compact equipment slots.
+static func codex_image_path_for(category: String, master: Dictionary, discovered: bool = true) -> String:
+	var fallback_path := image_path_for(category, master, discovered)
+	if not discovered or not ["weapons", "accessories"].has(category):
+		return fallback_path
+	var lore_value: Variant = master.get("codexLore", master.get("codex_lore", {}))
+	if not lore_value is Dictionary:
+		return fallback_path
+	var visual := _item_codex_visual(lore_value as Dictionary)
+	var override_path := String(visual.get("iconPath", ""))
+	return override_path if override_path != "" else fallback_path
 
 static func image_path_for_enemy(enemy_id: String) -> String:
 	return safe_resource_path(DrawDataSystemScript.enemy_sprite_path(enemy_id))

@@ -2,6 +2,7 @@ extends Node
 
 const TestTargetScript := preload("res://scripts/tests/stage4_test_target.gd")
 const TextureCacheSystemScript := preload("res://scripts/systems/texture_cache_system.gd")
+const GiftSystemScript := preload("res://scripts/systems/gift_system.gd")
 
 var weapons: Array = []
 var failures: Array[String] = []
@@ -19,6 +20,7 @@ func _run_tests() -> void:
 	_test_data_values()
 	_test_full_voice_dome()
 	_test_center_stage()
+	_test_center_stage_deployment_cadence()
 	_test_kusa_wave_progression()
 	_test_great_grassland()
 	_test_grass_wave_reflection_and_distance()
@@ -126,6 +128,104 @@ func _test_center_stage() -> void:
 	var repeated_feedback: Dictionary = {}
 	generated = WeaponSystem.update_hit_fx(generated, 0.1, [enemy, nearby], [], [clearable], [], [], repeated_feedback, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
 	_check(not bool(repeated_feedback.get("enemyDamaged", false)) and is_zero_approx(float(repeated_feedback.get("screenFlashDuration", 0.0))), "center_stage finish feedback does not repeat", failures)
+
+
+func _test_center_stage_deployment_cadence() -> void:
+	var normal := _run_center_stage_cadence(1.0, 720)
+	_check(int(normal.get("areas", -1)) == 4, "center_stage normal 12-second deployment count is four", failures)
+	_check(int(normal.get("maxConcurrent", -1)) == 1, "center_stage normal deployment keeps one active area", failures)
+	_check(int(normal.get("ticks", -1)) == 16 and int(normal.get("finishes", -1)) == 4, "center_stage normal tick and finish counts remain 16 and four", failures)
+	_check(is_equal_approx(float(normal.get("damage", 0.0)), 96.0), "center_stage normal 12-second damage is four complete areas", failures)
+	_check((normal.get("generationFrames", []) as Array) == [0, 181, 362, 543], "center_stage normal deployment frames use the 3-second attack interval", failures)
+	_check(is_equal_approx(float(normal.get("firstTimer", 0.0)), 3.0), "center_stage resets its deployment timer from attackInterval", failures)
+	_check(bool(normal.get("contractValid", false)), "center_stage normal areas keep the independent internal tick contract", failures)
+
+	# This is the same legal interval-rate product used by the existing
+	# high-speed path: high_speed_connection Lv5, permanent attack speed Lv5,
+	# singing live-heat Lv4 and Lv5.  It is passed through the normal
+	# update_equipment_weapons intervalRate field, not an activationInterval override.
+	var legal_high_speed_rate := GiftSystemScript.high_speed_connection_interval_rate(5) * 0.90 * 0.95 * 0.92
+	var high := _run_center_stage_cadence(legal_high_speed_rate, 720)
+	_check(int(high.get("areas", -1)) == 8, "center_stage legal high-speed 12-second deployment count is eight", failures)
+	_check(int(high.get("maxConcurrent", -1)) == 2, "center_stage legal high-speed deployment keeps at most two active areas", failures)
+	_check(int(high.get("ticks", -1)) == 30 and int(high.get("finishes", -1)) == 7, "center_stage legal high-speed tick and finish counts are 30 and seven", failures)
+	_check(is_equal_approx(float(high.get("damage", 0.0)), 176.0), "center_stage legal high-speed 12-second damage follows completed areas", failures)
+	_check((high.get("generationFrames", []) as Array) == [0, 94, 188, 282, 376, 470, 564, 658], "center_stage legal high-speed deployment frames use the corrected cadence", failures)
+	_check(is_equal_approx(float(high.get("firstTimer", 0.0)), 3.0 * legal_high_speed_rate), "center_stage high-speed timer uses the existing interval correction", failures)
+	_check(bool(high.get("contractValid", false)), "center_stage high-speed areas keep unmodified internal timing and damage data", failures)
+
+
+func _run_center_stage_cadence(interval_rate: float, frame_count: int) -> Dictionary:
+	var enemy := _enemy(900, Vector2.ZERO, 100000.0, 20.0)
+	var timers: Dictionary = {}
+	var active_fx: Array = []
+	var generation_frames: Array = []
+	var finished_serials: Dictionary = {}
+	var areas := 0
+	var ticks := 0
+	var finishes := 0
+	var max_concurrent := 0
+	var first_timer := -1.0
+	var contract_valid := true
+	var step := 1.0 / 60.0
+	for frame in range(frame_count):
+		var context := _context("center_stage", [enemy], [], timers, active_fx, [], step)
+		context["intervalRate"] = interval_rate
+		var result := WeaponSystem.update_equipment_weapons(context)
+		timers = result.get("timers", timers) as Dictionary
+		var generated: Array = result.get("hitFx", []) as Array
+		for fx_value in generated:
+			var fx: Dictionary = fx_value as Dictionary
+			if String(fx.get("kind", "")) != "center_stage_area":
+				continue
+			areas += 1
+			generation_frames.append(frame)
+			var serial := areas
+			fx["testAreaSerial"] = serial
+			var initial_tick_count := int(fx.get("tickCount", 0))
+			ticks += initial_tick_count
+			if first_timer < 0.0:
+				first_timer = float(timers.get("center_stage", -1.0))
+			if not is_equal_approx(float(fx.get("duration", -1.0)), 2.4) or not is_equal_approx(float(fx.get("hitInterval", -1.0)), 0.6) or int(fx.get("maxTicks", -1)) != 4 or not is_equal_approx(float(fx.get("tickDamage", -1.0)), 4.0) or not is_equal_approx(float(fx.get("finishDamage", -1.0)), 8.0):
+				contract_valid = false
+		active_fx.append_array(generated)
+		max_concurrent = maxi(max_concurrent, _find_all_fx(active_fx, "center_stage_area").size())
+		var before_areas: Dictionary = {}
+		var before_ticks: Dictionary = {}
+		var before_ages: Dictionary = {}
+		var area_refs: Dictionary = {}
+		for fx_value in active_fx:
+			var fx: Dictionary = fx_value as Dictionary
+			if String(fx.get("kind", "")) != "center_stage_area" or not fx.has("testAreaSerial"):
+				continue
+			var serial := int(fx.get("testAreaSerial", 0))
+			before_areas[serial] = true
+			before_ticks[serial] = int(fx.get("tickCount", 1))
+			before_ages[serial] = float(fx.get("age", 0.0))
+			area_refs[serial] = fx
+		active_fx = WeaponSystem.update_hit_fx(active_fx, step, [enemy], [], [], [], [], {}, Rect2(-1000, -1000, 2000, 2000), [], Vector2.ZERO)
+		var after_areas: Dictionary = {}
+		for fx_value in active_fx:
+			var fx: Dictionary = fx_value as Dictionary
+			if String(fx.get("kind", "")) == "center_stage_area" and fx.has("testAreaSerial"):
+				after_areas[int(fx.get("testAreaSerial", 0))] = true
+		for serial_value in before_areas.keys():
+			var serial := int(serial_value)
+			var area_ref: Dictionary = area_refs[serial] as Dictionary
+			ticks += maxi(0, int(area_ref.get("tickCount", before_ticks[serial])) - int(before_ticks[serial]))
+			if not after_areas.has(serial) and not finished_serials.has(serial) and (bool(area_ref.get("finishApplied", false)) or float(before_ages[serial]) + step + 0.0001 >= 2.4):
+				finishes += 1
+				finished_serials[serial] = true
+	return {
+		"areas": areas,
+		"ticks": ticks,
+		"finishes": finishes,
+		"maxConcurrent": max_concurrent,
+		"damage": 100000.0 - float(enemy.get("hp", 100000.0)),
+		"firstTimer": first_timer,
+		"generationFrames": generation_frames,
+		"contractValid": contract_valid
+	}
 
 
 func _test_kusa_wave_progression() -> void:

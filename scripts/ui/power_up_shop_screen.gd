@@ -10,9 +10,12 @@ const UiState := preload("res://scripts/ui/power_up_shop_ui_state.gd")
 const VisualStyle := preload("res://scripts/ui/power_up_shop_visual_style.gd")
 const CommonLightUiStyle := preload("res://scripts/ui/common_light_ui_style.gd")
 const SettingsSystemScript := preload("res://scripts/systems/settings_system.gd")
+const CustomizationShopPanelScript := preload("res://scripts/ui/customization_shop_panel.gd")
+const CustomizationProviderScript := preload("res://scripts/systems/customization_provider.gd")
 
 const CATEGORIES := ["combat", "support"]
 const FRONT_SCREEN_BACKGROUND_PATH := "res://assets/title/title_back.png"
+const LISTENER_SUMMON_HD_PATH := "res://assets/generated/weapon_fx_v1/listener_summon_hd_final_1254.png"
 const CARD_COLUMNS := 2
 const STICK_DEADZONE := 0.55
 const STICK_REPEAT_DELAY := 0.24
@@ -39,6 +42,7 @@ enum FocusArea {
 	RESET,
 	RESET_DIALOG,
 	CATEGORY_TABS,
+	UPPER_TABS,
 }
 
 enum DialogChoice {
@@ -190,18 +194,34 @@ var _common_front_transition_base_position := Vector2.ZERO
 var _common_front_transition_nodes: Array[Control] = []
 var _common_front_transition_base_positions: Dictionary = {}
 var purchase_api_call_count := 0
+var customization_panel
+var upper_tab_bar: HBoxContainer
+var upper_power_up_tab: Button
+var upper_customization_tab: Button
+var upper_tab_index := 0
+var customization_decoration_layer: Control
+var customization_decoration_lines: Array[ColorRect] = []
+var _default_main_panel_style: StyleBoxFlat
+var _customization_theme_id := ""
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	detail_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	detail_icon.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
+	_create_customization_overlay()
+	_create_customization_decoration_layer()
 	_setup_transition_visual_root()
+	dialog_layer.z_index = 40
 	background.texture = load(FRONT_SCREEN_BACKGROUND_PATH) as Texture2D
 	for child in detail_level_gauge.get_children():
 		var lamp: PanelContainer = child as PanelContainer
 		if lamp != null:
 			_detail_lamps.append(lamp)
-	_mascot_default_texture = load("res://assets/generated/weapon_fx_v1/listener_summon.png") as Texture2D
+	_mascot_default_texture = load(LISTENER_SUMMON_HD_PATH) as Texture2D
 	mascot.texture = _mascot_default_texture
+	mascot.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	mascot.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
 	mascot_glow.hide()
 	_mascot_messages = manager.database.mascot_messages.duplicate(true) if manager != null and manager.database != null else {}
 	purchase_light.texture = load("res://assets/generated/gameplay_event_objects_v1/coin.png") as Texture2D
@@ -237,7 +257,10 @@ func _process(delta: float) -> void:
 	if _stick_direction != Vector2i.ZERO:
 		_stick_repeat_remaining = maxf(0.0, _stick_repeat_remaining - delta)
 		if _stick_repeat_remaining <= 0.0 and _purchase_input_lock_remaining <= 0.0:
-			_move_cursor(_stick_direction, "gamepad")
+			if customization_panel != null and customization_panel.visible:
+				_move_custom_cursor(_stick_direction, "gamepad")
+			else:
+				_move_cursor(_stick_direction, "gamepad")
 			_stick_repeat_remaining = STICK_REPEAT_INTERVAL
 	if was_locked and _purchase_lock_remaining <= 0.0:
 		_update_detail()
@@ -259,8 +282,17 @@ func bind_manager(value) -> void:
 		manager.upgrades_reset.connect(_on_reset)
 	if not manager.purchase_failed.is_connected(_on_purchase_failed):
 		manager.purchase_failed.connect(_on_purchase_failed)
+	if manager.has_signal("customization_equipped") and not manager.customization_equipped.is_connected(_on_customization_equipped):
+		manager.customization_equipped.connect(_on_customization_equipped)
+	if customization_panel != null:
+		customization_panel.bind_manager(manager)
 	if is_node_ready():
+		_apply_customization_decoration_theme()
 		_refresh_view()
+
+func bind_codex_source(value) -> void:
+	if customization_panel != null:
+		customization_panel.bind_codex_source(value)
 
 func open_shop(new_origin: String, value, animate_transition: bool = false) -> bool:
 	bind_manager(value)
@@ -273,6 +305,7 @@ func open_shop(new_origin: String, value, animate_transition: bool = false) -> b
 	focus_area = FocusArea.CARDS
 	last_input_device = "keyboard"
 	show()
+	_show_power_up_view(true)
 	finish_common_front_transition(true)
 	_layout_responsive()
 	_refresh_view()
@@ -288,6 +321,8 @@ func close_shop(_animate_transition: bool = false) -> void:
 func _finish_close() -> void:
 	finish_common_front_transition(false)
 	_reset_transient_state()
+	if customization_panel != null:
+		customization_panel.close_panel()
 	hide()
 	closed.emit(origin)
 
@@ -304,6 +339,33 @@ func _connect_ui() -> void:
 	VisualStyle.apply_reset_button_theme(reset_button)
 	VisualStyle.apply_reset_button_theme(reset_confirm_button)
 	VisualStyle.apply_back_button_theme(reset_cancel_button)
+
+func _create_customization_overlay() -> void:
+	customization_panel = CustomizationShopPanelScript.new()
+	customization_panel.name = "CustomizationShopPanel"
+	customization_panel.back_requested.connect(_on_customization_back_requested)
+	customization_panel.upper_focus_requested.connect(_on_customization_upper_focus_requested)
+	customization_panel.body_focus_requested.connect(_on_customization_body_focus_requested)
+	add_child(customization_panel)
+	upper_tab_bar = HBoxContainer.new()
+	upper_tab_bar.name = "UpperShopTabs"
+	upper_tab_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	upper_tab_bar.add_theme_constant_override("separation", 8)
+	upper_tab_bar.z_index = 24
+	add_child(upper_tab_bar)
+	upper_power_up_tab = Button.new()
+	upper_power_up_tab.name = "PowerUpTab"
+	upper_power_up_tab.text = "パワーアップ"
+	upper_power_up_tab.focus_mode = Control.FOCUS_ALL
+	upper_power_up_tab.pressed.connect(_on_upper_tab_pressed.bind(0))
+	upper_tab_bar.add_child(upper_power_up_tab)
+	upper_customization_tab = Button.new()
+	upper_customization_tab.name = "CustomizationTab"
+	upper_customization_tab.text = "配信カスタム"
+	upper_customization_tab.focus_mode = Control.FOCUS_ALL
+	upper_customization_tab.pressed.connect(_on_upper_tab_pressed.bind(1))
+	upper_tab_bar.add_child(upper_customization_tab)
+	_apply_upper_tab_styles()
 
 func _apply_static_styles() -> void:
 	VisualStyle.apply_font(english_title, 12, true, CommonLightUiStyle.ENGLISH_TITLE)
@@ -465,6 +527,156 @@ func _layout_responsive() -> void:
 	speech_bubble.offset_bottom = -162.0
 	_apply_card_dimensions(card_width)
 	progress_row.custom_minimum_size.y = 22.0
+	_layout_upper_tabs(viewport_size)
+	_layout_customization_decoration_layer()
+	if customization_panel != null:
+		customization_panel.layout_customization(viewport_size)
+
+func _layout_upper_tabs(viewport_size: Vector2) -> void:
+	if upper_tab_bar == null or shop_content == null:
+		return
+	var tab_width := 156.0 if viewport_size.x >= 1440.0 else 142.0
+	upper_tab_bar.position = Vector2(
+		shop_content.global_position.x + shop_content.size.x * 0.5 - tab_width,
+		shop_content.global_position.y + 6.0
+	)
+	upper_tab_bar.size = Vector2(tab_width * 2.0 + 8.0, 38.0)
+	for button in [upper_power_up_tab, upper_customization_tab]:
+		button.custom_minimum_size = Vector2(tab_width, 38.0)
+		button.size = button.custom_minimum_size
+	if not _common_front_transition_locked:
+		_common_front_transition_base_positions[upper_tab_bar] = upper_tab_bar.position
+
+func _apply_upper_tab_styles() -> void:
+	if upper_power_up_tab == null or upper_customization_tab == null:
+		return
+	VisualStyle.apply_tab_theme(upper_power_up_tab, upper_tab_index == 0, VisualStyle.COMBAT, VisualStyle.COMBAT_DARK)
+	VisualStyle.apply_tab_theme(upper_customization_tab, upper_tab_index == 1, VisualStyle.SUPPORT, VisualStyle.SUPPORT_DARK)
+
+func _on_upper_tab_pressed(index: int) -> void:
+	if reset_confirm_visible or reset_dialog_animation_locked or reset_execution_locked or _reset_input_lock_remaining > 0.0:
+		return
+	_set_input_device("mouse")
+	_select_upper_tab(index, false)
+
+func _select_upper_tab(index: int, keep_upper_focus: bool = true) -> void:
+	if reset_confirm_visible or reset_dialog_animation_locked or reset_execution_locked or _reset_input_lock_remaining > 0.0:
+		return
+	upper_tab_index = clampi(index, 0, 1)
+	_apply_upper_tab_styles()
+	if upper_tab_index == 1:
+		_show_customization_view(keep_upper_focus)
+	else:
+		_show_power_up_view(false if keep_upper_focus else true)
+
+func _show_customization_view(keep_upper_focus: bool = true) -> void:
+	if customization_panel == null:
+		return
+	shop_content.hide()
+	if customization_decoration_layer != null:
+		customization_decoration_layer.hide()
+	customization_panel.open_panel()
+	focus_area = FocusArea.UPPER_TABS if keep_upper_focus else FocusArea.CARDS
+	_apply_upper_tab_styles()
+
+func _show_power_up_view(initial_open: bool = false) -> void:
+	if customization_panel != null:
+		customization_panel.close_panel()
+	shop_content.show()
+	upper_tab_index = 0
+	_apply_customization_decoration_theme()
+	focus_area = FocusArea.CARDS if initial_open else FocusArea.UPPER_TABS
+	_apply_upper_tab_styles()
+	if is_node_ready():
+		_refresh_view()
+
+func _on_customization_back_requested() -> void:
+	request_common_close()
+
+func _on_customization_upper_focus_requested() -> void:
+	focus_area = FocusArea.UPPER_TABS
+	_apply_upper_tab_styles()
+
+func _on_customization_body_focus_requested() -> void:
+	if customization_panel == null or not customization_panel.visible:
+		return
+	# Mouse selection inside the child panel must also move the parent routing
+	# focus away from the upper tabs, otherwise the next Enter is consumed by
+	# the tab instead of activating the selected customization.
+	focus_area = FocusArea.CARDS
+	_apply_upper_tab_styles()
+
+func _on_customization_equipped(_category: String, _item_id: String) -> void:
+	_apply_customization_decoration_theme()
+
+func _create_customization_decoration_layer() -> void:
+	if customization_decoration_layer != null:
+		return
+	customization_decoration_layer = Control.new()
+	customization_decoration_layer.name = "CustomizationThemeDecorations"
+	customization_decoration_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	customization_decoration_layer.z_index = 2
+	add_child(customization_decoration_layer)
+	for line_name in ["TopLine", "BottomLine", "LeftLine", "RightLine"]:
+		var line := ColorRect.new()
+		line.name = line_name
+		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		customization_decoration_layer.add_child(line)
+		customization_decoration_lines.append(line)
+	customization_decoration_layer.hide()
+	_layout_customization_decoration_layer()
+
+func _layout_customization_decoration_layer() -> void:
+	if customization_decoration_layer == null or not is_node_ready() or customization_decoration_lines.size() < 4:
+		return
+	var panel_rect := Rect2(main_panel_backdrop.global_position, main_panel_backdrop.size)
+	# Keep the accent just inside the backdrop border.  A deep inset would cross
+	# the English header and the card focus rings on compact screens.
+	var inset := 5.0 if panel_rect.size.x < 1440.0 else 8.0
+	var thickness := 2.0
+	customization_decoration_lines[0].position = panel_rect.position + Vector2(inset, inset)
+	customization_decoration_lines[0].size = Vector2(maxf(0.0, panel_rect.size.x - inset * 2.0), thickness)
+	customization_decoration_lines[1].position = panel_rect.position + Vector2(inset, panel_rect.size.y - inset - thickness)
+	customization_decoration_lines[1].size = Vector2(maxf(0.0, panel_rect.size.x - inset * 2.0), thickness)
+	customization_decoration_lines[2].position = panel_rect.position + Vector2(inset, inset)
+	customization_decoration_lines[2].size = Vector2(thickness, maxf(0.0, panel_rect.size.y - inset * 2.0))
+	customization_decoration_lines[3].position = panel_rect.position + Vector2(panel_rect.size.x - inset - thickness, inset)
+	customization_decoration_lines[3].size = Vector2(thickness, maxf(0.0, panel_rect.size.y - inset * 2.0))
+
+func _apply_customization_decoration_theme() -> void:
+	if not is_node_ready() or main_panel_backdrop == null:
+		return
+	if _default_main_panel_style == null:
+		var base_style := main_panel_backdrop.get_theme_stylebox("panel") as StyleBoxFlat
+		if base_style != null:
+			_default_main_panel_style = base_style.duplicate(true) as StyleBoxFlat
+	var theme_id := ""
+	if manager != null and manager.has_method("equipped_customizations"):
+		theme_id = String((manager.equipped_customizations() as Dictionary).get("theme", ""))
+	var preset := CustomizationProviderScript.theme_preset(theme_id)
+	var enabled := bool(preset.get("enabled", false)) and theme_id != ""
+	_customization_theme_id = theme_id if enabled else ""
+	if _default_main_panel_style != null:
+		if enabled:
+			var themed_style := _default_main_panel_style.duplicate(true) as StyleBoxFlat
+			themed_style.border_color = preset.get("decorativeBorder", themed_style.border_color) as Color
+			themed_style.shadow_color = Color(preset.get("decorativeGlow", themed_style.border_color), 0.20)
+			themed_style.shadow_size = maxi(0, themed_style.shadow_size)
+			main_panel_backdrop.add_theme_stylebox_override("panel", themed_style)
+		else:
+			main_panel_backdrop.add_theme_stylebox_override("panel", _default_main_panel_style.duplicate(true) as StyleBoxFlat)
+	if customization_decoration_layer == null:
+		return
+	_layout_customization_decoration_layer()
+	customization_decoration_layer.visible = enabled and upper_tab_index == 0 and shop_content.visible
+	if not enabled:
+		return
+	var accent := preset.get("decorativeAccent", Color.WHITE) as Color
+	var secondary := preset.get("decorativeSecondary", accent) as Color
+	customization_decoration_lines[0].color = Color(accent, 0.86)
+	customization_decoration_lines[1].color = Color(secondary, 0.62)
+	customization_decoration_lines[2].color = Color(secondary, 0.48)
+	customization_decoration_lines[3].color = Color(accent, 0.48)
 
 func _apply_card_dimensions(card_width: float) -> void:
 	var card_gap := 16.0 if card_width < 300.0 else 18.0
@@ -936,6 +1148,7 @@ func _apply_effect_comparison_style(upgrade_id: String, maxed: bool = false) -> 
 		next_box_style.content_margin_bottom = 10.0 if is_gift_luck else 14.0
 
 func _refresh_focus_visuals() -> void:
+	_apply_upper_tab_styles()
 	for index in range(_cards.size()):
 		var card = _cards[index]
 		if card == null or not is_instance_valid(card):
@@ -1049,6 +1262,7 @@ func _show_reset_dialog() -> void:
 		return
 	reset_dialog_snapshot = view_data.duplicate(true)
 	reset_confirm_visible = true
+	_set_upper_tabs_disabled(true)
 	focus_area = FocusArea.RESET_DIALOG
 	dialog_choice = DialogChoice.CANCEL
 	footer_choice = FooterChoice.RESET
@@ -1102,6 +1316,12 @@ func _set_reset_dialog_buttons_disabled(disabled: bool) -> void:
 	reset_confirm_button.disabled = disabled
 	reset_cancel_button.disabled = disabled
 
+func _set_upper_tabs_disabled(disabled: bool) -> void:
+	if upper_power_up_tab != null:
+		upper_power_up_tab.disabled = disabled
+	if upper_customization_tab != null:
+		upper_customization_tab.disabled = disabled
+
 func _finish_reset_dialog_show() -> void:
 	_reset_dialog_tween = null
 	reset_dialog_animation_locked = false
@@ -1114,10 +1334,13 @@ func _hide_dialog() -> void:
 	reset_dialog_snapshot.clear()
 	reset_dialog_animation_locked = false
 	_set_reset_dialog_buttons_disabled(false)
+	_set_upper_tabs_disabled(false)
 	if is_node_ready():
 		reset_dialog.hide()
 		dialog_layer.hide()
-		dialog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# Keep the modal layer's blocking policy explicit even while hidden;
+		# hidden Controls do not participate in hit testing.
+		dialog_layer.mouse_filter = Control.MOUSE_FILTER_STOP
 		reset_dialog.modulate = Color.WHITE
 		reset_dialog.scale = Vector2.ONE
 
@@ -1184,9 +1407,10 @@ func _finish_reset_dialog_hide() -> void:
 	reset_confirm_visible = false
 	reset_dialog_snapshot.clear()
 	_set_reset_dialog_buttons_disabled(false)
+	_set_upper_tabs_disabled(false)
 	reset_dialog.hide()
 	dialog_layer.hide()
-	dialog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dialog_layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	reset_dialog.modulate = Color.WHITE
 	reset_dialog.scale = Vector2.ONE
 
@@ -1319,6 +1543,8 @@ func _on_reset(_refund: int) -> void:
 	_show_toast("全強化をリセットし、%s PPを返還しました" % _format_point_amount(refunded_points), 1.5)
 
 func _on_purchase_failed(reason: int) -> void:
+	if customization_panel != null and customization_panel.visible:
+		return
 	if reset_execution_locked and (reason == PowerUpShopManager.Result.SAVE_FAILED or reason == PowerUpShopManager.Result.BUSY or reason == PowerUpShopManager.Result.NOTHING_TO_RESET):
 		_handle_reset_failure(reason)
 		return
@@ -1413,6 +1639,12 @@ func _on_back_button_pressed() -> void:
 func _setup_transition_visual_root() -> void:
 	_common_front_transition_base_position = transition_visual_root.position
 	_common_front_transition_nodes = [background, get_node("BackgroundWash") as Control, background_decoration, safe_area_margin, main_panel_backdrop, purchase_light, toast_layer, dialog_layer]
+	if customization_panel != null:
+		_common_front_transition_nodes.append(customization_panel)
+	if upper_tab_bar != null:
+		_common_front_transition_nodes.append(upper_tab_bar)
+	if customization_decoration_layer != null:
+		_common_front_transition_nodes.append(customization_decoration_layer)
 	_common_front_transition_base_positions.clear()
 	for node in _common_front_transition_nodes:
 		_common_front_transition_base_positions[node] = node.position
@@ -1549,6 +1781,35 @@ func _input(event: InputEvent) -> void:
 	if _common_front_transition_locked:
 		get_viewport().set_input_as_handled()
 		return
+	if customization_panel != null and customization_panel.visible:
+		if event is InputEventMouseMotion or (event is InputEventMouseButton and (event as InputEventMouseButton).pressed):
+			_set_input_device("mouse")
+			return
+		if event is InputEventJoypadMotion:
+			var custom_stick_direction := _joypad_motion_direction(event as InputEventJoypadMotion)
+			if custom_stick_direction == Vector2i.ZERO:
+				_stick_direction = Vector2i.ZERO
+				_stick_repeat_remaining = 0.0
+				return
+			if not _accept_stick_direction(custom_stick_direction):
+				return
+			_move_custom_cursor(custom_stick_direction, "gamepad")
+			get_viewport().set_input_as_handled()
+			return
+		if not (event is InputEventKey or event is InputEventJoypadButton):
+			return
+		if not _is_press_event(event):
+			return
+		var custom_action := _action_for_event(event)
+		if custom_action == "":
+			return
+		var custom_device := "gamepad" if event is InputEventJoypadButton else "keyboard"
+		if focus_area == FocusArea.UPPER_TABS:
+			_handle_upper_tab_action(custom_action, custom_device)
+		else:
+			customization_panel.handle_action(custom_action, custom_device)
+		get_viewport().set_input_as_handled()
+		return
 	if event is InputEventMouseMotion:
 		_set_input_device("mouse")
 		return
@@ -1643,6 +1904,9 @@ func _accept_stick_direction(direction: Vector2i) -> bool:
 
 func _handle_action(action: String, device: String = "keyboard") -> void:
 	_set_input_device(device)
+	if focus_area == FocusArea.UPPER_TABS:
+		_handle_upper_tab_action(action, device)
+		return
 	if reset_dialog_animation_locked or reset_execution_locked or _reset_input_lock_remaining > 0.0:
 		return
 	if _purchase_input_lock_remaining > 0.0 and action != "back":
@@ -1673,6 +1937,10 @@ func _move_cursor(direction: Vector2i, device: String) -> void:
 	if focus_area == FocusArea.RESET_DIALOG:
 		_move_dialog_choice(direction)
 		return
+	if focus_area == FocusArea.UPPER_TABS:
+		var action := "left" if direction.x < 0 else "right" if direction.x > 0 else "down" if direction.y > 0 else "up"
+		_handle_upper_tab_action(action, device)
+		return
 	if focus_area == FocusArea.CATEGORY_TABS:
 		_move_category_cursor(direction)
 		return
@@ -1696,8 +1964,7 @@ func _move_cursor(direction: Vector2i, device: String) -> void:
 
 func _move_category_cursor(direction: Vector2i) -> void:
 	if direction.y < 0:
-		focus_area = FocusArea.RESET
-		footer_choice = FooterChoice.BACK
+		focus_area = FocusArea.UPPER_TABS
 		_refresh_focus_visuals()
 		_play_se(cursor_se)
 		return
@@ -1773,6 +2040,8 @@ func _move_dialog_choice(direction: Vector2i) -> void:
 
 func _activate_focused_target() -> void:
 	match focus_area:
+		FocusArea.UPPER_TABS:
+			_select_upper_tab(upper_tab_index)
 		FocusArea.CARDS:
 			_on_purchase_pressed()
 		FocusArea.RESET:
@@ -1801,3 +2070,32 @@ func _set_input_device(device: String) -> void:
 		return
 	last_input_device = device
 	_refresh_focus_visuals()
+
+func _handle_upper_tab_action(action: String, device: String = "keyboard") -> void:
+	_set_input_device(device)
+	if action == "left":
+		_select_upper_tab(0)
+	elif action == "right":
+		_select_upper_tab(1)
+	elif action == "down":
+		if upper_tab_index == 1 and customization_panel != null and customization_panel.visible:
+			customization_panel.focus_categories()
+			focus_area = FocusArea.CATEGORY_TABS
+		else:
+			focus_area = FocusArea.CATEGORY_TABS
+		_refresh_focus_visuals()
+	elif action == "confirm":
+		_select_upper_tab(upper_tab_index)
+	elif action == "back":
+		request_common_close()
+
+func _move_custom_cursor(direction: Vector2i, device: String) -> void:
+	if customization_panel == null or not customization_panel.visible:
+		return
+	_set_input_device(device)
+	if focus_area == FocusArea.UPPER_TABS:
+		var upper_action := "left" if direction.x < 0 else "right" if direction.x > 0 else "down" if direction.y > 0 else "up"
+		_handle_upper_tab_action(upper_action, device)
+		return
+	var custom_action := "left" if direction.x < 0 else "right" if direction.x > 0 else "down" if direction.y > 0 else "up"
+	customization_panel.handle_action(custom_action, device)

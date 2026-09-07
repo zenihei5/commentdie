@@ -5,22 +5,50 @@
     "id": "syncro_burst",
     "displayName": "シンクロバースト",
     "kind": "common_finisher",
-    "duration": 0.34
+    "effectKind": "collab_composite_finish",
+    "duration": 0.44,
+    "visualDuration": 0.60,
+    "primaryColor": "#FFD36A",
+    "secondaryColor": "#FFFFFF",
+    "seProfile": "sync_finish"
   },
   "modules": {
-    "kyasumi_defense": {"displayName": "モデレートウォール", "kind": "defense", "priority": 10, "supportType": "防御"},
-    "miimu_gather": {"displayName": "サムネサークル", "kind": "gather", "priority": 20, "supportType": "集敵"},
-    "maro_area": {"displayName": "まろコメントリング", "kind": "area", "priority": 30, "supportType": "範囲"},
-    "superchat_firepower": {"displayName": "スパチャスター", "kind": "firepower", "priority": 40, "supportType": "火力"},
-    "rizumu_followup": {"displayName": "ファンサラッシュ", "kind": "followup", "priority": 50, "supportType": "追撃"},
-    "ban_finisher": {"displayName": "BANクラッシュ", "kind": "finisher", "priority": 60, "supportType": "決着"}
+    "kyasumi_defense": {"displayName": "モデレートウォール", "kind": "defense", "effectKind": "collab_module_defense", "duration": 0.30, "visualDuration": 0.48, "primaryColor": "#76E5FF", "secondaryColor": "#3E90C8", "seProfile": "kyasumi_defense", "visualWeaponIds": ["moderator_fortress"], "priority": 10, "supportType": "防御"},
+    "miimu_gather": {"displayName": "サムネサークル", "kind": "gather", "effectKind": "collab_module_gather", "duration": 0.34, "visualDuration": 0.56, "primaryColor": "#C6A7FF", "secondaryColor": "#7C5BD8", "seProfile": "miimu_gather", "visualWeaponIds": ["buzz_thumbnail_rod"], "priority": 20, "supportType": "集敵"},
+    "maro_area": {"displayName": "まろコメントリング", "kind": "area", "effectKind": "collab_module_area", "duration": 0.30, "visualDuration": 0.48, "primaryColor": "#8EE8CA", "secondaryColor": "#FF9BC9", "seProfile": "maro_area", "visualWeaponIds": ["maro_comment_ring"], "priority": 30, "supportType": "範囲"},
+    "superchat_firepower": {"displayName": "スパチャスター", "kind": "firepower", "effectKind": "collab_module_firepower", "duration": 0.28, "visualDuration": 0.46, "primaryColor": "#FFE16A", "secondaryColor": "#FF9D4D", "seProfile": "superchat_firepower", "visualWeaponIds": ["starlight_superchat"], "priority": 40, "supportType": "火力"},
+    "rizumu_followup": {"displayName": "ファンサラッシュ", "kind": "followup", "effectKind": "collab_module_followup", "duration": 0.34, "visualDuration": 0.54, "primaryColor": "#FF9FCA", "secondaryColor": "#FFD36A", "seProfile": "rizumu_followup", "visualWeaponIds": ["fansa_climax"], "priority": 50, "supportType": "追撃"},
+    "ban_finisher": {"displayName": "BANクラッシュ", "kind": "finisher", "effectKind": "collab_module_finisher", "duration": 0.38, "visualDuration": 0.58, "primaryColor": "#FF5F91", "secondaryColor": "#FF315D", "seProfile": "ban_finisher", "visualWeaponIds": ["ban_hammer"], "priority": 60, "supportType": "決着"}
+  },
+  "seProfiles": {
+    "kyasumi_defense": {"events": [{"at": 0.00, "path": "res://assets/audio/moderator_shield_activate.mp3"}]},
+    "miimu_gather": {"events": [{"at": 0.00, "path": "res://assets/audio/tsuri_thumbnail_rod_cast.mp3"}, {"at": 0.34, "path": "res://assets/audio/tsuri_thumbnail_rod_reel.mp3"}]},
+    "maro_area": {"events": [{"at": 0.00, "path": "res://assets/audio/comment_boomerang_swing.mp3"}]},
+    "superchat_firepower": {"events": [{"at": 0.00, "path": "res://assets/audio/superchat_shot.mp3"}]},
+    "rizumu_followup": {"events": [{"at": 0.00, "path": "res://assets/audio/fansa_baton_combo_1.mp3"}, {"at": 0.10, "path": "res://assets/audio/fansa_baton_combo_2.mp3"}, {"at": 0.20, "path": "res://assets/audio/fansa_baton_combo_3.mp3"}]},
+    "ban_finisher": {"events": [{"at": 0.00, "path": "res://assets/audio/ban_hammer_swing.mp3"}, {"at": 0.24, "path": "res://assets/audio/ban_judgement_attack.mp3"}]},
+    "sync_finish": {"events": [{"at": 0.00, "path": "res://assets/audio/collab_sync_star_pickup.mp3"}]},
+    "guard_live": {"events": [{"at": 0.00, "path": "res://assets/audio/moderator_shield_activate.mp3"}, {"at": 0.16, "path": "res://assets/audio/fansa_baton_combo_1.mp3"}, {"at": 0.30, "path": "res://assets/audio/fansa_baton_combo_2.mp3"}, {"at": 0.46, "path": "res://assets/audio/fansa_baton_combo_3.mp3"}]},
+    "moderate_finish": {"events": [{"at": 0.00, "path": "res://assets/audio/tsuri_thumbnail_rod_cast.mp3"}, {"at": 0.20, "path": "res://assets/audio/tsuri_thumbnail_rod_reel.mp3"}, {"at": 0.46, "path": "res://assets/audio/moderator_shield_activate.mp3"}]},
+    "buzz_fishing": {"events": [{"at": 0.00, "path": "res://assets/audio/tsuri_thumbnail_rod_cast.mp3"}, {"at": 0.24, "path": "res://assets/audio/tsuri_thumbnail_rod_reel.mp3"}, {"at": 0.48, "path": "res://assets/audio/fansa_baton_combo_1.mp3"}, {"at": 0.60, "path": "res://assets/audio/fansa_baton_combo_2.mp3"}, {"at": 0.72, "path": "res://assets/audio/fansa_baton_combo_3.mp3"}]}
   },
   "dedicatedPairs": [
-    {"pairKey": "ban_chan+superchat_chan", "comboId": "ban_spana_star_rush", "displayName": "BAN☆スターラッシュ", "handler": "ban_spana", "kind": "dedicated"},
-    {"pairKey": "ban_chan+maro_chan", "comboId": "ban_maro_circle", "displayName": "まろBANサークル", "handler": "ban_maro", "kind": "dedicated"},
-    {"pairKey": "maro_chan+superchat_chan", "comboId": "spana_maro_shower", "displayName": "スターコメントシャワー", "handler": "spana_maro", "kind": "dedicated"},
-    {"pairKey": "aosumi_kyasumi+akarine_rizumu", "comboId": "kyasumi_rizumu_guard_live", "displayName": "ガードライブ・フィナーレ", "handler": "kyasumi_rizumu", "kind": "dedicated"},
-    {"pairKey": "aosumi_kyasumi+shizuki_miimu", "comboId": "kyasumi_miimu_moderate_finish", "displayName": "モデレート・フィニッシング", "handler": "kyasumi_miimu", "kind": "dedicated"},
-    {"pairKey": "akarine_rizumu+shizuki_miimu", "comboId": "rizumu_miimu_buzz_fishing", "displayName": "バズ釣りフェス", "handler": "rizumu_miimu", "kind": "dedicated"}
-  ]
+    {"pairKey": "ban_chan+superchat_chan", "comboId": "ban_spana_star_rush", "displayName": "BAN☆スターラッシュ", "handler": "ban_spana", "kind": "dedicated", "effectKind": "combo_ban_star_rush", "duration": 1.08, "visualDuration": 1.08, "primaryColor": "#FF5F91", "secondaryColor": "#FFE16A", "visualWeaponIds": ["ban_hammer", "starlight_superchat"], "seProfile": "ban_spana_star_rush"},
+    {"pairKey": "ban_chan+maro_chan", "comboId": "ban_maro_circle", "displayName": "まろBANサークル", "handler": "ban_maro", "kind": "dedicated", "effectKind": "combo_maro_ban_circle", "duration": 1.18, "visualDuration": 1.18, "primaryColor": "#8EE8CA", "secondaryColor": "#FF5F91", "visualWeaponIds": ["ban_hammer", "maro_comment_ring"], "seProfile": "ban_maro_circle"},
+    {"pairKey": "maro_chan+superchat_chan", "comboId": "spana_maro_shower", "displayName": "スターコメントシャワー", "handler": "spana_maro", "kind": "dedicated", "effectKind": "combo_star_comment_shower", "duration": 1.24, "visualDuration": 1.24, "primaryColor": "#FFE16A", "secondaryColor": "#8EE8CA", "visualWeaponIds": ["starlight_superchat", "maro_comment_ring"], "seProfile": "spana_maro_shower"},
+    {"pairKey": "akarine_rizumu+aosumi_kyasumi", "comboId": "kyasumi_rizumu_guard_live", "displayName": "ガードライブ・フィナーレ", "handler": "kyasumi_rizumu", "kind": "dedicated", "effectKind": "collab_senior_guard_live", "duration": 1.18, "visualDuration": 1.18, "primaryColor": "#76E5FF", "secondaryColor": "#FF9FCA", "visualWeaponIds": ["moderator_fortress", "fansa_climax"], "seProfile": "guard_live"},
+    {"pairKey": "aosumi_kyasumi+shizuki_miimu", "comboId": "kyasumi_miimu_moderate_finish", "displayName": "モデレート・フィニッシング", "handler": "kyasumi_miimu", "kind": "dedicated", "effectKind": "collab_senior_moderate_finish", "duration": 1.20, "visualDuration": 1.20, "primaryColor": "#C6A7FF", "secondaryColor": "#76E5FF", "visualWeaponIds": ["buzz_thumbnail_rod", "moderator_fortress"], "seProfile": "moderate_finish"},
+    {"pairKey": "akarine_rizumu+shizuki_miimu", "comboId": "rizumu_miimu_buzz_fishing", "displayName": "バズ釣りフェス", "handler": "rizumu_miimu", "kind": "dedicated", "effectKind": "collab_senior_buzz_fishing", "duration": 1.24, "visualDuration": 1.24, "primaryColor": "#C6A7FF", "secondaryColor": "#FF9FCA", "visualWeaponIds": ["buzz_thumbnail_rod", "fansa_climax"], "seProfile": "buzz_fishing"}
+  ],
+  "crossPairStyles": {
+    "aosumi_kyasumi+ban_chan": {"effectKind": "collab_composite_link", "linkStyle": "shield_anvil", "primaryColor": "#76E5FF", "secondaryColor": "#FF5F91"},
+    "akarine_rizumu+ban_chan": {"effectKind": "collab_composite_link", "linkStyle": "rhythm_ban", "primaryColor": "#FF9FCA", "secondaryColor": "#FF5F91"},
+    "ban_chan+shizuki_miimu": {"effectKind": "collab_composite_link", "linkStyle": "thumbnail_smash", "primaryColor": "#C6A7FF", "secondaryColor": "#FF5F91"},
+    "aosumi_kyasumi+superchat_chan": {"effectKind": "collab_composite_link", "linkStyle": "star_reflector", "primaryColor": "#76E5FF", "secondaryColor": "#FFE16A"},
+    "akarine_rizumu+superchat_chan": {"effectKind": "collab_composite_link", "linkStyle": "star_stage", "primaryColor": "#FF9FCA", "secondaryColor": "#FFE16A"},
+    "shizuki_miimu+superchat_chan": {"effectKind": "collab_composite_link", "linkStyle": "viral_thumbnail", "primaryColor": "#C6A7FF", "secondaryColor": "#FFE16A"},
+    "aosumi_kyasumi+maro_chan": {"effectKind": "collab_composite_link", "linkStyle": "moderated_comments", "primaryColor": "#76E5FF", "secondaryColor": "#8EE8CA"},
+    "akarine_rizumu+maro_chan": {"effectKind": "collab_composite_link", "linkStyle": "audience_ring", "primaryColor": "#FF9FCA", "secondaryColor": "#8EE8CA"},
+    "maro_chan+shizuki_miimu": {"effectKind": "collab_composite_link", "linkStyle": "comment_curation", "primaryColor": "#8EE8CA", "secondaryColor": "#C6A7FF"}
+  }
 }

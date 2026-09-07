@@ -1,0 +1,34 @@
+Codex milestone rewards V1 execution summary
+Date: 2026-09-07 Asia/Tokyo
+Runtime: Godot 4.6.3 stable, real D3D12 renderer for captures
+
+V1 integration + UI + capture:
+  CODEX_MILESTONE_REWARD_TESTS: PASS (147 checks, 0 failures)
+  screenshots: 4 PNG files under screenshots/
+
+V1 isolated logic/input run without capture:
+  CODEX_MILESTONE_REWARD_TESTS: PASS (138 checks, 0 failures)
+
+Existing PP transaction regression:
+  POWER_UP_REWARD_TRANSACTION_TESTS: PASS (705 checks, 0 failures)
+
+Existing PP/Codex regressions:
+  STREAM_EVALUATION_V2_TESTS: PASS
+  GIFT_SYSTEM_TESTS: PASS
+  CODEX_MANAGER_TESTS: PASS
+  CODEX_V03_RECORD_TESTS: PASS
+  CODEX_V05_COMPLETION_AUDIT_TESTS: PASS
+  CODEX_V06_ENEMY_PROFILE_TESTS: PASS
+  CODEX_ITEM_LORE_UI_V1_TESTS: PASS
+  POWER_UP_SHOP_TESTS: FAIL (2 known baseline failures: buzz keep values; gift reroll values)
+
+Observed existing dirty-tree failures kept separate from V1:
+  test_codex_screen.gd: existing GDScript type-inference parse errors
+  test_codex_v07_final.gd: existing GDScript type-inference parse errors
+  test_codex_layout_v08.gd: existing GDScript type-inference parse errors
+  test_codex_v04_content.gd: existing test parse errors
+  test_codex_comment_lore_v1.gd: one representative observation text assertion
+
+Environment warnings seen during headless runs:
+  Failed to read the root certificate store.
+  Renderer resource/RID cleanup warnings on process exit.

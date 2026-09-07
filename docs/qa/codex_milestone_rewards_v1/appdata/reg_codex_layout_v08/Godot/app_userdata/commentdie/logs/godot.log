@@ -1,0 +1,22 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "header_rect" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:37)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "category_rect" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:38)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "body_rect" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:39)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "overview_width" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:111)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "image_ratio" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:112)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "summary_ratio" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:113)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "lower_summary_bottom" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:123)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "focus_ring" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_layout_v08.gd:165)
+ERROR: Failed to load script "res://scripts/tests/test_codex_layout_v08.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)

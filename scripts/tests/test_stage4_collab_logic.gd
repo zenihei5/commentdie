@@ -31,8 +31,11 @@ func _run_test() -> void:
 				_check(modules.size() == 3, "composite module count", failures)
 				if modules.size() >= 2:
 					_check(int((modules[0] as Dictionary).get("priority", 999)) <= int((modules[1] as Dictionary).get("priority", 999)), "module priority order", failures)
-		_check(dedicated_count == 6, "dedicated pair count", failures)
+	_check(dedicated_count == 6, "dedicated pair count", failures)
 	_check(composite_count == 9, "composite pair count", failures)
+	var guard_live := ComboSystem.resolve_pair("aosumi_kyasumi", "akarine_rizumu", characters, registry)
+	_check(String(guard_live.get("handler", "")) == "kyasumi_rizumu", "kyasumi and rizumu dedicated pair handler", failures)
+	_check(String(guard_live.get("displayName", "")) == "ガードライブ・フィナーレ", "kyasumi and rizumu dedicated pair name", failures)
 	var candidates := ComboSystem.partner_candidates(characters, "ban_chan", ["aosumi_kyasumi", "akarine_rizumu", "shizuki_miimu"])
 	_check(candidates.size() <= 5, "partner candidate cap", failures)
 	for item in candidates:

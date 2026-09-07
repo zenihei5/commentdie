@@ -51,6 +51,8 @@ var _base_visual_position := Vector2.ZERO
 func _ready() -> void:
 	focus_mode = Control.FOCUS_NONE
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	card_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	card_icon.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
 	_make_input_slot_transparent()
 	_base_visual_position = visual_root.position
 	visual_root.resized.connect(_on_visual_root_resized)

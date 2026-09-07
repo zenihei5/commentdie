@@ -1,0 +1,11 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+WARNING: Codex invalid saved entry discarded: enemies/troll
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _warn_once (res://scripts/systems/codex_manager.gd:976)
+       [1] load_save_data (res://scripts/systems/codex_manager.gd:481)
+       [2] _run_tests (res://scripts/tests/test_codex_v05_completion_audit.gd:70)
+CODEX_V05_COMPLETION_AUDIT_TESTS: PASS

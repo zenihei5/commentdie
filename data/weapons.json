@@ -94,7 +94,7 @@
   },
   {
     "id": "ban_judgement",
-    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つずつコメントを処理していたのでは、荒れた配信に追いつかなくなった時に生まれたとされる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"振り下ろされるたびに周囲まで静かになるため、\"BANというより判決\"と呼ばれている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["大量のモデレーション権限がBANハンマーへ集中し、コメント欄へ直接裁定を下すほど強大になった姿。","一度振り下ろされると、問題のあるコメントだけでなく、その周囲で便乗していた言葉までまとめて静かになる。異議申し立てや反論を受け付ける機能はなく、そもそも受付窓口も存在しない。","名称を付けたのはばんり本人である。最初は勢いよく名乗っていたが、最近は他のメンバーの前で正式名称を読み上げられると、少しだけ目をそらすようになった。","運営上の分類は今も「コメント管理用ツール」のままである。"]},
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つずつコメントを処理していたのでは、荒れた配信に追いつかなくなった時に生まれたとされる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"振り下ろされるたびに周囲まで静かになるため、\"BANというより判決\"と呼ばれている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["大量のモデレーション権限がBANハンマーへ集中し、コメント欄へ直接裁定を下すほど強大になった姿。","一度振り下ろされると、問題のあるコメントだけでなく、その周囲で便乗していた言葉までまとめて静かになる。異議申し立てや反論を受け付ける機能はなく、そもそも受付窓口も存在しない。","名称を付けたのはばんり本人である。最初は勢いよく名乗っていたが、最近は他のメンバーの前で正式名称を読み上げられると、少しだけ目をそらすようになった。","運営上の分類は今も「コメント管理用ツール」のままである。"],"codexVisual":{"iconPath":"res://assets/generated/codex_icons_v1/ban_judgement_hd_final_1254.png"}},
     "codexStats": ["damage", "shockwaveDamage", "attackInterval", "range", "shockwaveRange", "shockwaveWidth", "stunDuration"],
     "displayName": "BANジャッジメント",
     "description": "前方に強力なハンマー攻撃と赤白の衝撃波を放つ、ばんちゃん専用の進化武器。",
@@ -126,7 +126,7 @@
   },
   {
     "id": "starlight_superchat",
-    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つひとつの応援が重なり、配信全体を照らすほど大きな光になった時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"派手で見栄えがよく、発射された瞬間だけを切り抜いた動画も多い。すぱな本人も、その点をかなり気に入っている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["数多くのスパチャ弾が一つの星明かりへ集まり、配信空間を照らすほど鮮やかになった姿。","飛び交う光の一つひとつには、配信を応援するリスナーの気持ちが残されている。目標を追いかけて軌道を変えるため、暗い配信事故の最中でも妙に見栄えがよく、発射された場面だけを切り抜いた動画も多い。","すぱなは「応援が集まれば、演出が豪華になるのは当然」と説明している。運営からは、金額と光量に直接の関係があるような発言は控えるよう注意されている。","本人は「直接とは言ってない」と反論した。"]},
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"一つひとつの応援が重なり、配信全体を照らすほど大きな光になった時に生まれる。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"派手で見栄えがよく、発射された瞬間だけを切り抜いた動画も多い。すぱな本人も、その点をかなり気に入っている。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["数多くのスパチャ弾が一つの星明かりへ集まり、配信空間を照らすほど鮮やかになった姿。","飛び交う光の一つひとつには、配信を応援するリスナーの気持ちが残されている。目標を追いかけて軌道を変えるため、暗い配信事故の最中でも妙に見栄えがよく、発射された場面だけを切り抜いた動画も多い。","すぱなは「応援が集まれば、演出が豪華になるのは当然」と説明している。運営からは、金額と光量に直接の関係があるような発言は控えるよう注意されている。","本人は「直接とは言ってない」と反論した。"],"codexVisual":{"iconPath":"res://assets/generated/codex_icons_v1/starlight_superchat_hd_final_1254.png"}},
     "codexStats": ["damage", "premiumDamage", "premiumExplosionDamage", "attackInterval", "range", "projectileSpeed", "projectileCount", "premiumEvery", "premiumExplosionRadius"],
     "displayName": "スターライトスパチャ",
     "description": "スパチャ弾が進化した星の弾幕。近い敵へ高速の強化弾を撃つ。",
@@ -154,7 +154,7 @@
   },
   {
     "id": "maro_comment_ring",
-    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"まろんの周囲へ集まった数多くのコメントが、彼女を守る輪となって定着したもの。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"見た目は柔らかくかわいらしいが、悪意を持って近づいたコメントにはまったく優しくない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメントブーメランが何重もの輪となり、まろんの周囲を巡るようになった姿。","寄せられた言葉のすべてを拒むのではなく、温かなコメントは内側へ残し、悪意のあるものだけを外へ押し返す。静かに回っている間はかわいらしく見えるが、一度拒まれた言葉が輪の内側へ戻ることはない。","まろん本人は「受け取らなくていい言葉まで、大切に持っておく必要はないですから」と話している。","その発言に反論するクソマロが届いたが、読む前にリングが処理した。"]},
+    "codexLore": {"cards":[{"id":"evolution_trigger","title":"変化のきっかけ","text":"まろんの周囲へ集まった数多くのコメントが、彼女を守る輪となって定着したもの。","span":2},{"id":"evolution_from","title":"進化前","span":1},{"id":"reputation","title":"配信界隈の評判","text":"見た目は柔らかくかわいらしいが、悪意を持って近づいたコメントにはまったく優しくない。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメントブーメランが何重もの輪となり、まろんの周囲を巡るようになった姿。","寄せられた言葉のすべてを拒むのではなく、温かなコメントは内側へ残し、悪意のあるものだけを外へ押し返す。静かに回っている間はかわいらしく見えるが、一度拒まれた言葉が輪の内側へ戻ることはない。","まろん本人は「受け取らなくていい言葉まで、大切に持っておく必要はないですから」と話している。","その発言に反論するクソマロが届いたが、読む前にリングが処理した。"],"codexVisual":{"iconPath":"res://assets/generated/codex_icons_v1/maro_comment_ring_hd_final_1024.png"}},
     "codexStats": ["damage", "pulseDamage", "hitInterval", "orbitRadius", "pulseOrbitRadius", "pulseDuration", "pulseExpPullRadius", "boomerangCount"],
     "displayName": "まろコメントリング",
     "description": "コメントブーメランが進化した輪。複数のコメントが周囲を守る。",
@@ -175,6 +175,8 @@
     "pulseOrbitRadius": 3.1,
     "pulseDamage": 8.0,
     "pulseExpPullRadius": 3.5,
+    "activationSePath": "res://assets/audio/maro_comment_ring_activate.mp3",
+    "activationSeVolumeDb": 0.0,
     "knockback": 0.3,
     "magnetRange": 150.0,
     "iconPath": "res://assets/generated/equipment_icons_v1/icons/maro_comment_ring.png"
@@ -234,7 +236,7 @@
   },
   {
     "id": "kusa_wave",
-    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"コメント欄へ書き込まれた大量の「草」がまとまり、一つの波となって流れ出したもの。","span":2},{"id":"usage","title":"扱われ方","text":"配信中に大きな笑いが起きた時、誰かが意図して呼び出さなくても自然発生することがある。","span":1},{"id":"rumor","title":"うわさ","text":"画面の外へ流れていった草は消えたのではなく、どこか別の配信へ漂着しているらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメント欄を埋め尽くした大量の「草」が、一つの波となって実体化した配信現象。","笑いが長く続くほど草も勢いを増し、壁へぶつかっても向きを変えて配信空間を跳ね回る。何が面白かったのか全員が忘れた後も、草だけが残っていることは珍しくない。","配信者が話を戻そうとして真面目な説明を始めても、画面端からさっきの草が戻ってきて再び笑いが起こる。","モデレーターによると、草は規約違反ではないので止められないらしい。"]},
+    "codexLore": {"cards":[{"id":"origin","title":"由来","text":"コメント欄へ書き込まれた大量の「草」がまとまり、一つの波となって流れ出したもの。","span":2},{"id":"usage","title":"扱われ方","text":"配信中に大きな笑いが起きた時、誰かが意図して呼び出さなくても自然発生することがある。","span":1},{"id":"rumor","title":"うわさ","text":"画面の外へ流れていった草は消えたのではなく、どこか別の配信へ漂着しているらしい。","span":1}],"archiveTitle":"WEAPON ARCHIVE","archiveParagraphs":["コメント欄を埋め尽くした大量の「草」が、一つの波となって実体化した配信現象。","笑いが長く続くほど草も勢いを増し、壁へぶつかっても向きを変えて配信空間を跳ね回る。何が面白かったのか全員が忘れた後も、草だけが残っていることは珍しくない。","配信者が話を戻そうとして真面目な説明を始めても、画面端からさっきの草が戻ってきて再び笑いが起こる。","モデレーターによると、草は規約違反ではないので止められないらしい。"],"codexVisual":{"iconPath":"res://assets/generated/codex_icons_v1/kusa_wave_hd_final_1254.png"}},
     "codexStats": ["damage", "attackInterval", "range", "sizeMultiplier", "bounceCount"],
     "displayName": "草ウェーブ",
     "description": "向いている方向へ草の波を出す前方範囲武器",
@@ -391,7 +393,7 @@
     "maxActiveCount": 3,
     "knockback": 0.3,
     "magnetRange": 95.0,
-    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon.png",
+    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon_hd_final_1254.png",
     "evolutionEnabled": true,
     "evolution": {
       "evolvedWeaponId": "listener_assembly",
@@ -962,6 +964,11 @@
     "normalKnockback": 0.0,
     "visualSourceWeaponId": "fansa_baton",
     "iconPath": "res://assets/weapons/fansa_climax/icon_fansa_climax.png",
+    "comboAttackSe": [
+      {"path": "res://assets/audio/fansa_baton_combo_1.mp3", "volumeDb": 0.0},
+      {"path": "res://assets/audio/fansa_baton_combo_2.mp3", "volumeDb": 0.0},
+      {"path": "res://assets/audio/fansa_climax_finisher.mp3", "volumeDb": 0.0}
+    ],
     "visuals": {
       "swingRight": {"path": "res://assets/weapons/fansa_climax/fansa_climax_slash_1.png", "size": [190, 132], "attackForwardOffset": 58.0, "attackSideOffset": -2.0, "forwardAxis": [1, 0], "rotationOffsetDegrees": 0.0, "durationSeconds": 0.18, "alpha": 1.0, "drawLayer": "front", "zIndex": 30, "sparkMultiplier": 1.0},
       "swingLeft": {"path": "res://assets/weapons/fansa_climax/fansa_climax_slash_2.png", "size": [190, 132], "attackForwardOffset": 58.0, "attackSideOffset": 2.0, "forwardAxis": [-1, 0], "rotationOffsetDegrees": 0.0, "durationSeconds": 0.18, "alpha": 1.0, "drawLayer": "front", "zIndex": 30, "sparkMultiplier": 1.0},

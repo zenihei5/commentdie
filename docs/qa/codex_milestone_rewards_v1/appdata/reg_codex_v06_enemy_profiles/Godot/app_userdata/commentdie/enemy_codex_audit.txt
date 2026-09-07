@@ -1,0 +1,1063 @@
+[Enemy Codex Audit]
+
+Raw enemies: 44 / Enabled: 42
+Raw boss: 7 / Enabled boss: 6
+Normal non-boss: 36 / Mobile: 34 / Fixed: 2
+Normal cohort median HP: 16 / speed: 90
+Boss cohort median HP: 1150 / speed: 53
+
+=== troll ===
+Name: 荒らし
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: 雑談枠, ゲーム実況枠, 歌枠
+Spawn: normal_wave
+Stats:
+HP: 10
+Move speed: 92
+Move speed range: 92.0
+Contact damage: 12
+Attack types: contact
+Attacks: troll_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 低い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== fast ===
+Name: 連投マン
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: 雑談枠, ゲーム実況枠, 歌枠
+Spawn: normal_wave
+Stats:
+HP: 8
+Move speed: 155
+Move speed range: 155.0
+Contact damage: 14
+Attack types: contact
+Attacks: fast_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, fast
+Manual tags: fast
+Resolved tags: contact, fast
+Durability: 低い / Speed rating: 速い
+Missing: ---
+Warnings: ---
+
+=== shooter ===
+Name: 指示厨
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: 雑談枠, ゲーム実況枠, 歌枠
+Spawn: normal_wave
+Stats:
+HP: 14
+Move speed: 95
+Move speed range: 95.0
+Contact damage: 12
+Attack types: ranged, projectile
+Attacks: shooter_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile
+Manual tags: ranged, projectile
+Resolved tags: ranged, projectile
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== long_comment_guy ===
+Name: 長文ニキ
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: 雑談枠, ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 40
+Move speed: 62
+Move speed range: 62.0
+Contact damage: 18
+Attack types: contact
+Attacks: long_comment_guy_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, tank
+Manual tags: ---
+Resolved tags: contact, tank
+Durability: 非常に高い / Speed rating: 遅い
+Missing: ---
+Warnings: ---
+
+=== clipper ===
+Name: 悪質切り抜き師
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: 雑談枠
+Spawn: normal_wave
+Stats:
+HP: 18
+Move speed: 120
+Move speed range: 120.0
+Contact damage: 18
+Attack types: charge
+Attacks: clipper_charge[charge]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: fast, charge
+Manual tags: ---
+Resolved tags: fast, charge
+Durability: 普通 / Speed rating: 速い
+Missing: ---
+Warnings: ---
+
+=== unread_maro ===
+Name: 未読マロ
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 3
+Stages: 雑談枠
+Spawn: marshmallow_timeout, boss_summon
+Stats:
+HP: 8
+Move speed: 130
+Move speed range: 130.0
+Contact damage: 12
+Attack types: contact
+Attacks: unread_maro_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, fast, boss_only
+Manual tags: ---
+Resolved tags: contact, fast, boss_only
+Durability: 低い / Speed rating: 速い
+Missing: ---
+Warnings: ---
+
+=== ghost_comment ===
+Name: 幽霊コメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 3
+Stages: ゲーム実況枠
+Spawn: genre_horror
+Stats:
+HP: 20
+Move speed: 122
+Move speed range: 122.0
+Contact damage: 14
+Attack types: contact
+Attacks: ghost_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, fast
+Manual tags: ---
+Resolved tags: contact, fast
+Durability: 普通 / Speed rating: 速い
+Missing: ---
+Warnings: ---
+
+=== enemy_spoiler_comment ===
+Name: ネタバレコメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 11
+Move speed: 108
+Move speed range: 108.0
+Contact damage: 12
+Attack types: contact
+Attacks: enemy_spoiler_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 低い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== enemy_backseat_controller ===
+Name: 指示厨コントローラー
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 24
+Move speed: 104
+Move speed range: 104.0
+Contact damage: 14
+Attack types: contact
+Attacks: enemy_backseat_controller_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, tank
+Manual tags: ---
+Resolved tags: contact, tank
+Durability: 高い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== enemy_armchair_strategist ===
+Name: エアプ軍師
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 18
+Move speed: 72
+Move speed range: 72.0
+Contact damage: 12
+Attack types: ranged, projectile
+Attacks: enemy_armchair_strategist_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile
+Manual tags: ---
+Resolved tags: ranged, projectile
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== enemy_lag_comment ===
+Name: ラグコメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 10
+Move speed: 106
+Move speed range: 106.0
+Contact damage: 10
+Attack types: contact
+Attacks: enemy_lag_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 低い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== enemy_strategy_wiki_ojisan ===
+Name: 攻略Wikiおじさん
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 52
+Move speed: 54
+Move speed range: 54.0
+Contact damage: 16
+Attack types: ranged, projectile
+Attacks: enemy_strategy_wiki_ojisan_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile, tank, bullet_hell
+Manual tags: ---
+Resolved tags: ranged, projectile, tank, bullet_hell
+Durability: 非常に高い / Speed rating: 遅い
+Missing: ---
+Warnings: ---
+
+=== enemy_fake_first_timer ===
+Name: 初見詐欺
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: normal_wave
+Stats:
+HP: 9
+Move speed: 54
+Move speed range: 54.0
+Contact damage: 14
+Attack types: charge
+Attacks: enemy_fake_first_timer_charge[charge]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: charge
+Manual tags: ---
+Resolved tags: charge
+Durability: 低い / Speed rating: 遅い
+Missing: ---
+Warnings: ---
+
+=== enemy_wrong_way_kart ===
+Name: 逆走カート
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 3
+Stages: ゲーム実況枠
+Spawn: genre_race
+Stats:
+HP: 18
+Move speed: 292
+Move speed range: 292.0
+Contact damage: 16
+Attack types: charge
+Attacks: enemy_wrong_way_kart_charge[charge]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: fast, charge
+Manual tags: ---
+Resolved tags: fast, charge
+Durability: 普通 / Speed rating: 非常に速い
+Missing: ---
+Warnings: ---
+
+=== enemy_jammer_cone ===
+Name: じゃまコーン
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: genre_race
+Stats:
+HP: 18
+Move speed: 0
+Move speed range: 0.0
+Contact damage: 8
+Attack types: special
+Attacks: enemy_jammer_cone_special[special]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: special
+Manual tags: ---
+Resolved tags: special
+Durability: 普通 / Speed rating: 移動しない
+Missing: ---
+Warnings: ---
+
+=== enemy_dot_invader ===
+Name: ドットインベーダー
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: genre_bullet
+Stats:
+HP: 12
+Move speed: 70
+Move speed range: 70.0
+Contact damage: 12
+Attack types: ranged, projectile
+Attacks: enemy_dot_invader_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile, bullet_hell
+Manual tags: ---
+Resolved tags: ranged, projectile, bullet_hell
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== enemy_bullet_drone ===
+Name: 弾幕ドローン
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: genre_bullet_late
+Stats:
+HP: 24
+Move speed: 86
+Move speed range: 86.0
+Contact damage: 10
+Attack types: ranged, projectile
+Attacks: enemy_bullet_drone_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile, tank, bullet_hell
+Manual tags: ranged, projectile
+Resolved tags: ranged, projectile, tank, bullet_hell
+Durability: 高い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== enemy_fake_gift_box ===
+Name: 偽ギフトボックス
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: fake_gift_destroy
+Stats:
+HP: 18
+Move speed: 126
+Move speed range: 126.0
+Contact damage: 12
+Attack types: contact
+Attacks: enemy_fake_gift_box_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, fast
+Manual tags: ---
+Resolved tags: contact, fast
+Durability: 普通 / Speed rating: 速い
+Missing: ---
+Warnings: ---
+
+=== enemy_noise_ghost_comment ===
+Name: ノイズ幽霊コメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: genre_horror
+Stats:
+HP: 16
+Move speed: 88
+Move speed range: 88.0
+Contact damage: 10
+Attack types: contact
+Attacks: enemy_noise_ghost_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== pitch_police ===
+Name: 音程警察
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: 歌枠
+Spawn: normal_wave
+Stats:
+HP: 14
+Move speed: 110
+Move speed range: 110.0
+Contact damage: 12
+Attack types: contact
+Attacks: pitch_police_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== request_spammer ===
+Name: リクエスト連投
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: 歌枠
+Spawn: normal_wave
+Stats:
+HP: 18
+Move speed: 72
+Move speed range: 72.0
+Contact damage: 10
+Attack types: ranged, projectile
+Attacks: request_spammer_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile
+Manual tags: ---
+Resolved tags: ranged, projectile
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== fast_call_fan ===
+Name: 早口コール勢
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: 歌枠
+Spawn: normal_wave
+Stats:
+HP: 9
+Move speed: 166
+Move speed range: 166.0
+Contact damage: 14
+Attack types: contact
+Attacks: fast_call_fan_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, fast
+Manual tags: ---
+Resolved tags: contact, fast
+Durability: 低い / Speed rating: 速い
+Missing: ---
+Warnings: ---
+
+=== song_noise_comment ===
+Name: ノイズコメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: 歌枠
+Spawn: normal_wave
+Stats:
+HP: 12
+Move speed: 96
+Move speed range: 96.0
+Contact damage: 10
+Attack types: contact
+Attacks: song_noise_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== song_lyric_spoiler_comment ===
+Name: 歌詞ネタバレコメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: 歌枠
+Spawn: normal_wave
+Stats:
+HP: 13
+Move speed: 100
+Move speed range: 100.0
+Contact damage: 10
+Attack types: contact
+Attacks: song_lyric_spoiler_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== drawing_fix_note ===
+Name: 修正指示コメント
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: お絵かき枠
+Spawn: normal_wave
+Stats:
+HP: 13.50
+Move speed: 72
+Move speed range: 72.0
+Contact damage: 10
+Attack types: contact
+Attacks: drawing_fix_note_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== red_pen_teacher ===
+Name: 赤ペン先生
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: お絵かき枠
+Spawn: normal_wave
+Stats:
+HP: 18
+Move speed: 104
+Move speed range: 104.0
+Contact damage: 10
+Attack types: ranged, projectile
+Attacks: red_pen_teacher_projectile[projectile]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: ranged, projectile
+Manual tags: ---
+Resolved tags: ranged, projectile
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== layer_lost ===
+Name: レイヤー迷子
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: お絵かき枠
+Spawn: normal_wave
+Stats:
+HP: 13
+Move speed: 72
+Move speed range: 72.0
+Contact damage: 5
+Attack types: contact
+Attacks: layer_lost_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== bucket_fill_slime ===
+Name: バケツ塗りスライム
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: お絵かき枠
+Spawn: normal_wave
+Stats:
+HP: 30
+Move speed: 46
+Move speed range: 46.0
+Contact damage: 12
+Attack types: area
+Attacks: bucket_fill_slime_area[area]
+Projectile: false / Summon: false / Slow: true / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: tank, area
+Manual tags: ---
+Resolved tags: tank, area
+Durability: 高い / Speed rating: 遅い
+Missing: ---
+Warnings: ---
+
+=== undo_ghost ===
+Name: Undo幽霊
+Codex Enabled: false
+Boss: false
+Source: enemy_system
+Lore: --- / cards: 0 / archive paragraphs: 0
+Stages: お絵かき枠
+Spawn: normal_wave
+Stats:
+HP: 12
+Move speed: 112
+Move speed range: 112.0
+Contact damage: 10
+Attack types: contact
+Attacks: undo_ghost_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_comparison_troll ===
+Name: 比較厨
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 3
+Stages: コラボ枠
+Spawn: normal_wave
+Stats:
+HP: 15
+Move speed: 84
+Move speed range: 84.0
+Contact damage: 5
+Attack types: contact
+Attacks: collab_comparison_troll_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact
+Manual tags: ---
+Resolved tags: contact
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_messenger_pigeon ===
+Name: 伝書鳩
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: normal_wave
+Stats:
+HP: 12
+Move speed: 78
+Move speed range: 78.0
+Contact damage: 5
+Attack types: special
+Attacks: collab_messenger_pigeon_special[special]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: support, special
+Manual tags: ---
+Resolved tags: support, special
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_discord_troll ===
+Name: 不仲煽り
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: normal_wave
+Stats:
+HP: 17
+Move speed: 72
+Move speed range: 72.0
+Contact damage: 4
+Attack types: special
+Attacks: collab_discord_troll_special[special]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: support, special
+Manual tags: ---
+Resolved tags: support, special
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_volume_police ===
+Name: 音量警察
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: normal_wave
+Stats:
+HP: 18
+Move speed: 68
+Move speed range: 68.0
+Contact damage: 4
+Attack types: area
+Attacks: collab_volume_police_area[area]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: area, support
+Manual tags: ---
+Resolved tags: area, support
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_exclusive_listener ===
+Name: 独占リスナー
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: normal_enemy / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: normal_wave
+Stats:
+HP: 14
+Move speed: 100
+Move speed range: 100.0
+Contact damage: 0
+Attack types: special
+Attacks: collab_exclusive_listener_special[special]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: support, special
+Manual tags: ---
+Resolved tags: support, special
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_division_noise ===
+Name: 分断ノイズ
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: boss_summon
+Stats:
+HP: 23
+Move speed: 48
+Move speed range: 48.0
+Contact damage: 0
+Attack types: special
+Attacks: collab_division_noise_special[special]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: tank, support, special, boss_only
+Manual tags: ---
+Resolved tags: tank, support, special, boss_only
+Durability: 高い / Speed rating: 遅い
+Missing: ---
+Warnings: ---
+
+=== collab_mute_core ===
+Name: ミュートコア
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: boss_summon
+Stats:
+HP: 31
+Move speed: 0
+Move speed range: 0.0
+Contact damage: 0
+Attack types: special
+Attacks: collab_mute_core_special[special]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: true
+Summon IDs: ---
+Auto tags: tank, special, boss_only
+Manual tags: ---
+Resolved tags: tank, special, boss_only
+Durability: 高い / Speed rating: 移動しない
+Missing: ---
+Warnings: ---
+
+=== noise_ghost_comment ===
+Name: ラストオフライン召喚ノイズ
+Codex Enabled: true
+Boss: false
+Source: enemy_system
+Lore: special / cards: 3 / archive paragraphs: 4
+Stages: 配信リレー
+Spawn: boss_summon
+Stats:
+HP: 16
+Move speed: 88
+Move speed range: 88.0
+Contact damage: 7
+Attack types: contact
+Attacks: noise_ghost_comment_contact[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, boss_only
+Manual tags: ---
+Resolved tags: contact, boss_only
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== boss_super_long_comment ===
+Name: 超長文ニキ
+Codex Enabled: false
+Boss: true
+Source: bosses
+Lore: --- / cards: 0 / archive paragraphs: 0
+Stages: 雑談枠
+Spawn: boss_only
+Stats:
+HP: 400
+Move speed: 58
+Move speed range: 58.0
+Contact damage: 36
+Attack types: contact, projectile, summon
+Attacks: long_comment_press[contact], comment_bullet_burst[projectile], summon_trolls[summon]
+Projectile: true / Summon: true / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, projectile, summon, boss_only
+Manual tags: ---
+Resolved tags: contact, projectile, summon, boss_only
+Durability: 低い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== boss_kuso_maro_king ===
+Name: クソマロキング
+Codex Enabled: true
+Boss: true
+Source: bosses
+Lore: boss / cards: 3 / archive paragraphs: 4
+Stages: 雑談枠
+Spawn: boss_summon, boss_only
+Stats:
+HP: 360
+Move speed: 56
+Move speed range: 56.0
+Contact damage: 34
+Attack types: projectile, summon, area
+Attacks: kuso_maro_barrage[projectile], summon_unread_maro[summon], sticky_maro_floor[area]
+Projectile: true / Summon: true / Slow: true / Knockback: false / Special: false
+Summon IDs: unread_maro
+Auto tags: projectile, summon, area, boss_only
+Manual tags: ---
+Resolved tags: projectile, summon, area, boss_only
+Durability: 低い / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== bugged_final_boss ===
+Name: バグったラスボス
+Codex Enabled: true
+Boss: true
+Source: bosses
+Lore: boss / cards: 3 / archive paragraphs: 4
+Stages: ゲーム実況枠
+Spawn: boss_only
+Stats:
+HP: 1000
+Move speed: 52
+Move speed range: 52.0
+Contact damage: 34
+Attack types: projectile, contact
+Attacks: bug_spoiler_bullet[projectile], bug_guide_line[contact], bug_lag_warp[contact], bug_genre_change[contact]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, projectile, boss_only
+Manual tags: ---
+Resolved tags: contact, projectile, boss_only
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== pitch_police_chief ===
+Name: 音程警察長
+Codex Enabled: true
+Boss: true
+Source: bosses
+Lore: boss / cards: 3 / archive paragraphs: 4
+Stages: 歌枠
+Spawn: boss_only
+Stats:
+HP: 1200
+Move speed: 52
+Move speed range: 52.0
+Contact damage: 32
+Attack types: projectile, area, contact
+Attacks: red_check_note_bullet[projectile], pitch_wave[area], megaphone_wave[area], chorus_judge[contact]
+Projectile: true / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, projectile, area, boss_only
+Manual tags: ---
+Resolved tags: contact, projectile, area, boss_only
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== red_pen_review_chief ===
+Name: 赤ペンリテイクドラゴン
+Codex Enabled: true
+Boss: true
+Source: bosses
+Lore: boss / cards: 3 / archive paragraphs: 4
+Stages: お絵かき枠
+Spawn: boss_only
+Stats:
+HP: 1100
+Move speed: 54
+Move speed range: 54.0
+Contact damage: 32
+Attack types: projectile, contact, summon
+Attacks: red_pen_bullet[projectile], review_line[contact], summon_fix_notes[summon]
+Projectile: true / Summon: true / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, projectile, summon, boss_only
+Manual tags: ---
+Resolved tags: contact, projectile, summon, boss_only
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== collab_crusher ===
+Name: コラボクラッシャー
+Codex Enabled: true
+Boss: true
+Source: bosses
+Lore: boss / cards: 3 / archive paragraphs: 4
+Stages: コラボ枠
+Spawn: boss_only
+Stats:
+HP: 1300
+Move speed: 48
+Move speed range: 48.0
+Contact damage: 30
+Attack types: contact
+Attacks: collab_vs_line[contact], collab_comment_divide[contact], collab_partner_mute[contact], collab_comparison_spam[contact]
+Projectile: false / Summon: false / Slow: false / Knockback: false / Special: false
+Summon IDs: ---
+Auto tags: contact, boss_only
+Manual tags: ---
+Resolved tags: contact, boss_only
+Durability: 普通 / Speed rating: 普通
+Missing: ---
+Warnings: ---
+
+=== last_offline ===
+Name: ラストオフライン
+Codex Enabled: true
+Boss: true
+Source: relay_mode
+Lore: boss / cards: 3 / archive paragraphs: 6
+Stages: 配信リレー
+Spawn: relay_final_boss
+Stats:
+HP: 2400
+Move speed: 90
+Move speed range: 90.0, 110.0, 125.0, 140.0, 155.0
+Contact damage: 0
+Attack types: projectile, summon, contact, charge, area
+Attacks: comment_shotgun[projectile], offline_laser[projectile], noise_summon[summon], kuso_maro_drop[contact], long_comment_line[contact], race_lane_charge[charge], game_over_barrage[projectile], fake_gift_trap[contact], howling_ring[area], pitch_wave[area], rhythm_explosion[contact], dirty_paint[contact], eraser_sweep[charge], paint_warning[contact], division_noise[contact], collab_break[contact], all_genre_rush[charge]
+Projectile: true / Summon: true / Slow: true / Knockback: true / Special: false
+Summon IDs: noise_ghost_comment
+Auto tags: contact, projectile, fast, tank, charge, summon, area, boss_only
+Manual tags: ---
+Resolved tags: contact, projectile, fast, tank, charge, summon, area, boss_only
+Durability: 非常に高い / Speed rating: 速い
+Missing: ---
+Warnings: ---

@@ -424,6 +424,9 @@ static func finish_event_for_target(target: Node, events: Array, rng: RandomNumb
 		target.set("max_gift_hype", maxi(int(target.get("max_gift_hype")), gift_hype))
 	if not hurt:
 		target.set("genre_event_clear_count", int(target.get("genre_event_clear_count")) + 1)
+		var stream_tracker_variant: Variant = target.get("stream_mission_run_tracker")
+		if stream_tracker_variant != null and stream_tracker_variant.has_method("record_relay_genre_event_clear"):
+			stream_tracker_variant.record_relay_genre_event_clear()
 	clear_temp_objects_for_target(target)
 	target.set("active_genre_event", "")
 	target.set("genre_event_source", "")

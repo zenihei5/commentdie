@@ -4,7 +4,8 @@ extends RefCounted
 const SAVE_PATH := "user://power_up_shop.json"
 const BACKUP_PATH := "user://power_up_shop.json.bak"
 const TEMP_PATH := "user://power_up_shop.json.tmp"
-const SCHEMA_VERSION := 3
+const SCHEMA_VERSION := 6
+const CustomizationDatabaseScript := preload("res://scripts/systems/customization_database.gd")
 const LEGACY_NORMAL_RELAY_MIGRATION_SCHEMA_CUTOFF := 2
 const MAX_REWARDED_RUN_IDS := 100
 const MAX_REWARDED_REWARD_KEYS := 200
@@ -79,6 +80,13 @@ func default_data(database) -> Dictionary:
 		"seniorUnitUnlockShown": false,
 		"normalRelayCleared": false,
 		"discoveredEvolutionRecipes": [],
+		"claimedCodexMilestones": [],
+		"unlockedCustomizationConditions": [],
+		"purchasedCustomizations": [],
+		"equippedCustomizations": {"title": "", "theme": "", "resultStamp": ""},
+		"totalCustomizationSpentPoints": 0,
+		"completedStreamMissions": [],
+		"completedStageMissionSets": [],
 		"rewardedRunIds": [],
 		"rewardedRewardKeys": []
 	}
@@ -121,6 +129,17 @@ func normalize(data: Dictionary, database) -> Dictionary:
 	result["rewardedRunIds"] = _normalize_string_list(source.get("rewardedRunIds", []), MAX_REWARDED_RUN_IDS)
 	result["rewardedRewardKeys"] = _normalize_string_list(source.get("rewardedRewardKeys", []), MAX_REWARDED_REWARD_KEYS)
 	result["discoveredEvolutionRecipes"] = _normalize_unbounded_string_list(source.get("discoveredEvolutionRecipes", source.get("discovered_evolution_recipes", [])))
+	result["claimedCodexMilestones"] = _normalize_unbounded_string_list(source.get("claimedCodexMilestones", source.get("claimed_codex_milestones", [])))
+	result["unlockedCustomizationConditions"] = _normalize_unbounded_string_list(source.get("unlockedCustomizationConditions", source.get("unlocked_customization_conditions", [])))
+	result["purchasedCustomizations"] = _normalize_unbounded_string_list(source.get("purchasedCustomizations", source.get("purchased_customizations", [])))
+	result["equippedCustomizations"] = _normalize_equipped_customizations(source.get("equippedCustomizations", source.get("equipped_customizations", {})), result["purchasedCustomizations"] as Array)
+	result["totalCustomizationSpentPoints"] = maxi(0, int(source.get("totalCustomizationSpentPoints", source.get("total_customization_spent_points", 0))))
+	# Stream mission history is deliberately independent from rewardedRunIds and
+	# rewardedRewardKeys.  A pre-schema-6 save has no mission history, so ignore
+	# even accidentally-present future fields and never grant retroactive work.
+	if source_schema >= SCHEMA_VERSION:
+		result["completedStreamMissions"] = _normalize_unbounded_string_list(source.get("completedStreamMissions", source.get("completed_stream_missions", [])))
+		result["completedStageMissionSets"] = _normalize_unbounded_string_list(source.get("completedStageMissionSets", source.get("completed_stage_mission_sets", [])))
 	return result
 
 func _migrate_legacy(database) -> Dictionary:
@@ -252,6 +271,25 @@ func _normalize_unbounded_string_list(value: Variant) -> Array[String]:
 		text = text.strip_edges()
 		if text != "" and not result.has(text):
 			result.append(text)
+	return result
+
+func _normalize_equipped_customizations(value: Variant, purchased_ids: Array) -> Dictionary:
+	var result := {"title": "", "theme": "", "resultStamp": ""}
+	if not value is Dictionary:
+		return result
+	var source := value as Dictionary
+	var database = CustomizationDatabaseScript.load_default()
+	if not database.is_valid:
+		return result
+	for category in ["title", "theme", "result_stamp"]:
+		var slot: String = "resultStamp" if category == "result_stamp" else category
+		var raw_id := String(source.get(slot, source.get(category, ""))).strip_edges()
+		if raw_id == "" or not purchased_ids.has(raw_id):
+			continue
+		var item: Dictionary = database.get_item(raw_id)
+		if item.is_empty() or String(item.get("category", "")) != category:
+			continue
+		result[slot] = raw_id
 	return result
 
 func _remove_file(file_path: String) -> void:

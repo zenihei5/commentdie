@@ -1,0 +1,399 @@
+{
+	"checks": 132,
+	"failures": [],
+	"historyRotation": {
+		"claimed": [
+			"weapons:25",
+			"weapons:50",
+			"weapons:75",
+			"weapons:100"
+		],
+		"result": {
+			"balance": 375,
+			"beforeBalance": 0,
+			"categoryId": "weapons",
+			"claimedIds": [
+				"weapons:25",
+				"weapons:50",
+				"weapons:75",
+				"weapons:100"
+			],
+			"ok": true,
+			"state": "granted",
+			"totalPp": 375
+		},
+		"rewardKeyHistory": 200,
+		"runHistory": 100
+	},
+	"initialGate": {
+		"duplicate": {
+			"balance": 75,
+			"categoryId": "characters",
+			"claimedIds": [],
+			"ok": true,
+			"state": "nothing_to_claim",
+			"totalPp": 0
+		},
+		"granted": {
+			"balance": 75,
+			"beforeBalance": 0,
+			"categoryId": "characters",
+			"claimedIds": [
+				"characters:25",
+				"characters:50"
+			],
+			"ok": true,
+			"state": "granted",
+			"totalPp": 75
+		},
+		"locked": {
+			"categoryId": "characters",
+			"claimedIds": [],
+			"ok": false,
+			"state": "shop_locked",
+			"totalPp": 0
+		},
+		"profile": {
+			"claimedCodexMilestones": [
+				"characters:25",
+				"characters:50"
+			],
+			"currentPoints": 75,
+			"discoveredEvolutionRecipes": [],
+			"firstBossDefeats": {
+				"bugged_final_boss": false,
+				"collab_crusher": false,
+				"kusomaro_king": false,
+				"last_offline": false,
+				"pitch_police_chief": false,
+				"redpen_retake_dragon": false
+			},
+			"firstRelayClear": false,
+			"firstStageClears": {
+				"collab": false,
+				"drawing": false,
+				"gameplay": false,
+				"singing": false,
+				"zatsudan": false
+			},
+			"normalRelayCleared": false,
+			"rewardedRewardKeys": [],
+			"rewardedRunIds": [],
+			"schemaVersion": 4,
+			"selectedCharacterId": "ban_chan",
+			"seniorUnitUnlockShown": false,
+			"totalEarnedPoints": 75,
+			"totalSpentPoints": 0,
+			"unlocked": true,
+			"unlockedCharacterIds": [
+				"ban_chan",
+				"superchat_chan",
+				"maro_chan"
+			],
+			"upgrades": {
+				"attack_area": 0,
+				"attack_interval": 0,
+				"attack_power": 0,
+				"buzz_keep": 0,
+				"damage_reduction": 0,
+				"exp_gain": 0,
+				"gift_luck": 0,
+				"gift_reroll": 0,
+				"healing_power": 0,
+				"max_hp": 0,
+				"move_speed": 0,
+				"pickup_range": 0
+			}
+		}
+	},
+	"master": {
+		"categories": [
+			"characters",
+			"weapons",
+			"accessories",
+			"enemies",
+			"comments"
+		],
+		"categoryTotal": 375,
+		"grandTotal": 1875,
+		"milestones": [
+			{
+				"percent": 25,
+				"pp": 25
+			},
+			{
+				"percent": 50,
+				"pp": 50
+			},
+			{
+				"percent": 75,
+				"pp": 100
+			},
+			{
+				"percent": 100,
+				"pp": 200
+			}
+		],
+		"required": {
+			"accessories": [
+				3,
+				5,
+				8,
+				10
+			],
+			"characters": [
+				2,
+				3,
+				5,
+				6
+			],
+			"comments": [
+				11,
+				22,
+				33,
+				44
+			],
+			"enemies": [
+				11,
+				21,
+				32,
+				42
+			],
+			"weapons": [
+				7,
+				13,
+				20,
+				26
+			]
+		}
+	},
+	"realCounts": {
+		"accessories": 10,
+		"characters": 6,
+		"comments": 44,
+		"enemies": 42,
+		"weapons": 26
+	},
+	"saveFailureRetry": {
+		"failed": {
+			"balance": 17,
+			"beforeBalance": 17,
+			"categoryId": "characters",
+			"claimedIds": [
+				"characters:25",
+				"characters:50"
+			],
+			"ok": false,
+			"requestedPp": 75,
+			"state": "save_failed",
+			"totalPp": 0
+		},
+		"reloaded": {
+			"claimedCodexMilestones": [
+				"characters:25",
+				"characters:50"
+			],
+			"currentPoints": 92,
+			"discoveredEvolutionRecipes": [],
+			"firstBossDefeats": {
+				"bugged_final_boss": false,
+				"collab_crusher": false,
+				"kusomaro_king": false,
+				"last_offline": false,
+				"pitch_police_chief": false,
+				"redpen_retake_dragon": false
+			},
+			"firstRelayClear": false,
+			"firstStageClears": {
+				"collab": false,
+				"drawing": false,
+				"gameplay": false,
+				"singing": false,
+				"zatsudan": false
+			},
+			"normalRelayCleared": false,
+			"rewardedRewardKeys": [],
+			"rewardedRunIds": [],
+			"schemaVersion": 4,
+			"selectedCharacterId": "ban_chan",
+			"seniorUnitUnlockShown": false,
+			"totalEarnedPoints": 92,
+			"totalSpentPoints": 0,
+			"unlocked": true,
+			"unlockedCharacterIds": [
+				"ban_chan",
+				"superchat_chan",
+				"maro_chan"
+			],
+			"upgrades": {
+				"attack_area": 0,
+				"attack_interval": 0,
+				"attack_power": 0,
+				"buzz_keep": 0,
+				"damage_reduction": 0,
+				"exp_gain": 0,
+				"gift_luck": 0,
+				"gift_reroll": 0,
+				"healing_power": 0,
+				"max_hp": 0,
+				"move_speed": 0,
+				"pickup_range": 0
+			}
+		},
+		"retry": {
+			"balance": 92,
+			"beforeBalance": 17,
+			"categoryId": "characters",
+			"claimedIds": [
+				"characters:25",
+				"characters:50"
+			],
+			"ok": true,
+			"state": "granted",
+			"totalPp": 75
+		},
+		"saveCalls": 1
+	},
+	"screenshots": "not requested",
+	"v3Copy": {
+		"beforeClaim": {
+			"allClaimed": false,
+			"blockedReason": "",
+			"categoryId": "weapons",
+			"claimEnabled": true,
+			"claimableIds": [
+				"weapons:25",
+				"weapons:50",
+				"weapons:75",
+				"weapons:100"
+			],
+			"claimablePp": 375,
+			"currentComplete": true,
+			"displayPercent": 100,
+			"eligibleIds": [
+				"weapons:25",
+				"weapons:50",
+				"weapons:75",
+				"weapons:100"
+			],
+			"eligiblePp": 375,
+			"found": 26,
+			"milestones": [
+				{
+					"claimed": false,
+					"id": "weapons:25",
+					"percent": 25,
+					"pp": 25,
+					"reached": true,
+					"remainingCount": 0,
+					"requiredCount": 7,
+					"state": "claimable"
+				},
+				{
+					"claimed": false,
+					"id": "weapons:50",
+					"percent": 50,
+					"pp": 50,
+					"reached": true,
+					"remainingCount": 0,
+					"requiredCount": 13,
+					"state": "claimable"
+				},
+				{
+					"claimed": false,
+					"id": "weapons:75",
+					"percent": 75,
+					"pp": 100,
+					"reached": true,
+					"remainingCount": 0,
+					"requiredCount": 20,
+					"state": "claimable"
+				},
+				{
+					"claimed": false,
+					"id": "weapons:100",
+					"percent": 100,
+					"pp": 200,
+					"reached": true,
+					"remainingCount": 0,
+					"requiredCount": 26,
+					"state": "claimable"
+				}
+			],
+			"nextMilestone": {
+
+			},
+			"ok": true,
+			"shopUnlocked": true,
+			"total": 26
+		},
+		"claim": {
+			"balance": 375,
+			"beforeBalance": 0,
+			"categoryId": "weapons",
+			"claimedIds": [
+				"weapons:25",
+				"weapons:50",
+				"weapons:75",
+				"weapons:100"
+			],
+			"ok": true,
+			"state": "granted",
+			"totalPp": 375
+		},
+		"profile": {
+			"claimedCodexMilestones": [
+				"weapons:25",
+				"weapons:50",
+				"weapons:75",
+				"weapons:100"
+			],
+			"currentPoints": 375,
+			"discoveredEvolutionRecipes": [],
+			"firstBossDefeats": {
+				"bugged_final_boss": false,
+				"collab_crusher": false,
+				"kusomaro_king": false,
+				"last_offline": false,
+				"pitch_police_chief": false,
+				"redpen_retake_dragon": false
+			},
+			"firstRelayClear": false,
+			"firstStageClears": {
+				"collab": false,
+				"drawing": false,
+				"gameplay": false,
+				"singing": false,
+				"zatsudan": false
+			},
+			"normalRelayCleared": false,
+			"rewardedRewardKeys": [],
+			"rewardedRunIds": [],
+			"schemaVersion": 4,
+			"selectedCharacterId": "ban_chan",
+			"seniorUnitUnlockShown": false,
+			"totalEarnedPoints": 375,
+			"totalSpentPoints": 0,
+			"unlocked": true,
+			"unlockedCharacterIds": [
+				"ban_chan",
+				"superchat_chan",
+				"maro_chan"
+			],
+			"upgrades": {
+				"attack_area": 0,
+				"attack_interval": 0,
+				"attack_power": 0,
+				"buzz_keep": 0,
+				"damage_reduction": 0,
+				"exp_gain": 0,
+				"gift_luck": 0,
+				"gift_reroll": 0,
+				"healing_power": 0,
+				"max_hp": 0,
+				"move_speed": 0,
+				"pickup_range": 0
+			}
+		}
+	}
+}

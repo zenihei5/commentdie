@@ -1,0 +1,9 @@
+Codex milestone rewards V1 execution final
+Recorded: 2026-09-07 (Asia/Tokyo)
+Branch: main
+HEAD: 6437e03ad934a7e94806034f7aeb30aa01ff64d3
+Worktree status lines: 167
+Tracked status lines: 80
+Untracked status lines: 87
+The additional status lines are the V1 files and QA artifacts; pre-existing dirty/untracked paths were not reset or removed.
+git diff --check --: exit 0 (line-ending conversion warnings only; no whitespace errors).

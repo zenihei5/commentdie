@@ -10,6 +10,7 @@ const ScreenScene := preload("res://scripts/ui/power_up_shop_screen.tscn")
 const ShopScreenScript := preload("res://scripts/ui/power_up_shop_screen.gd")
 const LogicTestScript := preload("res://scripts/tests/test_power_up_shop.gd")
 const GameScript := preload("res://scripts/game.gd")
+const LISTENER_SUMMON_HD_PATH := "res://assets/generated/weapon_fx_v1/listener_summon_hd_final_1254.png"
 
 var failures: Array[String] = []
 var screen
@@ -54,6 +55,9 @@ func _run_tests() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
 	_check(screen.visible, "shop visible")
+	_check(screen.mascot.texture != null and String(screen.mascot.texture.resource_path) == LISTENER_SUMMON_HD_PATH, "shop mascot uses the dedicated listener summon HD source")
+	_check(screen.mascot.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, "shop mascot uses mipmapped linear sampling")
+	_check(screen.mascot.texture_repeat == CanvasItem.TEXTURE_REPEAT_DISABLED, "shop mascot texture repeat is disabled")
 	_check(screen.cursor_se.stream != null and String(screen.cursor_se.stream.resource_path) == "res://assets/audio/cursor_move.mp3", "cursor uses cursor SE")
 	_check(screen.purchase_se.stream != null and String(screen.purchase_se.stream.resource_path) == "res://assets/audio/power_up_upgrade.mp3", "upgrade success uses status treatment SE")
 	_check(screen.reset_success_se.stream != null and String(screen.reset_success_se.stream.resource_path) == "res://assets/audio/power_up_reset.mp3", "reset success uses item obtain SE")
@@ -293,10 +297,14 @@ func _test_input_navigation(manager) -> void:
 	screen._handle_action("left")
 	_check(screen.category_index == 0 and screen.focus_area == screen.FocusArea.CATEGORY_TABS, "category tab left moves to combat")
 	screen._handle_action("up")
-	_check(screen.focus_area == screen.FocusArea.RESET and screen.footer_choice == screen.FooterChoice.BACK, "category tab up moves to Back footer")
+	_check(screen.focus_area == screen.FocusArea.UPPER_TABS and screen.upper_tab_index == 0, "category tab up moves to upper shop tabs")
 	_check(screen.cursor_se.playing, "category tab up plays cursor SE")
+	screen._handle_action("right")
+	_check(screen.focus_area == screen.FocusArea.UPPER_TABS and screen.upper_tab_index == 1 and screen.customization_panel.visible, "upper tab right opens customization")
+	screen._handle_action("left")
+	_check(screen.focus_area == screen.FocusArea.UPPER_TABS and screen.upper_tab_index == 0 and not screen.customization_panel.visible, "upper tab left returns to power-up shop")
 	screen._handle_action("down")
-	_check(screen.focus_area == screen.FocusArea.CATEGORY_TABS and screen.category_index == 0, "footer down returns to current category tab")
+	_check(screen.focus_area == screen.FocusArea.CATEGORY_TABS and screen.category_index == 0, "upper tab down returns to current category tab")
 	screen._handle_action("down")
 	_check(screen.focus_area == screen.FocusArea.CARDS and screen.selected_index == 0, "category tab down returns to card")
 	screen._handle_action("up")
@@ -508,7 +516,7 @@ func _test_v3_display_and_state(database, manager) -> void:
 	_check(screen.detail_category_label.text == "配信サポート", "support detail tag")
 	_check(screen.purchase_button.text == "強化する\n100 PP", "support category purchase state")
 	_check(screen._cards[0].purchase_view == screen._selected_purchase_view, "support shared purchase state")
-	_check(String((database.get_upgrade("exp_gain") as Dictionary).get("iconPath", "")).ends_with("notification_bell.png"), "exp gain uses notification bell icon")
+	_check(String((database.get_upgrade("exp_gain") as Dictionary).get("iconPath", "")).ends_with("notification_bell_hd_final_1254.png"), "exp gain uses the audited notification bell HD icon")
 	for support_card in screen._cards:
 		_check(String(support_card.title_label.text).strip_edges() != "", "support card name is visible")
 

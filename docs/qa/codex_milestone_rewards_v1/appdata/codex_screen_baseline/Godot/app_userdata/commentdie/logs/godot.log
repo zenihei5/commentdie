@@ -1,0 +1,46 @@
+Godot Engine v4.6.3.stable.official.7d41c59c4 - https://godotengine.org
+
+ERROR: Failed to read the root certificate store.
+   at: get_system_ca_certificates (platform/windows/os_windows.cpp:2570)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "comment_visual_child" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:114)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "visible_height_ratio" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:121)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "detail_is_scrollable" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:297)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "detail_scroll_before" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:306)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "category_before_horizontal" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:310)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "enemy_filter_before_horizontal" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:311)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "new_only_before_horizontal" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:312)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "scroll_before_horizontal" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:313)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "preserved_detail_scroll" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:340)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "list_category_before" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:354)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "before_index" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:429)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "after_index" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:432)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "before_index" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:439)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "after_index" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:442)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "list_scroll_bar" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:456)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "selected_before" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:504)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "result_snapshot" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:568)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "entries" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:606)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "selected" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:607)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "viewport_rect" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://scripts/tests/test_codex_screen.gd:613)
+ERROR: Failed to load script "res://scripts/tests/test_codex_screen.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)

@@ -1,0 +1,438 @@
+{
+	"codex": {
+		"accessories": {
+
+		},
+		"category_completed_once": {
+			"accessories": false,
+			"characters": false,
+			"comments": false,
+			"enemies": false,
+			"weapons": false
+		},
+		"characters": {
+			"ban_chan": {
+				"best_score": 0,
+				"clear_count": 0,
+				"discovered": true,
+				"new": false,
+				"play_count": 0,
+				"relay_records": {
+					"expert": {
+						"best_section": 0,
+						"cleared": false
+					},
+					"hard": {
+						"best_section": 0,
+						"cleared": false
+					},
+					"normal": {
+						"best_section": 0,
+						"cleared": false
+					}
+				},
+				"stage_clears": {
+					"collab": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"drawing": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"gameplay": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"singing": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"zatsudan": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					}
+				}
+			},
+			"maro_chan": {
+				"best_score": 0,
+				"clear_count": 0,
+				"discovered": true,
+				"new": false,
+				"play_count": 0,
+				"relay_records": {
+					"expert": {
+						"best_section": 0,
+						"cleared": false
+					},
+					"hard": {
+						"best_section": 0,
+						"cleared": false
+					},
+					"normal": {
+						"best_section": 0,
+						"cleared": false
+					}
+				},
+				"stage_clears": {
+					"collab": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"drawing": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"gameplay": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"singing": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"zatsudan": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					}
+				}
+			},
+			"superchat_chan": {
+				"best_score": 0,
+				"clear_count": 0,
+				"discovered": true,
+				"new": false,
+				"play_count": 0,
+				"relay_records": {
+					"expert": {
+						"best_section": 0,
+						"cleared": false
+					},
+					"hard": {
+						"best_section": 0,
+						"cleared": false
+					},
+					"normal": {
+						"best_section": 0,
+						"cleared": false
+					}
+				},
+				"stage_clears": {
+					"collab": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"drawing": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"gameplay": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"singing": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					},
+					"zatsudan": {
+						"expert": false,
+						"hard": false,
+						"normal": false
+					}
+				}
+			}
+		},
+		"collection_completed_once": false,
+		"comments": {
+
+		},
+		"enemies": {
+
+		},
+		"schemaVersion": 4,
+		"weapons": {
+
+		}
+	},
+	"difficulties": {
+		"expert": {
+			"isNew": false,
+			"relay": {
+				"bestFinalBossPhase": 0,
+				"bestReachedSection": 0,
+				"bestReachedStageId": null,
+				"bestScore": 0,
+				"clearCharacterIds": [],
+				"cleared": false,
+				"finalBossDefeated": false,
+				"played": false,
+				"unlocked": false
+			},
+			"stages": {
+				"collab": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"drawing": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"gameplay": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"singing": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"zatsudan": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				}
+			},
+			"unlocked": false
+		},
+		"hard": {
+			"isNew": false,
+			"relay": {
+				"bestFinalBossPhase": 0,
+				"bestReachedSection": 0,
+				"bestReachedStageId": null,
+				"bestScore": 0,
+				"clearCharacterIds": [],
+				"cleared": false,
+				"finalBossDefeated": false,
+				"played": false,
+				"unlocked": false
+			},
+			"stages": {
+				"collab": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"drawing": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"gameplay": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"singing": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"zatsudan": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				}
+			},
+			"unlocked": false
+		},
+		"normal": {
+			"isNew": false,
+			"relay": {
+				"bestFinalBossPhase": 0,
+				"bestReachedSection": 0,
+				"bestReachedStageId": null,
+				"bestScore": 0,
+				"clearCharacterIds": [],
+				"cleared": false,
+				"finalBossDefeated": false,
+				"played": false,
+				"unlocked": false
+			},
+			"stages": {
+				"collab": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"drawing": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"gameplay": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"singing": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				},
+				"zatsudan": {
+					"bestBossCount": 0,
+					"bestScore": 0,
+					"bossDefeatCharacterIds": [],
+					"clearCharacterIds": [],
+					"cleared": false,
+					"firstBossDefeated": false,
+					"played": false,
+					"reignitionBossDefeated": false,
+					"reignitionDefeatCharacterIds": []
+				}
+			},
+			"unlocked": true
+		}
+	},
+	"relayModeUnlocked": false,
+	"saveVersion": 6,
+	"stageSelectUi": {
+		"lastSelectedStageByDifficulty": {
+			"expert": "zatsudan",
+			"hard": "zatsudan",
+			"normal": "zatsudan"
+		},
+		"selectedDifficulty": "normal"
+	},
+	"streamFrameProgress": {
+		"collab": {
+			"bestKamiRank": null,
+			"bestViewerCount": 0,
+			"isCleared": false,
+			"isUnlocked": false
+		},
+		"drawing": {
+			"bestKamiRank": null,
+			"bestViewerCount": 0,
+			"isCleared": false,
+			"isUnlocked": false
+		},
+		"gameplay": {
+			"bestKamiRank": null,
+			"bestViewerCount": 0,
+			"isCleared": false,
+			"isUnlocked": false
+		},
+		"singing": {
+			"bestKamiRank": null,
+			"bestViewerCount": 0,
+			"isCleared": false,
+			"isUnlocked": false
+		},
+		"zatsudan": {
+			"bestKamiRank": null,
+			"bestViewerCount": 0,
+			"isCleared": false,
+			"isUnlocked": true
+		}
+	},
+	"unlockPresentation": {
+		"initialized": true,
+		"migrationComplete": true,
+		"pendingIds": [],
+		"seenIds": [],
+		"version": 1
+	}
+}

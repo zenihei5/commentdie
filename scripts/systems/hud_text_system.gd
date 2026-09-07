@@ -2,6 +2,14 @@ class_name HudTextSystem
 extends RefCounted
 
 const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
+const GameFontSystemScript := preload("res://scripts/systems/game_font_system.gd")
+
+const INSTRUCTION_MULTIPLIER_BADGE_SIZE := Vector2(176.0, 28.0)
+const INSTRUCTION_MULTIPLIER_BADGE_GAP := 14.0
+const INSTRUCTION_MULTIPLIER_TITLE_SAFE_GAP := 16.0
+const HARD_CLIMAX_HUD_BADGE_SIZE := Vector2(210.0, 42.0)
+const HARD_CLIMAX_HUD_BADGE_GAP := 14.0
+const HARD_CLIMAX_TITLE_SAFE_GAP := 16.0
 
 static func status_text(stats: Dictionary) -> String:
 	return "EXP %d/%d   効果 %ss   武器:%s   アクセ:%s" % [
@@ -23,6 +31,104 @@ static func stream_frame_card_view(context: Dictionary) -> Dictionary:
 
 static func stream_frame_card_badge_rect(card_rect: Rect2) -> Rect2:
 	return Rect2(Vector2(card_rect.end.x - 76.0, card_rect.position.y + 10.0), Vector2(58.0, 20.0))
+
+static func hard_climax_view(context: Dictionary) -> Dictionary:
+	var difficulty_id := DifficultyProgressSystemScript.normalize_difficulty_id(context.get("difficultyId", "normal"))
+	var state := String(context.get("state", ""))
+	var relay_boss_active := bool(context.get("relayBossActive", false))
+	var runtime_value: Variant = context.get("difficultyRuntime", {})
+	var runtime: Dictionary = runtime_value as Dictionary if runtime_value is Dictionary else {}
+	var climax_value: Variant = runtime.get("climax", {})
+	var climax: Dictionary = climax_value as Dictionary if climax_value is Dictionary else {}
+	var play_mode := String(runtime.get("playMode", ""))
+	var visible := (
+		state == "playing"
+		and difficulty_id in ["hard", "expert"]
+		and bool(climax.get("active", false))
+		and not relay_boss_active
+		and play_mode != "relayFinalBoss"
+	)
+	return {
+		"visible": visible,
+		"title": "終盤ボーナス中",
+		"description": "通常敵の撃破スコア＋20％"
+	}
+
+static func instruction_multiplier_view(context: Dictionary) -> Dictionary:
+	var active := bool(context.get("active", false))
+	var effect_timer := float(context.get("effectTimer", 0.0))
+	if not active or effect_timer <= 0.0:
+		return {"visible": false, "value": 0.0, "text": ""}
+	var relay_boss_active := bool(context.get("relayBossActive", false))
+	var multiplier := 0.0
+	var source_id := ""
+	if relay_boss_active:
+		var boss_instruction_value: Variant = context.get("relayBossInstruction", {})
+		var boss_instruction: Dictionary = boss_instruction_value as Dictionary if boss_instruction_value is Dictionary else {}
+		if String(boss_instruction.get("category", "")) == "boss_support":
+			return {"visible": false, "value": 0.0, "text": ""}
+		multiplier = float(boss_instruction.get("multiplier", 1.0))
+		source_id = String(boss_instruction.get("id", ""))
+	else:
+		var view_value: Variant = context.get("resolvedCommentView", {})
+		var view: Dictionary = view_value as Dictionary if view_value is Dictionary else {}
+		if view.is_empty() or not view.has("multiplier"):
+			return {"visible": false, "value": 0.0, "text": ""}
+		multiplier = float(view.get("multiplier", 1.0))
+		if bool(context.get("commentBoost", false)):
+			multiplier *= 1.2
+		source_id = String(view.get("id", ""))
+	if is_nan(multiplier) or is_inf(multiplier) or multiplier < 0.0:
+		return {"visible": false, "value": 0.0, "text": ""}
+	return {
+		"visible": true,
+		"value": multiplier,
+		"text": "スコア倍率 ×%.1f" % multiplier,
+		"sourceId": source_id
+	}
+
+static func instruction_countdown_layout(rect: Rect2, multiplier_visible: bool, climax_visible: bool = false) -> Dictionary:
+	var remaining_rect := Rect2(rect.position + Vector2(rect.size.x - 152.0, 11.0), Vector2(124.0, 28.0))
+	var title_pos := rect.position + Vector2(156.0, 33.0)
+	var title_width := 800.0
+	var multiplier_rect := Rect2(Vector2.ZERO, Vector2.ZERO)
+	var climax_rect := Rect2(Vector2.ZERO, Vector2.ZERO)
+	var reserved_left := remaining_rect.position.x
+	if multiplier_visible:
+		multiplier_rect = Rect2(
+			remaining_rect.position - Vector2(INSTRUCTION_MULTIPLIER_BADGE_GAP + INSTRUCTION_MULTIPLIER_BADGE_SIZE.x, 0.0),
+			INSTRUCTION_MULTIPLIER_BADGE_SIZE
+		)
+		reserved_left = multiplier_rect.position.x
+	if climax_visible:
+		climax_rect = Rect2(
+			Vector2(reserved_left - HARD_CLIMAX_HUD_BADGE_GAP - HARD_CLIMAX_HUD_BADGE_SIZE.x, rect.position.y + 5.0),
+			HARD_CLIMAX_HUD_BADGE_SIZE
+		)
+		reserved_left = climax_rect.position.x
+	if multiplier_visible or climax_visible:
+		title_width = maxf(1.0, reserved_left - title_pos.x - (HARD_CLIMAX_TITLE_SAFE_GAP if climax_visible else INSTRUCTION_MULTIPLIER_TITLE_SAFE_GAP))
+	return {
+		"titlePos": title_pos,
+		"titleWidth": title_width,
+		"multiplierRect": multiplier_rect,
+		"climaxRect": climax_rect,
+		"remainingRect": remaining_rect
+	}
+
+static func instruction_title_layout(text: String, available_width: float, desired_size: int = 28, minimum_size: int = 16) -> Dictionary:
+	var safe_width := maxf(1.0, available_width)
+	var top_size := maxi(minimum_size, desired_size)
+	var font := GameFontSystemScript.black_font()
+	for text_size in range(top_size, minimum_size - 1, -1):
+		if font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1.0, text_size).x <= safe_width:
+			return {"text": text, "size": text_size}
+	var ellipsis := "…"
+	for length in range(text.length(), 0, -1):
+		var shortened := text.substr(0, length) + ellipsis
+		if font.get_string_size(shortened, HORIZONTAL_ALIGNMENT_LEFT, -1.0, minimum_size).x <= safe_width:
+			return {"text": shortened, "size": minimum_size}
+	return {"text": ellipsis, "size": minimum_size}
 
 static func _stream_frame_card_name(context: Dictionary) -> String:
 	var frame_value: Variant = context.get("streamFrame", {})

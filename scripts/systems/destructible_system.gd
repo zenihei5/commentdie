@@ -295,17 +295,19 @@ static func _update_drops_for_target(target: Node, delta: float) -> Dictionary:
 			var feedback: Dictionary = apply_drop_for_target(target, drop)
 			chats.append(String(feedback["chat"]))
 			toasts.append(String(feedback["toast"]))
-			mental_heal_amount += maxi(0, int(target.get("player_hp")) - hp_before_pickup)
+			var actual_heal: int = maxi(0, int(target.get("player_hp")) - hp_before_pickup)
+			mental_heal_amount += actual_heal
 			drop_pickup_se = true
-			hit_fx.append({
-				"kind": "pickup_text",
-				"pos": player_pos + Vector2(-30.0, -48.0),
-				"vel": Vector2(0.0, -52.0),
-				"life": 0.72,
-				"maxLife": 0.72,
-				"text": String(feedback["popup"]),
-				"color": feedback["color"] as Color
-			})
+			if actual_heal <= 0 or String(drop.get("id", "")) != "heal_drink":
+				hit_fx.append({
+					"kind": "pickup_text",
+					"pos": player_pos + Vector2(-30.0, -48.0),
+					"vel": Vector2(0.0, -52.0),
+					"life": 0.72,
+					"maxLife": 0.72,
+					"text": String(feedback["popup"]),
+					"color": feedback["color"] as Color
+				})
 			continue
 		if float(drop["life"]) > 0.0:
 			updated.append(drop)

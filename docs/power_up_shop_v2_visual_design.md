@@ -375,11 +375,11 @@ purchase_button.pressed -> request_purchase_for_selected()
 
 | Upgrade ID | 仮アイコン |
 | --- | --- |
-| `max_hp` | `res://assets/generated/equipment_icons_v1/icons/mental_care.png` |
-| `attack_power` | `res://assets/generated/equipment_icons_v1/icons/stream_power.png` |
+| `max_hp` | `res://assets/generated/equipment_icons_v1/icons/mental_care_hd_final_1254.png` |
+| `attack_power` | `res://assets/generated/equipment_icons_v1/icons/stream_power_hd_final_1254.png` |
 | `move_speed` | `res://assets/generated/equipment_icons_v1/icons/light_sneakers.png` |
 | `damage_reduction` | `res://assets/generated/equipment_icons_v1/icons/mic_barrier.png` |
-| `exp_gain` | `res://assets/generated/equipment_icons_v1/icons/high_speed_connection.png` |
+| `exp_gain` | `res://assets/generated/equipment_icons_v1/icons/notification_bell_hd_final_1254.png` |
 | `pickup_range` | `res://assets/generated/equipment_icons_v1/icons/comment_radar.png` |
 | `healing_power` | `res://assets/generated/relay_break_v1/icon_heal.png` |
 | `gift_luck` | `res://assets/generated/relay_break_v1/icon_gift.png` |
@@ -595,4 +595,3 @@ Fake／一時Storeを使い、ユーザーセーブへ書き込まない。
 - リセットは購入より弱い見た目で、確認ダイアログを経由する
 - 既存の購入、保存、リセット、報酬、強化効果へ回帰がない
 - 画面再表示後に演出の中間状態が残らない
-

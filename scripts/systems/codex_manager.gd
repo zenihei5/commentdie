@@ -12,6 +12,7 @@ const CommentSystemScript := preload("res://scripts/systems/comment_system.gd")
 signal codex_changed(category: String, id: String)
 signal codex_bulk_changed(category: String)
 signal completion_achieved(scope: String, category: String)
+signal entry_discovered(category: String, id: String, previous_found: int, current_found: int, total: int)
 
 const CATEGORY_CHARACTER: String = "characters"
 const CATEGORY_WEAPON: String = "weapons"
@@ -295,6 +296,7 @@ func discover(category: String, id: String) -> bool:
 	if not _has_enabled_master(normalized_category, normalized_id):
 		_warn_once("unknown:%s:%s" % [normalized_category, normalized_id], "Codex unknown id: %s/%s" % [normalized_category, normalized_id])
 		return false
+	var previous_found := get_discovered_count(normalized_category)
 	var category_entries: Dictionary = _entries[normalized_category] as Dictionary
 	if category_entries.has(normalized_id):
 		return false
@@ -304,6 +306,7 @@ func discover(category: String, id: String) -> bool:
 	_record_session_discovery(normalized_category, normalized_id)
 	_sync_completion_state(true)
 	codex_changed.emit(normalized_category, normalized_id)
+	entry_discovered.emit(normalized_category, normalized_id, previous_found, get_discovered_count(normalized_category), get_total_count(normalized_category))
 	return true
 
 func discover_character(id: String) -> bool:

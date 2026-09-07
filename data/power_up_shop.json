@@ -66,7 +66,7 @@
       "cardSummary": {"levelZero": "最大メンタルを強化", "valueLabel": "最大メンタル", "format": "percent_up"},
       "visualStyle": {"baseColor": "#FFF1F7", "accentColor": "#FF78A9", "patternId": "heart_circle", "patternAlpha": 0.06},
       "effectTags": ["全キャラクター", "常時有効"],
-      "iconPath": "res://assets/generated/equipment_icons_v1/icons/mental_care.png",
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/mental_care_hd_final_1254.png",
       "maxLevel": 5,
       "values": [0.0, 0.04, 0.08, 0.12, 0.16, 0.20],
       "prices": [120, 220, 360, 540, 760]
@@ -79,7 +79,7 @@
       "cardSummary": {"levelZero": "与ダメージを強化", "valueLabel": "与ダメージ", "format": "percent_up"},
       "visualStyle": {"baseColor": "#FFF1E7", "accentColor": "#FF9D5C", "patternId": "spark_impact", "patternAlpha": 0.06},
       "effectTags": ["武器攻撃", "相方攻撃", "召喚攻撃"],
-      "iconPath": "res://assets/generated/equipment_icons_v1/icons/stream_power.png",
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/stream_power_hd_final_1254.png",
       "maxLevel": 5,
       "values": [0.0, 0.03, 0.06, 0.09, 0.12, 0.15],
       "prices": [120, 220, 360, 540, 760]
@@ -144,7 +144,7 @@
       "cardSummary": {"levelZero": "獲得経験値を強化", "valueLabel": "獲得EXP", "format": "percent_up"},
       "visualStyle": {"baseColor": "#EFF1FF", "accentColor": "#7D91ED", "patternId": "book_chart", "patternAlpha": 0.06},
       "effectTags": ["敵EXP", "経験値アイテム"],
-      "iconPath": "res://assets/generated/equipment_icons_v1/icons/notification_bell.png",
+      "iconPath": "res://assets/generated/equipment_icons_v1/icons/notification_bell_hd_final_1254.png",
       "maxLevel": 5,
       "values": [0.0, 0.04, 0.08, 0.12, 0.16, 0.20],
       "prices": [100, 180, 300, 450, 650]

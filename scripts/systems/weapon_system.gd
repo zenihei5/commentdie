@@ -517,6 +517,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 	})
 	result["boomerangHits"] = boomerang_result["boomerangHits"]
 	result["boomerangOrbitSe"] = bool(boomerang_result.get("boomerangOrbitSe", false))
+	result["maroCommentRingOrbitSe"] = bool(boomerang_result.get("maroCommentRingOrbitSe", false))
 	_merge_weapon_result(result, boomerang_result)
 	var main_weapon: Dictionary = context["weapon"] as Dictionary
 	var equipment_result: Dictionary = update_equipment_weapons({
@@ -563,6 +564,7 @@ static func update_weapons(context: Dictionary) -> Dictionary:
 		result["boomerangHits"] = equipment_result["boomerangHits"]
 	result["superchatShotFired"] = bool(result.get("superchatShotFired", false)) or bool(equipment_result.get("superchatShotFired", false))
 	result["boomerangOrbitSe"] = bool(result.get("boomerangOrbitSe", false)) or bool(equipment_result.get("boomerangOrbitSe", false))
+	result["maroCommentRingOrbitSe"] = bool(result.get("maroCommentRingOrbitSe", false)) or bool(equipment_result.get("maroCommentRingOrbitSe", false))
 	_merge_weapon_result(result, equipment_result)
 	return result
 
@@ -766,6 +768,11 @@ static func _merge_reaction_result(target: Dictionary, source: Dictionary) -> vo
 		target["enemyDamaged"] = true
 	if bool(source.get("listenerSummonAttacked", false)):
 		target["listenerSummonAttacked"] = true
+	if bool(source.get("listenerAssemblyAttacked", false)):
+		target["listenerAssemblyAttacked"] = true
+	var festival_main_bursts := int(source.get("emoteFestivalMainBurstCount", 0))
+	if festival_main_bursts > 0:
+		target["emoteFestivalMainBurstCount"] = int(target.get("emoteFestivalMainBurstCount", 0)) + festival_main_bursts
 	if bool(source.get("enemyDefeated", false)):
 		target["enemyDefeated"] = true
 	var weapon_comment_kind := String(source.get("weaponCommentKind", ""))
@@ -1550,7 +1557,14 @@ static func update_boomerang(context: Dictionary) -> Dictionary:
 	damage += float(boomerang_level) * 1.5
 	var hit_interval: float = float(weapon.get("hitInterval", 0.6)) if is_main_orbit or is_maro_ring else 0.6
 	var elapsed: float = float(context["elapsed"])
-	result["boomerangOrbitSe"] = _boomerang_orbit_se_due(weapon, weapon_timers, elapsed, speed, is_main_orbit)
+	# One evolved cue on deployment, then on each existing orbit boundary.
+	# Share the orbit clock, never the base weapon's player or per-ring/hit events.
+	var maro_deployed := is_maro_ring and not weapon_timers.has("%s:%s" % [BOOMERANG_ORBIT_INDEX_KEY, weapon_id])
+	var orbit_se_due := _boomerang_orbit_se_due(weapon, weapon_timers, elapsed, speed, is_main_orbit)
+	if is_maro_ring:
+		result["maroCommentRingOrbitSe"] = maro_deployed or orbit_se_due
+	else:
+		result["boomerangOrbitSe"] = orbit_se_due
 	var enemies: Array = context["enemies"] as Array
 	var destructibles: Array = context["destructibles"] as Array
 	var enemy_bullets: Array = context["enemyBullets"] as Array
@@ -1817,6 +1831,7 @@ static func update_equipment_weapons(context: Dictionary) -> Dictionary:
 			result["boomerangHits"] = initial_result.get("boomerangHits", result.get("boomerangHits", boomerang_hits))
 			result["superchatShotFired"] = bool(result.get("superchatShotFired", false)) or bool(initial_result.get("superchatShotFired", false))
 			result["boomerangOrbitSe"] = bool(result.get("boomerangOrbitSe", false)) or bool(initial_result.get("boomerangOrbitSe", false))
+			result["maroCommentRingOrbitSe"] = bool(result.get("maroCommentRingOrbitSe", false)) or bool(initial_result.get("maroCommentRingOrbitSe", false))
 			_merge_weapon_result(result, initial_result)
 			continue
 		var timer: float = float(timers.get(weapon_id, 0.0)) - delta
@@ -2317,6 +2332,12 @@ static func _stage2_source_weapon(weapon: Dictionary, context: Dictionary) -> Di
 		return {}
 	return find_weapon(context.get("weaponData", []) as Array, source_id, {})
 
+static func _stage2_audio_source_weapon(weapon: Dictionary, context: Dictionary) -> Dictionary:
+	var source_id := String(weapon.get("baseWeaponId", weapon.get("visualSourceWeaponId", "")))
+	if source_id == "":
+		return {}
+	return find_weapon(context.get("weaponData", []) as Array, source_id, {})
+
 static func _stage2_clear_bullet_fx(pos: Vector2, owner_id: String) -> Dictionary:
 	return {
 		"kind": "stage2_bullet_clear",
@@ -2487,7 +2508,13 @@ static func _update_center_stage_weapon(weapon: Dictionary, context: Dictionary,
 	var initial_hits := _center_stage_apply_area(fx, "tickDamage", context.get("enemies", []) as Array, context.get("destructibles", []) as Array, context.get("enemyBullets", []) as Array, result["killed"] as Array, result["destroyedBoxes"] as Array, hit_effects, result)
 	hit_effects.append({"kind": "center_stage_tick", "owner": weapon_id, "weaponId": weapon_id, "pos": fx["pos"], "radius": radius, "tick": 1, "hitCount": initial_hits, "life": 0.22, "maxLife": 0.22})
 	hit_effects.append(fx)
-	timers[weapon_id] = _stage2_interval(weapon, context, 0.0)
+	# The deployment cadence is separate from the area's internal tick cadence.
+	# Keep _stage2_interval() unchanged for the other stage2 attacks: its
+	# activationInterval/hitInterval priority is still part of their contract.
+	timers[weapon_id] = player_attack_interval(
+		float(weapon.get("attackInterval", 3.0)),
+		float(context.get("intervalRate", 1.0))
+	)
 	return result
 
 static func update_center_stage_fx(fx: Dictionary, delta: float, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, feedback: Dictionary = {}) -> void:
@@ -2843,6 +2870,7 @@ static func _queue_emote_festival_chain(fx: Dictionary, all_fx: Array, output_fx
 static func update_emote_festival_mine_damage(fx: Dictionary, enemies: Array, destructibles: Array, enemy_bullets: Array, killed_enemies: Array, destroyed_boxes: Array, hit_effects: Array, all_fx: Array, feedback: Dictionary = {}) -> void:
 	if bool(fx.get("exploded", false)):
 		return
+	var is_chain_burst := bool(fx.get("chainTriggered", false)) or bool(fx.get("chainQueued", false))
 	var pos := Vector2(fx.get("pos", Vector2.ZERO))
 	var should_explode := bool(fx.get("chainTriggered", false))
 	if not should_explode:
@@ -2867,7 +2895,7 @@ static func update_emote_festival_mine_damage(fx: Dictionary, enemies: Array, de
 	_merge_reaction_result(feedback, {
 		"enemyDamaged": hits > 0, "screenShakePower": float(fx.get("screenShakePower", 0.0)),
 		"screenShakeDuration": float(fx.get("screenShakeDuration", 0.15)), "hitStop": float(fx.get("hitStop", 0.0)),
-		"weaponCommentKind": weapon_comment_kind_for_id(source), "emoteMineExploded": true
+		"weaponCommentKind": weapon_comment_kind_for_id(source), "emoteFestivalMainBurstCount": 0 if is_chain_burst else 1
 	})
 	hit_effects.append({"kind": "emote_festival_burst", "owner": source, "weaponId": source, "pos": pos, "life": 0.28, "maxLife": 0.28, "radius": radius, "chain": bool(fx.get("chainQueued", false)), "visuals": (fx.get("visuals", {}) as Dictionary).duplicate(true)})
 	_queue_emote_festival_chain(fx, all_fx, hit_effects)
@@ -3134,6 +3162,8 @@ static func cleanup_runtime_for_weapon(target: Node, base_id: String = "", evolv
 				states.erase(weapon_id)
 			timers[STAGE2_WEAPON_STATE_KEY] = states
 		target.set("equipment_weapon_timers", timers)
+	if target.has_method("_cleanup_weapon_activation_se_for_weapon_ids"):
+		target.call("_cleanup_weapon_activation_se_for_weapon_ids", ids, base_id == "" and evolved_id == "", reason)
 
 static func _restore_stage2_transient_states(fx: Dictionary) -> void:
 	var states_value: Variant = fx.get("suspendedTargetStates", {})
@@ -3799,7 +3829,10 @@ static func _update_fansa_climax_weapon(weapon: Dictionary, context: Dictionary,
 	states[weapon_id] = state
 	timers[weapon_id] = _stage2_interval(weapon, context, 0.47)
 	var main_life := _stage2_visual_duration(weapon, main_spark_role, 0.24 if step < 2 else 0.34)
-	hit_effects.append({"kind": "fansa_climax_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "origin": attack_origin, "dir": direction, "comboStep": step, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "count": hits + box_hits, "hitEnemyIds": main_hit_ids, "hitBoxIds": main_box_hit_ids, "life": main_life, "maxLife": main_life, "visuals": visuals.duplicate(true)})
+	var audio_source := _stage2_audio_source_weapon(weapon, context)
+	var combo_se_entries: Array = weapon.get("comboAttackSe", audio_source.get("comboAttackSe", [])) as Array
+	var combo_se: Dictionary = combo_se_entries[step] as Dictionary if step < combo_se_entries.size() and combo_se_entries[step] is Dictionary else {}
+	hit_effects.append({"kind": "fansa_climax_hit", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:main" % [weapon_id, attack_serial], "pos": player_pos, "attackOrigin": attack_origin, "origin": attack_origin, "dir": direction, "comboStep": step, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "count": hits + box_hits, "hitEnemyIds": main_hit_ids, "hitBoxIds": main_box_hit_ids, "life": main_life, "maxLife": main_life, "activationSePath": String(combo_se.get("path", "")), "activationSeVolumeDb": float(combo_se.get("volumeDb", 0.0)), "visuals": visuals.duplicate(true)})
 	if step < 2:
 		var echo_life := _stage2_visual_duration(weapon, "echo", 0.22)
 		hit_effects.append({"kind": "fansa_climax_echo", "owner": weapon_id, "weaponId": weapon_id, "attackInstanceId": "%s:%d:echo" % [weapon_id, attack_serial], "pos": player_pos, "dir": direction, "origin": attack_origin, "range": attack_range, "arcAngle": attack_arc, "originOffset": float(selection.get("originOffset", 25.0)), "damage": base_damage * float(weapon.get("echoDamageCoefficient", 0.30)), "delay": float(weapon.get("echoDelay", 0.12)), "hitEnemyIds": {}, "hitBoxIds": {}, "sparkHitIds": {}, "applied": false, "life": echo_life, "maxLife": echo_life, "visuals": visuals.duplicate(true)})
@@ -4010,6 +4043,8 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 	var player_pos := Vector2(context.get("playerPos", Vector2.ZERO))
 	var target_pos := Vector2(target.get("pos", player_pos))
 	var visuals := weapon.get("visuals", {}) as Dictionary
+	var audio_source := _stage2_audio_source_weapon(weapon, context)
+	var cast_se: Dictionary = weapon.get("castSe", audio_source.get("castSe", {})) as Dictionary
 	var coverage := _stage2_coverage_rate(context)
 	var level := int(weapon.get("level", 1))
 	var item_config := rod_collection_config_for_level(weapon, level)
@@ -4022,6 +4057,7 @@ static func _update_buzz_thumbnail_rod_weapon(weapon: Dictionary, context: Dicti
 		"targetBoxUid": int(target.get("uid", -1)) if target_is_box else -1, "lastTargetPos": target_pos,
 		"bossTarget": String(selection.get("targetType", "enemy")) == "boss", "reelDestination": player_pos, "displayPlayerPos": player_pos,
 		"phaseTimer": 0.0, "age": 0.0, "life": 10.0, "maxLife": 10.0, "level": level,
+		"activationSePath": String(cast_se.get("path", "")), "activationSeVolumeDb": float(cast_se.get("volumeDb", 0.0)),
 		"collectionClaimToken": _rod_next_claim_token(weapon_id, timers), "itemCollectionConfig": item_config,
 		"itemAttractRadius": float(item_config.get("attractRadius", 0.0)), "itemReturnSpeed": rod_collection_effective_return_speed(weapon, context), "itemSearchDone": false, "claimedCollectibles": [], "collectionLines": [], "collectionParticles": [],
 		"lureSpeed": float(weapon.get("lureSpeed", 950.0)), "reelSpeed": float(weapon.get("reelSpeed", 1500.0)),
@@ -5494,7 +5530,7 @@ static func update_listener_assembly_damage(fx: Dictionary, delta: float, enemie
 		hit_direction = dir
 	var hit_result := _apply_enemy_hit(target_enemy, damage, hit_direction, float(fx.get("knockback", 0.0)) * 0.7, killed_enemies, hit_effects, feedback.get("barrierHitRequests", []) as Array, source)
 	if hit_result == HIT_DAMAGED:
-		_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerSummonAttacked": true, "weaponCommentKind": source})
+		_merge_reaction_result(feedback, {"enemyDamaged": true, "listenerAssemblyAttacked": true, "weaponCommentKind": source})
 		hit_effects.append({
 			"kind": "listener_burst",
 			"owner": source,

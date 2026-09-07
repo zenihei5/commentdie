@@ -1,0 +1,8 @@
+branch=main
+head=6437e03ad934a7e94806034f7aeb30aa01ff64d3
+status_lines=346
+tracked_entries=80
+untracked_entries=266
+git_diff_check=exit 0 (warnings: existing CRLF normalization notices in data/gifts.json, data/weapons.json, scripts/game.gd, scripts/systems/hud_text_system.gd, scripts/systems/weapon_system.gd)
+git_diff_cached_check=exit 0
+scope_note=The workspace was already dirty before customization-shop V1 work. Existing edits and untracked files are preserved.

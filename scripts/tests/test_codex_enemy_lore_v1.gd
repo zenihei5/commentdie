@@ -239,7 +239,10 @@ func _run_tests() -> void:
 	_check(String(hidden.get("displayName", "")) == "？？？", "undiscovered enemy name masked")
 	for key in ["imagePath", "stageIds", "stageLabels", "spawnTypes", "conditionLines", "relatedEnemyIds", "badges", "classificationBadges", "cards", "loreCards", "archiveParagraphs", "codexVisual"]:
 		var value: Variant = hidden.get(key, null)
-		_check((value is String and String(value) == "") or (value is Array and (value as Array).is_empty()), "undiscovered enemy field masked: %s" % key)
+		var masked_value := (value is String and String(value) == "") \
+			or (value is Array and (value as Array).is_empty()) \
+			or (value is Dictionary and (value as Dictionary).is_empty())
+		_check(masked_value, "undiscovered enemy field masked: %s" % key)
 	var hint_lines: Array = hidden.get("hintLines", []) as Array
 	_check(not hint_lines.is_empty(), "undiscovered enemy has broad hint")
 	_check(not JSON.stringify(hint_lines).contains("秒"), "undiscovered hint has no exact seconds")

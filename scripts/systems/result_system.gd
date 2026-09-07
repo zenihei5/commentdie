@@ -4,6 +4,7 @@ extends RefCounted
 const StreamPointRewardCalculatorScript := preload("res://scripts/systems/stream_point_reward_calculator.gd")
 const PowerUpRunTrackerScript := preload("res://scripts/systems/power_up_run_tracker.gd")
 const StreamPointRewardResultScript := preload("res://scripts/systems/stream_point_reward_result.gd")
+const StreamMissionSystemScript := preload("res://scripts/systems/stream_mission_system.gd")
 const BuzzSystemScript := preload("res://scripts/systems/buzz_system.gd")
 const StreamEvaluationSystemScript := preload("res://scripts/systems/stream_evaluation_system.gd")
 const DifficultyProgressSystemScript := preload("res://scripts/systems/difficulty_progress_system.gd")
@@ -604,6 +605,10 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 	var points_earned := int(reward_commit.get("earnedPoints", 0))
 	result["streamPointReward"] = reward_data
 	result["ppGrantState"] = grant_state
+	result["streamMissionResult"] = (reward_commit.get("streamMissionResult", {}) as Dictionary).duplicate(true)
+	result["streamMissionSnapshot"] = (reward_commit.get("streamMissionSnapshot", {}) as Dictionary).duplicate(true)
+	result["streamMissionPp"] = int((result["streamMissionResult"] as Dictionary).get("missionPp", 0))
+	result["streamMissionSetPp"] = int((result["streamMissionResult"] as Dictionary).get("setPp", 0))
 	result["seniorUnitUnlocked"] = bool(reward_commit.get("seniorUnitUnlocked", false))
 	result["streamPointBalance"] = points_after
 	result["pointRewardView"] = build_point_reward_view(
@@ -612,7 +617,8 @@ static func complete_run_for_target(reason: String, target: Node, quick_test_mod
 		points_before,
 		points_earned,
 		points_after,
-		relay_mode
+		relay_mode,
+		result["streamMissionResult"] as Dictionary
 	)
 	var unlock_result: Dictionary = {"message": "", "saved": true}
 	if not relay_mode:
@@ -689,19 +695,38 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 		bool(profile.get("firstRelayClear", false)),
 		manager.database.reward_rules
 	)
+	var mission_system: RefCounted = StreamMissionSystemScript.load_default()
+	var mission_snapshot: Dictionary = mission_system.call("build_result_snapshot", result, target.get("stream_mission_run_tracker")) as Dictionary
+	var pristine_reward_data: Dictionary = reward.to_dictionary().duplicate(true)
 	var before_balance: int = int(manager.current_points())
 	var senior_unlock_eligible: bool = tracker.should_unlock_senior_unit(input)
-	var grant: Dictionary = manager.grant_reward(tracker.run_id, reward, senior_unlock_eligible)
+	var grant: Dictionary = {}
+	if manager.has_method("grant_reward_with_stream_missions"):
+		grant = manager.grant_reward_with_stream_missions(
+			tracker.run_id,
+			reward,
+			senior_unlock_eligible,
+			{"snapshot": mission_snapshot.duplicate(true)}
+		)
+	elif manager.has_method("grant_reward"):
+		var legacy_grant: Variant = manager.grant_reward(tracker.run_id, reward, senior_unlock_eligible)
+		if legacy_grant is Dictionary:
+			grant = legacy_grant as Dictionary
+	else:
+		grant = {"ok": false, "state": "unavailable", "balance": before_balance}
 	if bool(grant.get("ok", false)):
 		tracker.result_committed = true
 		target.set("pending_power_up_reward", null)
 		var after_balance: int = int(grant.get("balance", manager.current_points()))
 		var grant_state := String(grant.get("state", "granted"))
 		var earned_points := maxi(0, after_balance - before_balance) if grant_state == "granted" else 0
-		return {"state": grant_state, "beforeBalance": before_balance, "earnedPoints": earned_points, "balance": after_balance, "reward": reward, "seniorUnitUnlocked": bool(grant.get("seniorUnitUnlocked", false))}
+		return {"state": grant_state, "beforeBalance": before_balance, "earnedPoints": earned_points, "balance": after_balance, "reward": grant.get("reward", reward), "streamMissionResult": (grant.get("streamMissionResult", {}) as Dictionary).duplicate(true), "streamMissionSnapshot": mission_snapshot.duplicate(true), "seniorUnitUnlocked": bool(grant.get("seniorUnitUnlocked", false))}
 	target.set("pending_power_up_reward", {
 		"runId": tracker.run_id,
-		"reward": reward,
+		# Keep the pristine reward input and mission snapshot immutable so every
+		# save retry replays exactly the same transaction.
+		"rewardData": pristine_reward_data,
+		"streamMissionSnapshot": mission_snapshot.duplicate(true),
 		"seniorUnitUnlockEligible": senior_unlock_eligible,
 		"relayMode": bool(result.get("relayMode", false)),
 		"difficultyId": String(result.get("difficultyId", "normal")),
@@ -711,7 +736,7 @@ static func _commit_power_up_reward(result: Dictionary, target: Node) -> Diction
 	var failure_state := String(grant.get("state", "save_failed"))
 	if failure_state != "save_failed":
 		failure_state = "save_failed"
-	return {"state": failure_state, "beforeBalance": before_balance, "earnedPoints": 0, "balance": int(manager.current_points()), "reward": reward, "seniorUnitUnlocked": false}
+	return {"state": failure_state, "beforeBalance": before_balance, "earnedPoints": 0, "balance": int(manager.current_points()), "reward": reward, "streamMissionResult": (grant.get("streamMissionResult", {}) as Dictionary).duplicate(true), "streamMissionSnapshot": mission_snapshot.duplicate(true), "seniorUnitUnlocked": false}
 
 static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 	var tracker_variant: Variant = target.get("power_up_run_tracker")
@@ -723,32 +748,61 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 	var reward = pending_variant
 	var pending_run_id: String = String(tracker.run_id)
 	var senior_unlock_eligible: bool = false
+	var mission_snapshot: Dictionary = {}
 	if pending_variant is Dictionary:
 		var pending: Dictionary = pending_variant as Dictionary
 		pending_run_id = String(pending.get("runId", pending_run_id))
 		senior_unlock_eligible = bool(pending.get("seniorUnitUnlockEligible", false))
-		reward = pending.get("reward", null)
-	if reward == null or not reward.has_method("to_dictionary"):
+		mission_snapshot = (pending.get("streamMissionSnapshot", {}) as Dictionary).duplicate(true)
+		var reward_data: Variant = pending.get("rewardData", pending.get("reward", null))
+		if reward_data is Dictionary:
+			reward = StreamPointRewardResultScript.from_dictionary((reward_data as Dictionary).duplicate(true))
+		else:
+			reward = reward_data
+	if reward == null or not (reward is Object and (reward as Object).has_method("to_dictionary")):
 		return {"ok": false, "state": "nothing_to_retry"}
 	var before_balance: int = int(manager.current_points())
-	var grant: Dictionary = manager.grant_reward(pending_run_id, reward, senior_unlock_eligible)
+	var grant: Dictionary = {}
+	if manager.has_method("grant_reward_with_stream_missions"):
+		grant = manager.grant_reward_with_stream_missions(
+			pending_run_id,
+			reward,
+			senior_unlock_eligible,
+			{"snapshot": mission_snapshot.duplicate(true)}
+		)
+	elif manager.has_method("grant_reward"):
+		var legacy_grant: Variant = manager.grant_reward(pending_run_id, reward, senior_unlock_eligible)
+		if legacy_grant is Dictionary:
+			grant = legacy_grant as Dictionary
+	else:
+		grant = {"ok": false, "state": "unavailable"}
 	if bool(grant.get("ok", false)):
 		tracker.result_committed = true
 		target.set("pending_power_up_reward", null)
 		var result_data: Dictionary = target.get("last_result_data") as Dictionary
 		result_data["ppGrantState"] = String(grant.get("state", "granted"))
 		result_data["streamPointBalance"] = int(grant.get("balance", manager.current_points()))
-		result_data["streamPointReward"] = reward.to_dictionary()
+		var granted_reward = grant.get("reward", reward)
+		result_data["streamPointReward"] = granted_reward.to_dictionary()
+		var stream_mission_result: Dictionary = (grant.get("streamMissionResult", {}) as Dictionary).duplicate(true)
+		result_data["streamMissionResult"] = stream_mission_result
+		result_data["streamMissionSnapshot"] = mission_snapshot.duplicate(true)
+		result_data["streamMissionPp"] = int(stream_mission_result.get("missionPp", 0))
+		result_data["streamMissionSetPp"] = int(stream_mission_result.get("setPp", 0))
+		result_data["newlyCompletedStreamMissions"] = (stream_mission_result.get("newMissionIds", []) as Array).duplicate()
+		result_data["newlyCompletedStageMissionSets"] = (stream_mission_result.get("newSetIds", []) as Array).duplicate()
+		result_data["streamMissionAllComplete"] = bool(stream_mission_result.get("allMissionsComplete", false))
 		result_data["seniorUnitUnlocked"] = bool(grant.get("seniorUnitUnlocked", false))
 		var after_balance: int = int(grant.get("balance", manager.current_points()))
 		var previous_view: Dictionary = result_data.get("pointRewardView", {}) as Dictionary
 		result_data["pointRewardView"] = build_point_reward_view(
-			reward.to_dictionary(),
+			granted_reward.to_dictionary(),
 			String(grant.get("state", "granted")),
 			int(previous_view.get("pointsBefore", before_balance)),
 			maxi(0, after_balance - int(previous_view.get("pointsBefore", before_balance))),
 			after_balance,
-			bool(result_data.get("relayMode", false))
+			bool(result_data.get("relayMode", false)),
+			stream_mission_result
 		)
 		target.set("last_result_data", result_data)
 		if bool(grant.get("seniorUnitUnlocked", false)):
@@ -769,7 +823,8 @@ static func retry_power_up_reward_for_target(target: Node) -> Dictionary:
 			result_data["unlockPresentationCommit"] = unlock_commit.duplicate(true)
 			result_data["unlockPresentationPending"] = unlock_commit.get("pendingIds", [])
 			target.set("last_result_data", result_data)
-		return {"ok": true, "state": "granted", "balance": manager.current_points()}
+		target.set("last_result_stats", result_data.duplicate(true))
+		return {"ok": true, "state": "granted", "balance": manager.current_points(), "streamMissionResult": stream_mission_result}
 	return {"ok": false, "state": String(grant.get("state", "save_failed"))}
 
 static func point_reward_display_rows(stream_reward: Dictionary, relay_mode: bool) -> Array:
@@ -829,15 +884,22 @@ static func point_reward_display_rows(stream_reward: Dictionary, relay_mode: boo
 		})
 	return multiplier_rows + rows
 
-static func build_point_reward_view(stream_reward: Dictionary, grant_state: String, points_before: int, points_earned: int, points_after: int, relay_mode: bool) -> Dictionary:
+static func build_point_reward_view(stream_reward: Dictionary, grant_state: String, points_before: int, points_earned: int, points_after: int, relay_mode: bool, stream_mission_result: Dictionary = {}) -> Dictionary:
 	var rows: Array = []
 	if grant_state != "already_granted" and grant_state != "unavailable":
 		rows = point_reward_display_rows(stream_reward, relay_mode)
+	if grant_state == "granted":
+		var mission_pp := maxi(0, int(stream_mission_result.get("missionPp", 0)))
+		var set_pp := maxi(0, int(stream_mission_result.get("setPp", 0)))
+		if mission_pp + set_pp > 0:
+			rows.append({"id": "stream_missions", "displayName": "配信目標", "amount": mission_pp + set_pp, "isOneTimeBonus": false, "isStreamMission": true})
 	return {
 		"grantState": grant_state,
 		"pointsBefore": points_before,
 		"pointsEarned": points_earned,
 		"pointsAfter": points_after,
+		"streamMissionPp": int(stream_mission_result.get("missionPp", 0)),
+		"streamMissionSetPp": int(stream_mission_result.get("setPp", 0)),
 		"rewardRows": rows
 	}
 
@@ -959,6 +1021,13 @@ static func build_result_data(result: Dictionary) -> Dictionary:
 		"ppGrantState": String(result.get("ppGrantState", "unavailable")),
 		"streamPointBalance": int(result.get("streamPointBalance", 0)),
 		"pointRewardView": result.get("pointRewardView", {}),
+		"streamMissionSnapshot": result.get("streamMissionSnapshot", {}).duplicate(true),
+		"streamMissionResult": result.get("streamMissionResult", {}).duplicate(true),
+		"streamMissionPp": int(result.get("streamMissionPp", 0)),
+		"streamMissionSetPp": int(result.get("streamMissionSetPp", 0)),
+		"newlyCompletedStreamMissions": ((result.get("streamMissionResult", {}) as Dictionary).get("newMissionIds", []) as Array).duplicate(),
+		"newlyCompletedStageMissionSets": ((result.get("streamMissionResult", {}) as Dictionary).get("newSetIds", []) as Array).duplicate(),
+		"streamMissionAllComplete": bool((result.get("streamMissionResult", {}) as Dictionary).get("allMissionsComplete", false)),
 		"unlockPresentationBefore": result.get("unlockPresentationBefore", {}),
 		"unlockPresentationCommit": result.get("unlockPresentationCommit", {}),
 		"unlockPresentationPending": result.get("unlockPresentationPending", []),

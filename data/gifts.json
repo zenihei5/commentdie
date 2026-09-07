@@ -117,7 +117,7 @@
     "maxLevel": 5,
     "effectType": "equipment_weapon",
     "weight": 8,
-    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon.png"
+    "iconPath": "res://assets/generated/weapon_fx_v1/listener_summon_hd_final_1254.png"
   },
   {
     "id": "stream_power",
@@ -130,7 +130,7 @@
     "maxLevel": 5,
     "effectType": "equipment_accessory",
     "weight": 14,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/stream_power.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/stream_power_hd_final_1254.png"
   },
   {
     "id": "bullet_support",
@@ -143,7 +143,7 @@
     "maxLevel": 3,
     "effectType": "equipment_accessory",
     "weight": 10,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/bullet_support.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/bullet_support_hd_final_1254.png"
   },
   {
     "id": "high_speed_connection",
@@ -208,7 +208,7 @@
     "maxLevel": 5,
     "effectType": "equipment_accessory",
     "weight": 11,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mental_care.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mental_care_hd_final_1254.png"
   },
   {
     "id": "notification_bell",
@@ -221,7 +221,7 @@
     "maxLevel": 5,
     "effectType": "equipment_accessory",
     "weight": 11,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/notification_bell.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/notification_bell_hd_final_1254.png"
   },
   {
     "id": "comment_radar",
@@ -247,7 +247,7 @@
     "maxLevel": 3,
     "effectType": "equipment_accessory",
     "weight": 8,
-    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mini_humidifier.png"
+    "iconPath": "res://assets/generated/equipment_icons_v1/icons/mini_humidifier_hd_final_1254.png"
   },
   {
     "id": "rest",
